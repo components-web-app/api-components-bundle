@@ -13,7 +13,7 @@ class FormPatch extends AbstractForm
 {
     /**
      * @Route(
-     *     name="api_component_forms_validate_item",
+     *     name="silverback_api_component_forms_validate_item",
      *     path="/forms/{id}/submit.{_format}",
      *     requirements={"id"="\d+"},
      *     defaults={
