@@ -1,0 +1,6 @@
+/.idea/
+/composer.lock
+/vendor/
+/src/var/
+/tests/var/
+.DS_Store
