@@ -17,6 +17,11 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
+        ->load('Silverback\\ApiComponentBundle\\', '../../*')
+        ->exclude('../../{Entity,Migrations,Tests}')
+    ;
+
+    $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')
         ->tag('controller.service_arguments')
     ;
