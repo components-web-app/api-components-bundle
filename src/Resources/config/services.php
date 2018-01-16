@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use Cocur\Slugify\SlugifyInterface;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Reference;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -44,7 +45,11 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(SwaggerDecorator::class)
         ->decorate('api_platform.swagger.normalizer.documentation')
-        ->args(['@App\Swagger\SwaggerDecorator.inner'])
+        ->args(
+            [
+                new Reference('@ApiComponentBundle\Swagger\SwaggerDecorator.inner')
+            ]
+        )
         ->autoconfigure(false)
     ;
 };
