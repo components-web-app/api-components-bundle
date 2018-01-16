@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class Form
- * @package App\Entity\Component\Form
+ * @package Silverback\ApiComponentBundle\Entity\Component\Form
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\FormListener"})

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class BaseNav
- * @package App\Entity\Component\Nav
+ * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\MappedSuperclass()
  */
 abstract class Nav extends Component implements NavInterface

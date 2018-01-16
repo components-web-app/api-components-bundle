@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class Route
- * @package App\Entity
+ * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  * @ApiResource(

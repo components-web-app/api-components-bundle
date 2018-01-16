@@ -7,7 +7,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class FormView
- * @package App\Entity\Component\Form
+ * @package Silverback\ApiComponentBundle\Entity\Component\Form
  * @author Daniel West <daniel@silverback.is>
  */
 class FormView

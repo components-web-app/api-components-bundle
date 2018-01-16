@@ -9,14 +9,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class BaseNavItem
- * @package App\Entity\Component\Nav
+ * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\Entity()
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({
- *     "navbar_item" = "App\Entity\Component\Nav\Navbar\NavbarItem",
- *     "menu_item" = "App\Entity\Component\Nav\Menu\MenuItem",
- *     "tab" = "App\Entity\Component\Nav\Tabs\Tab"
+ *     "navbar_item" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\NavbarItem",
+ *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\MenuItem",
+ *     "tab" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tab"
  * })
  */
 abstract class NavItem implements NavItemInterface

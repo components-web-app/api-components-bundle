@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class BaseComponent
- * @package App\Entity\Component
+ * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  * @ORM\InheritanceType("SINGLE_TABLE")
@@ -36,7 +36,7 @@ abstract class Component
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Page", inversedBy="components")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Page", inversedBy="components")
      * @var Page
      */
     private $page;

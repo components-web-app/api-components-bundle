@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *          "normalization_context"={"groups"={"page"}}
  *     }
  * )
- * @ORM\Entity(repositoryClass="App\Repository\PageRepository")
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\PageRepository")
  * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
  */
 class Page
@@ -45,7 +45,7 @@ class Page
     private $metaDescription;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Component\Component", mappedBy="page")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Component", mappedBy="page")
      * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"page"})
      * @var Collection
@@ -53,7 +53,7 @@ class Page
     private $components;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Route", mappedBy="page", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route", mappedBy="page", cascade={"persist", "remove"})
      * @var null|string
      */
     private $routes;
