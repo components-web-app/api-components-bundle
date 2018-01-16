@@ -234,6 +234,7 @@ class Page
      */
     public function addRoute(Route $route)
     {
+        $route->setPage($this);
         $this->routes->add($route);
     }
 

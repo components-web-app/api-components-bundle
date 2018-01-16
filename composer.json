@@ -4,7 +4,7 @@
     "license": "MIT",
     "description": "Built on API Platform, this bundle provides components, form handling and more for a BW Starter website.",
     "require": {
-        "php": "^7.0.8",
+        "php": "^7.1",
         "api-platform/api-pack": "^1.0.1",
         "cocur/slugify": "^3.0",
         "doctrine/data-fixtures": "^1.3",
