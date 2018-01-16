@@ -15,7 +15,7 @@ class FormPost extends AbstractForm
 {
     /**
      * @Route(
-     *     name="silverback_api_component_forms_validate",
+     *     name="silverback_api_component_form_submit",
      *     path="/forms/{id}/submit.{_format}",
      *     requirements={"id"="\d+"},
      *     defaults={
