@@ -1,8 +1,8 @@
 {
     "name": "silverbackis/api-component-bundle",
-    "type": "project",
-    "license": "proprietary",
-    "description": "Project description",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "description": "Built on API Platform, this bundle provides components, form handling and more for a BW Starter website.",
     "require": {
         "php": "^7.0.8",
         "api-platform/api-pack": "^1.0.1",
