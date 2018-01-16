@@ -24,8 +24,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *         "get"={"method"="GET", "normalization_context"={"groups"={"page"}}},
  *         "delete"={"method"="DELETE", "normalization_context"={"groups"={"page"}}},
  *         "put"={"method"="PUT", "denormalization_context"={"groups"={"form_write"}}},
- *         "validate_item"={"method"="PATCH", "route_name"="api_forms_validate_item", "denormalization_context"={"groups"={"none"}}},
- *         "validate_form"={"method"="POST", "route_name"="api_forms_validate", "denormalization_context"={"groups"={"none"}}}
+ *         "validate_item"={"method"="PATCH", "route_name"="api_component_forms_validate_item", "denormalization_context"={"groups"={"none"}}},
+ *         "validate_form"={"method"="POST", "route_name"="api_component_forms_validate", "denormalization_context"={"groups"={"none"}}}
  *     }
  * )
  */
