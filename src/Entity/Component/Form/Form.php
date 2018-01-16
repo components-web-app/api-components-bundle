@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package App\Entity\Component\Form
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
- * @ORM\EntityListeners({"\App\EntityListener\FormListener"})
+ * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\FormListener"})
  * @ApiResource(
  *     collectionOperations={
  *         "get"={"method"="GET", "normalization_context"={"groups"={"page"}}},

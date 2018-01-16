@@ -16,12 +16,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({
- *     "navbar" = "\App\Entity\Component\Nav\Navbar\Navbar",
- *     "menu" = "\App\Entity\Component\Nav\Menu\Menu",
- *     "tabs" = "\App\Entity\Component\Nav\Tabs\Tabs",
- *     "hero" = "\App\Entity\Component\Hero",
- *     "form" = "\App\Entity\Component\Form\Form",
- *     "content" = "\App\Entity\Component\Content"
+ *     "navbar" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar",
+ *     "menu" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\Menu",
+ *     "tabs" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs",
+ *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero",
+ *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
+ *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content"
  * })
  */
 abstract class Component

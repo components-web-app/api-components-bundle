@@ -20,7 +20,7 @@ abstract class Nav extends Component implements NavInterface
     protected $items;
 
     /**
-     * @ORM\OneToMany(targetEntity="\App\Entity\Component\ComponentGroup", mappedBy="parent")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\ComponentGroup", mappedBy="parent")
      * @var Collection
      */
     protected $childGroups;

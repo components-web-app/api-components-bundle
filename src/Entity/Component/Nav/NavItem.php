@@ -35,7 +35,7 @@ abstract class NavItem implements NavItemInterface
     protected $nav;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Route")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Route")
      * @ORM\JoinColumn(referencedColumnName="route", nullable=true)
      * @Groups({"layout", "page"})
      * @var null|Route

@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Hero extends Component
 {
     /**
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Component\Nav\Navbar\Navbar")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
      * @ORM\JoinColumn(nullable=true)
      * @Groups({"page"})
      * @var null|Navbar

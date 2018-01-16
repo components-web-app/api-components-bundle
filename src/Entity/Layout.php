@@ -26,7 +26,7 @@ class Layout
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Component\Nav\Navbar\Navbar")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
      * @var null|Navbar
      * @Groups({"layout"})
      * @MaxDepth(5)

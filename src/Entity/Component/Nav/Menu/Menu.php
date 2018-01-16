@@ -24,7 +24,7 @@ class Menu extends Nav
     protected $items;
 
     /**
-     * @ORM\OneToMany(targetEntity="\App\Entity\Component\ComponentGroup", mappedBy="parent")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\ComponentGroup", mappedBy="parent")
      * @Groups({"page"})
      * @var Collection
      */

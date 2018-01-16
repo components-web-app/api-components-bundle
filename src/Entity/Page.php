@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     }
  * )
  * @ORM\Entity(repositoryClass="App\Repository\PageRepository")
- * @ORM\EntityListeners({"\App\EntityListener\PageListener"})
+ * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
  */
 class Page
 {
