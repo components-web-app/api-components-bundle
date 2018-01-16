@@ -47,7 +47,7 @@ return function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.swagger.normalizer.documentation')
         ->args(
             [
-                new Reference('@ApiComponent\Swagger\SwaggerDecorator.inner')
+                new Reference(SwaggerDecorator::class . '.inner')
             ]
         )
         ->autoconfigure(false)
