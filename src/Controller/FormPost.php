@@ -52,6 +52,10 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
      */
     public function __invoke(Request $request, Form $data, string $_format)
     {
+        header('Access-Control-Allow-Origin: http://localhost');
+        header('Access-Control-Allow-Credentials: true');
+        header('Content-Type: text/html');
+
         $form = $this->formFactory->createForm($data);
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData, true);
@@ -64,9 +68,11 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
             /**
              * @var FormHandlerInterface $handler
              */
+            echo count($this->handlers).'...';
             foreach ($this->handlers as $handler)
             {
-                if ($data->getSuccessHandler() === get_class($handler))
+                $refl = new \ReflectionClass($handler);
+                if ($data->getSuccessHandler() === get_class($handler) || $refl->isSubclassOf($data->getSuccessHandler()))
                 {
                     $handler->success($data);
                     break;
