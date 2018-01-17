@@ -21,7 +21,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "tabs" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs",
  *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero",
  *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
- *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content"
+ *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content",
+ *     "feature_horizontal" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureHorizontal",
+ *     "feature_list" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureList",
+ *     "feature_media" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureMedia",
+ *     "gallery" = "\Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
+ *     "news" = "\Silverback\ApiComponentBundle\Entity\Component\News\News"
  * })
  */
 abstract class Component
