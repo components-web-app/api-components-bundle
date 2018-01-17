@@ -8,6 +8,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Psr\Container\ContainerExceptionInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,12 +62,19 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
-            try {
-                $handler = $this->container->get($data->getSuccessHandler());
-                $handler->success($data);
-            } catch (ContainerExceptionInterface $error) {
-                throw new \BadMethodCallException("Could not call success handler: " . $error->getMessage());
+            /**
+             * @var FormHandlerInterface $handler
+             */
+            foreach ($this->handlers as $handler)
+            {
+                dump($handler);
+                if ($data->getSuccessHandler() === get_class($handler))
+                {
+                    $handler->success($data);
+                    break;
+                }
             }
+            exit();
         }
         return $this->getResponse($data, $_format, $valid);
     }
