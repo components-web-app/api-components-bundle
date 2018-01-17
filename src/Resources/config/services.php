@@ -3,7 +3,10 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
+use Silverback\ApiComponentBundle\Controller\FormPost;
+use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -51,5 +54,18 @@ return function (ContainerConfigurator $configurator) {
             ]
         )
         ->autoconfigure(false)
+    ;
+
+    $services
+        ->instanceof(FormHandlerInterface::class)
+        ->tag('silverback_api_component.form_handler')
+    ;
+
+    $services
+        ->set(FormPost::class)
+        ->args([
+            '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
+        ])
+        ->tag('controller.service_arguments')
     ;
 };

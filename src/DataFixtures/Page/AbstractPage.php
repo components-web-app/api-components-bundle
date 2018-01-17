@@ -10,6 +10,8 @@ use Silverback\ApiComponentBundle\Entity\Component\Content;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
 use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Symfony\Component\Form\AbstractType;
 
 /**
  * Class AbstractPage
@@ -67,7 +69,7 @@ abstract class AbstractPage extends AbstractFixture
         return $hero;
     }
 
-    protected function addForm (string $className, string $successHandler)
+    protected function addForm (AbstractType $formType, FormHandlerInterface $successHandler)
     {
         $form = new Form();
         if ($this->entity instanceof ComponentGroup) {
@@ -75,7 +77,7 @@ abstract class AbstractPage extends AbstractFixture
         } else {
             $form->setPage($this->entity);
         }
-        $form->setClassName($className);
+        $form->setClassName($formType);
         $form->setSuccessHandler($successHandler);
         $this->manager->persist($form);
         return $form;

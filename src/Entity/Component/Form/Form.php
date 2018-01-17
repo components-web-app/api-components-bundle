@@ -7,6 +7,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -68,11 +70,11 @@ class Form extends Component
     }
 
     /**
-     * @param string $className
+     * @param AbstractType $className
      */
-    public function setClassName(string $className): void
+    public function setClassName(AbstractType $className): void
     {
-        $this->className = $className;
+        $this->className = get_class($className);
     }
 
     /**
@@ -116,10 +118,10 @@ class Form extends Component
     }
 
     /**
-     * @param null|string $successHandler
+     * @param null|FormHandlerInterface $successHandler
      */
-    public function setSuccessHandler(?string $successHandler): void
+    public function setSuccessHandler(?FormHandlerInterface $successHandler): void
     {
-        $this->successHandler = $successHandler;
+        $this->successHandler = $successHandler ? get_class($successHandler) : null;
     }
 }
