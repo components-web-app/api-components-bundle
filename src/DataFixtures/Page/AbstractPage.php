@@ -5,10 +5,16 @@ namespace Silverback\ApiComponentBundle\DataFixtures\Page;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureHorizontal;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureList;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureMedia;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\News\News;
 use Silverback\ApiComponentBundle\Entity\Page;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Form\AbstractType;
@@ -39,50 +45,6 @@ abstract class AbstractPage extends AbstractFixture
         }
     }
 
-    protected function addContent (array $ops = null)
-    {
-        if (!$ops) {
-            $ops = ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'];
-        }
-        $textBlock = new Content();
-        if ($this->entity instanceof ComponentGroup) {
-            $textBlock->setGroup($this->entity);
-        } else {
-            $textBlock->setPage($this->entity);
-        }
-        $textBlock->setContent(file_get_contents('http://loripsum.net/api/' . join('/', $ops)));
-        $this->manager->persist($textBlock);
-        return $textBlock;
-    }
-
-    protected function addHero (string $title, string $subtitle = null)
-    {
-        $hero = new Hero();
-        if ($this->entity instanceof ComponentGroup) {
-            $hero->setGroup($this->entity);
-        } else {
-            $hero->setPage($this->entity);
-        }
-        $hero->setTitle($title);
-        $hero->setSubtitle($subtitle);
-        $this->manager->persist($hero);
-        return $hero;
-    }
-
-    protected function addForm (AbstractType $formType, FormHandlerInterface $successHandler)
-    {
-        $form = new Form();
-        if ($this->entity instanceof ComponentGroup) {
-            $form->setGroup($this->entity);
-        } else {
-            $form->setPage($this->entity);
-        }
-        $form->setClassName($formType);
-        $form->setSuccessHandler($successHandler);
-        $this->manager->persist($form);
-        return $form;
-    }
-
     protected function flush ()
     {
         parent::flush();
@@ -96,5 +58,80 @@ abstract class AbstractPage extends AbstractFixture
         }
         $redirectFrom->getRoutes()->first()->setRedirect($this->entity->getRoutes()->first());
         $this->manager->flush();
+    }
+
+    protected function addContent (array $ops = null)
+    {
+        if (!$ops) {
+            $ops = ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'];
+        }
+        $textBlock = new Content();
+        $this->setOwner($textBlock);
+        $textBlock->setContent(file_get_contents('http://loripsum.net/api/' . join('/', $ops)));
+        $this->manager->persist($textBlock);
+        return $textBlock;
+    }
+
+    protected function addHero (string $title, string $subtitle = null)
+    {
+        $hero = new Hero();
+        $this->setOwner($hero);
+        $hero->setTitle($title);
+        $hero->setSubtitle($subtitle);
+        $this->manager->persist($hero);
+        return $hero;
+    }
+
+    protected function addForm (AbstractType $formType, FormHandlerInterface $successHandler)
+    {
+        $form = new Form();
+        $this->setOwner($form);
+        $form->setClassName($formType);
+        $form->setSuccessHandler($successHandler);
+        $this->manager->persist($form);
+        return $form;
+    }
+
+    protected function addFeatureHorizontal () {
+        $feature = new FeatureHorizontal();
+        $this->setOwner($feature);
+        $this->manager->persist($feature);
+        return $feature;
+    }
+
+    protected function addFeatureList () {
+        $feature = new FeatureList();
+        $this->setOwner($feature);
+        $this->manager->persist($feature);
+        return $feature;
+    }
+
+    protected function addFeatureMedia () {
+        $feature = new FeatureMedia();
+        $this->setOwner($feature);
+        $this->manager->persist($feature);
+        return $feature;
+    }
+
+    protected function addGallery () {
+        $feature = new Gallery();
+        $this->setOwner($feature);
+        $this->manager->persist($feature);
+        return $feature;
+    }
+
+    protected function addNews () {
+        $feature = new News();
+        $this->setOwner($feature);
+        $this->manager->persist($feature);
+        return $feature;
+    }
+
+    private function setOwner(Component &$component) {
+        if ($this->entity instanceof ComponentGroup) {
+            $component->setGroup($this->entity);
+        } else {
+            $component->setPage($this->entity);
+        }
     }
 }
