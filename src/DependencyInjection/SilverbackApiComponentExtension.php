@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
+use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -21,5 +22,10 @@ class SilverbackApiComponentExtension extends Extension
             new FileLocator(__DIR__.'/../Resources/config')
         );
         $loader->load('services.php');
+
+        $container->registerForAutoconfiguration(FormHandlerInterface::class)
+            ->addTag('silverback_api_component.form_handler')
+            ->setLazy(true)
+        ;
     }
 }

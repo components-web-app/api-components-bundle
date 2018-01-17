@@ -61,7 +61,6 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
-            dump($this->handlers);
             /**
              * @var FormHandlerInterface $handler
              */
@@ -73,7 +72,6 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
                     break;
                 }
             }
-            exit();
         }
         return $this->getResponse($data, $_format, $valid);
     }

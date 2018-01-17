@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
 use Silverback\ApiComponentBundle\Controller\FormPost;
-use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -36,7 +35,7 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
-        ->load('Silverback\\ApiComponentBundle\\DataProvider\\', '../../DataProvider/*')
+        ->load('Silverback\\ApiComponentBundle\\DataProvider\\', '../../DataProvider')
         ->tag('api_platform.item_data_provider', [ 'priority' => 1 ])
         ->autoconfigure(false)
     ;
@@ -54,11 +53,6 @@ return function (ContainerConfigurator $configurator) {
             ]
         )
         ->autoconfigure(false)
-    ;
-
-    $services
-        ->instanceof(FormHandlerInterface::class)
-        ->tag('silverback_api_component.form_handler')
     ;
 
     $services
