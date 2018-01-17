@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
-use Psr\Container\ContainerExceptionInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
@@ -62,12 +61,12 @@ class FormPost extends AbstractForm implements ServiceSubscriberInterface
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
+            dump($this->handlers);
             /**
              * @var FormHandlerInterface $handler
              */
             foreach ($this->handlers as $handler)
             {
-                dump($handler);
                 if ($data->getSuccessHandler() === get_class($handler))
                 {
                     $handler->success($data);
