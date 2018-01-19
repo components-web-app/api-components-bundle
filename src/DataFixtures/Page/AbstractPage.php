@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Page;
 
+use GuzzleHttp\Client;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -27,6 +28,16 @@ use Symfony\Component\Form\AbstractType;
  */
 abstract class AbstractPage extends AbstractFixture
 {
+    /**
+     * @var \GuzzleHttp\Client
+     */
+    private $client;
+
+    public function __construct()
+    {
+        $this->client = new Client();
+    }
+
     /**
      * @var bool
      */
@@ -67,7 +78,8 @@ abstract class AbstractPage extends AbstractFixture
         }
         $textBlock = new Content();
         $this->setOwner($textBlock);
-        $textBlock->setContent(file_get_contents('http://loripsum.net/api/' . join('/', $ops)));
+        $res = $this->client->request('GET', 'http://loripsum.net/api/' . join('/', $ops));
+        $textBlock->setContent($res->getBody());
         $this->manager->persist($textBlock);
         return $textBlock;
     }
