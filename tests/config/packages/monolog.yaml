@@ -1,0 +1,5 @@
+monolog:
+    handlers:
+        test:
+            type: test
+            level: info

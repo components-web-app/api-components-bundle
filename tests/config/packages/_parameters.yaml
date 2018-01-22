@@ -1,0 +1,3 @@
+parameters:
+    kernel.secret: NotSecret
+    kernel.debug: true
