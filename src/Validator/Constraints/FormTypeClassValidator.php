@@ -4,8 +4,10 @@ namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
+use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FormTypeClassValidator extends ConstraintValidator
 {
@@ -20,22 +22,24 @@ class FormTypeClassValidator extends ConstraintValidator
 
     public function validate($value, Constraint $constraint)
     {
-        $valid = false;
-        foreach ($this->formTypes as $formType)
-        {
-            if (get_class($formType) === $value) {
-                $valid = true;
-                break;
+        try {
+            $valid = ClassNameValidator::validate($value, $this->formTypes);
+            if (!$valid) {
+                $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [
+                    AbstractType::class,
+                    FormTypeInterface::class,
+                    'silverback_api_component.form_type'
+                ]);
+                $this->context
+                    ->buildViolation($constraint->message . $conditionsStr)
+                    ->setParameter('{{ string }}', $value)
+                    ->addViolation()
+                ;
             }
-        }
-        if (!$valid) {
-            $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [
-                AbstractType::class,
-                FormTypeInterface::class,
-                'silverback_api_component.form_type'
-            ]);
+        } catch (InvalidArgumentException $exception)
+        {
             $this->context
-                ->buildViolation($constraint->message . $conditionsStr)
+                ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)
                 ->addViolation()
             ;

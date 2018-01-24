@@ -8,6 +8,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
 {
     /**
-     * @var iterable
+     * @var FormHandlerInterface[]
      */
     private $handlers;
 
@@ -54,20 +55,16 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
     {
         $form = $this->formFactory->createForm($data);
         $formData = $this->deserializeFormData($form, $request->getContent());
-        $form->submit($formData, true);
+        $form->submit($formData);
         if (!$form->isSubmitted()) {
             return $this->getResponse($data, $_format, false);
         }
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
-            /**
-             * @var FormHandlerInterface $handler
-             */
             foreach ($this->handlers as $handler)
             {
-                $refl = new \ReflectionClass($handler);
-                if ($data->getSuccessHandler() === get_class($handler) || $refl->isSubclassOf($data->getSuccessHandler()))
+                if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler))
                 {
                     $handler->success($data);
                     break;

@@ -2,9 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
+use ProxyManager\Proxy\LazyLoadingInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FormHandlerClassValidator extends ConstraintValidator
 {
@@ -22,36 +25,23 @@ class FormHandlerClassValidator extends ConstraintValidator
         if (null === $value) {
             return;
         }
-        if (!class_exists($value)) {
-            $this->context
-                ->buildViolation($constraint->message . ' No such class exists')
-                ->setParameter('{{ string }}', $value)
-                ->addViolation()
-            ;
-            return;
-        }
-        $valid = false;
-        foreach ($this->formHandlers as $formHandler)
-        {
-            if (get_class($formHandler) === $value) {
-                $valid = true;
-                break;
-            } else {
-                $refl = new \ReflectionClass($formHandler);
-                if ($refl->isSubclassOf($value))
-                {
-                    $valid = true;
-                    break;
-                }
+        try {
+            $valid = ClassNameValidator::validate($value, $this->formHandlers);
+            if (!$valid) {
+                $conditionsStr = vsprintf(' It should implement %s or tagged %s', [
+                    FormHandlerInterface::class,
+                    'silverback_api_component.form_handler'
+                ]);
+                $this->context
+                    ->buildViolation($constraint->message . $conditionsStr)
+                    ->setParameter('{{ string }}', $value)
+                    ->addViolation()
+                ;
             }
-        }
-        if (!$valid) {
-            $conditionsStr = vsprintf(' It should implement %s or tagged %s', [
-                FormHandlerInterface::class,
-                'silverback_api_component.form_handler'
-            ]);
+        } catch (InvalidArgumentException $exception)
+        {
             $this->context
-                ->buildViolation($constraint->message . $conditionsStr)
+                ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)
                 ->addViolation()
             ;

@@ -3,20 +3,21 @@ Feature: Forms
   As a website user
   I am able to perform CRUD operations form form entities + submit forms
 
+  Background:
+    Given I add "Content-Type" header equal to "application/ld+json"
+
   @createSchema
   Scenario: Do NOT create form with invalid class name
-    When I add "Content-Type" header equal to "application/ld+json"
-    And I send a "POST" request to "/forms" with body:
+    When I send a "POST" request to "/forms" with body:
     """
     {
-      "formType": "InvalidClassName",
+      "formType": "InvalidClassName"
     }
     """
     Then the response status code should be 400
 
   Scenario: Do NOT create form with invalid form success handler
-    When I add "Content-Type" header equal to "application/ld+json"
-    And I send a "POST" request to "/forms" with body:
+    When I send a "POST" request to "/forms" with body:
     """
     {
       "formType": "Silverback\\ApiComponentBundle\\Tests\\TestBundle\\Form\\TestType",
@@ -26,8 +27,7 @@ Feature: Forms
     Then the response status code should be 400
 
   Scenario: Create a form
-    When I add "Content-Type" header equal to "application/ld+json"
-    And I send a "POST" request to "/forms" with body:
+    When I send a "POST" request to "/forms" with body:
     """
     {
       "formType": "Silverback\\ApiComponentBundle\\Tests\\TestBundle\\Form\\TestType",
@@ -36,19 +36,31 @@ Feature: Forms
     """
     Then the response status code should be 201
 
+  Scenario: Submit invalid form field
+    When I send a "PATCH" request to "/forms/1/submit" with body:
+    """
+    { "test": { "name": "" } }
+    """
+    Then the response status code should be 400
+
+  Scenario: Submit valid form field
+    When I send a "PATCH" request to "/forms/1/submit" with body:
+    """
+    { "test": { "name": "Valid name" } }
+    """
+    Then the response status code should be 200
+
   Scenario: Submit invalid form
     When I send a "POST" request to "/forms/1/submit" with body:
     """
     { "test": { "name": "" } }
     """
-    And I add "Content-Type" header equal to "application/ld+json"
-    Then the response status code should be 406
+    Then the response status code should be 400
 
   @dropSchema
   Scenario: Submit valid form
     When I send a "POST" request to "/forms/1/submit" with body:
     """
-    { "test": { "name": "Your Name Here" } }
+    { "test": { "name": "Valid name" } }
     """
-    And I add "Content-Type" header equal to "application/ld+json"
     Then the response status code should be 200
