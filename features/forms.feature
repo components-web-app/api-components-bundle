@@ -64,3 +64,4 @@ Feature: Forms
     { "test": { "name": "Valid name" } }
     """
     Then the response status code should be 200
+    And the service "Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler" should have property "info" with a value of "Form submitted"
