@@ -8,7 +8,7 @@ default:
     extensions:
         'Behat\Symfony2Extension':
           kernel:
-            env: '%env(APP_ENV)%'
+            # env: '%env(APP_ENV)%'
             debug: 'true'
             path: 'tests/app/AppKernel.php'
             bootstrap: 'tests/app/bootstrap.php'

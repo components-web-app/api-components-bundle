@@ -1,7 +1,7 @@
 Feature: Forms
   In order to support submitting a form back to the API
   As a website user
-  I am able to perform CRUD operations form form entities + submit forms
+  I can create, validate and submit forms
 
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"

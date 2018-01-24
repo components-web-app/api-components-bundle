@@ -98,8 +98,8 @@ abstract class AbstractPage extends AbstractFixture
     {
         $form = new Form();
         $this->setOwner($form);
-        $form->setClassName($formType);
-        $form->setSuccessHandler($successHandler);
+        $form->setClassName(get_class($formType));
+        $form->setSuccessHandler(get_class($successHandler));
         $this->manager->persist($form);
         return $form;
     }
