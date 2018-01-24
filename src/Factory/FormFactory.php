@@ -20,7 +20,6 @@ class FormFactory {
     private $router;
 
     /**
-     * FormDataProvider constructor.
      * @param FormFactoryInterface $formFactory
      * @param RouterInterface $router
      */
@@ -40,7 +39,7 @@ class FormFactory {
     public function createForm (Form $component): FormInterface
     {
         return $this->formFactory->create(
-            $component->getClassName(),
+            $component->getFormType(),
             null,
             [
                 'method' => 'POST',

@@ -35,7 +35,7 @@ class Route
     /**
      * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Page", inversedBy="routes")
      * @ORM\JoinColumn(fieldName="page_id", referencedColumnName="id", nullable=true)
-     * @Groups({"layout", "page"})
+     * @Groups({"layout", "page", "route"})
      * @var null|Page
      */
     private $page;

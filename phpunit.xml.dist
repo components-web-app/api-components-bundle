@@ -1,25 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.3/phpunit.xsd"
-    backupGlobals="false"
-    colors="true"
-    bootstrap="tests/bootstrap.php" >
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.0/phpunit.xsd"
+         backupGlobals="false"
+         bootstrap="tests/app/bootstrap.php"
+         colors="true"
+>
     <php>
-        <env name="DATABASE_URL" value="mysql://symfony:symfony@127.0.0.1/api_component_bundle_test" />
-        <env name="KERNEL_CLASS" value="Silverback\ApiComponentBundle\Tests\Kernel" />
+        <ini name="error_reporting" value="-1" />
+        <ini name="memory_limit" value="-1" />
+        <server name="KERNEL_DIR" value="tests/app/" />
+        <server name="KERNEL_CLASS" value="AppKernel" />
     </php>
+
     <logging>
         <log type="coverage-clover" target="clover.xml"/>
     </logging>
+
     <testsuites>
-        <testsuite name="Bundle Test Suite">
-            <directory>./tests/</directory>
+        <testsuite name="Project Test Suite">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
+
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory>./src/</directory>
+            <directory>.</directory>
+            <exclude>
+                <directory>tests</directory>
+                <directory>features</directory>
+                <directory>vendor</directory>
+            </exclude>
         </whitelist>
     </filter>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+    </listeners>
 </phpunit>

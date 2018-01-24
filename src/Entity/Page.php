@@ -61,6 +61,7 @@ class Page
     /**
      * @ORM\ManyToOne(targetEntity="Page", inversedBy="children")
      * @ORM\JoinColumn(nullable=true)
+     * @Groups({"route"})
      * @var null|Page
      */
     private $parent;

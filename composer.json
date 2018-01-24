@@ -23,12 +23,18 @@
         "symfony/proxy-manager-bridge": "^4.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.5",
+        "behat/behat": "^3.1",
+        "behat/mink": "^1.7",
+        "behat/mink-browserkit-driver": "dev-master@dev",
+        "behat/mink-extension": "^2.2",
+        "behat/symfony2-extension": "^2.1.1",
+        "behatch/contexts": "dev-master",
+        "phpunit/phpunit": "^6.0",
         "symfony/dotenv": "^3.4 || ^4.0",
-        "symfony/phpunit-bridge": "^4.0",
-        "symfony/profiler-pack": "^1.0",
+        "symfony/maker-bundle": "^1.0",
         "symfony/monolog-bundle": "^3.1",
-        "symfony/maker-bundle": "^1.0"
+        "symfony/phpunit-bridge": "^4.0",
+        "symfony/profiler-pack": "^1.0"
     },
     "config": {
         "preferred-install": {

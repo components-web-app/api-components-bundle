@@ -1,0 +1,30 @@
+default:
+    suites:
+        default:
+          contexts:
+            - 'FeatureContext': { doctrine: '@doctrine' }
+            - 'Behat\MinkExtension\Context\MinkContext'
+            - 'Behatch\Context\RestContext'
+    extensions:
+        'Behat\Symfony2Extension':
+          kernel:
+            env: '%env(APP_ENV)%'
+            debug: 'true'
+            path: 'tests/app/AppKernel.php'
+            bootstrap: 'tests/app/bootstrap.php'
+        'Behat\MinkExtension':
+          show_auto: true
+          show_cmd: open %s
+          base_url: "http://localhost"
+          sessions:
+            default:
+              symfony2: ~
+        'Behatch\Extension': ~
+
+coverage:
+  suites:
+    default:
+      contexts:
+        - 'FeatureContext': { doctrine: '@doctrine' }
+        - 'Behat\MinkExtension\Context\MinkContext'
+        - 'Behatch\Context\RestContext'

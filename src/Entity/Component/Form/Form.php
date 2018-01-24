@@ -4,12 +4,12 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiSubresource;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Form
@@ -36,9 +36,11 @@ class Form extends Component
     /**
      * @ORM\Column(type="string")
      * @Groups({"page", "form_write"})
+     * @ACBAssert\FormTypeClass()
+     * @Assert\NotBlank()
      * @var string
      */
-    private $className;
+    private $formType;
 
     /**
      * @ApiProperty(writable=false)
@@ -57,6 +59,8 @@ class Form extends Component
 
     /**
      * @ORM\Column(type="string")
+     * @ACBAssert\FormHandlerClass()
+     * @Groups({"form_write"})
      * @var null|string
      */
     private $successHandler;
@@ -64,17 +68,17 @@ class Form extends Component
     /**
      * @return string
      */
-    public function getClassName(): string
+    public function getFormType(): string
     {
-        return $this->className;
+        return $this->formType;
     }
 
     /**
-     * @param AbstractType $className
+     * @param string $formType
      */
-    public function setClassName(AbstractType $className): void
+    public function setFormType(string $formType): void
     {
-        $this->className = get_class($className);
+        $this->formType = $formType;
     }
 
     /**
@@ -118,10 +122,10 @@ class Form extends Component
     }
 
     /**
-     * @param null|FormHandlerInterface $successHandler
+     * @param null|string $successHandler
      */
-    public function setSuccessHandler(?FormHandlerInterface $successHandler): void
+    public function setSuccessHandler(?string $successHandler): void
     {
-        $this->successHandler = $successHandler ? get_class($successHandler) : null;
+        $this->successHandler = $successHandler;
     }
 }

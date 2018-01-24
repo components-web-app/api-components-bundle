@@ -2,10 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Page;
 
+use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
-use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;

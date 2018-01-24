@@ -2,5 +2,5 @@
 /composer.lock
 /vendor/
 /src/var/
-/tests/var/
+/tests/app/var/
 .DS_Store

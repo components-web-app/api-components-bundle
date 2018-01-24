@@ -52,7 +52,7 @@ class FormCacheClear extends Command
 
     private function updateFormTimestamp(Form $form)
     {
-        $formClass = $form->getClassName();
+        $formClass = $form->getFormType();
         $reflector = new \ReflectionClass($formClass);
         $dateTime = new \DateTime();
         $timestamp = filemtime($reflector->getFileName());
