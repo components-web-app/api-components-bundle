@@ -118,17 +118,17 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
     }
 
     /**
-     * @return int
+     * @return null|string
      */
-    public function getLink(): int
+    public function getLink(): ?string
     {
         return $this->link;
     }
 
     /**
-     * @param int $link
+     * @param null|string $link
      */
-    public function setLink(int $link): void
+    public function setLink(?string $link): void
     {
         $this->link = $link;
     }

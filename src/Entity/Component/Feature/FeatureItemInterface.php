@@ -35,12 +35,12 @@ interface FeatureItemInterface
     public function setSortOrder(?int $sortOrder): void;
 
     /**
-     * @return int
+     * @return null|string
      */
-    public function getLink(): int;
+    public function getLink(): ?string;
 
     /**
-     * @param int $link
+     * @param null|string $link
      */
-    public function setLink(int $link): void;
+    public function setLink(?string $link): void;
 }
