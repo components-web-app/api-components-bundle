@@ -24,14 +24,14 @@ use Silverback\ApiComponentBundle\Entity\Page;
 abstract class AbstractPage extends AbstractFixture
 {
 
-    private $heroComponent;
-    private $contentComponent;
-    private $featureStackedComponent;
-    private $featureColumnsComponent;
-    private $featureTextListComponent;
-    private $formComponent;
-    private $galleryComponent;
-    private $newsComponent;
+    protected $heroComponent;
+    protected $contentComponent;
+    protected $featureStackedComponent;
+    protected $featureColumnsComponent;
+    protected $featureTextListComponent;
+    protected $formComponent;
+    protected $galleryComponent;
+    protected $newsComponent;
 
     public function __construct(
         HeroComponent $heroComponent,
