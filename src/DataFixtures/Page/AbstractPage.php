@@ -9,16 +9,14 @@ use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureColumns;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureTextList;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureStacked;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
 use Silverback\ApiComponentBundle\Entity\Component\News\News;
 use Silverback\ApiComponentBundle\Entity\Page;
-use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
-use Symfony\Component\Form\AbstractType;
 
 /**
  * Class AbstractPage
@@ -104,21 +102,21 @@ abstract class AbstractPage extends AbstractFixture
         return $form;
     }
 
-    protected function addFeatureHorizontal () {
+    protected function addFeatureColumns () {
         $feature = new FeatureColumns();
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;
     }
 
-    protected function addFeatureList () {
+    protected function addFeatureTextList () {
         $feature = new FeatureTextList();
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;
     }
 
-    protected function addFeatureMedia () {
+    protected function addFeatureStacked () {
         $feature = new FeatureStacked();
         $this->setOwner($feature);
         $this->manager->persist($feature);
