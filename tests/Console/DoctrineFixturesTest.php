@@ -9,20 +9,21 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\StringInput;
 
-class DoctrineFixturesTestOld extends WebTestCase
+class DoctrineFixturesTest extends WebTestCase
 {
     protected static $container;
     protected static $application;
-    protected $em;
+    protected static $em;
 
     /**
      * @throws \Exception
      */
-    public function setUp ()
+    public static function setUpBeforeClass ()
     {
+        parent::setUpBeforeClass();
         self::runCommand('api-component-bundle:fixtures:load');
         $container = static::$kernel->getContainer();
-        $this->em = $container->get('doctrine')->getManager();
+        self::$em = $container->get('doctrine')->getManager();
     }
 
     /**
@@ -54,7 +55,7 @@ class DoctrineFixturesTestOld extends WebTestCase
 
     private function getEntities (string $cls)
     {
-        $entities = $this->em->getRepository($cls)->findAll();
+        $entities = self::$em->getRepository($cls)->findAll();
         return $entities;
     }
 
@@ -68,7 +69,7 @@ class DoctrineFixturesTestOld extends WebTestCase
          * @var $page Page
          */
         $page = $entities[0];
-        // $this->assertEquals(count($page->getComponents()), 3);
+        $this->assertEquals(count($page->getComponents()), 3);
         $this->assertEquals($page->getTitle(), 'Dummy Title');
         $this->assertEquals($page->getMetaDescription(), 'Dummy Meta Description');
         $this->assertEquals($page->getRoutes()->first()->getRoute(), '/');
@@ -97,5 +98,12 @@ class DoctrineFixturesTestOld extends WebTestCase
          */
         $content = $entities[0];
         $this->assertEquals($content->getContent(), 'Dummy content');
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+        self::$em->close();
+        self::$em = null; // avoid memory leaks
     }
 }
