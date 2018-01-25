@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -20,4 +21,12 @@ class FeatureStacked extends AbstractFeature
      * @Groups({"page"})
      */
     protected $items;
+
+    /**
+     * @return FeatureItemInterface
+     */
+    public function createItem(): FeatureItemInterface
+    {
+        return new FeatureStackedItem();
+    }
 }

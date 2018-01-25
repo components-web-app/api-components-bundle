@@ -25,4 +25,9 @@ interface FeatureInterface
      * @param FeatureItemInterface $item
      */
     public function removeItem(FeatureItemInterface $item): void;
+
+    /**
+     * @return FeatureItemInterface
+     */
+    public function createItem(): FeatureItemInterface;
 }

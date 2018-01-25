@@ -10,8 +10,10 @@ use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
@@ -114,6 +116,24 @@ abstract class AbstractPage extends AbstractFixture
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;
+    }
+
+    protected function addFeatureItem (FeatureInterface $feature, string $label, int $order = null, ?string $link) {
+        if (null === $order) {
+            $lastItem = $feature->getItems()->last();
+            if (!$lastItem) {
+                $order = 0;
+            } else {
+                $order = $lastItem->getSortOrder() + 1;
+            }
+        }
+        $featureItem = $feature->createItem();
+        $featureItem->setLabel($label);
+        $featureItem->setSortOrder($order);
+        $featureItem->setLink($link);
+        $feature->addItem($featureItem);
+        $this->manager->persist($featureItem);
+        return $featureItem;
     }
 
     protected function addFeatureStacked () {
