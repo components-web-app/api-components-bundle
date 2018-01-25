@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class BaseNavItem
+ * Class AbstractNavItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\Entity()
  * @ORM\InheritanceType("SINGLE_TABLE")
@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "tab" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tab"
  * })
  */
-abstract class NavItem implements NavItemInterface
+abstract class AbstractNavItem implements NavItemInterface
 {
     /**
      * @ORM\Id
@@ -30,7 +30,7 @@ abstract class NavItem implements NavItemInterface
     private $id;
 
     /**
-     * @var Nav
+     * @var AbstractNav
      */
     protected $nav;
 
@@ -64,9 +64,9 @@ abstract class NavItem implements NavItemInterface
     private $sortOrder;
 
     /**
-     * @ORM\OneToOne(targetEntity="Nav")
+     * @ORM\OneToOne(targetEntity="AbstractNav")
      * @Groups({"layout", "page"})
-     * @var null|Nav
+     * @var null|AbstractNav
      */
     private $child;
 
@@ -87,17 +87,17 @@ abstract class NavItem implements NavItemInterface
     }
 
     /**
-     * @return Nav
+     * @return AbstractNav
      */
-    public function getNav(): Nav
+    public function getNav(): AbstractNav
     {
         return $this->nav;
     }
 
     /**
-     * @param Nav $nav
+     * @param AbstractNav $nav
      */
-    public function setNav(Nav $nav): void
+    public function setNav(AbstractNav $nav): void
     {
         $this->nav = $nav;
     }
@@ -167,17 +167,17 @@ abstract class NavItem implements NavItemInterface
     }
 
     /**
-     * @return Nav|null
+     * @return AbstractNav|null
      */
-    public function getChild(): ?Nav
+    public function getChild(): ?AbstractNav
     {
         return $this->child;
     }
 
     /**
-     * @param Nav|null $child
+     * @param AbstractNav|null $child
      */
-    public function setChild(?Nav $child): void
+    public function setChild(?AbstractNav $child): void
     {
         $this->child = $child;
     }

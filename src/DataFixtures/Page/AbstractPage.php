@@ -9,9 +9,9 @@ use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureHorizontal;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureList;
-use Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureMedia;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureColumns;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureTextList;
+use Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureStacked;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
@@ -105,21 +105,21 @@ abstract class AbstractPage extends AbstractFixture
     }
 
     protected function addFeatureHorizontal () {
-        $feature = new FeatureHorizontal();
+        $feature = new FeatureColumns();
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;
     }
 
     protected function addFeatureList () {
-        $feature = new FeatureList();
+        $feature = new FeatureTextList();
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;
     }
 
     protected function addFeatureMedia () {
-        $feature = new FeatureMedia();
+        $feature = new FeatureStacked();
         $this->setOwner($feature);
         $this->manager->persist($feature);
         return $feature;

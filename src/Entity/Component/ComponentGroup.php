@@ -25,7 +25,7 @@ class ComponentGroup
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Nav", inversedBy="childGroups")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav", inversedBy="childGroups")
      * @var Component
      */
     protected $parent;

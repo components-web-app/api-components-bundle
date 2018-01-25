@@ -22,9 +22,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero",
  *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
  *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content",
- *     "feature_horizontal" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal\FeatureHorizontal",
- *     "feature_list" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureList\FeatureList",
- *     "feature_media" = "\Silverback\ApiComponentBundle\Entity\Component\FeatureMedia\FeatureMedia",
+ *     "feature_columns" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
+ *     "feature_stacked" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
+ *     "feature_text_list" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
  *     "gallery" = "\Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
  *     "news" = "\Silverback\ApiComponentBundle\Entity\Component\News\News"
  * })
@@ -58,9 +58,16 @@ abstract class Component
      */
     private $group;
 
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @Groups({"page"})
+     * @var null|string
+     */
+    private $className;
+
+    // Kept here so children can call this construct function in future if we ever need to do anything to init all components
     public function __construct()
-    {
-    }
+    {}
 
     /**
      * @return mixed
@@ -146,5 +153,21 @@ abstract class Component
     public function setGroup(?ComponentGroup $group): void
     {
         $this->group = $group;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getClassName(): ?string
+    {
+        return $this->className;
+    }
+
+    /**
+     * @param null|string $className
+     */
+    public function setClassName(?string $className): void
+    {
+        $this->className = $className;
     }
 }

@@ -8,11 +8,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class BaseNav
+ * Class AbstractNav
  * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\MappedSuperclass()
  */
-abstract class Nav extends Component implements NavInterface
+abstract class AbstractNav extends Component implements NavInterface
 {
     /**
      * @var Collection

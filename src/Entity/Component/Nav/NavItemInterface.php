@@ -8,8 +8,8 @@ interface NavItemInterface
 {
     public function getId(): ?int;
     public function setId(int $id): void;
-    public function getNav(): Nav;
-    public function setNav(Nav $nav): void;
+    public function getNav(): AbstractNav;
+    public function setNav(AbstractNav $nav): void;
     public function getRoute(): ?Route;
     public function setRoute(?Route $route): void;
     public function getFragment(): ?string;
@@ -18,6 +18,6 @@ interface NavItemInterface
     public function setLabel(string $label): void;
     public function getSortOrder(): int;
     public function setSortOrder(int $sortOrder): void;
-    public function getChild(): ?Nav;
-    public function setChild(?Nav $child): void;
+    public function getChild(): ?AbstractNav;
+    public function setChild(?AbstractNav $child): void;
 }

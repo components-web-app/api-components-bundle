@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\NavItem;
+use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNavItem;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ApiResource()
  * @ORM\Entity()
  */
-class MenuItem extends NavItem
+class MenuItem extends AbstractNavItem
 {
     /**
      * @ORM\ManyToOne(targetEntity="Menu", inversedBy="items")
