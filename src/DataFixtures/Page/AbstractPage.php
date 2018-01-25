@@ -58,8 +58,11 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
         $this->manager->flush();
     }
 
-    public function createComponent (string $componentService, $owner, array $ops = null)
+    public function createComponent (string $componentService, $owner = null, array $ops = null)
     {
+        if (!$owner) {
+            $owner = $this->entity;
+        }
         $service = $this->serviceLocator->get($componentService);
         $service->load($this->manager);
         return $service->create($owner, $ops);
