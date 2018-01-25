@@ -20,6 +20,15 @@ abstract class AbstractFeature extends Component implements FeatureInterface
     protected $items;
 
     /**
+     * AbstractFeature constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->items = new ArrayCollection();
+    }
+
+    /**
      * @return Collection
      */
     public function getItems(): Collection
