@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacke
 
 class FeatureStackedComponent extends AbstractFeatureComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new FeatureStacked();
     }

@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\News\News;
 
 class NewsComponent extends AbstractComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new News();
     }

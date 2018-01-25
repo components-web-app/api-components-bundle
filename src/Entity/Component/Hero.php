@@ -80,4 +80,9 @@ class Hero extends Component
     {
         $this->subtitle = $subtitle;
     }
+
+    public function __toString()
+    {
+        return 'Hero: ' . $this->getTitle();
+    }
 }

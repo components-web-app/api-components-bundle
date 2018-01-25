@@ -3,16 +3,24 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
-use Silverback\ApiComponentBundle\Controller\FormPost;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\DataProvider\Item\FormDataProvider;
-use Silverback\ApiComponentBundle\Serializer\FormNormalizer;
+use Silverback\ApiComponentBundle\DataFixtures\Component\ContentComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureColumnsComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureStackedComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureTextListComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\FormComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\GalleryComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\HeroComponent;
+use Silverback\ApiComponentBundle\DataFixtures\Component\NewsComponent;
+use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
+use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -88,5 +96,22 @@ return function (ContainerConfigurator $configurator) {
                 '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
             ]
         )
+    ;
+
+    $services
+        ->set(ComponentServiceLocator::class)
+        ->tag('container.service_locator')
+        ->args([
+            [
+                ContentComponent::class => new Reference(ContentComponent::class),
+                FeatureColumnsComponent::class => new Reference(FeatureColumnsComponent::class),
+                FeatureTextListComponent::class => new Reference(FeatureTextListComponent::class),
+                FeatureStackedComponent::class => new Reference(FeatureStackedComponent::class),
+                FormComponent::class => new Reference(FormComponent::class),
+                GalleryComponent::class => new Reference(GalleryComponent::class),
+                HeroComponent::class => new Reference(HeroComponent::class),
+                NewsComponent::class => new Reference(NewsComponent::class)
+            ]
+        ])
     ;
 };

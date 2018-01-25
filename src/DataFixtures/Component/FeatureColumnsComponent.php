@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumn
 
 class FeatureColumnsComponent extends AbstractFeatureComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new FeatureColumns();
     }

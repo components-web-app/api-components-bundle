@@ -12,6 +12,11 @@ abstract class AbstractFixture extends Fixture
      */
     protected $manager;
 
+    /**
+     * @var bool
+     */
+    protected $flushed = false;
+
     protected $entity;
 
     public function load(ObjectManager $manager)
@@ -25,5 +30,7 @@ abstract class AbstractFixture extends Fixture
         }
         $this->manager->persist($this->entity);
         $this->manager->flush();
+
+        $this->flushed = true;
     }
 }

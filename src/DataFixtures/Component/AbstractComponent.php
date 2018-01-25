@@ -3,28 +3,26 @@
 namespace Silverback\ApiComponentBundle\DataFixtures\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Page;
 
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent extends AbstractFixture implements ComponentInterface
 {
     /**
-     * @var ObjectManager
+     * @param ObjectManager $manager
      */
-    protected $manager;
-
-    public function __construct(
-        ObjectManager $manager
-    )
+    public function load(ObjectManager $manager)
     {
-        $this->manager = $manager;
+        parent::load($manager);
+        $this->entity = $this->getComponent();
     }
 
-    public function create($owner, ?array $ops): Component
+    public function create($owner, ?array $ops = null): Component
     {
-        $ops = self::processOps($ops);
-        $component = self::getComponent();
+        $ops = $this->processOps($ops);
+        $component = $this->getComponent();
         $this->setOwner($component, $owner);
         $component->setClassName($ops['className']);
         $this->manager->persist($component);
@@ -37,9 +35,9 @@ abstract class AbstractComponent implements ComponentInterface
             $ops = [];
         }
         return array_filter(
-            array_merge(self::defaultOps(), $ops),
+            array_merge(static::defaultOps(), $ops),
             function ($key) {
-                return in_array($key, array_keys(self::defaultOps()));
+                return in_array($key, array_keys(static::defaultOps()));
             },
             ARRAY_FILTER_USE_KEY
         );

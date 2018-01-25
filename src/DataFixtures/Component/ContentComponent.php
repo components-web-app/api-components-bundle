@@ -22,7 +22,7 @@ class ContentComponent extends AbstractComponent
         $this->client = new Client();
     }
 
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new Content();
     }
@@ -30,7 +30,8 @@ class ContentComponent extends AbstractComponent
     public static function defaultOps(): array
     {
         return array_merge(parent::defaultOps(), [
-            'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol']
+            'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'],
+            'content' => null
         ]);
     }
 
@@ -41,8 +42,12 @@ class ContentComponent extends AbstractComponent
          */
         $component = parent::create($owner, $ops);
         $ops = self::processOps($ops);
-        $res = $this->client->request('GET', 'http://loripsum.net/api/' . join('/', $ops['lipsum']));
-        $component->setContent($res->getBody());
+        if (!$ops['content']) {
+            $res = $this->client->request('GET', 'http://loripsum.net/api/' . join('/', $ops['lipsum']));
+            $component->setContent($res->getBody());
+        } else {
+            $component->setContent($ops['content']);
+        }
         return $component;
     }
 }

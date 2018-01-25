@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Hero;
 
 class HeroComponent extends AbstractComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new Hero();
     }

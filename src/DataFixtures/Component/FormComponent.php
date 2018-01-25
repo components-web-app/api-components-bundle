@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 
 class FormComponent extends AbstractComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new Form();
     }

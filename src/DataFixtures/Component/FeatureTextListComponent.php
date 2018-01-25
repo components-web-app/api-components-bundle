@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextL
 
 class FeatureTextListComponent extends AbstractFeatureComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new FeatureTextList();
     }

@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 
 class GalleryComponent extends AbstractComponent
 {
-    public static function getComponent(): Component
+    public function getComponent(): Component
     {
         return new Gallery();
     }

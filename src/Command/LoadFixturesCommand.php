@@ -12,7 +12,7 @@ class LoadFixturesCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('app:fixtures:load')
+            ->setName('api-component-bundle:fixtures:load')
             ->setDescription('Load fixtures by dropping database/schema first')
         ;
     }

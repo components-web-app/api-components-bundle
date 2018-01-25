@@ -54,7 +54,7 @@ class Page
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route", mappedBy="page", cascade={"persist", "remove"})
-     * @var null|string
+     * @var null|Route[]
      */
     private $routes;
 
