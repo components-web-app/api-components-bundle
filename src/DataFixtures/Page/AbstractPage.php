@@ -8,7 +8,6 @@ use Silverback\ApiComponentBundle\DataFixtures\ComponentAwareInterface;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
 use Silverback\ApiComponentBundle\Entity\Page;
-use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**
  * Class AbstractPage

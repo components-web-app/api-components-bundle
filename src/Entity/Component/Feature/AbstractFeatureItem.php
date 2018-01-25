@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
  * @ORM\Entity()
+ * @ORM\Table(name="feature_item")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({

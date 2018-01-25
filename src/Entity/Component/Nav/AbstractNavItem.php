@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractNavItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\Entity()
+ * @ORM\Table(name="nav_item")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({
