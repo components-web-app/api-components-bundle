@@ -3,21 +3,8 @@
 namespace Silverback\ApiComponentBundle\DataFixtures\Page;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use GuzzleHttp\Client;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Component\Content;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
-use Silverback\ApiComponentBundle\Entity\Component\Hero;
-use Silverback\ApiComponentBundle\Entity\Component\News\News;
 use Silverback\ApiComponentBundle\Entity\Page;
 
 /**
@@ -28,16 +15,6 @@ use Silverback\ApiComponentBundle\Entity\Page;
  */
 abstract class AbstractPage extends AbstractFixture
 {
-    /**
-     * @var \GuzzleHttp\Client
-     */
-    private $client;
-
-    public function __construct()
-    {
-        $this->client = new Client();
-    }
-
     /**
      * @var bool
      */
@@ -69,99 +46,5 @@ abstract class AbstractPage extends AbstractFixture
         }
         $redirectFrom->getRoutes()->first()->setRedirect($this->entity->getRoutes()->first());
         $this->manager->flush();
-    }
-
-    protected function addContent (array $ops = null)
-    {
-        if (!$ops) {
-            $ops = ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'];
-        }
-        $textBlock = new Content();
-        $this->setOwner($textBlock);
-        $res = $this->client->request('GET', 'http://loripsum.net/api/' . join('/', $ops));
-        $textBlock->setContent($res->getBody());
-        $this->manager->persist($textBlock);
-        return $textBlock;
-    }
-
-    protected function addHero (string $title, string $subtitle = null)
-    {
-        $hero = new Hero();
-        $this->setOwner($hero);
-        $hero->setTitle($title);
-        $hero->setSubtitle($subtitle);
-        $this->manager->persist($hero);
-        return $hero;
-    }
-
-    protected function addForm (string $formType, string $successHandler)
-    {
-        $form = new Form();
-        $this->setOwner($form);
-        $form->setFormType($formType);
-        $form->setSuccessHandler($successHandler);
-        $this->manager->persist($form);
-        return $form;
-    }
-
-    protected function addFeatureColumns () {
-        $feature = new FeatureColumns();
-        $this->setOwner($feature);
-        $this->manager->persist($feature);
-        return $feature;
-    }
-
-    protected function addFeatureTextList () {
-        $feature = new FeatureTextList();
-        $this->setOwner($feature);
-        $this->manager->persist($feature);
-        return $feature;
-    }
-
-    protected function addFeatureItem (FeatureInterface $feature, string $label, int $order = null, ?string $link) {
-        if (null === $order) {
-            $lastItem = $feature->getItems()->last();
-            if (!$lastItem) {
-                $order = 0;
-            } else {
-                $order = $lastItem->getSortOrder() + 1;
-            }
-        }
-        $featureItem = $feature->createItem();
-        $featureItem->setLabel($label);
-        $featureItem->setSortOrder($order);
-        $featureItem->setLink($link);
-        $feature->addItem($featureItem);
-        $this->manager->persist($featureItem);
-        return $featureItem;
-    }
-
-    protected function addFeatureStacked () {
-        $feature = new FeatureStacked();
-        $this->setOwner($feature);
-        $this->manager->persist($feature);
-        return $feature;
-    }
-
-    protected function addGallery () {
-        $feature = new Gallery();
-        $this->setOwner($feature);
-        $this->manager->persist($feature);
-        return $feature;
-    }
-
-    protected function addNews () {
-        $feature = new News();
-        $this->setOwner($feature);
-        $this->manager->persist($feature);
-        return $feature;
-    }
-
-    private function setOwner(Component &$component) {
-        if ($this->entity instanceof ComponentGroup) {
-            $component->setGroup($this->entity);
-        } else {
-            $component->setPage($this->entity);
-        }
     }
 }
