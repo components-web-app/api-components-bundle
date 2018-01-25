@@ -12,11 +12,6 @@ class GalleryComponent extends AbstractComponent
         return new Gallery();
     }
 
-    public static function defaultOps(): array
-    {
-        return [];
-    }
-
     public function create($owner, array $ops = null): Component
     {
         /**

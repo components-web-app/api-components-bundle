@@ -29,9 +29,9 @@ class ContentComponent extends AbstractComponent
 
     public static function defaultOps(): array
     {
-        return [
+        return array_merge(parent::defaultOps(), [
             'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol']
-        ];
+        ]);
     }
 
     public function create($owner, array $ops = null): Component

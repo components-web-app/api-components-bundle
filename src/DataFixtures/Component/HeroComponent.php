@@ -14,10 +14,10 @@ class HeroComponent extends AbstractComponent
 
     public static function defaultOps(): array
     {
-        return [
+        return array_merge(parent::defaultOps(), [
             'title' => 'No Title Set',
             'subtitle' => null
-        ];
+        ]);
     }
 
     public function create($owner, array $ops = null): Component

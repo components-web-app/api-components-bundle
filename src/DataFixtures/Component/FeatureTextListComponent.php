@@ -12,11 +12,6 @@ class FeatureTextListComponent extends AbstractFeatureComponent
         return new FeatureTextList();
     }
 
-    public static function defaultOps(): array
-    {
-        return [];
-    }
-
     public function create($owner, array $ops = null): Component
     {
         /**

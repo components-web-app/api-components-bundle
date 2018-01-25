@@ -23,8 +23,10 @@ abstract class AbstractComponent implements ComponentInterface
 
     public function create($owner, ?array $ops): Component
     {
+        $ops = self::processOps($ops);
         $component = self::getComponent();
         $this->setOwner($component, $owner);
+        $component->setClassName($ops['className']);
         $this->manager->persist($component);
         return $component;
     }
@@ -45,7 +47,7 @@ abstract class AbstractComponent implements ComponentInterface
 
     public static function defaultOps (): array
     {
-        return [];
+        return [ 'className' => null ];
     }
 
     private function setOwner(Component &$component, $entity) {
