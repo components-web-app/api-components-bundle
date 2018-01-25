@@ -94,12 +94,12 @@ abstract class AbstractPage extends AbstractFixture
         return $hero;
     }
 
-    protected function addForm (AbstractType $formType, FormHandlerInterface $successHandler)
+    protected function addForm (string $formType, string $successHandler)
     {
         $form = new Form();
         $this->setOwner($form);
-        $form->setFormType(get_class($formType));
-        $form->setSuccessHandler(get_class($successHandler));
+        $form->setFormType($formType);
+        $form->setSuccessHandler($successHandler);
         $this->manager->persist($form);
         return $form;
     }
