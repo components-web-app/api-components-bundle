@@ -11,14 +11,4 @@ class GalleryComponent extends AbstractComponent
     {
         return new Gallery();
     }
-
-    public function create($owner, array $ops = null): Component
-    {
-        /**
-         * @var Gallery $component
-         */
-        $ops = self::processOps($ops);
-        $component = parent::create($owner, $ops);
-        return $component;
-    }
 }

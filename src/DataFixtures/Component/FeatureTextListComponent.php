@@ -11,14 +11,4 @@ class FeatureTextListComponent extends AbstractFeatureComponent
     {
         return new FeatureTextList();
     }
-
-    public function create($owner, array $ops = null): Component
-    {
-        /**
-         * @var FeatureTextList $component
-         */
-        $ops = self::processOps($ops);
-        $component = parent::create($owner, $ops);
-        return $component;
-    }
 }

@@ -11,14 +11,4 @@ class FeatureColumnsComponent extends AbstractFeatureComponent
     {
         return new FeatureColumns();
     }
-
-    public function create($owner, array $ops = null): Component
-    {
-        /**
-         * @var FeatureColumns $component
-         */
-        $ops = self::processOps($ops);
-        $component = parent::create($owner, $ops);
-        return $component;
-    }
 }

@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Component;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
@@ -14,11 +13,8 @@ class ContentComponent extends AbstractComponent
      */
     private $client;
 
-    public function __construct(
-        ObjectManager $manager
-    )
+    public function __construct()
     {
-        parent::__construct($manager);
         $this->client = new Client();
     }
 

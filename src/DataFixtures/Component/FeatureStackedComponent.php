@@ -11,14 +11,4 @@ class FeatureStackedComponent extends AbstractFeatureComponent
     {
         return new FeatureStacked();
     }
-
-    public function create($owner, array $ops = null): Component
-    {
-        /**
-         * @var FeatureStacked $component
-         */
-        $ops = self::processOps($ops);
-        $component = parent::create($owner, $ops);
-        return $component;
-    }
 }
