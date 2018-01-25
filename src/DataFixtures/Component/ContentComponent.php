@@ -34,7 +34,7 @@ class ContentComponent extends AbstractComponent
         ];
     }
 
-    public function create($owner, ?array $ops): Component
+    public function create($owner, array $ops = null): Component
     {
         /**
          * @var Content $component
