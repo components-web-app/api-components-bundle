@@ -3,26 +3,30 @@
 namespace Silverback\ApiComponentBundle\DataFixtures\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Page;
 
-abstract class AbstractComponent extends AbstractFixture implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface
 {
+    /**
+     * @var ObjectManager
+     */
+    protected $manager;
+
     /**
      * @param ObjectManager $manager
      */
     public function load(ObjectManager $manager)
     {
-        parent::load($manager);
-        $this->entity = $this->getComponent();
+        $this->manager = $manager;
     }
 
     /**
      * @param $owner
      * @param array|null $ops
      * @return Component
+     * @throws \InvalidArgumentException
      */
     public function create($owner, ?array $ops = null): Component
     {
@@ -34,6 +38,10 @@ abstract class AbstractComponent extends AbstractFixture implements ComponentInt
         return $component;
     }
 
+    /**
+     * @param array|null $ops
+     * @return array
+     */
     public function processOps(?array $ops): array
     {
         if (!$ops) {
@@ -48,6 +56,9 @@ abstract class AbstractComponent extends AbstractFixture implements ComponentInt
         );
     }
 
+    /**
+     * @return array
+     */
     public static function defaultOps (): array
     {
         return [ 'className' => null ];

@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\DataFixtures\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
 
-class FeatureStackedComponent extends AbstractFeatureComponent
+class FeatureStackedComponent extends AbstractComponent
 {
     public function getComponent(): Component
     {

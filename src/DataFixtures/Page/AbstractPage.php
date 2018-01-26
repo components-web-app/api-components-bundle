@@ -74,17 +74,7 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
         if (!$owner) {
             $owner = $this->entity;
         }
-        $service = $this->getComponentService($componentService);
+        $service = $this->serviceLocator->get($componentService);
         return $service->create($owner, $ops);
-    }
-
-    /**
-     * @param string $componentService
-     * @return mixed
-     * @throws \Psr\Container\ContainerExceptionInterface
-     */
-    public function getComponentService (string $componentService)
-    {
-        return $this->serviceLocator->get($componentService);
     }
 }
