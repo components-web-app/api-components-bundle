@@ -23,10 +23,32 @@ class FeatureTextList extends AbstractFeature
     protected $items;
 
     /**
+     * @ORM\Column(type="Number")
+     * @var int
+     */
+    protected $columns = 3;
+
+    /**
      * @return FeatureItemInterface
      */
     public function createItem(): FeatureItemInterface
     {
         return new FeatureTextListItem();
+    }
+
+    /**
+     * @return int
+     */
+    public function getColumns(): int
+    {
+        return $this->columns;
+    }
+
+    /**
+     * @param int $columns
+     */
+    public function setColumns(int $columns): void
+    {
+        $this->columns = $columns;
     }
 }
