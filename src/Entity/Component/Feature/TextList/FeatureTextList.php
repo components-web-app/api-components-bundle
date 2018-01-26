@@ -30,6 +30,13 @@ class FeatureTextList extends AbstractFeature
     protected $columns = 3;
 
     /**
+     * @ORM\Column(type="string", nullable=true)
+     * @Groups({"page"})
+     * @var null|string
+     */
+    protected $title;
+
+    /**
      * @return FeatureItemInterface
      */
     public function createItem(): FeatureItemInterface
@@ -51,5 +58,21 @@ class FeatureTextList extends AbstractFeature
     public function setColumns(int $columns): void
     {
         $this->columns = $columns;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param null|string $title
+     */
+    public function setTitle(?string $title): void
+    {
+        $this->title = $title;
     }
 }
