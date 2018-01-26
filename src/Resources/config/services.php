@@ -118,6 +118,7 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\DataFixtures\\Component\\', '../../DataFixtures/Component')
+        ->exclude('../../DataFixtures/Component/Helper')
         ->call('load', [new Reference(ObjectManager::class)])
     ;
 };
