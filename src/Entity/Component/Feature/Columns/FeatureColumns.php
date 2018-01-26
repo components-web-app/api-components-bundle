@@ -23,10 +23,33 @@ class FeatureColumns extends AbstractFeature
     protected $items;
 
     /**
+     * @ORM\Column(type="string", nullable=true)
+     * @Groups({"page"})
+     * @var null|string
+     */
+    protected $title;
+
+    /**
      * @return FeatureItemInterface
      */
     public function createItem(): FeatureItemInterface
     {
         return new FeatureColumnsItem();
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param null|string $title
+     */
+    public function setTitle(?string $title): void
+    {
+        $this->title = $title;
     }
 }

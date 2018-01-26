@@ -21,6 +21,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 abstract class AbstractFeatureItem implements FeatureItemInterface
 {
+
+    protected $feature;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -28,8 +31,6 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
      * @var int
      */
     private $id;
-
-    protected $feature;
 
     /**
      * @ORM\Column(type="string")
@@ -53,6 +54,13 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
      * @var int|null
      */
     protected $link;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @Groups({"page"})
+     * @var int|null
+     */
+    protected $className;
 
     /**
      * @return int|null
@@ -132,5 +140,21 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
     public function setLink(?string $link): void
     {
         $this->link = $link;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getClassName(): ?int
+    {
+        return $this->className;
+    }
+
+    /**
+     * @param int|null $className
+     */
+    public function setClassName(?int $className): void
+    {
+        $this->className = $className;
     }
 }

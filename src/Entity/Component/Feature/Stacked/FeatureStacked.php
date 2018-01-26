@@ -23,10 +23,32 @@ class FeatureStacked extends AbstractFeature
     protected $items;
 
     /**
+     * @ORM\Column(type="boolean")
+     * @var bool
+     */
+    protected $reverse = false;
+
+    /**
      * @return FeatureItemInterface
      */
     public function createItem(): FeatureItemInterface
     {
         return new FeatureStackedItem();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReverse(): bool
+    {
+        return $this->reverse;
+    }
+
+    /**
+     * @param bool $reverse
+     */
+    public function setReverse(bool $reverse): void
+    {
+        $this->reverse = $reverse;
     }
 }
