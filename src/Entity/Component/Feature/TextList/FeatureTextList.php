@@ -23,7 +23,8 @@ class FeatureTextList extends AbstractFeature
     protected $items;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="smallint")
+     * @Groups({"page"})
      * @var int
      */
     protected $columns = 3;
