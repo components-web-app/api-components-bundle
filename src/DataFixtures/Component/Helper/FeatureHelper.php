@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures;
+namespace Silverback\ApiComponentBundle\DataFixtures\Component\Helper;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureInterface;
