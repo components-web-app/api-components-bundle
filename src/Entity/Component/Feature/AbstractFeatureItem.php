@@ -47,10 +47,10 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
     private $sortOrder;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", nullable=true)
      * @Groups({"page"})
      * @Assert\Url()
-     * @var int
+     * @var int|null
      */
     protected $link;
 
