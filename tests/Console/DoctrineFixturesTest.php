@@ -4,6 +4,8 @@ namespace Silverback\ApiComponentBundle\Tests\Console;
 
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
 use Silverback\ApiComponentBundle\Entity\Page;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -54,7 +56,7 @@ class DoctrineFixturesTest extends WebTestCase
          * @var $page Page
          */
         $page = $entities[0];
-        $this->assertEquals(count($page->getComponents()), 3);
+        $this->assertEquals(count($page->getComponents()), 4);
         $this->assertEquals($page->getTitle(), 'Dummy Title');
         $this->assertEquals($page->getMetaDescription(), 'Dummy Meta Description');
         $this->assertEquals($page->getRoutes()->first()->getRoute(), '/');
@@ -83,6 +85,29 @@ class DoctrineFixturesTest extends WebTestCase
          */
         $content = $entities[0];
         $this->assertEquals($content->getContent(), 'Dummy content');
+    }
+
+    public function test_fixture_feature ()
+    {
+        $entities = $this->getEntities(FeatureTextList::class);
+        $this->assertCount(1, $entities);
+
+        /**
+         * @var $feature FeatureTextList
+         */
+        $feature = $entities[0];
+        $this->assertEquals($feature->getSort(), 3);
+
+        $entities = $this->getEntities(FeatureTextListItem::class);
+        $this->assertCount(1, $entities);
+        /**
+         * @var $item FeatureTextListItem
+         */
+        $item = $entities[0];
+        $this->assertEquals($item->getLabel(), 'Feature label');
+        $this->assertEquals($item->getLink(), '/');
+        $this->assertEquals($item->getFeature(), $feature);
+        $this->assertEquals($item->getSortOrder(), 1);
     }
 
     public static function tearDownAfterClass()
