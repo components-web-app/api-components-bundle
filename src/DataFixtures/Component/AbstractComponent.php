@@ -19,6 +19,11 @@ abstract class AbstractComponent extends AbstractFixture implements ComponentInt
         $this->entity = $this->getComponent();
     }
 
+    /**
+     * @param $owner
+     * @param array|null $ops
+     * @return Component
+     */
     public function create($owner, ?array $ops = null): Component
     {
         $ops = $this->processOps($ops);
@@ -37,7 +42,7 @@ abstract class AbstractComponent extends AbstractFixture implements ComponentInt
         return array_filter(
             array_merge(static::defaultOps(), $ops),
             function ($key) {
-                return in_array($key, array_keys(static::defaultOps()));
+                return array_key_exists($key, static::defaultOps());
             },
             ARRAY_FILTER_USE_KEY
         );
@@ -48,7 +53,12 @@ abstract class AbstractComponent extends AbstractFixture implements ComponentInt
         return [ 'className' => null ];
     }
 
-    private function setOwner(Component &$component, $entity) {
+    /**
+     * @param Component $component
+     * @param $entity
+     * @throws \InvalidArgumentException
+     */
+    private function setOwner(Component $component, $entity) {
         switch (true)
         {
             case $entity instanceof ComponentGroup:

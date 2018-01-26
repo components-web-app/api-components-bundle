@@ -9,6 +9,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class LoadFixturesCommand extends Command
 {
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
     protected function configure()
     {
         $this
@@ -17,29 +20,35 @@ class LoadFixturesCommand extends Command
         ;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|null|void
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $command = $this->getApplication()->find('doctrine:schema:drop');
         $arguments = [
-            '--force'  => true,
+            '--force'  => true
         ];
-        $input = new ArrayInput($arguments);
-        $command->run($input, $output);
+        $cmdInput = new ArrayInput($arguments);
+        $command->run($cmdInput, $output);
 
         $command = $this->getApplication()->find('doctrine:schema:create');
         $arguments = [];
-        $input = new ArrayInput($arguments);
-        $command->run($input, $output);
+        $cmdInput = new ArrayInput($arguments);
+        $command->run($cmdInput, $output);
 
         $command = $this->getApplication()->find('doctrine:fixtures:load');
         $arguments = [];
-        $input = new ArrayInput($arguments);
-        $input->setInteractive(false);
-        $command->run($input, $output);
+        $cmdInput = new ArrayInput($arguments);
+        $cmdInput->setInteractive(false);
+        $command->run($cmdInput, $output);
 
         $command = $this->getApplication()->find('app:form:cache:clear');
         $arguments = [];
-        $input = new ArrayInput($arguments);
-        $command->run($input, $output);
+        $cmdInput = new ArrayInput($arguments);
+        $command->run($cmdInput, $output);
     }
 }

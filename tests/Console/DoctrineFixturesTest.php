@@ -2,16 +2,16 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Console;
 
+use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
 use Silverback\ApiComponentBundle\Entity\Page;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class DoctrineFixturesTest extends WebTestCase
 {
-    protected static $container;
     protected static $application;
     protected static $em;
 
@@ -21,36 +21,22 @@ class DoctrineFixturesTest extends WebTestCase
     public static function setUpBeforeClass ()
     {
         parent::setUpBeforeClass();
-        self::runCommand('api-component-bundle:fixtures:load');
-        $container = static::$kernel->getContainer();
+        $kernel = static::bootKernel([]);
+        $container = $kernel->getContainer();
         self::$em = $container->get('doctrine')->getManager();
     }
 
-    /**
-     * @param $command
-     * @return int
-     * @throws \Exception
-     */
-    protected static function runCommand($command)
+    public function test_fixtures_load ()
     {
-        $command = sprintf('%s --quiet', $command);
-
-        return self::getApplication()->run(new StringInput($command));
-    }
-
-    /**
-     * @return Application
-     */
-    protected static function getApplication()
-    {
-        if (null === self::$application) {
-            $client = static::createClient();
-            $kernel = $client->getKernel();
-            self::$application = new Application($kernel);
-            self::$application->setAutoExit(false);
-        }
-
-        return self::$application;
+        $application = new Application(static::$kernel);
+        $application->add(new LoadFixturesCommand());
+        $command = $application->find('api-component-bundle:fixtures:load');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute(array(
+                                    'command'  => $command->getName()
+                                ));
+        $output = $commandTester->getDisplay();
+        $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
     }
 
     private function getEntities (string $cls)
@@ -61,7 +47,6 @@ class DoctrineFixturesTest extends WebTestCase
 
     public function test_fixture_page ()
     {
-
         $entities = $this->getEntities(Page::class);
         $this->assertCount(1, $entities);
 

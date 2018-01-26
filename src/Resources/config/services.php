@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
+use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\DataFixtures\Component\ContentComponent;
 use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureColumnsComponent;
@@ -113,5 +114,10 @@ return function (ContainerConfigurator $configurator) {
                 NewsComponent::class => new Reference(NewsComponent::class)
             ]
         ])
+    ;
+
+    $services
+        ->load('Silverback\\ApiComponentBundle\\DataFixtures\\Component\\', '../../DataFixtures/Component')
+        ->call('load', [new Reference(ObjectManager::class)])
     ;
 };

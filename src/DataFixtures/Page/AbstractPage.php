@@ -42,6 +42,11 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
         return $this->entity;
     }
 
+    /**
+     * @param Page $redirectFrom
+     * @throws \InvalidArgumentException
+     * @throws \BadMethodCallException
+     */
     protected function redirectFrom (Page $redirectFrom)
     {
         if (!$this->flushed) {
@@ -57,13 +62,29 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
         $this->manager->flush();
     }
 
+    /**
+     * @param string $componentService
+     * @param null $owner
+     * @param array|null $ops
+     * @return mixed
+     * @throws \Psr\Container\ContainerExceptionInterface
+     */
     public function createComponent (string $componentService, $owner = null, array $ops = null)
     {
         if (!$owner) {
             $owner = $this->entity;
         }
-        $service = $this->serviceLocator->get($componentService);
-        $service->load($this->manager);
+        $service = $this->getComponentService($componentService);
         return $service->create($owner, $ops);
+    }
+
+    /**
+     * @param string $componentService
+     * @return mixed
+     * @throws \Psr\Container\ContainerExceptionInterface
+     */
+    public function getComponentService (string $componentService)
+    {
+        return $this->serviceLocator->get($componentService);
     }
 }

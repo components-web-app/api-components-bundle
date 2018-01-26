@@ -11,5 +11,6 @@ return [
     Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
     Cocur\Slugify\Bridge\Symfony\CocurSlugifyBundle::class => ['all' => true],
     Silverback\ApiComponentBundle\SilverbackApiComponentBundle::class => ['all' => true],
-    Silverback\ApiComponentBundle\Tests\TestBundle\TestBundle::class => ['all' => true]
+    Silverback\ApiComponentBundle\Tests\TestBundle\TestBundle::class => ['all' => true],
+    Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true]
 ];

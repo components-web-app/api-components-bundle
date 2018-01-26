@@ -2,11 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Component;
 
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureInterface;
-
 abstract class AbstractFeatureComponent extends AbstractComponent
 {
-    protected function addFeatureItem (FeatureInterface $feature, string $label, int $order = null, ?string $link) {
+    protected function addItem (string $label, int $order = null, ?string $link) {
+        $feature = $this->entity;
         if (null === $order) {
             $lastItem = $feature->getItems()->last();
             if (!$lastItem) {
