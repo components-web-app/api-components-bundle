@@ -44,6 +44,13 @@ class FeatureStackedItem extends AbstractFeatureItem
     protected $buttonText;
 
     /**
+     * @ORM\Column(type="string", nullable=true)
+     * @Groups({"page"})
+     * @var null|string
+     */
+    protected $buttonClass;
+
+    /**
      * @return null|string
      */
     public function getDescription(): ?string
@@ -89,5 +96,21 @@ class FeatureStackedItem extends AbstractFeatureItem
     public function setButtonText(?string $buttonText): void
     {
         $this->buttonText = $buttonText;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getButtonClass(): ?string
+    {
+        return $this->buttonClass;
+    }
+
+    /**
+     * @param null|string $buttonClass
+     */
+    public function setButtonClass(?string $buttonClass): void
+    {
+        $this->buttonClass = $buttonClass;
     }
 }
