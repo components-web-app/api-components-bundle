@@ -24,6 +24,7 @@ class FeatureStacked extends AbstractFeature
 
     /**
      * @ORM\Column(type="boolean")
+     * @Groups({"page"})
      * @var bool
      */
     protected $reverse = false;
