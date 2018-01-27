@@ -27,7 +27,6 @@ class SilverbackApiComponentExtension extends Extension
             new FileLocator(__DIR__.'/../Resources/config')
         );
         $loader->load('services.php');
-        // $loader->load('servicesComponentFactory.php');
 
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
@@ -38,23 +37,13 @@ class SilverbackApiComponentExtension extends Extension
             ->addTag('silverback_api_component.form_type')
         ;
 
-        $container->register(AbstractComponentFactory::class)
-            ->setAbstract(true)
-            ->addArgument(new Reference(ObjectManager::class))
-        ;
-
         $container->registerForAutoconfiguration(ComponentFactoryInterface::class)
             ->setParent(AbstractComponentFactory::class)
         ;
 
-        /*
-         $services
-        ->load('Silverback\\ApiComponentBundle\\Factory\\Component\\', '../../Factory/Component')
-        ->exclude('../../Factory/Component/Item')
-        ->call('load', [
-            new Reference(ObjectManager::class)
-        ])
-    ;
-         */
+        $container->register(AbstractComponentFactory::class)
+            ->setAbstract(true)
+            ->addArgument(new Reference(ObjectManager::class))
+        ;
     }
 }

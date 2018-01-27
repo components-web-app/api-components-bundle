@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1517093621">
-  <project timestamp="1517093621">
+<coverage generated="1517094146">
+  <project timestamp="1517094146">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -281,11 +281,11 @@
         <line num="38" type="stmt" count="0"/>
         <line num="41" type="stmt" count="0"/>
         <line num="42" type="stmt" count="0"/>
-        <line num="43" type="stmt" count="0"/>
+        <line num="45" type="stmt" count="0"/>
         <line num="46" type="stmt" count="0"/>
         <line num="47" type="stmt" count="0"/>
-        <line num="59" type="stmt" count="0"/>
-        <metrics loc="60" ncloc="49" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="17" coveredstatements="0" elements="19" coveredelements="0"/>
+        <line num="49" type="stmt" count="0"/>
+        <metrics loc="50" ncloc="48" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="17" coveredstatements="0" elements="19" coveredelements="0"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Entity\Component">
@@ -910,9 +910,9 @@
         <class name="Silverback\ApiComponentBundle\EntityListener\FormListener" namespace="Silverback\ApiComponentBundle\EntityListener">
           <metrics complexity="4" methods="4" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="12" coveredelements="12"/>
         </class>
-        <line num="18" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
-        <line num="22" type="stmt" count="2"/>
-        <line num="23" type="stmt" count="2"/>
+        <line num="18" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="22" type="stmt" count="1"/>
+        <line num="23" type="stmt" count="1"/>
         <line num="30" type="method" name="preUpdate" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="32" type="stmt" count="1"/>
         <line num="33" type="stmt" count="1"/>
@@ -928,9 +928,9 @@
         <class name="Silverback\ApiComponentBundle\EntityListener\PageListener" namespace="Silverback\ApiComponentBundle\EntityListener">
           <metrics complexity="7" methods="5" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="8" elements="21" coveredelements="10"/>
         </class>
-        <line num="20" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
-        <line num="24" type="stmt" count="2"/>
-        <line num="25" type="stmt" count="2"/>
+        <line num="20" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="24" type="stmt" count="1"/>
+        <line num="25" type="stmt" count="1"/>
         <line num="32" type="method" name="prePersist" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="34" type="stmt" count="1"/>
         <line num="35" type="stmt" count="1"/>
@@ -1120,10 +1120,10 @@
         <class name="Silverback\ApiComponentBundle\Factory\FormFactory" namespace="Silverback\ApiComponentBundle\Factory">
           <metrics complexity="3" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="11" elements="14" coveredelements="14"/>
         </class>
-        <line num="26" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
-        <line num="31" type="stmt" count="2"/>
-        <line num="32" type="stmt" count="2"/>
-        <line num="33" type="stmt" count="2"/>
+        <line num="26" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="31" type="stmt" count="1"/>
+        <line num="32" type="stmt" count="1"/>
+        <line num="33" type="stmt" count="1"/>
         <line num="39" type="method" name="createForm" visibility="public" complexity="1" crap="1" count="2"/>
         <line num="41" type="stmt" count="2"/>
         <line num="42" type="stmt" count="2"/>
@@ -1140,9 +1140,9 @@
         <class name="Silverback\ApiComponentBundle\Factory\RouteFactory" namespace="Silverback\ApiComponentBundle\Factory">
           <metrics complexity="4" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="15" coveredstatements="2" elements="17" coveredelements="3"/>
         </class>
-        <line num="15" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
-        <line num="19" type="stmt" count="2"/>
-        <line num="20" type="stmt" count="2"/>
+        <line num="15" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="19" type="stmt" count="1"/>
+        <line num="20" type="stmt" count="1"/>
         <line num="22" type="method" name="create" visibility="public" complexity="3" crap="12" count="0"/>
         <line num="23" type="stmt" count="0"/>
         <line num="24" type="stmt" count="0"/>
@@ -1374,6 +1374,6 @@
         <metrics loc="48" ncloc="48" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="0" elements="18" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="74" loc="3995" ncloc="2725" classes="53" methods="220" coveredmethods="87" conditionals="0" coveredconditionals="0" statements="680" coveredstatements="284" elements="900" coveredelements="371"/>
+    <metrics files="74" loc="3985" ncloc="2724" classes="53" methods="220" coveredmethods="87" conditionals="0" coveredconditionals="0" statements="680" coveredstatements="284" elements="900" coveredelements="371"/>
   </project>
 </coverage>
