@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Gallery
