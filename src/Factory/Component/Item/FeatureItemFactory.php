@@ -1,12 +1,12 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component\Helper;
+namespace Silverback\ApiComponentBundle\Factory\Component\Item;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 
-class FeatureHelper
+class FeatureItemFactory
 {
     private $manager;
 

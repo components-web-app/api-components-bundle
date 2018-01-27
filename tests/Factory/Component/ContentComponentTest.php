@@ -1,10 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Tests\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\DataFixtures\Component\ContentComponent;
+use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
 use Silverback\ApiComponentBundle\Entity\Page;
 
@@ -16,8 +16,7 @@ class ContentComponentTest extends TestCase
     public function setUp ()
     {
         $this->objectManagerProphecy = $this->prophesize(ObjectManager::class);
-        $this->component = new ContentComponent();
-        $this->component->load($this->objectManagerProphecy->reveal());
+        $this->component = new ContentFactory($this->objectManagerProphecy->reveal());
     }
 
     public function test_get_component ()

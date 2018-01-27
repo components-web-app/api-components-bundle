@@ -1,20 +1,22 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
+use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
 
-class ContentComponent extends AbstractComponent
+class ContentFactory extends AbstractComponentFactory
 {
     /**
      * @var \GuzzleHttp\Client
      */
     private $client;
 
-    public function __construct()
+    public function __construct(ObjectManager $manager)
     {
+        parent::__construct($manager);
         $this->client = new Client();
     }
 

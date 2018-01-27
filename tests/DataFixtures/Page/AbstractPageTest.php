@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\DataFixtures\Page;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\DataFixtures\Component\HeroComponent;
+use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Component\Hero;
@@ -25,8 +25,10 @@ class AbstractPageTest extends TestCase
     {
         $this->heroEntity = new Hero();
         $this->componentOwner = new Page();
+        $this->objectManagerProphecy = $this->prophesize(ObjectManager::class);
 
-        $this->heroComponentMock = $this->getMockBuilder(HeroComponent::class)
+        $this->heroComponentMock = $this->getMockBuilder(HeroFactory::class)
+            ->setConstructorArgs([$this->objectManagerProphecy->reveal()])
             ->getMock()
         ;
 
@@ -34,7 +36,7 @@ class AbstractPageTest extends TestCase
             ->setConstructorArgs(
                 [
                     [
-                        HeroComponent::class,
+                        HeroFactory::class,
                     ]
                 ]
             )
@@ -45,7 +47,7 @@ class AbstractPageTest extends TestCase
             $this->componentServiceLocator
         ]);
 
-        $this->objectManagerProphecy = $this->prophesize(ObjectManager::class);
+
         $this->pageEntity = $this->abstractPageMock->load($this->objectManagerProphecy->reveal());
     }
 
@@ -61,14 +63,17 @@ class AbstractPageTest extends TestCase
         $this->componentServiceLocator
             ->expects($this->once())
             ->method('get')
-            ->with(HeroComponent::class)
+            ->with(HeroFactory::class)
             ->will($this->returnValue($this->heroComponentMock))
         ;
 
-        $component = $this->abstractPageMock->createComponent(HeroComponent::class, $this->componentOwner);
+        $component = $this->abstractPageMock->createComponent(HeroFactory::class, $this->componentOwner);
         $this->assertInstanceOf(Hero::class, $component);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function test_redirect_from_before_flush ()
     {
         $this->expectException(\BadMethodCallException::class);
@@ -80,6 +85,9 @@ class AbstractPageTest extends TestCase
         ]);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function test_page_flush_and_redirect ()
     {
         $this->objectManagerProphecy
@@ -96,6 +104,9 @@ class AbstractPageTest extends TestCase
         $flush->invoke($this->abstractPageMock);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function test_redirect_after_flush_but_no_routes ()
     {
         $flush = new \ReflectionMethod(AbstractPage::class, 'flush');
@@ -111,6 +122,9 @@ class AbstractPageTest extends TestCase
         ]);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function test_redirect_after_flush ()
     {
         $flush = new \ReflectionMethod(AbstractPage::class, 'flush');

@@ -34,9 +34,11 @@ class DoctrineFixturesTest extends WebTestCase
         $application->add(new LoadFixturesCommand());
         $command = $application->find('api-component-bundle:fixtures:load');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
-                                    'command'  => $command->getName()
-                                ));
+        $commandTester->execute(
+            array(
+                'command'  => $command->getName()
+            )
+        );
         $output = $commandTester->getDisplay();
         $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
     }

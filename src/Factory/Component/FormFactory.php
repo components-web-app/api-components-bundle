@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 
-class FormComponent extends AbstractComponent
+class FormFactory extends AbstractComponentFactory
 {
     public function getComponent(): Component
     {

@@ -1,10 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 
-interface ComponentInterface
+interface ComponentFactoryInterface
 {
     public function getComponent(): Component;
     public function create($owner, ?array $ops = null): Component;

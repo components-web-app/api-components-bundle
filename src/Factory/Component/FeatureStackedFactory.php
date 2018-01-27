@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
 
-class FeatureStackedComponent extends AbstractComponent
+class FeatureStackedFactory extends AbstractComponentFactory
 {
     public function getComponent(): Component
     {

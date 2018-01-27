@@ -3,25 +3,23 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
-use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\DataFixtures\Component\ContentComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureColumnsComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureStackedComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureTextListComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FormComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\GalleryComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\HeroComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\NewsComponent;
+use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
+use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FeatureColumnsFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FeatureTextListFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Component\GalleryFactory;
+use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
+use Silverback\ApiComponentBundle\Factory\Component\NewsFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
-use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\ServiceLocator;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -104,21 +102,15 @@ return function (ContainerConfigurator $configurator) {
         ->tag('container.service_locator')
         ->args([
             [
-                ContentComponent::class => new Reference(ContentComponent::class),
-                FeatureColumnsComponent::class => new Reference(FeatureColumnsComponent::class),
-                FeatureTextListComponent::class => new Reference(FeatureTextListComponent::class),
-                FeatureStackedComponent::class => new Reference(FeatureStackedComponent::class),
-                FormComponent::class => new Reference(FormComponent::class),
-                GalleryComponent::class => new Reference(GalleryComponent::class),
-                HeroComponent::class => new Reference(HeroComponent::class),
-                NewsComponent::class => new Reference(NewsComponent::class)
+                ContentFactory::class => new Reference(ContentFactory::class),
+                FeatureColumnsFactory::class => new Reference(FeatureColumnsFactory::class),
+                FeatureTextListFactory::class => new Reference(FeatureTextListFactory::class),
+                FeatureStackedFactory::class => new Reference(FeatureStackedFactory::class),
+                FormFactory::class => new Reference(FormFactory::class),
+                GalleryFactory::class => new Reference(GalleryFactory::class),
+                HeroFactory::class => new Reference(HeroFactory::class),
+                NewsFactory::class => new Reference(NewsFactory::class)
             ]
         ])
-    ;
-
-    $services
-        ->load('Silverback\\ApiComponentBundle\\DataFixtures\\Component\\', '../../DataFixtures/Component')
-        ->exclude('../../DataFixtures/Component/Helper')
-        ->call('load', [new Reference(ObjectManager::class)])
     ;
 };

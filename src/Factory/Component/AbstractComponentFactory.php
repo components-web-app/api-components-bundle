@@ -1,13 +1,13 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Page;
 
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponentFactory implements ComponentFactoryInterface
 {
     /**
      * @var ObjectManager
@@ -17,7 +17,7 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @param ObjectManager $manager
      */
-    public function load(ObjectManager $manager)
+    public function __construct(ObjectManager $manager)
     {
         $this->manager = $manager;
     }

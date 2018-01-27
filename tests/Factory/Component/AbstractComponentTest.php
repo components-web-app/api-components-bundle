@@ -1,10 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Tests\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\DataFixtures\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\Content;
 use Silverback\ApiComponentBundle\Entity\Page;
@@ -18,15 +18,16 @@ class AbstractComponentTest extends TestCase
     public function setUp ()
     {
         $objectManagerProphecy = $this->prophesize(ObjectManager::class);
-        $this->abstractComponentMock = $this->getMockForAbstractClass(AbstractComponent::class);
-        $this->abstractComponentMock->load($objectManagerProphecy->reveal());
+        $this->abstractComponentMock = $this->getMockForAbstractClass(AbstractComponentFactory::class, [
+            $objectManagerProphecy->reveal()
+        ]);
         $this->objectManagerProphecy = $objectManagerProphecy;
         $this->dummyComponent = new Content();
     }
 
     public function test_abstract_component_has_correct_default_options ()
     {
-        $this->assertEquals(AbstractComponent::defaultOps(), [
+        $this->assertEquals(AbstractComponentFactory::defaultOps(), [
             'className' => null
         ]);
     }

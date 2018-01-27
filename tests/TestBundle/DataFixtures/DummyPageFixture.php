@@ -3,11 +3,11 @@
 namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\DataFixtures\Component\ContentComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FeatureTextListComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\FormComponent;
-use Silverback\ApiComponentBundle\DataFixtures\Component\Helper\FeatureHelper;
-use Silverback\ApiComponentBundle\DataFixtures\Component\HeroComponent;
+use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FeatureTextListFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Component\Item\FeatureItemFactory;
+use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Route;
@@ -18,7 +18,7 @@ class DummyPageFixture extends AbstractPage
 {
     private $featureHelper;
 
-    public function __construct(ComponentServiceLocator $serviceLocator, FeatureHelper $featureHelper)
+    public function __construct(ComponentServiceLocator $serviceLocator, FeatureItemFactory $featureHelper)
     {
         parent::__construct($serviceLocator);
         $this->featureHelper = $featureHelper;
@@ -27,6 +27,7 @@ class DummyPageFixture extends AbstractPage
     /**
      * @param ObjectManager $manager
      * @throws \BadMethodCallException
+     * @throws \Psr\Container\ContainerExceptionInterface
      */
     public function load(ObjectManager $manager)
     {
@@ -36,7 +37,7 @@ class DummyPageFixture extends AbstractPage
         $this->entity->addRoute(new Route('/'));
 
         $this->createComponent(
-            HeroComponent::class,
+            HeroFactory::class,
             $this->entity,
             [
                 'title' => 'T',
@@ -45,7 +46,7 @@ class DummyPageFixture extends AbstractPage
         );
 
         $this->createComponent(
-            ContentComponent::class,
+            ContentFactory::class,
             $this->entity,
             [
                 'content' => 'Dummy content'
@@ -53,7 +54,7 @@ class DummyPageFixture extends AbstractPage
         );
 
         $this->createComponent(
-            FormComponent::class,
+            FormFactory::class,
             $this->entity,
             [
                 'formType' => TestType::class,
@@ -62,7 +63,7 @@ class DummyPageFixture extends AbstractPage
         );
 
         $feature = $this->createComponent(
-            FeatureTextListComponent::class,
+            FeatureTextListFactory::class,
             $this->entity
         );
         $this->featureHelper->createItem($feature, 'Feature label', '/', 1);

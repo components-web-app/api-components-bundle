@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataFixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 
-class GalleryComponent extends AbstractComponent
+class GalleryFactory extends AbstractComponentFactory
 {
     public function getComponent(): Component
     {
