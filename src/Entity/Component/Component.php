@@ -70,7 +70,7 @@ abstract class Component
     {}
 
     /**
-     * @return mixed
+     * @return int|null
      */
     public function getId()
     {
