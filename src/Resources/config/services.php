@@ -14,6 +14,7 @@ use Silverback\ApiComponentBundle\Factory\Component\GalleryFactory;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\Factory\Component\NewsFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
+use Silverback\ApiComponentBundle\Serializer\GalleryItemNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -111,6 +112,15 @@ return function (ContainerConfigurator $configurator) {
                 HeroFactory::class => new Reference(HeroFactory::class),
                 NewsFactory::class => new Reference(NewsFactory::class)
             ]
+        ])
+    ;
+
+    $services
+        ->set(GalleryItemNormalizer::class)
+        ->decorate('api_platform.jsonld.normalizer.item')
+        ->args([
+            new Reference(GalleryItemNormalizer::class . '.inner'),
+            '%kernel.project_dir%'
         ])
     ;
 };
