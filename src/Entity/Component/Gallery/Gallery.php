@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Gallery extends Component
 {
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem", mappedBy="feature")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem", mappedBy="gallery")
      * @ORM\OrderBy({"sortOrder" = "ASC"})
      * @Groups({"page"})
      */
