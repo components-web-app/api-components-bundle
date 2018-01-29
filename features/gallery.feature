@@ -50,7 +50,6 @@ Feature: Gallery
     And the public file path "media/cache/thumbnail/images/testImage.jpg" should exist
     And the public file path "media/cache/placeholder/images/testImage.jpg" should exist
 
-
   Scenario: Test the gallery image can be updated and the old cached resized images are removed
     When I send a "PUT" request to "/gallery_items/1" with body:
     """
@@ -65,8 +64,19 @@ Feature: Gallery
     And the public file path "media/cache/placeholder/images/testImage2.jpg" should exist
     And the public file path "media/cache/thumbnail/images/testImage2.jpg" should exist
 
+  Scenario: An SVG image is uploaded and handled correctly
+    When I send a "PUT" request to "/gallery_items/1" with body:
+    """
+    {
+      "filePath": "/images/apiPlatform.svg"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node filePath should be equal to the string "/images/apiPlatform.svg"
+    And the public file path "media/cache/thumbnail/images/testImage2.jpg" should not exist
+
   @dropSchema
   Scenario: Test the gallery image can be deleted and the cached resized images are removed
     When I send a "DELETE" request to "/gallery_items/1"
     Then the response status code should be 204
-    And the public file path "media/cache/thumbnail/images/testImage2.jpg" should not exist
+    And the public file path "media/cache/thumbnail/images/apiPlatform.svg" should not exist

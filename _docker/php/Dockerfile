@@ -19,20 +19,23 @@ RUN set -xe \
 		libjpeg-turbo-dev \
 		rabbitmq-c-dev \
 		libssh-dev \
+		libxml2-dev autoconf g++ imagemagick-dev libtool make \
 	&& docker-php-ext-install \
     bcmath \
     sockets \
   && pecl install \
     apcu-${APCU_VERSION} \
     amqp \
+    imagick \
   && docker-php-ext-enable --ini-name 20-apcu.ini apcu \
   && docker-php-ext-enable --ini-name 05-opcache.ini opcache \
   && docker-php-ext-enable amqp \
+  && docker-php-ext-enable imagick \
 	&& docker-php-ext-install \
 		pdo pdo_mysql \
 		intl zip \
 	&& docker-php-ext-configure gd \
-	  --with-gd \
+    --with-gd \
 	  --with-freetype-dir=/usr/include/ \
 	  --with-png-dir=/usr/include/ \
 	  --with-jpeg-dir=/usr/include/ \
