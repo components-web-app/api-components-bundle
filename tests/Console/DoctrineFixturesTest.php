@@ -6,6 +6,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
 use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
@@ -95,7 +97,7 @@ class DoctrineFixturesTest extends WebTestCase
 
     public function test_fixture_feature ()
     {
-        $entities = $this->getEntities(FeatureTextList::class);
+        $entities = $this->getEntities(FeatureStacked::class);
         $this->assertCount(1, $entities);
 
         /**
@@ -104,7 +106,7 @@ class DoctrineFixturesTest extends WebTestCase
         $feature = $entities[0];
         $this->assertEquals($feature->getSort(), 3);
 
-        $entities = $this->getEntities(FeatureTextListItem::class);
+        $entities = $this->getEntities(FeatureStackedItem::class);
         $this->assertCount(1, $entities);
         /**
          * @var $item FeatureTextListItem

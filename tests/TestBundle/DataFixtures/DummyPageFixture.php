@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
-use Silverback\ApiComponentBundle\Factory\Component\FeatureTextListFactory;
+use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Component\Item\FeatureItemFactory;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
@@ -63,10 +63,11 @@ class DummyPageFixture extends AbstractPage
         );
 
         $feature = $this->createComponent(
-            FeatureTextListFactory::class,
+            FeatureStackedFactory::class,
             $this->entity
         );
-        $this->featureHelper->createItem($feature, 'Feature label', '/', 1);
+        $featureItem = $this->featureHelper->createItem($feature, 'Feature label', '/', 1);
+        $featureItem->setFilePath('images/testImage.jpg');
 
         $this->flush();
     }
