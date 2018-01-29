@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -13,10 +14,12 @@ final class GalleryItemNormalizer implements NormalizerInterface, DenormalizerIn
 {
     private $decorated;
     private $projectDir;
+    private $imagineCacheManager;
 
     public function __construct(
         NormalizerInterface $decorated,
-        string $projectDir
+        string $projectDir,
+        CacheManager $imagineCacheManager
     )
     {
         if (!$decorated instanceof DenormalizerInterface) {
@@ -25,6 +28,7 @@ final class GalleryItemNormalizer implements NormalizerInterface, DenormalizerIn
 
         $this->decorated = $decorated;
         $this->projectDir = $projectDir;
+        $this->imagineCacheManager = $imagineCacheManager;
     }
 
     public function supportsNormalization($data, $format = null)
@@ -32,16 +36,33 @@ final class GalleryItemNormalizer implements NormalizerInterface, DenormalizerIn
         return $this->decorated->supportsNormalization($data, $format);
     }
 
+    /**
+     * @param object $object
+     * @param null $format
+     * @param array $context
+     * @return array|\Symfony\Component\Serializer\Normalizer\scalar
+     * @throws \Symfony\Component\Serializer\Exception\LogicException
+     * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Serializer\Exception\CircularReferenceException
+     */
     public function normalize($object, $format = null, array $context = [])
     {
         $data = $this->decorated->normalize($object, $format, $context);
         if ($object instanceof GalleryItem) {
             $fs = new Filesystem();
-            $filePath = $this->projectDir . '/public/' . $data['image'];
-            if (is_array($data) && $fs->exists($filePath)) {
+            $filePath = $this->projectDir . '/public/' . $data['filePath'];
+            if (\is_array($data) && $fs->exists($filePath)) {
                 list($width, $height) = getimagesize($filePath);
+                $data['thumbnailPath'] = parse_url(
+                    $this->imagineCacheManager->getBrowserPath($data['filePath'], 'thumbnail'),
+                    PHP_URL_PATH
+                );
+                $data['placeholderPath'] = parse_url(
+                    $this->imagineCacheManager->getBrowserPath($data['filePath'], 'placeholder'),
+                    PHP_URL_PATH
+                );
             } else {
-                $width = $height = 'file not found';
+                $width = $height = 0;
             }
             $data['width'] = $width;
             $data['height'] = $height;

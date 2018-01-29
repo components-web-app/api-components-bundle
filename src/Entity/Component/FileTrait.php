@@ -5,6 +5,10 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+/**
+ * Trait FileTrait
+ * @package Silverback\ApiComponentBundle\Entity\Component
+ */
 trait FileTrait
 {
     /**

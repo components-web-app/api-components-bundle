@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
+use Silverback\ApiComponentBundle\EventListener\FileEntitySubscriber;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureColumnsFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
@@ -122,5 +122,10 @@ return function (ContainerConfigurator $configurator) {
             new Reference(GalleryItemNormalizer::class . '.inner'),
             '%kernel.project_dir%'
         ])
+    ;
+
+    $services
+        ->set(FileEntitySubscriber::class)
+        ->tag('doctrine.event_subscriber')
     ;
 };

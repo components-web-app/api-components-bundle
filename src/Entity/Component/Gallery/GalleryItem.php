@@ -38,7 +38,7 @@ class GalleryItem implements GalleryItemInterface
     protected $title;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      * @Groups({"page"})
      * @var null|string
      */

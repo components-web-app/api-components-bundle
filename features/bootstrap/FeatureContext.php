@@ -101,4 +101,27 @@ class FeatureContext implements Context, KernelAwareContext
             $value
         );
     }
+
+    private function getPublicPath ($path)
+    {
+        return $this->kernel->getContainer()->getParameter('kernel.project_dir') . '/public/' . $path;
+    }
+
+    /**
+     * @Then the public file path :path should exist
+     */
+    public function filePathExists(string $path)
+    {
+        $fullPath = $this->getPublicPath($path);
+        Assert::assertTrue(file_exists($fullPath), 'The file "' . $fullPath . '"" does not exist');
+    }
+
+    /**
+     * @Then the public file path :path should not exist
+     */
+    public function filePathDoesNotExists(string $path)
+    {
+        $fullPath = $this->getPublicPath($path);
+        Assert::assertFalse(file_exists($fullPath), 'The file "' . $fullPath . '"" exists');
+    }
 }

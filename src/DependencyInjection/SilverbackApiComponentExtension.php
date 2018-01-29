@@ -67,22 +67,15 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
-                'resolvers' => [
-                    'default' => [
-                        'web_path' => [
-                            'web_root' => '%kernel.project_dir%/public'
-                        ]
-                    ]
-                ],
                 'loaders' => [
                     'default' => [
                         'filesystem' => [
-                            'data_root' => '%kernel.project_dir%/public/images/gallery'
+                            'data_root' => '%kernel.project_dir%/public'
                         ]
                     ]
                 ],
                 'filter_sets' => [
-                    'square_placeholder' => [
+                    'placeholder' => [
                         'jpeg_quality' => 20,
                         'png_compression_level' => 10,
                         'filters' => [
@@ -96,7 +89,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                             ]
                         ]
                     ],
-                    'thumbnail_large' => [
+                    'thumbnail' => [
                         'jpeg_quality' => 85,
                         'png_compression_level' => 8,
                         'filters' => [

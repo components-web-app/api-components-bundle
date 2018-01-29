@@ -3,6 +3,7 @@ default:
         default:
           contexts:
             - 'FeatureContext': { doctrine: '@doctrine' }
+            - 'JsonContext'
             - 'Behat\MinkExtension\Context\MinkContext'
             - 'Behatch\Context\RestContext'
     extensions:
@@ -26,5 +27,6 @@ coverage:
     default:
       contexts:
         - 'FeatureContext': { doctrine: '@doctrine' }
+        - 'JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
         - 'Behatch\Context\RestContext'
