@@ -77,17 +77,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 'filter_sets' => [
                     'placeholder' => [
                         'jpeg_quality' => 5,
-                        'png_compression_level' => 10,
+                        'png_compression_level' => 9,
                         'filters' => [
                             'thumbnail' => [
-                                'size' => [100, 100],
+                                'size' => [120, 120],
                                 'mode' => 'outbound'
                             ]
                         ]
                     ],
                     'thumbnail' => [
                         'jpeg_quality' => 95,
-                        'png_compression_level' => 3,
                         'filters' => [
                             'upscale' => [
                                 'min' => [636, 636]
