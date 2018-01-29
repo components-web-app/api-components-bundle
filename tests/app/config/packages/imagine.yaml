@@ -7,3 +7,4 @@ liip_imagine:
         default:
             filesystem:
                 data_root: '%kernel.project_dir%/public'
+    enqueue: true

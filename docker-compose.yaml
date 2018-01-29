@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+    php:
+        build:
+            context: ./
+            dockerfile: ./_docker/php/Dockerfile
+        env_file:
+            - ./.env
+        volumes:
+            - ./:/srv:rw
+
+    rabbitmq:
+        image: 'rabbitmq:alpine'
+        hostname: 'rabbitmq'
+        environment:
+            RABBITMQ_ERLANG_COOKIE: "ABNl626732Bsdh43Bs"
+            RABBITMQ_DEFAULT_USER: "rabbitmq"
+            RABBITMQ_DEFAULT_PASS: "rabbitmq"
+            RABBITMQ_DEFAULT_VHOST: "/"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+        volumes:
+            - "./_docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+            #- "./rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro"
+
+volumes:
+    db-mysql:

@@ -1,0 +1,12 @@
+enqueue:
+    async_events:
+        enabled: true
+    transport:
+        default: 'amqp'
+        amqp:
+            host: 'rabbitmq'
+            port: '15672'
+            user: 'rabbitmq'
+            pass: 'rabbitmq'
+            vhost: '/'
+    client: ~

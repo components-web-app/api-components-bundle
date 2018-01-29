@@ -4,22 +4,29 @@ namespace Silverback\ApiComponentBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Enqueue\Client\Producer;
+use Liip\ImagineBundle\Async\Commands;
+use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 
 class FileEntitySubscriber implements EventSubscriber
 {
     private $imagineCacheManager;
+    private $producer;
 
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
+     * @param Producer $enqueProducer
      */
     public function __construct(
-        CacheManager $imagineCacheManager
+        CacheManager $imagineCacheManager,
+        Producer $producer
     )
     {
         $this->imagineCacheManager = $imagineCacheManager;
+        $this->producer = $producer;
     }
 
     /**
@@ -52,6 +59,7 @@ class FileEntitySubscriber implements EventSubscriber
                     $newValueForField = $fpChanges[1] ?? null;
                     if ($previousValueForField && $previousValueForField !== $newValueForField) {
                         $this->imagineCacheManager->remove($previousValueForField);
+                        $this->producer->send(Commands::RESOLVE_CACHE, new ResolveCache($newValueForField));
                     }
                 }
             }
@@ -61,6 +69,13 @@ class FileEntitySubscriber implements EventSubscriber
         foreach ($deletedEntities as $entity) {
             if ($entity instanceof FileInterface) {
                 $this->imagineCacheManager->remove($entity->getFilePath());
+            }
+        }
+
+        $newEntities = $unitOfWork->getScheduledEntityInsertions();
+        foreach ($newEntities as $entity) {
+            if ($entity instanceof FileInterface) {
+                $this->producer->send(Commands::RESOLVE_CACHE, new ResolveCache($entity->getFilePath()));
             }
         }
     }

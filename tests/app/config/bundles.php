@@ -12,6 +12,7 @@ return [
     Cocur\Slugify\Bridge\Symfony\CocurSlugifyBundle::class => ['all' => true],
     Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
     Liip\ImagineBundle\LiipImagineBundle::class => ['all' => true],
+    Enqueue\Bundle\EnqueueBundle::class => ['all' => true],
     Silverback\ApiComponentBundle\SilverbackApiComponentBundle::class => ['all' => true],
     Silverback\ApiComponentBundle\Tests\TestBundle\TestBundle::class => ['all' => true]
 ];
