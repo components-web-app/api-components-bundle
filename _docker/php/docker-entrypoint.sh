@@ -10,7 +10,7 @@ if [ "$1" = 'php-fpm' ] || [ "$1" = 'bin/console' ]; then
 	composer install --prefer-dist --no-progress --no-suggest --no-interaction
 	# Permissions hack because setfacl does not work on Mac and Windows
 	chown -R www-data tests/app/var
-  bin/console enqueue:consume --setup-broker
+  tests/app/console enqueue:consume --setup-broker
 fi
 
 exec docker-php-entrypoint "$@"

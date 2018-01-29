@@ -1,26 +1,38 @@
 #!/usr/bin/env php
 <?php
 
-// Debug only
-
-set_time_limit(0);
-
-require_once __DIR__.'/bootstrap.php';
-require_once __DIR__.'/AppKernel.php';
-
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Debug\Debug;
+use Symfony\Component\Dotenv\Dotenv;
 
-$input = new ArgvInput();
-$env = $input->getParameterOption(array('--env', '-e'), $_SERVER['APP_ENV'] ?? 'test');
-$debug = $_SERVER['SYMFONY_DEBUG'] ?? 0 && !$input->hasParameterOption(array('--no-debug', '')) && $env !== 'prod';
+set_time_limit(0);
 
-if ($debug) {
-    Debug::enable();
+require __DIR__.'/../../vendor/autoload.php';
+require_once __DIR__.'/AppKernel.php';
+
+if (!class_exists(Application::class)) {
+    throw new \RuntimeException('You need to add "symfony/framework-bundle" as a Composer dependency.');
 }
 
-error_reporting(E_ALL & ~E_USER_DEPRECATED);
+if (!isset($_SERVER['APP_ENV'])) {
+    if (!class_exists(Dotenv::class)) {
+        throw new \RuntimeException('APP_ENV environment variable is not defined. You need to define environment variables for configuration or add "symfony/dotenv" as a Composer dependency to load variables from a .env file.');
+    }
+    (new Dotenv())->load(__DIR__.'/../../.env');
+}
+
+$input = new ArgvInput();
+$env = $input->getParameterOption(['--env', '-e'], $_SERVER['APP_ENV'] ?? 'dev');
+$debug = ($_SERVER['APP_DEBUG'] ?? ('prod' !== $env)) && !$input->hasParameterOption(['--no-debug', '']);
+
+if ($debug) {
+    umask(0000);
+
+    if (class_exists(Debug::class)) {
+        Debug::enable();
+    }
+}
 
 $kernel = new AppKernel($env, $debug);
 $application = new Application($kernel);
