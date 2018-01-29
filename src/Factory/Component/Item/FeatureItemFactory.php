@@ -29,12 +29,12 @@ class FeatureItemFactory
             if (!$lastItem) {
                 $order = 0;
             } else {
-                $order = $lastItem->getSortOrder() + 1;
+                $order = $lastItem->getSort() + 1;
             }
         }
         $featureItem = $feature->createItem();
         $featureItem->setLabel($label);
-        $featureItem->setSortOrder($order);
+        $featureItem->setSort($order);
         $featureItem->setLink($link);
         $feature->addItem($featureItem);
         $this->manager->persist($featureItem);

@@ -1,14 +1,15 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Entity\Component\Content;
 
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
  */
-class Content extends Component
+class Content extends AbstractComponent
 {
     /**
      * @ORM\Column(type="text")

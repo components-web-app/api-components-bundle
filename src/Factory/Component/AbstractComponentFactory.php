@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Page;
 
 abstract class AbstractComponentFactory implements ComponentFactoryInterface
@@ -25,10 +25,10 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     /**
      * @param $owner
      * @param array|null $ops
-     * @return Component
+     * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function create($owner, ?array $ops = null): Component
+    public function create($owner, ?array $ops = null): AbstractComponent
     {
         $ops = $this->processOps($ops);
         $component = $this->getComponent();
@@ -65,11 +65,11 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     }
 
     /**
-     * @param Component $component
+     * @param AbstractComponent $component
      * @param $entity
      * @throws \InvalidArgumentException
      */
-    private function setOwner(Component $component, $entity) {
+    private function setOwner(AbstractComponent $component, $entity) {
         switch (true)
         {
             case $entity instanceof ComponentGroup:
@@ -82,7 +82,7 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
 
             default:
                 throw new \InvalidArgumentException(vsprintf('Owner entity of a component must be %s or %s', [
-                    Component::class,
+                    AbstractComponent::class,
                     ComponentGroup::class
                 ]));
                 break;

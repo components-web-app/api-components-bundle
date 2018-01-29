@@ -4,10 +4,10 @@ namespace Silverback\ApiComponentBundle\Tests\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Component\Content;
+use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 
 class AbstractComponentTest extends TestCase
 {

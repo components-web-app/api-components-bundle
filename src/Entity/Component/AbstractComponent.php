@@ -2,10 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
-use Silverback\ApiComponentBundle\Entity\Page;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Page;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -13,15 +12,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
+ * @ORM\Table(name="component")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({
  *     "navbar" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar",
  *     "menu" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\Menu",
  *     "tabs" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs",
- *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero",
+ *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero\Hero",
  *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
- *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content",
+ *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content\Content",
  *     "feature_columns" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
  *     "feature_stacked" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
  *     "feature_text_list" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
@@ -29,8 +29,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "news" = "\Silverback\ApiComponentBundle\Entity\Component\News\News"
  * })
  */
-abstract class Component
+abstract class AbstractComponent implements SortableInterface
 {
+    use SortableTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue
@@ -47,13 +49,7 @@ abstract class Component
     private $page;
 
     /**
-     * @ORM\Column(type="smallint", nullable=false)
-     * @var int
-     */
-    private $sort = 0;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="ComponentGroup", inversedBy="components")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\ComponentGroup", inversedBy="components")
      * @var null|ComponentGroup
      */
     private $group;
@@ -121,22 +117,6 @@ abstract class Component
     {
         $explCls = explode('\\', static::class);
         return array_pop($explCls);
-    }
-
-    /**
-     * @return int
-     */
-    public function getSort(): int
-    {
-        return $this->sort;
-    }
-
-    /**
-     * @param int $sort
-     */
-    public function setSort(int $sort): void
-    {
-        $this->sort = $sort;
     }
 
     /**

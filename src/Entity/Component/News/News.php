@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\News;
 
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 
 /**
  * Class News
@@ -11,5 +11,5 @@ use Silverback\ApiComponentBundle\Entity\Component\Component;
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  */
-class News extends Component
+class News extends AbstractComponent
 {}

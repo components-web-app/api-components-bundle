@@ -10,16 +10,26 @@ use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 
-class SilverbackApiComponentExtension extends Extension
+class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
+    /**
+     * @param array $configs
+     * @param ContainerBuilder $container
+     * @throws \Exception
+     */
     public function load(array $configs, ContainerBuilder $container)
     {
         $this->loadServiceConfig($container);
     }
 
+    /**
+     * @param ContainerBuilder $container
+     * @throws \Exception
+     */
     private function loadServiceConfig(ContainerBuilder $container)
     {
         $loader = new PhpFileLoader(
@@ -45,5 +55,63 @@ class SilverbackApiComponentExtension extends Extension
             ->setAbstract(true)
             ->addArgument(new Reference(ObjectManager::class))
         ;
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     */
+    public function prepend(ContainerBuilder $container)
+    {
+        $bundles = $container->getParameter('kernel.bundles');
+
+        if (isset($bundles['LiipImagineBundle'])) {
+            $container->prependExtensionConfig('liip_imagine', [
+                'resolvers' => [
+                    'default' => [
+                        'web_path' => [
+                            'web_root' => '%kernel.project_dir%/public'
+                        ]
+                    ]
+                ],
+                'loaders' => [
+                    'default' => [
+                        'filesystem' => [
+                            'data_root' => '%kernel.project_dir%/public/images/gallery'
+                        ]
+                    ]
+                ],
+                'filter_sets' => [
+                    'square_placeholder' => [
+                        'jpeg_quality' => 20,
+                        'png_compression_level' => 10,
+                        'filters' => [
+                            'upscale' => [
+                                'min' => [636, 636]
+                            ],
+                            'thumbnail' => [
+                                'size' => [636, 636],
+                                'mode' => 'outbound',
+                                'allow_upscale' => true
+                            ]
+                        ]
+                    ],
+                    'thumbnail_large' => [
+                        'jpeg_quality' => 85,
+                        'png_compression_level' => 8,
+                        'filters' => [
+                            'upscale' => [
+                                'min' => [636, 636]
+                            ],
+                            'thumbnail' => [
+                                'size' => [636, 636],
+                                'mode' => 'inset',
+                                'allow_upscale' => true
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+        }
     }
 }

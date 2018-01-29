@@ -32,11 +32,11 @@ abstract class AbstractNav extends AbstractFixture
     /**
      * @param string $navLabel
      * @param int|null $order
-     * @param Page|null $page
+     * @param Page $page
      * @param string|null $fragment
      * @return mixed
      */
-    protected function addNavItem(string $navLabel, int $order = null, Page $page = null, string $fragment = null)
+    protected function addNavItem(string $navLabel, int $order = null, Page $page, string $fragment = null)
     {
         if (null === $order) {
             // auto ordering
@@ -44,12 +44,12 @@ abstract class AbstractNav extends AbstractFixture
             if (!$lastItem) {
                 $order = 0;
             } else {
-                $order = $lastItem->getSortOrder() + 1;
+                $order = $lastItem->getSort() + 1;
             }
         }
         $navItem = $this->entity->createNavItem();
         $navItem->setLabel($navLabel);
-        $navItem->setSortOrder($order);
+        $navItem->setSort($order);
         $navItem->setRoute($page->getRoutes()->first());
         $navItem->setFragment($fragment);
         $this->entity->addItem($navItem);

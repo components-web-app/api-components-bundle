@@ -4,12 +4,12 @@ namespace Silverback\ApiComponentBundle\Tests\DataFixtures\Page;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
-use Silverback\ApiComponentBundle\Entity\Component\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Entity\Page;
 use Silverback\ApiComponentBundle\Entity\Route;
+use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 
 class AbstractPageTest extends TestCase
 {

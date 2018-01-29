@@ -20,7 +20,8 @@
         "symfony/framework-bundle": "^4.0",
         "symfony/orm-pack": "^1.0",
         "symfony/yaml": "^4.0",
-        "symfony/proxy-manager-bridge": "^4.0"
+        "symfony/proxy-manager-bridge": "^4.0",
+        "liip/imagine-bundle": "2.0.x-dev@dev"
     },
     "require-dev": {
         "behat/behat": "^3.1",

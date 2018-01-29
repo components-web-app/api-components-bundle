@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Tests\Console;
 
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
-use Silverback\ApiComponentBundle\Entity\Component\Content;
+use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
-use Silverback\ApiComponentBundle\Entity\Component\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Entity\Page;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -109,7 +109,7 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertEquals($item->getLabel(), 'Feature label');
         $this->assertEquals($item->getLink(), '/');
         $this->assertEquals($item->getFeature(), $feature);
-        $this->assertEquals($item->getSortOrder(), 1);
+        $this->assertEquals($item->getSort(), 1);
     }
 
     public static function tearDownAfterClass()

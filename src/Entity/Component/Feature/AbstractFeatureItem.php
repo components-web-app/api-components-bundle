@@ -3,6 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,6 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 abstract class AbstractFeatureItem implements FeatureItemInterface
 {
+    use SortableTrait;
 
     protected $feature;
 
@@ -39,13 +42,6 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
      * @var string
      */
     private $label;
-
-    /**
-     * @ORM\Column(type="integer")
-     * @Groups({"page"})
-     * @var null|int
-     */
-    private $sortOrder;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -108,22 +104,6 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
     public function setLabel(string $label): void
     {
         $this->label = $label;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getSortOrder(): ?int
-    {
-        return $this->sortOrder;
-    }
-
-    /**
-     * @param int|null $sortOrder
-     */
-    public function setSortOrder(?int $sortOrder): void
-    {
-        $this->sortOrder = $sortOrder;
     }
 
     /**

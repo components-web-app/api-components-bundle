@@ -4,6 +4,8 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -13,8 +15,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  */
-class FeatureStackedItem extends AbstractFeatureItem
+class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
 {
+    use FileTrait;
+
     /**
      * @ORM\ManyToOne(targetEntity="FeatureStacked", inversedBy="items")
      * @var FeatureStacked
@@ -28,13 +32,6 @@ class FeatureStackedItem extends AbstractFeatureItem
      * @var null|string
      */
     protected $description;
-
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
-     * @var null|string
-     */
-    protected $image;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -64,22 +61,6 @@ class FeatureStackedItem extends AbstractFeatureItem
     public function setDescription(?string $description): void
     {
         $this->description = $description;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    /**
-     * @param null|string $image
-     */
-    public function setImage(?string $image): void
-    {
-        $this->image = $image;
     }
 
     /**

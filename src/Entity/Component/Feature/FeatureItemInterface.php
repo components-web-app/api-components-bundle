@@ -2,7 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
-interface FeatureItemInterface
+use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
+
+interface FeatureItemInterface extends SortableInterface
 {
     /**
      * @return AbstractFeature
@@ -23,16 +25,6 @@ interface FeatureItemInterface
      * @param string $label
      */
     public function setLabel(string $label): void;
-
-    /**
-     * @return int|null
-     */
-    public function getSortOrder(): ?int;
-
-    /**
-     * @param int|null $sortOrder
-     */
-    public function setSortOrder(?int $sortOrder): void;
 
     /**
      * @return null|string

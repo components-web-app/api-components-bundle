@@ -2,8 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav;
 
+use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
 use Silverback\ApiComponentBundle\Entity\Route;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -22,6 +24,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractNavItem implements NavItemInterface
 {
+    use SortableTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -56,13 +60,6 @@ abstract class AbstractNavItem implements NavItemInterface
      * @var string
      */
     private $label;
-
-    /**
-     * @ORM\Column(type="integer")
-     * @Groups({"layout", "page"})
-     * @var int
-     */
-    private $sortOrder;
 
     /**
      * @ORM\OneToOne(targetEntity="AbstractNav")
@@ -149,22 +146,6 @@ abstract class AbstractNavItem implements NavItemInterface
     public function setLabel(string $label): void
     {
         $this->label = $label;
-    }
-
-    /**
-     * @return int
-     */
-    public function getSortOrder(): int
-    {
-        return $this->sortOrder;
-    }
-
-    /**
-     * @param int $sortOrder
-     */
-    public function setSortOrder(int $sortOrder): void
-    {
-        $this->sortOrder = $sortOrder;
     }
 
     /**

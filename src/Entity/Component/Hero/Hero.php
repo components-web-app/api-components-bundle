@@ -1,15 +1,16 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
  */
-class Hero extends Component
+class Hero extends AbstractComponent
 {
     /**
      * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")

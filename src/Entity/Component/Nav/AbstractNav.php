@@ -2,17 +2,18 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav;
 
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class AbstractNav
  * @package Silverback\ApiComponentBundle\Entity\Component\Nav
  * @ORM\MappedSuperclass()
  */
-abstract class AbstractNav extends Component implements NavInterface
+abstract class AbstractNav extends AbstractComponent implements NavInterface
 {
     /**
      * @var Collection
@@ -20,7 +21,8 @@ abstract class AbstractNav extends Component implements NavInterface
     protected $items;
 
     /**
-     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\ComponentGroup", mappedBy="parent")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\ComponentGroup", mappedBy="parent")
+     * @Groups({"page"})
      * @var Collection
      */
     protected $childGroups;

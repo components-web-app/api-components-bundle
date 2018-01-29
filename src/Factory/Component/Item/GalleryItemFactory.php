@@ -30,12 +30,12 @@ class GalleryItemFactory
             if (!$lastItem) {
                 $order = 0;
             } else {
-                $order = $lastItem->getSortOrder() + 1;
+                $order = $lastItem->getSort() + 1;
             }
         }
         $galleryItem = new GalleryItem();
-        $galleryItem->setImage($image);
-        $galleryItem->setSortOrder($order);
+        $galleryItem->setFile($image);
+        $galleryItem->setSort($order);
         $galleryItem->setTitle($title);
         $galleryItem->setCaption($caption);
         $gallery->addItem($galleryItem);

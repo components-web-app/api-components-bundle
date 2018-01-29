@@ -2,12 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
-use Silverback\ApiComponentBundle\Entity\Component\Component;
-use Silverback\ApiComponentBundle\Entity\Component\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 
 class HeroFactory extends AbstractComponentFactory
 {
-    public function getComponent(): Component
+    public function getComponent(): AbstractComponent
     {
         return new Hero();
     }
@@ -20,7 +20,7 @@ class HeroFactory extends AbstractComponentFactory
         ]);
     }
 
-    public function create($owner, array $ops = null): Component
+    public function create($owner, array $ops = null): AbstractComponent
     {
         /**
          * @var Hero $component

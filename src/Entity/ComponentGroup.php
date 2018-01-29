@@ -1,10 +1,12 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -26,12 +28,12 @@ class ComponentGroup
 
     /**
      * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav", inversedBy="childGroups")
-     * @var Component
+     * @var AbstractNav
      */
     protected $parent;
 
     /**
-     * @ORM\OneToMany(targetEntity="Component", mappedBy="group")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", mappedBy="group")
      * @Groups({"page"})
      * @var Collection
      */
@@ -59,17 +61,17 @@ class ComponentGroup
     }
 
     /**
-     * @return Component
+     * @return AbstractComponent
      */
-    public function getParent(): Component
+    public function getParent(): AbstractComponent
     {
         return $this->parent;
     }
 
     /**
-     * @param Component $parent
+     * @param AbstractComponent $parent
      */
-    public function setParent(Component $parent): void
+    public function setParent(AbstractComponent $parent): void
     {
         $this->parent = $parent;
     }
@@ -94,16 +96,16 @@ class ComponentGroup
     }
 
     /**
-     * @param Component $component
+     * @param AbstractComponent $component
      */
-    public function addComponent(Component $component) {
+    public function addComponent(AbstractComponent $component) {
         $this->components->add($component);
     }
 
     /**
-     * @param Component $component
+     * @param AbstractComponent $component
      */
-    public function removeComponent(Component $component) {
+    public function removeComponent(AbstractComponent $component) {
         $this->components->removeElement($component);
     }
 }

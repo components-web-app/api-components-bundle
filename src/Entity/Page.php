@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -45,7 +45,7 @@ class Page
     private $metaDescription;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Component", mappedBy="page")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", mappedBy="page")
      * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"page"})
      * @var Collection
@@ -148,12 +148,12 @@ class Page
         }
     }
 
-    public function addComponent(Component $component)
+    public function addComponent(AbstractComponent $component)
     {
         $this->components->add($component);
     }
 
-    public function removeComponent(Component $component)
+    public function removeComponent(AbstractComponent $component)
     {
         $this->components->removeElement($component);
     }
