@@ -61,7 +61,7 @@ class FileEntitySubscriber implements EventSubscriber
                     if ($previousValueForField && $previousValueForField !== $newValueForField) {
                         $this->imagineCacheManager->remove($previousValueForField);
                         $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($newValueForField), true);
-                        $promise->receive(10000);
+                        $promise->receive(20000);
                     }
                 }
             }
@@ -78,7 +78,7 @@ class FileEntitySubscriber implements EventSubscriber
         foreach ($newEntities as $entity) {
             if ($entity instanceof FileInterface) {
                 $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($entity->getFilePath()), true);
-                $promise->receive(10000);
+                $promise->receive(20000);
             }
         }
     }
