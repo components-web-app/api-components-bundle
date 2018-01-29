@@ -17,7 +17,7 @@ class FeatureStacked extends AbstractFeature
 {
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem", mappedBy="feature")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"page"})
      */
     protected $items;

@@ -17,7 +17,7 @@ class FeatureTextList extends AbstractFeature
 {
     /**
      * @ORM\OneToMany(targetEntity="FeatureTextListItem", mappedBy="feature")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"page"})
      */
     protected $items;

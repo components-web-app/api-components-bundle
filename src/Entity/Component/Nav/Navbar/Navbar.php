@@ -16,7 +16,7 @@ class Navbar extends AbstractNav
 {
     /**
      * @ORM\OneToMany(targetEntity="NavbarItem", mappedBy="nav")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"layout", "page"})
      */
     protected $items;

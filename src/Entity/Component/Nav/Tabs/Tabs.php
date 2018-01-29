@@ -16,7 +16,7 @@ class Tabs extends AbstractNav
 {
     /**
      * @ORM\OneToMany(targetEntity="Tab", mappedBy="nav")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"layout", "page"})
      */
     protected $items;

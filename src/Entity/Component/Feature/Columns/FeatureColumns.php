@@ -17,7 +17,7 @@ class FeatureColumns extends AbstractFeature
 {
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem", mappedBy="feature")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"page"})
      */
     protected $items;

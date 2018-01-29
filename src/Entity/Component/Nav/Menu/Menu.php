@@ -16,7 +16,7 @@ class Menu extends AbstractNav
 {
     /**
      * @ORM\OneToMany(targetEntity="MenuItem", mappedBy="nav")
-     * @ORM\OrderBy({"sortOrder" = "ASC"})
+     * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"layout", "page"})
      */
     protected $items;
