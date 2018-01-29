@@ -18,7 +18,7 @@ class FileEntitySubscriber implements EventSubscriber
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
-     * @param Producer $enqueProducer
+     * @param Producer $producer
      */
     public function __construct(
         CacheManager $imagineCacheManager,
@@ -41,6 +41,7 @@ class FileEntitySubscriber implements EventSubscriber
 
     /**
      * @param OnFlushEventArgs $eventArgs
+     * @throws \Enqueue\Rpc\TimeoutException
      */
     public function onFlush (OnFlushEventArgs $eventArgs): void
     {
@@ -59,7 +60,8 @@ class FileEntitySubscriber implements EventSubscriber
                     $newValueForField = $fpChanges[1] ?? null;
                     if ($previousValueForField && $previousValueForField !== $newValueForField) {
                         $this->imagineCacheManager->remove($previousValueForField);
-                        $this->producer->send(Commands::RESOLVE_CACHE, new ResolveCache($newValueForField));
+                        $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($newValueForField), true);
+                        $promise->receive(10000);
                     }
                 }
             }
@@ -75,7 +77,8 @@ class FileEntitySubscriber implements EventSubscriber
         $newEntities = $unitOfWork->getScheduledEntityInsertions();
         foreach ($newEntities as $entity) {
             if ($entity instanceof FileInterface) {
-                $this->producer->send(Commands::RESOLVE_CACHE, new ResolveCache($entity->getFilePath()));
+                $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($entity->getFilePath()), true);
+                $promise->receive(10000);
             }
         }
     }

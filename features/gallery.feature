@@ -45,17 +45,9 @@ Feature: Gallery
     Then the response status code should be 201
     And the JSON node width should be equal to the number 100
     And the JSON node height should be equal to the number 100
-    And the JSON node thumbnailPath should be equal to the string "/media/cache/resolve/thumbnail/images/testImage.jpg"
-    And the JSON node placeholderPath should be equal to the string "/media/cache/resolve/placeholder/images/testImage.jpg"
-
-  Scenario: Test the thumbnail redirect is returned and image is generated
-      When I send a "GET" request to "/media/cache/resolve/thumbnail/images/testImage.jpg"
-      Then the response status code should be 301
-      And the public file path "media/cache/thumbnail/images/testImage.jpg" should exist
-
-  Scenario: Test the placeholder redirect is returned and image is generated
-    When I send a "GET" request to "/media/cache/resolve/placeholder/images/testImage.jpg"
-    Then the response status code should be 301
+    And the JSON node thumbnailPath should be equal to the string "/media/cache/thumbnail/images/testImage.jpg"
+    And the JSON node placeholderPath should be equal to the string "/media/cache/placeholder/images/testImage.jpg"
+    And the public file path "media/cache/thumbnail/images/testImage.jpg" should exist
     And the public file path "media/cache/placeholder/images/testImage.jpg" should exist
 
 
@@ -70,10 +62,7 @@ Feature: Gallery
     And the JSON node filePath should be equal to the string "/images/testImage2.jpg"
     And the public file path "media/cache/placeholder/images/testImage.jpg" should not exist
     And the public file path "media/cache/thumbnail/images/testImage.jpg" should not exist
-
-  Scenario: Test the thumbnail redirect is returned and image is generated for new image
-    When I send a "GET" request to "/media/cache/resolve/thumbnail/images/testImage2.jpg"
-    Then the response status code should be 301
+    And the public file path "media/cache/placeholder/images/testImage2.jpg" should exist
     And the public file path "media/cache/thumbnail/images/testImage2.jpg" should exist
 
   @dropSchema

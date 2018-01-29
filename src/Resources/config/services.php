@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
+use Liip\ImagineBundle\Async\ResolveCacheProcessor;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\FileEntitySubscriber;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
@@ -127,5 +128,19 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(FileEntitySubscriber::class)
         ->tag('doctrine.event_subscriber')
+    ;
+
+    $services
+        ->set('liip_imagine.async.resolve_cache_processor')
+        ->class(ResolveCacheProcessor::class)
+        ->args(
+            [
+                new Reference('liip_imagine.filter.manager'),
+                new Reference('liip_imagine.service.filter'),
+                new Reference('enqueue.producer')
+            ]
+        )
+        ->tag('enqueue.client.processor')
+        ->public()
     ;
 };
