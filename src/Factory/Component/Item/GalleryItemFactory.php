@@ -34,7 +34,7 @@ class GalleryItemFactory
             }
         }
         $galleryItem = new GalleryItem();
-        $galleryItem->setFile($image);
+        $galleryItem->setFilePath($image);
         $galleryItem->setSort($order);
         $galleryItem->setTitle($title);
         $galleryItem->setCaption($caption);
