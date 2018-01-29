@@ -46,7 +46,9 @@ class PageListener
 
     /**
      * @ORM\PreFlush()
+     * @param Page $page
      * @param PreFlushEventArgs $eventArgs
+     * @throws \Doctrine\ORM\ORMInvalidArgumentException
      */
     public function preFlush (Page $page, PreFlushEventArgs $eventArgs): void
     {

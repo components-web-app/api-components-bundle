@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Console;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\SchemaTool;
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
@@ -15,6 +17,9 @@ use Symfony\Component\Console\Tester\CommandTester;
 class DoctrineFixturesTest extends WebTestCase
 {
     protected static $application;
+    /**
+     * @var EntityManagerInterface
+     */
     protected static $em;
 
     /**
@@ -45,8 +50,7 @@ class DoctrineFixturesTest extends WebTestCase
 
     private function getEntities (string $cls)
     {
-        $entities = self::$em->getRepository($cls)->findAll();
-        return $entities;
+        return self::$em->getRepository($cls)->findAll();
     }
 
     public function test_fixture_page ()
@@ -115,6 +119,9 @@ class DoctrineFixturesTest extends WebTestCase
     public static function tearDownAfterClass()
     {
         parent::tearDownAfterClass();
+        $schemaTool = new SchemaTool(self::$em);
+        $schemaTool->dropSchema(self::$em->getMetadataFactory()->getAllMetadata());
+        self::$em->clear();
         self::$em->close();
         self::$em = null; // avoid memory leaks
     }
