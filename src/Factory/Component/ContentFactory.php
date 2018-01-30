@@ -3,7 +3,9 @@
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Enqueue\Rpc\TimeoutException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 
@@ -33,16 +35,38 @@ class ContentFactory extends AbstractComponentFactory
         ]);
     }
 
+    /**
+     * @param $owner
+     * @param array|null $ops
+     * @return AbstractComponent
+     * @throws \InvalidArgumentException
+     */
     public function create($owner, array $ops = null): AbstractComponent
     {
         /**
          * @var Content $component
          */
         $component = parent::create($owner, $ops);
-        $ops = self::processOps($ops);
+        $ops = $this->processOps($ops);
         if (!$ops['content']) {
-            $res = $this->client->request('GET', 'http://loripsum.net/api/' . join('/', $ops['lipsum']));
-            $component->setContent($res->getBody());
+            $url = 'http://loripsum.net/api/' . implode('/', $ops['lipsum']);
+            try{
+                $res = $this->client->request(
+                    'GET',
+                    $url,
+                    [ 'connect_timeout' => 3, 'read_timeout' => 2, 'timeout' => 5 ]
+                );
+                $component->setContent($res->getBody());
+            } catch (RequestException $e) {
+                $component->setContent(
+                    vsprintf(
+                        '<p><b>Request Exception</b>: %s<br/><small><a href="%s">%s</a></small></p>',
+                        [ $e->getMessage(), $url, $url ]
+                    )
+                );
+            }
+
+
         } else {
             $component->setContent($ops['content']);
         }
