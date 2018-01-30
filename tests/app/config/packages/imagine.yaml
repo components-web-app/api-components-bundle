@@ -1,11 +1,3 @@
 liip_imagine:
-    driver: "gd"
-    resolvers:
-        default:
-            web_path:
-                web_root: '%kernel.project_dir%/public'
-    loaders:
-        default:
-            filesystem:
-                data_root: '%kernel.project_dir%/public'
+    driver: "imagick"
     enqueue: true
