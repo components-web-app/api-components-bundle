@@ -7,8 +7,8 @@ use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNavItem;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
  * @ORM\Entity()
+ * @ApiResource()
  */
 class NavbarItem extends AbstractNavItem
 {

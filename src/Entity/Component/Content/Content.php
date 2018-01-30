@@ -2,12 +2,14 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Content;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
+ * @ApiResource()
  */
 class Content extends AbstractComponent
 {

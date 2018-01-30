@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
@@ -9,6 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
+ * @ApiResource()
  */
 class Hero extends AbstractComponent
 {

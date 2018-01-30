@@ -9,12 +9,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
  * @ApiResource(
  *     attributes={
  *          "normalization_context"={"groups"={"layout"}}
  *     }
  * )
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
  */
 class Layout
 {

@@ -11,13 +11,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\PageRepository")
+ * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
  * @ApiResource(
  *     attributes={
  *          "normalization_context"={"groups"={"page"}}
  *     }
  * )
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\PageRepository")
- * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
  */
 class Page
 {
