@@ -33,4 +33,12 @@ trait FileTrait
     {
         $this->filePath = $filePath;
     }
+
+    public static function getImagineFilters(): array
+    {
+        return [
+            'thumbnailPath' => 'thumbnail',
+            'placeholderPath' => 'placeholder_square'
+        ];
+    }
 }

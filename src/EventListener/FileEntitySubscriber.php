@@ -4,39 +4,59 @@ namespace Silverback\ApiComponentBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\UnitOfWork;
 use Enqueue\Client\Producer;
 use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\Serializer\FileNormalizer;
 
+/**
+ * Class FileEntitySubscriber
+ * @package Silverback\ApiComponentBundle\EventListener
+ * @author Daniel West <daniel@silverback.is>
+ */
 class FileEntitySubscriber implements EventSubscriber
 {
+    /**
+     * @var CacheManager
+     */
     private $imagineCacheManager;
+    /**
+     * @var Producer
+     */
     private $producer;
+    /**
+     * @var FileNormalizer
+     */
+    private $fileNormalizer;
 
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param Producer $producer
+     * @param FileNormalizer $fileNormalizer
      */
     public function __construct(
         CacheManager $imagineCacheManager,
-        Producer $producer
+        Producer $producer,
+        FileNormalizer $fileNormalizer
     )
     {
         $this->imagineCacheManager = $imagineCacheManager;
         $this->producer = $producer;
+        $this->fileNormalizer = $fileNormalizer;
     }
 
     /**
      * @return array
      */
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
-        return array(
+        return [
             'onFlush'
-        );
+        ];
     }
 
     /**
@@ -47,6 +67,35 @@ class FileEntitySubscriber implements EventSubscriber
     {
         $entityManager = $eventArgs->getEntityManager();
         $unitOfWork = $entityManager->getUnitOfWork();
+
+        $this->processNewEntities($unitOfWork);
+        $this->processUpdatedEntities($unitOfWork);
+        $this->processDeletedEntities($unitOfWork);
+    }
+
+    /**
+     * @param UnitOfWork $unitOfWork
+     * @throws \Enqueue\Rpc\TimeoutException
+     */
+    private function processNewEntities (UnitOfWork $unitOfWork): void
+    {
+        $newEntities = $unitOfWork->getScheduledEntityInsertions();
+        foreach ($newEntities as $entity) {
+            if (
+                $entity instanceof FileInterface &&
+                $this->fileNormalizer->isImagineSupportedFile($entity->getFilePath())
+            ) {
+                $this->sendCommand($entity);
+            }
+        }
+    }
+
+    /**
+     * @param UnitOfWork $unitOfWork
+     * @throws \Enqueue\Rpc\TimeoutException
+     */
+    private function processUpdatedEntities (UnitOfWork $unitOfWork): void
+    {
         $updatedEntities = $unitOfWork->getScheduledEntityUpdates();
         foreach ($updatedEntities as $entity) {
             if ($entity instanceof FileInterface) {
@@ -58,28 +107,48 @@ class FileEntitySubscriber implements EventSubscriber
                     $fpChanges = $changes['filePath'];
                     $previousValueForField = $fpChanges[0] ?? null;
                     $newValueForField = $fpChanges[1] ?? null;
-                    if ($previousValueForField && $previousValueForField !== $newValueForField) {
-                        $this->imagineCacheManager->remove($previousValueForField);
-                        $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($newValueForField), true);
-                        $promise->receive(20000);
+                    if ($previousValueForField !== $newValueForField) {
+                        if ($this->fileNormalizer->isImagineSupportedFile($previousValueForField)) {
+                            $this->imagineCacheManager->remove($previousValueForField);
+                        }
+                        if ($this->fileNormalizer->isImagineSupportedFile($newValueForField)) {
+                            $this->sendCommand($entity);
+                        }
                     }
                 }
             }
         }
+    }
 
+    /**
+     * @param UnitOfWork $unitOfWork
+     */
+    private function processDeletedEntities (UnitOfWork $unitOfWork): void
+    {
         $deletedEntities = $unitOfWork->getScheduledEntityDeletions();
         foreach ($deletedEntities as $entity) {
-            if ($entity instanceof FileInterface) {
+            if (
+                $entity instanceof FileInterface &&
+                $this->fileNormalizer->isImagineSupportedFile($entity->getFilePath())
+            ) {
                 $this->imagineCacheManager->remove($entity->getFilePath());
             }
         }
+    }
 
-        $newEntities = $unitOfWork->getScheduledEntityInsertions();
-        foreach ($newEntities as $entity) {
-            if ($entity instanceof FileInterface) {
-                $promise = $this->producer->sendCommand(Commands::RESOLVE_CACHE, new ResolveCache($entity->getFilePath()), true);
-                $promise->receive(20000);
-            }
-        }
+    /**
+     * @param FileInterface $file
+     * @throws \Enqueue\Rpc\TimeoutException
+     */
+    private function sendCommand(FileInterface $file): void
+    {
+        $this->producer
+            ->sendCommand(
+                Commands::RESOLVE_CACHE,
+                new ResolveCache($file->getFilePath(), $file::getImagineFilters()),
+                true
+            )
+            ->receive(20000)
+        ;
     }
 }

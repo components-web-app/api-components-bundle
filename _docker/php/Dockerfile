@@ -21,6 +21,7 @@ RUN set -xe \
 		libssh-dev \
 		libxml2-dev autoconf g++ imagemagick-dev libtool make \
 	&& docker-php-ext-install \
+		exif \
     bcmath \
     sockets \
   && pecl install \
