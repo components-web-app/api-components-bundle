@@ -1,4 +1,5 @@
 /.idea/
+/composer.lock
 /vendor/
 /src/var/
 /tests/app/var/

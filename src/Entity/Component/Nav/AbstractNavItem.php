@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\DiscriminatorMap({
  *     "navbar_item" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\NavbarItem",
  *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\MenuItem",
- *     "tab" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tab"
+ *     "tab" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\TabItem"
  * })
  */
 abstract class AbstractNavItem implements NavItemInterface

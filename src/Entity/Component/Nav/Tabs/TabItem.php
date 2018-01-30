@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity()
  * @ApiResource()
  */
-class Tab extends AbstractNavItem
+class TabItem extends AbstractNavItem
 {
     /**
      * @ORM\ManyToOne(targetEntity="Tabs", inversedBy="items")

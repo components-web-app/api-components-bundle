@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Tabs extends AbstractNav
 {
     /**
-     * @ORM\OneToMany(targetEntity="Tab", mappedBy="nav")
+     * @ORM\OneToMany(targetEntity="TabItem", mappedBy="nav")
      * @ORM\OrderBy({"sort" = "ASC"})
      * @Groups({"layout", "page"})
      */
@@ -23,7 +23,7 @@ class Tabs extends AbstractNav
 
     public function createNavItem(): NavItemInterface
     {
-        return new Tab();
+        return new TabItem();
     }
 }
 
