@@ -18,15 +18,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureColumns extends AbstractFeature
 {
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem", mappedBy="feature")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     * @Groups({"page"})
-     */
-    protected $items;
-
-    /**
      * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component"})
      * @var null|string
      */
     protected $title;

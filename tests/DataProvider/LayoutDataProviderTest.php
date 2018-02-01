@@ -6,7 +6,7 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\DataProvider\Item\LayoutDataProvider;
-use Silverback\ApiComponentBundle\Entity\Layout;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Repository\LayoutRepository;
 
 class LayoutDataProviderTest extends TestCase

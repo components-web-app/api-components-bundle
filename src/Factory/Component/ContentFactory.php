@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 
 class ContentFactory extends AbstractComponentFactory
 {
@@ -36,12 +37,12 @@ class ContentFactory extends AbstractComponentFactory
     }
 
     /**
-     * @param $owner
+     * @param AbstractContent $owner
      * @param array|null $ops
      * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function create($owner, array $ops = null): AbstractComponent
+    public function create(AbstractContent $owner, array $ops = null): AbstractComponent
     {
         /**
          * @var Content $component

@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -21,20 +21,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     "text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem"
  * })
  */
-abstract class AbstractFeatureItem implements FeatureItemInterface
+abstract class AbstractFeatureItem extends AbstractComponentItem implements FeatureItemInterface
 {
-    use SortableTrait;
-
-    protected $feature;
-
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @var int
-     */
-    private $id;
-
     /**
      * @ORM\Column(type="string")
      * @Groups({"page"})
@@ -50,45 +38,6 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
      * @var int|null
      */
     protected $link;
-
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
-     * @var int|null
-     */
-    protected $className;
-
-    /**
-     * @return int|null
-     */
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param int $id
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return AbstractFeature
-     */
-    public function getFeature(): AbstractFeature
-    {
-        return $this->feature;
-    }
-
-    /**
-     * @param AbstractFeature $feature
-     */
-    public function setFeature(AbstractFeature $feature): void
-    {
-        $this->feature = $feature;
-    }
 
     /**
      * @return string
@@ -120,21 +69,5 @@ abstract class AbstractFeatureItem implements FeatureItemInterface
     public function setLink(?string $link): void
     {
         $this->link = $link;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getClassName(): ?int
-    {
-        return $this->className;
-    }
-
-    /**
-     * @param int|null $className
-     */
-    public function setClassName(?int $className): void
-    {
-        $this->className = $className;
     }
 }

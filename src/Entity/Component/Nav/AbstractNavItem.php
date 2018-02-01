@@ -2,12 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav;
 
-use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
-use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
-use Silverback\ApiComponentBundle\Entity\Route;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class AbstractNavItem
@@ -40,30 +40,31 @@ abstract class AbstractNavItem implements NavItemInterface
     protected $nav;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Route")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Route\Route")
      * @ORM\JoinColumn(referencedColumnName="route", nullable=true)
-     * @Groups({"layout", "page"})
+     * @Groups({"component"})
      * @var null|Route
      */
     private $route;
 
     /**
      * @ORM\Column(type="string", nullable=true)
-     * @Groups({"layout", "page"})
+     * @Groups({"component"})
      * @var null|string
      */
     private $fragment;
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"layout", "page"})
+     * @Groups({"component"})
      * @var string
      */
     private $label;
 
     /**
-     * @ORM\OneToOne(targetEntity="AbstractNav")
-     * @Groups({"layout", "page"})
+     * @ORM\OneToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent")
+     * @Assert\Type({"\Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav"})
+     * @Groups({"component"})
      * @var null|AbstractNav
      */
     private $child;

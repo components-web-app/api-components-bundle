@@ -3,14 +3,15 @@
 namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
+use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
-use Silverback\ApiComponentBundle\Factory\Component\Item\FeatureItemFactory;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
-use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
-use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
-use Silverback\ApiComponentBundle\Entity\Route;
+use Silverback\ApiComponentBundle\Factory\Component\Item\FeatureItemFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 
@@ -66,6 +67,9 @@ class DummyPageFixture extends AbstractPage
             FeatureStackedFactory::class,
             $this->entity
         );
+        /**
+         * @var $featureItem FeatureStackedItem
+         */
         $featureItem = $this->featureHelper->createItem($feature, 'Feature label', '/', 1);
         $featureItem->setFilePath('images/testImage.jpg');
 

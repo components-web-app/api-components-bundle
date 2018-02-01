@@ -19,43 +19,29 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\FormListener"})
  * @ApiResource(
  *     collectionOperations={
- *         "get"={"method"="GET", "normalization_context"={"groups"={"page"}}},
+ *         "get"={"method"="GET"},
  *         "post"={"method"="POST", "denormalization_context"={"groups"={"form_write"}}},
  *     },
  *     itemOperations={
- *         "get"={"method"="GET", "normalization_context"={"groups"={"page"}}},
- *         "delete"={"method"="DELETE", "normalization_context"={"groups"={"page"}}},
+ *         "get"={"method"="GET"},
+ *         "delete"={"method"="DELETE"},
  *         "put"={"method"="PUT", "denormalization_context"={"groups"={"form_write"}}},
  *         "validate_item"={"method"="PATCH", "route_name"="silverback_api_component_form_validate_item", "denormalization_context"={"groups"={"none"}}},
  *         "validate_form"={"method"="POST", "route_name"="silverback_api_component_form_submit", "denormalization_context"={"groups"={"none"}}}
- *     }
+ *     },
+ *     attributes={"force_eager"=false}
  * )
  */
 class Form extends AbstractComponent
 {
     /**
      * @ORM\Column(type="string")
-     * @Groups({"page", "form_write"})
+     * @Groups({"form_write"})
      * @ACBAssert\FormTypeClass()
      * @Assert\NotBlank()
      * @var string
      */
     private $formType;
-
-    /**
-     * @ApiProperty(writable=false)
-     * @Groups({"page", "validate"})
-     * @var null|FormView
-     */
-    private $form;
-
-    /**
-     * @ORM\Column(type="datetime")
-     * @ApiProperty(writable=false)
-     * @Groups({"page", "validate"})
-     * @var null|\DateTime
-     */
-    private $lastModified;
 
     /**
      * @ORM\Column(type="string")
@@ -64,6 +50,19 @@ class Form extends AbstractComponent
      * @var null|string
      */
     private $successHandler;
+
+    /**
+     * @ApiProperty(writable=false)
+     * @var null|FormView
+     */
+    private $form;
+
+    /**
+     * @ORM\Column(type="datetime")
+     * @ApiProperty(writable=false)
+     * @var null|\DateTime
+     */
+    private $lastModified;
 
     /**
      * @return string
@@ -79,6 +78,22 @@ class Form extends AbstractComponent
     public function setFormType(string $formType): void
     {
         $this->formType = $formType;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getSuccessHandler(): ?string
+    {
+        return $this->successHandler;
+    }
+
+    /**
+     * @param null|string $successHandler
+     */
+    public function setSuccessHandler(?string $successHandler): void
+    {
+        $this->successHandler = $successHandler;
     }
 
     /**
@@ -111,21 +126,5 @@ class Form extends AbstractComponent
     public function setLastModified(?\DateTime $lastModified): void
     {
         $this->lastModified = $lastModified;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getSuccessHandler(): ?string
-    {
-        return $this->successHandler;
-    }
-
-    /**
-     * @param null|string $successHandler
-     */
-    public function setSuccessHandler(?string $successHandler): void
-    {
-        $this->successHandler = $successHandler;
     }
 }

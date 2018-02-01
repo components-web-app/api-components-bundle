@@ -11,17 +11,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class AbstractNav
  * @package Silverback\ApiComponentBundle\Entity\Component\Nav
- * @ORM\MappedSuperclass()
  */
 abstract class AbstractNav extends AbstractComponent implements NavInterface
 {
     /**
-     * @var Collection
-     */
-    protected $items;
-
-    /**
-     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\ComponentGroup", mappedBy="parent")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", mappedBy="parent")
      * @Groups({"page"})
      * @var Collection
      */
@@ -31,44 +25,6 @@ abstract class AbstractNav extends AbstractComponent implements NavInterface
     {
         parent::__construct();
         $this->childGroups = new ArrayCollection();
-        $this->items = new ArrayCollection();
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getItems(): Collection
-    {
-        return $this->items;
-    }
-
-    /**
-     * @param array $items
-     */
-    public function setItems(array $items): void
-    {
-        $this->items = new ArrayCollection();
-        foreach($items as $item)
-        {
-            $this->addItem($item);
-        }
-    }
-
-    /**
-     * @param NavItemInterface $item
-     */
-    public function addItem(NavItemInterface $item): void
-    {
-        $this->items->add($item);
-        $item->setNav($this);
-    }
-
-    /**
-     * @param NavItemInterface $item
-     */
-    public function removeItem(NavItemInterface $item): void
-    {
-        $this->items->removeElement($item);
     }
 
     /**

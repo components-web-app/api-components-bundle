@@ -1,23 +1,28 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity;
+namespace Silverback\ApiComponentBundle\Entity\Content;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav;
+use Silverback\ApiComponentBundle\Entity\Route\RouteAware;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class ComponentGroup
- * @package Silverback\ApiComponentBundle\Entity\Component
+ * Class AbstractContent
+ * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
- * @ApiResource()
+ * @ORM\Table(name="content")
+ * @ORM\InheritanceType("SINGLE_TABLE")
+ * @ORM\DiscriminatorColumn(name="discr", type="string")
+ * @ORM\DiscriminatorMap({
+ *     "page" = "\Silverback\ApiComponentBundle\Entity\Content\Page",
+ *     "component_group" = "\Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+ * })
  */
-class ComponentGroup
+abstract class AbstractContent extends RouteAware
 {
     /**
      * @ORM\Id()
@@ -26,16 +31,10 @@ class ComponentGroup
      * @Groups({"page"})
      * @var int
      */
-    private $id;
+    protected $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav", inversedBy="childGroups")
-     * @var AbstractNav
-     */
-    protected $parent;
-
-    /**
-     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", mappedBy="group")
+     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", mappedBy="parentContent")
      * @Groups({"page"})
      * @var Collection
      */
@@ -43,6 +42,7 @@ class ComponentGroup
 
     public function __construct()
     {
+        parent::__construct();
         $this->components = new ArrayCollection();
     }
 
@@ -60,22 +60,6 @@ class ComponentGroup
     public function setId($id): void
     {
         $this->id = $id;
-    }
-
-    /**
-     * @return AbstractComponent
-     */
-    public function getParent(): AbstractComponent
-    {
-        return $this->parent;
-    }
-
-    /**
-     * @param AbstractComponent $parent
-     */
-    public function setParent(AbstractComponent $parent): void
-    {
-        $this->parent = $parent;
     }
 
     /**

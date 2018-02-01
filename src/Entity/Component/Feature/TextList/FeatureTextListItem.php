@@ -14,10 +14,4 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
  * @ApiResource()
  */
 class FeatureTextListItem extends AbstractFeatureItem
-{
-    /**
-     * @ORM\ManyToOne(targetEntity="FeatureTextList", inversedBy="items")
-     * @var FeatureTextList
-     */
-    protected $feature;
-}
+{}

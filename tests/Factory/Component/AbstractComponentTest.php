@@ -5,12 +5,15 @@ namespace Silverback\ApiComponentBundle\Tests\Factory\Component;
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
-use Silverback\ApiComponentBundle\Entity\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 
 class AbstractComponentTest extends TestCase
 {
+    /**
+     * @var AbstractComponentFactory
+     */
     private $abstractComponentMock;
     private $dummyComponent;
     private $objectManagerProphecy;
@@ -56,7 +59,7 @@ class AbstractComponentTest extends TestCase
         $owner = new Page();
         $component = $this->abstractComponentMock->create($owner, [ 'className' => 'myClass' ]);
         $this->assertEquals($component->getClassName(), 'myClass');
-        $this->assertEquals($component->getPage(), $owner);
+        $this->assertEquals($component->getParentContent(), $owner);
     }
 
     public function test_create_component_for_component_group_and_class_name_null ()
@@ -70,19 +73,6 @@ class AbstractComponentTest extends TestCase
         $owner = new ComponentGroup();
         $component = $this->abstractComponentMock->create($owner, null);
         $this->assertEquals($component->getClassName(), null);
-        $this->assertEquals($component->getGroup(), $owner);
-    }
-
-    public function test_create_component_with_invalid_owner ()
-    {
-        $this->abstractComponentMock
-            ->expects($this->once())
-            ->method('getComponent')
-            ->will($this->returnValue($this->dummyComponent))
-        ;
-
-        $owner = new Content();
-        $this->expectException(\InvalidArgumentException::class);
-        $this->abstractComponentMock->create($owner, null);
+        $this->assertEquals($component->getParentContent(), $owner);
     }
 }

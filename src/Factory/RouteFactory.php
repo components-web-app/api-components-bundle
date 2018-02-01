@@ -2,9 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Factory;
 
-use Silverback\ApiComponentBundle\Entity\Page;
-use Silverback\ApiComponentBundle\Entity\Route;
 use Cocur\Slugify\SlugifyInterface;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 
 class RouteFactory {
     /**

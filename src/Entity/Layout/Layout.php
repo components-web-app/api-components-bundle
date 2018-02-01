@@ -1,20 +1,16 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity;
+namespace Silverback\ApiComponentBundle\Entity\Layout;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
- * @ApiResource(
- *     attributes={
- *          "normalization_context"={"groups"={"layout"}}
- *     }
- * )
+ * @ApiResource()
  */
 class Layout
 {
@@ -28,8 +24,6 @@ class Layout
     /**
      * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
      * @var null|Navbar
-     * @Groups({"layout"})
-     * @MaxDepth(5)
      */
     private $nav;
 

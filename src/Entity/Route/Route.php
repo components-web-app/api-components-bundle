@@ -1,9 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity;
+namespace Silverback\ApiComponentBundle\Entity\Route;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -16,10 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *         "get"={"method"="GET", "path"="/routes/{id}", "requirements"={"id"=".+"}},
  *         "put"={"method"="PUT", "path"="/routes/{id}", "requirements"={"id"=".+"}},
  *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
- *      },
- *     attributes={
- *          "normalization_context"={"groups"={"route"}}
- *     }
+ *      }
  * )
  */
 class Route
@@ -27,23 +25,20 @@ class Route
     /**
      * @ORM\Id
      * @ORM\Column(type="string")
-     * @Groups({"layout", "page", "route"})
      * @var string
      */
     private $route;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Page", inversedBy="routes")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Content\Page", inversedBy="routes")
      * @ORM\JoinColumn(fieldName="page_id", referencedColumnName="id", nullable=true)
-     * @Groups({"layout", "page", "route"})
      * @var null|Page
      */
     private $page;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Route")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Route\Route")
      * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
-     * @Groups({"route"})
      * @var null|Route
      */
     private $redirect;

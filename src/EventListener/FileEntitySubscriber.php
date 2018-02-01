@@ -10,7 +10,7 @@ use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Serializer\FileNormalizer;
+use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 
 /**
  * Class FileEntitySubscriber
@@ -28,7 +28,7 @@ class FileEntitySubscriber implements EventSubscriber
      */
     private $producer;
     /**
-     * @var FileNormalizer
+     * @var ApiNormalizer
      */
     private $fileNormalizer;
 
@@ -36,12 +36,12 @@ class FileEntitySubscriber implements EventSubscriber
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param Producer $producer
-     * @param FileNormalizer $fileNormalizer
+     * @param ApiNormalizer $fileNormalizer
      */
     public function __construct(
         CacheManager $imagineCacheManager,
         Producer $producer,
-        FileNormalizer $fileNormalizer
+        ApiNormalizer $fileNormalizer
     )
     {
         $this->imagineCacheManager = $imagineCacheManager;

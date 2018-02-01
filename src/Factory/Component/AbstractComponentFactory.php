@@ -4,8 +4,9 @@ namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 
 abstract class AbstractComponentFactory implements ComponentFactoryInterface
 {
@@ -23,12 +24,12 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     }
 
     /**
-     * @param $owner
+     * @param AbstractContent $owner
      * @param array|null $ops
      * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function create($owner, ?array $ops = null): AbstractComponent
+    public function create(AbstractContent $owner, ?array $ops = null): AbstractComponent
     {
         $ops = $this->processOps($ops);
         $component = $this->getComponent();
@@ -66,26 +67,10 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
 
     /**
      * @param AbstractComponent $component
-     * @param $entity
+     * @param AbstractContent $parentContent
      * @throws \InvalidArgumentException
      */
-    private function setOwner(AbstractComponent $component, $entity) {
-        switch (true)
-        {
-            case $entity instanceof ComponentGroup:
-                $component->setGroup($entity);
-                break;
-
-            case $entity instanceof Page:
-                $component->setPage($entity);
-                break;
-
-            default:
-                throw new \InvalidArgumentException(vsprintf('Owner entity of a component must be %s or %s', [
-                    AbstractComponent::class,
-                    ComponentGroup::class
-                ]));
-                break;
-        }
+    private function setOwner(AbstractComponent $component, AbstractContent $parentContent) {
+        $component->setParentContent($parentContent);
     }
 }

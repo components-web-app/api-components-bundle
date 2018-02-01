@@ -2,9 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -37,33 +39,39 @@ abstract class AbstractComponent implements SortableInterface
      * @ORM\Id()
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"page"})
+     * @Groups({"component"})
+     * @ApiProperty(identifier=true)
      * @var int
      */
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Page", inversedBy="components")
-     * @var Page
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
+     * @var AbstractContent
      */
-    private $page;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\ComponentGroup", inversedBy="components")
-     * @var null|ComponentGroup
-     */
-    private $group;
+    private $parentContent;
 
     /**
      * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component"})
      * @var null|string
      */
     private $className;
 
-    // Kept here so children can call this construct function in future if we ever need to do anything to init all components
+    /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem", mappedBy="parent")
+     * @ORM\OrderBy({"sort" = "ASC"})
+     * @Groups({"component"})
+     */
+    protected $items;
+
+    /**
+     * AbstractComponent constructor.
+     */
     public function __construct()
-    {}
+    {
+        $this->items = new ArrayCollection();
+    }
 
     /**
      * @return int|null
@@ -82,31 +90,30 @@ abstract class AbstractComponent implements SortableInterface
     }
 
     /**
-     * @return Page|null
+     * @return AbstractContent|null
      */
-    public function getPage(): ?Page
+    public function getParentContent(): ?AbstractContent
     {
-        return $this->page;
+        return $this->parentContent;
     }
 
     /**
-     * @param Page $page
+     * @param AbstractContent $parent
      * @param int|null $order
      */
-    public function setPage(?Page $page, int $order = null): void
+    public function setParentContent(?AbstractContent $parentContent, int $order = null): void
     {
-        if ($page && null === $order && !$this->getSort()) {
+        if ($parentContent && null === $order && !$this->getSort()) {
             // auto ordering
-            $lastItem = $page->getComponents()->last();
+            $lastItem = $parentContent->getComponents()->last();
             if ($lastItem) {
                 $this->setSort($lastItem->getSort() + 1);
             }
-            if (!$page->getComponents()->contains($this)) {
-                $page->addComponent($this);
+            if (!$parentContent->getComponents()->contains($this)) {
+                $parentContent->addComponent($this);
             }
         }
-
-        $this->page = $page;
+        $this->parentContent = $parentContent;
     }
 
     /**
@@ -117,22 +124,6 @@ abstract class AbstractComponent implements SortableInterface
     {
         $explCls = explode('\\', static::class);
         return array_pop($explCls);
-    }
-
-    /**
-     * @return ComponentGroup|null
-     */
-    public function getGroup(): ?ComponentGroup
-    {
-        return $this->group;
-    }
-
-    /**
-     * @param ComponentGroup|null $group
-     */
-    public function setGroup(?ComponentGroup $group): void
-    {
-        $this->group = $group;
     }
 
     /**
@@ -149,5 +140,42 @@ abstract class AbstractComponent implements SortableInterface
     public function setClassName(?string $className): void
     {
         $this->className = $className;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
+
+    /**
+     * @param array $items
+     */
+    public function setItems(array $items): void
+    {
+        $this->items = new ArrayCollection();
+        foreach($items as $item)
+        {
+            $this->addItem($item);
+        }
+    }
+
+    /**
+     * @param AbstractComponentItem $item
+     */
+    public function addItem(AbstractComponentItem $item): void
+    {
+        $this->items->add($item);
+        $item->setParent($this);
+    }
+
+    /**
+     * @param AbstractComponentItem $item
+     */
+    public function removeItem(AbstractComponentItem $item): void
+    {
+        $this->items->removeElement($item);
     }
 }

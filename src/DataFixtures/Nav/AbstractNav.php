@@ -2,11 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Nav;
 
+use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
-use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 
 /**
  * Class AbstractNav

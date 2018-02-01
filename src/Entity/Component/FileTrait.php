@@ -13,7 +13,7 @@ trait FileTrait
 {
     /**
      * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component"})
      * @var null|string
      */
     protected $filePath;

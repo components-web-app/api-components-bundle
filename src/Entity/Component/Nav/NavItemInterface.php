@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav;
 
 use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
-use Silverback\ApiComponentBundle\Entity\Route;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 
 interface NavItemInterface extends SortableInterface
 {

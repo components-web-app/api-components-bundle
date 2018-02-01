@@ -15,7 +15,8 @@ use Silverback\ApiComponentBundle\Factory\Component\GalleryFactory;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\Factory\Component\NewsFactory;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
-use Silverback\ApiComponentBundle\Serializer\FileNormalizer;
+use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -117,12 +118,18 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
-        ->set(FileNormalizer::class)
+        ->set(ApiNormalizer::class)
         ->decorate('api_platform.jsonld.normalizer.item')
         ->args([
-            new Reference(FileNormalizer::class . '.inner'),
+            new Reference(ApiNormalizer::class . '.inner'),
             '%kernel.project_dir%'
         ])
+    ;
+
+    $services
+        ->set(ApiContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([ new Reference(ApiContextBuilder::class . '.inner') ])
     ;
 
     $services

@@ -2,13 +2,13 @@
 
 namespace Silverback\ApiComponentBundle\EntityListener;
 
-use Silverback\ApiComponentBundle\Entity\Page;
-use Silverback\ApiComponentBundle\Factory\RouteFactory;
 use Doctrine\Common\EventArgs;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
 class PageListener
 {

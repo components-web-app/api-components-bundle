@@ -18,15 +18,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureStacked extends AbstractFeature
 {
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem", mappedBy="feature")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     * @Groups({"page"})
-     */
-    protected $items;
-
-    /**
      * @ORM\Column(type="boolean")
-     * @Groups({"page"})
+     * @Groups({"component"})
      * @var bool
      */
     protected $reverse = false;

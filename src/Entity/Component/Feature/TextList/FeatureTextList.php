@@ -18,15 +18,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureTextList extends AbstractFeature
 {
     /**
-     * @ORM\OneToMany(targetEntity="FeatureTextListItem", mappedBy="feature")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     * @Groups({"page"})
-     */
-    protected $items;
-
-    /**
      * @ORM\Column(type="smallint")
-     * @Groups({"page"})
+     * @Groups({"component"})
      * @var int
      */
     protected $columns = 3;

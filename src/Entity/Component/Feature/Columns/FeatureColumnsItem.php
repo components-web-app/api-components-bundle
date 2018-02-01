@@ -21,12 +21,6 @@ class FeatureColumnsItem extends AbstractFeatureItem implements FileInterface
     use FileTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="FeatureColumns", inversedBy="items")
-     * @var FeatureColumns
-     */
-    protected $feature;
-
-    /**
      * @ORM\Column(type="string", nullable=true)
      * @Groups({"page"})
      * @var null|string

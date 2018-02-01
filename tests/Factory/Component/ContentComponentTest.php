@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Tests\Factory\Component;
 use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 
 class ContentComponentTest extends TestCase

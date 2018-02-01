@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentAwareInterface;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 
 /**
  * Class AbstractPage

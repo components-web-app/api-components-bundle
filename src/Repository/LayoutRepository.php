@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Repository;
 
-use Silverback\ApiComponentBundle\Entity\Layout;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class LayoutRepository extends ServiceEntityRepository

@@ -6,7 +6,7 @@ use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectRepository;
-use Silverback\ApiComponentBundle\Entity\Layout;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 
 final class LayoutDataProvider implements ItemDataProviderInterface
 {

@@ -2,20 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
-use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
-
-interface FeatureItemInterface extends SortableInterface
+interface FeatureItemInterface
 {
-    /**
-     * @return AbstractFeature
-     */
-    public function getFeature(): AbstractFeature;
-
-    /**
-     * @param AbstractFeature $feature
-     */
-    public function setFeature(AbstractFeature $feature): void;
-
     /**
      * @return string
      */

@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -10,7 +11,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-final class FileNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
+final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     private $decorated;
     private $projectDir;
@@ -49,7 +50,7 @@ final class FileNormalizer implements NormalizerInterface, DenormalizerInterface
     }
 
     /**
-     * @param object $object
+     * @param $object
      * @param null $format
      * @param array $context
      * @return array|\Symfony\Component\Serializer\Normalizer\scalar
@@ -61,6 +62,7 @@ final class FileNormalizer implements NormalizerInterface, DenormalizerInterface
     {
         $data = $this->decorated->normalize($object, $format, $context);
         if ($object instanceof FileInterface) {
+            /* @var $object FileInterface */
             $filePath = $this->getRealFilePath($object->getFilePath());
             if ($filePath) {
                 if (false !== \exif_imagetype($filePath)) {

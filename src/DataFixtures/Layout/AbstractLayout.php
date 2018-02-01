@@ -2,9 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\DataFixtures\Layout;
 
-use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Layout;
+use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 
 /**
  * Class AbstractLayout

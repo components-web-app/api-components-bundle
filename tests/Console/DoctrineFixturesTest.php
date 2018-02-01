@@ -11,7 +11,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacke
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
 use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
-use Silverback\ApiComponentBundle\Entity\Page;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -59,15 +59,14 @@ class DoctrineFixturesTest extends WebTestCase
     {
         $entities = $this->getEntities(Page::class);
         $this->assertCount(1, $entities);
-
         /**
          * @var $page Page
          */
         $page = $entities[0];
-        $this->assertEquals(count($page->getComponents()), 4);
         $this->assertEquals($page->getTitle(), 'Dummy Title');
         $this->assertEquals($page->getMetaDescription(), 'Dummy Meta Description');
         $this->assertEquals($page->getRoutes()->first()->getRoute(), '/');
+        $this->assertEquals(\count($page->getComponents()), 4);
     }
 
     public function test_fixture_hero ()

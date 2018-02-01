@@ -22,6 +22,7 @@ services:
             - ./:/srv:rw
         depends_on:
           - rabbitmq
+        restart: on-failure
 
 volumes:
     db-mysql:

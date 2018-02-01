@@ -22,12 +22,6 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
     use FileTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="FeatureStacked", inversedBy="items")
-     * @var FeatureStacked
-     */
-    protected $feature;
-
-    /**
      * @ORM\Column(type="text")
      * @Groups({"page"})
      * @Assert\NotBlank()
