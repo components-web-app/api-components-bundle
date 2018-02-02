@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -28,8 +27,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         NormalizerInterface $decorated,
         string $projectDir,
         CacheManager $imagineCacheManager
-    )
-    {
+    ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
         }
@@ -74,8 +72,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                 $data['height'] = $height;
 
                 $supported = $this->isImagineSupportedFile($object->getFilePath());
-                foreach ($object::getImagineFilters() as $returnKey => $filter)
-                {
+                foreach ($object::getImagineFilters() as $returnKey => $filter) {
                     $data[$returnKey] = $supported ? parse_url(
                         $this->imagineCacheManager->getBrowserPath($object->getFilePath(), $filter),
                         PHP_URL_PATH
@@ -120,7 +117,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     public function setSerializer(SerializerInterface $serializer)
     {
-        if($this->decorated instanceof SerializerAwareInterface) {
+        if ($this->decorated instanceof SerializerAwareInterface) {
             $this->decorated->setSerializer($serializer);
         }
     }

@@ -5,11 +5,11 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
+use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
 class Hero extends AbstractComponent
@@ -18,7 +18,7 @@ class Hero extends AbstractComponent
      * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
      * @ORM\JoinColumn(nullable=true)
      * @Groups({"page"})
-     * @var null|Navbar
+     * @var null|NavBar
      */
     private $nav;
 
@@ -37,17 +37,17 @@ class Hero extends AbstractComponent
     private $subtitle;
 
     /**
-     * @return Navbar|null
+     * @return NavBar|null
      */
-    public function getNav(): ?Navbar
+    public function getNav(): ?NavBar
     {
         return $this->nav;
     }
 
     /**
-     * @param Navbar|null $nav
+     * @param NavBar|null $nav
      */
-    public function setNav(?Navbar $nav): void
+    public function setNav(?NavBar $nav): void
     {
         $this->nav = $nav;
     }

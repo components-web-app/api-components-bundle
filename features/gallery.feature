@@ -31,27 +31,6 @@ Feature: Gallery
     }
     """
 
-  Scenario: Get a gallery
-    When I send a "GET" request to "/galleries/1"
-    Then the response status code should be 200
-    And the JSON should be valid according to this schema:
-    """
-    {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": []
-        },
-        "id": { "type": "integer" },
-        "page": { "type": "null" },
-        "sort": { "type": "null" },
-        "group": { "type": "null" },
-        "className": { "type": "null" }
-      }
-    }
-    """
-
   Scenario: Create a gallery item/image
     When I send a "POST" request to "/gallery_items" with body:
     """
@@ -72,7 +51,6 @@ Feature: Gallery
         "height": { "type": "integer" },
         "thumbnailPath": { "type": "string" },
         "placeholderPath": { "type": "string" },
-
         "page": { "type": "null" },
         "sort": { "type": "null" },
         "group": { "type": "null" },
@@ -86,6 +64,30 @@ Feature: Gallery
     And the JSON node placeholderPath should match "/\/media\/cache\/[^\/]+\/images\/testImage.jpg/"
     And the public file path "media/cache/thumbnail/images/testImage.jpg" should exist
     And the public file path "media/cache/placeholder_square/images/testImage.jpg" should exist
+
+  Scenario: Get a gallery
+    When I send a "GET" request to "/galleries/1"
+    Then the response status code should be 200
+    And the JSON should be valid according to this schema:
+    """
+    {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        },
+        "id": { "type": "integer" },
+        "page": { "type": "null" },
+        "sort": { "type": "null" },
+        "group": { "type": "null" },
+        "className": { "type": "null" }
+      }
+    }
+    """
 
 #  Scenario: An SVG image is uploaded and handled correctly
 #    When I send a "PUT" request to "/gallery_items/1" with body:
@@ -119,7 +121,7 @@ Feature: Gallery
     And the public file path "media/cache/placeholder_square/images/testImage.jpg" should not exist
     And the public file path "media/cache/thumbnail/images/testImage.jpg" should not exist
 
-  @dropSchema
+#  @dropSchema
   Scenario: Check gallery item delete has persisted
     When I send a "GET" request to "/gallery_items/1"
     Then the response status code should be 404

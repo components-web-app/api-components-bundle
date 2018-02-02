@@ -2,128 +2,61 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class BaseComponent
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
- * @ORM\Table(name="component")
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
- * @ORM\DiscriminatorMap({
- *     "navbar" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar",
- *     "menu" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\Menu",
- *     "tabs" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs",
- *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero\Hero",
- *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
- *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content\Content",
- *     "feature_columns" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
- *     "feature_stacked" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
- *     "feature_text_list" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
- *     "gallery" = "\Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
- *     "news" = "\Silverback\ApiComponentBundle\Entity\Component\News\News"
- * })
  */
-abstract class AbstractComponent implements SortableInterface
+class AbstractComponent implements ComponentInterface
 {
     use SortableTrait;
 
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @Groups({"component"})
-     * @ApiProperty(identifier=true)
-     * @var int
+     * @var string
      */
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
-     * @var AbstractContent
-     */
-    private $parentContent;
-
-    /**
-     * @ORM\Column(type="string", nullable=true)
      * @Groups({"component"})
      * @var null|string
      */
     private $className;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem", mappedBy="parent")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     * @Groups({"component"})
+     * @var AbstractContent[]
      */
-    protected $items;
+    private $locations;
+
+    /**
+     * @var ComponentGroup[]
+     */
+    protected $componentGroups;
 
     /**
      * AbstractComponent constructor.
+     * @param null|string $className
      */
-    public function __construct()
+    public function __construct(?string $className = null)
     {
-        $this->items = new ArrayCollection();
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return AbstractContent|null
-     */
-    public function getParentContent(): ?AbstractContent
-    {
-        return $this->parentContent;
-    }
-
-    /**
-     * @param AbstractContent $parent
-     * @param int|null $order
-     */
-    public function setParentContent(?AbstractContent $parentContent, int $order = null): void
-    {
-        if ($parentContent && null === $order && !$this->getSort()) {
-            // auto ordering
-            $lastItem = $parentContent->getComponents()->last();
-            if ($lastItem) {
-                $this->setSort($lastItem->getSort() + 1);
-            }
-            if (!$parentContent->getComponents()->contains($this)) {
-                $parentContent->addComponent($this);
-            }
-        }
-        $this->parentContent = $parentContent;
+        $this->id = Uuid::uuid4()->getHex();
+        $this->setClassName($className);
+        $this->locations = new ArrayCollection;
+        $this->componentGroups = new ArrayCollection;
     }
 
     /**
      * @return string
-     * @Groups({"route", "page"})
      */
-    public function getType()
+    public function getId(): string
     {
-        $explCls = explode('\\', static::class);
-        return array_pop($explCls);
+        return $this->id;
     }
 
     /**
@@ -136,46 +69,71 @@ abstract class AbstractComponent implements SortableInterface
 
     /**
      * @param null|string $className
+     * @return AbstractComponent
      */
-    public function setClassName(?string $className): void
+    public function setClassName(?string $className): AbstractComponent
     {
         $this->className = $className;
+        return $this;
     }
 
     /**
-     * @return Collection
+     * @param ContentInterface $content
+     * @param bool|null $sortLast
+     * @return AbstractComponent
      */
-    public function getItems(): Collection
+    public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
     {
-        return $this->items;
-    }
-
-    /**
-     * @param array $items
-     */
-    public function setItems(array $items): void
-    {
-        $this->items = new ArrayCollection();
-        foreach($items as $item)
-        {
-            $this->addItem($item);
+        $this->locations->add($content);
+        if (null !== $sortLast) {
+            if ($sortLast) {
+                $lastItem = $content->getComponents()->last();
+                $this->setSort($lastItem ? ($lastItem->getSort() + 1) : 0);
+            } else {
+                $firstItem = $content->getComponents()->first();
+                $this->setSort($firstItem ? ($firstItem->getSort() - 1) : 0);
+            }
         }
+        return $this;
     }
 
     /**
-     * @param AbstractComponentItem $item
+     * @param ContentInterface $content
+     * @return AbstractComponent
      */
-    public function addItem(AbstractComponentItem $item): void
+    public function removeLocation(ContentInterface $content): AbstractComponent
     {
-        $this->items->add($item);
-        $item->setParent($this);
+        $this->locations->removeElement($content);
+        return $this;
     }
 
     /**
-     * @param AbstractComponentItem $item
+     * @param ComponentGroup $componentGroup
+     * @return AbstractComponent
      */
-    public function removeItem(AbstractComponentItem $item): void
+    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
-        $this->items->removeElement($item);
+        $this->componentGroups->add($componentGroup);
+        return $this;
+    }
+
+    /**
+     * @param ComponentGroup $componentGroup
+     * @return AbstractComponent
+     */
+    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
+    {
+        $this->componentGroups->removeElement($componentGroup);
+        return $this;
+    }
+
+    /**
+     * @Groups({"component"})
+     * @return string
+     */
+    public static function getComponentName(): string
+    {
+        $explodedClass = explode('\\', static::class);
+        return array_pop($explodedClass);
     }
 }

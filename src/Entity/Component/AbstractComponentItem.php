@@ -9,12 +9,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractComponentItem
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ *
  * @ORM\Table(name="component_item")
- * @ORM\InheritanceType("SINGLE_TABLE")
+ * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  * @ORM\DiscriminatorMap({
- *     "gallery_item" = "\Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
+ *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
  * })
  */
 abstract class AbstractComponentItem implements SortableInterface
@@ -30,12 +30,9 @@ abstract class AbstractComponentItem implements SortableInterface
     protected $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="items")
-     * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Groups({"component_write"})
      * @var AbstractComponent
      */
-    protected $parent;
+    public $parent;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -60,17 +57,13 @@ abstract class AbstractComponentItem implements SortableInterface
         $this->id = $id;
     }
 
-    /**
-     * @return AbstractComponent
-     */
+    /*
     public function getParent(): AbstractComponent
     {
         return $this->parent;
     }
+    */
 
-    /**
-     * @param AbstractComponent $parent
-     */
     public function setParent(AbstractComponent $parent): void
     {
         $this->parent = $parent;

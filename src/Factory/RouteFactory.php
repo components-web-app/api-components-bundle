@@ -4,9 +4,10 @@ namespace Silverback\ApiComponentBundle\Factory;
 
 use Cocur\Slugify\SlugifyInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
-use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 
-class RouteFactory {
+class RouteFactory
+{
     /**
      * @var SlugifyInterface
      */
@@ -14,12 +15,12 @@ class RouteFactory {
 
     public function __construct(
         SlugifyInterface $slugify
-    )
-    {
+    ) {
         $this->slugify = $slugify;
     }
 
-    public function create(Page $page) {
+    public function create(Page $page)
+    {
         $pageRoute = $this->slugify->slugify($page->getTitle());
         $routePrefix = '/';
         $parent = $page->getParent();

@@ -15,8 +15,7 @@ class FormTypeClassValidator extends ConstraintValidator
 
     public function __construct(
         iterable $formTypes
-    )
-    {
+    ) {
         $this->formTypes = $formTypes;
     }
 
@@ -36,8 +35,7 @@ class FormTypeClassValidator extends ConstraintValidator
                     ->addViolation()
                 ;
             }
-        } catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)

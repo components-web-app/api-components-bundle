@@ -8,7 +8,8 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;
 
-class FormFactory {
+class FormFactory
+{
     /**
      * @var FormFactoryInterface
      */
@@ -26,8 +27,7 @@ class FormFactory {
     public function __construct(
         FormFactoryInterface $formFactory,
         RouterInterface $router
-    )
-    {
+    ) {
         $this->formFactory = $formFactory;
         $this->router = $router;
     }
@@ -36,7 +36,7 @@ class FormFactory {
      * @param Form $component
      * @return \Symfony\Component\Form\FormInterface
      */
-    public function createForm (Form $component): FormInterface
+    public function createForm(Form $component): FormInterface
     {
         return $this->formFactory->create(
             $component->getFormType(),
@@ -54,7 +54,8 @@ class FormFactory {
      * @param Form $component
      * @return FormView
      */
-    public function createFormView (Form $component) {
+    public function createFormView(Form $component)
+    {
         $form = $this->createForm($component);
         return new FormView($form->createView());
     }

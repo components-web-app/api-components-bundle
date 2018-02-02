@@ -2,11 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\EntityListener;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Factory\FormFactory;
 
 class FormListener
 {
@@ -17,8 +17,7 @@ class FormListener
 
     public function __construct(
         FormFactory $formFactory
-    )
-    {
+    ) {
         $this->formFactory = $formFactory;
     }
 
@@ -27,7 +26,7 @@ class FormListener
      * @param Form $form
      * @param PreUpdateEventArgs $event
      */
-    public function preUpdate (Form $form, PreUpdateEventArgs $event): void
+    public function preUpdate(Form $form, PreUpdateEventArgs $event): void
     {
         $this->setForm($form);
     }
@@ -37,12 +36,12 @@ class FormListener
      * @param Form $form
      * @param LifecycleEventArgs $event
      */
-    public function postLoad (Form $form, LifecycleEventArgs $event): void
+    public function postLoad(Form $form, LifecycleEventArgs $event): void
     {
         $this->setForm($form);
     }
 
-    private function setForm (Form $form)
+    private function setForm(Form $form)
     {
         $form->setForm($this->formFactory->createFormView($form));
     }

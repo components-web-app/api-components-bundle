@@ -47,7 +47,7 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
      * @throws \InvalidArgumentException
      * @throws \BadMethodCallException
      */
-    protected function redirectFrom (Page $redirectFrom)
+    protected function redirectFrom(Page $redirectFrom)
     {
         if (!$this->flushed) {
             throw new \BadMethodCallException('You should only call the redirectFrom method after flushing');
@@ -69,7 +69,7 @@ abstract class AbstractPage extends AbstractFixture implements ComponentAwareInt
      * @return mixed
      * @throws \Psr\Container\ContainerExceptionInterface
      */
-    public function createComponent (string $componentService, $owner = null, array $ops = null)
+    public function createComponent(string $componentService, $owner = null, array $ops = null)
     {
         if (!$owner) {
             $owner = $this->entity;

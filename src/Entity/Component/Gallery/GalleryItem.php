@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Gallery
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
 class GalleryItem extends AbstractComponentItem implements FileInterface
@@ -35,6 +35,13 @@ class GalleryItem extends AbstractComponentItem implements FileInterface
      * @var null|string
      */
     protected $caption;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery", inversedBy="children")
+     * @Groups({"component_write"})
+     * @var Gallery
+     */
+    public $parent;
 
     /**
      * @return null|string

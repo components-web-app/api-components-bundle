@@ -3,16 +3,16 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\NavItemInterface;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Navigation\NavigationItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
-class Tabs extends AbstractNav
+class Tabs extends AbstractNavigation
 {
     /**
      * @ORM\OneToMany(targetEntity="TabItem", mappedBy="nav")
@@ -21,9 +21,8 @@ class Tabs extends AbstractNav
      */
     protected $items;
 
-    public function createNavItem(): NavItemInterface
+    public function createNavItem(): NavigationItemInterface
     {
         return new TabItem();
     }
 }
-

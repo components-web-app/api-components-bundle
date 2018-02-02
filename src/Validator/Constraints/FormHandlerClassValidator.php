@@ -15,8 +15,7 @@ class FormHandlerClassValidator extends ConstraintValidator
 
     public function __construct(
         iterable $formHandlers
-    )
-    {
+    ) {
         $this->formHandlers = $formHandlers;
     }
 
@@ -38,8 +37,7 @@ class FormHandlerClassValidator extends ConstraintValidator
                     ->addViolation()
                 ;
             }
-        } catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)

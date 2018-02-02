@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureColumns
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
 class FeatureColumns extends AbstractFeature

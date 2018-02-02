@@ -12,8 +12,7 @@ class GalleryItemFactory
 
     public function __construct(
         ObjectManager $manager
-    )
-    {
+    ) {
         $this->manager = $manager;
     }
 
@@ -23,8 +22,7 @@ class GalleryItemFactory
         string $title = null,
         ?string $caption = null,
         int $order = null
-    ) : GalleryItem
-    {
+    ) : GalleryItem {
         if (null === $order) {
             $lastItem = $gallery->getItems()->last();
             if (!$lastItem) {

@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureTextList
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
 class FeatureTextList extends AbstractFeature

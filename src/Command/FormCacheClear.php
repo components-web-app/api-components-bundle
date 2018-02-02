@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Command;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,13 +23,15 @@ class FormCacheClear extends Command
     public function __construct(
         EntityManagerInterface $em,
         ?string $name = null
-    )
-    {
+    ) {
         $this->em = $em;
         parent::__construct($name);
     }
 
-    protected function configure()
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure(): void
     {
         $this
             ->setName('app:form:cache:clear')
@@ -37,19 +39,28 @@ class FormCacheClear extends Command
         ;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|null|void
+     * @throws \ReflectionException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->output = $output;
 
         $repo = $this->em->getRepository(Form::class);
         $forms = $repo->findAll();
-        foreach ($forms as $form)
-        {
+        foreach ($forms as $form) {
             $this->updateFormTimestamp($form);
         }
         $this->em->flush();
     }
 
+    /**
+     * @param Form $form
+     * @throws \ReflectionException
+     */
     private function updateFormTimestamp(Form $form)
     {
         $formClass = $form->getFormType();

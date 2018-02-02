@@ -42,8 +42,7 @@ class FileEntitySubscriber implements EventSubscriber
         CacheManager $imagineCacheManager,
         Producer $producer,
         ApiNormalizer $fileNormalizer
-    )
-    {
+    ) {
         $this->imagineCacheManager = $imagineCacheManager;
         $this->producer = $producer;
         $this->fileNormalizer = $fileNormalizer;
@@ -62,12 +61,12 @@ class FileEntitySubscriber implements EventSubscriber
     /**
      * @param OnFlushEventArgs $eventArgs
      * @throws \Enqueue\Rpc\TimeoutException
+     * @throws \ReflectionException
      */
-    public function onFlush (OnFlushEventArgs $eventArgs): void
+    public function onFlush(OnFlushEventArgs $eventArgs): void
     {
         $entityManager = $eventArgs->getEntityManager();
         $unitOfWork = $entityManager->getUnitOfWork();
-
         $this->processNewEntities($unitOfWork);
         $this->processUpdatedEntities($unitOfWork);
         $this->processDeletedEntities($unitOfWork);
@@ -77,7 +76,7 @@ class FileEntitySubscriber implements EventSubscriber
      * @param UnitOfWork $unitOfWork
      * @throws \Enqueue\Rpc\TimeoutException
      */
-    private function processNewEntities (UnitOfWork $unitOfWork): void
+    private function processNewEntities(UnitOfWork $unitOfWork): void
     {
         $newEntities = $unitOfWork->getScheduledEntityInsertions();
         foreach ($newEntities as $entity) {
@@ -94,7 +93,7 @@ class FileEntitySubscriber implements EventSubscriber
      * @param UnitOfWork $unitOfWork
      * @throws \Enqueue\Rpc\TimeoutException
      */
-    private function processUpdatedEntities (UnitOfWork $unitOfWork): void
+    private function processUpdatedEntities(UnitOfWork $unitOfWork): void
     {
         $updatedEntities = $unitOfWork->getScheduledEntityUpdates();
         foreach ($updatedEntities as $entity) {
@@ -123,7 +122,7 @@ class FileEntitySubscriber implements EventSubscriber
     /**
      * @param UnitOfWork $unitOfWork
      */
-    private function processDeletedEntities (UnitOfWork $unitOfWork): void
+    private function processDeletedEntities(UnitOfWork $unitOfWork): void
     {
         $deletedEntities = $unitOfWork->getScheduledEntityDeletions();
         foreach ($deletedEntities as $entity) {

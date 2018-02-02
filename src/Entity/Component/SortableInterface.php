@@ -4,6 +4,14 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 interface SortableInterface
 {
-    public function getSort(): ?int;
-    public function setSort(?int $sort): void;
+    /**
+     * @return int
+     */
+    public function getSort(): int;
+
+    /**
+     * @param int $sort
+     * @return SortableTrait
+     */
+    public function setSort(int $sort = 0): SortableTrait;
 }

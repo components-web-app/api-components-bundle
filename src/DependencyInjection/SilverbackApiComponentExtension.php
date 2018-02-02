@@ -3,16 +3,20 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\ComponentFactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
@@ -64,7 +68,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     public function prepend(ContainerBuilder $container)
     {
         $bundles = $container->getParameter('kernel.bundles');
-
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
                 'loaders' => [

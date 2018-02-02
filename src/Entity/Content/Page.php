@@ -3,43 +3,38 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAwareTrait;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\PageRepository")
- * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
+ * Class Page
+ * @package Silverback\ApiComponentBundle\Entity\Content
+ * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  */
 class Page extends AbstractContent
 {
     /**
-     * @ORM\Column(type="string")
+     * @Groups({"content"})
      * @var string
      */
     private $title;
 
     /**
-     * @ORM\Column(type="string")
+     * @Groups({"content"})
      * @var string
      */
     private $metaDescription;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Page", inversedBy="children")
-     * @ORM\JoinColumn(nullable=true)
-     * @var null|Page
+     * @Groups({"content"})
+     * @var null|RouteAwareInterface
      */
     private $parent;
 
     /**
-     * @ORM\OneToMany(targetEntity="Page", mappedBy="parent")
      * @var Collection
      */
     private $children;
@@ -59,14 +54,6 @@ class Page extends AbstractContent
     }
 
     /**
-     * @param string $title
-     */
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
-    }
-
-    /**
      * @return null|string
      */
     public function getMetaDescription(): ?string
@@ -75,61 +62,25 @@ class Page extends AbstractContent
     }
 
     /**
-     * @param string $metaDescription
+     * @return RouteAwareInterface|null
      */
-    public function setMetaDescription(string $metaDescription): void
-    {
-        $this->metaDescription = $metaDescription;
-    }
-
-    /**
-     * @return Page|null
-     */
-    public function getParent(): ?Page
+    public function getParent(): ?RouteAwareInterface
     {
         return $this->parent;
     }
 
     /**
-     * @param Page|null $parent
+     * @param RouteAwareInterface $child
      */
-    public function setParent(?Page $parent): void
-    {
-        $this->parent = $parent;
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getChildren(): Collection
-    {
-        return $this->children;
-    }
-
-    /**
-     * @param array $children
-     */
-    public function setChildren(array $children): void
-    {
-        $this->children = new ArrayCollection();
-        foreach ($children as $child)
-        {
-            $this->addChild($child);
-        }
-    }
-
-    /**
-     * @param Page $child
-     */
-    public function addChild(Page $child)
+    public function addChild(RouteAwareInterface $child)
     {
         $this->children->add($child);
     }
 
     /**
-     * @param Page $child
+     * @param RouteAwareInterface $child
      */
-    public function removeChild(Page $child)
+    public function removeChild(RouteAwareInterface $child)
     {
         $this->children->removeElement($child);
     }

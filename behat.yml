@@ -2,10 +2,12 @@ default:
     suites:
         default:
           contexts:
-            - 'FeatureContext': { doctrine: '@doctrine' }
-            - 'JsonContext'
-            - 'Behat\MinkExtension\Context\MinkContext'
-            - 'Behatch\Context\RestContext'
+            - FeatureContext
+            - KernelContext
+            - EntityManagerContext: { doctrine: '@doctrine' }
+            - JsonContext
+            - Behat\MinkExtension\Context\MinkContext
+            - RestContext
     extensions:
         'Behat\Symfony2Extension':
           kernel:
@@ -15,7 +17,7 @@ default:
             bootstrap: 'tests/app/bootstrap.php'
         'Behat\MinkExtension':
           show_auto: true
-          show_cmd: open %s
+          show_cmd: cat %s
           base_url: "http://localhost"
           sessions:
             default:
@@ -26,7 +28,9 @@ coverage:
   suites:
     default:
       contexts:
-        - 'FeatureContext': { doctrine: '@doctrine' }
-        - 'JsonContext'
-        - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - FeatureContext
+        - KernelContext
+        - EntityManagerContext: { doctrine: '@doctrine' }
+        - JsonContext
+        - Behat\MinkExtension\Context\MinkContext
+        - RestContext

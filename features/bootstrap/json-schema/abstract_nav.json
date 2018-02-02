@@ -1,0 +1,7 @@
+{
+    "type": "object",
+    "properties": {
+        "@id": { "type": "string", "required": true },
+        "items": { "type": "array", "required": true }
+    }
+}

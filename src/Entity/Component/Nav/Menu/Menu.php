@@ -3,16 +3,16 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\NavItemInterface;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Navigation\NavigationItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
-class Menu extends AbstractNav
+class Menu extends AbstractNavigation
 {
     /**
      * @ORM\OneToMany(targetEntity="MenuItem", mappedBy="nav")
@@ -21,7 +21,7 @@ class Menu extends AbstractNav
      */
     protected $items;
 
-    public function createNavItem(): NavItemInterface
+    public function createNavItem(): NavigationItemInterface
     {
         return new MenuItem();
     }

@@ -2,14 +2,14 @@
 
 namespace Silverback\ApiComponentBundle\Controller;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Serializer\SerializerInterface;
 
 abstract class AbstractForm extends AbstractController
 {
@@ -38,8 +38,7 @@ abstract class AbstractForm extends AbstractController
         EntityManagerInterface $entityManager,
         SerializerInterface $serializer,
         FormFactory $formFactory
-    )
-    {
+    ) {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->formFactory = $formFactory;
@@ -51,8 +50,10 @@ abstract class AbstractForm extends AbstractController
      * @param $valid
      * @param Response|null $response
      * @return Response
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function getResponse ($data, $_format, $valid, Response $response = null)
+    protected function getResponse($data, $_format, $valid, Response $response = null): Response
     {
         if (!$response) {
             $response = new Response();
@@ -66,7 +67,7 @@ abstract class AbstractForm extends AbstractController
      * @param FormView $formView
      * @return mixed
      */
-    protected function getFormValid (FormView $formView)
+    protected function getFormValid(FormView $formView)
     {
         return $formView->getVars()['valid'];
     }
@@ -77,12 +78,12 @@ abstract class AbstractForm extends AbstractController
      * @return array
      * @throws BadRequestHttpException
      */
-    public function deserializeFormData (FormInterface $form, $content): array
+    public function deserializeFormData(FormInterface $form, $content): array
     {
         $content = \GuzzleHttp\json_decode($content, true);
         if (!isset($content[$form->getName()])) {
             throw new BadRequestHttpException(
-                "Form object key could not be found. Expected: <b>" . $form->getName() . "</b>: { \"input_name\": \"input_value\" }"
+                sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName())
             );
         }
         return $content[$form->getName()];

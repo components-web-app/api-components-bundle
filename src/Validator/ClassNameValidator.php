@@ -13,8 +13,7 @@ class ClassNameValidator
             return true;
         } elseif (in_array(LazyLoadingInterface::class, class_implements($validClass))) {
             $refl = new \ReflectionClass($validClass);
-            if ($refl->isSubclassOf($className))
-            {
+            if ($refl->isSubclassOf($className)) {
                 return true;
             }
         }
@@ -23,12 +22,10 @@ class ClassNameValidator
 
     public static function validate(string $className, iterable $validClasses)
     {
-        if (!class_exists($className))
-        {
+        if (!class_exists($className)) {
             throw new InvalidArgumentException(sprintf('The class %s does not exist', $className));
         }
-        foreach ($validClasses as $validClass)
-        {
+        foreach ($validClasses as $validClass) {
             if (self::isClassSame($className, $validClass)) {
                 return true;
             }

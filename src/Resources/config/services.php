@@ -21,8 +21,10 @@ use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();

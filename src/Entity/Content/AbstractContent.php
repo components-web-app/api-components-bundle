@@ -4,37 +4,24 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAware;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAware;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class AbstractContent
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
- * @ORM\Table(name="content")
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
- * @ORM\DiscriminatorMap({
- *     "page" = "\Silverback\ApiComponentBundle\Entity\Content\Page",
- *     "component_group" = "\Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
- * })
  */
-abstract class AbstractContent extends RouteAware
+abstract class AbstractContent extends RouteAware implements ContentInterface
 {
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
      * @Groups({"page"})
      * @var int
      */
     protected $id;
 
     /**
-     * @ORM\OneToMany(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", mappedBy="parentContent")
      * @Groups({"page"})
      * @var Collection
      */
@@ -43,23 +30,15 @@ abstract class AbstractContent extends RouteAware
     public function __construct()
     {
         parent::__construct();
-        $this->components = new ArrayCollection();
+        $this->components = new ArrayCollection;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
     }
 
     /**
@@ -71,27 +50,22 @@ abstract class AbstractContent extends RouteAware
     }
 
     /**
-     * @param array $components
+     * @param ComponentInterface $component
+     * @return AbstractContent
      */
-    public function setComponents(array $components): void
+    public function addComponent(ComponentInterface $component): AbstractContent
     {
-        $this->components = new ArrayCollection();
-        foreach ($components as $component) {
-            $this->addComponent($component);
-        }
-    }
-
-    /**
-     * @param AbstractComponent $component
-     */
-    public function addComponent(AbstractComponent $component) {
         $this->components->add($component);
+        return $this;
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param ComponentInterface $component
+     * @return AbstractContent
      */
-    public function removeComponent(AbstractComponent $component) {
+    public function removeComponent(ComponentInterface $component): AbstractContent
+    {
         $this->components->removeElement($component);
+        return $this;
     }
 }

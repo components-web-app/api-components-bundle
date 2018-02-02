@@ -3,14 +3,14 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNavItem;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
 
 /**
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
-class TabItem extends AbstractNavItem
+class TabItem extends AbstractNavigationItem
 {
     /**
      * @ORM\ManyToOne(targetEntity="Tabs", inversedBy="items")

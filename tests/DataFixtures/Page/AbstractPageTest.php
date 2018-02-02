@@ -8,7 +8,7 @@ use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
-use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 
 class AbstractPageTest extends TestCase

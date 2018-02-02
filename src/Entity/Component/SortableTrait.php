@@ -2,31 +2,28 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
-
 trait SortableTrait
 {
     /**
-     * @ORM\Column(type="smallint", nullable=true)
-     * @Groups({"page"})
-     * @var null|int
+     * @var int
      */
-    private $sort;
+    protected $sort;
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getSort(): ?int
+    public function getSort(): int
     {
         return $this->sort;
     }
 
     /**
-     * @param int|null $sort
+     * @param int $sort
+     * @return SortableTrait
      */
-    public function setSort(?int $sort): void
+    public function setSort(int $sort = 0): SortableTrait
     {
         $this->sort = $sort;
+        return $this;
     }
 }

@@ -27,8 +27,7 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
         SerializerInterface $serializer,
         FormFactory $formFactory,
         iterable $formHandlers
-    )
-    {
+    ) {
         parent::__construct($entityManager, $serializer, $formFactory);
         $this->handlers = $formHandlers;
     }
@@ -62,10 +61,8 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
-            foreach ($this->handlers as $handler)
-            {
-                if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler))
-                {
+            foreach ($this->handlers as $handler) {
+                if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler)) {
                     $handler->success($data);
                     break;
                 }

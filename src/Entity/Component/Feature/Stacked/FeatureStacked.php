@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureStacked
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureMedia
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ *
  * @ApiResource()
  */
 class FeatureStacked extends AbstractFeature

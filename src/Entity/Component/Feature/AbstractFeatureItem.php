@@ -4,14 +4,13 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
-use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
- * @ORM\Entity()
+ *
  * @ORM\Table(name="feature_item")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="discr", type="string")

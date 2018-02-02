@@ -19,8 +19,7 @@ class PageListener
 
     public function __construct(
         RouteFactory $routeFactory
-    )
-    {
+    ) {
         $this->routeFactory = $routeFactory;
     }
 
@@ -29,7 +28,7 @@ class PageListener
      * @param Page $page
      * @param LifecycleEventArgs $event
      */
-    public function prePersist (Page $page, LifecycleEventArgs $event): void
+    public function prePersist(Page $page, LifecycleEventArgs $event): void
     {
         $this->createPageRoute($page, $event);
     }
@@ -39,7 +38,7 @@ class PageListener
      * @param Page $page
      * @param PreUpdateEventArgs $event
      */
-    public function preUpdate (Page $page, PreUpdateEventArgs $event): void
+    public function preUpdate(Page $page, PreUpdateEventArgs $event): void
     {
         $this->createPageRoute($page, $event);
     }
@@ -50,7 +49,7 @@ class PageListener
      * @param PreFlushEventArgs $eventArgs
      * @throws \Doctrine\ORM\ORMInvalidArgumentException
      */
-    public function preFlush (Page $page, PreFlushEventArgs $eventArgs): void
+    public function preFlush(Page $page, PreFlushEventArgs $eventArgs): void
     {
         if ($this->createPageRoute($page, $eventArgs)) {
             $em = $eventArgs->getEntityManager();

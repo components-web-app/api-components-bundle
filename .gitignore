@@ -4,3 +4,4 @@
 /src/var/
 /tests/app/var/
 .DS_Store
+.php_cs.cache

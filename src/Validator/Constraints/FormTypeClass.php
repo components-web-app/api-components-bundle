@@ -1,6 +1,7 @@
 <?php
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
+
 use Symfony\Component\Validator\Constraint;
 
 /**

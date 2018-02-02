@@ -5,14 +5,14 @@ namespace Silverback\ApiComponentBundle\DataFixtures\Nav;
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\DataFixtures\AbstractFixture;
 use Silverback\ApiComponentBundle\DataFixtures\CustomEntityInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 
 /**
  * Class AbstractNav
  * @package App\DataFixtures\Nav
  * @author Daniel West <daniel@silverback.is>
- * @property Navbar $entity
+ * @property NavBar $entity
  */
 abstract class AbstractNav extends AbstractFixture
 {
@@ -25,7 +25,7 @@ abstract class AbstractNav extends AbstractFixture
         if ($this instanceof CustomEntityInterface) {
             $this->entity = $this->getEntity();
         } else {
-            $this->entity = new Navbar();
+            $this->entity = new NavBar();
         }
     }
 
