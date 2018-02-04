@@ -7,7 +7,12 @@
             repository-class="Silverback\ApiComponentBundle\Repository\RouteRepository"
     >
         <id name="route" type="string"  />
-        <many-to-one field="content" target-entity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent" />
+        <many-to-one field="content" target-entity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent">
+            <cascade>
+                <cascade-remove/>
+            </cascade>
+            <join-column on-delete="CASCADE" />
+        </many-to-one>
         <many-to-one field="redirect" target-entity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route">
             <join-column name="redirect" referenced-column-name="route" />
         </many-to-one>

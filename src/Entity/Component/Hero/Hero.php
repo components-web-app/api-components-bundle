@@ -8,10 +8,6 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- *
- * @ApiResource()
- */
 class Hero extends AbstractComponent
 {
     /**

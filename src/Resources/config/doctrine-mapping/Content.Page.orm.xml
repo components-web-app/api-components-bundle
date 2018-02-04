@@ -4,5 +4,12 @@
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
     <entity name="Silverback\ApiComponentBundle\Entity\Content\Page">
+        <field name="title" />
+        <field name="metaDescription" />
+        <many-to-one field="layout"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Layout\Layout"
+        >
+            <join-column on-delete="SET NULL" />
+        </many-to-one>
     </entity>
 </doctrine-mapping>

@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class Gallery
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource()
  */
 class Gallery extends AbstractComponent
 {

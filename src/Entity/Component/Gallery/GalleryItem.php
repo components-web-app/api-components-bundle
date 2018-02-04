@@ -14,8 +14,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Gallery
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource()
  */
 class GalleryItem extends AbstractComponentItem implements FileInterface
 {

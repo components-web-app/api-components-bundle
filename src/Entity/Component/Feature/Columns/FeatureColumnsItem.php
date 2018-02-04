@@ -13,8 +13,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureColumnsItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource()
  */
 class FeatureColumnsItem extends AbstractFeatureItem implements FileInterface
 {

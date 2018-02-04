@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureTextList
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource()
  */
 class FeatureTextList extends AbstractFeature
 {

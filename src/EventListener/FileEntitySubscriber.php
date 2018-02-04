@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Enqueue\Client\Producer;
@@ -61,11 +62,14 @@ class FileEntitySubscriber implements EventSubscriber
     /**
      * @param OnFlushEventArgs $eventArgs
      * @throws \Enqueue\Rpc\TimeoutException
-     * @throws \ReflectionException
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function onFlush(OnFlushEventArgs $eventArgs): void
     {
         $entityManager = $eventArgs->getEntityManager();
+        if ($entityManager->getConnection()->getDatabasePlatform() instanceof SqlitePlatform) {
+            $entityManager->getConnection()->exec('PRAGMA foreign_keys = ON;');
+        }
         $unitOfWork = $entityManager->getUnitOfWork();
         $this->processNewEntities($unitOfWork);
         $this->processUpdatedEntities($unitOfWork);

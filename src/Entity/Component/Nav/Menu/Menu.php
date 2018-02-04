@@ -8,10 +8,6 @@ use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
 use Silverback\ApiComponentBundle\Entity\Navigation\NavigationItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- *
- * @ApiResource()
- */
 class Menu extends AbstractNavigation
 {
     /**

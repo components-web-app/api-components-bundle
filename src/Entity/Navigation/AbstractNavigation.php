@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
-use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
@@ -21,7 +20,6 @@ abstract class AbstractNavigation implements NavigationInterface
     protected $id;
 
     /**
-     * @ApiSubresource()
      * @Groups({"layout", "component"})
      * @var Collection|NavigationItemInterface[]
      */

@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Navigation\Route;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -10,36 +11,36 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class Route
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(
+ *     itemOperations={
+ *         "get"={"method"="GET", "path"="/routes/{id}", "requirements"={"id"=".+"}},
+ *         "put"={"method"="PUT", "path"="/routes/{id}", "requirements"={"id"=".+"}},
+ *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
+ *     }
+ * )
  */
-final class Route
+class Route
 {
     /**
-     * @Groups({"layout", "content", "component"})
+     * @Groups({"default"})
      * @var string
      */
     private $route;
 
     /**
-     * @Groups({"route_read"})
+     * @Groups({"content"})
      * @var null|AbstractContent
      */
     private $content;
 
     /**
-     * @Groups({"route_read"})
+     * @Groups({"content"})
      * @var null|Route
      */
     private $redirect;
 
-    public function __construct(
-        string $route,
-        AbstractContent $content,
-        ?Route $redirect = null
-    ) {
-        $this->route = $route;
-        $this->content = $content;
-        $this->redirect = $redirect;
+    public function __construct(?string $route = null) {
+        $this->route = $route ?? Uuid::uuid4()->getHex();
     }
 
     /**
@@ -51,6 +52,14 @@ final class Route
     }
 
     /**
+     * @param string $route
+     */
+    public function setRoute(string $route): void
+    {
+        $this->route = $route;
+    }
+
+    /**
      * @return null|AbstractContent
      */
     public function getContent(): ?AbstractContent
@@ -59,10 +68,26 @@ final class Route
     }
 
     /**
+     * @param null|AbstractContent $content
+     */
+    public function setContent(?AbstractContent $content): void
+    {
+        $this->content = $content;
+    }
+
+    /**
      * @return null|Route
      */
     public function getRedirect(): ?Route
     {
         return $this->redirect;
+    }
+
+    /**
+     * @param null|Route $redirect
+     */
+    public function setRedirect(?Route $redirect): void
+    {
+        $this->redirect = $redirect;
     }
 }

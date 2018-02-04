@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  */
-class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface
 {
     use SortableTrait;
 

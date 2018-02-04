@@ -3,8 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -29,40 +28,55 @@ class Page extends AbstractContent
     private $metaDescription;
 
     /**
-     * @Groups({"content"})
      * @var null|RouteAwareInterface
      */
     private $parent;
 
     /**
-     * @var Collection
+     * @Groups({"content"})
+     * @var Layout
      */
-    private $children;
+    private $layout;
 
     public function __construct()
     {
         parent::__construct();
-        $this->children = new ArrayCollection();
     }
 
     /**
-     * @return null|string
+     * @return string
      */
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
 
     /**
-     * @return null|string
+     * @param string $title
      */
-    public function getMetaDescription(): ?string
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMetaDescription(): string
     {
         return $this->metaDescription;
     }
 
     /**
-     * @return RouteAwareInterface|null
+     * @param string $metaDescription
+     */
+    public function setMetaDescription(string $metaDescription): void
+    {
+        $this->metaDescription = $metaDescription;
+    }
+
+    /**
+     * @return null|RouteAwareInterface
      */
     public function getParent(): ?RouteAwareInterface
     {
@@ -70,18 +84,26 @@ class Page extends AbstractContent
     }
 
     /**
-     * @param RouteAwareInterface $child
+     * @param null|RouteAwareInterface $parent
      */
-    public function addChild(RouteAwareInterface $child)
+    public function setParent(?RouteAwareInterface $parent): void
     {
-        $this->children->add($child);
+        $this->parent = $parent;
     }
 
     /**
-     * @param RouteAwareInterface $child
+     * @return Layout
      */
-    public function removeChild(RouteAwareInterface $child)
+    public function getLayout(): Layout
     {
-        $this->children->removeElement($child);
+        return $this->layout;
+    }
+
+    /**
+     * @param Layout $layout
+     */
+    public function setLayout(Layout $layout): void
+    {
+        $this->layout = $layout;
     }
 }

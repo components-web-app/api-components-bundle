@@ -1,0 +1,23 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                    http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
+>
+    <entity name="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
+            table="component"
+            inheritance-type="SINGLE_TABLE"
+    >
+        <id name="id" type="string" />
+        <field name="className" />
+        <many-to-many field="locations"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent"
+                      inversed-by="components"
+        />
+        <discriminator-column name="discr" type="string" />
+        <discriminator-map>
+            <discriminator-mapping value="content_component"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Content\Content"
+            />
+        </discriminator-map>
+    </entity>
+</doctrine-mapping>

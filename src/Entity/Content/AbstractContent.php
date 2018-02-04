@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAware;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -16,13 +17,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 abstract class AbstractContent extends RouteAware implements ContentInterface
 {
     /**
-     * @Groups({"page"})
-     * @var int
+     * @var string
      */
     protected $id;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"content"})
      * @var Collection
      */
     protected $components;
@@ -30,6 +30,7 @@ abstract class AbstractContent extends RouteAware implements ContentInterface
     public function __construct()
     {
         parent::__construct();
+        $this->id = Uuid::uuid4()->getHex();
         $this->components = new ArrayCollection;
     }
 

@@ -4,14 +4,32 @@
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
     <entity name="Silverback\ApiComponentBundle\Entity\Content\AbstractContent"
-            table="content"
+            table="route_content"
             repository-class="Silverback\ApiComponentBundle\Repository\ContentRepository"
+            inheritance-type="SINGLE_TABLE"
     >
         <id name="id" type="string" />
+        <many-to-many field="components"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
+                      mapped-by="locations"
+        >
+            <join-table name="route_content_components">
+                <join-columns>
+                    <join-column name="route_content_id" />
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="component_id" />
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
         <discriminator-column name="discr" type="string" />
         <discriminator-map>
-            <discriminator-mapping value="page" class="Silverback\ApiComponentBundle\Entity\Content\Page" />
-            <discriminator-mapping value="component_group" class="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup" />
+            <discriminator-mapping value="page"
+                                   class="Silverback\ApiComponentBundle\Entity\Content\Page"
+            />
+            <discriminator-mapping value="component_group"
+                                   class="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+            />
         </discriminator-map>
     </entity>
 </doctrine-mapping>

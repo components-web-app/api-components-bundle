@@ -7,6 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
@@ -54,7 +55,10 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         if ($this->matchClass($subject, AbstractComponentItem::class)) {
             $groups[] = $this->getGroups('component_item', $normalization, $operation);
         }
-        if ($this->matchClass($subject, AbstractContent::class)) {
+        if (
+            $this->matchClass($subject, AbstractContent::class) ||
+            $this->matchClass($subject, Route::class)
+        ) {
             $groups[] = $this->getGroups('content', $normalization, $operation);
         }
         if ($this->matchClass($subject, Layout::class)) {
@@ -63,6 +67,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         if (\count($groups)) {
             if (!isset($context['groups'])) {
                 $context['groups'] = ['default'];
+            } else {
+                $context['groups'][] = ['default'];
             }
             $context['groups'] = array_merge($context['groups'], ...$groups);
         }

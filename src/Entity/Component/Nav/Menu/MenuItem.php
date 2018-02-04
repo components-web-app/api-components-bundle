@@ -7,10 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- *
- * @ApiResource()
- */
 class MenuItem extends AbstractNavigationItem
 {
     /**

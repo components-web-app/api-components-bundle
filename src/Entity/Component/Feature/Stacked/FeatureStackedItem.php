@@ -14,8 +14,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource()
  */
 class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
 {

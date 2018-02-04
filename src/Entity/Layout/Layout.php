@@ -8,9 +8,11 @@ use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
+ * Class Layout
+ * @package Silverback\ApiComponentBundle\Entity\Layout
  * @ApiResource()
  */
-final class Layout
+class Layout
 {
     /**
      * @var string
@@ -18,14 +20,14 @@ final class Layout
     private $id;
 
     /**
-     * @var bool
      * @Groups({"layout"})
+     * @var bool
      */
     private $default;
 
     /**
-     * @var null|NavBar
      * @Groups({"layout"})
+     * @var null|NavBar
      */
     private $navBar;
 

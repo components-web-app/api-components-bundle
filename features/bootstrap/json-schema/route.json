@@ -1,0 +1,9 @@
+{
+    "type": "object",
+    "properties": {
+        "@id": { "type": "string", "required": true },
+        "route": { "type": "string", "required": true },
+        "content": { "type": ["object"], "required": true },
+        "redirect": { "type": ["object", "null"], "required": true }
+    }
+}
