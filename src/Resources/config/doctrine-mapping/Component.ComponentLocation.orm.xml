@@ -1,0 +1,22 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                    http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
+>
+    <entity name="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
+            table="component_location"
+            inheritance-type="SINGLE_TABLE"
+    >
+        <id name="id"
+            type="string"
+        />
+        <many-to-one field="content"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent"
+                     inversed-by="components"
+        />
+        <many-to-one field="component"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
+                     inversed-by="locations"
+        />
+    </entity>
+</doctrine-mapping>

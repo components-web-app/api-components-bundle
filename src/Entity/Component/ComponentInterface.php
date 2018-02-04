@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 
-interface ComponentInterface extends SortableInterface
+interface ComponentInterface
 {
     /**
      * ComponentInterface constructor.

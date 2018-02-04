@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
@@ -71,5 +72,10 @@ class GalleryItem extends AbstractComponentItem implements FileInterface
     public function setCaption(?string $caption): void
     {
         $this->caption = $caption;
+    }
+
+    public function getSortCollection(): Collection
+    {
+        return $this->parent->getChildren();
     }
 }

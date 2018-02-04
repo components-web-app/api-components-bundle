@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\EventListener;
+namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -11,6 +11,7 @@ use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 
 /**
@@ -18,7 +19,7 @@ use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
  * @package Silverback\ApiComponentBundle\EventListener
  * @author Daniel West <daniel@silverback.is>
  */
-class FileEntitySubscriber implements EventSubscriber
+class EntitySubscriber implements EventSubscriber
 {
     /**
      * @var CacheManager
@@ -84,6 +85,13 @@ class FileEntitySubscriber implements EventSubscriber
     {
         $newEntities = $unitOfWork->getScheduledEntityInsertions();
         foreach ($newEntities as $entity) {
+            if ($entity instanceof SortableInterface) {
+                try {
+                    $entity->getSort();
+                } catch (\TypeError $e) {
+                    $entity->setSort($entity->calculateSort(true));
+                }
+            }
             if (
                 $entity instanceof FileInterface &&
                 $this->fileNormalizer->isImagineSupportedFile($entity->getFilePath())

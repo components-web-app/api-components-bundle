@@ -13,19 +13,8 @@ interface NavigationItemInterface extends SortableInterface
 {
     /**
      * NavigationItemInterface constructor.
-     * @param AbstractNavigation $navigation
-     * @param string $label
-     * @param null|Route $route
-     * @param null|string $fragment
-     * @param null|AbstractNavigation $child
      */
-    public function __construct(
-        AbstractNavigation $navigation,
-        string $label,
-        ?Route $route = null,
-        ?string $fragment = null,
-        ?AbstractNavigation $child = null
-    );
+    public function __construct();
 
     /**
      * @return string

@@ -7,6 +7,8 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -48,11 +50,15 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         $groups = [];
         if (
             $this->matchClass($subject, AbstractComponent::class) ||
-            $this->matchClass($subject, AbstractComponentItem::class)
+            $this->matchClass($subject, AbstractComponentItem::class) ||
+            $this->matchClass($subject, AbstractNavigation::class)
         ) {
             $groups[] = $this->getGroups('component', $normalization, $operation);
         }
-        if ($this->matchClass($subject, AbstractComponentItem::class)) {
+        if (
+            $this->matchClass($subject, AbstractComponentItem::class) ||
+            $this->matchClass($subject, AbstractNavigationItem::class)
+        ) {
             $groups[] = $this->getGroups('component_item', $normalization, $operation);
         }
         if (

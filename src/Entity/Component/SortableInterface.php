@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use Doctrine\Common\Collections\Collection;
+
 interface SortableInterface
 {
     /**
@@ -11,7 +13,18 @@ interface SortableInterface
 
     /**
      * @param int $sort
-     * @return SortableTrait
+     * @return SortableInterface
      */
-    public function setSort(int $sort = 0): SortableTrait;
+    public function setSort(int $sort = 0): SortableInterface;
+
+    /**
+     * @param bool|null $sortLast
+     * @return int
+     */
+    public function calculateSort(?bool $sortLast = null): int;
+
+    /**
+     * @return Collection|SortableInterface[]
+     */
+    public function getSortCollection(): Collection;
 }

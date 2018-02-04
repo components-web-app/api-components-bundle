@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -16,8 +15,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractComponent implements ComponentInterface
 {
-    use SortableTrait;
-
     /**
      * @var string
      */
@@ -30,7 +27,7 @@ abstract class AbstractComponent implements ComponentInterface
     private $className;
 
     /**
-     * @var AbstractContent[]
+     * @var ComponentLocation[]
      */
     private $locations;
 
@@ -81,6 +78,7 @@ abstract class AbstractComponent implements ComponentInterface
      * @param ContentInterface $content
      * @param bool|null $sortLast
      * @return AbstractComponent
+     * NOT GONNA WORK!!!! TEMPORARY SORTING - NEEDS TO HAVE A SORT FOR EACH LOCATION
      */
     public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
     {

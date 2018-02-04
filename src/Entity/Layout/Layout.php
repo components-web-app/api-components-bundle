@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class Layout
  * @package Silverback\ApiComponentBundle\Entity\Layout
- * @ApiResource()
+ * @ApiResource(attributes={"force_eager"=false})
  */
 class Layout
 {
@@ -41,7 +41,7 @@ class Layout
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getId()
     {
@@ -57,19 +57,19 @@ class Layout
     }
 
     /**
-     * @return null|NavBar
-     */
-    public function getNavBar(): ?NavBar
-    {
-        return $this->navBar;
-    }
-
-    /**
      * @param bool $default
      */
     public function setDefault(bool $default): void
     {
         $this->default = $default;
+    }
+
+    /**
+     * @return null|NavBar
+     */
+    public function getNavBar(): ?NavBar
+    {
+        return $this->navBar;
     }
 
     /**

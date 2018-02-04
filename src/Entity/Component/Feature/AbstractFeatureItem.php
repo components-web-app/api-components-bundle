@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -10,33 +11,33 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
- *
- * @ORM\Table(name="feature_item")
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
- * @ORM\DiscriminatorMap({
- *     "columns_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem",
- *     "stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
- *     "text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem"
- * })
  */
 abstract class AbstractFeatureItem extends AbstractComponentItem implements FeatureItemInterface
 {
     /**
-     * @ORM\Column(type="string")
-     * @Groups({"page"})
+     * @var AbstractFeature
+     */
+    private $feature;
+
+    /**
      * @Assert\NotBlank()
      * @var string
      */
     private $label;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
      * @Assert\Url()
      * @var int|null
      */
     protected $link;
+
+    /**
+     * @return AbstractFeature
+     */
+    public function getFeature(): AbstractFeature
+    {
+        return $this->feature;
+    }
 
     /**
      * @return string
@@ -68,5 +69,13 @@ abstract class AbstractFeatureItem extends AbstractComponentItem implements Feat
     public function setLink(?string $link): void
     {
         $this->link = $link;
+    }
+
+    /**
+     * @return Collection|AbstractFeatureItem[]
+     */
+    public function getSortCollection(): Collection
+    {
+        return $this->getFeature()->getItems();
     }
 }

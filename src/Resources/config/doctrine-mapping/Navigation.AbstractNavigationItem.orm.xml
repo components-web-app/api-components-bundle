@@ -1,0 +1,41 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                    http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
+>
+    <entity name="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem"
+            table="navigation_item"
+            inheritance-type="SINGLE_TABLE"
+    >
+        <id name="id"
+            type="string"
+        />
+        <field name="label" />
+        <many-to-one field="route"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route"
+        >
+            <join-column referenced-column-name="route" />
+        </many-to-one>
+        <field name="fragment"
+               nullable="true"
+        />
+        <many-to-one field="child"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation"
+        />
+        <many-to-one field="navigation"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation"
+                     inversed-by="items"
+        >
+            <cascade><cascade-remove/></cascade>
+            <join-column on-delete="CASCADE" />
+        </many-to-one>
+        <discriminator-column name="type"
+                              type="string"
+        />
+        <discriminator-map>
+            <discriminator-mapping value="nav_bar"
+                                   class="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem"
+            />
+        </discriminator-map>
+    </entity>
+</doctrine-mapping>

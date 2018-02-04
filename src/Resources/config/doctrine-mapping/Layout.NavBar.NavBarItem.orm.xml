@@ -3,6 +3,5 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
-    <entity name="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar">
-    </entity>
+    <entity name="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem" />
 </doctrine-mapping>

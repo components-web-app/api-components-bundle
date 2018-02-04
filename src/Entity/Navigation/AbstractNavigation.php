@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
@@ -11,6 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractNavigation
  * @package Silverback\ApiComponentBundle\Entity\Navigation
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(attributes={"force_eager"=false})
  */
 abstract class AbstractNavigation implements NavigationInterface
 {
@@ -20,8 +22,8 @@ abstract class AbstractNavigation implements NavigationInterface
     protected $id;
 
     /**
-     * @Groups({"layout", "component"})
-     * @var Collection|NavigationItemInterface[]
+     * @Groups({"layout", "content", "component"})
+     * @var Collection|AbstractNavigationItem[]
      */
     protected $items;
 
@@ -41,13 +43,13 @@ abstract class AbstractNavigation implements NavigationInterface
         return $this->items;
     }
 
-    public function addItem(NavigationItemInterface $navigationItem): AbstractNavigation
+    public function addItem(AbstractNavigationItem $navigationItem): AbstractNavigation
     {
         $this->items->add($navigationItem);
         return $this;
     }
 
-    public function removeItem(NavigationItemInterface $navigationItem): AbstractNavigation
+    public function removeItem(AbstractNavigationItem $navigationItem): AbstractNavigation
     {
         $this->items->removeElement($navigationItem);
         return $this;

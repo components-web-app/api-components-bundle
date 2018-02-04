@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 
 /**
  * Interface ContentInterface
@@ -22,14 +22,14 @@ interface ContentInterface
     public function getComponents(): Collection;
 
     /**
-     * @param ComponentInterface $component
+     * @param ComponentLocation $component
      * @return AbstractContent
      */
-    public function addComponent(ComponentInterface $component): AbstractContent;
+    public function addComponent(ComponentLocation $component): AbstractContent;
 
     /**
-     * @param ComponentInterface $component
+     * @param ComponentLocation $component
      * @return AbstractContent
      */
-    public function removeComponent(ComponentInterface $component): AbstractContent;
+    public function removeComponent(ComponentLocation $component): AbstractContent;
 }

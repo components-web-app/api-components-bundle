@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use Cocur\Slugify\SlugifyInterface;
 use Liip\ImagineBundle\Async\ResolveCacheProcessor;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\EventListener\FileEntitySubscriber;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureColumnsFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
@@ -135,7 +135,7 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
-        ->set(FileEntitySubscriber::class)
+        ->set(EntitySubscriber::class)
         ->tag('doctrine.event_subscriber')
     ;
 

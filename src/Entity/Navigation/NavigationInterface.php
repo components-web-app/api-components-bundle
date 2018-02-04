@@ -16,19 +16,19 @@ interface NavigationInterface
     public function getId(): string;
 
     /**
-     * @return Collection|NavigationItemInterface[]
+     * @return Collection|AbstractNavigationItem[]
      */
     public function getItems();
 
     /**
-     * @param NavigationItemInterface $navigationItem
+     * @param AbstractNavigationItem $navigationItem
      * @return AbstractNavigation
      */
-    public function addItem(NavigationItemInterface $navigationItem): AbstractNavigation;
+    public function addItem(AbstractNavigationItem $navigationItem): AbstractNavigation;
 
     /**
-     * @param NavigationItemInterface $navigationItem
+     * @param AbstractNavigationItem $navigationItem
      * @return AbstractNavigation
      */
-    public function removeItem(NavigationItemInterface $navigationItem): AbstractNavigation;
+    public function removeItem(AbstractNavigationItem $navigationItem): AbstractNavigation;
 }

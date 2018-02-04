@@ -7,7 +7,20 @@
             table="layout"
             repository-class="Silverback\ApiComponentBundle\Repository\LayoutRepository"
     >
-        <id name="id" type="string"  />
-        <field name="default" column="is_default" type="boolean" />
+        <id name="id"
+            type="string"
+        />
+        <field name="default"
+               column="is_default"
+               type="boolean"
+        />
+        <many-to-one field="navBar"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar"
+        >
+            <cascade>
+                <cascade-remove/>
+            </cascade>
+            <join-column on-delete="CASCADE" />
+        </many-to-one>
     </entity>
 </doctrine-mapping>
