@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
@@ -32,18 +33,17 @@ abstract class AbstractComponent implements ComponentInterface
     private $locations;
 
     /**
-     * @var ComponentGroup[]
+     * @Groups({"component", "content"})
+     * @var ArrayCollection|ComponentGroup[]
      */
     protected $componentGroups;
 
     /**
      * AbstractComponent constructor.
-     * @param null|string $className
      */
-    public function __construct(?string $className = null)
+    public function __construct()
     {
         $this->id = Uuid::uuid4()->getHex();
-        $this->setClassName($className);
         $this->locations = new ArrayCollection;
         $this->componentGroups = new ArrayCollection;
     }
@@ -78,20 +78,10 @@ abstract class AbstractComponent implements ComponentInterface
      * @param ContentInterface $content
      * @param bool|null $sortLast
      * @return AbstractComponent
-     * NOT GONNA WORK!!!! TEMPORARY SORTING - NEEDS TO HAVE A SORT FOR EACH LOCATION
      */
     public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
     {
         $this->locations->add($content);
-        if (null !== $sortLast) {
-            if ($sortLast) {
-                $lastItem = $content->getComponents()->last();
-                $this->setSort($lastItem ? ($lastItem->getSort() + 1) : 0);
-            } else {
-                $firstItem = $content->getComponents()->first();
-                $this->setSort($firstItem ? ($firstItem->getSort() - 1) : 0);
-            }
-        }
         return $this;
     }
 
@@ -102,6 +92,19 @@ abstract class AbstractComponent implements ComponentInterface
     public function removeLocation(ContentInterface $content): AbstractComponent
     {
         $this->locations->removeElement($content);
+        return $this;
+    }
+
+    /**
+     * @param array $componentGroups
+     * @return AbstractComponent
+     */
+    public function setComponentGroups(array $componentGroups): AbstractComponent
+    {
+        $this->componentGroups = new ArrayCollection;
+        foreach ($componentGroups as $componentGroup) {
+            $this->addComponentGroup($componentGroup);
+        }
         return $this;
     }
 
@@ -123,6 +126,14 @@ abstract class AbstractComponent implements ComponentInterface
     {
         $this->componentGroups->removeElement($componentGroup);
         return $this;
+    }
+
+    /**
+     * @return ArrayCollection|ComponentGroup[]
+     */
+    public function getComponentGroups(): Collection
+    {
+        return $this->componentGroups;
     }
 
     /**

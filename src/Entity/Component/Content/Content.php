@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class Content
  * @package Silverback\ApiComponentBundle\Entity\Component\Content
- * @ApiResource()
+ * @ApiResource(shortName="component/content")
  */
 class Content extends AbstractComponent
 {

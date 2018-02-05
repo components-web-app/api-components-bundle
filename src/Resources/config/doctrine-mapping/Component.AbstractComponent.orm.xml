@@ -19,10 +19,16 @@
         <id name="id"
             type="string"
         />
-        <field name="className" />
+        <field name="className" nullable="true" />
         <one-to-many field="locations"
                       target-entity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
                       mapped-by="component"
+        >
+            <cascade><cascade-remove/></cascade>
+        </one-to-many>
+        <one-to-many field="componentGroups"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+                     mapped-by="parent"
         />
     </entity>
 </doctrine-mapping>

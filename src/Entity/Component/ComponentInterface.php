@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 
@@ -42,6 +44,12 @@ interface ComponentInterface
     public function removeLocation(ContentInterface $content): AbstractComponent;
 
     /**
+     * @param array $componentGroups
+     * @return AbstractComponent
+     */
+    public function setComponentGroups(array $componentGroups): AbstractComponent;
+
+    /**
      * @param ComponentGroup $componentGroup
      * @return AbstractComponent
      */
@@ -52,6 +60,11 @@ interface ComponentInterface
      * @return AbstractComponent
      */
     public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent;
+
+    /**
+     * @return ArrayCollection|ComponentGroup[]
+     */
+    public function getComponentGroups(): Collection;
 
     /**
      * @return string

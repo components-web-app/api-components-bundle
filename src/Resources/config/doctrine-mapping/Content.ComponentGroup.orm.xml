@@ -4,5 +4,6 @@
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
     <entity name="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup">
+        <many-to-one field="parent" target-entity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent" />
     </entity>
 </doctrine-mapping>

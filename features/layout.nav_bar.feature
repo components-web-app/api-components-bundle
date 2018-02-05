@@ -70,3 +70,5 @@ Feature: Layout Nav Bars
   Scenario: No nab bar item orphans should exist
     When I send a GET request to the entity navbar_item
     Then the response status code should be 404
+
+  # To Do: Test sub navs

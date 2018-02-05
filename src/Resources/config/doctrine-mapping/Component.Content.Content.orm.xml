@@ -4,5 +4,6 @@
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
     <entity name="Silverback\ApiComponentBundle\Entity\Component\Content\Content">
+        <field name="content" type="text" />
     </entity>
 </doctrine-mapping>

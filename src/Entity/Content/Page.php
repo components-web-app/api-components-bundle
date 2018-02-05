@@ -34,7 +34,7 @@ class Page extends AbstractContent
 
     /**
      * @Groups({"content"})
-     * @var Layout
+     * @var Layout|null
      */
     private $layout;
 
@@ -92,17 +92,17 @@ class Page extends AbstractContent
     }
 
     /**
-     * @return Layout
+     * @return Layout|null
      */
-    public function getLayout(): Layout
+    public function getLayout(): ?Layout
     {
         return $this->layout;
     }
 
     /**
-     * @param Layout $layout
+     * @param Layout|null $layout
      */
-    public function setLayout(Layout $layout): void
+    public function setLayout(?Layout $layout): void
     {
         $this->layout = $layout;
     }

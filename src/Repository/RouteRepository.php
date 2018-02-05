@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 

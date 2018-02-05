@@ -3,14 +3,13 @@
 namespace Silverback\ApiComponentBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
-use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
-class ContentRepository extends ServiceEntityRepository
+class AbstractComponentRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, AbstractContent::class);
+        parent::__construct($registry, AbstractComponent::class);
     }
 }

@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
@@ -51,7 +52,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         if (
             $this->matchClass($subject, AbstractComponent::class) ||
             $this->matchClass($subject, AbstractComponentItem::class) ||
-            $this->matchClass($subject, AbstractNavigation::class)
+            $this->matchClass($subject, AbstractNavigation::class) ||
+            $this->matchClass($subject, ComponentLocation::class)
         ) {
             $groups[] = $this->getGroups('component', $normalization, $operation);
         }

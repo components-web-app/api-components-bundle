@@ -2,14 +2,18 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class ComponentLocation
  * @package Silverback\ApiComponentBundle\Entity\Component
+ * @ApiResource()
  */
 class ComponentLocation implements SortableInterface
 {
@@ -21,11 +25,13 @@ class ComponentLocation implements SortableInterface
     private $id;
 
     /**
+     * @Groups({"component"})
      * @var AbstractContent
      */
     private $content;
 
     /**
+     * @Groups({"component"})
      * @var AbstractComponent
      */
     private $component;
@@ -80,6 +86,6 @@ class ComponentLocation implements SortableInterface
      */
     public function getSortCollection(): Collection
     {
-        return $this->content->getComponents();
+        return $this->content ? $this->content->getComponents() : new ArrayCollection;
     }
 }
