@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
@@ -33,6 +34,7 @@ class Page extends AbstractContent
     private $parent;
 
     /**
+     * @ApiProperty(alwaysIdentifier=true)
      * @Groups({"content"})
      * @var Layout|null
      */

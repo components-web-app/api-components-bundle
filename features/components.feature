@@ -1,7 +1,7 @@
 Feature: Components
   In order to manage components
   As an API user
-  That locations can be deleted and
+  Properties and cascade operations are correctly configured
 
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
@@ -41,6 +41,38 @@ Feature: Components
     Then the response status code should be 201
     And save the entity id as component_location
 
+  Scenario: I want to get components when I get a page/content
+    When I send a GET request to the entity page
+    Then the response status code should be 200
+    And the JSON should be valid according to this schema:
+    """
+    {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "object",
+                "required": true,
+                "properties": {
+                  "className": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
   Scenario: I want to delete a the location
     When I send a DELETE request to the entity component_location
     Then the response status code should be 204
@@ -50,6 +82,6 @@ Feature: Components
     Then the response status code should be 200
 
   @dropSchema
-  Scenario: I want to get the component again even though there is no location
+  Scenario: I want to get the content/page again even though there is no location
     When I send a GET request to the entity page
     Then the response status code should be 200

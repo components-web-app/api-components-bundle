@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
@@ -13,6 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class BaseComponent
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
  */
 abstract class AbstractComponent implements ComponentInterface
 {
@@ -22,7 +24,7 @@ abstract class AbstractComponent implements ComponentInterface
     private $id;
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     private $className;

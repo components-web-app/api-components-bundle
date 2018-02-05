@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class Layout
  * @package Silverback\ApiComponentBundle\Entity\Layout
- * @ApiResource(attributes={"force_eager"=false})
+ * @ApiResource()
  */
 class Layout
 {
