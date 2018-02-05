@@ -23,21 +23,16 @@ class Layout
      * @Groups({"layout"})
      * @var bool
      */
-    private $default;
+    private $default = false;
 
     /**
-     * @Groups({"layout"})
+     * @Groups({"layout", "default"})
      * @var null|NavBar
      */
     private $navBar;
 
-    public function __construct(
-        bool $default = false,
-        ?NavBar $navBar = null
-    ) {
+    public function __construct() {
         $this->id = Uuid::uuid4()->getHex();
-        $this->setNavBar($navBar);
-        $this->setDefault($default);
     }
 
     /**

@@ -17,10 +17,7 @@
         <many-to-one field="navBar"
                      target-entity="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar"
         >
-            <cascade>
-                <cascade-remove/>
-            </cascade>
-            <join-column on-delete="CASCADE" />
+            <join-column on-delete="SET NULL" />
         </many-to-one>
     </entity>
 </doctrine-mapping>

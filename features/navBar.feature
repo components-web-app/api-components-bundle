@@ -37,9 +37,21 @@ Feature: Layout Nav Bars
     """
     {}
     """
-    And the node nav_bar of the json variable layout_item_post is equal to the variable navbar
+    And the node navBar of the json variable layout_item_post is equal to the variable navbar
     When I send a "POST" request to "/layouts" with the json variable layout_item_post as the body
     Then the response status code should be 201
+    And the JSON should be valid according to this schema:
+    """
+    {
+        "type": "object",
+        "properties": {
+            "navBar": {
+              "type": "object",
+              "required": true
+            }
+        }
+    }
+    """
     And save the entity id as layout
 
   Scenario: I need to delete a layout

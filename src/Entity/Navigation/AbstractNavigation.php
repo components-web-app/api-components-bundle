@@ -43,6 +43,15 @@ abstract class AbstractNavigation implements NavigationInterface
         return $this->items;
     }
 
+    public function setItems(array $items): AbstractNavigation
+    {
+        $this->items = new ArrayCollection;
+        foreach ($items as $item) {
+            $this->addItem($item);
+        }
+        return $this;
+    }
+
     public function addItem(AbstractNavigationItem $navigationItem): AbstractNavigation
     {
         $this->items->add($navigationItem);
