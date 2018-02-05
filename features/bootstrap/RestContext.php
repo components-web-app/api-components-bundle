@@ -41,7 +41,7 @@ class RestContext extends \Behatch\Context\RestContext
      */
     public function iSendARequestToSubresourceOfEntity($method, string $url, string $entity, PyStringNode $body = null, $files = [])
     {
-        $this->iSendARequestTo($method, JsonContext::getVar($entity) . $url, $body, $files);
+        $this->iSendARequestTo($method, JsonContext::getVar($entity) . '/' . $url, $body, $files);
     }
 
     /**

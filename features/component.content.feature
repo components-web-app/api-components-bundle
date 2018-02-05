@@ -22,8 +22,8 @@ Feature: Content Component
     When I send a POST request to "/pages" with body:
     """
     {
-      "title": "Page Title",
-      "metaDescription": "Page Meta Description"
+      "title": "",
+      "metaDescription": ""
     }
     """
     Then the response status code should be 201

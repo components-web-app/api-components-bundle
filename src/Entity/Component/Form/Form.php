@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -13,12 +13,25 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Form
  * @package Silverback\ApiComponentBundle\Entity\Component\Form
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(
+ *     collectionOperations={
+ *         "get"={"method"="GET"},
+ *         "post"={"method"="POST"},
+ *     },
+ *     itemOperations={
+ *         "get"={"method"="GET"},
+ *         "delete"={"method"="DELETE"},
+ *         "put"={"method"="PUT"},
+ *         "validate_item"={"method"="PATCH", "route_name"="silverback_api_component_form_validate_item", "denormalization_context"={"groups"={"none"}}},
+ *         "validate_form"={"method"="POST", "route_name"="silverback_api_component_form_submit", "denormalization_context"={"groups"={"none"}}}
+ *     },
+ *     shortName="component/form"
+ * )
  */
 class Form extends AbstractComponent
 {
     /**
-     * @ORM\Column(type="string")
-     * @Groups({"form_write"})
+     * @Groups({"component_write"})
      * @ACBAssert\FormTypeClass()
      * @Assert\NotBlank()
      * @var string
@@ -26,21 +39,13 @@ class Form extends AbstractComponent
     private $formType;
 
     /**
-     * @ORM\Column(type="string")
      * @ACBAssert\FormHandlerClass()
-     * @Groups({"form_write"})
+     * @Groups({"component_write"})
      * @var null|string
      */
     private $successHandler;
 
     /**
-     * @ApiProperty(writable=false)
-     * @var null|FormView
-     */
-    private $form;
-
-    /**
-     * @ORM\Column(type="datetime")
      * @ApiProperty(writable=false)
      * @var null|\DateTime
      */

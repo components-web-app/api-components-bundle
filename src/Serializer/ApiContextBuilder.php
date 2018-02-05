@@ -46,6 +46,9 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
+        if (isset($context['groups']) && in_array('none', $context['groups'])) {
+            return $context;
+        }
         $subject = $request->attributes->get('_api_resource_class');
         $operation = $context['item_operation_name'] ?? null;
         $groups = [];

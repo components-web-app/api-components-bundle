@@ -11,8 +11,11 @@
                               type="string"
         />
         <discriminator-map>
-            <discriminator-mapping value="content_component"
+            <discriminator-mapping value="content"
                                    class="Silverback\ApiComponentBundle\Entity\Component\Content\Content"
+            />
+            <discriminator-mapping value="form"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Form\Form"
             />
         </discriminator-map>
 
@@ -24,7 +27,9 @@
                       target-entity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
                       mapped-by="component"
         >
-            <cascade><cascade-remove/></cascade>
+            <cascade>
+                <cascade-remove/>
+            </cascade>
         </one-to-many>
         <one-to-many field="componentGroups"
                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
