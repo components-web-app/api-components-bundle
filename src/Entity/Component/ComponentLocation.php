@@ -31,7 +31,7 @@ class ComponentLocation implements SortableInterface
     private $content;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"component", "content", "route"})
      * @var AbstractComponent
      */
     private $component;

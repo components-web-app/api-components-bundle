@@ -28,13 +28,13 @@ class Route
     private $route;
 
     /**
-     * @Groups({"content"})
+     * @Groups({"route"})
      * @var null|AbstractContent
      */
     private $content;
 
     /**
-     * @Groups({"content"})
+     * @Groups({"route"})
      * @var null|Route
      */
     private $redirect;

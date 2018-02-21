@@ -67,10 +67,14 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             $groups[] = $this->getGroups('component_item', $normalization, $operation);
         }
         if (
-            $this->matchClass($subject, AbstractContent::class) ||
-            $this->matchClass($subject, Route::class)
+            $this->matchClass($subject, AbstractContent::class)
         ) {
             $groups[] = $this->getGroups('content', $normalization, $operation);
+        }
+        if (
+            $this->matchClass($subject, Route::class)
+        ) {
+            $groups[] = $this->getGroups('route', $normalization, $operation);
         }
         if ($this->matchClass($subject, Layout::class)) {
             $groups[] = $this->getGroups('layout', $normalization, $operation);

@@ -24,7 +24,7 @@ abstract class AbstractContent extends RouteAware implements ContentInterface
     protected $id;
 
     /**
-     * @Groups({"content"})
+     * @Groups({"content", "route"})
      * @var Collection|ComponentLocation[]
      */
     protected $components;
