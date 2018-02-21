@@ -15,7 +15,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureStacked extends Feature
 {
     /**
-     * @ORM\Column(type="boolean")
      * @Groups({"component"})
      * @var bool
      */

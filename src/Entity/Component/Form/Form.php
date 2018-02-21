@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -27,10 +28,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     },
  *     shortName="component/form"
  * )
+ * @ORM\Entity()
  */
 class Form extends AbstractComponent
 {
     /**
+     * @ORM\Column()
      * @Groups({"component_write"})
      * @ACBAssert\FormTypeClass()
      * @Assert\NotBlank()
@@ -39,6 +42,7 @@ class Form extends AbstractComponent
     private $formType;
 
     /**
+     * @ORM\Column()
      * @ACBAssert\FormHandlerClass()
      * @Groups({"component_write"})
      * @var null|string

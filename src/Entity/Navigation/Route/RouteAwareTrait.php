@@ -3,11 +3,13 @@
 namespace Silverback\ApiComponentBundle\Entity\Navigation\Route;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 trait RouteAwareTrait
 {
     /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route", mappedBy="content")
      * @Groups({"layout", "content", "component"})
      * @var ArrayCollection|Route[]
      */

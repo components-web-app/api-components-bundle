@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Navigation\Route;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -18,22 +19,29 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
  *     }
  * )
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
  */
 class Route
 {
     /**
+     * @ORM\Id()
+     * @ORM\Column(type="string")
      * @Groups({"default"})
      * @var string
      */
     private $route;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="routes", cascade={"remove"})
+     * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"route"})
      * @var null|AbstractContent
      */
     private $content;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route")
+     * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
      * @Groups({"route"})
      * @var null|Route
      */

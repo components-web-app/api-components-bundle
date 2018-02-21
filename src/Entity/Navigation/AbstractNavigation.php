@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Navigation;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -13,15 +14,25 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Navigation
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(attributes={"force_eager"=false})
+ * @ORM\Entity()
+ * @ORM\Table(name="navigation")
+ * @ORM\InheritanceType("SINGLE_TABLE")
+ * @ORM\DiscriminatorColumn(name="type", type="string")
+ * @ORM\DiscriminatorMap({
+ *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar"
+ * })
  */
 abstract class AbstractNavigation implements NavigationInterface
 {
     /**
+     * @ORM\Id()
+     * @ORM\Column(type="string")
      * @var string
      */
     protected $id;
 
     /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem", mappedBy="navigation")
      * @Groups({"layout", "content", "component"})
      * @var Collection|AbstractNavigationItem[]
      */

@@ -15,7 +15,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureColumns extends Feature
 {
     /**
-     * @ORM\Column(type="string", nullable=true)
      * @Groups({"component"})
      * @var null|string
      */

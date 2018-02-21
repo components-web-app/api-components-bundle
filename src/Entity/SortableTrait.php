@@ -2,11 +2,19 @@
 
 namespace Silverback\ApiComponentBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Trait SortableTrait
+ * @package Silverback\ApiComponentBundle\Entity
+ * @author Daniel West <daniel@silverback.is>
+ */
 trait SortableTrait
 {
     /**
+     * @ORM\Column(type="integer", nullable=false)
      * @var int
      */
     protected $sort;
@@ -50,4 +58,9 @@ trait SortableTrait
         $firstItem = $collection->first();
         return $firstItem ? ($firstItem->getSort() - 1) : 0;
     }
+
+    /**
+     * @return ArrayCollection
+     */
+    abstract public function getSortCollection(): ArrayCollection;
 }

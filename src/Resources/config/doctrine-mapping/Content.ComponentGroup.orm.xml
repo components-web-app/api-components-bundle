@@ -10,7 +10,7 @@
                 target-entity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
                 inversed-by="componentGroups"
         >
-            <join-column on-delete="CASCADE" />
+            <join-column on-delete="SET NULL" />
         </many-to-one>
     </entity>
 </doctrine-mapping>

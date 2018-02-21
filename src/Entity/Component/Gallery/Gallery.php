@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
@@ -11,6 +12,7 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
+ * @ORM\Entity()
  */
 class Gallery extends AbstractComponent
 {
@@ -20,5 +22,10 @@ class Gallery extends AbstractComponent
         $this->addValidComponent(GalleryItem::class);
         // New galleries should have a component group added by default for the gallery images/items
         $this->addComponentGroup(new ComponentGroup());
+    }
+
+    public function onDeleteCascade(): bool
+    {
+        return true;
     }
 }

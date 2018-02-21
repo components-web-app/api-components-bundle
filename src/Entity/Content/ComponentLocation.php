@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
@@ -19,17 +20,22 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @ApiResource()
  * @ACBAssert\ComponentLocation()
+ * @ORM\Entity()
  */
 class ComponentLocation implements SortableInterface
 {
     use SortableTrait;
 
     /**
+     * @ORM\Id
+     * @ORM\Column(type="string")
      * @var string
      */
     private $id;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
+     * @ORM\JoinColumn(onDelete="CASCADE")
      * @Assert\NotBlank()
      * @Groups({"component"})
      * @var AbstractContent
@@ -37,6 +43,8 @@ class ComponentLocation implements SortableInterface
     private $content;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="locations")
+     * @ORM\JoinColumn(onDelete="CASCADE")
      * @Assert\NotBlank()
      * @Groups({"component", "content", "route"})
      * @var AbstractComponent

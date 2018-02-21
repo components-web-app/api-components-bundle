@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -13,22 +14,27 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Content
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
+ * @ORM\Entity()
  */
 class Page extends AbstractContent
 {
     /**
+     * @ORM\Column()
      * @Groups({"content"})
      * @var string
      */
     private $title;
 
     /**
+     * @ORM\Column()
      * @Groups({"content"})
      * @var string
      */
     private $metaDescription;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
+     * @ORM\JoinColumn(onDelete="SET NULL")
      * @var null|RouteAwareInterface
      */
     private $parent;

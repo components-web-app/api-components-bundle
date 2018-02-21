@@ -3,11 +3,13 @@
 namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 
 trait ValidComponentTrait
 {
     /**
+     * @ORM\Column(type="array")
      * @ACBAssert\ComponentTypeClasses()
      * @var ArrayCollection
      */

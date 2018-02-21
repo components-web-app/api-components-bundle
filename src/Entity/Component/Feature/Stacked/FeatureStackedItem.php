@@ -4,8 +4,6 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
-use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -14,12 +12,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
  */
-class FeatureStackedItem extends FeatureItem implements FileInterface
+class FeatureStackedItem extends FeatureItem
 {
-    use FileTrait;
 
     /**
-     * @ORM\Column(type="text")
      * @Groups({"page"})
      * @Assert\NotBlank()
      * @var null|string
@@ -27,14 +23,12 @@ class FeatureStackedItem extends FeatureItem implements FileInterface
     protected $description;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
      * @Groups({"page"})
      * @var null|string
      */
     protected $buttonText;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
      * @Groups({"page"})
      * @var null|string
      */

@@ -15,14 +15,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureTextList extends Feature
 {
     /**
-     * @ORM\Column(type="smallint")
      * @Groups({"component"})
      * @var int
      */
     protected $columns = 3;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
      * @Groups({"page"})
      * @var null|string
      */

@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
@@ -16,17 +17,14 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
+ * @ORM\Entity()
  */
 class GalleryItem extends AbstractComponent implements FileInterface
 {
     use FileTrait;
 
     /**
-     * @var Gallery
-     */
-    public $gallery;
-
-    /**
+     * @ORM\Column()
      * @Assert\NotBlank()
      * @Groups({"component"})
      * @var null|string
@@ -34,6 +32,7 @@ class GalleryItem extends AbstractComponent implements FileInterface
     protected $title;
 
     /**
+     * @ORM\Column()
      * @Groups({"component"})
      * @var null|string
      */

@@ -6,11 +6,13 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
+use Silverback\ApiComponentBundle\Entity\DeleteCascadeInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -19,13 +21,24 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
+ * @ORM\Entity()
+ * @ORM\Table(name="component")
+ * @ORM\InheritanceType("SINGLE_TABLE")
+ * @ORM\DiscriminatorColumn(name="type", type="string")
+ * @ORM\DiscriminatorMap({
+ *     "content" = "Silverback\ApiComponentBundle\Entity\Component\Content\Content",
+ *     "form" = "Silverback\ApiComponentBundle\Entity\Component\Form\Form",
+ *     "gallery" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
+ *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
+ * })
+ * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInterface
 {
     use ValidComponentTrait;
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component_write"})
      * @var AbstractComponent|null
      */
     private $parent;
@@ -47,22 +60,27 @@ abstract class AbstractComponent implements ComponentInterface
     }
 
     /**
+     * @ORM\Id()
+     * @ORM\Column(type="string")
      * @var string
      */
     private $id;
 
     /**
+     * @ORM\Column(nullable=true)
      * @Groups({"component", "content"})
      * @var null|string
      */
     private $className;
 
     /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation", mappedBy="component")
      * @var ComponentLocation[]
      */
     protected $locations;
 
     /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", mappedBy="parent", cascade={"persist"})
      * @ApiProperty(attributes={"fetchEager": false})
      * @Groups({"component", "content"})
      * @var ArrayCollection|ComponentGroup[]
@@ -258,5 +276,13 @@ abstract class AbstractComponent implements ComponentInterface
                 )
             )
         );
+    }
+
+    /**
+     * @return bool
+     */
+    public function onDeleteCascade(): bool
+    {
+        return false;
     }
 }
