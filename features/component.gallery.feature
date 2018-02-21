@@ -15,16 +15,19 @@ Feature: Gallery
     Then the response status code should be 201
     And save the entity id as gallery
 
-#  Scenario: Create a gallery item/image
-#    When I send a "POST" request to "/gallery_items" with body:
-#    """
-#    {
-#      "title": "Test Gallery Image",
-#      "filePath": "/images/testImage.jpg",
-#      "gallery": "galleries/1"
-#    }
-#    """
-#    Then the response status code should be 201
+  Scenario: Create a gallery item/image
+    Given the json variable gallery_item_post is:
+    """
+    {
+      "title": "Test Gallery Image",
+      "filePath": "/images/testImage.jpg"
+    }
+    """
+    And the node parent of the json variable gallery_item_post is equal to the variable gallery
+    When I send a "POST" request to "/gallery_items" with the json variable gallery_item_post as the body
+    Then the response status code should be 201
+    And save the entity id as gallery_item
+
 #    And the JSON should be valid according to this schema:
 #    """
 #    {
@@ -105,7 +108,7 @@ Feature: Gallery
 
   @dropSchema
   Scenario: Check gallery item delete has persisted
-    When I send a "GET" request to "/gallery_items/1"
+    When I send a "GET" request to the entity gallery_item
     Then the response status code should be 404
     And the public file path "media/cache/placeholder_square/images/testImage.jpg" should not exist
     And the public file path "media/cache/thumbnail/images/testImage.jpg" should not exist

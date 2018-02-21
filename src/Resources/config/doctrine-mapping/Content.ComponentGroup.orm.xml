@@ -9,6 +9,8 @@
                 field="parent"
                 target-entity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
                 inversed-by="componentGroups"
-        />
+        >
+            <join-column on-delete="CASCADE" />
+        </many-to-one>
     </entity>
 </doctrine-mapping>

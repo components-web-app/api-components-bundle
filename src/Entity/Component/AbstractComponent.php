@@ -7,6 +7,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
@@ -22,6 +23,28 @@ use Symfony\Component\Serializer\Annotation\Groups;
 abstract class AbstractComponent implements ComponentInterface
 {
     use ValidComponentTrait;
+
+    /**
+     * @Groups({"component"})
+     * @var AbstractComponent|null
+     */
+    private $parent;
+
+    /**
+     * @return AbstractComponent|null
+     */
+    public function getParent(): ?AbstractComponent
+    {
+        return $this->parent;
+    }
+
+    /**
+     * @param AbstractComponent|null $parent
+     */
+    public function setParent(?AbstractComponent $parent): void
+    {
+        $this->parent = $parent;
+    }
 
     /**
      * @var string
@@ -123,6 +146,7 @@ abstract class AbstractComponent implements ComponentInterface
      */
     public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
+        $componentGroup->setParent($this);
         $this->componentGroups->add($componentGroup);
         return $this;
     }
@@ -164,7 +188,7 @@ abstract class AbstractComponent implements ComponentInterface
     private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
     {
         /** @var ComponentGroup $componentGroup */
-        $componentGroup = $this->getComponentGroups()->offsetGet($componentGroupOffset);
+        $componentGroup = $component->getComponentGroups()->offsetGet($componentGroupOffset);
         if (!$componentGroup) {
             throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
         }
@@ -174,22 +198,65 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @param AbstractComponent $child
      * @param int $componentGroupOffset
+     * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function addChildComponent(AbstractComponent $child, int $componentGroupOffset = 0): void
+    public function addChildComponent(AbstractComponent $child, int $componentGroupOffset = 0): AbstractComponent
     {
         $componentGroup = $this->getComponentComponentGroup($this, $componentGroupOffset);
         $componentGroup->addComponent(new ComponentLocation($componentGroup, $child));
+        return $this;
     }
 
     /**
      * @param AbstractComponent $parent
      * @param int $componentGroupOffset
+     * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function addToParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): void
+    public function addToParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
     {
-        $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
-        $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+        if (!\in_array($parent, $this->getParentComponents(), true)) {
+            $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
+            $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+        }
+        return $this;
+    }
+
+    /**
+     * @return AbstractComponent[]
+     */
+    private function getParentComponents(): array
+    {
+        $parentContent = $this->getParentContent();
+        return array_unique(
+            array_filter(
+                array_map(
+                    function ($content) {
+                        if ($content instanceof ComponentGroup) {
+                            return $content->getParent();
+                        }
+                    },
+                    $parentContent
+                )
+            )
+        );
+    }
+
+    /**
+     * @return AbstractContent[]
+     */
+    private function getParentContent(): array
+    {
+        return array_unique(
+            array_filter(
+                array_map(
+                    function (ComponentLocation $loc) {
+                        return $loc->getContent();
+                    },
+                    $this->locations->toArray()
+                )
+            )
+        );
     }
 }

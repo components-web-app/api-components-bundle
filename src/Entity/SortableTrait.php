@@ -16,6 +16,9 @@ trait SortableTrait
      */
     public function getSort(): int
     {
+        if (null === $this->sort) {
+            $this->setSort($this->calculateSort());
+        }
         return $this->sort;
     }
 

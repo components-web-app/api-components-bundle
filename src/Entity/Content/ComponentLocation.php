@@ -74,10 +74,12 @@ class ComponentLocation implements SortableInterface
 
     /**
      * @param AbstractContent $content
+     * @param bool|null $sortLast
      */
-    public function setContent(AbstractContent $content): void
+    public function setContent(AbstractContent $content, ?bool $sortLast = true): void
     {
         $this->content = $content;
+        $this->setSort($this->calculateSort($sortLast));
     }
 
     /**
