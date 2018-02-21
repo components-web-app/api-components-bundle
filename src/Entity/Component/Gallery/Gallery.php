@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 /**

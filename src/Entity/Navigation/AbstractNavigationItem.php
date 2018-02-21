@@ -6,6 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
+use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -16,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractNavigationItem implements NavigationItemInterface
 {
-    use Silverback\ApiComponentBundle\Entity\SortableTrait;
+    use SortableTrait;
 
     /**
      * @var string

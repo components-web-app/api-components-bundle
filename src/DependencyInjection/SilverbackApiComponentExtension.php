@@ -3,23 +3,17 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
-use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\ComponentFactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
@@ -49,19 +43,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true)
         ;
-
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type')
         ;
-
-        $container->registerForAutoconfiguration(ComponentInterface::class)
-            ->addTag('silverback_api_component.component')
-        ;
-
         $container->registerForAutoconfiguration(ComponentFactoryInterface::class)
             ->setParent(AbstractComponentFactory::class)
         ;
-
         $container->register(AbstractComponentFactory::class)
             ->setAbstract(true)
             ->addArgument(new Reference(ObjectManager::class))

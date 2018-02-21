@@ -12,14 +12,6 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class ComponentTypeClassesValidator extends ConstraintValidator
 {
-    private $components;
-
-    public function __construct(
-        iterable $components
-    ) {
-        $this->components = $components;
-    }
-
     /**
      * @param Collection $values
      * @param Constraint $constraint
@@ -38,12 +30,12 @@ class ComponentTypeClassesValidator extends ConstraintValidator
         foreach ($values as $value)
         {
             try {
-                $valid = ClassNameValidator::validate($value, $this->components);
+                $refl = new \ReflectionClass($value);
+                $valid = \in_array(ComponentInterface::class, $refl->getInterfaceNames(), true);
                 if (!$valid) {
-                    $conditionsStr = vsprintf(' They should all extend %s, implement %s or be tagged %s', [
+                    $conditionsStr = vsprintf('. They should all extend %s or just implement %s', [
                         AbstractComponent::class,
-                        ComponentInterface::class,
-                        'silverback_api_component.component'
+                        ComponentInterface::class
                     ]);
                     $this->context
                         ->buildViolation($constraint->message . $conditionsStr)

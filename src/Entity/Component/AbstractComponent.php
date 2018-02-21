@@ -14,7 +14,7 @@ use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class BaseComponent
+ * Class AbstractComponent
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
@@ -54,6 +54,7 @@ abstract class AbstractComponent implements ComponentInterface
         $this->id = Uuid::uuid4()->getHex();
         $this->locations = new ArrayCollection;
         $this->componentGroups = new ArrayCollection;
+        $this->validComponents = new ArrayCollection;
     }
 
     /**

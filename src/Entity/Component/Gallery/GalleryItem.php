@@ -3,8 +3,10 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -20,6 +22,11 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class GalleryItem extends AbstractComponent implements FileInterface
 {
     use FileTrait;
+
+    /**
+     * @var Gallery
+     */
+    public $gallery;
 
     /**
      * @Assert\NotBlank()

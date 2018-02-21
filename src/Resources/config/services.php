@@ -59,12 +59,12 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(FormSubmitPost::class)
+        ->tag('controller.service_arguments')
         ->args(
             [
                 '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
             ]
         )
-        ->tag('controller.service_arguments')
     ;
 
     $services
@@ -98,16 +98,6 @@ return function (ContainerConfigurator $configurator) {
         ->args(
             [
                 '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
-            ]
-        )
-    ;
-
-    $services
-        ->set(ComponentTypeClassesValidator::class)
-        ->tag('validator.constraint_validator')
-        ->args(
-            [
-                '$components' => new TaggedIteratorArgument('silverback_api_component.component')
             ]
         )
     ;

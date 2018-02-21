@@ -21,7 +21,7 @@
         </discriminator-map>
         <id name="id" type="string" />
         <one-to-many field="components"
-                      target-entity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation"
                       mapped-by="content"
         >
             <cascade>

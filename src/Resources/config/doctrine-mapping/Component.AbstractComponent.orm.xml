@@ -20,6 +20,9 @@
             <discriminator-mapping value="gallery"
                                    class="Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery"
             />
+            <discriminator-mapping value="gallery_item"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
+            />
         </discriminator-map>
 
         <id name="id"
@@ -27,7 +30,7 @@
         />
         <field name="className" nullable="true" />
         <one-to-many field="locations"
-                      target-entity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation"
                       mapped-by="component"
         >
             <cascade>

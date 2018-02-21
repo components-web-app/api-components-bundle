@@ -12,5 +12,5 @@ use Symfony\Component\Validator\Constraint;
  */
 class ComponentTypeClasses extends Constraint
 {
-    public $message = 'The array contains at least one class which is not valid.{{ string }}';
+    public $message = 'The array contains at least one class which is not valid: {{ string }}';
 }
