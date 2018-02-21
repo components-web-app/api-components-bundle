@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
-use ProxyManager\Proxy\LazyLoadingInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;

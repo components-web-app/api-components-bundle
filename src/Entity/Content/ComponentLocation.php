@@ -10,8 +10,8 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**

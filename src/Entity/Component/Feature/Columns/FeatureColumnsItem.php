@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Columns;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;

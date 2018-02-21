@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\ComponentFactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;

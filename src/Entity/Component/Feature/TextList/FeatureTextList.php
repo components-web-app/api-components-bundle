@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\TextList;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Feature;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;

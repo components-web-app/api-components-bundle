@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\TextList;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 
 /**
