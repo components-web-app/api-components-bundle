@@ -4,7 +4,8 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\ComponentFactoryInterface;
@@ -51,6 +52,10 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type')
+        ;
+
+        $container->registerForAutoconfiguration(ComponentInterface::class)
+            ->addTag('silverback_api_component.component')
         ;
 
         $container->registerForAutoconfiguration(ComponentFactoryInterface::class)

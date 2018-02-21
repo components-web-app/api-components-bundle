@@ -27,40 +27,40 @@ interface ComponentInterface extends ValidComponentInterface
 
     /**
      * @param null|string $className
-     * @return AbstractComponent
+     * @return Component
      */
-    public function setClassName(?string $className): AbstractComponent;
+    public function setClassName(?string $className): Component;
 
     /**
      * @param ContentInterface $content
      * @param bool|null $sortLast
-     * @return AbstractComponent
+     * @return Component
      */
-    public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent;
+    public function addLocation(ContentInterface $content, ?bool $sortLast = null): Component;
 
     /**
      * @param ContentInterface $content
-     * @return AbstractComponent
+     * @return Component
      */
-    public function removeLocation(ContentInterface $content): AbstractComponent;
+    public function removeLocation(ContentInterface $content): Component;
 
     /**
      * @param array $componentGroups
-     * @return AbstractComponent
+     * @return Component
      */
-    public function setComponentGroups(array $componentGroups): AbstractComponent;
+    public function setComponentGroups(array $componentGroups): Component;
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return AbstractComponent
+     * @return Component
      */
-    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent;
+    public function addComponentGroup(ComponentGroup $componentGroup): Component;
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return AbstractComponent
+     * @return Component
      */
-    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent;
+    public function removeComponentGroup(ComponentGroup $componentGroup): Component;
 
     /**
      * @return ArrayCollection|ComponentGroup[]

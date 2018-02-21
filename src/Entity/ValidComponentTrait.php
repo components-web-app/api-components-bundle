@@ -3,11 +3,12 @@
 namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 
 trait ValidComponentTrait
 {
     /**
+     * @ACBAssert\ComponentTypeClasses()
      * @var ArrayCollection
      */
     protected $validComponents;
@@ -21,25 +22,24 @@ trait ValidComponentTrait
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param string $component
      * @return ValidComponentTrait
      */
-    public function addValidComponent(AbstractComponent $component): self
+    public function addValidComponent(string $component): self
     {
-        $componentClass = \get_class($component);
-        if (!$this->validComponents->contains($componentClass)) {
-            $this->validComponents->add(\get_class($component));
+        if (!$this->validComponents->contains($component)) {
+            $this->validComponents->add($component);
         }
         return $this;
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param string $component
      * @return ValidComponentTrait
      */
-    public function removeValidComponent(AbstractComponent $component): self
+    public function removeValidComponent(string $component): self
     {
-        $this->validComponents->removeElement(\get_class($component));
+        $this->validComponents->removeElement($component);
         return $this;
     }
 

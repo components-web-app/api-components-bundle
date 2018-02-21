@@ -3,17 +3,17 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
  */
-abstract class AbstractFeatureItem extends AbstractComponent implements FeatureItemInterface
+abstract class FeatureItem extends Component implements FeatureItemInterface
 {
     /**
-     * @var AbstractFeature
+     * @var Feature
      */
     private $feature;
 
@@ -30,9 +30,9 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     protected $link;
 
     /**
-     * @return AbstractFeature
+     * @return Feature
      */
-    public function getFeature(): AbstractFeature
+    public function getFeature(): Feature
     {
         return $this->feature;
     }
@@ -70,7 +70,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     }
 
     /**
-     * @return Collection|AbstractFeatureItem[]
+     * @return Collection|FeatureItem[]
      */
     public function getSortCollection(): Collection
     {

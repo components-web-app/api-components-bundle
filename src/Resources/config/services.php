@@ -18,6 +18,7 @@ use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
+use Silverback\ApiComponentBundle\Validator\Constraints\ComponentTypeClassesValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -98,6 +99,16 @@ return function (ContainerConfigurator $configurator) {
         ->args(
             [
                 '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
+            ]
+        )
+    ;
+
+    $services
+        ->set(ComponentTypeClassesValidator::class)
+        ->tag('validator.constraint_validator')
+        ->args(
+            [
+                '$components' => new TaggedIteratorArgument('silverback_api_component.component')
             ]
         )
     ;

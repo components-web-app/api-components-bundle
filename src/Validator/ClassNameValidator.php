@@ -7,11 +7,18 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class ClassNameValidator
 {
-    public static function isClassSame(string $className, $validClass)
+    /**
+     * @param string $className
+     * @param $validClass
+     * @return bool
+     * @throws \ReflectionException
+     */
+    public static function isClassSame(string $className, $validClass): bool
     {
-        if (get_class($validClass) === $className) {
+        if (\get_class($validClass) === $className) {
             return true;
-        } elseif (in_array(LazyLoadingInterface::class, class_implements($validClass))) {
+        }
+        if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
             $refl = new \ReflectionClass($validClass);
             if ($refl->isSubclassOf($className)) {
                 return true;
@@ -20,7 +27,14 @@ class ClassNameValidator
         return false;
     }
 
-    public static function validate(string $className, iterable $validClasses)
+    /**
+     * @param string $className
+     * @param iterable $validClasses
+     * @return bool
+     * @throws \Symfony\Component\Validator\Exception\InvalidArgumentException
+     * @throws \ReflectionException
+     */
+    public static function validate(string $className, iterable $validClasses): bool
     {
         if (!class_exists($className)) {
             throw new InvalidArgumentException(sprintf('The class %s does not exist', $className));

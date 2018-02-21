@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  */
-abstract class AbstractComponent implements ComponentInterface
+abstract class Component implements ComponentInterface
 {
     use ValidComponentTrait;
 
@@ -74,9 +74,9 @@ abstract class AbstractComponent implements ComponentInterface
 
     /**
      * @param null|string $className
-     * @return AbstractComponent
+     * @return Component
      */
-    public function setClassName(?string $className): AbstractComponent
+    public function setClassName(?string $className): Component
     {
         $this->className = $className;
         return $this;
@@ -85,9 +85,9 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @param ContentInterface $content
      * @param bool|null $sortLast
-     * @return AbstractComponent
+     * @return Component
      */
-    public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
+    public function addLocation(ContentInterface $content, ?bool $sortLast = null): Component
     {
         $this->locations->add($content);
         return $this;
@@ -95,9 +95,9 @@ abstract class AbstractComponent implements ComponentInterface
 
     /**
      * @param ContentInterface $content
-     * @return AbstractComponent
+     * @return Component
      */
-    public function removeLocation(ContentInterface $content): AbstractComponent
+    public function removeLocation(ContentInterface $content): Component
     {
         $this->locations->removeElement($content);
         return $this;
@@ -105,9 +105,9 @@ abstract class AbstractComponent implements ComponentInterface
 
     /**
      * @param array $componentGroups
-     * @return AbstractComponent
+     * @return Component
      */
-    public function setComponentGroups(array $componentGroups): AbstractComponent
+    public function setComponentGroups(array $componentGroups): Component
     {
         $this->componentGroups = new ArrayCollection;
         foreach ($componentGroups as $componentGroup) {
@@ -118,9 +118,9 @@ abstract class AbstractComponent implements ComponentInterface
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return AbstractComponent
+     * @return Component
      */
-    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
+    public function addComponentGroup(ComponentGroup $componentGroup): Component
     {
         $this->componentGroups->add($componentGroup);
         return $this;
@@ -128,9 +128,9 @@ abstract class AbstractComponent implements ComponentInterface
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return AbstractComponent
+     * @return Component
      */
-    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
+    public function removeComponentGroup(ComponentGroup $componentGroup): Component
     {
         $this->componentGroups->removeElement($componentGroup);
         return $this;

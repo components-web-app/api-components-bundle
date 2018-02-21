@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Component\Content
  * @ApiResource(shortName="component/content")
  */
-class Content extends AbstractComponent
+class Content extends Component
 {
     /**
      * @Groups({"content", "component"})

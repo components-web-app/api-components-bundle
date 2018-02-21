@@ -2,13 +2,13 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 
 class FormFactory extends AbstractComponentFactory
 {
-    public function getComponent(): AbstractComponent
+    public function getComponent(): Component
     {
         return new Form();
     }
@@ -21,7 +21,7 @@ class FormFactory extends AbstractComponentFactory
         ]);
     }
 
-    public function create(AbstractContent $owner, array $ops = null): AbstractComponent
+    public function create(AbstractContent $owner, array $ops = null): Component
     {
         /**
          * @var Form $component

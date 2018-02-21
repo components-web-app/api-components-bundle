@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 
 abstract class AbstractComponentFactory implements ComponentFactoryInterface
@@ -24,10 +24,10 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     /**
      * @param AbstractContent $owner
      * @param array|null $ops
-     * @return AbstractComponent
+     * @return Component
      * @throws \InvalidArgumentException
      */
-    public function create(AbstractContent $owner, ?array $ops = null): AbstractComponent
+    public function create(AbstractContent $owner, ?array $ops = null): Component
     {
         $ops = $this->processOps($ops);
         $component = $this->getComponent();
@@ -64,11 +64,11 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param Component $component
      * @param AbstractContent $parentContent
      * @throws \InvalidArgumentException
      */
-    private function setOwner(AbstractComponent $component, AbstractContent $parentContent)
+    private function setOwner(Component $component, AbstractContent $parentContent)
     {
         $component->setParentContent($parentContent);
     }

@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Columns;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
  */
-class FeatureColumnsItem extends AbstractFeatureItem implements FileInterface
+class FeatureColumnsItem extends FeatureItem implements FileInterface
 {
     use FileTrait;
 

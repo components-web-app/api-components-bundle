@@ -6,8 +6,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -34,7 +34,7 @@ class ComponentLocation implements SortableInterface
 
     /**
      * @Groups({"component", "content", "route"})
-     * @var AbstractComponent
+     * @var Component
      */
     private $component;
 
@@ -68,23 +68,23 @@ class ComponentLocation implements SortableInterface
     }
 
     /**
-     * @return AbstractComponent
+     * @return Component
      */
-    public function getComponent(): AbstractComponent
+    public function getComponent(): Component
     {
         return $this->component;
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param Component $component
      */
-    public function setComponent(AbstractComponent $component): void
+    public function setComponent(Component $component): void
     {
         $this->component = $component;
     }
 
     /**
-     * @return Collection|AbstractFeatureItem[]
+     * @return Collection|FeatureItem[]
      */
     public function getSortCollection(): Collection
     {
