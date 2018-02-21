@@ -5,7 +5,10 @@ namespace Silverback\ApiComponentBundle\Validator\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 /**
- * @Annotation
+ * Class FormHandlerClass
+ * @package Silverback\ApiComponentBundle\Validator\Constraints
+ * @author Daniel West <daniel@silverback.is>
+ * @Annotation()
  */
 class FormHandlerClass extends Constraint
 {

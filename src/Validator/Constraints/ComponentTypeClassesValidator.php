@@ -21,7 +21,7 @@ class ComponentTypeClassesValidator extends ConstraintValidator
     }
 
     /**
-     * @param mixed $values
+     * @param Collection $values
      * @param Constraint $constraint
      * @throws \ReflectionException
      */
@@ -34,7 +34,7 @@ class ComponentTypeClassesValidator extends ConstraintValidator
             ;
             return;
         }
-        /** @var Collection $value */
+
         foreach ($values as $value)
         {
             try {

@@ -18,14 +18,13 @@ use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
+use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentTypeClassesValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -111,6 +110,11 @@ return function (ContainerConfigurator $configurator) {
                 '$components' => new TaggedIteratorArgument('silverback_api_component.component')
             ]
         )
+    ;
+
+    $services
+        ->set(ComponentLocationValidator::class)
+        ->tag('validator.constraint_validator')
     ;
 
     $services

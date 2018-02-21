@@ -11,11 +11,14 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ComponentLocation
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @ApiResource()
+ * @ACBAssert\ComponentLocation()
  */
 class ComponentLocation implements SortableInterface
 {
@@ -27,12 +30,14 @@ class ComponentLocation implements SortableInterface
     private $id;
 
     /**
+     * @Assert\NotBlank()
      * @Groups({"component"})
      * @var AbstractContent
      */
     private $content;
 
     /**
+     * @Assert\NotBlank()
      * @Groups({"component", "content", "route"})
      * @var Component
      */
