@@ -46,8 +46,7 @@ class ComponentLocation implements SortableInterface
     public function __construct(
         ?AbstractContent $content = null,
         ?AbstractComponent $component = null
-    )
-    {
+    ) {
         $this->id = Uuid::uuid4()->getHex();
         if ($content) {
             $this->setContent($content);
