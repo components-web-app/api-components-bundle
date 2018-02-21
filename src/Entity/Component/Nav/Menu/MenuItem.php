@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
 use Symfony\Component\Serializer\Annotation\Groups;

@@ -6,8 +6,7 @@ use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
-return function (ContainerConfigurator $container)
-{
+return function (ContainerConfigurator $container) {
     $services = $container->services();
     $services
         ->defaults()

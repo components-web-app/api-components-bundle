@@ -18,7 +18,7 @@ class AbstractFixtureTest extends TestCase
         $this->abstractFixtureMock->load($this->objectManagerProphecy->reveal());
     }
 
-    public function test_flush_without_entity ()
+    public function test_flush_without_entity()
     {
         $method = new \ReflectionMethod(AbstractFixture::class, 'flush');
         $method->setAccessible(true);

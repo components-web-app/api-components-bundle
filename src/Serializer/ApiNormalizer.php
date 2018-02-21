@@ -85,8 +85,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                 }
             }
         }
-        if ($object instanceof Form)
-        {
+        if ($object instanceof Form) {
             $data['form'] = $this->formFactory->createFormView($object);
         }
         return $data;

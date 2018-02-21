@@ -18,7 +18,7 @@ class AbstractComponentTest extends TestCase
     private $dummyComponent;
     private $objectManagerProphecy;
 
-    public function setUp ()
+    public function setUp()
     {
         $objectManagerProphecy = $this->prophesize(ObjectManager::class);
         $this->abstractComponentMock = $this->getMockForAbstractClass(AbstractComponentFactory::class, [
@@ -28,14 +28,14 @@ class AbstractComponentTest extends TestCase
         $this->dummyComponent = new Content();
     }
 
-    public function test_abstract_component_has_correct_default_options ()
+    public function test_abstract_component_has_correct_default_options()
     {
         $this->assertEquals(AbstractComponentFactory::defaultOps(), [
             'className' => null
         ]);
     }
 
-    public function test_options_setting_and_unknown_options_stripped ()
+    public function test_options_setting_and_unknown_options_stripped()
     {
         $ops = $this->abstractComponentMock->processOps(
             [
@@ -48,7 +48,7 @@ class AbstractComponentTest extends TestCase
         ]);
     }
 
-    public function test_create_component_for_page_and_class_name_set ()
+    public function test_create_component_for_page_and_class_name_set()
     {
         $this->abstractComponentMock
             ->expects($this->once())
@@ -62,7 +62,7 @@ class AbstractComponentTest extends TestCase
         $this->assertEquals($component->getParentContent(), $owner);
     }
 
-    public function test_create_component_for_component_group_and_class_name_null ()
+    public function test_create_component_for_component_group_and_class_name_null()
     {
         $this->abstractComponentMock
             ->expects($this->once())

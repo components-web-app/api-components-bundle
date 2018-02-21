@@ -2,12 +2,15 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
+use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -18,6 +21,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractComponent implements ComponentInterface
 {
+    use ValidComponentTrait;
+
     /**
      * @var string
      */
@@ -35,6 +40,7 @@ abstract class AbstractComponent implements ComponentInterface
     private $locations;
 
     /**
+     * @ApiProperty(attributes={"fetchEager": false})
      * @Groups({"component", "content"})
      * @var ArrayCollection|ComponentGroup[]
      */

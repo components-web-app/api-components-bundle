@@ -6,8 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAware;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -16,8 +15,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  */
-abstract class AbstractContent extends RouteAware implements ContentInterface
+abstract class AbstractContent implements ContentInterface
 {
+    use RouteAwareTrait;
+
     /**
      * @var string
      */
@@ -31,7 +32,7 @@ abstract class AbstractContent extends RouteAware implements ContentInterface
 
     public function __construct()
     {
-        parent::__construct();
+        $this->routes = new ArrayCollection;
         $this->id = Uuid::uuid4()->getHex();
         $this->components = new ArrayCollection;
     }
@@ -39,7 +40,7 @@ abstract class AbstractContent extends RouteAware implements ContentInterface
     /**
      * @return string
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }

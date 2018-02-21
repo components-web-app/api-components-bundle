@@ -45,7 +45,7 @@ class KernelContext implements Context, KernelAwareContext
      * @return string
      * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
      */
-    private function getPublicPath ($path)
+    private function getPublicPath($path)
     {
         return $this->kernel->getContainer()->getParameter('kernel.project_dir') . '/public/' . $path;
     }

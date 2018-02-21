@@ -17,6 +17,9 @@
             <discriminator-mapping value="form"
                                    class="Silverback\ApiComponentBundle\Entity\Component\Form\Form"
             />
+            <discriminator-mapping value="gallery"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery"
+            />
         </discriminator-map>
 
         <id name="id"

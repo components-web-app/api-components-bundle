@@ -19,7 +19,7 @@ class FormTypeClassValidator extends ConstraintValidator
         $this->formTypes = $formTypes;
     }
 
-    public function validate($value, Constraint $constraint)
+    public function validate($value, Constraint $constraint): void
     {
         try {
             $valid = ClassNameValidator::validate($value, $this->formTypes);

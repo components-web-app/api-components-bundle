@@ -1,13 +1,15 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**

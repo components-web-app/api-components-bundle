@@ -1,7 +1,7 @@
 Feature: Gallery
-  In order to support the Gallery and GalleryItem entity
+  In order to support Galleries
   As a website user
-  I will receive the correct data and http status codes with the available endpoints
+  I can perform all CRUD operations necessary and retrieve the correct data back
 
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"

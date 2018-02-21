@@ -6,8 +6,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
+use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 
-interface ComponentInterface
+interface ComponentInterface extends ValidComponentInterface
 {
     /**
      * ComponentInterface constructor.

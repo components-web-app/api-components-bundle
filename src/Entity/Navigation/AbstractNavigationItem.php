@@ -3,10 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -18,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractNavigationItem implements NavigationItemInterface
 {
-    use SortableTrait;
+    use Silverback\ApiComponentBundle\Entity\SortableTrait;
 
     /**
      * @var string
@@ -58,7 +56,8 @@ abstract class AbstractNavigationItem implements NavigationItemInterface
     /**
      * AbstractNavigationItem constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         $this->id = Uuid::uuid4()->getHex();
     }
 
@@ -160,7 +159,7 @@ abstract class AbstractNavigationItem implements NavigationItemInterface
     }
 
     /**
-     * @return \Doctrine\Common\Collections\ArrayCollection|Collection|\Silverback\ApiComponentBundle\Entity\Component\SortableInterface[]|AbstractNavigationItem[]
+     * @return \Doctrine\Common\Collections\ArrayCollection|Collection|\Silverback\ApiComponentBundle\Entity\SortableInterface[]|AbstractNavigationItem[]
      */
     public function getSortCollection(): Collection
     {

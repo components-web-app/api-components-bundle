@@ -39,7 +39,8 @@ class Route
      */
     private $redirect;
 
-    public function __construct(?string $route = null) {
+    public function __construct(?string $route = null)
+    {
         $this->route = $route ?? Uuid::uuid4()->getHex();
     }
 

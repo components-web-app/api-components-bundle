@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\Collection;
 

@@ -3,13 +3,13 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 
 /**
  * Interface ContentInterface
  * @package Silverback\ApiComponentBundle\Entity\Content
  */
-interface ContentInterface
+interface ContentInterface extends RouteAwareInterface
 {
     /**
      * ContentInterface constructor.

@@ -11,7 +11,7 @@ use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 
 /**

@@ -27,7 +27,7 @@ class DoctrineFixturesTest extends WebTestCase
     /**
      * @throws \Exception
      */
-    public static function setUpBeforeClass ()
+    public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
         $kernel = static::bootKernel([]);
@@ -35,7 +35,7 @@ class DoctrineFixturesTest extends WebTestCase
         self::$em = $container->get('doctrine')->getManager();
     }
 
-    public function test_fixtures_load ()
+    public function test_fixtures_load()
     {
         $application = new Application(static::$kernel);
         $application->add(new LoadFixturesCommand());
@@ -50,12 +50,12 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
     }
 
-    private function getEntities (string $cls)
+    private function getEntities(string $cls)
     {
         return self::$em->getRepository($cls)->findAll();
     }
 
-    public function test_fixture_page ()
+    public function test_fixture_page()
     {
         $entities = $this->getEntities(Page::class);
         $this->assertCount(1, $entities);
@@ -69,7 +69,7 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertEquals(\count($page->getComponents()), 4);
     }
 
-    public function test_fixture_hero ()
+    public function test_fixture_hero()
     {
         $entities = $this->getEntities(Hero::class);
         $this->assertCount(1, $entities);
@@ -82,7 +82,7 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertEquals($hero->getSubtitle(), 'ST');
     }
 
-    public function test_fixture_content ()
+    public function test_fixture_content()
     {
         $entities = $this->getEntities(Content::class);
         $this->assertCount(1, $entities);
@@ -94,7 +94,7 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertEquals($content->getContent(), 'Dummy content');
     }
 
-    public function test_fixture_feature ()
+    public function test_fixture_feature()
     {
         $entities = $this->getEntities(FeatureStacked::class);
         $this->assertCount(1, $entities);

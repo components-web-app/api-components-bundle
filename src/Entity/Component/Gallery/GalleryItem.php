@@ -3,25 +3,25 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
+use Doctrine\Common\Collections\ArrayCollection;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
- * Class Gallery
+ * Class GalleryItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
  */
-class GalleryItem extends AbstractComponentItem implements FileInterface
+class GalleryItem extends AbstractComponent implements FileInterface
 {
     use FileTrait;
 
     /**
-     * @ORM\Column(type="text")
      * @Assert\NotBlank()
      * @Groups({"component"})
      * @var null|string
@@ -29,18 +29,30 @@ class GalleryItem extends AbstractComponentItem implements FileInterface
     protected $title;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
      * @Groups({"component"})
      * @var null|string
      */
     protected $caption;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery", inversedBy="children")
-     * @Groups({"component_write"})
-     * @var Gallery
+     * @param ClassMetadata $metadata
+     * @throws \Symfony\Component\Validator\Exception\MissingOptionsException
+     * @throws \Symfony\Component\Validator\Exception\InvalidOptionsException
+     * @throws \Symfony\Component\Validator\Exception\ConstraintDefinitionException
      */
-    public $parent;
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint('filePath', new Assert\NotBlank());
+    }
+
+    /**
+     * Gallery constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->routes = new ArrayCollection;
+    }
 
     /**
      * @return null|string
@@ -52,10 +64,12 @@ class GalleryItem extends AbstractComponentItem implements FileInterface
 
     /**
      * @param null|string $title
+     * @return GalleryItem
      */
-    public function setTitle(?string $title): void
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
+        return $this;
     }
 
     /**
@@ -68,14 +82,11 @@ class GalleryItem extends AbstractComponentItem implements FileInterface
 
     /**
      * @param null|string $caption
+     * @return GalleryItem
      */
-    public function setCaption(?string $caption): void
+    public function setCaption(?string $caption): self
     {
         $this->caption = $caption;
-    }
-
-    public function getSortCollection(): Collection
-    {
-        return $this->parent->getChildren();
+        return $this;
     }
 }

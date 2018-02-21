@@ -14,4 +14,5 @@ use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
  * @ApiResource(attributes={"force_eager"=false})
  */
 class NavBar extends AbstractNavigation
-{}
+{
+}

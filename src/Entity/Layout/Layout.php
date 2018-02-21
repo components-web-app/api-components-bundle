@@ -31,7 +31,8 @@ class Layout
      */
     private $navBar;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->id = Uuid::uuid4()->getHex();
     }
 

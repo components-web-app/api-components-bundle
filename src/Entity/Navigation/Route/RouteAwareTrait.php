@@ -5,27 +5,19 @@ namespace Silverback\ApiComponentBundle\Entity\Navigation\Route;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-abstract class RouteAware implements RouteAwareInterface
+trait RouteAwareTrait
 {
     /**
      * @Groups({"layout", "content", "component"})
-     * @var null|Route[]
+     * @var ArrayCollection|Route[]
      */
     protected $routes;
 
     /**
-     * RouteAwareTrait constructor.
-     */
-    public function __construct()
-    {
-        $this->routes = new ArrayCollection;
-    }
-
-    /**
      * @param Route $route
-     * @return RouteAware
+     * @return RouteAwareTrait
      */
-    public function addRoute(Route $route): RouteAware
+    public function addRoute(Route $route): RouteAwareTrait
     {
         $this->routes->add($route);
         return $this;
@@ -33,9 +25,9 @@ abstract class RouteAware implements RouteAwareInterface
 
     /**
      * @param Route $route
-     * @return RouteAware
+     * @return RouteAwareTrait
      */
-    public function removeRoute(Route $route): RouteAware
+    public function removeRoute(Route $route): RouteAwareTrait
     {
         $this->routes->removeElement($route);
         return $this;

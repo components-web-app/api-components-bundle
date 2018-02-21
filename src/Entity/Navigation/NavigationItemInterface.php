@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
-use Silverback\ApiComponentBundle\Entity\Component\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
 
 /**
  * Interface NavigationItemInterface

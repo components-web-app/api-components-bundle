@@ -3,16 +3,14 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
  */
-abstract class AbstractFeatureItem extends AbstractComponentItem implements FeatureItemInterface
+abstract class AbstractFeatureItem extends AbstractComponent implements FeatureItemInterface
 {
     /**
      * @var AbstractFeature
