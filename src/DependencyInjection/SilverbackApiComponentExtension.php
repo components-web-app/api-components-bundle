@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Component\AbstractComponentFactory;

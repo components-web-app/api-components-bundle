@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     shortName="component/form"
  * )
  */
-class Form extends Component
+class Form extends AbstractComponent
 {
     /**
      * @Groups({"component_write"})

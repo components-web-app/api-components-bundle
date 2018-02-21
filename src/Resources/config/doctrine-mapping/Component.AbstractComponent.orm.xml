@@ -36,7 +36,10 @@
         </one-to-many>
         <one-to-many field="componentGroups"
                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
-                     mapped-by="parent"
-        />
+                     mapped-by="parent">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+        </one-to-many>
     </entity>
 </doctrine-mapping>

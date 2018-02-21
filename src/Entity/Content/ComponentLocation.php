@@ -6,7 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
@@ -39,13 +39,22 @@ class ComponentLocation implements SortableInterface
     /**
      * @Assert\NotBlank()
      * @Groups({"component", "content", "route"})
-     * @var Component
+     * @var AbstractComponent
      */
     private $component;
 
-    public function __construct()
+    public function __construct(
+        ?AbstractContent $content = null,
+        ?AbstractComponent $component = null
+    )
     {
         $this->id = Uuid::uuid4()->getHex();
+        if ($content) {
+            $this->setContent($content);
+        }
+        if ($component) {
+            $this->setComponent($component);
+        }
     }
 
     /**
@@ -73,17 +82,17 @@ class ComponentLocation implements SortableInterface
     }
 
     /**
-     * @return Component
+     * @return AbstractComponent
      */
-    public function getComponent(): Component
+    public function getComponent(): AbstractComponent
     {
         return $this->component;
     }
 
     /**
-     * @param Component $component
+     * @param AbstractComponent $component
      */
-    public function setComponent(Component $component): void
+    public function setComponent(AbstractComponent $component): void
     {
         $this->component = $component;
     }

@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 
@@ -19,7 +19,7 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
     use ValidComponentTrait;
 
     /**
-     * @var Component
+     * @var AbstractComponent
      */
     protected $parent;
 
@@ -31,18 +31,18 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
 
 
     /**
-     * @return Component
+     * @return AbstractComponent
      */
-    public function getParent(): Component
+    public function getParent(): AbstractComponent
     {
         return $this->parent;
     }
 
     /**
-     * @param Component $parent
+     * @param AbstractComponent $parent
      * @param bool|null $cascadeValidComponent
      */
-    public function setParent(Component $parent, ?bool $cascadeValidComponent = null): void
+    public function setParent(AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
     {
         $this->parent = $parent;
         if ($cascadeValidComponent !== false) {

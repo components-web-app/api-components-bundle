@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Factory\Component;
 use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 
@@ -22,7 +22,7 @@ class ContentFactory extends AbstractComponentFactory
         $this->client = new Client();
     }
 
-    public function getComponent(): Component
+    public function getComponent(): AbstractComponent
     {
         return new Content();
     }
@@ -38,10 +38,10 @@ class ContentFactory extends AbstractComponentFactory
     /**
      * @param AbstractContent $owner
      * @param array|null $ops
-     * @return Component
+     * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function create(AbstractContent $owner, array $ops = null): Component
+    public function create(AbstractContent $owner, array $ops = null): AbstractComponent
     {
         /**
          * @var Content $component

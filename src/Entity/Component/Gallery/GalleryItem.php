@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Gallery;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  */
-class GalleryItem extends Component implements FileInterface
+class GalleryItem extends AbstractComponent implements FileInterface
 {
     use FileTrait;
 

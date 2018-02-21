@@ -2,12 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\News\News;
 
 class NewsFactory extends AbstractComponentFactory
 {
-    public function getComponent(): Component
+    public function getComponent(): AbstractComponent
     {
         return new News();
     }

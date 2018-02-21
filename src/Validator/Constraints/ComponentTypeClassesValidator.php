@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Component\Component;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
@@ -41,7 +41,7 @@ class ComponentTypeClassesValidator extends ConstraintValidator
                 $valid = ClassNameValidator::validate($value, $this->components);
                 if (!$valid) {
                     $conditionsStr = vsprintf(' They should all extend %s, implement %s or be tagged %s', [
-                        Component::class,
+                        AbstractComponent::class,
                         ComponentInterface::class,
                         'silverback_api_component.component'
                     ]);

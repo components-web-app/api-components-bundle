@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  */
-abstract class Component implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface
 {
     use ValidComponentTrait;
 
@@ -37,7 +37,7 @@ abstract class Component implements ComponentInterface
     /**
      * @var ComponentLocation[]
      */
-    private $locations;
+    protected $locations;
 
     /**
      * @ApiProperty(attributes={"fetchEager": false})
@@ -74,9 +74,9 @@ abstract class Component implements ComponentInterface
 
     /**
      * @param null|string $className
-     * @return Component
+     * @return AbstractComponent
      */
-    public function setClassName(?string $className): Component
+    public function setClassName(?string $className): AbstractComponent
     {
         $this->className = $className;
         return $this;
@@ -85,9 +85,9 @@ abstract class Component implements ComponentInterface
     /**
      * @param ContentInterface $content
      * @param bool|null $sortLast
-     * @return Component
+     * @return AbstractComponent
      */
-    public function addLocation(ContentInterface $content, ?bool $sortLast = null): Component
+    public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
     {
         $this->locations->add($content);
         return $this;
@@ -95,9 +95,9 @@ abstract class Component implements ComponentInterface
 
     /**
      * @param ContentInterface $content
-     * @return Component
+     * @return AbstractComponent
      */
-    public function removeLocation(ContentInterface $content): Component
+    public function removeLocation(ContentInterface $content): AbstractComponent
     {
         $this->locations->removeElement($content);
         return $this;
@@ -105,9 +105,9 @@ abstract class Component implements ComponentInterface
 
     /**
      * @param array $componentGroups
-     * @return Component
+     * @return AbstractComponent
      */
-    public function setComponentGroups(array $componentGroups): Component
+    public function setComponentGroups(array $componentGroups): AbstractComponent
     {
         $this->componentGroups = new ArrayCollection;
         foreach ($componentGroups as $componentGroup) {
@@ -118,9 +118,9 @@ abstract class Component implements ComponentInterface
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return Component
+     * @return AbstractComponent
      */
-    public function addComponentGroup(ComponentGroup $componentGroup): Component
+    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
         $this->componentGroups->add($componentGroup);
         return $this;
@@ -128,9 +128,9 @@ abstract class Component implements ComponentInterface
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return Component
+     * @return AbstractComponent
      */
-    public function removeComponentGroup(ComponentGroup $componentGroup): Component
+    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
         $this->componentGroups->removeElement($componentGroup);
         return $this;
@@ -152,5 +152,43 @@ abstract class Component implements ComponentInterface
     {
         $explodedClass = explode('\\', static::class);
         return array_pop($explodedClass);
+    }
+
+    /**
+     * @param AbstractComponent $component
+     * @param int $componentGroupOffset
+     * @return ComponentGroup
+     * @throws \InvalidArgumentException
+     */
+    private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $this->getComponentGroups()->offsetGet($componentGroupOffset);
+        if (!$componentGroup) {
+            throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
+        }
+        return $componentGroup;
+    }
+
+    /**
+     * @param AbstractComponent $child
+     * @param int $componentGroupOffset
+     * @throws \InvalidArgumentException
+     */
+    public function addChildComponent(AbstractComponent $child, int $componentGroupOffset = 0): void
+    {
+        $componentGroup = $this->getComponentComponentGroup($this, $componentGroupOffset);
+        $componentGroup->addComponent(new ComponentLocation($componentGroup, $child));
+    }
+
+    /**
+     * @param AbstractComponent $parent
+     * @param int $componentGroupOffset
+     * @throws \InvalidArgumentException
+     */
+    public function addToParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): void
+    {
+        $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
+        $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
     }
 }

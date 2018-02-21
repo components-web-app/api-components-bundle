@@ -24,7 +24,10 @@
                       target-entity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation"
                       mapped-by="content"
         >
-            <cascade><cascade-remove/></cascade>
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
         </one-to-many>
     </entity>
 </doctrine-mapping>
