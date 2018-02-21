@@ -29,7 +29,7 @@ class SilverbackApiComponentBundle extends Bundle
             realpath(__DIR__.'/Resources/config/doctrine-mapping') => __NAMESPACE__ . '\\Entity',
         ); */
         if (class_exists(DoctrineOrmMappingsPass::class)) {
-            //$container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver($mappings));
+            // $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver($mappings));
             // Opted for annotations to support traits
             $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver([ __NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']));
         }

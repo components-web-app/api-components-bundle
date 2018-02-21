@@ -21,6 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ApiResource()
  * @ACBAssert\ComponentLocation()
  * @ORM\Entity()
+ * @ORM\InheritanceType("SINGLE_TABLE")
  */
 class ComponentLocation implements SortableInterface
 {
@@ -51,16 +52,21 @@ class ComponentLocation implements SortableInterface
      */
     private $component;
 
+    /**
+     * ComponentLocation constructor.
+     * @param null|AbstractContent $newContent
+     * @param null|AbstractComponent $newComponent
+     */
     public function __construct(
-        ?AbstractContent $content = null,
-        ?AbstractComponent $component = null
+        ?AbstractContent $newContent = null,
+        ?AbstractComponent $newComponent = null
     ) {
         $this->id = Uuid::uuid4()->getHex();
-        if ($content) {
-            $this->setContent($content);
+        if ($newContent) {
+            $this->setContent($newContent);
         }
-        if ($component) {
-            $this->setComponent($component);
+        if ($newComponent) {
+            $this->setComponent($newComponent);
         }
     }
 
@@ -87,7 +93,9 @@ class ComponentLocation implements SortableInterface
     public function setContent(AbstractContent $content, ?bool $sortLast = true): void
     {
         $this->content = $content;
-        $this->setSort($this->calculateSort($sortLast));
+        if (null === $this->sort || $sortLast !== null) {
+            $this->setSort($this->calculateSort($sortLast));
+        }
     }
 
     /**

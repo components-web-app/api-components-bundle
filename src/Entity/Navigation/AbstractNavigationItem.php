@@ -98,10 +98,14 @@ abstract class AbstractNavigationItem implements NavigationItemInterface
 
     /**
      * @param AbstractNavigation $navigation
+     * @param bool|null $sortLast
      */
-    public function setNavigation(AbstractNavigation $navigation): void
+    public function setNavigation(AbstractNavigation $navigation, ?bool $sortLast = true): void
     {
         $this->navigation = $navigation;
+        if (null === $this->sort || $sortLast !== null) {
+            $this->setSort($this->calculateSort($sortLast));
+        }
     }
 
 
