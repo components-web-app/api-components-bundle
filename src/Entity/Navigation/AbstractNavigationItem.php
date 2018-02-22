@@ -19,8 +19,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
  *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem",
- *     "tabs" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\TabsItem",
- *     "menu" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\MenuItem"
+ *     "tabs" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem",
+ *     "menu" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\MenuItem"
  * })
  */
 abstract class AbstractNavigationItem implements NavigationItemInterface

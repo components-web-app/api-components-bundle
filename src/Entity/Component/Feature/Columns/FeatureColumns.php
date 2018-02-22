@@ -2,8 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Columns;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\Feature;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,11 +12,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureColumns
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureHorizontal
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
+ * @ORM\Entity()
  */
-class FeatureColumns extends Feature
+class FeatureColumns extends AbstractFeature
 {
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $title;

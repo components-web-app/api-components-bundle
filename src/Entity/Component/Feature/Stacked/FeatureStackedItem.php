@@ -2,8 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -11,25 +12,27 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
+ * @ORM\Entity()
  */
-class FeatureStackedItem extends FeatureItem
+class FeatureStackedItem extends AbstractFeatureItem
 {
 
     /**
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @Assert\NotBlank()
      * @var null|string
      */
     protected $description;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonText;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonClass;

@@ -2,8 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\Feature;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,11 +12,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureStacked
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureMedia
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
+ * @ORM\Entity()
  */
-class FeatureStacked extends Feature
+class FeatureStacked extends AbstractFeature
 {
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     protected $reverse = false;

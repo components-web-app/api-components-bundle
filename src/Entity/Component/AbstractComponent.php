@@ -30,35 +30,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "form" = "Silverback\ApiComponentBundle\Entity\Component\Form\Form",
  *     "gallery" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
  *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem",
- *     "hero" = "Silverback\ApiComponentBundle\Entity\Component\Hero\Hero"
+ *     "hero" = "Silverback\ApiComponentBundle\Entity\Component\Hero\Hero",
+ *     "feature_columns" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
+ *     "feature_columns_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem",
+ *     "feature_stacked" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
+ *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
+ *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
+ *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
 abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInterface
 {
     use ValidComponentTrait;
-
-    /**
-     * @Groups({"component_write"})
-     * @var AbstractComponent|null
-     */
-    private $parent;
-
-    /**
-     * @return AbstractComponent|null
-     */
-    public function getParent(): ?AbstractComponent
-    {
-        return $this->parent;
-    }
-
-    /**
-     * @param AbstractComponent|null $parent
-     */
-    public function setParent(?AbstractComponent $parent): void
-    {
-        $this->parent = $parent;
-    }
 
     /**
      * @ORM\Id()
@@ -87,6 +71,12 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @var ArrayCollection|ComponentGroup[]
      */
     protected $componentGroups;
+
+    /**
+     * @Groups({"component_write"})
+     * @var AbstractComponent|null
+     */
+    private $parent;
 
     /**
      * AbstractComponent constructor.
@@ -285,5 +275,21 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     public function onDeleteCascade(): bool
     {
         return false;
+    }
+
+    /**
+     * @return AbstractComponent|null
+     */
+    public function getParent(): ?AbstractComponent
+    {
+        return $this->parent;
+    }
+
+    /**
+     * @param AbstractComponent|null $parent
+     */
+    public function setParent(?AbstractComponent $parent): void
+    {
+        $this->parent = $parent;
     }
 }

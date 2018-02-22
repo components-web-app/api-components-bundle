@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 
 /**
  * Class AbstractNav
- * @package App\DataFixtures\Nav
+ * @package App\DataFixtures\Navigation
  * @author Daniel West <daniel@silverback.is>
  * @property NavBar $entity
  */

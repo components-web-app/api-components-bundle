@@ -26,14 +26,14 @@ class GalleryItem extends AbstractComponent implements FileInterface
     /**
      * @ORM\Column()
      * @Assert\NotBlank()
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $title;
 
     /**
      * @ORM\Column()
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $caption;

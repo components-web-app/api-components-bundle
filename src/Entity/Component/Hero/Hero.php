@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -34,7 +34,7 @@ class Hero extends AbstractComponent
     private $subtitle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs")
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs")
      * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      * @Groups({"content", "component"})
      * @var null|Tabs

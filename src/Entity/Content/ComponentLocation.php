@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
@@ -115,7 +115,7 @@ class ComponentLocation implements SortableInterface
     }
 
     /**
-     * @return Collection|FeatureItem[]
+     * @return Collection|AbstractFeatureItem[]
      */
     public function getSortCollection(): Collection
     {

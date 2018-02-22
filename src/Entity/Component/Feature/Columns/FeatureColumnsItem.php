@@ -2,19 +2,22 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Columns;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class FeatureColumnsItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
+ * @ORM\Entity()
  */
-class FeatureColumnsItem extends FeatureItem
+class FeatureColumnsItem extends AbstractFeatureItem
 {
     /**
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $description;

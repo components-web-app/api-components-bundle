@@ -20,7 +20,6 @@ class Gallery extends AbstractComponent
     {
         parent::__construct();
         $this->addValidComponent(GalleryItem::class);
-        // New galleries should have a component group added by default for the gallery images/items
         $this->addComponentGroup(new ComponentGroup());
     }
 

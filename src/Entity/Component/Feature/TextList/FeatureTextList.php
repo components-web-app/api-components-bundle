@@ -2,8 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature\TextList;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\Feature;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,17 +12,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureTextList
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource()
+ * @ORM\Entity()
  */
-class FeatureTextList extends Feature
+class FeatureTextList extends AbstractFeature
 {
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var int
      */
     protected $columns = 3;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $title;

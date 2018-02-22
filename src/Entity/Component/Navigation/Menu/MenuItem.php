@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
+namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class MenuItem
- * @package Silverback\ApiComponentBundle\Entity\Component\Nav\Menu
+ * @package Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(attributes={"force_eager"=false})
  * @ORM\Entity()
@@ -18,7 +18,7 @@ class MenuItem extends AbstractNavigationItem
 {
     /**
      * @ORM\Column(type="boolean", nullable=false)
-     * @Groups({"page"})
+     * @Groups({"content", "component"})
      * @var bool
      */
     private $menuLabel = false;
