@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
@@ -14,13 +13,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractNavigationItem
  * @package Silverback\ApiComponentBundle\Entity\Navigation
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"force_eager"=false})
  * @ORM\Entity()
  * @ORM\Table(name="navigation_item")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
- *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem"
+ *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem",
+ *     "tabs" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\TabsItem",
+ *     "menu" = "Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\MenuItem"
  * })
  */
 abstract class AbstractNavigationItem implements NavigationItemInterface

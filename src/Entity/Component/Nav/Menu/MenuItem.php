@@ -2,18 +2,20 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+/**
+ * Class MenuItem
+ * @package Silverback\ApiComponentBundle\Entity\Component\Nav\Menu
+ * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(attributes={"force_eager"=false})
+ * @ORM\Entity()
+ */
 class MenuItem extends AbstractNavigationItem
 {
-    /**
-     * @ORM\ManyToOne(targetEntity="Menu", inversedBy="items")
-     * @var Menu
-     */
-    protected $nav;
-
     /**
      * @ORM\Column(type="boolean", nullable=false)
      * @Groups({"page"})

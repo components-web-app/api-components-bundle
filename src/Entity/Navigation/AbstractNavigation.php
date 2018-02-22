@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Navigation;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,7 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractNavigation
  * @package Silverback\ApiComponentBundle\Entity\Navigation
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"force_eager"=false})
  * @ORM\Entity()
  * @ORM\Table(name="navigation")
  * @ORM\InheritanceType("SINGLE_TABLE")
