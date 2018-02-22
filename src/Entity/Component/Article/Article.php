@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class News
  * @package Silverback\ApiComponentBundle\Entity\Component\News
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/news")
+ * @ApiResource(shortName="component/article")
  * @ORM\Entity()
  * @ORM\AttributeOverrides({
  *      @ORM\AttributeOverride(
