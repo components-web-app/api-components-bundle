@@ -50,7 +50,7 @@ final class ContentFactory extends AbstractComponentFactory
         $this->init($component, $ops);
 
         if (\is_string($this->ops['content'])) {
-            $component->setContent($ops['content']);
+            $component->setContent($this->ops['content']);
         } else {
             $component->setContent($this->getLipsumContent());
         }

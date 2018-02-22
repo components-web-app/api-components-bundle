@@ -9,6 +9,7 @@ use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class News
@@ -46,10 +47,20 @@ class Article extends AbstractComponent implements FileInterface
 
     /**
      * @ORM\Column(type="text")
+     * @Assert\NotNull()
      * @Groups({"content", "component"})
      * @var string
      */
     private $content;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+        $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\Image([])
+        );
+    }
 
     /**
      * @return null|string

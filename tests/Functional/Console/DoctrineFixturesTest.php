@@ -25,8 +25,7 @@ class DoctrineFixturesTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
-        parent::setUpBeforeClass();
-        $kernel = static::bootKernel([]);
+        $kernel = static::bootKernel();
         $container = $kernel->getContainer();
         self::$em = $container->get('doctrine')->getManager();
     }
@@ -46,11 +45,6 @@ class DoctrineFixturesTest extends WebTestCase
         $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
     }
 
-    private function getEntities(string $cls)
-    {
-        return self::$em->getRepository($cls)->findAll();
-    }
-
     public function test_content_fixture()
     {
         $entities = $this->getEntities(Content::class);
@@ -59,6 +53,11 @@ class DoctrineFixturesTest extends WebTestCase
         /** @var $content Content */
         $content = $entities[0];
         $this->assertEquals(ContentFixture::DUMMY_CONTENT, $content->getContent());
+    }
+
+    private function getEntities(string $cls)
+    {
+        return self::$em->getRepository($cls)->findAll();
     }
 
     public static function tearDownAfterClass()
