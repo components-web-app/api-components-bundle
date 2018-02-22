@@ -2,17 +2,18 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Nav\Menu;
 
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
 use Silverback\ApiComponentBundle\Entity\Navigation\NavigationItemInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
 
+/**
+ * Class Menu
+ * @package Silverback\ApiComponentBundle\Entity\Component\Nav\Menu
+ * @author Daniel West <daniel@silverback.is>
+ * @ORM\Entity()
+ */
 class Menu extends AbstractNavigation
 {
-    /**
-     * @Groups({"layout", "page"})
-     */
-    protected $items;
-
     public function createNavItem(): NavigationItemInterface
     {
         return new MenuItem();

@@ -29,7 +29,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "content" = "Silverback\ApiComponentBundle\Entity\Component\Content\Content",
  *     "form" = "Silverback\ApiComponentBundle\Entity\Component\Form\Form",
  *     "gallery" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
- *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
+ *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem",
+ *     "hero" = "Silverback\ApiComponentBundle\Entity\Component\Hero\Hero"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */

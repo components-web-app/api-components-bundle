@@ -8,7 +8,7 @@ Feature: Gallery
 
   @createSchema
   Scenario: Create a gallery
-    When I send a "POST" request to "/galleries" with body:
+    When I send a "POST" request to "/component/galleries" with body:
     """
     {}
     """
@@ -24,7 +24,7 @@ Feature: Gallery
     }
     """
     And the node parent of the json variable gallery_item_post is equal to the variable gallery
-    When I send a "POST" request to "/gallery_items" with the json variable gallery_item_post as the body
+    When I send a "POST" request to "/component/gallery_items" with the json variable gallery_item_post as the body
     Then the response status code should be 201
     And save the entity id as gallery_item
     And the JSON should be valid according to the schema "features/bootstrap/json-schema/components/gallery_item.json"
@@ -66,7 +66,7 @@ Feature: Gallery
     Then the response status code should be 204
 
   @dropSchema
-  Scenario: Check gallery item delete has persisted
+  Scenario: Check gallery item delete has cascaded
     When I send a "GET" request to the entity gallery_item
     Then the response status code should be 404
     And the public file path "media/cache/placeholder_square/images/testImage.jpg" should not exist

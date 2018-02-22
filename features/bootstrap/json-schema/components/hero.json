@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "subtitle": {
+            "type": ["string", "null"],
+            "required": true
+        },
+        "tabs": {
+            "type": ["string", "null"],
+            "required": true
+        }
+    }
+}
