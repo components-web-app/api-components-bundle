@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(shortName="component/feature_stacked_items")
  * @ORM\Entity()
  */
 class FeatureStackedItem extends AbstractFeatureItem
