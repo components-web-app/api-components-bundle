@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class FeatureStackedItem
@@ -17,10 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class FeatureStackedItem extends AbstractFeatureItem
 {
-
     /**
      * @Groups({"component", "content"})
-     * @Assert\NotBlank()
      * @var null|string
      */
     protected $description;
@@ -36,6 +35,14 @@ class FeatureStackedItem extends AbstractFeatureItem
      * @var null|string
      */
     protected $buttonClass;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint(
+            'description',
+            new Assert\NotBlank()
+        );
+    }
 
     /**
      * @return null|string

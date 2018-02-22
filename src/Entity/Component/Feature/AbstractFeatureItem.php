@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class AbstractFeatureItem
@@ -14,17 +15,27 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
 {
     /**
      * @Groups({"component", "content"})
-     * @Assert\NotBlank()
      * @var string
      */
     private $label;
 
     /**
      * @Groups({"component", "content"})
-     * @Assert\Url()
      * @var int|null
      */
     protected $link;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint(
+            'label',
+            new Assert\NotBlank()
+        );
+        $metadata->addPropertyConstraint(
+            'link',
+            new Assert\Url()
+        );
+    }
 
     /**
      * @return string

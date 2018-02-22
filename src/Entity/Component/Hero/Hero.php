@@ -8,6 +8,7 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class Hero
@@ -20,7 +21,6 @@ class Hero extends AbstractComponent
 {
     /**
      * @ORM\Column(type="string", nullable=false)
-     * @Assert\NotNull()
      * @Groups({"content", "component"})
      * @var null|string
      */
@@ -40,6 +40,14 @@ class Hero extends AbstractComponent
      * @var null|Tabs
      */
     private $tabs;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint(
+            'title',
+            new Assert\NotNull()
+        );
+    }
 
     /**
      * @return null|string

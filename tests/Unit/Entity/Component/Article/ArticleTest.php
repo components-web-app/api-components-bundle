@@ -11,8 +11,8 @@ class ArticleTest extends AbstractEntityTest
 {
     public function test_constraints()
     {
-        $article = new Article();
-        $constraints = $this->getConstraints($article);
+        $entity = new Article();
+        $constraints = $this->getConstraints($entity);
         $this->assertTrue($this->instanceInArray(Image::class, $constraints['filePath']));
         $this->assertTrue($this->instanceInArray(NotNull::class, $constraints['title']));
         $this->assertTrue($this->instanceInArray(NotNull::class, $constraints['content']));

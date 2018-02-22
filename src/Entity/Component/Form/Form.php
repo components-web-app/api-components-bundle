@@ -53,9 +53,8 @@ class Form extends AbstractComponent
      */
     private $lastModified;
 
-    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
         $metadata->addPropertyConstraints(
             'formType',
             [
@@ -63,7 +62,6 @@ class Form extends AbstractComponent
                 new Assert\NotBlank()
             ]
         );
-        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
         $metadata->addPropertyConstraint(
             'successHandler',
             new ACBAssert\FormHandlerClass()

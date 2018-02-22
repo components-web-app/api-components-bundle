@@ -25,7 +25,6 @@ class GalleryItem extends AbstractComponent implements FileInterface
 
     /**
      * @ORM\Column()
-     * @Assert\NotBlank()
      * @Groups({"component", "content"})
      * @var null|string
      */
@@ -46,7 +45,14 @@ class GalleryItem extends AbstractComponent implements FileInterface
      */
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
-        $metadata->addPropertyConstraint('filePath', new Assert\NotBlank());
+        $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\NotBlank()
+        );
+        $metadata->addPropertyConstraint(
+            'title',
+            new Assert\NotBlank()
+        );
     }
 
     /**

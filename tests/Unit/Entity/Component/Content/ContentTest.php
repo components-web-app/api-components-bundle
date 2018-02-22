@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Article;
+namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Content;
 
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
@@ -10,8 +10,8 @@ class ContentTest extends AbstractEntityTest
 {
     public function test_constraints()
     {
-        $content = new Content();
-        $constraints = $this->getConstraints($content);
+        $entity = new Content();
+        $constraints = $this->getConstraints($entity);
         $this->assertTrue($this->instanceInArray(NotNull::class, $constraints['content']));
     }
 }

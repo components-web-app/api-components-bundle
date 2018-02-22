@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Article;
+namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Form;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
@@ -12,8 +12,8 @@ class FormTest extends AbstractEntityTest
 {
     public function test_constraints()
     {
-        $form = new Form();
-        $constraints = $this->getConstraints($form);
+        $entity = new Form();
+        $constraints = $this->getConstraints($entity);
         $this->assertTrue($this->instanceInArray(FormTypeClass::class, $constraints['formType']));
         $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['formType']));
         $this->assertTrue($this->instanceInArray(FormHandlerClass::class, $constraints['successHandler']));

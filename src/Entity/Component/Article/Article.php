@@ -32,7 +32,6 @@ class Article extends AbstractComponent implements FileInterface
 
     /**
      * @ORM\Column(type="string", nullable=false)
-     * @Assert\NotNull()
      * @Groups({"content", "component"})
      * @var null|string
      */
@@ -47,7 +46,6 @@ class Article extends AbstractComponent implements FileInterface
 
     /**
      * @ORM\Column(type="text")
-     * @Assert\NotNull()
      * @Groups({"content", "component"})
      * @var string
      */

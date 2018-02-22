@@ -14,6 +14,7 @@ use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class ComponentLocation
@@ -37,7 +38,6 @@ class ComponentLocation implements SortableInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
      * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Assert\NotBlank()
      * @Groups({"component"})
      * @var AbstractContent
      */
@@ -46,11 +46,22 @@ class ComponentLocation implements SortableInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="locations")
      * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Assert\NotBlank()
      * @Groups({"component", "content", "route"})
      * @var AbstractComponent
      */
     private $component;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint(
+            'content',
+            new Assert\NotBlank()
+        );
+        $metadata->addPropertyConstraint(
+            'component',
+            new Assert\NotBlank()
+        );
+    }
 
     /**
      * ComponentLocation constructor.
