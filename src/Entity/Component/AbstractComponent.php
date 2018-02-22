@@ -36,7 +36,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "feature_stacked" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
  *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
  *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
- *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem"
+ *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem",
+ *     "article" = "Silverback\ApiComponentBundle\Entity\Component\Article\Article"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
