@@ -6,6 +6,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class Content
@@ -21,6 +23,14 @@ class Content extends AbstractComponent
      * @var string
      */
     private $content;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
+    {
+        $metadata->addPropertyConstraint(
+            'content',
+            new Assert\NotNull()
+        );
+    }
 
     /**
      * @return string

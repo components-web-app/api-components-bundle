@@ -4,7 +4,10 @@ namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
 use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class AbstractComponentFactory implements ComponentFactoryInterface
 {
@@ -19,32 +22,33 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     protected $ops;
 
     /**
-     * @param ObjectManager $manager
+     * @var ValidatorInterface
      */
-    public function __construct(ObjectManager $manager)
+    private $validator;
+
+    /**
+     * @param ObjectManager $manager
+     * @param ValidatorInterface $validator
+     */
+    public function __construct(
+        ObjectManager $manager,
+        ValidatorInterface $validator
+    )
     {
         $this->manager = $manager;
+        $this->validator = $validator;
     }
 
     /**
      * @param AbstractComponent $component
      * @param array|null $ops
+     * @throws \Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException
      */
     protected function init(AbstractComponent $component, ?array $ops = null): void
     {
         $this->setOptions($ops);
         $component->setClassName($this->ops['className']);
         $this->manager->persist($component);
-    }
-
-    /**
-     * @return array
-     */
-    protected static function defaultOps(): array
-    {
-        return [
-            'className' => null
-        ];
     }
 
     /**
@@ -69,4 +73,36 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
             ARRAY_FILTER_USE_KEY
         );
     }
+
+    /**
+     * @param AbstractComponent $component
+     * @return bool
+     * @throws \Silverback\ApiComponentBundle\Exception\InvalidEntityException
+     */
+    protected function validate(AbstractComponent $component): bool
+    {
+        $errors = $this->validator->validate($component);
+        if (\count($errors)) {
+            throw new InvalidEntityException($errors);
+        }
+        return true;
+    }
+
+    /**
+     * @return array
+     */
+    protected static function defaultOps(): array
+    {
+        return [
+            'className' => null
+        ];
+    }
+
+    /**
+     * @param array|null $ops
+     * @param null|AbstractContent $owner
+     * @throws \Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException
+     * @throws \Silverback\ApiComponentBundle\Exception\InvalidEntityException
+     */
+    abstract public function create(?array $ops = null, ?AbstractContent $owner = null);
 }

@@ -53,12 +53,21 @@ class Article extends AbstractComponent implements FileInterface
      */
     private $content;
 
-    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
         $metadata->addPropertyConstraint(
             'filePath',
-            new Assert\Image([])
+            new Assert\Image()
+        );
+
+        $metadata->addPropertyConstraint(
+            'title',
+            new Assert\NotNull()
+        );
+
+        $metadata->addPropertyConstraint(
+            'content',
+            new Assert\NotNull()
         );
     }
 

@@ -13,6 +13,21 @@ final class ArticleFactory extends AbstractComponentFactory
     /**
      * @inheritdoc
      */
+    public function create(?array $ops = null, ?AbstractContent $owner = null): Article
+    {
+        $component = new Article();
+        $this->init($component, $ops);
+        $component->setTitle($this->ops['title']);
+        $component->setSubtitle($this->ops['subtitle']);
+        $component->setContent($this->ops['content']);
+        $component->setFilePath($this->ops['filePath']);
+        $this->validate($component);
+        return $component;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function defaultOps(): array
     {
         return array_merge(
@@ -24,19 +39,5 @@ final class ArticleFactory extends AbstractComponentFactory
                 'filePath' => null
             ]
         );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Article
-    {
-        $component = new Article();
-        $this->init($component, $ops);
-        $component->setTitle($this->ops['title']);
-        $component->setSubtitle($this->ops['subtitle']);
-        $component->setContent($this->ops['content']);
-        $component->setFilePath($this->ops['filePath']);
-        return $component;
     }
 }

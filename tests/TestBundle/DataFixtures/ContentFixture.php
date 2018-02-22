@@ -17,8 +17,7 @@ class ContentFixture extends AbstractFixture
 
     public function __construct(
         ContentFactory $contentFactory
-    )
-    {
+    ) {
         $this->contentFactory = $contentFactory;
     }
 

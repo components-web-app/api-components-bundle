@@ -2,11 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Fixtures\Component;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
 use Silverback\ApiComponentBundle\Factory\Fixtures\Component\ArticleFactory;
 
-class ArticleFactoryTest extends TestCase
+class ArticleFactoryTest extends AbstractFactoryTest
 {
     /**
      * @var ArticleFactory
@@ -15,28 +14,31 @@ class ArticleFactoryTest extends TestCase
 
     public function setUp()
     {
-        /** @var ObjectManager $objectManagerMock */
-        $objectManagerMock = $this
-            ->getMockBuilder(ObjectManager::class)
-            ->getMock()
-        ;
+        $this->componentFactory = new ArticleFactory(...$this->getConstructorArgs());
+    }
 
-        $this->componentFactory = new ArticleFactory($objectManagerMock);
+    public function test_invalid_option()
+    {
+        $this->expectException(InvalidFactoryOptionException::class);
+        $this->componentFactory->create(
+            [
+                'invalid' => null
+            ]
+        );
     }
 
     public function test_create()
     {
-        $component = $this->componentFactory->create(
-            [
-                'title' => 'Title',
-                'subtitle' => 'Subtitle',
-                'content' => '<p>Some content</p>',
-                'filePath' => '/images/testImage.jpg'
-            ]
-        );
-        $this->assertEquals('Title', $component->getTitle());
-        $this->assertEquals('Subtitle', $component->getSubtitle());
-        $this->assertEquals('<p>Some content</p>', $component->getContent());
-        $this->assertEquals('/images/testImage.jpg', $component->getFilePath());
+        $ops = [
+            'title' => 'Title',
+            'subtitle' => 'Subtitle',
+            'content' => '<p>Some content</p>',
+            'filePath' => '/images/testImage.jpg'
+        ];
+        $component = $this->componentFactory->create($ops);
+        $this->assertEquals($ops['title'], $component->getTitle());
+        $this->assertEquals($ops['subtitle'], $component->getSubtitle());
+        $this->assertEquals($ops['content'], $component->getContent());
+        $this->assertEquals($ops['filePath'], $component->getFilePath());
     }
 }

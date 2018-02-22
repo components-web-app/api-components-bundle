@@ -2,24 +2,23 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
 
-use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class HeroFactory extends AbstractComponentFactory
+final class FormFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Hero
+    public function create(?array $ops = null, ?AbstractContent $owner = null): Form
     {
-        $component = new Hero();
+        $component = new Form();
         $this->init($component, $ops);
-        $component->setTitle($this->ops['title']);
-        $component->setSubtitle($this->ops['subtitle']);
-        $component->setTabs($this->ops['tabs']);
+        $component->setFormType($this->ops['formType']);
+        $component->setSuccessHandler($this->ops['successHandler']);
         $this->validate($component);
         return $component;
     }
@@ -32,9 +31,8 @@ final class HeroFactory extends AbstractComponentFactory
         return array_merge(
             parent::defaultOps(),
             [
-                'title' => 'Untitled',
-                'subtitle' => null,
-                'tabs' => null
+                'formType' => '',
+                'successHandler' => null
             ]
         );
     }

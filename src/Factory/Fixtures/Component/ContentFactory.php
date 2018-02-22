@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -20,42 +21,12 @@ final class ContentFactory extends AbstractComponentFactory
 
     public function __construct(
         ObjectManager $manager,
+        ValidatorInterface $validator,
         Client $client
     )
     {
-        parent::__construct($manager);
+        parent::__construct($manager, $validator);
         $this->client = $client;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function defaultOps(): array
-    {
-        return array_merge(
-            parent::defaultOps(),
-            [
-                'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'],
-                'content' => null
-            ]
-        );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Content
-    {
-        $component = new Content();
-        $this->init($component, $ops);
-
-        if (\is_string($this->ops['content'])) {
-            $component->setContent($this->ops['content']);
-        } else {
-            $component->setContent($this->getLipsumContent());
-        }
-
-        return $component;
     }
 
     /**
@@ -93,5 +64,37 @@ final class ContentFactory extends AbstractComponentFactory
                 ]
             );
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function create(?array $ops = null, ?AbstractContent $owner = null): Content
+    {
+        $component = new Content();
+        $this->init($component, $ops);
+
+        if (\is_string($this->ops['content'])) {
+            $component->setContent($this->ops['content']);
+        } else {
+            $component->setContent($this->getLipsumContent());
+        }
+        $this->validate($component);
+
+        return $component;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function defaultOps(): array
+    {
+        return array_merge(
+            parent::defaultOps(),
+            [
+                'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'],
+                'content' => null
+            ]
+        );
     }
 }

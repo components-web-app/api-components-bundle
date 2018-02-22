@@ -9,6 +9,7 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class Form
@@ -35,15 +36,12 @@ class Form extends AbstractComponent
     /**
      * @ORM\Column()
      * @Groups({"component_write"})
-     * @ACBAssert\FormTypeClass()
-     * @Assert\NotBlank()
      * @var string
      */
     private $formType;
 
     /**
      * @ORM\Column()
-     * @ACBAssert\FormHandlerClass()
      * @Groups({"component_write"})
      * @var null|string
      */
@@ -54,6 +52,23 @@ class Form extends AbstractComponent
      * @var null|\DateTime
      */
     private $lastModified;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+        $metadata->addPropertyConstraints(
+            'formType',
+            [
+                new ACBAssert\FormTypeClass(),
+                new Assert\NotBlank()
+            ]
+        );
+        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+        $metadata->addPropertyConstraint(
+            'successHandler',
+            new ACBAssert\FormHandlerClass()
+        );
+    }
 
     /**
      * @return string

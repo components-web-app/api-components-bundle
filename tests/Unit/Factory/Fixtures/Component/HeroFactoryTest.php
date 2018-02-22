@@ -2,12 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Fixtures\Component;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
+use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
 use Silverback\ApiComponentBundle\Factory\Fixtures\Component\HeroFactory;
 
-class HeroFactoryTest extends TestCase
+class HeroFactoryTest extends AbstractFactoryTest
 {
     /**
      * @var HeroFactory
@@ -16,27 +15,30 @@ class HeroFactoryTest extends TestCase
 
     public function setUp()
     {
-        /** @var ObjectManager $objectManagerMock */
-        $objectManagerMock = $this
-            ->getMockBuilder(ObjectManager::class)
-            ->getMock()
-        ;
+        $this->componentFactory = new HeroFactory(...$this->getConstructorArgs());
+    }
 
-        $this->componentFactory = new HeroFactory($objectManagerMock);
+    public function test_invalid_option()
+    {
+        $this->expectException(InvalidFactoryOptionException::class);
+        $this->componentFactory->create(
+            [
+                'invalid' => null
+            ]
+        );
     }
 
     public function test_create()
     {
         $tabs = new Tabs();
-        $component = $this->componentFactory->create(
-            [
-                'title' => 'Title',
-                'subtitle' => 'Subtitle',
-                'tabs' => $tabs
-            ]
-        );
-        $this->assertEquals('Title', $component->getTitle());
-        $this->assertEquals('Subtitle', $component->getSubtitle());
-        $this->assertEquals($tabs, $component->getTabs());
+        $ops = [
+            'title' => 'Title',
+            'subtitle' => 'Subtitle',
+            'tabs' => $tabs
+        ];
+        $component = $this->componentFactory->create($ops);
+        $this->assertEquals($ops['title'], $component->getTitle());
+        $this->assertEquals($ops['subtitle'], $component->getSubtitle());
+        $this->assertEquals($ops['tabs'], $component->getTabs());
     }
 }
