@@ -6,6 +6,8 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -26,6 +28,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param string $projectDir
      * @param CacheManager $imagineCacheManager
      * @param FormFactory $formFactory
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         NormalizerInterface $decorated,
@@ -57,7 +60,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param $object
      * @param null $format
      * @param array $context
-     * @return array|\Symfony\Component\Serializer\Normalizer\scalar
+     * @return array|bool|float|int|string
      * @throws \Symfony\Component\Serializer\Exception\LogicException
      * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Serializer\Exception\CircularReferenceException
@@ -76,6 +79,10 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         return $data;
     }
 
+    /**
+     * @param FileInterface $object
+     * @return array
+     */
     private function getFileData(FileInterface $object)
     {
         $data = [];

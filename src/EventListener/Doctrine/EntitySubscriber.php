@@ -6,7 +6,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
-use Enqueue\Client\Producer;
+use Enqueue\Client\TraceableProducer;
 use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -26,7 +26,7 @@ class EntitySubscriber implements EventSubscriber
      */
     private $imagineCacheManager;
     /**
-     * @var Producer
+     * @var TraceableProducer
      */
     private $producer;
     /**
@@ -37,12 +37,12 @@ class EntitySubscriber implements EventSubscriber
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
-     * @param Producer $producer
+     * @param TraceableProducer $producer
      * @param ApiNormalizer $fileNormalizer
      */
     public function __construct(
         CacheManager $imagineCacheManager,
-        Producer $producer,
+        TraceableProducer $producer,
         ApiNormalizer $fileNormalizer
     ) {
         $this->imagineCacheManager = $imagineCacheManager;

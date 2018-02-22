@@ -6,13 +6,13 @@ interface RouteAwareInterface
 {
     /**
      * @param Route $route
-     * @return RouteAwareTrait
+     * @return RouteAwareInterface
      */
-    public function addRoute(Route $route): RouteAwareTrait;
+    public function addRoute(Route $route): RouteAwareInterface;
 
     /**
      * @param Route $route
-     * @return RouteAwareTrait
+     * @return RouteAwareInterface
      */
-    public function removeRoute(Route $route): RouteAwareTrait;
+    public function removeRoute(Route $route): RouteAwareInterface;
 }

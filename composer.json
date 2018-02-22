@@ -24,7 +24,9 @@
         "symfony/framework-bundle": "^4.0",
         "symfony/orm-pack": "^1.0",
         "symfony/proxy-manager-bridge": "^4.0",
-        "symfony/yaml": "^4.0"
+        "symfony/serializer": "^4.0@dev",
+        "symfony/yaml": "^4.0",
+        "roave/security-advisories": "dev-master"
     },
     "require-dev": {
         "behat/behat": "^3.1",

@@ -33,23 +33,20 @@ class Page extends AbstractContent
     private $metaDescription;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
-     * @ORM\JoinColumn(onDelete="SET NULL")
-     * @var null|RouteAwareInterface
+     * @ORM\ManyToOne(targetEntity="Page")
+     * @ORM\JoinColumn(nullable=true)
+     * @var null|Page
      */
     private $parent;
 
     /**
-     * @ApiProperty(alwaysIdentifier=true)
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
+     * @ORM\JoinColumn(onDelete="SET NULL")
+     * @ApiProperty()
      * @Groups({"content"})
      * @var Layout|null
      */
     private $layout;
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * @return string
@@ -84,17 +81,17 @@ class Page extends AbstractContent
     }
 
     /**
-     * @return null|RouteAwareInterface
+     * @return null|Page
      */
-    public function getParent(): ?RouteAwareInterface
+    public function getParent(): ?Page
     {
         return $this->parent;
     }
 
     /**
-     * @param null|RouteAwareInterface $parent
+     * @param null|Page $parent
      */
-    public function setParent(?RouteAwareInterface $parent): void
+    public function setParent(?Page $parent): void
     {
         $this->parent = $parent;
     }
