@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "properties": {
+        "form": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "vars": { "type": "object" },
+                "children": { "type": "array" }
+            }
+        }
+    }
+}

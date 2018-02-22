@@ -5,7 +5,8 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use Cocur\Slugify\SlugifyInterface;
 use Liip\ImagineBundle\Async\ResolveCacheProcessor;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\EventListener\FileEntitySubscriber;
+use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureColumnsFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
@@ -14,10 +15,10 @@ use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Component\GalleryFactory;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 use Silverback\ApiComponentBundle\Factory\Component\NewsFactory;
-use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
+use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -57,12 +58,12 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(FormSubmitPost::class)
+        ->tag('controller.service_arguments')
         ->args(
             [
                 '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
             ]
         )
-        ->tag('controller.service_arguments')
     ;
 
     $services
@@ -101,6 +102,11 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
+        ->set(ComponentLocationValidator::class)
+        ->tag('validator.constraint_validator')
+    ;
+
+    $services
         ->set(ComponentServiceLocator::class)
         ->tag('container.service_locator')
         ->args([
@@ -133,7 +139,7 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
-        ->set(FileEntitySubscriber::class)
+        ->set(EntitySubscriber::class)
         ->tag('doctrine.event_subscriber')
     ;
 

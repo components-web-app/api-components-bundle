@@ -42,7 +42,7 @@ final class LayoutDataProvider implements ItemDataProviderInterface
             Layout::class !== $resourceClass ||
             $id !== 'default'
         ) {
-            throw new ResourceClassNotSupportedException();
+            throw new ResourceClassNotSupportedException('This provider only supports getting the default layout');
         }
         $repository = $manager->getRepository($resourceClass);
         return $repository->findOneBy(['default' => true]);

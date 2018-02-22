@@ -24,7 +24,8 @@ abstract class AbstractFixture extends Fixture
         $this->manager = $manager;
     }
 
-    protected function flush () {
+    protected function flush()
+    {
         if (!$this->entity) {
             throw new \BadMethodCallException('You must set the entity variable to persist');
         }

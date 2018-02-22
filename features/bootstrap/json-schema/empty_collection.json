@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "hydra:member": {
+            "type": "array",
+            "maxItems": 0,
+            "required": true
+        }
+    }
+}

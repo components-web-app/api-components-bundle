@@ -2,33 +2,17 @@
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\AfterStepScope;
-use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Behatch\HttpCall\Request;
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
-use PHPUnit\Framework\Assert;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * Defines application features from the specific context.
  */
-class FeatureContext implements Context, KernelAwareContext
+class FeatureContext implements Context
 {
     /**
-     * @var EntityManagerInterface
+     * @var Request\BrowserKit
      */
-    private $manager;
-    private $doctrine;
-    private $schemaTool;
-    private $classes;
     private $request;
-    private $propertyAccessor;
-    /**
-     * @var KernelInterface
-     */
-    private $kernel;
 
     /**
      * Initializes context.
@@ -36,26 +20,17 @@ class FeatureContext implements Context, KernelAwareContext
      * Every scenario gets its own context instance.
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
+     * @param Request $request
      */
-    public function __construct(ManagerRegistry $doctrine, Request $request)
+    public function __construct(Request $request)
     {
-        $this->doctrine = $doctrine;
-        $this->manager = $doctrine->getManager();
-        $this->schemaTool = new SchemaTool($this->manager);
-        $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
         $this->request = $request;
-        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-    }
-
-    public function setKernel(KernelInterface $kernel)
-    {
-        $this->kernel = $kernel;
     }
 
     /**
      * Sets the default Accept HTTP header to null (workaround to artificially remove it).
-     *
      * @AfterStep
+     * @param AfterStepScope $event
      */
     public function removeAcceptHeaderAfterRequest(AfterStepScope $event)
     {
@@ -72,56 +47,5 @@ class FeatureContext implements Context, KernelAwareContext
     public function removeAcceptHeaderBeforeScenario()
     {
         $this->request->setHttpHeader('Accept', null);
-    }
-
-    /**
-     * @BeforeScenario @createSchema
-     */
-    public function createDatabase()
-    {
-        $this->schemaTool->createSchema($this->classes);
-    }
-
-    /**
-     * @AfterScenario @dropSchema
-     */
-    public function dropDatabase()
-    {
-        $this->schemaTool->dropSchema($this->classes);
-        $this->doctrine->getManager()->clear();
-    }
-
-    /**
-     * @Then the service :service should have property :property with a value of :value
-     */
-    public function assertNodeValueIs(string $service, string $property, string $value)
-    {
-        Assert::assertEquals(
-            $this->propertyAccessor->getValue($this->kernel->getContainer()->get($service), $property),
-            $value
-        );
-    }
-
-    private function getPublicPath ($path)
-    {
-        return $this->kernel->getContainer()->getParameter('kernel.project_dir') . '/public/' . $path;
-    }
-
-    /**
-     * @Then the public file path :path should exist
-     */
-    public function filePathExists(string $path)
-    {
-        $fullPath = $this->getPublicPath($path);
-        Assert::assertTrue(file_exists($fullPath), 'The file "' . $fullPath . '"" does not exist');
-    }
-
-    /**
-     * @Then the public file path :path should not exist
-     */
-    public function filePathDoesNotExists(string $path)
-    {
-        $fullPath = $this->getPublicPath($path);
-        Assert::assertFalse(file_exists($fullPath), 'The file "' . $fullPath . '"" exists');
     }
 }

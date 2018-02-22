@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "properties": {
+        "className": {
+            "type": ["string", "null"],
+            "required": true
+        },
+        "componentGroups": {
+            "type": "array",
+            "required": true
+        }
+    }
+}

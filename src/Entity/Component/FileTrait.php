@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 trait FileTrait
 {
     /**
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="string", nullable=false)
      * @Groups({"component"})
      * @var null|string
      */

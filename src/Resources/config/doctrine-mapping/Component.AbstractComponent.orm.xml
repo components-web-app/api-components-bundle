@@ -1,0 +1,48 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                    http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
+>
+    <entity name="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent"
+            table="component"
+            inheritance-type="SINGLE_TABLE"
+    >
+        <discriminator-column name="type"
+                              type="string"
+        />
+        <discriminator-map>
+            <discriminator-mapping value="content"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Content\Content"
+            />
+            <discriminator-mapping value="form"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Form\Form"
+            />
+            <discriminator-mapping value="gallery"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery"
+            />
+            <discriminator-mapping value="gallery_item"
+                                   class="Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem"
+            />
+        </discriminator-map>
+
+        <entity-listeners>
+            <entity-listener class="Silverback\ApiComponentBundle\EntityListener\ComponentListener" />
+        </entity-listeners>
+
+        <id name="id"
+            type="string"
+        />
+        <field name="className" nullable="true" />
+        <one-to-many field="locations"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation"
+                      mapped-by="component"
+        />
+        <one-to-many field="componentGroups"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+                     mapped-by="parent">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

@@ -13,25 +13,25 @@ class ContentComponentTest extends TestCase
     private $objectManagerProphecy;
     private $component;
 
-    public function setUp ()
+    public function setUp()
     {
         $this->objectManagerProphecy = $this->prophesize(ObjectManager::class);
         $this->component = new ContentFactory($this->objectManagerProphecy->reveal());
     }
 
-    public function test_get_component ()
+    public function test_get_component()
     {
         $this->assertInstanceOf(Content::class, $this->component->getComponent());
     }
 
-    public function test_default_op_keys ()
+    public function test_default_op_keys()
     {
         $optionKeys = array_keys($this->component::defaultOps());
         $this->assertContains('lipsum', $optionKeys);
         $this->assertContains('content', $optionKeys);
     }
 
-    public function test_create_lipsum ()
+    public function test_create_lipsum()
     {
         $component = $this->component->create(new Page(), [
             'lipsum' => ['1', 'short']
@@ -39,7 +39,7 @@ class ContentComponentTest extends TestCase
         $this->assertRegExp('/^<p>.*<\/p>/', $component->getContent());
     }
 
-    public function test_create_custom ()
+    public function test_create_custom()
     {
         $component = $this->component->create(new Page(), [
             'content' => 'ABCDEFG'

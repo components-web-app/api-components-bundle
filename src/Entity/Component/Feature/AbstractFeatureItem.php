@@ -2,38 +2,25 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
-use Silverback\ApiComponentBundle\Entity\Component\SortableTrait;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class AbstractFeatureItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
- * @ORM\Entity()
- * @ORM\Table(name="feature_item")
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
- * @ORM\DiscriminatorMap({
- *     "columns_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem",
- *     "stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
- *     "text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem"
- * })
  */
-abstract class AbstractFeatureItem extends AbstractComponentItem implements FeatureItemInterface
+abstract class AbstractFeatureItem extends AbstractComponent implements FeatureItemInterface
 {
     /**
-     * @ORM\Column(type="string")
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @Assert\NotBlank()
      * @var string
      */
     private $label;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @Assert\Url()
      * @var int|null
      */

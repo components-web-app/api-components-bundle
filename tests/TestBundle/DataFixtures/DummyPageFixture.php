@@ -6,7 +6,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
-use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
 use Silverback\ApiComponentBundle\Factory\Component\FormFactory;

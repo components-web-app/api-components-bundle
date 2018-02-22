@@ -5,6 +5,8 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -16,20 +18,21 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $decorated;
     private $projectDir;
     private $imagineCacheManager;
+    private $formFactory;
 
     /**
      * FileNormalizer constructor.
      * @param NormalizerInterface $decorated
      * @param string $projectDir
      * @param CacheManager $imagineCacheManager
-     * @throws \InvalidArgumentException
+     * @param FormFactory $formFactory
      */
     public function __construct(
         NormalizerInterface $decorated,
         string $projectDir,
-        CacheManager $imagineCacheManager
-    )
-    {
+        CacheManager $imagineCacheManager,
+        FormFactory $formFactory
+    ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
         }
@@ -37,6 +40,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->decorated = $decorated;
         $this->projectDir = $projectDir;
         $this->imagineCacheManager = $imagineCacheManager;
+        $this->formFactory = $formFactory;
     }
 
     /**
@@ -61,26 +65,38 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     public function normalize($object, $format = null, array $context = [])
     {
         $data = $this->decorated->normalize($object, $format, $context);
-        if ($object instanceof FileInterface) {
-            /* @var $object FileInterface */
-            $filePath = $this->getRealFilePath($object->getFilePath());
-            if ($filePath) {
-                if (false !== \exif_imagetype($filePath)) {
-                    [$width, $height] = getimagesize($filePath);
-                } else {
-                    $width = $height = 0;
-                }
-                $data['width'] = $width;
-                $data['height'] = $height;
 
-                $supported = $this->isImagineSupportedFile($object->getFilePath());
-                foreach ($object::getImagineFilters() as $returnKey => $filter)
-                {
-                    $data[$returnKey] = $supported ? parse_url(
-                        $this->imagineCacheManager->getBrowserPath($object->getFilePath(), $filter),
-                        PHP_URL_PATH
-                    ) : null;
-                }
+        if ($object instanceof FileInterface) {
+            $data = array_merge($data, $this->getFileData($object));
+        }
+        if ($object instanceof Form) {
+            $data['form'] = $this->formFactory->createFormView($object);
+        }
+
+        return $data;
+    }
+
+    private function getFileData(FileInterface $object)
+    {
+        $data = [];
+        $originalFilePath = $object->getFilePath();
+        /* @var $object FileInterface */
+        $filePath = $this->getRealFilePath($originalFilePath);
+        if ($filePath) {
+            if (false !== \exif_imagetype($filePath)) {
+                [$width, $height] = getimagesize($filePath);
+            } else {
+                $width = $height = 0;
+            }
+            $data['width'] = $width;
+            $data['height'] = $height;
+
+            $supported = $this->isImagineSupportedFile($originalFilePath);
+            foreach ($object::getImagineFilters() as $returnKey => $filter) {
+                $data[$returnKey] = $supported ? parse_url(
+                    $this->imagineCacheManager->getBrowserPath($originalFilePath, $filter),
+                    PHP_URL_PATH
+                ) : null;
             }
         }
         return $data;
@@ -109,10 +125,19 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Serializer\Exception\ExtraAttributesException
      * @throws \Symfony\Component\Serializer\Exception\BadMethodCallException
+     * @throws \InvalidArgumentException
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
-        return $this->decorated->denormalize($data, $class, $format, $context);
+        $context['allow_extra_attributes'] = $class === Form::class;
+        $entity = $this->decorated->denormalize($data, $class, $format, $context);
+        if (
+            $entity instanceof AbstractComponent &&
+            $parentComponent = $entity->getParent()
+        ) {
+            $entity->addToParentComponent($parentComponent);
+        }
+        return $entity;
     }
 
     /**
@@ -120,7 +145,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     public function setSerializer(SerializerInterface $serializer)
     {
-        if($this->decorated instanceof SerializerAwareInterface) {
+        if ($this->decorated instanceof SerializerAwareInterface) {
             $this->decorated->setSerializer($serializer);
         }
     }

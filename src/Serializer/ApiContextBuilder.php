@@ -4,9 +4,12 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
@@ -18,9 +21,18 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         $this->decorated = $decorated;
     }
 
-    private function getGroups(string $group, bool $normalization)
+    private function getGroups(string $group, bool $normalization, ?string $operation)
     {
-        return [$group, $group . ($normalization ? '_read' : '_write')];
+        $groups = [$group, $group . ($normalization ? '_read' : '_write')];
+        if ($operation) {
+            $groups[] = "${group}_${operation}";
+        }
+        return $groups;
+    }
+
+    private function matchClass($className, $matchClassName)
+    {
+        return $className === $matchClassName || is_subclass_of($className, $matchClassName);
     }
 
     /**
@@ -33,25 +45,45 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
+        if (isset($context['groups']) && in_array('none', $context['groups'])) {
+            return $context;
+        }
         $subject = $request->attributes->get('_api_resource_class');
+        $operation = $context['item_operation_name'] ?? null;
         $groups = [];
         if (
-            is_subclass_of($subject, AbstractComponent::class) ||
-            is_subclass_of($subject, AbstractComponentItem::class)
+            $this->matchClass($subject, AbstractComponent::class) ||
+            $this->matchClass($subject, AbstractNavigation::class) ||
+            $this->matchClass($subject, ComponentLocation::class)
         ) {
-            $groups[] = $this->getGroups('component', $normalization);
+            $groups[] = $this->getGroups('component', $normalization, $operation);
         }
-        if (is_subclass_of($subject, AbstractContent::class)) {
-            $groups[] = $this->getGroups('content', $normalization);
+        if (
+            $this->matchClass($subject, AbstractNavigationItem::class)
+        ) {
+            $groups[] = $this->getGroups('component_item', $normalization, $operation);
         }
-        if (is_subclass_of($subject, Layout::class)) {
-            $groups[] = $this->getGroups('layout', $normalization);
+        if (
+            $this->matchClass($subject, AbstractContent::class)
+        ) {
+            $groups[] = $this->getGroups('content', $normalization, $operation);
         }
-
-        if (!isset($context['groups'])) {
-            $context['groups'] = [];
+        if (
+            $this->matchClass($subject, Route::class)
+        ) {
+            $groups[] = $this->getGroups('route', $normalization, $operation);
         }
-        $context['groups'] = array_merge($context['groups'], ...$groups);
+        if ($this->matchClass($subject, Layout::class)) {
+            $groups[] = $this->getGroups('layout', $normalization, $operation);
+        }
+        if (\count($groups)) {
+            if (!isset($context['groups'])) {
+                $context['groups'] = ['default'];
+            } else {
+                $context['groups'][] = ['default'];
+            }
+            $context['groups'] = array_merge($context['groups'], ...$groups);
+        }
         return $context;
     }
 }

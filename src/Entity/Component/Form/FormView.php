@@ -69,8 +69,7 @@ class FormView
                 if (in_array($var, $varsToArray)) {
                     $choices = $this->vars[$var];
                     $this->vars[$var] = [];
-                    foreach ($choices as $choice)
-                    {
+                    foreach ($choices as $choice) {
                         if (method_exists($choice, 'getMessage')) {
                             $this->vars[$var][] = $choice->getMessage();
                         } else {
@@ -91,7 +90,8 @@ class FormView
         $this->methodRendered = $formViews->isMethodRendered();
     }
 
-    public function addChild(\Symfony\Component\Form\FormView $formViews) {
+    public function addChild(\Symfony\Component\Form\FormView $formViews)
+    {
         $formView = new FormView($formViews);
         $this->children->add($formView);
     }

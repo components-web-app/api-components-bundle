@@ -42,15 +42,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true)
         ;
-
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type')
         ;
-
         $container->registerForAutoconfiguration(ComponentFactoryInterface::class)
             ->setParent(AbstractComponentFactory::class)
         ;
-
         $container->register(AbstractComponentFactory::class)
             ->setAbstract(true)
             ->addArgument(new Reference(ObjectManager::class))
@@ -64,7 +61,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     public function prepend(ContainerBuilder $container)
     {
         $bundles = $container->getParameter('kernel.bundles');
-
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
                 'loaders' => [

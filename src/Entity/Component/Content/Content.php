@@ -8,14 +8,16 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
+ * Class Content
+ * @package Silverback\ApiComponentBundle\Entity\Component\Content
+ * @ApiResource(shortName="component/content")
  * @ORM\Entity()
- * @ApiResource()
  */
 class Content extends AbstractComponent
 {
     /**
      * @ORM\Column(type="text")
-     * @Groups({"page"})
+     * @Groups({"content", "component"})
      * @var string
      */
     private $content;

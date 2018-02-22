@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
-use ProxyManager\Proxy\LazyLoadingInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
@@ -15,8 +14,7 @@ class FormHandlerClassValidator extends ConstraintValidator
 
     public function __construct(
         iterable $formHandlers
-    )
-    {
+    ) {
         $this->formHandlers = $formHandlers;
     }
 
@@ -38,8 +36,7 @@ class FormHandlerClassValidator extends ConstraintValidator
                     ->addViolation()
                 ;
             }
-        } catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)

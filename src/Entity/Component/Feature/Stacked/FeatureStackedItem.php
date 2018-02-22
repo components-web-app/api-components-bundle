@@ -5,8 +5,6 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
-use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -14,31 +12,27 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(shortName="component/feature_stacked_items")
  * @ORM\Entity()
- * @ApiResource()
  */
-class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
+class FeatureStackedItem extends AbstractFeatureItem
 {
-    use FileTrait;
 
     /**
-     * @ORM\Column(type="text")
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @Assert\NotBlank()
      * @var null|string
      */
     protected $description;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonText;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonClass;

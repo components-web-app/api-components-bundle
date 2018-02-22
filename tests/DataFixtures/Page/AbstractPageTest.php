@@ -8,7 +8,7 @@ use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\DataFixtures\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
-use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
 use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
 
 class AbstractPageTest extends TestCase
@@ -21,7 +21,7 @@ class AbstractPageTest extends TestCase
     private $heroEntity;
     private $pageEntity;
 
-    public function setUp ()
+    public function setUp()
     {
         $this->heroEntity = new Hero();
         $this->componentOwner = new Page();
@@ -51,7 +51,7 @@ class AbstractPageTest extends TestCase
         $this->pageEntity = $this->abstractPageMock->load($this->objectManagerProphecy->reveal());
     }
 
-    public function test_create_component_methods_called ()
+    public function test_create_component_methods_called()
     {
         $this->heroComponentMock
             ->expects($this->once())
@@ -74,7 +74,7 @@ class AbstractPageTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    public function test_redirect_from_before_flush ()
+    public function test_redirect_from_before_flush()
     {
         $this->expectException(\BadMethodCallException::class);
 
@@ -88,7 +88,7 @@ class AbstractPageTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    public function test_page_flush_and_redirect ()
+    public function test_page_flush_and_redirect()
     {
         $this->objectManagerProphecy
             ->persist($this->pageEntity)
@@ -107,7 +107,7 @@ class AbstractPageTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    public function test_redirect_after_flush_but_no_routes ()
+    public function test_redirect_after_flush_but_no_routes()
     {
         $flush = new \ReflectionMethod(AbstractPage::class, 'flush');
         $flush->setAccessible(true);
@@ -125,7 +125,7 @@ class AbstractPageTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    public function test_redirect_after_flush ()
+    public function test_redirect_after_flush()
     {
         $flush = new \ReflectionMethod(AbstractPage::class, 'flush');
         $flush->setAccessible(true);

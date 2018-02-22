@@ -4,65 +4,51 @@ namespace Silverback\ApiComponentBundle\Entity\Layout;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
+use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
+ * Class Layout
+ * @package Silverback\ApiComponentBundle\Entity\Layout
  * @ApiResource()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
  */
 class Layout
 {
     /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
+     * @ORM\Id()
+     * @ORM\Column(type="string")
+     * @var string
      */
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
-     * @var null|Navbar
-     */
-    private $nav;
-
-    /**
-     * @ORM\Column(type="boolean", name="`default`")
+     * @ORM\Column(type="boolean", name="is_default")
+     * @Groups({"layout"})
      * @var bool
      */
     private $default = false;
 
     /**
-     * @return mixed
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar")
+     * @ORM\JoinColumn(onDelete="SET NULL")
+     * @Groups({"layout", "default"})
+     * @var null|NavBar
+     */
+    private $navBar;
+
+    public function __construct()
+    {
+        $this->id = Uuid::uuid4()->getHex();
+    }
+
+    /**
+     * @return string
      */
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return Navbar|null
-     */
-    public function getNav(): ?Navbar
-    {
-        return $this->nav;
-    }
-
-    /**
-     * @param Navbar|null $nav
-     */
-    public function setNav(?Navbar $nav): void
-    {
-        $this->nav = $nav;
     }
 
     /**
@@ -79,5 +65,21 @@ class Layout
     public function setDefault(bool $default): void
     {
         $this->default = $default;
+    }
+
+    /**
+     * @return null|NavBar
+     */
+    public function getNavBar(): ?NavBar
+    {
+        return $this->navBar;
+    }
+
+    /**
+     * @param null|NavBar $navBar
+     */
+    public function setNavBar(?NavBar $navBar): void
+    {
+        $this->navBar = $navBar;
     }
 }

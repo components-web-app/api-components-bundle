@@ -15,12 +15,16 @@ class FormTypeClassValidator extends ConstraintValidator
 
     public function __construct(
         iterable $formTypes
-    )
-    {
+    ) {
         $this->formTypes = $formTypes;
     }
 
-    public function validate($value, Constraint $constraint)
+    /**
+     * @param mixed $value
+     * @param Constraint $constraint
+     * @throws \ReflectionException
+     */
+    public function validate($value, Constraint $constraint): void
     {
         try {
             $valid = ClassNameValidator::validate($value, $this->formTypes);
@@ -36,8 +40,7 @@ class FormTypeClassValidator extends ConstraintValidator
                     ->addViolation()
                 ;
             }
-        } catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)

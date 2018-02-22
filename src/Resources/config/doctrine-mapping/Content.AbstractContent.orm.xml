@@ -1,0 +1,33 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                    http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
+>
+    <entity name="Silverback\ApiComponentBundle\Entity\Content\AbstractContent"
+            table="route_content"
+            repository-class="Silverback\ApiComponentBundle\Repository\ContentRepository"
+            inheritance-type="SINGLE_TABLE"
+    >
+        <discriminator-column name="type"
+                              type="string"
+        />
+        <discriminator-map>
+            <discriminator-mapping value="page"
+                                   class="Silverback\ApiComponentBundle\Entity\Content\Page"
+            />
+            <discriminator-mapping value="component_group"
+                                   class="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+            />
+        </discriminator-map>
+        <id name="id" type="string" />
+        <one-to-many field="components"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation"
+                      mapped-by="content"
+        >
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

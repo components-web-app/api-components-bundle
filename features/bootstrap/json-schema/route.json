@@ -1,0 +1,46 @@
+{
+    "type": "object",
+    "properties": {
+        "@id": {
+            "type": "string",
+            "required": true
+        },
+        "route": {
+            "type": "string",
+            "required": true
+        },
+        "content": {
+            "type": [
+                "object"
+            ],
+            "required": true,
+            "properties": {
+                "components": {
+                    "type": [
+                        "array"
+                    ],
+                    "required": true,
+                    "items": {
+                        "type": [
+                            "object"
+                        ],
+                        "properties": {
+                            "component": {
+                                "type": [
+                                    "object"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "redirect": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "required": true
+        }
+    }
+}

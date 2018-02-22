@@ -10,5 +10,5 @@ interface ComponentFactoryInterface
     public function getComponent(): AbstractComponent;
     public function create(AbstractContent $owner, ?array $ops = null): AbstractComponent;
     public function processOps(?array $ops): array;
-    public static function defaultOps (): array;
+    public static function defaultOps(): array;
 }

@@ -5,52 +5,41 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * Class Hero
+ * @package Silverback\ApiComponentBundle\Entity\Component\Hero
+ * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(shortName="component/hero")
  * @ORM\Entity()
- * @ApiResource()
  */
 class Hero extends AbstractComponent
 {
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar")
-     * @ORM\JoinColumn(nullable=true)
-     * @Groups({"page"})
-     * @var null|Navbar
-     */
-    private $nav;
-
-    /**
-     * @ORM\Column(type="string")
-     * @Groups({"page"})
+     * @ORM\Column(type="string", nullable=false)
+     * @Assert\NotNull()
+     * @Groups({"content", "component"})
      * @var null|string
      */
     private $title;
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"page"})
+     * @Groups({"content", "component"})
      * @var null|string
      */
     private $subtitle;
 
     /**
-     * @return Navbar|null
+     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs")
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
+     * @Groups({"content", "component"})
+     * @var null|Tabs
      */
-    public function getNav(): ?Navbar
-    {
-        return $this->nav;
-    }
-
-    /**
-     * @param Navbar|null $nav
-     */
-    public function setNav(?Navbar $nav): void
-    {
-        $this->nav = $nav;
-    }
+    private $tabs;
 
     /**
      * @return null|string
@@ -82,6 +71,22 @@ class Hero extends AbstractComponent
     public function setSubtitle(?string $subtitle): void
     {
         $this->subtitle = $subtitle;
+    }
+
+    /**
+     * @return Tabs|null
+     */
+    public function getTabs(): ?Tabs
+    {
+        return $this->tabs;
+    }
+
+    /**
+     * @param Tabs|null $tabs
+     */
+    public function setTabs(?Tabs $tabs): void
+    {
+        $this->tabs = $tabs;
     }
 
     public function __toString()

@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Factory\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Enqueue\Rpc\TimeoutException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
@@ -51,7 +50,7 @@ class ContentFactory extends AbstractComponentFactory
         $ops = $this->processOps($ops);
         if (!$ops['content']) {
             $url = 'http://loripsum.net/api/' . implode('/', $ops['lipsum']);
-            try{
+            try {
                 $res = $this->client->request(
                     'GET',
                     $url,
@@ -66,8 +65,6 @@ class ContentFactory extends AbstractComponentFactory
                     )
                 );
             }
-
-
         } else {
             $component->setContent($ops['content']);
         }

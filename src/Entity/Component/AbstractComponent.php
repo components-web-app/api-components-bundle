@@ -6,124 +6,94 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
+use Silverback\ApiComponentBundle\Entity\DeleteCascadeInterface;
+use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class BaseComponent
+ * Class AbstractComponent
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  * @ORM\Table(name="component")
  * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
+ * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
- *     "navbar" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Navbar\Navbar",
- *     "menu" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Menu\Menu",
- *     "tabs" = "\Silverback\ApiComponentBundle\Entity\Component\Nav\Tabs\Tabs",
- *     "hero" = "\Silverback\ApiComponentBundle\Entity\Component\Hero\Hero",
- *     "form" = "\Silverback\ApiComponentBundle\Entity\Component\Form\Form",
- *     "content" = "\Silverback\ApiComponentBundle\Entity\Component\Content\Content",
- *     "feature_columns" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
- *     "feature_stacked" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
- *     "feature_text_list" = "\Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
- *     "gallery" = "\Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
- *     "news" = "\Silverback\ApiComponentBundle\Entity\Component\News\News"
+ *     "content" = "Silverback\ApiComponentBundle\Entity\Component\Content\Content",
+ *     "form" = "Silverback\ApiComponentBundle\Entity\Component\Form\Form",
+ *     "gallery" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery",
+ *     "gallery_item" = "Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem",
+ *     "hero" = "Silverback\ApiComponentBundle\Entity\Component\Hero\Hero",
+ *     "feature_columns" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns",
+ *     "feature_columns_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem",
+ *     "feature_stacked" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked",
+ *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
+ *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
+ *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem",
+ *     "article" = "Silverback\ApiComponentBundle\Entity\Component\Article\Article"
  * })
+ * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
-abstract class AbstractComponent implements SortableInterface
+abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInterface
 {
-    use SortableTrait;
+    use ValidComponentTrait;
 
     /**
      * @ORM\Id()
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @Groups({"component"})
-     * @ApiProperty(identifier=true)
-     * @var int
+     * @ORM\Column(type="string")
+     * @var string
      */
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
-     * @var AbstractContent
-     */
-    private $parentContent;
-
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"component"})
+     * @ORM\Column(nullable=true)
+     * @Groups({"component", "content"})
      * @var null|string
      */
     private $className;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponentItem", mappedBy="parent")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     * @Groups({"component"})
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation", mappedBy="component")
+     * @var ComponentLocation[]
      */
-    protected $items;
+    protected $locations;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", mappedBy="parent", cascade={"persist"})
+     * @ApiProperty(attributes={"fetchEager": false})
+     * @Groups({"component", "content"})
+     * @var ArrayCollection|ComponentGroup[]
+     */
+    protected $componentGroups;
+
+    /**
+     * @Groups({"component_write"})
+     * @var AbstractComponent|null
+     */
+    private $parent;
 
     /**
      * AbstractComponent constructor.
      */
     public function __construct()
     {
-        $this->items = new ArrayCollection();
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return AbstractContent|null
-     */
-    public function getParentContent(): ?AbstractContent
-    {
-        return $this->parentContent;
-    }
-
-    /**
-     * @param AbstractContent $parent
-     * @param int|null $order
-     */
-    public function setParentContent(?AbstractContent $parentContent, int $order = null): void
-    {
-        if ($parentContent && null === $order && !$this->getSort()) {
-            // auto ordering
-            $lastItem = $parentContent->getComponents()->last();
-            if ($lastItem) {
-                $this->setSort($lastItem->getSort() + 1);
-            }
-            if (!$parentContent->getComponents()->contains($this)) {
-                $parentContent->addComponent($this);
-            }
-        }
-        $this->parentContent = $parentContent;
+        $this->id = Uuid::uuid4()->getHex();
+        $this->locations = new ArrayCollection;
+        $this->componentGroups = new ArrayCollection;
+        $this->validComponents = new ArrayCollection;
     }
 
     /**
      * @return string
-     * @Groups({"route", "page"})
      */
-    public function getType()
+    public function getId(): string
     {
-        $explCls = explode('\\', static::class);
-        return array_pop($explCls);
+        return $this->id;
     }
 
     /**
@@ -136,46 +106,189 @@ abstract class AbstractComponent implements SortableInterface
 
     /**
      * @param null|string $className
+     * @return AbstractComponent
      */
-    public function setClassName(?string $className): void
+    public function setClassName(?string $className): AbstractComponent
     {
         $this->className = $className;
+        return $this;
     }
 
     /**
-     * @return Collection
+     * @param ContentInterface $content
+     * @param bool|null $sortLast
+     * @return AbstractComponent
      */
-    public function getItems(): Collection
+    public function addLocation(ContentInterface $content, ?bool $sortLast = null): AbstractComponent
     {
-        return $this->items;
+        $this->locations->add($content);
+        return $this;
     }
 
     /**
-     * @param array $items
+     * @param ContentInterface $content
+     * @return AbstractComponent
      */
-    public function setItems(array $items): void
+    public function removeLocation(ContentInterface $content): AbstractComponent
     {
-        $this->items = new ArrayCollection();
-        foreach($items as $item)
-        {
-            $this->addItem($item);
+        $this->locations->removeElement($content);
+        return $this;
+    }
+
+    /**
+     * @param array $componentGroups
+     * @return AbstractComponent
+     */
+    public function setComponentGroups(array $componentGroups): AbstractComponent
+    {
+        $this->componentGroups = new ArrayCollection;
+        foreach ($componentGroups as $componentGroup) {
+            $this->addComponentGroup($componentGroup);
         }
+        return $this;
     }
 
     /**
-     * @param AbstractComponentItem $item
+     * @param ComponentGroup $componentGroup
+     * @return AbstractComponent
      */
-    public function addItem(AbstractComponentItem $item): void
+    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
-        $this->items->add($item);
-        $item->setParent($this);
+        $componentGroup->setParent($this);
+        $this->componentGroups->add($componentGroup);
+        return $this;
     }
 
     /**
-     * @param AbstractComponentItem $item
+     * @param ComponentGroup $componentGroup
+     * @return AbstractComponent
      */
-    public function removeItem(AbstractComponentItem $item): void
+    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
-        $this->items->removeElement($item);
+        $this->componentGroups->removeElement($componentGroup);
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection|ComponentGroup[]
+     */
+    public function getComponentGroups(): Collection
+    {
+        return $this->componentGroups;
+    }
+
+    /**
+     * @Groups({"component"})
+     * @return string
+     */
+    public static function getComponentName(): string
+    {
+        $explodedClass = explode('\\', static::class);
+        return array_pop($explodedClass);
+    }
+
+    /**
+     * @param AbstractComponent $component
+     * @param int $componentGroupOffset
+     * @return ComponentGroup
+     * @throws \InvalidArgumentException
+     */
+    private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $component->getComponentGroups()->offsetGet($componentGroupOffset);
+        if (!$componentGroup) {
+            throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
+        }
+        return $componentGroup;
+    }
+
+    /**
+     * @param AbstractComponent $child
+     * @param int $componentGroupOffset
+     * @return AbstractComponent
+     * @throws \InvalidArgumentException
+     */
+    public function addChildComponent(AbstractComponent $child, int $componentGroupOffset = 0): AbstractComponent
+    {
+        $componentGroup = $this->getComponentComponentGroup($this, $componentGroupOffset);
+        $componentGroup->addComponent(new ComponentLocation($componentGroup, $child));
+        return $this;
+    }
+
+    /**
+     * @param AbstractComponent $parent
+     * @param int $componentGroupOffset
+     * @return AbstractComponent
+     * @throws \InvalidArgumentException
+     */
+    public function addToParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
+    {
+        if (!\in_array($parent, $this->getParentComponents(), true)) {
+            $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
+            $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+        }
+        return $this;
+    }
+
+    /**
+     * @return AbstractComponent[]
+     */
+    private function getParentComponents(): array
+    {
+        $parentContent = $this->getParentContent();
+        return array_unique(
+            array_filter(
+                array_map(
+                    function ($content) {
+                        if ($content instanceof ComponentGroup) {
+                            return $content->getParent();
+                        }
+                    },
+                    $parentContent
+                )
+            )
+        );
+    }
+
+    /**
+     * @return AbstractContent[]
+     */
+    private function getParentContent(): array
+    {
+        return array_unique(
+            array_filter(
+                array_map(
+                    function (ComponentLocation $loc) {
+                        return $loc->getContent();
+                    },
+                    $this->locations->toArray()
+                )
+            )
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    public function onDeleteCascade(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @return AbstractComponent|null
+     */
+    public function getParent(): ?AbstractComponent
+    {
+        return $this->parent;
+    }
+
+    /**
+     * @param AbstractComponent|null $parent
+     */
+    public function setParent(?AbstractComponent $parent): void
+    {
+        $this->parent = $parent;
     }
 }

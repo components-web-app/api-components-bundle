@@ -5,8 +5,6 @@ namespace Silverback\ApiComponentBundle\Factory\Component;
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
-use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Content\Page;
 
 abstract class AbstractComponentFactory implements ComponentFactoryInterface
 {
@@ -60,7 +58,7 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     /**
      * @return array
      */
-    public static function defaultOps (): array
+    public static function defaultOps(): array
     {
         return [ 'className' => null ];
     }
@@ -70,7 +68,8 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
      * @param AbstractContent $parentContent
      * @throws \InvalidArgumentException
      */
-    private function setOwner(AbstractComponent $component, AbstractContent $parentContent) {
+    private function setOwner(AbstractComponent $component, AbstractContent $parentContent)
+    {
         $component->setParentContent($parentContent);
     }
 }

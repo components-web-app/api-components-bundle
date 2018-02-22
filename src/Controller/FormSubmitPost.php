@@ -27,8 +27,7 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
         SerializerInterface $serializer,
         FormFactory $formFactory,
         iterable $formHandlers
-    )
-    {
+    ) {
         parent::__construct($entityManager, $serializer, $formFactory);
         $this->handlers = $formHandlers;
     }
@@ -36,8 +35,8 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
     /**
      * @Route(
      *     name="silverback_api_component_form_submit",
-     *     path="/forms/{id}/submit.{_format}",
-     *     requirements={"id"="\d+"},
+     *     path="/component/forms/{id}/submit.{_format}",
+     *     requirements={"id"="[^/]+"},
      *     defaults={
      *         "_api_resource_class"=Form::class,
      *         "_api_item_operation_name"="validate_form",
@@ -49,7 +48,13 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
      * @param Form $data
      * @param string $_format
      * @return Response
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+     * @throws \Symfony\Component\Form\Exception\AlreadySubmittedException
+     * @throws \UnexpectedValueException
+     * @throws \InvalidArgumentException
+     * @throws \Symfony\Component\Form\Exception\LogicException
      * @throws \BadMethodCallException
+     * @throws \ReflectionException
      */
     public function __invoke(Request $request, Form $data, string $_format)
     {
@@ -62,10 +67,8 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
         if ($valid && $data->getSuccessHandler()) {
-            foreach ($this->handlers as $handler)
-            {
-                if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler))
-                {
+            foreach ($this->handlers as $handler) {
+                if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler)) {
                     $handler->success($data);
                     break;
                 }

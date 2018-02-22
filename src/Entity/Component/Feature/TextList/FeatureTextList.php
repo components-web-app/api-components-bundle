@@ -12,21 +12,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureTextList
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(shortName="component/feature_text_lists")
  * @ORM\Entity()
- * @ApiResource()
  */
 class FeatureTextList extends AbstractFeature
 {
     /**
-     * @ORM\Column(type="smallint")
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var int
      */
     protected $columns = 3;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @Groups({"page"})
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $title;

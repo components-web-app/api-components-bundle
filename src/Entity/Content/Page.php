@@ -2,58 +2,59 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiSubresource;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAwareTrait;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\PageRepository")
- * @ORM\EntityListeners({"\Silverback\ApiComponentBundle\EntityListener\PageListener"})
+ * Class Page
+ * @package Silverback\ApiComponentBundle\Entity\Content
+ * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
+ * @ORM\Entity()
  */
 class Page extends AbstractContent
 {
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column()
+     * @Groups({"content"})
      * @var string
      */
     private $title;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column()
+     * @Groups({"content"})
      * @var string
      */
     private $metaDescription;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Page", inversedBy="children")
-     * @ORM\JoinColumn(nullable=true)
-     * @var null|Page
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
+     * @ORM\JoinColumn(onDelete="SET NULL")
+     * @var null|RouteAwareInterface
      */
     private $parent;
 
     /**
-     * @ORM\OneToMany(targetEntity="Page", mappedBy="parent")
-     * @var Collection
+     * @ApiProperty(alwaysIdentifier=true)
+     * @Groups({"content"})
+     * @var Layout|null
      */
-    private $children;
+    private $layout;
 
     public function __construct()
     {
         parent::__construct();
-        $this->children = new ArrayCollection();
     }
 
     /**
-     * @return null|string
+     * @return string
      */
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -67,9 +68,9 @@ class Page extends AbstractContent
     }
 
     /**
-     * @return null|string
+     * @return string
      */
-    public function getMetaDescription(): ?string
+    public function getMetaDescription(): string
     {
         return $this->metaDescription;
     }
@@ -83,54 +84,34 @@ class Page extends AbstractContent
     }
 
     /**
-     * @return Page|null
+     * @return null|RouteAwareInterface
      */
-    public function getParent(): ?Page
+    public function getParent(): ?RouteAwareInterface
     {
         return $this->parent;
     }
 
     /**
-     * @param Page|null $parent
+     * @param null|RouteAwareInterface $parent
      */
-    public function setParent(?Page $parent): void
+    public function setParent(?RouteAwareInterface $parent): void
     {
         $this->parent = $parent;
     }
 
     /**
-     * @return Collection
+     * @return Layout|null
      */
-    public function getChildren(): Collection
+    public function getLayout(): ?Layout
     {
-        return $this->children;
+        return $this->layout;
     }
 
     /**
-     * @param array $children
+     * @param Layout|null $layout
      */
-    public function setChildren(array $children): void
+    public function setLayout(?Layout $layout): void
     {
-        $this->children = new ArrayCollection();
-        foreach ($children as $child)
-        {
-            $this->addChild($child);
-        }
-    }
-
-    /**
-     * @param Page $child
-     */
-    public function addChild(Page $child)
-    {
-        $this->children->add($child);
-    }
-
-    /**
-     * @param Page $child
-     */
-    public function removeChild(Page $child)
-    {
-        $this->children->removeElement($child);
+        $this->layout = $layout;
     }
 }

@@ -12,14 +12,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureStacked
  * @package Silverback\ApiComponentBundle\Entity\Component\FeatureMedia
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(shortName="component/feature_stacked")
  * @ORM\Entity()
- * @ApiResource()
  */
 class FeatureStacked extends AbstractFeature
 {
     /**
-     * @ORM\Column(type="boolean")
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     protected $reverse = false;

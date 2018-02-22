@@ -12,8 +12,7 @@ class FeatureItemFactory
 
     public function __construct(
         ObjectManager $manager
-    )
-    {
+    ) {
         $this->manager = $manager;
     }
 
@@ -22,8 +21,7 @@ class FeatureItemFactory
         string $label,
         ?string $link = null,
         int $order = null
-    ) : FeatureItemInterface
-    {
+    ) : FeatureItemInterface {
         if (null === $order) {
             $lastItem = $feature->getItems()->last();
             if (!$lastItem) {

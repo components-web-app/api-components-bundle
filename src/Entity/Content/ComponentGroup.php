@@ -3,26 +3,36 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav;
-use Symfony\Component\Validator\Constraints as Assert;
+use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
+use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 
 /**
  * Class ComponentGroup
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
  * @ApiResource()
+ * @ORM\Entity()
  */
-class ComponentGroup extends AbstractContent
+class ComponentGroup extends AbstractContent implements ValidComponentInterface
 {
+    use ValidComponentTrait;
+
     /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="childGroups")
-     * @Assert\Type({"\Silverback\ApiComponentBundle\Entity\Component\Nav\AbstractNav"})
-     * @var AbstractNav
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="componentGroups")
+     * @ORM\JoinColumn(onDelete="SET NULL")
+     * @var AbstractComponent
      */
     protected $parent;
+
+    public function __construct()
+    {
+        $this->validComponents = new ArrayCollection;
+        parent::__construct();
+    }
+
 
     /**
      * @return AbstractComponent
@@ -34,9 +44,14 @@ class ComponentGroup extends AbstractContent
 
     /**
      * @param AbstractComponent $parent
+     * @param bool|null $cascadeValidComponent
      */
-    public function setParent(AbstractComponent $parent): void
+    public function setParent(AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
     {
         $this->parent = $parent;
+        if ($cascadeValidComponent !== false) {
+            // convert to bool again for $force (null becomes false)
+            $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
+        }
     }
 }
