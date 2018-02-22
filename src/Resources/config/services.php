@@ -3,18 +3,10 @@
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
+use GuzzleHttp\Client;
 use Liip\ImagineBundle\Async\ResolveCacheProcessor;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
-use Silverback\ApiComponentBundle\DataFixtures\ComponentServiceLocator;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
-use Silverback\ApiComponentBundle\Factory\Component\ContentFactory;
-use Silverback\ApiComponentBundle\Factory\Component\FeatureColumnsFactory;
-use Silverback\ApiComponentBundle\Factory\Component\FeatureStackedFactory;
-use Silverback\ApiComponentBundle\Factory\Component\FeatureTextListFactory;
-use Silverback\ApiComponentBundle\Factory\Component\FormFactory;
-use Silverback\ApiComponentBundle\Factory\Component\GalleryFactory;
-use Silverback\ApiComponentBundle\Factory\Component\HeroFactory;
-use Silverback\ApiComponentBundle\Factory\Component\NewsFactory;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
@@ -107,23 +99,6 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
-        ->set(ComponentServiceLocator::class)
-        ->tag('container.service_locator')
-        ->args([
-            [
-                ContentFactory::class => new Reference(ContentFactory::class),
-                FeatureColumnsFactory::class => new Reference(FeatureColumnsFactory::class),
-                FeatureTextListFactory::class => new Reference(FeatureTextListFactory::class),
-                FeatureStackedFactory::class => new Reference(FeatureStackedFactory::class),
-                FormFactory::class => new Reference(FormFactory::class),
-                GalleryFactory::class => new Reference(GalleryFactory::class),
-                HeroFactory::class => new Reference(HeroFactory::class),
-                NewsFactory::class => new Reference(NewsFactory::class)
-            ]
-        ])
-    ;
-
-    $services
         ->set(ApiNormalizer::class)
         ->decorate('api_platform.jsonld.normalizer.item')
         ->args([
@@ -156,4 +131,6 @@ return function (ContainerConfigurator $configurator) {
         ->tag('enqueue.client.processor')
         ->public()
     ;
+
+    $services->set(Client::class);
 };

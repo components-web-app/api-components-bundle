@@ -5,3 +5,4 @@
 /tests/app/var/
 .DS_Store
 .php_cs.cache
+/_oldReference

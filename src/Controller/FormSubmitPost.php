@@ -55,6 +55,7 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
      * @throws \Symfony\Component\Form\Exception\LogicException
      * @throws \BadMethodCallException
      * @throws \ReflectionException
+     * @throws \LogicException
      */
     public function __invoke(Request $request, Form $data, string $_format)
     {

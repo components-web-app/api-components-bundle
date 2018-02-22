@@ -6,8 +6,6 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Content\Page;
-use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
