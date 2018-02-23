@@ -32,6 +32,6 @@ trait RouteAwareTrait
     public function removeRoute(Route $route)
     {
         $this->routes->removeElement($route);
-       return $this;
+        return $this;
     }
 }

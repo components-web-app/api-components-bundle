@@ -34,7 +34,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     {
         $loader = new PhpFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../Resources/config')
+            new FileLocator(__DIR__ . '/../Resources/config')
         );
         $loader->load('services.php');
 
