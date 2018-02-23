@@ -31,12 +31,15 @@ trait SortableTrait
 
     /**
      * @param int $sort
-     * @return SortableInterface|SortableTrait
+     * @return SortableInterface
      */
-    public function setSort(int $sort = 0)
+    public function setSort(int $sort = 0): SortableInterface
     {
         $this->sort = $sort;
-        return $this;
+        if ($this instanceof SortableInterface)
+        {
+            return $this;
+        }
     }
 
     /**
