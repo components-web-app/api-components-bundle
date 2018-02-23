@@ -23,10 +23,10 @@ matrix:
           env: SYMFONY_VERSION=dev-master
 
 install:
+    - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
-    - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - composer install --prefer-source --dev
 #    - docker-compose up -d
 
