@@ -1,3 +1,2 @@
 liip_imagine:
     driver: "imagick"
-#    enqueue: true

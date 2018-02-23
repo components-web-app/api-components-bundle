@@ -6,9 +6,6 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
-// use Enqueue\Client\TraceableProducer;
-use Liip\ImagineBundle\Async\Commands;
-use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
@@ -35,8 +32,6 @@ class EntitySubscriber implements EventSubscriber
      */
     private $fileNormalizer;
 
-    // private $producer;
-
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
@@ -46,13 +41,11 @@ class EntitySubscriber implements EventSubscriber
     public function __construct(
         CacheManager $imagineCacheManager,
         FilterService $filterService,
-        ApiNormalizer $fileNormalizer //,
-        // TraceableProducer $producer
+        ApiNormalizer $fileNormalizer
     ) {
         $this->imagineCacheManager = $imagineCacheManager;
         $this->fileNormalizer = $fileNormalizer;
         $this->filterService = $filterService;
-        // $this->producer = $producer;
     }
 
     /**
@@ -67,7 +60,6 @@ class EntitySubscriber implements EventSubscriber
 
     /**
      * @param OnFlushEventArgs $eventArgs
-     * @throws \Enqueue\Rpc\TimeoutException
      * @throws \Doctrine\DBAL\DBALException
      */
     public function onFlush(OnFlushEventArgs $eventArgs): void
@@ -101,7 +93,6 @@ class EntitySubscriber implements EventSubscriber
                 $this->fileNormalizer->isImagineSupportedFile($entity->getFilePath())
             ) {
                 $this->createFilteredImages($entity);
-                // $this->sendCommand($entity);
             }
         }
     }
@@ -128,7 +119,6 @@ class EntitySubscriber implements EventSubscriber
                         }
                         if ($this->fileNormalizer->isImagineSupportedFile($newValueForField)) {
                             $this->createFilteredImages($entity);
-                            // $this->sendCommand($entity);
                         }
                     }
                 }
@@ -159,18 +149,4 @@ class EntitySubscriber implements EventSubscriber
             $this->filterService->getUrlOfFilteredImage($file->getFilePath(), $filter);
         }
     }
-
-    /*
-    private function sendCommand(FileInterface $file): void
-    {
-        $this->producer
-            ->sendCommand(
-                Commands::RESOLVE_CACHE,
-                new ResolveCache($file->getFilePath(), $file::getImagineFilters()),
-                true
-            )
-            ->receive(20000)
-        ;
-    }
-    */
 }
