@@ -24,7 +24,6 @@ matrix:
 
 before_install:
     - ./amqp.sh
-    - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 install:
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
