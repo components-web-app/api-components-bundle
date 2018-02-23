@@ -16,11 +16,10 @@ install:
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
-    - echo "extension=imagick.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - composer install --prefer-source --dev
 
 script:
-    - vendor/bin/simple-phpunit
+    - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
 
 notifications:
     email:
