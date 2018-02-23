@@ -46,7 +46,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     /**
      * @param mixed $data
-     * @param null $format
+     * @param string|null $format
      * @return bool
      */
     public function supportsNormalization($data, $format = null): bool
@@ -56,7 +56,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     /**
      * @param $object
-     * @param null $format
+     * @param string|null $format
      * @param array $context
      * @return array|bool|float|int|string
      * @throws \Symfony\Component\Serializer\Exception\LogicException
@@ -110,7 +110,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     /**
      * @param mixed $data
      * @param string $type
-     * @param null $format
+     * @param string|null $format
      * @return bool
      */
     public function supportsDenormalization($data, $type, $format = null): bool
@@ -121,7 +121,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     /**
      * @param mixed $data
      * @param string $class
-     * @param null $format
+     * @param string|null $format
      * @param array $context
      * @return object
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
@@ -180,7 +180,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             return false;
         }
         $imageType = \exif_imagetype($filePath);
-        if (false === $imageType) {
+        if (!$imageType) {
             return false;
         }
         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);

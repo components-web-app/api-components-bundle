@@ -17,9 +17,9 @@ trait RouteAwareTrait
 
     /**
      * @param Route $route
-     * @return RouteAwareInterface
+     * @return RouteAwareInterface|RouteAwareTrait
      */
-    public function addRoute(Route $route): RouteAwareInterface
+    public function addRoute(Route $route)
     {
         $this->routes->add($route);
         return $this;
@@ -27,9 +27,9 @@ trait RouteAwareTrait
 
     /**
      * @param Route $route
-     * @return RouteAwareInterface
+     * @return RouteAwareInterface|RouteAwareTrait
      */
-    public function removeRoute(Route $route): RouteAwareInterface
+    public function removeRoute(Route $route)
     {
         $this->routes->removeElement($route);
         return $this;

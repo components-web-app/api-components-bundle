@@ -53,6 +53,11 @@ class Form extends AbstractComponent
      */
     private $lastModified;
 
+    /**
+     * @var null|FormView
+     */
+    private $form;
+
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
         $metadata->addPropertyConstraints(

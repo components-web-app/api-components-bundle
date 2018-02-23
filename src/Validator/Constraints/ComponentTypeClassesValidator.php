@@ -18,7 +18,7 @@ class ComponentTypeClassesValidator extends ConstraintValidator
      */
     public function validate($values, Constraint $constraint): void
     {
-        if (!$values instanceof Collection) {
+        if (!($values instanceof Collection)) {
             $this->context
                 ->buildViolation('The value should be an instance of ' . Collection::class)
                 ->addViolation()

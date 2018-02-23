@@ -59,7 +59,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation", mappedBy="component")
-     * @var ComponentLocation[]
+     * @var ArrayCollection|ComponentLocation[]
      */
     protected $locations;
 
@@ -196,8 +196,8 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
     {
         /** @var ComponentGroup $componentGroup */
-        $componentGroup = $component->getComponentGroups()->offsetGet($componentGroupOffset);
-        if (!$componentGroup) {
+        $componentGroup = $component->getComponentGroups()->get($componentGroupOffset);
+        if (null === $componentGroup) {
             throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
         }
         return $componentGroup;

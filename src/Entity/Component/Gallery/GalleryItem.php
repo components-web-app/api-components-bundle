@@ -61,7 +61,6 @@ class GalleryItem extends AbstractComponent implements FileInterface
     public function __construct()
     {
         parent::__construct();
-        $this->routes = new ArrayCollection;
     }
 
     /**

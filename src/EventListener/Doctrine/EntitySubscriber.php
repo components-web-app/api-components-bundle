@@ -6,7 +6,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
-use Enqueue\Client\TraceableProducer;
+// use Enqueue\Client\TraceableProducer;
 use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -34,9 +34,7 @@ class EntitySubscriber implements EventSubscriber
      * @var ApiNormalizer
      */
     private $fileNormalizer;
-    /**
-     * @var TraceableProducer
-     */
+
     // private $producer;
 
     /**
@@ -163,10 +161,7 @@ class EntitySubscriber implements EventSubscriber
         }
     }
 
-    /**
-     * @param FileInterface $file
-     * @throws \Enqueue\Rpc\TimeoutException
-     */
+    /*
     private function sendCommand(FileInterface $file): void
     {
         $this->producer
@@ -178,4 +173,5 @@ class EntitySubscriber implements EventSubscriber
             ->receive(20000)
         ;
     }
+    */
 }

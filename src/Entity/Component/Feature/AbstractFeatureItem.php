@@ -21,7 +21,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
 
     /**
      * @Groups({"component", "content"})
-     * @var int|null
+     * @var string|null
      */
     protected $link;
 

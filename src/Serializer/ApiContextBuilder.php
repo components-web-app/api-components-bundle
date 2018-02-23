@@ -21,7 +21,13 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         $this->decorated = $decorated;
     }
 
-    private function getGroups(string $group, bool $normalization, ?string $operation)
+    /**
+     * @param string $group
+     * @param bool $normalization
+     * @param null|string $operation
+     * @return array
+     */
+    private function getGroups(string $group, bool $normalization, ?string $operation): array
     {
         $groups = [$group, $group . ($normalization ? '_read' : '_write')];
         if ($operation) {
@@ -30,7 +36,12 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         return $groups;
     }
 
-    private function matchClass($className, $matchClassName)
+    /**
+     * @param $className
+     * @param $matchClassName
+     * @return bool
+     */
+    private function matchClass($className, $matchClassName): bool
     {
         return $className === $matchClassName || is_subclass_of($className, $matchClassName);
     }
@@ -45,7 +56,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (isset($context['groups']) && in_array('none', $context['groups'])) {
+        if (isset($context['groups']) && \in_array('none', $context['groups'], true)) {
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');
@@ -82,7 +93,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             } else {
                 $context['groups'][] = ['default'];
             }
-            $context['groups'] = array_merge($context['groups'], ...$groups);
+            array_unshift($groups, $context['groups']);
+            $context['groups'] = array_merge(...$groups);
         }
         return $context;
     }

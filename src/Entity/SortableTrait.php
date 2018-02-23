@@ -33,7 +33,7 @@ trait SortableTrait
      * @param int $sort
      * @return SortableInterface|SortableTrait
      */
-    public function setSort(int $sort = 0): SortableInterface
+    public function setSort(int $sort = 0)
     {
         $this->sort = $sort;
         return $this;

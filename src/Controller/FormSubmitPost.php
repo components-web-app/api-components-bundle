@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
 {
     /**
-     * @var FormHandlerInterface[]
+     * @var iterable|FormHandlerInterface[]
      */
     private $handlers;
 
