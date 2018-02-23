@@ -5,6 +5,7 @@
     "description": "Built on API Platform, this bundle provides components, form handling and more for a BW Starter website.",
     "require": {
         "php": "^7.1",
+        "ext-imagick": "*",
         "api-platform/api-pack": "^1.0.1",
         "api-platform/core": "^2.2.1",
         "cocur/slugify": "^3.0",
