@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 class ComponentTypeClassesValidator extends ConstraintValidator
 {
     /**
-     * @param Collection $values
+     * @param mixed $values
      * @param Constraint $constraint
      * @throws \ReflectionException
      */
