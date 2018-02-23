@@ -6,8 +6,6 @@ services:
     - rabbitmq
 #    - docker
 
-group: edge
-
 php:
     - 7.1.3
     - 7.2
@@ -25,6 +23,7 @@ matrix:
           env: SYMFONY_VERSION=dev-master
 
 before_install:
+    - pecl install amqp
     - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 install:
