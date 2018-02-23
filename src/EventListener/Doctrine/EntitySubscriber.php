@@ -10,6 +10,7 @@ use Enqueue\Client\TraceableProducer;
 use Liip\ImagineBundle\Async\Commands;
 use Liip\ImagineBundle\Async\ResolveCache;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -26,28 +27,34 @@ class EntitySubscriber implements EventSubscriber
      */
     private $imagineCacheManager;
     /**
-     * @var TraceableProducer
+     * @var FilterService
      */
-    private $producer;
+    private $filterService;
     /**
      * @var ApiNormalizer
      */
     private $fileNormalizer;
+    /**
+     * @var TraceableProducer
+     */
+    // private $producer;
 
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
-     * @param TraceableProducer $producer
+     * @param FilterService $filterService
      * @param ApiNormalizer $fileNormalizer
      */
     public function __construct(
         CacheManager $imagineCacheManager,
-        TraceableProducer $producer,
-        ApiNormalizer $fileNormalizer
+        FilterService $filterService,
+        ApiNormalizer $fileNormalizer //,
+        // TraceableProducer $producer
     ) {
         $this->imagineCacheManager = $imagineCacheManager;
-        $this->producer = $producer;
         $this->fileNormalizer = $fileNormalizer;
+        $this->filterService = $filterService;
+        // $this->producer = $producer;
     }
 
     /**
@@ -123,7 +130,8 @@ class EntitySubscriber implements EventSubscriber
                             $this->imagineCacheManager->remove($previousValueForField);
                         }
                         if ($this->fileNormalizer->isImagineSupportedFile($newValueForField)) {
-                            $this->sendCommand($entity);
+                            $this->createFilteredImages($entity);
+                            // $this->sendCommand($entity);
                         }
                     }
                 }
@@ -144,6 +152,14 @@ class EntitySubscriber implements EventSubscriber
             ) {
                 $this->imagineCacheManager->remove($entity->getFilePath());
             }
+        }
+    }
+
+    private function createFilteredImages(FileInterface $file): void
+    {
+        $filters = $file::getImagineFilters();
+        foreach ($filters as $filter) {
+            $this->filterService->getUrlOfFilteredImage($file->getFilePath(), $filter);
         }
     }
 

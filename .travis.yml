@@ -1,11 +1,5 @@
 language: php
 
-sudo: required
-
-services:
-    - rabbitmq
-#    - docker
-
 php:
     - 7.1.3
     - 7.2
@@ -15,26 +9,15 @@ env:
     - SYMFONY_VERSION="^4"
     - SYMFONY_VERSION=dev-master
 
-matrix:
-    exclude:
-        - php: 7.0.8
-          env: SYMFONY_VERSION="^4"
-        - php: 7.0.8
-          env: SYMFONY_VERSION=dev-master
-
-before_install:
-    - ./amqp.sh
-
 install:
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
+    - echo "extension=imagick.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - composer install --prefer-source --dev
-#    - docker-compose up -d
 
 script:
     - vendor/bin/simple-phpunit
-#    - docker-compose exec php vendor/bin/simple-phpunit
 
 notifications:
     email:

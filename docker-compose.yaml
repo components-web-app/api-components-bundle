@@ -1,16 +1,16 @@
 version: '3'
 
 services:
-    rabbitmq:
-        image: 'rabbitmq:alpine'
-        hostname: 'rabbitmq'
-        env_file:
-            - ./.env
-        ports:
-            - "15673:15672"
-            - "5673:5672"
-        volumes:
-            - "./_docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+#    rabbitmq:
+#        image: 'rabbitmq:alpine'
+#        hostname: 'rabbitmq'
+#        env_file:
+#            - ./.env
+#        ports:
+#            - "15673:15672"
+#            - "5673:5672"
+#        volumes:
+#            - "./_docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
 
     php:
         build:

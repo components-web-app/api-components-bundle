@@ -24,10 +24,10 @@ abstract class AbstractEntityTest extends TestCase
     }
 
     /**
-     * @param object $entity
+     * @param mixed $entity
      * @return array
      */
-    protected function getConstraints(object $entity): array
+    protected function getConstraints($entity): array
     {
         $constraints = [];
         /** @var ClassMetadata $metadata */
