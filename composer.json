@@ -33,7 +33,7 @@
         "behat/mink-browserkit-driver": "dev-master@dev",
         "behat/mink-extension": "^2.2",
         "behat/symfony2-extension": "^2.1.1",
-        "behatch/contexts": "dev-master",
+        "behatch/contexts": "dev-master@dev",
         "symfony/dotenv": "^3.4 || ^4.0",
         "symfony/maker-bundle": "^1.0",
         "symfony/monolog-bundle": "^3.1",
