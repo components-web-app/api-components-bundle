@@ -43,6 +43,9 @@ RUN set -xe \
 	&& docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd \
 	&& apk del .build-deps
 
+RUN pecl install xdebug \
+  && docker-php-ext-enable xdebug
+
 COPY --from=0 /usr/bin/composer /usr/bin/composer
 COPY _docker/php/php.ini /usr/local/etc/php/php.ini
 COPY _docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
