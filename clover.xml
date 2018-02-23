@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1519385801">
-  <project timestamp="1519385801">
+<coverage generated="1519387247">
+  <project timestamp="1519387247">
     <package name="Silverback\ApiComponentBundle\DataFixtures">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/_oldReference/DataFixtures/AbstractFixture.php">
         <class name="AbstractFixture" namespace="Silverback\ApiComponentBundle\DataFixtures">
@@ -1342,19 +1342,15 @@
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/Route/RouteAwareTrait.php">
         <class name="RouteAwareTrait" namespace="Silverback\ApiComponentBundle\Entity\Navigation\Route">
-          <metrics complexity="4" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="0" elements="10" coveredelements="0"/>
+          <metrics complexity="2" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="0" elements="6" coveredelements="0"/>
         </class>
-        <line num="22" type="method" name="addRoute" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="22" type="method" name="addRoute" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="24" type="stmt" count="0"/>
         <line num="25" type="stmt" count="0"/>
-        <line num="26" type="stmt" count="0"/>
-        <line num="28" type="stmt" count="0"/>
-        <line num="34" type="method" name="removeRoute" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="36" type="stmt" count="0"/>
-        <line num="37" type="stmt" count="0"/>
-        <line num="38" type="stmt" count="0"/>
-        <line num="40" type="stmt" count="0"/>
-        <metrics loc="41" ncloc="28" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="0" elements="10" coveredelements="0"/>
+        <line num="32" type="method" name="removeRoute" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="34" type="stmt" count="0"/>
+        <line num="35" type="stmt" count="0"/>
+        <metrics loc="37" ncloc="24" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="0" elements="6" coveredelements="0"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/Route/RouteAwareInterface.php">
@@ -1366,25 +1362,23 @@
     <package name="Silverback\ApiComponentBundle\Entity">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/SortableTrait.php">
         <class name="SortableTrait" namespace="Silverback\ApiComponentBundle\Entity" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="10" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="0" elements="16" coveredelements="0"/>
+          <metrics complexity="9" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="0" elements="14" coveredelements="0"/>
         </class>
         <line num="27" type="method" name="getSort" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="29" type="stmt" count="0"/>
-        <line num="36" type="method" name="setSort" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="36" type="method" name="setSort" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="38" type="stmt" count="0"/>
         <line num="39" type="stmt" count="0"/>
-        <line num="41" type="stmt" count="0"/>
-        <line num="43" type="stmt" count="0"/>
-        <line num="49" type="method" name="calculateSort" visibility="public" complexity="6" crap="42" count="0"/>
-        <line num="52" type="stmt" count="0"/>
+        <line num="46" type="method" name="calculateSort" visibility="public" complexity="6" crap="42" count="0"/>
+        <line num="49" type="stmt" count="0"/>
+        <line num="50" type="stmt" count="0"/>
+        <line num="51" type="stmt" count="0"/>
         <line num="53" type="stmt" count="0"/>
         <line num="54" type="stmt" count="0"/>
-        <line num="56" type="stmt" count="0"/>
+        <line num="55" type="stmt" count="0"/>
         <line num="57" type="stmt" count="0"/>
         <line num="58" type="stmt" count="0"/>
-        <line num="60" type="stmt" count="0"/>
-        <line num="61" type="stmt" count="0"/>
-        <metrics loc="68" ncloc="43" classes="1" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="0" elements="16" coveredelements="0"/>
+        <metrics loc="65" ncloc="40" classes="1" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="0" elements="14" coveredelements="0"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/ValidComponentTrait.php">
         <class name="ValidComponentTrait" namespace="Silverback\ApiComponentBundle\Entity">
@@ -1434,47 +1428,47 @@
         <line num="81" type="stmt" count="1"/>
         <line num="82" type="stmt" count="1"/>
         <line num="83" type="stmt" count="1"/>
-        <line num="89" type="method" name="processNewEntities" visibility="private" complexity="6" crap="6.97" count="1"/>
+        <line num="88" type="method" name="processNewEntities" visibility="private" complexity="6" crap="6.97" count="1"/>
+        <line num="90" type="stmt" count="1"/>
         <line num="91" type="stmt" count="1"/>
         <line num="92" type="stmt" count="1"/>
-        <line num="93" type="stmt" count="1"/>
+        <line num="94" type="stmt" count="0"/>
         <line num="95" type="stmt" count="0"/>
         <line num="96" type="stmt" count="0"/>
-        <line num="97" type="stmt" count="0"/>
+        <line num="100" type="stmt" count="1"/>
         <line num="101" type="stmt" count="1"/>
-        <line num="102" type="stmt" count="1"/>
-        <line num="104" type="stmt" count="1"/>
+        <line num="103" type="stmt" count="1"/>
         <line num="107" type="stmt" count="1"/>
-        <line num="113" type="method" name="processUpdatedEntities" visibility="private" complexity="8" crap="42.33" count="1"/>
+        <line num="112" type="method" name="processUpdatedEntities" visibility="private" complexity="8" crap="42.33" count="1"/>
+        <line num="114" type="stmt" count="1"/>
         <line num="115" type="stmt" count="1"/>
-        <line num="116" type="stmt" count="1"/>
+        <line num="116" type="stmt" count="0"/>
         <line num="117" type="stmt" count="0"/>
         <line num="118" type="stmt" count="0"/>
         <line num="119" type="stmt" count="0"/>
-        <line num="120" type="stmt" count="0"/>
+        <line num="121" type="stmt" count="0"/>
         <line num="122" type="stmt" count="0"/>
         <line num="123" type="stmt" count="0"/>
         <line num="124" type="stmt" count="0"/>
         <line num="125" type="stmt" count="0"/>
         <line num="126" type="stmt" count="0"/>
         <line num="127" type="stmt" count="0"/>
-        <line num="128" type="stmt" count="0"/>
+        <line num="129" type="stmt" count="0"/>
         <line num="130" type="stmt" count="0"/>
-        <line num="131" type="stmt" count="0"/>
-        <line num="138" type="stmt" count="1"/>
-        <line num="143" type="method" name="processDeletedEntities" visibility="private" complexity="4" crap="6.00" count="1"/>
+        <line num="137" type="stmt" count="1"/>
+        <line num="142" type="method" name="processDeletedEntities" visibility="private" complexity="4" crap="6.00" count="1"/>
+        <line num="144" type="stmt" count="1"/>
         <line num="145" type="stmt" count="1"/>
-        <line num="146" type="stmt" count="1"/>
+        <line num="147" type="stmt" count="0"/>
         <line num="148" type="stmt" count="0"/>
-        <line num="149" type="stmt" count="0"/>
-        <line num="151" type="stmt" count="0"/>
-        <line num="154" type="stmt" count="1"/>
-        <line num="156" type="method" name="createFilteredImages" visibility="private" complexity="2" crap="6" count="0"/>
+        <line num="150" type="stmt" count="0"/>
+        <line num="153" type="stmt" count="1"/>
+        <line num="155" type="method" name="createFilteredImages" visibility="private" complexity="2" crap="6" count="0"/>
+        <line num="157" type="stmt" count="0"/>
         <line num="158" type="stmt" count="0"/>
         <line num="159" type="stmt" count="0"/>
-        <line num="160" type="stmt" count="0"/>
-        <line num="162" type="stmt" count="0"/>
-        <metrics loc="177" ncloc="113" classes="1" methods="7" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="49" coveredstatements="21" elements="56" coveredelements="22"/>
+        <line num="161" type="stmt" count="0"/>
+        <metrics loc="176" ncloc="112" classes="1" methods="7" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="49" coveredstatements="21" elements="56" coveredelements="22"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Exception">
@@ -1769,7 +1763,7 @@
         <line num="96" type="stmt" count="0"/>
         <line num="97" type="stmt" count="0"/>
         <line num="99" type="stmt" count="0"/>
-        <metrics loc="101" ncloc="83" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="32" coveredstatements="0" elements="34" coveredelements="0"/>
+        <metrics loc="101" ncloc="82" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="32" coveredstatements="0" elements="34" coveredelements="0"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Serializer/ApiNormalizer.php">
         <class name="ApiNormalizer" namespace="Silverback\ApiComponentBundle\Serializer">
@@ -2038,6 +2032,6 @@
         <metrics loc="51" ncloc="46" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="0" elements="18" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="97" loc="5625" ncloc="3858" classes="68" methods="264" coveredmethods="58" conditionals="0" coveredconditionals="0" statements="1160" coveredstatements="247" elements="1424" coveredelements="305"/>
+    <metrics files="97" loc="5617" ncloc="3849" classes="68" methods="264" coveredmethods="58" conditionals="0" coveredconditionals="0" statements="1154" coveredstatements="247" elements="1418" coveredelements="305"/>
   </project>
 </coverage>

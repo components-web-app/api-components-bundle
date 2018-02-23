@@ -13,9 +13,9 @@ interface SortableInterface
 
     /**
      * @param int $sort
-     * @return SortableInterface
+     * @return SortableTrait|SortableInterface
      */
-    public function setSort(int $sort = 0): SortableInterface;
+    public function setSort(int $sort = 0);
 
     /**
      * @param bool|null $sortLast

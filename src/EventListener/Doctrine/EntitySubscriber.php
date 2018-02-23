@@ -84,7 +84,6 @@ class EntitySubscriber implements EventSubscriber
 
     /**
      * @param UnitOfWork $unitOfWork
-     * @throws \Enqueue\Rpc\TimeoutException
      */
     private function processNewEntities(UnitOfWork $unitOfWork): void
     {
@@ -101,14 +100,14 @@ class EntitySubscriber implements EventSubscriber
                 $entity instanceof FileInterface &&
                 $this->fileNormalizer->isImagineSupportedFile($entity->getFilePath())
             ) {
-                $this->sendCommand($entity);
+                $this->createFilteredImages($entity);
+                // $this->sendCommand($entity);
             }
         }
     }
 
     /**
      * @param UnitOfWork $unitOfWork
-     * @throws \Enqueue\Rpc\TimeoutException
      */
     private function processUpdatedEntities(UnitOfWork $unitOfWork): void
     {
