@@ -94,7 +94,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
                 $context['groups'][] = ['default'];
             }
             array_unshift($groups, $context['groups']);
-            $context['groups'] = array_merge( /** @scrutinizer ignore-type */ ...$groups);
+            $context['groups'] = array_merge(/** @scrutinizer ignore-type */ ...$groups);
         }
         return $context;
     }

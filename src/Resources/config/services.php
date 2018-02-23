@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
-return function (ContainerConfigurator $configurator) {
+return function(ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
     $services
@@ -40,7 +40,7 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\DataProvider\\Item\\', '../../DataProvider/Item')
-        ->tag('api_platform.item_data_provider', [ 'priority' => 1 ])
+        ->tag('api_platform.item_data_provider', ['priority' => 1])
         ->autoconfigure(false)
     ;
 
@@ -111,7 +111,7 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(ApiContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
-        ->args([ new Reference(ApiContextBuilder::class . '.inner') ])
+        ->args([new Reference(ApiContextBuilder::class . '.inner')])
     ;
 
     $services

@@ -31,7 +31,7 @@ class SilverbackApiComponentBundle extends Bundle
         if (class_exists(DoctrineOrmMappingsPass::class)) {
             // $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver($mappings));
             // Opted for annotations to support traits
-            $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver([ __NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']));
+            $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']));
         }
         /* if (class_exists(DoctrineMongoDBMappingsPass::class)) {
             $container->addCompilerPass(DoctrineMongoDBMappingsPass::createXmlMappingDriver($mappings));
