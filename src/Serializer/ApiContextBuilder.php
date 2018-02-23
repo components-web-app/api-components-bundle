@@ -14,6 +14,19 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
 {
+    public const CLASS_GROUP_MAPPING = [
+        AbstractComponent::class => ['component'],
+        AbstractNavigation::class => ['component'],
+        ComponentLocation::class => ['component'],
+        AbstractNavigationItem::class => ['component_item'],
+        AbstractContent::class => ['content'],
+        Route::class => ['route'],
+        Layout::class => ['layout']
+    ];
+
+    /**
+     * @var SerializerContextBuilderInterface
+     */
     private $decorated;
 
     public function __construct(SerializerContextBuilderInterface $decorated)
@@ -27,7 +40,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param null|string $operation
      * @return array
      */
-    private function getGroups(string $group, bool $normalization, ?string $operation): array
+    private function getGroupsNames(string $group, bool $normalization, ?string $operation): array
     {
         $groups = [$group, $group . ($normalization ? '_read' : '_write')];
         if ($operation) {
@@ -47,6 +60,26 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     }
 
     /**
+     * @param string $subject
+     * @param bool $normalization
+     * @param string $operation
+     * @return array
+     */
+    private function getGroups(string $subject, bool $normalization, string $operation): array
+    {
+        /** @var string[] $groups */
+        $groups = [];
+        foreach (self::CLASS_GROUP_MAPPING as $class=>$groups) {
+            if ($this->matchClass($subject, $class)) {
+                foreach ($groups as $group) {
+                    $groups[] = $this->getGroupsNames($group, $normalization, $operation);
+                }
+            }
+        }
+        return $groups;
+    }
+
+    /**
      * @param Request $request
      * @param bool $normalization
      * @param array|null $extractedAttributes
@@ -61,32 +94,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         }
         $subject = $request->attributes->get('_api_resource_class');
         $operation = $context['item_operation_name'] ?? null;
-        $groups = [];
-        if (
-            $this->matchClass($subject, AbstractComponent::class) ||
-            $this->matchClass($subject, AbstractNavigation::class) ||
-            $this->matchClass($subject, ComponentLocation::class)
-        ) {
-            $groups[] = $this->getGroups('component', $normalization, $operation);
-        }
-        if (
-            $this->matchClass($subject, AbstractNavigationItem::class)
-        ) {
-            $groups[] = $this->getGroups('component_item', $normalization, $operation);
-        }
-        if (
-            $this->matchClass($subject, AbstractContent::class)
-        ) {
-            $groups[] = $this->getGroups('content', $normalization, $operation);
-        }
-        if (
-            $this->matchClass($subject, Route::class)
-        ) {
-            $groups[] = $this->getGroups('route', $normalization, $operation);
-        }
-        if ($this->matchClass($subject, Layout::class)) {
-            $groups[] = $this->getGroups('layout', $normalization, $operation);
-        }
+        $groups = $this->getGroups($subject, $normalization, $operation);
+
         if (\count($groups)) {
             if (!isset($context['groups'])) {
                 $context['groups'] = ['default'];
@@ -96,6 +105,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             array_unshift($groups, $context['groups']);
             $context['groups'] = array_merge(...$groups);
         }
+
         return $context;
     }
 }

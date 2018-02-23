@@ -19,7 +19,8 @@ before_script:
     - composer install --prefer-source --dev
 
 script:
-    - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+    - bin/phpunit --coverage-clover=coverage.xml
+    - vendor/bin/behat
 
 notifications:
     email:

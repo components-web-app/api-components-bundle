@@ -34,7 +34,6 @@
         "behat/mink-extension": "^2.2",
         "behat/symfony2-extension": "^2.1.1",
         "behatch/contexts": "*@dev",
-        "phpunit/phpunit": "^7.0",
         "symfony/dotenv": "^3.4 || ^4.0",
         "symfony/maker-bundle": "^1.0",
         "symfony/monolog-bundle": "^3.1",

@@ -26,3 +26,6 @@ The hierarchy of entities simply broken down is:
 Content can be a ComponentGroup or a Page. ComponentGroups can be children of any component, and pages can only be a child of the layout. All Content entities have components as children. This allows for infinite nesting of components.
 
 More documentation will be added as the bundle is developed and the BW Starter Website will continue to be developed using this bundle and will provide examples on how this bundle can be used in it's simplest form.
+
+## Testing
+As some tests are in Symfony and others use behat, please be sure not to run symfony's `/vendor/bin/simple-phpunit` and instead run `/bin/phpunit`. This script simply sets the PHPUnit version first so that no matter the environment a default PHPUnit version is installed and Behat/The test Kernel can use this as well.
