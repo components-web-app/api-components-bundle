@@ -53,5 +53,7 @@
         "psr-4": {
             "Silverback\\ApiComponentBundle\\Tests\\": "tests/"
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
