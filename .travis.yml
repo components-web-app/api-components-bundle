@@ -23,7 +23,7 @@ matrix:
           env: SYMFONY_VERSION=dev-master
 
 before_install:
-    - pecl install amqp
+    - ./amqp.sh
     - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 install:
