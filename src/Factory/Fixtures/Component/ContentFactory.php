@@ -23,8 +23,7 @@ final class ContentFactory extends AbstractComponentFactory
         ObjectManager $manager,
         ValidatorInterface $validator,
         Client $client
-    )
-    {
+    ) {
         parent::__construct($manager, $validator);
         $this->client = $client;
     }

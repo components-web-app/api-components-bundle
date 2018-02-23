@@ -33,8 +33,7 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
     public function __construct(
         ObjectManager $manager,
         ValidatorInterface $validator
-    )
-    {
+    ) {
         $this->manager = $manager;
         $this->validator = $validator;
     }
@@ -62,7 +61,7 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
         }
         $this->ops = array_filter(
             array_merge(static::defaultOps(), $ops),
-            function($key) {
+            function ($key) {
                 if (!array_key_exists($key, static::defaultOps())) {
                     throw new InvalidFactoryOptionException(
                         sprintf('%s is not a valid option for the factory %s', $key, \get_class($this))

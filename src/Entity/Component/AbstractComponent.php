@@ -240,7 +240,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
         return array_unique(
             array_filter(
                 array_map(
-                    function($content) {
+                    function ($content) {
                         if ($content instanceof ComponentGroup) {
                             return $content->getParent();
                         }
@@ -259,7 +259,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
         return array_unique(
             array_filter(
                 array_map(
-                    function(ComponentLocation $loc) {
+                    function (ComponentLocation $loc) {
                         return $loc->getContent();
                     },
                     $this->locations->toArray()
