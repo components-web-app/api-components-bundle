@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Component;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
@@ -99,9 +99,6 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
 
     /**
      * @param array|null $ops
-     * @param null|AbstractContent $owner
-     * @throws \Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException
-     * @throws \Silverback\ApiComponentBundle\Exception\InvalidEntityException
      */
-    abstract public function create(?array $ops = null, ?AbstractContent $owner = null);
+    abstract public function create(?array $ops = null);
 }

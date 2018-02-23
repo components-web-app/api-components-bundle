@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
-use Silverback\ApiComponentBundle\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
@@ -59,7 +59,7 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
      */
     public function __invoke(Request $request, Form $data, string $_format)
     {
-        $form = $this->formFactory->createForm($data);
+        $form = $this->formFactory->create($data);
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData);
         if (!$form->isSubmitted()) {

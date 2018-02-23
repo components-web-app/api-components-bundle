@@ -5,8 +5,9 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Feature\Columns;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class FeatureColumns
@@ -19,16 +20,46 @@ class FeatureColumns extends AbstractFeature
 {
     /**
      * @Groups({"component", "content"})
+     * @var int
+     */
+    protected $columns = 3;
+
+    /**
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $title;
 
     /**
-     * @return FeatureItemInterface
+     * @param ClassMetadata $metadata
      */
-    public function createItem(): FeatureItemInterface
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        return new FeatureColumnsItem();
+        $metadata->addPropertyConstraint(
+            'columns',
+            new Assert\Range(
+                [
+                    'min' => 1,
+                    'minMessage' => 'The FeatureColumns component must have at least 1 column'
+                ]
+            )
+        );
+    }
+
+    /**
+     * @return int
+     */
+    public function getColumns(): int
+    {
+        return $this->columns;
+    }
+
+    /**
+     * @param int $columns
+     */
+    public function setColumns(int $columns): void
+    {
+        $this->columns = $columns;
     }
 
     /**

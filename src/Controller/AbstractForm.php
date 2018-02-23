@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
-use Silverback\ApiComponentBundle\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;

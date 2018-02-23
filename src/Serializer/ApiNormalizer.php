@@ -6,7 +6,7 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -18,21 +18,20 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $decorated;
     private $projectDir;
     private $imagineCacheManager;
-    private $formFactory;
+    private $formViewFactory;
 
     /**
      * FileNormalizer constructor.
      * @param NormalizerInterface $decorated
      * @param string $projectDir
      * @param CacheManager $imagineCacheManager
-     * @param FormFactory $formFactory
-     * @throws \InvalidArgumentException
+     * @param FormViewFactory $formViewFactory
      */
     public function __construct(
         NormalizerInterface $decorated,
         string $projectDir,
         CacheManager $imagineCacheManager,
-        FormFactory $formFactory
+        FormViewFactory $formViewFactory
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -41,7 +40,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->decorated = $decorated;
         $this->projectDir = $projectDir;
         $this->imagineCacheManager = $imagineCacheManager;
-        $this->formFactory = $formFactory;
+        $this->formViewFactory = $formViewFactory;
     }
 
     /**
@@ -71,7 +70,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             $data = array_merge($data, $this->getFileData($object));
         }
         if ($object instanceof Form) {
-            $data['form'] = $this->formFactory->createFormView($object);
+            $data['form'] = $this->formViewFactory->create($object);
         }
 
         return $data;

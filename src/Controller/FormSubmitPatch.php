@@ -30,7 +30,7 @@ class FormSubmitPatch extends AbstractForm
      */
     public function __invoke(Request $request, Form $data, string $_format)
     {
-        $form = $this->formFactory->createForm($data);
+        $form = $this->formFactory->create($data);
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData, false);
 

@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\DataProvider\Item\LayoutDataProvider;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Repository\LayoutRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class LayoutDataProviderTest extends TestCase
 {

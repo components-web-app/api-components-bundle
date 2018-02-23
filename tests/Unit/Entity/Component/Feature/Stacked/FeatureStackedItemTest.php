@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Feature;
+namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Feature\Stacked;
 
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;

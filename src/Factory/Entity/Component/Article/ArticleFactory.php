@@ -1,9 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Article;
 
 use Silverback\ApiComponentBundle\Entity\Component\Article\Article;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -13,7 +14,7 @@ final class ArticleFactory extends AbstractComponentFactory
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Article
+    public function create(?array $ops = null): Article
     {
         $component = new Article();
         $this->init($component, $ops);
@@ -28,7 +29,7 @@ final class ArticleFactory extends AbstractComponentFactory
     /**
      * @inheritdoc
      */
-    public static function defaultOps(): array
+    protected static function defaultOps(): array
     {
         return array_merge(
             parent::defaultOps(),

@@ -9,7 +9,7 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
  * Class AbstractFeature
  * @package Silverback\ApiComponentBundle\Entity\Component\Feature
  */
-abstract class AbstractFeature extends AbstractComponent implements FeatureInterface
+abstract class AbstractFeature extends AbstractComponent
 {
     public function __construct()
     {

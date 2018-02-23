@@ -1,9 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Form;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -13,7 +14,7 @@ final class FormFactory extends AbstractComponentFactory
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Form
+    public function create(?array $ops = null): Form
     {
         $component = new Form();
         $this->init($component, $ops);

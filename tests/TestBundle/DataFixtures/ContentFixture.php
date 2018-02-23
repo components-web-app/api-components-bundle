@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Factory\Fixtures\Component\ContentFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Content\ContentFactory;
 
 class ContentFixture extends AbstractFixture
 {

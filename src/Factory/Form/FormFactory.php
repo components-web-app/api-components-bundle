@@ -1,9 +1,8 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory;
+namespace Silverback\ApiComponentBundle\Factory\Form;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -34,9 +33,9 @@ class FormFactory
 
     /**
      * @param Form $component
-     * @return \Symfony\Component\Form\FormInterface
+     * @return FormInterface
      */
-    public function createForm(Form $component): FormInterface
+    public function create(Form $component): FormInterface
     {
         return $this->formFactory->create(
             $component->getFormType(),
@@ -48,15 +47,5 @@ class FormFactory
                 ])
             ]
         );
-    }
-
-    /**
-     * @param Form $component
-     * @return FormView
-     */
-    public function createFormView(Form $component)
-    {
-        $form = $this->createForm($component);
-        return new FormView($form->createView());
     }
 }

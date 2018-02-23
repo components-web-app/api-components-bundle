@@ -34,7 +34,7 @@ abstract class AbstractEntityTest extends TestCase
         $metadata = self::$validator->getMetadataFor($entity);
         $constraints['_class'] = $metadata->getConstraints();
         $props = $metadata->getConstrainedProperties();
-        foreach($props as $prop) {
+        foreach ($props as $prop) {
             /** @var PropertyMetadata[] $propMetas */
             $propMetas = $metadata->getPropertyMetadata($prop);
             foreach ($propMetas as $propMeta) {
@@ -52,8 +52,7 @@ abstract class AbstractEntityTest extends TestCase
     protected function instanceInArray($instance, $array): bool
     {
         foreach ($array as $item) {
-            if ($item instanceof $instance)
-            {
+            if ($item instanceof $instance) {
                 return true;
             }
         }

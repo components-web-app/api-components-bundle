@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Factory\Fixtures\Component\AbstractComponentFactory;
-use Silverback\ApiComponentBundle\Factory\Fixtures\Component\ComponentFactoryInterface;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\ComponentFactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;

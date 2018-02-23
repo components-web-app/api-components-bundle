@@ -1,12 +1,13 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Fixtures\Component;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Content;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -68,7 +69,7 @@ final class ContentFactory extends AbstractComponentFactory
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null, ?AbstractContent $owner = null): Content
+    public function create(?array $ops = null): Content
     {
         $component = new Content();
         $this->init($component, $ops);

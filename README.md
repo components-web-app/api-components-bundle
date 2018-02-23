@@ -17,8 +17,8 @@ The main features of this bundle include:
 - Support to retrieve and handle Symfony Forms including validation
 - Extendable so you can create more components
 
-## The Entities
-The hierarchy of entities simply broken down is:
+## Entities
+The simplest way to understand introduce you to the entities is with this simple hierarchy.
 - Layout
 - Content
 - Components
@@ -27,5 +27,8 @@ Content can be a ComponentGroup or a Page. ComponentGroups can be children of an
 
 More documentation will be added as the bundle is developed and the BW Starter Website will continue to be developed using this bundle and will provide examples on how this bundle can be used in it's simplest form.
 
+## Factories
+Every entity has a factory which can be used to create the entity. Options are passed to a factory as an array and an exception thrown if an unsupported key is defined. Entities are also validated when created with a factory, with an exception thrown if validation fails.
+
 ## Testing
-As some tests are in Symfony and others use behat, please be sure not to run symfony's `/vendor/bin/simple-phpunit` and instead run `/bin/phpunit`. This script simply sets the PHPUnit version first so that no matter the environment a default PHPUnit version is installed and Behat/The test Kernel can use this as well.
+As some tests are in Symfony and others use behat, please be sure not to run symfony's `/vendor/bin/simple-phpunit` and instead run `/bin/phpunit` if you are nice enough to contribute any time and energy to improving this bundle. This script simply sets the PHPUnit version first so that no matter the environment a default PHPUnit version is installed and Behat/The test Kernel can use this as well.
