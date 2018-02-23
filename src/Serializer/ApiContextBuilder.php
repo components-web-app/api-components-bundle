@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
 {
+    /**
+     * @var string[][]
+     */
     public const CLASS_GROUP_MAPPING = [
         AbstractComponent::class => ['component'],
         AbstractNavigation::class => ['component'],
@@ -40,7 +43,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param null|string $operation
      * @return array
      */
-    private function getGroupsNames(string $group, bool $normalization, ?string $operation): array
+    private function getGroupNames(string $group, bool $normalization, ?string $operation): array
     {
         $groups = [$group, $group . ($normalization ? '_read' : '_write')];
         if ($operation) {
@@ -65,14 +68,14 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param string $operation
      * @return array
      */
-    private function getGroups(string $subject, bool $normalization, string $operation): array
+    private function getGroups(string $subject, bool $normalization, ?string $operation): array
     {
         /** @var string[] $groups */
         $groups = [];
-        foreach (self::CLASS_GROUP_MAPPING as $class=>$groups) {
+        foreach (self::CLASS_GROUP_MAPPING as $class=>$groupMapping) {
             if ($this->matchClass($subject, $class)) {
-                foreach ($groups as $group) {
-                    $groups[] = $this->getGroupsNames($group, $normalization, $operation);
+                foreach ($groupMapping as $group) {
+                    $groups[] = $this->getGroupNames($group, $normalization, $operation);
                 }
             }
         }
@@ -102,8 +105,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             } else {
                 $context['groups'][] = ['default'];
             }
-            array_unshift($groups, $context['groups']);
-            $context['groups'] = array_merge(...$groups);
+            $context['groups'] = array_merge($context['groups'], ...$groups);
         }
 
         return $context;
