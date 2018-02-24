@@ -61,6 +61,11 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     public function prepend(ContainerBuilder $container)
     {
         $bundles = $container->getParameter('kernel.bundles');
+        $container->prependExtensionConfig('api_platform', [
+            'eager_loading' => [
+                'force_eager' => false
+            ]
+        ]);
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
                 'loaders' => [

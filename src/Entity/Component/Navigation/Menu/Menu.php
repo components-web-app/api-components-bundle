@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
  * Class Menu
  * @package Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"force_eager"=false})
+ * @ApiResource()
  * @ORM\Entity()
  */
 class Menu extends AbstractNavigation

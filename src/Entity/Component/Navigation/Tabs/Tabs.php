@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
  * Class Tabs
  * @package Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"force_eager"=false})
+ * @ApiResource()
  * @ORM\Entity()
  */
 class Tabs extends AbstractNavigation

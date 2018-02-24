@@ -29,7 +29,6 @@ final class LayoutDataProvider implements ItemDataProviderInterface
      * @param int|string  $id
      * @param string|null $operationName
      * @param array       $context
-     *
      * @return Layout|null
      * @throws ResourceClassNotSupportedException
      */

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
  * Class AbstractContent
@@ -36,6 +37,7 @@ abstract class AbstractContent implements ContentInterface
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
      * @Groups({"content", "route"})
+     * @MaxDepth(10)
      * @var Collection|ComponentLocation[]
      */
     protected $components;

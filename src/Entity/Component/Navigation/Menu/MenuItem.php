@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class MenuItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"force_eager"=false})
+ * @ApiResource()
  * @ORM\Entity()
  */
 class MenuItem extends AbstractNavigationItem
