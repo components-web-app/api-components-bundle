@@ -43,7 +43,7 @@ abstract class AbstractComponentFactory implements ComponentFactoryInterface
      * @param array|null $ops
      * @throws \Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException
      */
-    protected function init(AbstractComponent $component, ?array $ops = null): void
+    protected function init($component, ?array $ops = null): void
     {
         $this->setOptions($ops);
         $component->setClassName($this->ops['className']);

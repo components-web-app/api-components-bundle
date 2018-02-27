@@ -2,17 +2,16 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Feature;
 
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Feature\FeatureItemInterface;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 abstract class AbstractFeatureItemFactory extends AbstractComponentFactory
 {
     /**
-     * @param FeatureItemInterface $component
+     * @param AbstractFeatureItem $component
      * @inheritdoc
      */
-    protected function init(AbstractComponent $component, ?array $ops = null): void
+    protected function init($component, ?array $ops = null): void
     {
         parent::init($component, $ops);
         $component->setLabel($this->ops['label']);

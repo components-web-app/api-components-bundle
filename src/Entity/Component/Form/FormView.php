@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Form\FormView as SymfonyFormView;
 
 /**
  * Class FormView
@@ -12,85 +13,101 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class FormView
 {
+    private const ARRAY_OUTPUT_VARS = [
+        'choices',
+        'preferred_choices',
+        'errors',
+        'is_selected'
+    ];
+
+    private const OUTPUT_VARS = [
+        'value',
+        'attr',
+        'id',
+        'name',
+        'full_name',
+        'disabled',
+        'label',
+        'block_prefixes',
+        'unique_block_prefix',
+        'valid',
+        'required',
+        'label_attr',
+        'expanded',
+        'submitted',
+        'placeholder',
+        'is_selected',
+        'placeholder_in_choices',
+        'checked',
+        'action',
+        'multiple'
+    ];
+
     /**
-     * @Groups({"page"})
+     * @Groups({"content_read", "component_read"})
      * @var array
      */
     private $vars;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"content_read", "component_read"})
      * @var ArrayCollection
      */
     private $children;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"content_read", "component_read"})
      * @var bool
      */
     private $rendered;
 
     /**
-     * @Groups({"page"})
+     * @Groups({"content_read", "component_read"})
      * @var bool
      */
     private $methodRendered;
 
-    public function __construct(\Symfony\Component\Form\FormView $formViews, bool $children = true)
+    public function __construct(SymfonyFormView $formView, bool $children = true)
     {
-        $varsToArray = ['choices', 'preferred_choices', 'errors', 'is_selected'];
+        $this->rendered = $formView->isRendered();
+        $this->methodRendered = $formView->isMethodRendered();
+        $this->processViewVars($formView);
+        if ($children) {
+            $this->children = new ArrayCollection();
+            foreach ($formView as $view) {
+                $this->addChild($view);
+            }
+        }
+    }
 
-        $outputVars = array_merge($varsToArray, [
-            'value',
-            'attr',
-            'id',
-            'name',
-            'full_name',
-            'disabled',
-            'label',
-            'block_prefixes',
-            'unique_block_prefix',
-            'valid',
-            'required',
-            'label_attr',
-            'expanded',
-            'submitted',
-            'placeholder',
-            'is_selected',
-            'placeholder_in_choices',
-            'checked',
-            'action',
-            'multiple'
-        ]);
+    private function processViewVars(SymfonyFormView $formView): void
+    {
+        $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
         foreach ($outputVars as $var) {
-            if (isset($formViews->vars[$var])) {
-                $this->vars[$var] = $formViews->vars[$var];
+            if (isset($formView->vars[$var])) {
+                $this->vars[$var] = $formView->vars[$var];
+                $this->convertVarToArray($var);
+            }
+        }
+    }
 
-                if (in_array($var, $varsToArray)) {
-                    $choices = $this->vars[$var];
-                    $this->vars[$var] = [];
-                    foreach ($choices as $choice) {
-                        if (method_exists($choice, 'getMessage')) {
-                            $this->vars[$var][] = $choice->getMessage();
-                        } else {
-                            $this->vars[$var][] = (array) $choice;
-                        }
-                    }
+    private function convertVarToArray($var): void
+    {
+        if (\in_array($var, self::ARRAY_OUTPUT_VARS, true)) {
+            /** @var iterable $choices */
+            $choices = $this->vars[$var];
+            $this->vars[$var] = [];
+            foreach ($choices as $choice) {
+                if (method_exists($choice, 'getMessage')) {
+                    $this->vars[$var][] = $choice->getMessage();
+                } else {
+                    $this->vars[$var][] = (array)$choice;
                 }
             }
         }
-
-        if ($children) {
-            $this->children = new ArrayCollection();
-            foreach ($formViews as $formView) {
-                $this->addChild($formView);
-            }
-        }
-        $this->rendered = $formViews->isRendered();
-        $this->methodRendered = $formViews->isMethodRendered();
     }
 
-    public function addChild(\Symfony\Component\Form\FormView $formViews)
+    private function addChild(SymfonyFormView $formViews): void
     {
         $formView = new FormView($formViews);
         $this->children->add($formView);
