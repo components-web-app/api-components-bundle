@@ -103,7 +103,7 @@ class ApiContextBuilderTest extends TestCase
         }
     }
 
-    private function getRequestForResource(string $resourceClassName)
+    private function getRequestForResource()
     {
         return new Request([], [], [
             '_api_resource_class' => AbstractComponent::class

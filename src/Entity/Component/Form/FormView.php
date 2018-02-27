@@ -74,7 +74,7 @@ class FormView
         $this->processViewVars($formView);
         if ($children) {
             $this->children = new ArrayCollection();
-            foreach ($formView as $view) {
+            foreach ($formView->getIterator() as $view) {
                 $this->addChild($view);
             }
         }
