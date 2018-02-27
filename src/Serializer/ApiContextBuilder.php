@@ -40,16 +40,11 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     /**
      * @param string $group
      * @param bool $normalization
-     * @param null|string $operation
      * @return array
      */
-    private function getGroupNames(string $group, bool $normalization, ?string $operation): array
+    private function getGroupNames(string $group, bool $normalization): array
     {
-        $groups = [$group, $group . ($normalization ? '_read' : '_write')];
-        if ($operation) {
-            $groups[] = "${group}_${operation}";
-        }
-        return $groups;
+        return [$group, $group . ($normalization ? '_read' : '_write')];
     }
 
     /**
@@ -65,17 +60,16 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     /**
      * @param string $subject
      * @param bool $normalization
-     * @param string $operation
      * @return array
      */
-    private function getGroups(string $subject, bool $normalization, ?string $operation): array
+    private function getGroups(string $subject, bool $normalization): array
     {
         /** @var string[] $groups */
-        $groups = [];
+        $groups = [['default']];
         foreach (self::CLASS_GROUP_MAPPING as $class=>$groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {
-                    $groups[] = $this->getGroupNames($group, $normalization, $operation);
+                    $groups[] = $this->getGroupNames($group, $normalization);
                 }
             }
         }
@@ -96,18 +90,10 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');
-        $operation = $context['item_operation_name'] ?? null;
-        $groups = $this->getGroups($subject, $normalization, $operation);
-
+        $groups = $this->getGroups($subject, $normalization);
         if (\count($groups)) {
-            if (!isset($context['groups'])) {
-                $context['groups'] = ['default'];
-            } else {
-                $context['groups'][] = ['default'];
-            }
-            $context['groups'] = array_merge($context['groups'], ...$groups);
+            $context['groups'] = array_merge($context['groups'] ?? [], ...$groups);
         }
-
         return $context;
     }
 }

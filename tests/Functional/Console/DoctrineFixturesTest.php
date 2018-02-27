@@ -7,6 +7,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\ContentFixture;
+use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -43,6 +44,7 @@ class DoctrineFixturesTest extends WebTestCase
         );
         $output = $commandTester->getDisplay();
         $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
+        $this->assertContains(sprintf('Checking timestamp for %s', TestType::class), $output);
     }
 
     public function test_content_fixture()

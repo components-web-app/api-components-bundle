@@ -73,8 +73,6 @@ class FormCacheClear extends Command
             $dateTime->setTimestamp($timestamp);
             $form->setLastModified($dateTime);
             $this->output->writeln('<comment>Updated timestamp</comment>');
-        } else {
-            $this->output->writeln('<info>No changes</info>');
         }
     }
 }
