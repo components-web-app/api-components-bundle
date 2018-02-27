@@ -17,5 +17,5 @@ build:
                 coverage:
                     file: clover.xml
                     format: php-clover
-            -
-                command: vendor/bin/behat
+#            -
+#                command: vendor/bin/behat

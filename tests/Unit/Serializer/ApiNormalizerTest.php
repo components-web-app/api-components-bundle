@@ -167,7 +167,6 @@ class ApiNormalizerTest extends TestCase
             ->willReturn($formView)
         ;
 
-
         $data = $this->apiNormalizer->normalize($formEntity);
         $this->assertEquals($formView, $data['form']);
     }

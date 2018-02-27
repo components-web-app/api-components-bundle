@@ -20,7 +20,7 @@ before_script:
 
 script:
     - bin/phpunit --coverage-clover=coverage.xml
-    - vendor/bin/behat
+#    - vendor/bin/behat
 
 notifications:
     email:
