@@ -178,9 +178,9 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if (!$filePath) {
             return false;
         }
-        try{
+        try {
             $imageType = \exif_imagetype($filePath);
-        }catch(\Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
