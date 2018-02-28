@@ -35,7 +35,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem",
  *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList",
  *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem",
- *     "article" = "Silverback\ApiComponentBundle\Entity\Component\Article\Article"
+ *     "article" = "Silverback\ApiComponentBundle\Entity\Component\Article\Article",
+ *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar",
+ *     "nav_bar_item" = "Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem",
+ *     "tabs" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs",
+ *     "tabs_item" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem",
+ *     "menu" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\Menu",
+ *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\MenuItem"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */

@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigationItem;
 
 /**
  * Class TabsItem

@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs;
+namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -8,18 +8,18 @@ use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 /**
- * Class Tabs
- * @package Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs
- * @author Daniel West <daniel@silverback.is>
+ * Class NavBar
+ * @package Silverback\ApiComponentBundle\Entity\Layout\NavBar
+ * @author Daniel West <daniel@silverback.is
  * @ApiResource()
  * @ORM\Entity()
  */
-class Tabs extends AbstractNavigation
+class NavBar extends AbstractNavigation
 {
     public function __construct()
     {
         parent::__construct();
-        $this->addValidComponent(TabsItem::class);
+        $this->addValidComponent(NavBarItem::class);
         $this->addComponentGroup(new ComponentGroup());
     }
 

@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Article\ArticleFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Content\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns\FeatureColumnsFactory;

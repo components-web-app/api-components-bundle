@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Form\FormView as SymfonyFormView;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class FormView

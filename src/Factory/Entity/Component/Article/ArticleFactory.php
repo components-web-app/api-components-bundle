@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Article;
 
 use Silverback\ApiComponentBundle\Entity\Component\Article\Article;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 /**

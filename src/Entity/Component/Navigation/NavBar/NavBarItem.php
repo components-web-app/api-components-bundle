@@ -1,10 +1,10 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Layout\NavBar;
+namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigationItem;
 
 /**
  * Class NavBarItem

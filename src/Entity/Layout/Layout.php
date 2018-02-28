@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Layout;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**

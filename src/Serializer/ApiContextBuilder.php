@@ -4,12 +4,12 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigationItem;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
-use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation;
-use Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem;
-use Silverback\ApiComponentBundle\Entity\Navigation\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface

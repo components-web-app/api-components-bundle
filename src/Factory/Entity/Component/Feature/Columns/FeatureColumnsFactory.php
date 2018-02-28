@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns;
 
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 class FeatureColumnsFactory extends AbstractComponentFactory

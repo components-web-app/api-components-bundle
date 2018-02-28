@@ -7,7 +7,6 @@ use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFact
 use Silverback\ApiComponentBundle\Factory\Entity\Component\ComponentFactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;

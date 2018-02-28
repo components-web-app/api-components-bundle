@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Navigation\Route\RouteAwareInterface;
+use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 
 /**
  * Interface ContentInterface

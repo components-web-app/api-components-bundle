@@ -1,25 +1,22 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Hero;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu;
 
-use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\Menu;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class HeroFactory extends AbstractComponentFactory
+final class MenuFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null): Hero
+    public function create(?array $ops = null): Menu
     {
-        $component = new Hero();
+        $component = new Menu();
         $this->init($component, $ops);
-        $component->setTitle($this->ops['title']);
-        $component->setSubtitle($this->ops['subtitle']);
-        $component->setTabs($this->ops['tabs']);
         $this->validate($component);
         return $component;
     }

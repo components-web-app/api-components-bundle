@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Navigation\Route;
+namespace Silverback\ApiComponentBundle\Entity\Route;
 
 interface RouteAwareInterface
 {

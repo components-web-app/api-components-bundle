@@ -8,10 +8,10 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\Component\Article\Article;
 use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation as ComponentLocationEntity;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocation;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
-use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation as ComponentLocationEntity;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 

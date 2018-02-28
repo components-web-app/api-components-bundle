@@ -7,7 +7,6 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory;
