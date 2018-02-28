@@ -16,11 +16,20 @@ trait ValidComponentTrait
      */
     protected $validComponents;
 
+    private function initValidComponents(): self
+    {
+        if (!($this->validComponents instanceof ArrayCollection)) {
+            $this->validComponents = new ArrayCollection();
+        }
+        return $this;
+    }
+
     /**
      * @return ArrayCollection
      */
     public function getValidComponents(): ArrayCollection
     {
+        $this->initValidComponents();
         return $this->validComponents;
     }
 
@@ -30,6 +39,7 @@ trait ValidComponentTrait
      */
     public function addValidComponent(string $component): self
     {
+        $this->initValidComponents();
         if (!$this->validComponents->contains($component)) {
             $this->validComponents->add($component);
         }
@@ -42,6 +52,7 @@ trait ValidComponentTrait
      */
     public function removeValidComponent(string $component): self
     {
+        $this->initValidComponents();
         $this->validComponents->removeElement($component);
         return $this;
     }
@@ -52,15 +63,9 @@ trait ValidComponentTrait
      */
     protected function cascadeValidComponents(ValidComponentInterface $entity, bool $force = false): void
     {
-        if ($force) {
-            // Set to true so force the cascade whether empty or not
-            $this->validComponents = $entity->getValidComponents();
-            return;
-        }
-        // Default behaviour - cascade if set on parent
-        $parentValidComponents = $entity->getValidComponents();
-        if ($parentValidComponents->count()) {
-            $this->validComponents = $entity->getValidComponents();
+        $entityValidComponents = $entity->getValidComponents();
+        if ($force || $entityValidComponents->count()) {
+            $this->validComponents = $entityValidComponents;
         }
     }
 }

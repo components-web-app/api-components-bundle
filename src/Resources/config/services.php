@@ -121,4 +121,6 @@ return function (ContainerConfigurator $configurator) {
     $services->set(Client::class);
 
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
+
+
 };

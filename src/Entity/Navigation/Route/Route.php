@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
  *     }
  * )
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
+ * @ORM\Entity()
  */
 class Route
 {

@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Gallery;
 
 use Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem;
-use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
+use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-class GalleryItemTest extends AbstractEntityTest
+class GalleryItemTest extends AbstractEntity
 {
     public function test_constraints()
     {

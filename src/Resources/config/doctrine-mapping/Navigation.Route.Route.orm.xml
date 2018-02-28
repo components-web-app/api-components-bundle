@@ -4,7 +4,6 @@
                     http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd"
 >
     <entity name="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route"
-            repository-class="Silverback\ApiComponentBundle\Repository\RouteRepository"
     >
         <id name="route" type="string"  />
         <many-to-one field="content" target-entity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent">

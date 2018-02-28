@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Feature\Columns;
 
 use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns;
-use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
+use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\Range;
 
-class FeatureColumnsTest extends AbstractEntityTest
+class FeatureColumnsTest extends AbstractEntity
 {
     public function test_constraints()
     {

@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Mapping\PropertyMetadata;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-abstract class AbstractEntityTest extends TestCase
+abstract class AbstractEntity extends TestCase
 {
     /**
      * @var ValidatorInterface

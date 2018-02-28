@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content;
 
 use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation;
-use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
+use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-class ComponentLocationTest extends AbstractEntityTest
+class ComponentLocationTest extends AbstractEntity
 {
     public function test_constraints()
     {

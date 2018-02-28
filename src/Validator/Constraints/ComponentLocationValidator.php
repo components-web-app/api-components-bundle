@@ -4,18 +4,24 @@ namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation as ComponentLocationEntity;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
 class ComponentLocationValidator extends ConstraintValidator
 {
     /**
-     * @param \Silverback\ApiComponentBundle\Entity\Content\ComponentLocation $entity
+     * @param ComponentLocationEntity $entity
      * @param Constraint $constraint
      * @throws \ReflectionException
      */
     public function validate($entity, Constraint $constraint): void
     {
+        if (!$entity instanceof ComponentLocationEntity) {
+            throw new \InvalidArgumentException(
+                sprintf('The ComponentLocationValidator should only be used with %s', ComponentLocationEntity::class)
+            );
+        }
         $content = $entity->getContent();
         if ($content instanceof ValidComponentInterface) {
             $validComponents = $content->getValidComponents();

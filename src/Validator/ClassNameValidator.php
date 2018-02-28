@@ -15,16 +15,22 @@ class ClassNameValidator
      */
     public static function isClassSame(string $className, $validClass): bool
     {
+        if (!class_exists($className) && !interface_exists($className)) {
+            throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
+        }
+        if (!\is_object($validClass)) {
+            throw new InvalidArgumentException(sprintf('The $validClass parameter %s is not an object', $validClass));
+        }
         if (\get_class($validClass) === $className) {
             return true;
         }
         if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
-            $refl = new \ReflectionClass($validClass);
-            if ($refl->isSubclassOf($className)) {
+            $reflection = new \ReflectionClass($validClass);
+            if ($reflection->isSubclassOf($className)) {
                 return true;
             }
         }
-        return false;
+        return ($validClass instanceof $className);
     }
 
     /**
@@ -36,9 +42,6 @@ class ClassNameValidator
      */
     public static function validate(string $className, iterable $validClasses): bool
     {
-        if (!class_exists($className)) {
-            throw new InvalidArgumentException(sprintf('The class %s does not exist', $className));
-        }
         foreach ($validClasses as $validClass) {
             if (self::isClassSame($className, $validClass)) {
                 return true;

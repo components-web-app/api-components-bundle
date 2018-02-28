@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Hero;
 
 use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
-use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
+use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotNull;
 
-class HeroTest extends AbstractEntityTest
+class HeroTest extends AbstractEntity
 {
     public function test_constraints()
     {

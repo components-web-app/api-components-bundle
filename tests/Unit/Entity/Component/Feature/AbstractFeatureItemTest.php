@@ -3,11 +3,11 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Component\Feature;
 
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
-use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntityTest;
+use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Url;
 
-class AbstractFeatureItemTest extends AbstractEntityTest
+class AbstractFeatureItemTest extends AbstractEntity
 {
     public function test_constraints()
     {

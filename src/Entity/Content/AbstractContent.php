@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  * Class AbstractContent
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\AbstractContentRepository")
+ * @ORM\Entity()
  * @ORM\Table(name="route_content")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
