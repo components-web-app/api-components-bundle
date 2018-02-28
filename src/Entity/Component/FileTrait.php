@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**

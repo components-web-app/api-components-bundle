@@ -11,6 +11,7 @@ use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory;
+use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
@@ -34,21 +35,30 @@ class ApiNormalizerTest extends TestCase
      * @var ApiNormalizer
      */
     private $apiNormalizer;
+    /**
+     * @var string
+     */
+    private $filePath = __DIR__ . '/../../app/public/images/testImage.jpg';
+    /**
+     * @var MockObject|FileSystemLoader
+     */
+    private $fileSystemLoaderMock;
 
     public function setUp()
     {
         $this->normalizerInterfaceMock = $this->getMockBuilder(AbstractItemNormalizer::class)->disableOriginalConstructor()->getMock();
         $this->cacheManagerMock = $this->getMockBuilder(CacheManager::class)->disableOriginalConstructor()->getMock();
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
+        $this->fileSystemLoaderMock = $this->getMockBuilder(FileSystemLoader::class)->disableOriginalConstructor()->getMock();
         $this->apiNormalizer = new ApiNormalizer(
             $this->normalizerInterfaceMock,
-            __DIR__ . '/../../app/',
             $this->cacheManagerMock,
-            $this->formViewFactoryMock
+            $this->formViewFactoryMock,
+            $this->fileSystemLoaderMock
         );
     }
 
-    public function test_supports_normalizer()
+    public function test_supports_normalizer(): void
     {
         $args = [[], null];
         $this->normalizerInterfaceMock
@@ -60,7 +70,7 @@ class ApiNormalizerTest extends TestCase
         $this->assertTrue($this->apiNormalizer->supportsNormalization(...$args));
     }
 
-    public function test_supports_denormalization()
+    public function test_supports_denormalization(): void
     {
         $args = [[], null];
         $this->normalizerInterfaceMock
@@ -72,15 +82,15 @@ class ApiNormalizerTest extends TestCase
         $this->assertTrue($this->apiNormalizer->supportsDenormalization(...$args));
     }
 
-    public function test_imagine_supported_file()
+    public function test_imagine_supported_file(): void
     {
         $this->assertFalse($this->apiNormalizer->isImagineSupportedFile('not_a_file'));
         $this->assertFalse($this->apiNormalizer->isImagineSupportedFile('dummyfile.txt'));
         $this->assertFalse($this->apiNormalizer->isImagineSupportedFile('images/apiPlatform.svg'));
-        $this->assertTrue($this->apiNormalizer->isImagineSupportedFile('images/testImage.jpg'));
+        $this->assertTrue($this->apiNormalizer->isImagineSupportedFile($this->filePath));
     }
 
-    public function test_set_serializer()
+    public function test_set_serializer(): void
     {
         $serializer = new Serializer();
         $this->normalizerInterfaceMock
@@ -91,7 +101,7 @@ class ApiNormalizerTest extends TestCase
         $this->apiNormalizer->setSerializer($serializer);
     }
 
-    public function test_denormalize()
+    public function test_denormalize(): void
     {
         $abstractComponentParentMock = $this->getMockBuilder(AbstractComponent::class)->getMock();
         $abstractComponentMock = $this->getMockBuilder(AbstractComponent::class)->getMock();
@@ -116,18 +126,24 @@ class ApiNormalizerTest extends TestCase
         $this->apiNormalizer->denormalize(...array_merge($args, [['allow_extra_attributes' => false]]));
     }
 
-    public function test_normalize_file()
+    public function test_normalize_file(): void
     {
-        $filePath = 'images/testImage.jpg';
+        $this->fileSystemLoaderMock
+            ->expects($this->once())
+            ->method('getImaginePath')
+            ->with($this->filePath)
+            ->willReturn($this->filePath)
+        ;
+
         $fileComponent = new FileComponent();
-        $fileComponent->setFilePath($filePath);
+        $fileComponent->setFilePath($this->filePath);
 
         foreach (FileComponent::getImagineFilters() as $returnKey => $filter) {
             $this->cacheManagerMock
                 ->expects($this->once())
                 ->method('getBrowserPath')
-                ->with($filePath, $filter)
-                ->willReturn(sprintf('http://website.com/%s/%s', $filter, $filePath))
+                ->with($this->filePath, $filter)
+                ->willReturn(sprintf('http://website.com/%s/%s', $filter, $this->filePath))
             ;
         }
 
@@ -142,11 +158,11 @@ class ApiNormalizerTest extends TestCase
         $this->assertEquals(100, $data['width']);
         $this->assertEquals(100, $data['height']);
         foreach (FileComponent::getImagineFilters() as $returnKey => $filter) {
-            $this->assertEquals(sprintf('/%s/%s', $filter, $filePath), $data[$returnKey]);
+            $this->assertEquals(sprintf('/%s/%s', $filter, $this->filePath), $data[$returnKey]);
         }
     }
 
-    public function test_normalize_form()
+    public function test_normalize_form(): void
     {
         $formEntity = new Form();
         $formEntity->setClassName(TestType::class);

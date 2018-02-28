@@ -10,6 +10,7 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
+use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 
 /**
@@ -31,21 +32,28 @@ class EntitySubscriber implements EventSubscriber
      * @var ApiNormalizer
      */
     private $fileNormalizer;
+    /**
+     * @var FileSystemLoader
+     */
+    private $fileSystemLoader;
 
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param FilterService $filterService
      * @param ApiNormalizer $fileNormalizer
+     * @param FileSystemLoader $fileSystemLoader
      */
     public function __construct(
         CacheManager $imagineCacheManager,
         FilterService $filterService,
-        ApiNormalizer $fileNormalizer
+        ApiNormalizer $fileNormalizer,
+        FileSystemLoader $fileSystemLoader
     ) {
         $this->imagineCacheManager = $imagineCacheManager;
         $this->fileNormalizer = $fileNormalizer;
         $this->filterService = $filterService;
+        $this->fileSystemLoader = $fileSystemLoader;
     }
 
     /**
@@ -146,7 +154,7 @@ class EntitySubscriber implements EventSubscriber
     {
         $filters = $file::getImagineFilters();
         foreach ($filters as $filter) {
-            $this->filterService->getUrlOfFilteredImage($file->getFilePath(), $filter);
+            $this->filterService->getUrlOfFilteredImage($this->fileSystemLoader->getImaginePath($file->getFilePath()), $filter);
         }
     }
 }

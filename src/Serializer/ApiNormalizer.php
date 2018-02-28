@@ -7,7 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory;
-use Symfony\Component\Filesystem\Filesystem;
+use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -16,31 +16,30 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     private $decorated;
-    private $projectDir;
     private $imagineCacheManager;
     private $formViewFactory;
+    private $fileSystemLoader;
 
     /**
      * FileNormalizer constructor.
      * @param NormalizerInterface $decorated
-     * @param string $projectDir
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
+     * @param FileSystemLoader $fileSystemLoader
      */
     public function __construct(
         NormalizerInterface $decorated,
-        string $projectDir,
         CacheManager $imagineCacheManager,
-        FormViewFactory $formViewFactory
+        FormViewFactory $formViewFactory,
+        FileSystemLoader $fileSystemLoader
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
         }
-
         $this->decorated = $decorated;
-        $this->projectDir = $projectDir;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->formViewFactory = $formViewFactory;
+        $this->fileSystemLoader = $fileSystemLoader;
     }
 
     /**
@@ -80,12 +79,10 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param FileInterface $object
      * @return array
      */
-    private function getFileData(FileInterface $object)
+    private function getFileData(FileInterface $object): array
     {
         $data = [];
-        $originalFilePath = $object->getFilePath();
-        /* @var $object FileInterface */
-        $filePath = $this->getRealFilePath($originalFilePath);
+        $filePath = $object->getFilePath();
         if ($filePath) {
             if (false !== \exif_imagetype($filePath)) {
                 [$width, $height] = getimagesize($filePath);
@@ -95,10 +92,10 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             $data['width'] = $width;
             $data['height'] = $height;
 
-            $supported = $this->isImagineSupportedFile($originalFilePath);
+            $supported = $this->isImagineSupportedFile($filePath);
             foreach ($object::getImagineFilters() as $returnKey => $filter) {
                 $data[$returnKey] = $supported ? parse_url(
-                    $this->imagineCacheManager->getBrowserPath($originalFilePath, $filter),
+                    $this->imagineCacheManager->getBrowserPath($this->fileSystemLoader->getImaginePath($filePath), $filter),
                     PHP_URL_PATH
                 ) : null;
             }
@@ -155,26 +152,11 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     }
 
     /**
-     * @param null|string $filePath
-     * @return null|string
-     */
-    private function getRealFilePath(?string $filePath): ?string
-    {
-        if (!$filePath || trim($filePath) === '') {
-            return null;
-        }
-        $fs = new Filesystem();
-        $filePath = $this->projectDir . '/public/' . $filePath;
-        return $fs->exists($filePath) ? $filePath : null;
-    }
-
-    /**
      * @param string $filePath
      * @return bool
      */
     public function isImagineSupportedFile(?string $filePath): bool
     {
-        $filePath = $this->getRealFilePath($filePath);
         if (!$filePath) {
             return false;
         }

@@ -46,9 +46,7 @@ class ClassNameValidator
     {
         if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
             $reflection = new \ReflectionClass($validClass);
-            if ($reflection->isSubclassOf($className)) {
-                return true;
-            }
+            return $reflection->isSubclassOf($className);
         }
         return false;
     }

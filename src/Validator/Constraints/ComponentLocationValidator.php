@@ -25,7 +25,7 @@ class ComponentLocationValidator extends ConstraintValidator
         }
         $content = $entity->getContent();
         if ($content instanceof ValidComponentInterface) {
-            /** @var ArrayCollection|string[] $validComponents */
+            /** @var ArrayCollection $validComponents */
             $validComponents = $content->getValidComponents();
             $componentIsValid = $this->validateValidComponentInterface($entity, $validComponents);
             if (!$componentIsValid) {
@@ -43,14 +43,13 @@ class ComponentLocationValidator extends ConstraintValidator
      * @return bool
      * @throws \ReflectionException
      */
-    private function validateValidComponentInterface(ComponentLocationEntity $entity, ArrayCollection $validComponents)
+    private function validateValidComponentInterface(ComponentLocationEntity $entity, ArrayCollection $validComponents): bool
     {
         $componentIsValid = false;
         if ($validComponents->count()) {
             $component = $entity->getComponent();
             foreach ($validComponents as $validComponent) {
-                if (ClassNameValidator::isClassSame($validComponent, $component)) {
-                    $componentIsValid = true;
+                if ($componentIsValid = ClassNameValidator::isClassSame($validComponent, $component)) {
                     break;
                 }
             }

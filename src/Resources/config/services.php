@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
+use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
@@ -29,7 +30,7 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')
-        ->exclude('../../{Entity,Migrations,Tests,Resources}')
+        ->exclude('../../{Entity,Migrations,Tests,Resources,Imagine}')
     ;
 
     $services
@@ -102,8 +103,7 @@ return function (ContainerConfigurator $configurator) {
         ->set(ApiNormalizer::class)
         ->decorate('api_platform.jsonld.normalizer.item')
         ->args([
-            new Reference(ApiNormalizer::class . '.inner'),
-            '%kernel.project_dir%'
+            '$decorated' => new Reference(ApiNormalizer::class . '.inner')
         ])
     ;
 
@@ -118,9 +118,11 @@ return function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_subscriber')
     ;
 
+    $services
+        ->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default')
+    ;
+
     $services->set(Client::class);
 
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
-
-
 };

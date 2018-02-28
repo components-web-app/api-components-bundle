@@ -19,6 +19,9 @@ return function (ContainerConfigurator $container) {
     ;
     $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
+        ->args([
+            '$projectDirectory' => '%kernel.project_dir%'
+               ])
         ->tag('doctrine.fixture.orm')
     ;
     $services
