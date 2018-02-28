@@ -12,7 +12,7 @@
         />
         <field name="label" />
         <many-to-one field="route"
-                     target-entity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route"
+                     target-entity="Silverback\ApiComponentBundle\Entity\Route\Route"
         >
             <join-column referenced-column-name="route" />
         </many-to-one>

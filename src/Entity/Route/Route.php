@@ -40,7 +40,7 @@ class Route
     private $content;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
      * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
      * @Groups({"route"})
      * @var null|Route

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1519837641">
-  <project timestamp="1519837641">
+<coverage generated="1519841076">
+  <project timestamp="1519841076">
     <package name="Silverback\ApiComponentBundle\DataFixtures">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/_oldReference/DataFixtures/AbstractFixture.php">
         <class name="Silverback\ApiComponentBundle\DataFixtures\AbstractFixture" namespace="Silverback\ApiComponentBundle\DataFixtures">
@@ -459,34 +459,34 @@
         <class name="Silverback\ApiComponentBundle\DependencyInjection\SilverbackApiComponentExtension" namespace="Silverback\ApiComponentBundle\DependencyInjection">
           <metrics complexity="4" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="24" coveredstatements="0" elements="27" coveredelements="0"/>
         </class>
-        <line num="25" type="method" name="load" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="24" type="method" name="load" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="26" type="stmt" count="0"/>
         <line num="27" type="stmt" count="0"/>
-        <line num="28" type="stmt" count="0"/>
-        <line num="34" type="method" name="loadServiceConfig" visibility="private" complexity="1" crap="2" count="0"/>
+        <line num="33" type="method" name="loadServiceConfig" visibility="private" complexity="1" crap="2" count="0"/>
+        <line num="35" type="stmt" count="0"/>
         <line num="36" type="stmt" count="0"/>
         <line num="37" type="stmt" count="0"/>
-        <line num="38" type="stmt" count="0"/>
-        <line num="40" type="stmt" count="0"/>
+        <line num="39" type="stmt" count="0"/>
+        <line num="41" type="stmt" count="0"/>
         <line num="42" type="stmt" count="0"/>
         <line num="43" type="stmt" count="0"/>
-        <line num="44" type="stmt" count="0"/>
+        <line num="45" type="stmt" count="0"/>
         <line num="46" type="stmt" count="0"/>
-        <line num="47" type="stmt" count="0"/>
+        <line num="48" type="stmt" count="0"/>
         <line num="49" type="stmt" count="0"/>
-        <line num="50" type="stmt" count="0"/>
+        <line num="51" type="stmt" count="0"/>
         <line num="52" type="stmt" count="0"/>
         <line num="53" type="stmt" count="0"/>
-        <line num="54" type="stmt" count="0"/>
-        <line num="56" type="stmt" count="0"/>
-        <line num="62" type="method" name="prepend" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="55" type="stmt" count="0"/>
+        <line num="61" type="method" name="prepend" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="63" type="stmt" count="0"/>
         <line num="64" type="stmt" count="0"/>
         <line num="65" type="stmt" count="0"/>
-        <line num="66" type="stmt" count="0"/>
+        <line num="69" type="stmt" count="0"/>
         <line num="70" type="stmt" count="0"/>
         <line num="71" type="stmt" count="0"/>
-        <line num="72" type="stmt" count="0"/>
-        <line num="116" type="stmt" count="0"/>
-        <metrics loc="117" ncloc="104" classes="1" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="24" coveredstatements="0" elements="27" coveredelements="0"/>
+        <line num="115" type="stmt" count="0"/>
+        <metrics loc="116" ncloc="103" classes="1" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="24" coveredstatements="0" elements="27" coveredelements="0"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Entity\Component">
@@ -494,95 +494,95 @@
         <class name="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent" namespace="Silverback\ApiComponentBundle\Entity\Component" fullPackage="Silverback" package="Silverback">
           <metrics complexity="31" methods="21" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="52" coveredstatements="12" elements="73" coveredelements="17"/>
         </class>
-        <line num="83" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="29"/>
-        <line num="85" type="stmt" count="29"/>
-        <line num="86" type="stmt" count="29"/>
-        <line num="87" type="stmt" count="29"/>
-        <line num="88" type="stmt" count="29"/>
-        <line num="89" type="stmt" count="29"/>
-        <line num="94" type="method" name="getId" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="96" type="stmt" count="0"/>
-        <line num="102" type="method" name="getClassName" visibility="public" complexity="2" crap="2" count="1"/>
-        <line num="104" type="stmt" count="1"/>
-        <line num="111" type="method" name="setClassName" visibility="public" complexity="2" crap="2" count="15"/>
-        <line num="113" type="stmt" count="15"/>
-        <line num="114" type="stmt" count="15"/>
-        <line num="122" type="method" name="addLocation" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="124" type="stmt" count="0"/>
-        <line num="125" type="stmt" count="0"/>
-        <line num="132" type="method" name="removeLocation" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="134" type="stmt" count="0"/>
-        <line num="135" type="stmt" count="0"/>
-        <line num="142" type="method" name="setComponentGroups" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="144" type="stmt" count="0"/>
-        <line num="145" type="stmt" count="0"/>
-        <line num="146" type="stmt" count="0"/>
-        <line num="148" type="stmt" count="0"/>
-        <line num="155" type="method" name="addComponentGroup" visibility="public" complexity="1" crap="1" count="7"/>
-        <line num="157" type="stmt" count="7"/>
-        <line num="158" type="stmt" count="7"/>
-        <line num="159" type="stmt" count="7"/>
-        <line num="166" type="method" name="removeComponentGroup" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="168" type="stmt" count="0"/>
-        <line num="169" type="stmt" count="0"/>
-        <line num="175" type="method" name="getComponentGroups" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="177" type="stmt" count="1"/>
-        <line num="184" type="method" name="getComponentName" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="186" type="stmt" count="0"/>
-        <line num="187" type="stmt" count="0"/>
-        <line num="196" type="method" name="getComponentComponentGroup" visibility="private" complexity="2" crap="6" count="0"/>
-        <line num="199" type="stmt" count="0"/>
-        <line num="200" type="stmt" count="0"/>
-        <line num="201" type="stmt" count="0"/>
-        <line num="203" type="stmt" count="0"/>
-        <line num="212" type="method" name="addChildComponent" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="214" type="stmt" count="0"/>
-        <line num="215" type="stmt" count="0"/>
-        <line num="216" type="stmt" count="0"/>
-        <line num="225" type="method" name="addToParentComponent" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="227" type="stmt" count="0"/>
-        <line num="228" type="stmt" count="0"/>
-        <line num="229" type="stmt" count="0"/>
-        <line num="231" type="stmt" count="0"/>
-        <line num="237" type="method" name="getParentComponents" visibility="private" complexity="2" crap="6" count="0"/>
-        <line num="239" type="stmt" count="0"/>
-        <line num="240" type="stmt" count="0"/>
-        <line num="241" type="stmt" count="0"/>
-        <line num="242" type="stmt" count="0"/>
-        <line num="243" type="method" name="anonymousFunction:243#917" complexity="2" crap="6" count="0"/>
-        <line num="244" type="stmt" count="0"/>
+        <line num="89" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="30"/>
+        <line num="91" type="stmt" count="30"/>
+        <line num="92" type="stmt" count="30"/>
+        <line num="93" type="stmt" count="30"/>
+        <line num="94" type="stmt" count="30"/>
+        <line num="95" type="stmt" count="30"/>
+        <line num="100" type="method" name="getId" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="102" type="stmt" count="0"/>
+        <line num="108" type="method" name="getClassName" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="110" type="stmt" count="1"/>
+        <line num="117" type="method" name="setClassName" visibility="public" complexity="2" crap="2" count="15"/>
+        <line num="119" type="stmt" count="15"/>
+        <line num="120" type="stmt" count="15"/>
+        <line num="128" type="method" name="addLocation" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="130" type="stmt" count="0"/>
+        <line num="131" type="stmt" count="0"/>
+        <line num="138" type="method" name="removeLocation" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="140" type="stmt" count="0"/>
+        <line num="141" type="stmt" count="0"/>
+        <line num="148" type="method" name="setComponentGroups" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="150" type="stmt" count="0"/>
+        <line num="151" type="stmt" count="0"/>
+        <line num="152" type="stmt" count="0"/>
+        <line num="154" type="stmt" count="0"/>
+        <line num="161" type="method" name="addComponentGroup" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="163" type="stmt" count="9"/>
+        <line num="164" type="stmt" count="9"/>
+        <line num="165" type="stmt" count="9"/>
+        <line num="172" type="method" name="removeComponentGroup" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="174" type="stmt" count="0"/>
+        <line num="175" type="stmt" count="0"/>
+        <line num="181" type="method" name="getComponentGroups" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="183" type="stmt" count="1"/>
+        <line num="190" type="method" name="getComponentName" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="192" type="stmt" count="0"/>
+        <line num="193" type="stmt" count="0"/>
+        <line num="202" type="method" name="getComponentComponentGroup" visibility="private" complexity="2" crap="6" count="0"/>
+        <line num="205" type="stmt" count="0"/>
+        <line num="206" type="stmt" count="0"/>
+        <line num="207" type="stmt" count="0"/>
+        <line num="209" type="stmt" count="0"/>
+        <line num="218" type="method" name="addChildComponent" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="220" type="stmt" count="0"/>
+        <line num="221" type="stmt" count="0"/>
+        <line num="222" type="stmt" count="0"/>
+        <line num="231" type="method" name="addToParentComponent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="233" type="stmt" count="0"/>
+        <line num="234" type="stmt" count="0"/>
+        <line num="235" type="stmt" count="0"/>
+        <line num="237" type="stmt" count="0"/>
+        <line num="243" type="method" name="getParentComponents" visibility="private" complexity="2" crap="6" count="0"/>
         <line num="245" type="stmt" count="0"/>
+        <line num="246" type="stmt" count="0"/>
         <line num="247" type="stmt" count="0"/>
         <line num="248" type="stmt" count="0"/>
-        <line num="257" type="method" name="getParentContent" visibility="private" complexity="1" crap="2" count="0"/>
-        <line num="259" type="stmt" count="0"/>
-        <line num="260" type="stmt" count="0"/>
-        <line num="261" type="stmt" count="0"/>
-        <line num="262" type="method" name="anonymousFunction:262#988" complexity="1" crap="2" count="0"/>
-        <line num="263" type="stmt" count="0"/>
-        <line num="264" type="stmt" count="0"/>
+        <line num="249" type="method" name="anonymousFunction:249#917" complexity="2" crap="6" count="0"/>
+        <line num="250" type="stmt" count="0"/>
+        <line num="251" type="stmt" count="0"/>
+        <line num="253" type="stmt" count="0"/>
+        <line num="254" type="stmt" count="0"/>
+        <line num="263" type="method" name="getParentContent" visibility="private" complexity="1" crap="2" count="0"/>
         <line num="265" type="stmt" count="0"/>
-        <line num="274" type="method" name="onDeleteCascade" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="276" type="stmt" count="0"/>
-        <line num="282" type="method" name="getParent" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="284" type="stmt" count="0"/>
-        <line num="290" type="method" name="setParent" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="292" type="stmt" count="0"/>
-        <line num="293" type="stmt" count="0"/>
-        <metrics loc="294" ncloc="171" classes="1" methods="21" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="54" coveredstatements="12" elements="75" coveredelements="17"/>
+        <line num="266" type="stmt" count="0"/>
+        <line num="267" type="stmt" count="0"/>
+        <line num="268" type="method" name="anonymousFunction:268#988" complexity="1" crap="2" count="0"/>
+        <line num="269" type="stmt" count="0"/>
+        <line num="270" type="stmt" count="0"/>
+        <line num="271" type="stmt" count="0"/>
+        <line num="280" type="method" name="onDeleteCascade" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="282" type="stmt" count="0"/>
+        <line num="288" type="method" name="getParent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="290" type="stmt" count="0"/>
+        <line num="296" type="method" name="setParent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="298" type="stmt" count="0"/>
+        <line num="299" type="stmt" count="0"/>
+        <metrics loc="300" ncloc="171" classes="1" methods="21" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="54" coveredstatements="12" elements="75" coveredelements="17"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/FileTrait.php">
         <class name="FileTrait" namespace="Silverback\ApiComponentBundle\Entity\Component" fullPackage="Silverback" package="Silverback">
           <metrics complexity="5" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
         </class>
-        <line num="25" type="method" name="getFilePath" visibility="public" complexity="2" crap="2" count="4"/>
-        <line num="27" type="stmt" count="4"/>
-        <line num="33" type="method" name="setFilePath" visibility="public" complexity="2" crap="2" count="4"/>
+        <line num="24" type="method" name="getFilePath" visibility="public" complexity="2" crap="2" count="4"/>
+        <line num="26" type="stmt" count="4"/>
+        <line num="32" type="method" name="setFilePath" visibility="public" complexity="2" crap="2" count="4"/>
+        <line num="34" type="stmt" count="4"/>
         <line num="35" type="stmt" count="4"/>
-        <line num="36" type="stmt" count="4"/>
-        <line num="38" type="method" name="getImagineFilters" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="41" type="stmt" count="1"/>
-        <metrics loc="45" ncloc="30" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
+        <line num="37" type="method" name="getImagineFilters" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="40" type="stmt" count="1"/>
+        <metrics loc="44" ncloc="29" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Entity\Component\Article">
@@ -930,12 +930,48 @@
         <metrics loc="104" ncloc="63" classes="1" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="14" coveredstatements="13" elements="22" coveredelements="20"/>
       </file>
     </package>
+    <package name="Silverback\ApiComponentBundle\Entity\Component\Navigation">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/AbstractNavigation.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation" fullPackage="Silverback" package="Silverback">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="13" ncloc="8" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </file>
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/AbstractNavigationItem.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigationItem" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation" fullPackage="Silverback" package="Silverback">
+          <metrics complexity="10" methods="6" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="0" elements="15" coveredelements="0"/>
+        </class>
+        <line num="42" type="method" name="getLabel" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="44" type="stmt" count="0"/>
+        <line num="51" type="method" name="setLabel" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="53" type="stmt" count="0"/>
+        <line num="54" type="stmt" count="0"/>
+        <line num="60" type="method" name="getRoute" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="62" type="stmt" count="0"/>
+        <line num="69" type="method" name="setRoute" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="71" type="stmt" count="0"/>
+        <line num="72" type="stmt" count="0"/>
+        <line num="78" type="method" name="getFragment" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="80" type="stmt" count="0"/>
+        <line num="87" type="method" name="setFragment" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="89" type="stmt" count="0"/>
+        <line num="90" type="stmt" count="0"/>
+        <metrics loc="92" ncloc="50" classes="1" methods="6" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="0" elements="15" coveredelements="0"/>
+      </file>
+    </package>
     <package name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/Menu/Menu.php">
         <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\Menu" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+          <metrics complexity="2" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="0" elements="7" coveredelements="0"/>
         </class>
-        <metrics loc="18" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        <line num="19" type="method" name="__construct" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="21" type="stmt" count="0"/>
+        <line num="22" type="stmt" count="0"/>
+        <line num="23" type="stmt" count="0"/>
+        <line num="24" type="stmt" count="0"/>
+        <line num="26" type="method" name="onDeleteCascade" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="28" type="stmt" count="0"/>
+        <metrics loc="30" ncloc="23" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="0" elements="7" coveredelements="0"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/Menu/MenuItem.php">
         <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\MenuItem" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu" fullPackage="Silverback" package="Silverback">
@@ -949,12 +985,43 @@
         <metrics loc="41" ncloc="23" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="3" coveredstatements="0" elements="5" coveredelements="0"/>
       </file>
     </package>
+    <package name="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/NavBar/NavBar.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar">
+          <metrics complexity="2" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="0" elements="7" coveredelements="0"/>
+        </class>
+        <line num="17" type="method" name="__construct" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="19" type="stmt" count="0"/>
+        <line num="20" type="stmt" count="0"/>
+        <line num="21" type="stmt" count="0"/>
+        <line num="22" type="stmt" count="0"/>
+        <line num="24" type="method" name="onDeleteCascade" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="26" type="stmt" count="0"/>
+        <metrics loc="28" ncloc="23" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="0" elements="7" coveredelements="0"/>
+      </file>
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/NavBar/NavBarItem.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBarItem" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="16" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </file>
+    </package>
+    <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/NavigationItemInterface.php">
+      <metrics loc="46" ncloc="21" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+    </file>
     <package name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/Tabs/Tabs.php">
         <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+          <metrics complexity="2" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="4" elements="7" coveredelements="5"/>
         </class>
-        <metrics loc="18" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        <line num="19" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
+        <line num="21" type="stmt" count="2"/>
+        <line num="22" type="stmt" count="2"/>
+        <line num="23" type="stmt" count="2"/>
+        <line num="24" type="stmt" count="2"/>
+        <line num="26" type="method" name="onDeleteCascade" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="28" type="stmt" count="0"/>
+        <metrics loc="30" ncloc="23" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="4" elements="7" coveredelements="5"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Component/Navigation/Tabs/TabsItem.php">
         <class name="Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem" namespace="Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs" fullPackage="Silverback" package="Silverback">
@@ -968,11 +1035,11 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\AbstractContent" namespace="Silverback\ApiComponentBundle\Entity\Content" fullPackage="Silverback" package="Silverback">
           <metrics complexity="5" methods="5" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="4" elements="15" coveredelements="5"/>
         </class>
-        <line num="45" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="10"/>
-        <line num="47" type="stmt" count="10"/>
-        <line num="48" type="stmt" count="10"/>
-        <line num="49" type="stmt" count="10"/>
-        <line num="50" type="stmt" count="10"/>
+        <line num="45" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="12"/>
+        <line num="47" type="stmt" count="12"/>
+        <line num="48" type="stmt" count="12"/>
+        <line num="49" type="stmt" count="12"/>
+        <line num="50" type="stmt" count="12"/>
         <line num="55" type="method" name="getId" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="57" type="stmt" count="0"/>
         <line num="63" type="method" name="getComponents" visibility="public" complexity="1" crap="2" count="0"/>
@@ -989,17 +1056,17 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup" namespace="Silverback\ApiComponentBundle\Entity\Content" fullPackage="Silverback" package="Silverback">
           <metrics complexity="5" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="7" elements="11" coveredelements="9"/>
         </class>
-        <line num="30" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="10"/>
-        <line num="32" type="stmt" count="10"/>
-        <line num="33" type="stmt" count="10"/>
-        <line num="34" type="stmt" count="10"/>
+        <line num="30" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="12"/>
+        <line num="32" type="stmt" count="12"/>
+        <line num="33" type="stmt" count="12"/>
+        <line num="34" type="stmt" count="12"/>
         <line num="40" type="method" name="getParent" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="42" type="stmt" count="0"/>
-        <line num="49" type="method" name="setParent" visibility="public" complexity="3" crap="3" count="7"/>
-        <line num="51" type="stmt" count="7"/>
-        <line num="52" type="stmt" count="7"/>
-        <line num="54" type="stmt" count="7"/>
-        <line num="56" type="stmt" count="7"/>
+        <line num="49" type="method" name="setParent" visibility="public" complexity="3" crap="3" count="9"/>
+        <line num="51" type="stmt" count="9"/>
+        <line num="52" type="stmt" count="9"/>
+        <line num="54" type="stmt" count="9"/>
+        <line num="56" type="stmt" count="9"/>
         <metrics loc="57" ncloc="36" classes="1" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="7" elements="11" coveredelements="9"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/ComponentLocation.php">
@@ -1043,27 +1110,27 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Page" namespace="Silverback\ApiComponentBundle\Entity\Content" fullPackage="Silverback" package="Silverback">
           <metrics complexity="12" methods="8" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="0" elements="20" coveredelements="0"/>
         </class>
-        <line num="54" type="method" name="getTitle" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="56" type="stmt" count="0"/>
-        <line num="62" type="method" name="setTitle" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="53" type="method" name="getTitle" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="55" type="stmt" count="0"/>
+        <line num="61" type="method" name="setTitle" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="63" type="stmt" count="0"/>
         <line num="64" type="stmt" count="0"/>
-        <line num="65" type="stmt" count="0"/>
-        <line num="70" type="method" name="getMetaDescription" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="72" type="stmt" count="0"/>
-        <line num="78" type="method" name="setMetaDescription" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="69" type="method" name="getMetaDescription" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="71" type="stmt" count="0"/>
+        <line num="77" type="method" name="setMetaDescription" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="79" type="stmt" count="0"/>
         <line num="80" type="stmt" count="0"/>
-        <line num="81" type="stmt" count="0"/>
-        <line num="86" type="method" name="getParent" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="88" type="stmt" count="0"/>
-        <line num="94" type="method" name="setParent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="85" type="method" name="getParent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="87" type="stmt" count="0"/>
+        <line num="93" type="method" name="setParent" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="95" type="stmt" count="0"/>
         <line num="96" type="stmt" count="0"/>
-        <line num="97" type="stmt" count="0"/>
-        <line num="102" type="method" name="getLayout" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="104" type="stmt" count="0"/>
-        <line num="110" type="method" name="setLayout" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="101" type="method" name="getLayout" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="103" type="stmt" count="0"/>
+        <line num="109" type="method" name="setLayout" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="111" type="stmt" count="0"/>
         <line num="112" type="stmt" count="0"/>
-        <line num="113" type="stmt" count="0"/>
-        <metrics loc="114" ncloc="61" classes="1" methods="8" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="0" elements="20" coveredelements="0"/>
+        <metrics loc="113" ncloc="60" classes="1" methods="8" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="0" elements="20" coveredelements="0"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/ContentInterface.php">
@@ -1095,96 +1162,9 @@
         <metrics loc="85" ncloc="48" classes="1" methods="6" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="4" elements="15" coveredelements="6"/>
       </file>
     </package>
-    <package name="Silverback\ApiComponentBundle\Entity\Layout\NavBar">
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Layout/NavBar/NavBar.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar" namespace="Silverback\ApiComponentBundle\Entity\Layout\NavBar" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-        </class>
-        <metrics loc="19" ncloc="12" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-      </file>
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Layout/NavBar/NavBarItem.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBarItem" namespace="Silverback\ApiComponentBundle\Entity\Layout\NavBar" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-        </class>
-        <metrics loc="18" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-      </file>
-    </package>
-    <package name="Silverback\ApiComponentBundle\Entity\Navigation">
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/AbstractNavigation.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigation" namespace="Silverback\ApiComponentBundle\Entity\Navigation" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="7" methods="6" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="3" elements="19" coveredelements="4"/>
-        </class>
-        <line num="41" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2"/>
-        <line num="43" type="stmt" count="2"/>
-        <line num="44" type="stmt" count="2"/>
-        <line num="45" type="stmt" count="2"/>
-        <line num="47" type="method" name="getId" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="49" type="stmt" count="0"/>
-        <line num="52" type="method" name="getItems" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="54" type="stmt" count="0"/>
-        <line num="57" type="method" name="setItems" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="59" type="stmt" count="0"/>
-        <line num="60" type="stmt" count="0"/>
-        <line num="61" type="stmt" count="0"/>
-        <line num="63" type="stmt" count="0"/>
-        <line num="66" type="method" name="addItem" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="68" type="stmt" count="0"/>
-        <line num="69" type="stmt" count="0"/>
-        <line num="72" type="method" name="removeItem" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="74" type="stmt" count="0"/>
-        <line num="75" type="stmt" count="0"/>
-        <metrics loc="77" ncloc="53" classes="1" methods="6" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="3" elements="19" coveredelements="4"/>
-      </file>
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/AbstractNavigationItem.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Navigation\AbstractNavigationItem" namespace="Silverback\ApiComponentBundle\Entity\Navigation" fullPackage="Silverback" package="Silverback">
-          <metrics complexity="22" methods="13" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="21" coveredstatements="0" elements="34" coveredelements="0"/>
-        </class>
-        <line num="77" type="method" name="__construct" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="79" type="stmt" count="0"/>
-        <line num="80" type="stmt" count="0"/>
-        <line num="85" type="method" name="getId" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="87" type="stmt" count="0"/>
-        <line num="93" type="method" name="getNavigation" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="95" type="stmt" count="0"/>
-        <line num="102" type="method" name="setNavigation" visibility="public" complexity="4" crap="20" count="0"/>
-        <line num="104" type="stmt" count="0"/>
-        <line num="105" type="stmt" count="0"/>
-        <line num="106" type="stmt" count="0"/>
-        <line num="108" type="stmt" count="0"/>
-        <line num="114" type="method" name="getLabel" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="116" type="stmt" count="0"/>
-        <line num="123" type="method" name="setLabel" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="125" type="stmt" count="0"/>
-        <line num="126" type="stmt" count="0"/>
-        <line num="132" type="method" name="getRoute" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="134" type="stmt" count="0"/>
-        <line num="141" type="method" name="setRoute" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="143" type="stmt" count="0"/>
-        <line num="144" type="stmt" count="0"/>
-        <line num="150" type="method" name="getFragment" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="152" type="stmt" count="0"/>
-        <line num="159" type="method" name="setFragment" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="161" type="stmt" count="0"/>
-        <line num="162" type="stmt" count="0"/>
-        <line num="168" type="method" name="getChild" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="170" type="stmt" count="0"/>
-        <line num="177" type="method" name="setChild" visibility="public" complexity="2" crap="6" count="0"/>
-        <line num="179" type="stmt" count="0"/>
-        <line num="180" type="stmt" count="0"/>
-        <line num="186" type="method" name="getSortCollection" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="188" type="stmt" count="0"/>
-        <metrics loc="190" ncloc="100" classes="1" methods="13" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="21" coveredstatements="0" elements="34" coveredelements="0"/>
-      </file>
-    </package>
-    <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/NavigationInterface.php">
-      <metrics loc="34" ncloc="16" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
-    <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/NavigationItemInterface.php">
-      <metrics loc="67" ncloc="29" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
-    <package name="Silverback\ApiComponentBundle\Entity\Navigation\Route">
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/Route/Route.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route" namespace="Silverback\ApiComponentBundle\Entity\Navigation\Route" fullPackage="Silverback" package="Silverback">
+    <package name="Silverback\ApiComponentBundle\Entity\Route">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Route/Route.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Route\Route" namespace="Silverback\ApiComponentBundle\Entity\Route" fullPackage="Silverback" package="Silverback">
           <metrics complexity="12" methods="7" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="0" elements="18" coveredelements="0"/>
         </class>
         <line num="50" type="method" name="__construct" visibility="public" complexity="2" crap="6" count="0"/>
@@ -1207,8 +1187,8 @@
         <line num="101" type="stmt" count="0"/>
         <metrics loc="102" ncloc="53" classes="1" methods="7" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="0" elements="18" coveredelements="0"/>
       </file>
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/Route/RouteAwareTrait.php">
-        <class name="RouteAwareTrait" namespace="Silverback\ApiComponentBundle\Entity\Navigation\Route">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Route/RouteAwareTrait.php">
+        <class name="RouteAwareTrait" namespace="Silverback\ApiComponentBundle\Entity\Route">
           <metrics complexity="2" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="0" elements="6" coveredelements="0"/>
         </class>
         <line num="22" type="method" name="addRoute" visibility="public" complexity="1" crap="2" count="0"/>
@@ -1220,7 +1200,7 @@
         <metrics loc="37" ncloc="24" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="0" elements="6" coveredelements="0"/>
       </file>
     </package>
-    <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Navigation/Route/RouteAwareInterface.php">
+    <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Route/RouteAwareInterface.php">
       <metrics loc="18" ncloc="10" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
     </file>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/SortableInterface.php">
@@ -1251,27 +1231,27 @@
         <class name="ValidComponentTrait" namespace="Silverback\ApiComponentBundle\Entity">
           <metrics complexity="9" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="16" elements="21" coveredelements="21"/>
         </class>
-        <line num="19" type="method" name="initValidComponents" visibility="private" complexity="2" crap="2" count="10"/>
-        <line num="21" type="stmt" count="10"/>
+        <line num="19" type="method" name="initValidComponents" visibility="private" complexity="2" crap="2" count="12"/>
+        <line num="21" type="stmt" count="12"/>
         <line num="22" type="stmt" count="3"/>
-        <line num="24" type="stmt" count="10"/>
-        <line num="30" type="method" name="getValidComponents" visibility="public" complexity="1" crap="1" count="10"/>
-        <line num="32" type="stmt" count="10"/>
-        <line num="33" type="stmt" count="10"/>
-        <line num="40" type="method" name="addValidComponent" visibility="public" complexity="2" crap="2" count="10"/>
-        <line num="42" type="stmt" count="10"/>
-        <line num="43" type="stmt" count="10"/>
-        <line num="44" type="stmt" count="10"/>
-        <line num="46" type="stmt" count="10"/>
+        <line num="24" type="stmt" count="12"/>
+        <line num="30" type="method" name="getValidComponents" visibility="public" complexity="1" crap="1" count="12"/>
+        <line num="32" type="stmt" count="12"/>
+        <line num="33" type="stmt" count="12"/>
+        <line num="40" type="method" name="addValidComponent" visibility="public" complexity="2" crap="2" count="12"/>
+        <line num="42" type="stmt" count="12"/>
+        <line num="43" type="stmt" count="12"/>
+        <line num="44" type="stmt" count="12"/>
+        <line num="46" type="stmt" count="12"/>
         <line num="53" type="method" name="removeValidComponent" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="55" type="stmt" count="1"/>
         <line num="56" type="stmt" count="1"/>
         <line num="57" type="stmt" count="1"/>
-        <line num="64" type="method" name="cascadeValidComponents" visibility="protected" complexity="3" crap="3" count="9"/>
-        <line num="66" type="stmt" count="9"/>
-        <line num="67" type="stmt" count="9"/>
-        <line num="68" type="stmt" count="9"/>
-        <line num="70" type="stmt" count="9"/>
+        <line num="64" type="method" name="cascadeValidComponents" visibility="protected" complexity="3" crap="3" count="11"/>
+        <line num="66" type="stmt" count="11"/>
+        <line num="67" type="stmt" count="11"/>
+        <line num="68" type="stmt" count="11"/>
+        <line num="70" type="stmt" count="11"/>
         <metrics loc="71" ncloc="51" classes="1" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="16" elements="21" coveredelements="21"/>
       </file>
     </package>
@@ -1368,36 +1348,36 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component">
           <metrics complexity="14" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="21" coveredstatements="20" elements="27" coveredelements="25"/>
         </class>
-        <line num="33" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="31"/>
+        <line num="32" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="31"/>
+        <line num="36" type="stmt" count="31"/>
         <line num="37" type="stmt" count="31"/>
         <line num="38" type="stmt" count="31"/>
-        <line num="39" type="stmt" count="31"/>
-        <line num="46" type="method" name="init" visibility="protected" complexity="2" crap="2" count="16"/>
+        <line num="45" type="method" name="init" visibility="protected" complexity="2" crap="2" count="16"/>
+        <line num="47" type="stmt" count="16"/>
         <line num="48" type="stmt" count="16"/>
         <line num="49" type="stmt" count="16"/>
         <line num="50" type="stmt" count="16"/>
-        <line num="51" type="stmt" count="16"/>
-        <line num="57" type="method" name="setOptions" visibility="protected" complexity="4" crap="4" count="17"/>
-        <line num="59" type="stmt" count="17"/>
-        <line num="60" type="stmt" count="2"/>
+        <line num="56" type="method" name="setOptions" visibility="protected" complexity="4" crap="4" count="17"/>
+        <line num="58" type="stmt" count="17"/>
+        <line num="59" type="stmt" count="2"/>
+        <line num="61" type="stmt" count="17"/>
         <line num="62" type="stmt" count="17"/>
-        <line num="63" type="stmt" count="17"/>
-        <line num="64" type="method" name="anonymousFunction:64#281" complexity="2" crap="2" count="17"/>
-        <line num="65" type="stmt" count="17"/>
+        <line num="63" type="method" name="anonymousFunction:63#268" complexity="2" crap="2" count="17"/>
+        <line num="64" type="stmt" count="17"/>
+        <line num="65" type="stmt" count="1"/>
         <line num="66" type="stmt" count="1"/>
-        <line num="67" type="stmt" count="1"/>
+        <line num="69" type="stmt" count="17"/>
         <line num="70" type="stmt" count="17"/>
         <line num="71" type="stmt" count="17"/>
-        <line num="72" type="stmt" count="17"/>
-        <line num="74" type="stmt" count="16"/>
-        <line num="81" type="method" name="validate" visibility="protected" complexity="2" crap="2.06" count="14"/>
+        <line num="73" type="stmt" count="16"/>
+        <line num="80" type="method" name="validate" visibility="protected" complexity="2" crap="2.06" count="14"/>
+        <line num="82" type="stmt" count="14"/>
         <line num="83" type="stmt" count="14"/>
-        <line num="84" type="stmt" count="14"/>
-        <line num="85" type="stmt" count="0"/>
-        <line num="87" type="stmt" count="14"/>
-        <line num="93" type="method" name="defaultOps" visibility="protected" complexity="1" crap="1" count="31"/>
-        <line num="96" type="stmt" count="31"/>
-        <metrics loc="104" ncloc="71" classes="1" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="23" coveredstatements="22" elements="29" coveredelements="27"/>
+        <line num="84" type="stmt" count="0"/>
+        <line num="86" type="stmt" count="14"/>
+        <line num="92" type="method" name="defaultOps" visibility="protected" complexity="1" crap="1" count="31"/>
+        <line num="95" type="stmt" count="31"/>
+        <metrics loc="103" ncloc="70" classes="1" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="23" coveredstatements="22" elements="29" coveredelements="27"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Component\Article">
@@ -1405,7 +1385,8 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Article\ArticleFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Article">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="11" elements="13" coveredelements="13"/>
         </class>
-        <line num="17" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="16" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
         <line num="20" type="stmt" count="2"/>
         <line num="21" type="stmt" count="2"/>
@@ -1413,12 +1394,11 @@
         <line num="23" type="stmt" count="2"/>
         <line num="24" type="stmt" count="2"/>
         <line num="25" type="stmt" count="2"/>
-        <line num="26" type="stmt" count="2"/>
-        <line num="32" type="method" name="defaultOps" visibility="protected" complexity="1" crap="1" count="3"/>
+        <line num="31" type="method" name="defaultOps" visibility="protected" complexity="1" crap="1" count="3"/>
+        <line num="33" type="stmt" count="3"/>
         <line num="34" type="stmt" count="3"/>
-        <line num="35" type="stmt" count="3"/>
-        <line num="37" type="stmt" count="3"/>
-        <metrics loc="44" ncloc="35" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="11" elements="13" coveredelements="13"/>
+        <line num="36" type="stmt" count="3"/>
+        <metrics loc="43" ncloc="34" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="11" elements="13" coveredelements="13"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/ComponentFactoryInterface.php">
@@ -1429,38 +1409,38 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Content\ContentFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Content">
           <metrics complexity="8" methods="5" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="20" elements="31" coveredelements="24"/>
         </class>
-        <line num="23" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="22" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="27" type="stmt" count="4"/>
         <line num="28" type="stmt" count="4"/>
         <line num="29" type="stmt" count="4"/>
-        <line num="30" type="stmt" count="4"/>
-        <line num="35" type="method" name="getGuzzleOps" visibility="private" complexity="1" crap="1" count="1"/>
-        <line num="38" type="stmt" count="1"/>
-        <line num="47" type="method" name="getLipsumContent" visibility="private" complexity="2" crap="2.50" count="1"/>
-        <line num="49" type="stmt" count="1"/>
+        <line num="34" type="method" name="getGuzzleOps" visibility="private" complexity="1" crap="1" count="1"/>
+        <line num="37" type="stmt" count="1"/>
+        <line num="46" type="method" name="getLipsumContent" visibility="private" complexity="2" crap="2.50" count="1"/>
+        <line num="48" type="stmt" count="1"/>
+        <line num="50" type="stmt" count="1"/>
         <line num="51" type="stmt" count="1"/>
         <line num="52" type="stmt" count="1"/>
         <line num="53" type="stmt" count="1"/>
-        <line num="54" type="stmt" count="1"/>
-        <line num="56" type="stmt" count="1"/>
+        <line num="55" type="stmt" count="1"/>
+        <line num="56" type="stmt" count="0"/>
         <line num="57" type="stmt" count="0"/>
         <line num="58" type="stmt" count="0"/>
-        <line num="59" type="stmt" count="0"/>
+        <line num="60" type="stmt" count="0"/>
         <line num="61" type="stmt" count="0"/>
         <line num="62" type="stmt" count="0"/>
-        <line num="63" type="stmt" count="0"/>
-        <line num="72" type="method" name="create" visibility="public" complexity="3" crap="3" count="3"/>
+        <line num="71" type="method" name="create" visibility="public" complexity="3" crap="3" count="3"/>
+        <line num="73" type="stmt" count="3"/>
         <line num="74" type="stmt" count="3"/>
-        <line num="75" type="stmt" count="3"/>
-        <line num="77" type="stmt" count="3"/>
-        <line num="78" type="stmt" count="2"/>
-        <line num="80" type="stmt" count="1"/>
-        <line num="82" type="stmt" count="3"/>
-        <line num="84" type="stmt" count="3"/>
-        <line num="90" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="76" type="stmt" count="3"/>
+        <line num="77" type="stmt" count="2"/>
+        <line num="79" type="stmt" count="1"/>
+        <line num="81" type="stmt" count="3"/>
+        <line num="83" type="stmt" count="3"/>
+        <line num="89" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="91" type="stmt" count="4"/>
         <line num="92" type="stmt" count="4"/>
-        <line num="93" type="stmt" count="4"/>
-        <line num="95" type="stmt" count="4"/>
-        <metrics loc="100" ncloc="82" classes="1" methods="5" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="20" elements="31" coveredelements="24"/>
+        <line num="94" type="stmt" count="4"/>
+        <metrics loc="99" ncloc="81" classes="1" methods="5" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="20" elements="31" coveredelements="24"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature">
@@ -1485,19 +1465,19 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns\FeatureColumnsFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns">
           <metrics complexity="4" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
         </class>
-        <line num="14" type="method" name="create" visibility="public" complexity="3" crap="3" count="2"/>
+        <line num="13" type="method" name="create" visibility="public" complexity="3" crap="3" count="2"/>
+        <line num="15" type="stmt" count="2"/>
         <line num="16" type="stmt" count="2"/>
         <line num="17" type="stmt" count="2"/>
         <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
-        <line num="20" type="stmt" count="2"/>
+        <line num="21" type="stmt" count="2"/>
         <line num="22" type="stmt" count="2"/>
-        <line num="23" type="stmt" count="2"/>
-        <line num="29" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="28" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="30" type="stmt" count="3"/>
         <line num="31" type="stmt" count="3"/>
-        <line num="32" type="stmt" count="3"/>
-        <line num="34" type="stmt" count="3"/>
-        <metrics loc="39" ncloc="33" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
+        <line num="33" type="stmt" count="3"/>
+        <metrics loc="38" ncloc="32" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/Feature/Columns/FeatureColumnsItemFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns\FeatureColumnsItemFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns">
@@ -1521,35 +1501,35 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Stacked\FeatureStackedFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Stacked">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
         </class>
-        <line num="14" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="13" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="15" type="stmt" count="2"/>
         <line num="16" type="stmt" count="2"/>
         <line num="17" type="stmt" count="2"/>
         <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
-        <line num="20" type="stmt" count="2"/>
-        <line num="26" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="25" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="27" type="stmt" count="3"/>
         <line num="28" type="stmt" count="3"/>
-        <line num="29" type="stmt" count="3"/>
-        <line num="31" type="stmt" count="3"/>
-        <metrics loc="35" ncloc="29" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
+        <line num="30" type="stmt" count="3"/>
+        <metrics loc="34" ncloc="28" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/Feature/Stacked/FeatureStackedItemFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Stacked\FeatureStackedItemFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Stacked">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
         </class>
-        <line num="14" type="method" name="create" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="13" type="method" name="create" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="15" type="stmt" count="1"/>
         <line num="16" type="stmt" count="1"/>
         <line num="17" type="stmt" count="1"/>
         <line num="18" type="stmt" count="1"/>
         <line num="19" type="stmt" count="1"/>
         <line num="20" type="stmt" count="1"/>
         <line num="21" type="stmt" count="1"/>
-        <line num="22" type="stmt" count="1"/>
-        <line num="28" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="2"/>
+        <line num="27" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="2"/>
+        <line num="29" type="stmt" count="2"/>
         <line num="30" type="stmt" count="2"/>
-        <line num="31" type="stmt" count="2"/>
-        <line num="33" type="stmt" count="2"/>
-        <metrics loc="39" ncloc="33" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
+        <line num="32" type="stmt" count="2"/>
+        <metrics loc="38" ncloc="32" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList">
@@ -1557,28 +1537,28 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList\FeatureTextListFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
         </class>
-        <line num="14" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="13" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="15" type="stmt" count="2"/>
         <line num="16" type="stmt" count="2"/>
         <line num="17" type="stmt" count="2"/>
         <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
-        <line num="20" type="stmt" count="2"/>
-        <line num="26" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="25" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="27" type="stmt" count="3"/>
         <line num="28" type="stmt" count="3"/>
-        <line num="29" type="stmt" count="3"/>
-        <line num="31" type="stmt" count="3"/>
-        <metrics loc="35" ncloc="29" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
+        <line num="30" type="stmt" count="3"/>
+        <metrics loc="34" ncloc="28" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="8" elements="10" coveredelements="10"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/Feature/TextList/FeatureTextListItemFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList\FeatureTextListItemFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList">
           <metrics complexity="2" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
         </class>
-        <line num="14" type="method" name="create" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="13" type="method" name="create" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="15" type="stmt" count="1"/>
         <line num="16" type="stmt" count="1"/>
         <line num="17" type="stmt" count="1"/>
         <line num="18" type="stmt" count="1"/>
-        <line num="19" type="stmt" count="1"/>
-        <metrics loc="21" ncloc="18" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
+        <metrics loc="20" ncloc="17" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Component\Form">
@@ -1586,18 +1566,18 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Form">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
         </class>
-        <line num="17" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="16" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
         <line num="20" type="stmt" count="2"/>
         <line num="21" type="stmt" count="2"/>
         <line num="22" type="stmt" count="2"/>
         <line num="23" type="stmt" count="2"/>
-        <line num="24" type="stmt" count="2"/>
-        <line num="30" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="29" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="31" type="stmt" count="3"/>
         <line num="32" type="stmt" count="3"/>
-        <line num="33" type="stmt" count="3"/>
-        <line num="35" type="stmt" count="3"/>
-        <metrics loc="40" ncloc="31" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
+        <line num="34" type="stmt" count="3"/>
+        <metrics loc="39" ncloc="30" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/Form/FormViewFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Form">
@@ -1648,19 +1628,36 @@
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Hero\HeroFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Hero">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
         </class>
-        <line num="17" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="16" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="18" type="stmt" count="2"/>
         <line num="19" type="stmt" count="2"/>
         <line num="20" type="stmt" count="2"/>
         <line num="21" type="stmt" count="2"/>
         <line num="22" type="stmt" count="2"/>
         <line num="23" type="stmt" count="2"/>
         <line num="24" type="stmt" count="2"/>
-        <line num="25" type="stmt" count="2"/>
-        <line num="31" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="30" type="method" name="defaultOps" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="32" type="stmt" count="3"/>
         <line num="33" type="stmt" count="3"/>
-        <line num="34" type="stmt" count="3"/>
-        <line num="36" type="stmt" count="3"/>
-        <metrics loc="42" ncloc="33" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
+        <line num="35" type="stmt" count="3"/>
+        <metrics loc="41" ncloc="32" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
+      </file>
+    </package>
+    <package name="Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Component/Navigation/Menu/MenuFactory.php">
+        <class name="Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu\MenuFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu">
+          <metrics complexity="3" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
+        </class>
+        <line num="16" type="method" name="create" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="18" type="stmt" count="0"/>
+        <line num="19" type="stmt" count="0"/>
+        <line num="20" type="stmt" count="0"/>
+        <line num="21" type="stmt" count="0"/>
+        <line num="27" type="method" name="defaultOps" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="29" type="stmt" count="0"/>
+        <line num="30" type="stmt" count="0"/>
+        <line num="32" type="stmt" count="0"/>
+        <metrics loc="38" ncloc="29" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Form">
@@ -2087,6 +2084,6 @@
         <metrics loc="51" ncloc="46" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="6" elements="18" coveredelements="7"/>
       </file>
     </package>
-    <metrics files="104" loc="5879" ncloc="4109" classes="76" methods="285" coveredmethods="144" conditionals="0" coveredconditionals="0" statements="1119" coveredstatements="566" elements="1404" coveredelements="710"/>
+    <metrics files="104" loc="5724" ncloc="4041" classes="79" methods="280" coveredmethods="144" conditionals="0" coveredconditionals="0" statements="1116" coveredstatements="567" elements="1396" coveredelements="711"/>
   </project>
 </coverage>

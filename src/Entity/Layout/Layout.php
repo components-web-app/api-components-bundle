@@ -31,7 +31,7 @@ class Layout
     private $default = false;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\NavBar\NavBar")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar")
      * @ORM\JoinColumn(onDelete="SET NULL")
      * @Groups({"layout", "default"})
      * @var null|NavBar

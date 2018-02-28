@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Navigation;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
-use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -23,7 +22,7 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
     protected $label;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Navigation\Route\Route")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
      * @ORM\JoinColumn(referencedColumnName="route")
      * @Groups({"layout", "component", "component_item"})
      * @var null|Route

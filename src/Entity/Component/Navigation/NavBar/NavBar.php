@@ -8,8 +8,6 @@ use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 /**
- * Class NavBar
- * @package Silverback\ApiComponentBundle\Entity\Layout\NavBar
  * @author Daniel West <daniel@silverback.is
  * @ApiResource()
  * @ORM\Entity()
