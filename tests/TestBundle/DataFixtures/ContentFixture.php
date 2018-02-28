@@ -11,7 +11,9 @@ use Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Columns\Featu
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\Stacked\FeatureStackedFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Feature\TextList\FeatureTextListFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormFactory;
-use Silverback\ApiComponentBundle\Factory\Entity\Component\Item\GalleryItemFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Gallery\GalleryFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Gallery\GalleryItemFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Hero\HeroFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 
@@ -44,6 +46,18 @@ class ContentFixture extends AbstractFixture
      */
     private $featureTextListFactory;
     /**
+     * @var GalleryFactory
+     */
+    private $galleryFactory;
+    /**
+     * @var GalleryItemFactory
+     */
+    private $galleryItemFactory;
+    /**
+     * @var HeroFactory
+     */
+    private $heroFactory;
+    /**
      * @var string
      */
     private $projectDirectory;
@@ -55,6 +69,9 @@ class ContentFixture extends AbstractFixture
         FeatureStackedFactory $featureStackedFactory,
         FeatureTextListFactory $featureTextListFactory,
         FormFactory $formFactory,
+        GalleryFactory $galleryFactory,
+        GalleryItemFactory $galleryItemFactory,
+        HeroFactory $heroFactory,
         string $projectDirectory
     ) {
         $this->articleFactory = $articleFactory;
@@ -63,6 +80,9 @@ class ContentFixture extends AbstractFixture
         $this->featureStackedFactory = $featureStackedFactory;
         $this->featureTextListFactory = $featureTextListFactory;
         $this->formFactory = $formFactory;
+        $this->galleryFactory = $galleryFactory;
+        $this->galleryItemFactory = $galleryItemFactory;
+        $this->heroFactory = $heroFactory;
         $this->projectDirectory = $projectDirectory;
     }
 
@@ -74,8 +94,9 @@ class ContentFixture extends AbstractFixture
         $manager->persist($this->createFeatureStacked());
         $manager->persist($this->createFeatureTextList());
         $manager->persist($this->createForm());
-        $gallery = new Gallery();
-        $manager->persist($gallery);
+        $manager->persist($this->createGallery());
+        $manager->persist($this->createGalleryItem());
+        $manager->persist($this->createHero());
 
         $manager->flush();
     }
@@ -135,6 +156,33 @@ class ContentFixture extends AbstractFixture
         return $this->featureTextListFactory->create(
             [
                 'title' => 'Text list features title'
+            ]
+        );
+    }
+
+    private function createGallery()
+    {
+        return $this->galleryFactory->create();
+    }
+
+    private function createGalleryItem()
+    {
+        return $this->galleryItemFactory->create(
+            [
+                'title' => 'Gallery Item Title',
+                'caption' => 'Item Caption',
+                'filePath' => '/public/images/testImage.jpg'
+            ]
+        );
+    }
+
+    private function createHero()
+    {
+        return $this->heroFactory->create(
+            [
+                'title' => 'Hero Title',
+                'subtitle' => 'Hero Subtitle',
+                'tabs' => null
             ]
         );
     }
