@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureColumns
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureHorizontal
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(shortName="Component/FeatureColumns")
  * @ORM\Entity()
  */
 class FeatureColumns extends AbstractFeature

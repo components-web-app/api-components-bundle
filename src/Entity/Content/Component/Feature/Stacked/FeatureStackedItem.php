@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(shortName="Component/FeatureStackedItem")
  * @ORM\Entity()
  */
 class FeatureStackedItem extends AbstractFeatureItem
