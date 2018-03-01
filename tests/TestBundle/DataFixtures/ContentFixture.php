@@ -13,6 +13,12 @@ use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Gallery\GalleryFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Gallery\GalleryItemFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Component\Hero\HeroFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu\MenuFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Menu\MenuItemFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\NavBar\NavBarFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\NavBar\NavBarItemFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Tabs\TabsFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Component\Navigation\Tabs\TabsItemFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 
@@ -57,6 +63,31 @@ class ContentFixture extends AbstractFixture
      */
     private $heroFactory;
     /**
+     * @var MenuFactory
+     */
+    private $menuFactory;
+    /**
+     * @var MenuItemFactory
+     */
+    private $menuItemFactory;
+    /**
+     * @var NavBarFactory
+     */
+    private $navBarFactory;
+    /**
+     * @var NavBarItemFactory
+     */
+    private $navBarItemFactory;
+    /**
+     * @var TabsFactory
+     */
+    private $tabsFactory;
+    /**
+     * @var TabsItemFactory
+     */
+    private $tabsItemFactory;
+
+    /**
      * @var string
      */
     private $projectDirectory;
@@ -71,6 +102,12 @@ class ContentFixture extends AbstractFixture
         GalleryFactory $galleryFactory,
         GalleryItemFactory $galleryItemFactory,
         HeroFactory $heroFactory,
+        MenuFactory $menuFactory,
+        MenuItemFactory $menuItemFactory,
+        NavBarFactory $navBarFactory,
+        NavBarItemFactory $navBarItemFactory,
+        TabsFactory $tabsFactory,
+        TabsItemFactory $tabsItemFactory,
         string $projectDirectory
     ) {
         $this->articleFactory = $articleFactory;
@@ -82,6 +119,12 @@ class ContentFixture extends AbstractFixture
         $this->galleryFactory = $galleryFactory;
         $this->galleryItemFactory = $galleryItemFactory;
         $this->heroFactory = $heroFactory;
+        $this->menuFactory = $menuFactory;
+        $this->menuItemFactory = $menuItemFactory;
+        $this->navBarFactory = $navBarFactory;
+        $this->navBarItemFactory = $navBarItemFactory;
+        $this->tabsFactory = $tabsFactory;
+        $this->tabsItemFactory = $tabsItemFactory;
         $this->projectDirectory = $projectDirectory;
     }
 
@@ -96,6 +139,12 @@ class ContentFixture extends AbstractFixture
         $manager->persist($this->createGallery());
         $manager->persist($this->createGalleryItem());
         $manager->persist($this->createHero());
+        $manager->persist($this->createMenu());
+        $manager->persist($this->createMenuItem());
+        $manager->persist($this->createNavBar());
+        $manager->persist($this->createNavBarItem());
+        $manager->persist($this->createTabs());
+        $manager->persist($this->createTabsItem());
 
         $manager->flush();
     }
@@ -182,6 +231,49 @@ class ContentFixture extends AbstractFixture
                 'title' => 'Hero Title',
                 'subtitle' => 'Hero Subtitle',
                 'tabs' => null
+            ]
+        );
+    }
+
+    private function createMenu()
+    {
+        return $this->menuFactory->create();
+    }
+
+    private function createMenuItem()
+    {
+        return $this->menuItemFactory->create(
+            [
+                'label' => 'Dummy label',
+                'menuLabel' => false
+            ]
+        );
+    }
+
+    private function createNavBar()
+    {
+        return $this->navBarFactory->create();
+    }
+
+    private function createNavBarItem()
+    {
+        return $this->navBarItemFactory->create(
+            [
+                'label' => 'Dummy label'
+            ]
+        );
+    }
+
+    private function createTabs()
+    {
+        return $this->tabsFactory->create();
+    }
+
+    private function createTabsItem()
+    {
+        return $this->tabsItemFactory->create(
+            [
+                'label' => 'Dummy label'
             ]
         );
     }
