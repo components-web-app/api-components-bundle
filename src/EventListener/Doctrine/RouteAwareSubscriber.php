@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
+use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -9,7 +10,11 @@ use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory;
 
-class RouteAwareSubscriber
+/**
+ *
+ * @author Daniel West <daniel@silverback.is>
+ */
+class RouteAwareSubscriber implements EventSubscriber
 {
     /**
      * @var RouteFactory
