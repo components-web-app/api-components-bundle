@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Tests\Functional\Console;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Silverback\ApiComponentBundle\Command\LoadFixturesCommand;
-use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\ContentFixture;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 use Symfony\Bundle\FrameworkBundle\Console\Application;

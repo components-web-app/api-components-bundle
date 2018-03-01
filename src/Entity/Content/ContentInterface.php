@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\Common\Collections\Collection;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 
 /**

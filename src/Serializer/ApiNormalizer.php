@@ -3,10 +3,10 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Factory\Entity\Component\Form\FormViewFactory;
+use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;

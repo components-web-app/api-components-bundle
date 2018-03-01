@@ -34,7 +34,7 @@
         />
         <field name="className" nullable="true" />
         <one-to-many field="locations"
-                      target-entity="Silverback\ApiComponentBundle\Entity\Content\ComponentLocation"
+                      target-entity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation"
                       mapped-by="component"
         />
         <one-to-many field="componentGroups"

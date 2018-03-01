@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation as ComponentLocationEntity;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation as ComponentLocationEntity;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;

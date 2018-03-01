@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Form;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;

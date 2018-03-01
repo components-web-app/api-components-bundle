@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Layout;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -31,7 +31,7 @@ class Layout
     private $default = false;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar")
      * @ORM\JoinColumn(onDelete="SET NULL")
      * @Groups({"layout", "default"})
      * @var null|NavBar

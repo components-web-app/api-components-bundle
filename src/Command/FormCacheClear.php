@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

@@ -40,9 +40,9 @@ final class SwaggerDecorator implements NormalizerInterface
             ]
         ];
         $patchOp['responses'] = $docs['paths']['/forms/{id}']['get']['responses'];
-        $patchOp['responses']['200']['description'] = "Validation passed successfully";
+        $patchOp['responses']['200']['description'] = 'Validation passed successfully';
         $patchOp['responses']['400'] = [
-            'description' => "Validation failed",
+            'description' => 'Validation failed',
             'schema' => [
                 '$ref' => '#/definitions/Form-page'
             ]

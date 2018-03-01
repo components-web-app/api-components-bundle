@@ -5,10 +5,10 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Validator\Contraints;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\Component\Article\Article;
-use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation as ComponentLocationEntity;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Content\ComponentLocation as ComponentLocationEntity;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocation;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
@@ -30,7 +30,7 @@ class ComponentLocationValidatorTest extends TestCase
      */
     private $constraint;
     /**
-     * @var MockObject|ComponentLocationEntity
+     * @var MockObject|\Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocationEntity
      */
     private $entity;
     /**

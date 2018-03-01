@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\TestBundle\Form;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 
 class TestHandler implements FormHandlerInterface

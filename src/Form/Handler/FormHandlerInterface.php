@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 
 interface FormHandlerInterface
 {

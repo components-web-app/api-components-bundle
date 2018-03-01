@@ -6,14 +6,27 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Factory\Entity\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class AbstractFactory extends TestCase
 {
     /**
-     * @var MockObject|AbstractComponentFactory
+     * @var array|string[][]
+     */
+    private $presetOptions = [
+        'component' => [
+            'className'
+        ]
+    ];
+
+    /**
+     * @var array
+     */
+    protected $presets = [];
+
+    /**
+     * @var MockObject|\Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory
      */
     protected $factory;
     /**
@@ -111,7 +124,14 @@ abstract class AbstractFactory extends TestCase
         $method->setAccessible(true);
         $defaultOps = $method->invoke($this->factory);
         $ops = array_keys($this->testOps);
-        array_unshift($ops, 'className');
+        foreach ($this->presets as $presetKey) {
+            foreach ($this->presetOptions[$presetKey] as $presetOp) {
+                array_unshift($ops, $presetOp);
+            }
+        }
+        if (!\count($ops)) {
+            $this->assertEquals([], $defaultOps);
+        }
         foreach ($ops as $key) {
             $this->assertArrayHasKey($key, $defaultOps);
         }
