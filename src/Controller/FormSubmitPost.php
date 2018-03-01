@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
-class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
+class FormSubmitPost extends AbstractForm
 {
     /**
      * @var iterable|FormHandlerInterface[]
@@ -35,7 +35,7 @@ class FormSubmitPost extends AbstractForm implements ServiceSubscriberInterface
     /**
      * @Route(
      *     name="silverback_api_component_form_submit",
-     *     path="/component/forms/{id}/submit.{_format}",
+     *     path="/forms/{id}/submit.{_format}",
      *     requirements={"id"="[^/]+"},
      *     defaults={
      *         "_api_resource_class"=Form::class,

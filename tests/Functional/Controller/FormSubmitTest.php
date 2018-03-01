@@ -44,7 +44,7 @@ class FormSubmitTest extends WebTestCase
         $fixture = $container->get(FormFixture::class);
         $fixture->load($entityManager);
         $form = $entityManager->getRepository(Form::class)->findOneBy([]);
-        self::$formRoute = sprintf('/component/forms/%s/submit', $form->getId());
+        self::$formRoute = sprintf('/forms/%s/submit', $form->getId());
     }
 
     public function test_patch_form_fail()
