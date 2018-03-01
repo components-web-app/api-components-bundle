@@ -4,7 +4,15 @@ namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Article\ArticleFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\ComponentLocationFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Content\ContentFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Columns\FeatureColumnsFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked\FeatureStackedFactory;
@@ -19,6 +27,10 @@ use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Na
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\NavBar\NavBarItemFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Tabs\TabsFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Tabs\TabsItemFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\ComponentGroupFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Layout\LayoutFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 
@@ -86,6 +98,26 @@ class ContentFixture extends AbstractFixture
      * @var TabsItemFactory
      */
     private $tabsItemFactory;
+    /**
+     * @var ComponentLocationFactory
+     */
+    private $componentLocationFactory;
+    /**
+     * @var ComponentGroupFactory
+     */
+    private $componentGroupFactory;
+    /**
+     * @var PageFactory
+     */
+    private $pageFactory;
+    /**
+     * @var LayoutFactory
+     */
+    private $layoutFactory;
+    /**
+     * @var RouteFactory
+     */
+    private $routeFactory;
 
     /**
      * @var string
@@ -108,6 +140,11 @@ class ContentFixture extends AbstractFixture
         NavBarItemFactory $navBarItemFactory,
         TabsFactory $tabsFactory,
         TabsItemFactory $tabsItemFactory,
+        ComponentLocationFactory $componentLocationFactory,
+        ComponentGroupFactory $componentGroupFactory,
+        PageFactory $pageFactory,
+        LayoutFactory $layoutFactory,
+        RouteFactory $routeFactory,
         string $projectDirectory
     ) {
         $this->articleFactory = $articleFactory;
@@ -125,12 +162,18 @@ class ContentFixture extends AbstractFixture
         $this->navBarItemFactory = $navBarItemFactory;
         $this->tabsFactory = $tabsFactory;
         $this->tabsItemFactory = $tabsItemFactory;
+        $this->componentLocationFactory = $componentLocationFactory;
+        $this->componentGroupFactory = $componentGroupFactory;
+        $this->pageFactory = $pageFactory;
+        $this->layoutFactory = $layoutFactory;
+        $this->routeFactory = $routeFactory;
         $this->projectDirectory = $projectDirectory;
     }
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createArticle());
+        $article = $this->createArticle();
+        $manager->persist($article);
         $manager->persist($this->createContent());
         $manager->persist($this->createFeatureColumns());
         $manager->persist($this->createFeatureStacked());
@@ -146,6 +189,17 @@ class ContentFixture extends AbstractFixture
         $manager->persist($this->createTabs());
         $manager->persist($this->createTabsItem());
 
+        $layout = $this->createLayout();
+        $manager->persist($layout);
+        $parentPage = $this->createPage();
+        $manager->persist($parentPage);
+        $childPage = $this->createPage($parentPage, $layout);
+        $manager->persist($childPage);
+
+        $manager->persist($this->createComponentLocation($article, $childPage));
+        $manager->persist($this->createComponentGroup($article));
+
+        $manager->persist($this->createRoute('/child', $childPage));
         $manager->flush();
     }
 
@@ -274,6 +328,58 @@ class ContentFixture extends AbstractFixture
         return $this->tabsItemFactory->create(
             [
                 'label' => 'Dummy label'
+            ]
+        );
+    }
+
+    private function createComponentLocation(AbstractComponent $component, AbstractContent $content)
+    {
+        return $this->componentLocationFactory->create(
+            [
+                'component' => $component,
+                'content' => $content
+            ]
+        );
+    }
+
+    private function createComponentGroup(AbstractComponent $component)
+    {
+        return $this->componentGroupFactory->create(
+            [
+                'parent' => $component
+            ]
+        );
+    }
+
+    private function createPage(Page $page = null, Layout $layout = null)
+    {
+        return $this->pageFactory->create(
+            [
+                'title' => 'Page title',
+                'metaDescription' => 'Meta description',
+                'parent' => $page,
+                'layout' => $layout
+            ]
+        );
+    }
+
+    private function createLayout(bool $default = false, NavBar $navBar = null)
+    {
+        return $this->layoutFactory->create(
+            [
+                'default' => $default,
+                'navBar' => $navBar
+            ]
+        );
+    }
+
+    private function createRoute(string $route, RouteAwareInterface $content, Route $redirect = null)
+    {
+        return $this->routeFactory->create(
+            [
+                'route' => $route,
+                'content' => $content,
+                'redirect' => $redirect
             ]
         );
     }

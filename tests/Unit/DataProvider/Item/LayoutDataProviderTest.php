@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\DataProvider;
+namespace Silverback\ApiComponentBundle\Tests\Unit\DataProvider\Item;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectManager;
