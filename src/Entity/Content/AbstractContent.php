@@ -42,7 +42,6 @@ abstract class AbstractContent implements ContentInterface
 
     public function __construct()
     {
-        $this->routes = new ArrayCollection;
         $this->id = Uuid::uuid4()->getHex();
         $this->components = new ArrayCollection;
     }

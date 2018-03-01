@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
@@ -50,6 +51,12 @@ class Page extends AbstractContent implements RouteAwareInterface
      * @var Layout|null
      */
     private $layout;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->routes = new ArrayCollection;
+    }
 
     /**
      * @return string

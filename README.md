@@ -30,5 +30,8 @@ More documentation will be added as the bundle is developed and the BW Starter W
 ## Factories
 Every entity has a factory which can be used to create the entity. Options are passed to a factory as an array and an exception thrown if an unsupported key is defined. Entities are also validated when created with a factory, with an exception thrown if validation fails.
 
+## Contributing
+Contributions are welcome - even if it is just writing a test for a feature that already exists. [Report new issues](https://github.com/silverbackis/ApiComponentBundle/issues) or [Create a pull request](https://github.com/silverbackis/ApiComponentBundle/pulls)
+
 ## Testing
 As some tests are in Symfony and others use behat, please be sure not to run symfony's `/vendor/bin/simple-phpunit` and instead run `/bin/phpunit` if you are nice enough to contribute any time and energy to improving this bundle. This script simply sets the PHPUnit version first so that no matter the environment a default PHPUnit version is installed and Behat/The test Kernel can use this as well.

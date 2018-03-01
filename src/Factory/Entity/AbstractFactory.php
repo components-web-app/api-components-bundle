@@ -77,7 +77,7 @@ abstract class AbstractFactory implements FactoryInterface
     private function findSetterMethod($component, $op): string
     {
         $prefixes = ['set', 'add'];
-        $postfix = $setter = ucfirst($op);
+        $postfix = ucfirst($op);
         foreach ($prefixes as $prefix) {
             $setter = $prefix . $postfix;
             if (method_exists($component, $setter)) {
