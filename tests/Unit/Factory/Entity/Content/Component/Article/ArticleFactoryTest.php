@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Component\Article;
 
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Article\ArticleFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class ArticleFactoryTest extends AbstractFactory
 {

@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Compon
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class FormFactoryTest extends AbstractFactory
 {

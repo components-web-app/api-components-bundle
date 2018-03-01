@@ -6,7 +6,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNa
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\AbstractNavigationItemFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class AbstractNavigationItemFactoryTest extends AbstractFactory
 {

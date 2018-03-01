@@ -7,7 +7,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Content\ContentFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 /**
  *

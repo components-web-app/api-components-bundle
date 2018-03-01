@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Component\Feature\Stacked;
 
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked\FeatureStackedFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class FeatureStackedFactoryTest extends AbstractFactory
 {

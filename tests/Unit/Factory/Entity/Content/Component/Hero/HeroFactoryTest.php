@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Compon
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Hero\HeroFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class HeroFactoryTest extends AbstractFactory
 {

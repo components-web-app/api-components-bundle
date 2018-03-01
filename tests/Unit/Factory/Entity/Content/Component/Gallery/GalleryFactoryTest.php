@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Component\Gallery;
 
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery\GalleryFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class GalleryFactoryTest extends AbstractFactory
 {

@@ -42,7 +42,7 @@ abstract class AbstractFactory implements FactoryInterface
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param $component
      * @param array|null $ops
      * @param array $ignoreOps
      */
@@ -88,11 +88,11 @@ abstract class AbstractFactory implements FactoryInterface
     }
 
     /**
-     * @param AbstractComponent $component
+     * @param $component
      * @return bool
      * @throws \Silverback\ApiComponentBundle\Exception\InvalidEntityException
      */
-    protected function validate(AbstractComponent $component): bool
+    protected function validate($component): bool
     {
         $errors = $this->validator->validate($component);
         if (\count($errors)) {

@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Content\Compon
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\AbstractFeatureItemFactory;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
+use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class AbstractFeatureItemFactoryTest extends AbstractFactory
 {

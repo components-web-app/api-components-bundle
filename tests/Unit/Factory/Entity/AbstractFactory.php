@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\Factory;
+namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;

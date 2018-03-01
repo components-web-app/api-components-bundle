@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory as AbstractFactoryEntity;
-use Silverback\ApiComponentBundle\Tests\Unit\Factory\AbstractFactory;
 
 class AbstractFactoryTest extends AbstractFactory
 {
