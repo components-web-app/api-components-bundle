@@ -24,7 +24,7 @@ class PageFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return [
-            'title' => null,
+            'title' => 'New Page',
             'metaDescription' => null,
             'parent' => null,
             'layout' => null,

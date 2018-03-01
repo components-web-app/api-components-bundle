@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\Route;
 
 use Cocur\Slugify\SlugifyInterface;
+use Doctrine\Common\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
@@ -41,8 +42,25 @@ class RouteFactoryTest extends AbstractFactory
         parent::setUp();
     }
 
+    private function expectRepoCalls(int $times): void
+    {
+        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository
+            ->expects($this->exactly($times))
+            ->method('find')
+            ->willReturn(null)
+        ;
+        $this->objectManager
+            ->expects($this->exactly($times))
+            ->method('getRepository')
+            ->with(Route::class)
+            ->willReturn($repository)
+        ;
+    }
+
     public function test_shallow_createFromRouteAwareInterface(): void
     {
+        $this->expectRepoCalls(1);
         $routes = ['test-route'];
         /** @var MockObject|Page $routeAwareInterfaceMock */
         $routeAwareInterfaceMock = $this->getMockBuilder(Page::class)->getMock();
@@ -67,6 +85,7 @@ class RouteFactoryTest extends AbstractFactory
 
     public function test_deep_createFromRouteAwareInterface(): void
     {
+        $this->expectRepoCalls(2);
         $routes = ['parent', 'child'];
 
         /** @var MockObject|Page $routeAwareInterfaceMock */

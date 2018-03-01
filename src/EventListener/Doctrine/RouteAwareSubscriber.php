@@ -68,7 +68,6 @@ class RouteAwareSubscriber implements EventSubscriber
     /**
      * @param PreFlushEventArgs $eventArgs
      * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function preFlush(PreFlushEventArgs $eventArgs): void
     {
@@ -85,7 +84,6 @@ class RouteAwareSubscriber implements EventSubscriber
                 $em->persist($route);
             }
         }
-        $em->flush();
     }
 
     /**
