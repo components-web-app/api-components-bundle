@@ -3,6 +3,8 @@
 namespace Silverback\ApiComponentBundle\Tests\config;
 
 use Psr\Log\LoggerInterface;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormFactory;
+use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\ContentFixture;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -19,11 +21,16 @@ return function (ContainerConfigurator $container) {
     ;
     $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
-        ->args([
-            '$projectDirectory' => '%kernel.project_dir%'
-               ])
         ->tag('doctrine.fixture.orm')
     ;
+
+    $services
+        ->set(ContentFixture::class)
+        ->args([
+               '$projectDirectory' => '%kernel.project_dir%'
+           ])
+    ;
+
     $services
         ->set(TestHandler::class)
         ->tag('silverback_api_component.form_handler')
@@ -32,4 +39,6 @@ return function (ContainerConfigurator $container) {
         ->alias('test.logger', LoggerInterface::class)
         ->public()
     ;
+
+    $services->alias('test.' . FormFactory::class, FormFactory::class)->public();
 };

@@ -17,7 +17,6 @@ use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Content\Conte
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Columns\FeatureColumnsFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked\FeatureStackedFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\TextList\FeatureTextListFactory;
-use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery\GalleryFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery\GalleryItemFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Hero\HeroFactory;
@@ -31,8 +30,6 @@ use Silverback\ApiComponentBundle\Factory\Entity\Content\ComponentGroupFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Layout\LayoutFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory;
-use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
-use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 
 class ContentFixture extends AbstractFixture
 {
@@ -46,10 +43,6 @@ class ContentFixture extends AbstractFixture
      * @var ContentFactory
      */
     private $contentFactory;
-    /**
-     * @var FormFactory
-     */
-    private $formFactory;
     /**
      * @var FeatureColumnsFactory
      */
@@ -130,7 +123,6 @@ class ContentFixture extends AbstractFixture
         FeatureColumnsFactory $featureColumnsFactory,
         FeatureStackedFactory $featureStackedFactory,
         FeatureTextListFactory $featureTextListFactory,
-        FormFactory $formFactory,
         GalleryFactory $galleryFactory,
         GalleryItemFactory $galleryItemFactory,
         HeroFactory $heroFactory,
@@ -152,7 +144,6 @@ class ContentFixture extends AbstractFixture
         $this->featureColumnsFactory = $featureColumnsFactory;
         $this->featureStackedFactory = $featureStackedFactory;
         $this->featureTextListFactory = $featureTextListFactory;
-        $this->formFactory = $formFactory;
         $this->galleryFactory = $galleryFactory;
         $this->galleryItemFactory = $galleryItemFactory;
         $this->heroFactory = $heroFactory;
@@ -172,13 +163,24 @@ class ContentFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
+        $layout = $this->createLayout();
+        $manager->persist($layout);
+        $parentPage = $this->createPage();
+        $manager->persist($parentPage);
+        $childPage = $this->createPage($parentPage, $layout);
+        $manager->persist($childPage);
+        $manager->persist($this->createRoute('/child', $childPage));
+
         $article = $this->createArticle();
         $manager->persist($article);
+
+        $manager->persist($this->createComponentLocation($article, $childPage));
+        $manager->persist($this->createComponentGroup($article));
+
         $manager->persist($this->createContent());
         $manager->persist($this->createFeatureColumns());
         $manager->persist($this->createFeatureStacked());
         $manager->persist($this->createFeatureTextList());
-        $manager->persist($this->createForm());
         $manager->persist($this->createGallery());
         $manager->persist($this->createGalleryItem());
         $manager->persist($this->createHero());
@@ -189,17 +191,6 @@ class ContentFixture extends AbstractFixture
         $manager->persist($this->createTabs());
         $manager->persist($this->createTabsItem());
 
-        $layout = $this->createLayout();
-        $manager->persist($layout);
-        $parentPage = $this->createPage();
-        $manager->persist($parentPage);
-        $childPage = $this->createPage($parentPage, $layout);
-        $manager->persist($childPage);
-
-        $manager->persist($this->createComponentLocation($article, $childPage));
-        $manager->persist($this->createComponentGroup($article));
-
-        $manager->persist($this->createRoute('/child', $childPage));
         $manager->flush();
     }
 
@@ -220,16 +211,6 @@ class ContentFixture extends AbstractFixture
         return $this->contentFactory->create(
             [
                 'content' => self::DUMMY_CONTENT
-            ]
-        );
-    }
-
-    private function createForm()
-    {
-        return $this->formFactory->create(
-            [
-                'formType' => TestType::class,
-                'successHandler' => TestHandler::class
             ]
         );
     }

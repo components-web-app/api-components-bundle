@@ -34,7 +34,7 @@ class FormSubmitPatch extends AbstractForm
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData, false);
 
-        $dataCount = count($formData);
+        $dataCount = \count($formData);
         if ($dataCount === 1) {
             $data->setForm(new FormView($form->get(key($formData))->createView()));
             return $this->getResponse($data, $_format, $this->getFormValid($data->getForm()));
