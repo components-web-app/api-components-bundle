@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class Hero
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Hero
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="Component/Hero")
+ * @ApiResource()
  * @ORM\Entity()
  */
 class Hero extends AbstractComponent

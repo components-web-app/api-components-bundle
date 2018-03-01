@@ -11,7 +11,7 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
  * Class Gallery
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="Component/Gallery")
+ * @ApiResource()
  * @ORM\Entity()
  */
 class Gallery extends AbstractComponent

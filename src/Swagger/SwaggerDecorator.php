@@ -18,7 +18,7 @@ final class SwaggerDecorator implements NormalizerInterface
         /** @var array $docs */
         $docs = $this->decorated->normalize($object, $format, $context);
 
-        $currentPath = '/component/forms/{id}';
+        $currentPath = '/forms/{id}';
         $patchOpPath = $currentPath . '/submit';
 
         $patchOp = $docs['paths'][$patchOpPath]['patch'];
