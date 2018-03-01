@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures;
+namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;

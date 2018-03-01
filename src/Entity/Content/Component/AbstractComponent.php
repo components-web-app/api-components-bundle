@@ -182,13 +182,22 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @Groups({"component"})
+     * Return the component name for front-end to decipher
+     * @Groups({"content", "component"})
      * @return string
      */
     public static function getComponentName(): string
     {
         $explodedClass = explode('\\', static::class);
         return array_pop($explodedClass);
+    }
+
+    /**
+     * @return bool
+     */
+    public function onDeleteCascade(): bool
+    {
+        return false;
     }
 
     /**
@@ -208,25 +217,13 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @param AbstractComponent $child
-     * @param int $componentGroupOffset
-     * @return AbstractComponent
-     * @throws \InvalidArgumentException
-     */
-    public function addChildComponent(AbstractComponent $child, int $componentGroupOffset = 0): AbstractComponent
-    {
-        $componentGroup = $this->getComponentComponentGroup($this, $componentGroupOffset);
-        $componentGroup->addComponent(new ComponentLocation($componentGroup, $child));
-        return $this;
-    }
-
-    /**
+     * @Groups({"component_write"})
      * @param AbstractComponent $parent
      * @param int $componentGroupOffset
      * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function addToParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
+    public function setParent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
     {
         if (!\in_array($parent, $this->getParentComponents(), true)) {
             $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
@@ -270,29 +267,5 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
                 )
             )
         );
-    }
-
-    /**
-     * @return bool
-     */
-    public function onDeleteCascade(): bool
-    {
-        return false;
-    }
-
-    /**
-     * @return AbstractComponent|null
-     */
-    public function getParent(): ?AbstractComponent
-    {
-        return $this->parent;
-    }
-
-    /**
-     * @param AbstractComponent|null $parent
-     */
-    public function setParent(?AbstractComponent $parent): void
-    {
-        $this->parent = $parent;
     }
 }

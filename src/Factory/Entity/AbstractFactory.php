@@ -11,7 +11,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 abstract class AbstractFactory implements FactoryInterface
 {
     public const COMPONENT_CLASSES = [
-        'className' => null
+        'className' => null,
+        'parent' => null
     ];
 
     /**
@@ -58,7 +59,11 @@ abstract class AbstractFactory implements FactoryInterface
                 )
             ) {
                 $setter = 'set' . ucfirst($op);
-                $component->$setter($value);
+                if (\is_array($value)) {
+                    $component->$setter(...$value);
+                } else {
+                    $component->$setter($value);
+                }
             }
         }
         $this->manager->persist($component);
