@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\RouteAwareSubscriber;
 use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -115,6 +116,11 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(EntitySubscriber::class)
+        ->tag('doctrine.event_subscriber')
+    ;
+
+    $services
+        ->set(RouteAwareSubscriber::class)
         ->tag('doctrine.event_subscriber')
     ;
 
