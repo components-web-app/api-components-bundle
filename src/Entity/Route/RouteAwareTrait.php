@@ -34,4 +34,12 @@ trait RouteAwareTrait
         $this->routes->removeElement($route);
         return $this;
     }
+
+    /**
+     * @return ArrayCollection|Route[]
+     */
+    public function getRoutes(): ArrayCollection
+    {
+        return $this->routes;
+    }
 }

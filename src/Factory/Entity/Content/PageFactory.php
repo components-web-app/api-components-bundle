@@ -27,7 +27,8 @@ class PageFactory extends AbstractFactory
             'title' => null,
             'metaDescription' => null,
             'parent' => null,
-            'layout' => null
+            'layout' => null,
+            'route' => null
         ];
     }
 }

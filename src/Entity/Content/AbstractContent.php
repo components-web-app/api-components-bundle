@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Route\RouteAwareTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
@@ -26,8 +25,6 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  */
 abstract class AbstractContent implements ContentInterface
 {
-    use RouteAwareTrait;
-
     /**
      * @ORM\Id()
      * @ORM\Column(type="string")

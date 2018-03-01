@@ -6,6 +6,8 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
+use Silverback\ApiComponentBundle\Entity\Route\RouteAwareTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -15,8 +17,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ApiResource()
  * @ORM\Entity()
  */
-class Page extends AbstractContent
+class Page extends AbstractContent implements RouteAwareInterface
 {
+    use RouteAwareTrait;
+
     /**
      * @ORM\Column()
      * @Groups({"content"})
@@ -109,5 +113,13 @@ class Page extends AbstractContent
     public function setLayout(?Layout $layout): void
     {
         $this->layout = $layout;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDefaultRoute(): string
+    {
+        return $this->getTitle();
     }
 }

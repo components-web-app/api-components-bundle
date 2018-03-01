@@ -58,7 +58,7 @@ abstract class AbstractFactory implements FactoryInterface
                     !\in_array($op, $ignoreOps, true)
                 )
             ) {
-                $setter = 'set' . ucfirst($op);
+                $setter = $this->findSetterMethod($component, $op);
                 if (\is_array($value)) {
                     $component->$setter(...$value);
                 } else {
@@ -67,6 +67,24 @@ abstract class AbstractFactory implements FactoryInterface
             }
         }
         $this->manager->persist($component);
+    }
+
+    /**
+     * @param $component
+     * @param $op
+     * @return string
+     */
+    private function findSetterMethod($component, $op): string
+    {
+        $prefixes = ['set', 'add'];
+        $postfix = $setter = ucfirst($op);
+        foreach ($prefixes as $prefix) {
+            $setter = $prefix . $postfix;
+            if (method_exists($component, $setter)) {
+                return $setter;
+            }
+        }
+        throw new \RuntimeException(sprintf('A preconfigured option `%s` has no setter or adder method', $op));
     }
 
     /**

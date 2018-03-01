@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
 interface RouteAwareInterface
 {
     /**
@@ -15,4 +17,14 @@ interface RouteAwareInterface
      * @return RouteAwareTrait|RouteAwareInterface
      */
     public function removeRoute(Route $route);
+
+    /**
+     * @return string
+     */
+    public function getDefaultRoute(): string;
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getRoutes(): ArrayCollection;
 }
