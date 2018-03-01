@@ -18,11 +18,11 @@ final class SwaggerDecorator implements NormalizerInterface
         /** @var array $docs */
         $docs = $this->decorated->normalize($object, $format, $context);
 
-        $patchOpPath = '/component/forms/{id}/submit';
+        $patchOpPath = '/forms/{id}/submit';
 
         $patchOp = $docs['paths'][$patchOpPath]['patch'];
         $patchOp['summary'] = 'Submit a single input for validation';
-        $patchOp['parameters'] = $docs['paths']['/component/forms/{id}']['get']['parameters'];
+        $patchOp['parameters'] = $docs['paths']['/forms/{id}']['get']['parameters'];
         $patchOp['parameters'][] = [
             'name' => 'form',
             'in' => 'body',
@@ -41,7 +41,7 @@ final class SwaggerDecorator implements NormalizerInterface
                 ]
             ]
         ];
-        $patchOp['responses'] = $docs['paths']['/component/forms/{id}']['get']['responses'];
+        $patchOp['responses'] = $docs['paths']['/forms/{id}']['get']['responses'];
         $patchOp['responses']['200']['description'] = 'Validation passed successfully';
         $patchOp['responses']['400'] = [
             'description' => 'Validation failed',
@@ -50,8 +50,8 @@ final class SwaggerDecorator implements NormalizerInterface
             ]
         ];
         // $patchOp['responses']['406']['description'] = "Invalid field name for the form ID";
-        $patchOp['consumes'] = $docs['paths']['/component/forms/{id}']['put']['consumes'];
-        $patchOp['produces'] = $docs['paths']['/component/forms/{id}']['put']['produces'];
+        $patchOp['consumes'] = $docs['paths']['/forms/{id}']['put']['consumes'];
+        $patchOp['produces'] = $docs['paths']['/forms/{id}']['put']['produces'];
 
         $docs['paths'][$patchOpPath]['patch'] = $patchOp;
         $docs['paths'][$patchOpPath]['post']['parameters'] = $docs['paths'][$patchOpPath]['patch']['parameters'];
