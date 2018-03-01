@@ -26,8 +26,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  *         "put"={"method"="PUT"},
  *         "validate_item"={"method"="PATCH", "route_name"="silverback_api_component_form_validate_item", "denormalization_context"={"groups"={"none"}}},
  *         "validate_form"={"method"="POST", "route_name"="silverback_api_component_form_submit", "denormalization_context"={"groups"={"none"}}}
- *     },
- *     shortName="component/form"
+ *     }
  * )
  * @ORM\Entity()
  */

@@ -19,6 +19,7 @@ final class SwaggerDecorator implements NormalizerInterface
         $docs = $this->decorated->normalize($object, $format, $context);
 
         $patchOpPath = '/component/forms/{id}/submit';
+
         $patchOp = $docs['paths'][$patchOpPath]['patch'];
         $patchOp['summary'] = 'Submit a single input for validation';
         $patchOp['parameters'] = $docs['paths']['/component/forms/{id}']['get']['parameters'];

@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class News
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\News
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/article")
+ * @ApiResource()
  * @ORM\Entity()
  * @ORM\AttributeOverrides({
  *      @ORM\AttributeOverride(

@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureColumnsItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/feature_columns_items")
+ * @ApiResource()
  * @ORM\Entity()
  */
 class FeatureColumnsItem extends AbstractFeatureItem
