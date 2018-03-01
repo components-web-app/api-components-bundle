@@ -102,27 +102,15 @@ class ApiNormalizerTest extends TestCase
 
     public function test_denormalize(): void
     {
-        $abstractComponentParentMock = $this->getMockBuilder(AbstractComponent::class)->getMock();
         $abstractComponentMock = $this->getMockBuilder(AbstractComponent::class)->getMock();
-        $abstractComponentMock
-            ->expects($this->once())
-            ->method('getParent')
-            ->willReturn($abstractComponentParentMock)
-        ;
-        $abstractComponentMock
-            ->expects($this->once())
-            ->method('addToParentComponent')
-            ->with($abstractComponentParentMock)
-        ;
-
         $args = [[], $abstractComponentMock, null];
         $this->normalizerInterfaceMock
             ->expects($this->once())
             ->method('denormalize')
-            ->with(...$args)
+            ->with(...array_merge($args, [['allow_extra_attributes' => false]]))
             ->willReturn($abstractComponentMock)
         ;
-        $this->apiNormalizer->denormalize(...array_merge($args, [['allow_extra_attributes' => false]]));
+        $this->apiNormalizer->denormalize(...$args);
     }
 
     public function test_normalize_file(): void

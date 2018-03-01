@@ -131,14 +131,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     public function denormalize($data, $class, $format = null, array $context = [])
     {
         $context['allow_extra_attributes'] = $class === Form::class;
-        $entity = $this->decorated->denormalize($data, $class, $format, $context);
-        if (
-            $entity instanceof AbstractComponent &&
-            $parentComponent = $entity->getParent()
-        ) {
-            $entity->addToParentComponent($parentComponent);
-        }
-        return $entity;
+        return $this->decorated->denormalize($data, $class, $format, $context);
     }
 
     /**

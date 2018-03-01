@@ -54,4 +54,14 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
             $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
         }
     }
+
+    public function hasComponent(AbstractComponent $component)
+    {
+        foreach ($this->getComponents() as $componentLocation) {
+            if ($component === $componentLocation->getComponent()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

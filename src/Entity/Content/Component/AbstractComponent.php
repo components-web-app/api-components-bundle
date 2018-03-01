@@ -77,12 +77,6 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     protected $componentGroups;
 
     /**
-     * @Groups({"component_write"})
-     * @var AbstractComponent|null
-     */
-    private $parent;
-
-    /**
      * AbstractComponent constructor.
      */
     public function __construct()
@@ -227,7 +221,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     {
         if (!\in_array($parent, $this->getParentComponents(), true)) {
             $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
-            $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+            if (!$componentGroup->hasComponent($this)) {
+                $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+            }
         }
         return $this;
     }
