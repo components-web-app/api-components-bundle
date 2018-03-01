@@ -87,7 +87,7 @@ class RouteFactory extends AbstractFactory
     {
         $parentRoute = $parent->getRoutes()->first();
         if (!$parentRoute) {
-            $parentRoute = $this->createFromRouteAwareEntity($parentRoute);
+            $parentRoute = $this->createFromRouteAwareEntity($parent);
         }
         return $parentRoute;
     }

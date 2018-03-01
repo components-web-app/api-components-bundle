@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\DataProvider\Item;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
-use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 

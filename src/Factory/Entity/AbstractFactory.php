@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
 use Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
