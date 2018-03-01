@@ -114,6 +114,14 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
+     * @return Collection|ComponentLocation[]
+     */
+    public function getLocations()
+    {
+        return $this->locations;
+    }
+
+    /**
      * @param ContentInterface $content
      * @return AbstractComponent
      */
