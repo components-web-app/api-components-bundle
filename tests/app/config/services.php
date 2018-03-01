@@ -29,6 +29,7 @@ return function (ContainerConfigurator $container) {
         ->args([
                '$projectDirectory' => '%kernel.project_dir%'
            ])
+        ->tag('doctrine.fixture.orm')
     ;
 
     $services

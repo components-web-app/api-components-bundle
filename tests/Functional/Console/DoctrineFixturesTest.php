@@ -43,7 +43,7 @@ class DoctrineFixturesTest extends WebTestCase
             )
         );
         $output = $commandTester->getDisplay();
-        $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures', $output);
+        $this->assertContains('loading Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\ContentFixture', $output);
         $this->assertContains(sprintf('Checking timestamp for %s', TestType::class), $output);
     }
 
