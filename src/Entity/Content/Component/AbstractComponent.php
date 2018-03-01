@@ -64,7 +64,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation", mappedBy="component")
-     * @var ArrayCollection|ComponentLocation[]
+     * @var Collection|ComponentLocation[]
      */
     protected $locations;
 
@@ -72,7 +72,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", mappedBy="parent", cascade={"persist"})
      * @ApiProperty(attributes={"fetchEager": false})
      * @Groups({"component", "content"})
-     * @var ArrayCollection|ComponentGroup[]
+     * @var Collection|ComponentGroup[]
      */
     protected $componentGroups;
 
@@ -168,7 +168,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @return ArrayCollection|ComponentGroup[]
+     * @return Collection|ComponentGroup[]
      */
     public function getComponentGroups(): Collection
     {

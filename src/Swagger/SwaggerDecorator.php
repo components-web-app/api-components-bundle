@@ -2,13 +2,14 @@
 
 namespace Silverback\ApiComponentBundle\Swagger;
 
+use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class SwaggerDecorator implements NormalizerInterface
 {
     private $decorated;
 
-    public function __construct(NormalizerInterface $decorated)
+    public function __construct(DocumentationNormalizer $decorated)
     {
         $this->decorated = $decorated;
     }

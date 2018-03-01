@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,7 +11,7 @@ trait RouteAwareTrait
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content")
      * @Groups({"layout", "content", "component"})
-     * @var ArrayCollection|Route[]
+     * @var Collection|Route[]
      */
     protected $routes;
 
@@ -36,9 +36,9 @@ trait RouteAwareTrait
     }
 
     /**
-     * @return ArrayCollection|Route[]
+     * @return Collection|Route[]
      */
-    public function getRoutes(): ArrayCollection
+    public function getRoutes(): Collection
     {
         return $this->routes;
     }

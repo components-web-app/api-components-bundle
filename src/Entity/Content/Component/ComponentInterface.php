@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
@@ -62,7 +61,7 @@ interface ComponentInterface extends ValidComponentInterface
     public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent;
 
     /**
-     * @return ArrayCollection|ComponentGroup[]
+     * @return Collection|ComponentGroup[]
      */
     public function getComponentGroups(): Collection;
 
