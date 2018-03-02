@@ -122,20 +122,20 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @param ContentInterface $content
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function addLocation(ContentInterface $content): AbstractComponent
+    public function addLocation(ComponentLocation $content): AbstractComponent
     {
         $this->locations->add($content);
         return $this;
     }
 
     /**
-     * @param ContentInterface $content
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function removeLocation(ContentInterface $content): AbstractComponent
+    public function removeLocation(ComponentLocation $content): AbstractComponent
     {
         $this->locations->removeElement($content);
         return $this;
@@ -225,15 +225,29 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @return AbstractComponent
      * @throws \InvalidArgumentException
      */
-    public function setParent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
+    public function setParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
     {
         if (!\in_array($parent, $this->getParentComponents(), true)) {
             $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
             if (!$componentGroup->hasComponent($this)) {
-                $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
+                $componentGroup->addComponentLocation(new ComponentLocation($componentGroup, $this));
             }
         }
         return $this;
+    }
+
+    /**
+     * @param AbstractContent $content
+     * @return bool
+     */
+    public function isContentComponent(AbstractContent $content): bool
+    {
+        foreach ($this->locations as $location) {
+            if ($location->getContent() === $content) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

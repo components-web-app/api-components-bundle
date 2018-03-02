@@ -6,13 +6,13 @@ use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ContentFactory extends AbstractFactory
+final class ContentFactory extends AbstractComponentFactory
 {
     /**
      * @var \GuzzleHttp\Client
@@ -89,11 +89,19 @@ final class ContentFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'lipsum' => ['5', 'medium', 'headers', 'code', 'decorate', 'link', 'bq', 'ul', 'ol'],
                 'content' => null
             ]
         );
+    }
+
+    /**
+     *
+     */
+    protected static function getIgnoreOps(): array
+    {
+        return array_merge(parent::getIgnoreOps(), ['lipsum']);
     }
 }

@@ -3,9 +3,9 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Columns;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumns;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
-class FeatureColumnsFactory extends AbstractFactory
+class FeatureColumnsFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -24,7 +24,7 @@ class FeatureColumnsFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'columns' => null,
                 'title' => null

@@ -3,9 +3,9 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\TextList;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
-class FeatureTextListFactory extends AbstractFactory
+class FeatureTextListFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -24,7 +24,7 @@ class FeatureTextListFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'title' => null
             ]

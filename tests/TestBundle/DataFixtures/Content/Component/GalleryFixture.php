@@ -48,7 +48,7 @@ class GalleryFixture extends AbstractFixture
                 'title' => 'Gallery Item Title',
                 'caption' => 'Item Caption',
                 'filePath' => '/public/images/testImage.jpg',
-                'parent' => [$gallery, 0]
+                'parentComponent' => [$gallery, 0]
             ]
         );
     }

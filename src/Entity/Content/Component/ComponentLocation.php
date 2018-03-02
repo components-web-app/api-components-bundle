@@ -36,7 +36,7 @@ class ComponentLocation implements SortableInterface
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="componentLocations")
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"component"})
      * @var AbstractContent
@@ -130,6 +130,6 @@ class ComponentLocation implements SortableInterface
      */
     public function getSortCollection(): Collection
     {
-        return $this->content ? $this->content->getComponents() : new ArrayCollection;
+        return $this->content ? $this->content->getComponentLocations() : new ArrayCollection;
     }
 }

@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class GalleryItemFactory extends AbstractFactory
+final class GalleryItemFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -27,7 +27,7 @@ final class GalleryItemFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'title' => 'Untitled',
                 'caption' => null,

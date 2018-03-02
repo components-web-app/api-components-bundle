@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Tabs;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class TabsFactory extends AbstractFactory
+final class TabsFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -19,13 +19,5 @@ final class TabsFactory extends AbstractFactory
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function defaultOps(): array
-    {
-        return AbstractFactory::COMPONENT_CLASSES;
     }
 }

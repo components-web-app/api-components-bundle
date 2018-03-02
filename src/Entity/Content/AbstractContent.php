@@ -38,12 +38,12 @@ abstract class AbstractContent implements ContentInterface
      * @MaxDepth(10)
      * @var Collection|ComponentLocation[]
      */
-    protected $components;
+    protected $componentLocations;
 
     public function __construct()
     {
         $this->id = Uuid::uuid4()->getHex();
-        $this->components = new ArrayCollection;
+        $this->componentLocations = new ArrayCollection;
     }
 
     /**
@@ -57,28 +57,28 @@ abstract class AbstractContent implements ContentInterface
     /**
      * @return Collection|ComponentLocation[]
      */
-    public function getComponents(): Collection
+    public function getComponentLocations(): Collection
     {
-        return $this->components;
+        return $this->componentLocations;
     }
 
     /**
-     * @param ComponentLocation $component
+     * @param ComponentLocation $componentLocation
      * @return AbstractContent
      */
-    public function addComponent(ComponentLocation $component): AbstractContent
+    public function addComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
-        $this->components->add($component);
+        $this->componentLocations->add($componentLocation);
         return $this;
     }
 
     /**
-     * @param ComponentLocation $component
+     * @param ComponentLocation $componentLocation
      * @return AbstractContent
      */
-    public function removeComponent(ComponentLocation $component): AbstractContent
+    public function removeComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
-        $this->components->removeElement($component);
+        $this->componentLocations->removeElement($componentLocation);
         return $this;
     }
 }

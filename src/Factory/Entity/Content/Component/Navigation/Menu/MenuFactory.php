@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Menu;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class MenuFactory extends AbstractFactory
+final class MenuFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -19,13 +19,5 @@ final class MenuFactory extends AbstractFactory
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function defaultOps(): array
-    {
-        return AbstractFactory::COMPONENT_CLASSES;
     }
 }

@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\NavBar;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class NavBarFactory extends AbstractFactory
+final class NavBarFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -19,13 +19,5 @@ final class NavBarFactory extends AbstractFactory
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function defaultOps(): array
-    {
-        return AbstractFactory::COMPONENT_CLASSES;
     }
 }

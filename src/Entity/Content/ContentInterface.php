@@ -14,17 +14,17 @@ interface ContentInterface
     /**
      * @return Collection
      */
-    public function getComponents(): Collection;
+    public function getComponentLocations(): Collection;
 
     /**
      * @param ComponentLocation $component
      * @return AbstractContent
      */
-    public function addComponent(ComponentLocation $component): AbstractContent;
+    public function addComponentLocation(ComponentLocation $component): AbstractContent;
 
     /**
      * @param ComponentLocation $component
      * @return AbstractContent
      */
-    public function removeComponent(ComponentLocation $component): AbstractContent;
+    public function removeComponentLocation(ComponentLocation $component): AbstractContent;
 }

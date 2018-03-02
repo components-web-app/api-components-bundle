@@ -9,11 +9,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class AbstractFactory implements FactoryInterface
 {
-    public const COMPONENT_CLASSES = [
-        'className' => null,
-        'parent' => null
-    ];
-
     /**
      * @var ObjectManager
      */
@@ -44,18 +39,14 @@ abstract class AbstractFactory implements FactoryInterface
     /**
      * @param $component
      * @param array|null $ops
-     * @param array $ignoreOps
      */
-    protected function init($component, ?array $ops = null, ?array $ignoreOps = null): void
+    protected function init($component, ?array $ops = null): void
     {
         $this->setOptions($ops);
         foreach ($this->ops as $op=>$value) {
             if (
                 null !== $value &&
-                (
-                    null === $ignoreOps ||
-                    !\in_array($op, $ignoreOps, true)
-                )
+                !\in_array($op, static::getIgnoreOps(), true)
             ) {
                 $setter = $this->findSetterMethod($component, $op);
                 if (\is_array($value)) {
@@ -127,6 +118,14 @@ abstract class AbstractFactory implements FactoryInterface
      * @return array
      */
     protected static function defaultOps(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    protected static function getIgnoreOps(): array
     {
         return [];
     }

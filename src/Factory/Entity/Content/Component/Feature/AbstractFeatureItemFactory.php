@@ -2,9 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature;
 
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
-abstract class AbstractFeatureItemFactory extends AbstractFactory
+abstract class AbstractFeatureItemFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -12,7 +12,7 @@ abstract class AbstractFeatureItemFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'label' => '',
                 'link' => null

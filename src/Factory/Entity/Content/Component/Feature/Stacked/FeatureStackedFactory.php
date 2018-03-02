@@ -3,9 +3,9 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStacked;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
-class FeatureStackedFactory extends AbstractFactory
+class FeatureStackedFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -24,7 +24,7 @@ class FeatureStackedFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'reverse' => false
             ]

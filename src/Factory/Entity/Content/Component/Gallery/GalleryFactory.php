@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\Gallery;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class GalleryFactory extends AbstractFactory
+final class GalleryFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -19,13 +19,5 @@ final class GalleryFactory extends AbstractFactory
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function defaultOps(): array
-    {
-        return AbstractFactory::COMPONENT_CLASSES;
     }
 }

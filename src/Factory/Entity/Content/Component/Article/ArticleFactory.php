@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Article;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ArticleFactory extends AbstractFactory
+final class ArticleFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -27,7 +27,7 @@ final class ArticleFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'title' => 'Untitled',
                 'subtitle' => null,
