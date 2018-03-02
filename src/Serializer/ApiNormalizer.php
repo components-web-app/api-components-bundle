@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -75,7 +75,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     }
 
     /**
-     * @param FileInterface $object
+     * @param \Silverback\ApiComponentBundle\Entity\Content\FileInterface $object
      * @return array
      */
     private function getFileData(FileInterface $object): array

@@ -1,19 +1,21 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Content\Component\Article;
+namespace Silverback\ApiComponentBundle\Entity\Content\Dynamic;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileTrait;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
- * Class News
- * @package Silverback\ApiComponentBundle\Entity\Content\Component\News
+ *
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource()
  * @ORM\Entity()
@@ -26,16 +28,9 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  *      )
  * })
  */
-class Article extends AbstractComponent implements FileInterface
+class ArticlePage extends AbstractDynamicPage implements FileInterface
 {
     use FileTrait;
-
-    /**
-     * @ORM\Column(type="string", nullable=false)
-     * @Groups({"content", "component"})
-     * @var null|string
-     */
-    private $title;
 
     /**
      * @ORM\Column(type="string")
@@ -69,28 +64,27 @@ class Article extends AbstractComponent implements FileInterface
         );
     }
 
-    /**
-     * @return null|string
-     */
-    public function getTitle(): ?string
+    public function getComponentLocations(): Collection
     {
-        return $this->title;
+        return new ArrayCollection(
+            [
+                $this->getHeroComponent(),
+                $this->getContentComponent()
+            ]
+        );
     }
 
-    /**
-     * @param null|string $title
-     */
-    public function setTitle(?string $title): void
-    {
-        $this->title = $title;
+    private function getHeroComponent() {
+        $hero = new Hero();
+        $hero->setTitle($this->getTitle());
+        $hero->setSubtitle($this->subtitle);
+        return $hero;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getSubtitle(): ?string
-    {
-        return $this->subtitle;
+    private function getContentComponent() {
+        $content = new Content();
+        $content->setContent($this->content);
+        return $content;
     }
 
     /**
@@ -102,18 +96,26 @@ class Article extends AbstractComponent implements FileInterface
     }
 
     /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
      * @param string $content
      */
     public function setContent(string $content): void
     {
         $this->content = $content;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getSubtitle(): ?string
+    {
+        return $this->subtitle;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent(): string
+    {
+        return $this->content;
     }
 }

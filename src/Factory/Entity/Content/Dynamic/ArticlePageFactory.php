@@ -1,21 +1,21 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Article;
+namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Dynamic;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
-use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
+use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ArticleFactory extends AbstractComponentFactory
+final class ArticlePageFactory extends AbstractFactory
 {
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null): Article
+    public function create(?array $ops = null): ArticlePage
     {
-        $component = new Article();
+        $component = new ArticlePage();
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
@@ -32,7 +32,10 @@ final class ArticleFactory extends AbstractComponentFactory
                 'title' => 'Untitled',
                 'subtitle' => null,
                 'content' => 'Article content',
-                'filePath' => null
+                'filePath' => null,
+                'layout' => null,
+                'parent' => null,
+                'metaDescription' => null
             ]
         );
     }

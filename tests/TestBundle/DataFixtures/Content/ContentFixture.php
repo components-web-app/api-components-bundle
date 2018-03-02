@@ -6,12 +6,13 @@ use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\ComponentGroupFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
-use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component\ArticleFixture;
+use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Dynamic\ArticlePageFixture;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Layout\LayoutFixture;
 
 class ContentFixture extends AbstractFixture implements DependentFixtureInterface
@@ -44,9 +45,9 @@ class ContentFixture extends AbstractFixture implements DependentFixtureInterfac
         $manager->persist($childPage);
         $this->addReference('childPage', $childPage);
 
-        /** @var Article $article */
-        $article = $this->getReference('article');
-        $manager->persist($this->createComponentGroup($article));
+        /** @var Content $content */
+        $content = $this->getReference('content');
+        $manager->persist($this->createComponentGroup($content));
 
         $manager->flush();
     }
@@ -75,7 +76,7 @@ class ContentFixture extends AbstractFixture implements DependentFixtureInterfac
     public function getDependencies()
     {
         return array(
-            ArticleFixture::class,
+            ArticlePageFixture::class,
             LayoutFixture::class
         );
     }

@@ -27,21 +27,21 @@ class Page extends AbstractContent implements RouteAwareInterface
      * @Groups({"content"})
      * @var string
      */
-    private $title;
+    protected $title;
 
     /**
      * @ORM\Column()
      * @Groups({"content"})
      * @var string
      */
-    private $metaDescription;
+    protected $metaDescription;
 
     /**
      * @ORM\ManyToOne(targetEntity="Page")
      * @ORM\JoinColumn(nullable=true)
      * @var null|Page
      */
-    private $parent;
+    protected $parent;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
@@ -50,7 +50,7 @@ class Page extends AbstractContent implements RouteAwareInterface
      * @Groups({"content"})
      * @var Layout|null
      */
-    private $layout;
+    protected $layout;
 
     public function __construct()
     {

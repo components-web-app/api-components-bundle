@@ -2,16 +2,16 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Article;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\NotNull;
 
-class ArticleTest extends AbstractEntity
+class ArticlePageTest extends AbstractEntity
 {
     public function test_constraints()
     {
-        $entity = new Article();
+        $entity = new ArticlePage();
         $constraints = $this->getConstraints($entity);
         $this->assertTrue($this->instanceInArray(Image::class, $constraints['filePath']));
         $this->assertTrue($this->instanceInArray(NotNull::class, $constraints['title']));

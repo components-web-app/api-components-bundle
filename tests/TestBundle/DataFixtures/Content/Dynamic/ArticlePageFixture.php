@@ -1,15 +1,15 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component;
+namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Dynamic;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Article\ArticleFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Dynamic\ArticlePageFactory;
 
-class ArticleFixture extends AbstractFixture
+class ArticlePageFixture extends AbstractFixture
 {
     /**
-     * @var ArticleFactory
+     * @var ArticlePageFactory
      */
     private $articleFactory;
 
@@ -19,7 +19,7 @@ class ArticleFixture extends AbstractFixture
     private $projectDirectory;
 
     public function __construct(
-        ArticleFactory $articleFactory,
+        ArticlePageFactory $articleFactory,
         string $projectDirectory
     ) {
         $this->articleFactory = $articleFactory;
@@ -29,7 +29,6 @@ class ArticleFixture extends AbstractFixture
     public function load(ObjectManager $manager): void
     {
         $article = $this->createArticle();
-        $this->addReference('article', $article);
         $manager->persist($article);
         $manager->flush();
     }

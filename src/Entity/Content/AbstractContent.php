@@ -20,7 +20,8 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
  *     "page" = "Silverback\ApiComponentBundle\Entity\Content\Page",
- *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+ *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup",
+ *     "article" = "Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage"
  * })
  */
 abstract class AbstractContent implements ContentInterface

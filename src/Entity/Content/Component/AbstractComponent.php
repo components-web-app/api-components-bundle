@@ -34,7 +34,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem",
  *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList",
  *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem",
- *     "article" = "Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article",
  *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar",
  *     "nav_bar_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBarItem",
  *     "tabs" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs",

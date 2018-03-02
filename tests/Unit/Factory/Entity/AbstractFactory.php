@@ -17,6 +17,12 @@ abstract class AbstractFactory extends TestCase
     private $presetOptions = [
         'component' => [
             'className'
+        ],
+        'page' => [
+            'title',
+            'metaDescription',
+            'parent',
+            'layout'
         ]
     ];
 

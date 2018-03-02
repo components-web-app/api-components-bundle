@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Tests\TestBundle\Entity;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileTrait;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 
 class FileComponent implements FileInterface
 {

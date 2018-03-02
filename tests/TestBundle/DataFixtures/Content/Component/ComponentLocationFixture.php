@@ -7,10 +7,11 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\ComponentLocationFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\ContentFixture;
+use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component\ContentFixture as ContentEntityFixture;
 
 class ComponentLocationFixture extends AbstractFixture implements DependentFixtureInterface
 {
@@ -29,10 +30,10 @@ class ComponentLocationFixture extends AbstractFixture implements DependentFixtu
     {
         /** @var Page $childPage */
         $childPage = $this->getReference('childPage');
-        /** @var Article $article */
-        $article = $this->getReference('article');
+        /** @var Content $content */
+        $content = $this->getReference('content');
 
-        $manager->persist($this->createComponentLocation($article, $childPage));
+        $manager->persist($this->createComponentLocation($content, $childPage));
         $manager->flush();
     }
 
@@ -46,10 +47,10 @@ class ComponentLocationFixture extends AbstractFixture implements DependentFixtu
         );
     }
 
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return array(
-            ArticleFixture::class,
+            ContentEntityFixture::class,
             ContentFixture::class
         );
     }

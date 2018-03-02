@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Entity\Content\Component;
+namespace Silverback\ApiComponentBundle\Entity\Content;
 
 interface FileInterface
 {

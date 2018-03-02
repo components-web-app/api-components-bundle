@@ -9,6 +9,8 @@ use Silverback\ApiComponentBundle\Tests\Unit\Factory\Entity\AbstractFactory;
 
 class PageFactoryTest extends AbstractFactory
 {
+    protected $presets = ['page'];
+
     /**
      * @inheritdoc
      */
