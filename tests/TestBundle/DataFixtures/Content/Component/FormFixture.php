@@ -23,7 +23,7 @@ class FormFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createForm());
+        $this->createForm();
         $manager->flush();
     }
 

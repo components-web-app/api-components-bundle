@@ -30,8 +30,7 @@ class GalleryFixture extends AbstractFixture
     public function load(ObjectManager $manager): void
     {
         $gallery = $this->createGallery();
-        $manager->persist($gallery);
-        $manager->persist($this->createGalleryItem($gallery));
+        $this->createGalleryItem($gallery);
 
         $manager->flush();
     }

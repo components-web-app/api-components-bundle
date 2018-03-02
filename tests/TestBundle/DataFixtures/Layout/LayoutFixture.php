@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Layout;
 
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar;
 use Silverback\ApiComponentBundle\Factory\Entity\Layout\LayoutFactory;
 
 class LayoutFixture extends AbstractFixture
@@ -22,7 +23,6 @@ class LayoutFixture extends AbstractFixture
     public function load(ObjectManager $manager): void
     {
         $layout = $this->createLayout();
-        $manager->persist($layout);
         $this->addReference('layout', $layout);
 
         $manager->flush();

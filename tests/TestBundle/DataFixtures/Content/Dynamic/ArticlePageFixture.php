@@ -28,8 +28,7 @@ class ArticlePageFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $article = $this->createArticle();
-        $manager->persist($article);
+        $this->createArticle();
         $manager->flush();
     }
 

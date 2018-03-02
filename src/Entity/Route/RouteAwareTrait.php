@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 trait RouteAwareTrait
 {
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content", cascade={"persist"})
      * @Groups({"layout", "content", "component"})
      * @var Collection|Route[]
      */

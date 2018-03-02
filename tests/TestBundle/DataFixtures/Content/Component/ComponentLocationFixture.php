@@ -33,7 +33,7 @@ class ComponentLocationFixture extends AbstractFixture implements DependentFixtu
         /** @var Content $content */
         $content = $this->getReference('content');
 
-        $manager->persist($this->createComponentLocation($content, $childPage));
+        $this->createComponentLocation($content, $childPage);
         $manager->flush();
     }
 

@@ -28,7 +28,7 @@ class RouteFixture extends AbstractFixture implements DependentFixtureInterface
     {
         /** @var Page $childPage */
         $childPage = $this->getReference('childPage');
-        $manager->persist($this->createRoute('/child', $childPage));
+        $this->createRoute('/child', $childPage);
 
         $manager->flush();
     }

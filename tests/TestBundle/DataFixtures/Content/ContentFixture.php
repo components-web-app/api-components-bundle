@@ -39,14 +39,12 @@ class ContentFixture extends AbstractFixture implements DependentFixtureInterfac
         $layout = $this->getReference('layout');
 
         $parentPage = $this->createPage();
-        $manager->persist($parentPage);
         $childPage = $this->createPage($parentPage, $layout);
-        $manager->persist($childPage);
         $this->addReference('childPage', $childPage);
 
         /** @var Content $content */
         $content = $this->getReference('content');
-        $manager->persist($this->createComponentGroup($content));
+        $this->createComponentGroup($content);
 
         $manager->flush();
     }

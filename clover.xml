@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1520006790">
-  <project timestamp="1520006790">
+<coverage generated="1520007055">
+  <project timestamp="1520007055">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -379,14 +379,14 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation" namespace="Silverback\ApiComponentBundle\Entity\Content\Component" fullPackage="Silverback" package="Silverback">
           <metrics complexity="16" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="23" coveredstatements="22" elements="31" coveredelements="29"/>
         </class>
-        <line num="54" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="56" type="stmt" count="5"/>
-        <line num="57" type="stmt" count="5"/>
-        <line num="58" type="stmt" count="5"/>
-        <line num="60" type="stmt" count="5"/>
-        <line num="61" type="stmt" count="5"/>
-        <line num="62" type="stmt" count="5"/>
-        <line num="64" type="stmt" count="5"/>
+        <line num="54" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="56" type="stmt" count="4"/>
+        <line num="57" type="stmt" count="4"/>
+        <line num="58" type="stmt" count="4"/>
+        <line num="60" type="stmt" count="4"/>
+        <line num="61" type="stmt" count="4"/>
+        <line num="62" type="stmt" count="4"/>
+        <line num="64" type="stmt" count="4"/>
         <line num="71" type="method" name="__construct" visibility="public" complexity="5" crap="5" count="6"/>
         <line num="75" type="stmt" count="6"/>
         <line num="76" type="stmt" count="6"/>
@@ -421,11 +421,11 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Content" fullPackage="Silverback" package="Silverback">
           <metrics complexity="3" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="7" elements="10" coveredelements="10"/>
         </class>
-        <line num="27" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="29" type="stmt" count="5"/>
-        <line num="30" type="stmt" count="5"/>
-        <line num="31" type="stmt" count="5"/>
-        <line num="33" type="stmt" count="5"/>
+        <line num="27" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="29" type="stmt" count="4"/>
+        <line num="30" type="stmt" count="4"/>
+        <line num="31" type="stmt" count="4"/>
+        <line num="33" type="stmt" count="4"/>
         <line num="38" type="method" name="getContent" visibility="public" complexity="1" crap="1" count="3"/>
         <line num="40" type="stmt" count="3"/>
         <line num="46" type="method" name="setContent" visibility="public" complexity="1" crap="1" count="3"/>
@@ -452,14 +452,14 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Feature" fullPackage="Silverback" package="Silverback">
           <metrics complexity="7" methods="5" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="9" elements="18" coveredelements="11"/>
         </class>
-        <line num="28" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="30" type="stmt" count="5"/>
-        <line num="31" type="stmt" count="5"/>
-        <line num="32" type="stmt" count="5"/>
-        <line num="34" type="stmt" count="5"/>
-        <line num="35" type="stmt" count="5"/>
-        <line num="36" type="stmt" count="5"/>
-        <line num="38" type="stmt" count="5"/>
+        <line num="28" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="30" type="stmt" count="4"/>
+        <line num="31" type="stmt" count="4"/>
+        <line num="32" type="stmt" count="4"/>
+        <line num="34" type="stmt" count="4"/>
+        <line num="35" type="stmt" count="4"/>
+        <line num="36" type="stmt" count="4"/>
+        <line num="38" type="stmt" count="4"/>
         <line num="43" type="method" name="getLabel" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="45" type="stmt" count="0"/>
         <line num="51" type="method" name="setLabel" visibility="public" complexity="1" crap="1" count="3"/>
@@ -478,12 +478,12 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumns" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns" fullPackage="Silverback" package="Silverback">
           <metrics complexity="7" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="11" elements="16" coveredelements="16"/>
         </class>
-        <line num="36" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="38" type="stmt" count="5"/>
-        <line num="39" type="stmt" count="5"/>
-        <line num="40" type="stmt" count="5"/>
-        <line num="42" type="stmt" count="5"/>
-        <line num="47" type="stmt" count="5"/>
+        <line num="36" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="38" type="stmt" count="4"/>
+        <line num="39" type="stmt" count="4"/>
+        <line num="40" type="stmt" count="4"/>
+        <line num="42" type="stmt" count="4"/>
+        <line num="47" type="stmt" count="4"/>
         <line num="52" type="method" name="getColumns" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="54" type="stmt" count="1"/>
         <line num="60" type="method" name="setColumns" visibility="public" complexity="1" crap="1" count="2"/>
@@ -527,11 +527,11 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked" fullPackage="Silverback" package="Silverback">
           <metrics complexity="13" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="13" elements="20" coveredelements="20"/>
         </class>
-        <line num="39" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
-        <line num="41" type="stmt" count="4"/>
-        <line num="42" type="stmt" count="4"/>
-        <line num="43" type="stmt" count="4"/>
-        <line num="45" type="stmt" count="4"/>
+        <line num="39" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="41" type="stmt" count="3"/>
+        <line num="42" type="stmt" count="3"/>
+        <line num="43" type="stmt" count="3"/>
+        <line num="45" type="stmt" count="3"/>
         <line num="50" type="method" name="getDescription" visibility="public" complexity="2" crap="2" count="1"/>
         <line num="52" type="stmt" count="1"/>
         <line num="58" type="method" name="setDescription" visibility="public" complexity="2" crap="2" count="1"/>
@@ -667,14 +667,14 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Gallery" fullPackage="Silverback" package="Silverback">
           <metrics complexity="10" methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="15" coveredstatements="15" elements="21" coveredelements="21"/>
         </class>
-        <line num="42" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="44" type="stmt" count="5"/>
-        <line num="45" type="stmt" count="5"/>
-        <line num="46" type="stmt" count="5"/>
-        <line num="48" type="stmt" count="5"/>
-        <line num="49" type="stmt" count="5"/>
-        <line num="50" type="stmt" count="5"/>
-        <line num="52" type="stmt" count="5"/>
+        <line num="42" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="44" type="stmt" count="4"/>
+        <line num="45" type="stmt" count="4"/>
+        <line num="46" type="stmt" count="4"/>
+        <line num="48" type="stmt" count="4"/>
+        <line num="49" type="stmt" count="4"/>
+        <line num="50" type="stmt" count="4"/>
+        <line num="52" type="stmt" count="4"/>
         <line num="57" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
         <line num="59" type="stmt" count="4"/>
         <line num="60" type="stmt" count="4"/>
@@ -696,11 +696,11 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Hero" fullPackage="Silverback" package="Silverback">
           <metrics complexity="14" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="14" coveredstatements="13" elements="22" coveredelements="20"/>
         </class>
-        <line num="44" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="46" type="stmt" count="5"/>
-        <line num="47" type="stmt" count="5"/>
-        <line num="48" type="stmt" count="5"/>
-        <line num="50" type="stmt" count="5"/>
+        <line num="44" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="46" type="stmt" count="4"/>
+        <line num="47" type="stmt" count="4"/>
+        <line num="48" type="stmt" count="4"/>
+        <line num="50" type="stmt" count="4"/>
         <line num="55" type="method" name="getTitle" visibility="public" complexity="2" crap="2" count="1"/>
         <line num="57" type="stmt" count="1"/>
         <line num="63" type="method" name="setTitle" visibility="public" complexity="2" crap="2" count="2"/>
@@ -837,17 +837,17 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage" namespace="Silverback\ApiComponentBundle\Entity\Content\Dynamic">
           <metrics complexity="10" methods="8" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="16" elements="34" coveredelements="21"/>
         </class>
-        <line num="49" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="51" type="stmt" count="5"/>
-        <line num="52" type="stmt" count="5"/>
-        <line num="53" type="stmt" count="5"/>
-        <line num="56" type="stmt" count="5"/>
-        <line num="57" type="stmt" count="5"/>
-        <line num="58" type="stmt" count="5"/>
-        <line num="61" type="stmt" count="5"/>
-        <line num="62" type="stmt" count="5"/>
-        <line num="63" type="stmt" count="5"/>
-        <line num="65" type="stmt" count="5"/>
+        <line num="49" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="51" type="stmt" count="4"/>
+        <line num="52" type="stmt" count="4"/>
+        <line num="53" type="stmt" count="4"/>
+        <line num="56" type="stmt" count="4"/>
+        <line num="57" type="stmt" count="4"/>
+        <line num="58" type="stmt" count="4"/>
+        <line num="61" type="stmt" count="4"/>
+        <line num="62" type="stmt" count="4"/>
+        <line num="63" type="stmt" count="4"/>
+        <line num="65" type="stmt" count="4"/>
         <line num="67" type="method" name="getComponentLocations" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="69" type="stmt" count="0"/>
         <line num="71" type="stmt" count="0"/>
@@ -1927,8 +1927,8 @@
         <class name="Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocation" namespace="Silverback\ApiComponentBundle\Validator\Constraints" fullPackage="Silverback" package="Silverback">
           <metrics complexity="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
         </class>
-        <line num="17" type="method" name="getTargets" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="19" type="stmt" count="5"/>
+        <line num="17" type="method" name="getTargets" visibility="public" complexity="1" crap="1" count="4"/>
+        <line num="19" type="stmt" count="4"/>
         <metrics loc="21" ncloc="15" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Validator/Constraints/ComponentLocationValidator.php">
