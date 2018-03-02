@@ -71,7 +71,7 @@ final class ContentFactory extends AbstractComponentFactory
     public function create(?array $ops = null): Content
     {
         $component = new Content();
-        $this->init($component, $ops, ['lipsum', 'content']);
+        $this->init($component, $ops);
 
         if (\is_string($this->ops['content'])) {
             $component->setContent($this->ops['content']);
@@ -102,6 +102,6 @@ final class ContentFactory extends AbstractComponentFactory
      */
     protected static function getIgnoreOps(): array
     {
-        return array_merge(parent::getIgnoreOps(), ['lipsum']);
+        return array_merge(parent::getIgnoreOps(), ['lipsum', 'content']);
     }
 }
