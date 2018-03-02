@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -46,10 +47,7 @@ class RouteAwareSubscriber implements EventSubscriber
     public function prePersist(LifecycleEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getEntity();
-        if ($entity instanceof RouteAwareInterface) {
-            $route = $this->createPageRoute($entity);
-            $eventArgs->getEntityManager()->persist($route);
-        }
+        $this->prePersistUpdate($entity, $eventArgs->getEntityManager());
     }
 
     /**
@@ -59,9 +57,21 @@ class RouteAwareSubscriber implements EventSubscriber
     public function preUpdate(PreUpdateEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getEntity();
-        if ($entity instanceof RouteAwareInterface) {
-            $route = $this->createPageRoute($entity);
-            $eventArgs->getEntityManager()->persist($route);
+        $this->prePersistUpdate($entity, $eventArgs->getEntityManager());
+    }
+
+    /**
+     * @param mixed $entity
+     * @param EntityManager $em
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function prePersistUpdate($entity, EntityManager $em): void
+    {
+        if (
+            $entity instanceof RouteAwareInterface &&
+            $route = $this->createPageRoute($entity)
+        ) {
+            $em->persist($route);
         }
     }
 
