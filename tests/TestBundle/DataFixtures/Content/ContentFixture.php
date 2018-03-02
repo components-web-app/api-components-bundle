@@ -9,6 +9,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\ComponentGroupFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Dynamic\ArticlePageFixture;
@@ -38,7 +39,7 @@ class ContentFixture extends AbstractFixture implements DependentFixtureInterfac
         /** @var Layout $article */
         $layout = $this->getReference('layout');
 
-        $parentPage = $this->createPage();
+        $parentPage = $this->createPage(null, null, new Route('/'));
         $childPage = $this->createPage($parentPage, $layout);
         $this->addReference('childPage', $childPage);
 
@@ -58,14 +59,15 @@ class ContentFixture extends AbstractFixture implements DependentFixtureInterfac
         );
     }
 
-    private function createPage(Page $parent = null, Layout $layout = null)
+    private function createPage(Page $parent = null, Layout $layout = null, Route $route = null)
     {
         return $this->pageFactory->create(
             [
                 'title' => 'Page title',
                 'metaDescription' => 'Meta description',
                 'parent' => $parent,
-                'layout' => $layout
+                'layout' => $layout,
+                'route' => $route
             ]
         );
     }

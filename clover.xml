@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1520007055">
-  <project timestamp="1520007055">
+<coverage generated="1520007625">
+  <project timestamp="1520007625">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -930,17 +930,17 @@
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Route/RouteAwareTrait.php">
         <class name="RouteAwareTrait" namespace="Silverback\ApiComponentBundle\Entity\Route">
-          <metrics complexity="3" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="1" elements="8" coveredelements="2"/>
+          <metrics complexity="3" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="3" elements="8" coveredelements="5"/>
         </class>
-        <line num="22" type="method" name="addRoute" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="24" type="stmt" count="0"/>
-        <line num="25" type="stmt" count="0"/>
+        <line num="22" type="method" name="addRoute" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="24" type="stmt" count="1"/>
+        <line num="25" type="stmt" count="1"/>
         <line num="32" type="method" name="removeRoute" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="34" type="stmt" count="0"/>
         <line num="35" type="stmt" count="0"/>
         <line num="41" type="method" name="getRoutes" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="43" type="stmt" count="1"/>
-        <metrics loc="45" ncloc="29" classes="1" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="1" elements="8" coveredelements="2"/>
+        <metrics loc="45" ncloc="29" classes="1" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="3" elements="8" coveredelements="5"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Route/RouteAwareInterface.php">
@@ -1089,7 +1089,7 @@
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/EventListener/Doctrine/RouteAwareSubscriber.php">
         <class name="Silverback\ApiComponentBundle\EventListener\Doctrine\RouteAwareSubscriber" namespace="Silverback\ApiComponentBundle\EventListener\Doctrine">
-          <metrics complexity="14" methods="7" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="16" elements="33" coveredelements="20"/>
+          <metrics complexity="14" methods="7" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="17" elements="33" coveredelements="22"/>
         </class>
         <line num="25" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
         <line num="28" type="stmt" count="4"/>
@@ -1120,11 +1120,11 @@
         <line num="93" type="stmt" count="0"/>
         <line num="94" type="stmt" count="0"/>
         <line num="97" type="stmt" count="1"/>
-        <line num="103" type="method" name="createPageRoute" visibility="private" complexity="3" crap="3.33" count="1"/>
+        <line num="103" type="method" name="createPageRoute" visibility="private" complexity="3" crap="3" count="1"/>
         <line num="105" type="stmt" count="1"/>
         <line num="106" type="stmt" count="1"/>
-        <line num="108" type="stmt" count="0"/>
-        <metrics loc="110" ncloc="79" classes="1" methods="7" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="16" elements="33" coveredelements="20"/>
+        <line num="108" type="stmt" count="1"/>
+        <metrics loc="110" ncloc="79" classes="1" methods="7" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="26" coveredstatements="17" elements="33" coveredelements="22"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Exception">
@@ -1606,7 +1606,7 @@
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Route">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Route/RouteFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Route">
-          <metrics complexity="14" methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="28" elements="34" coveredelements="34"/>
+          <metrics complexity="14" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="26" elements="34" coveredelements="31"/>
         </class>
         <line num="19" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="8"/>
         <line num="25" type="stmt" count="8"/>
@@ -1619,15 +1619,15 @@
         <line num="37" type="stmt" count="4"/>
         <line num="43" type="method" name="defaultOps" visibility="protected" complexity="1" crap="1" count="5"/>
         <line num="46" type="stmt" count="5"/>
-        <line num="57" type="method" name="createFromRouteAwareEntity" visibility="public" complexity="4" crap="4" count="3"/>
+        <line num="57" type="method" name="createFromRouteAwareEntity" visibility="public" complexity="4" crap="4.10" count="3"/>
         <line num="59" type="stmt" count="3"/>
         <line num="60" type="stmt" count="3"/>
         <line num="61" type="stmt" count="3"/>
         <line num="62" type="stmt" count="3"/>
-        <line num="63" type="stmt" count="1"/>
+        <line num="63" type="stmt" count="0"/>
         <line num="65" type="stmt" count="3"/>
         <line num="66" type="stmt" count="3"/>
-        <line num="67" type="stmt" count="1"/>
+        <line num="67" type="stmt" count="0"/>
         <line num="69" type="stmt" count="3"/>
         <line num="71" type="stmt" count="3"/>
         <line num="72" type="stmt" count="3"/>
@@ -1640,9 +1640,9 @@
         <line num="95" type="method" name="getParentRoute" visibility="private" complexity="2" crap="2" count="2"/>
         <line num="97" type="stmt" count="2"/>
         <line num="98" type="stmt" count="2"/>
-        <line num="99" type="stmt" count="2"/>
+        <line num="99" type="stmt" count="1"/>
         <line num="101" type="stmt" count="2"/>
-        <metrics loc="103" ncloc="81" classes="1" methods="6" coveredmethods="6" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="28" elements="34" coveredelements="34"/>
+        <metrics loc="103" ncloc="81" classes="1" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="26" elements="34" coveredelements="31"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\Factory\Form">
@@ -2058,6 +2058,6 @@
         <metrics loc="51" ncloc="46" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="6" elements="18" coveredelements="7"/>
       </file>
     </package>
-    <metrics files="106" loc="5761" ncloc="4060" classes="84" methods="293" coveredmethods="225" conditionals="0" coveredconditionals="0" statements="1061" coveredstatements="791" elements="1354" coveredelements="1016"/>
+    <metrics files="106" loc="5761" ncloc="4060" classes="84" methods="293" coveredmethods="226" conditionals="0" coveredconditionals="0" statements="1061" coveredstatements="792" elements="1354" coveredelements="1018"/>
   </project>
 </coverage>
