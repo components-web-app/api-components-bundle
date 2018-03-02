@@ -47,7 +47,7 @@ class Page extends AbstractContent implements RouteAwareInterface
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Layout\Layout")
      * @ORM\JoinColumn(onDelete="SET NULL")
      * @ApiProperty()
-     * @Groups({"content"})
+     * @Groups({"content","route"})
      * @var Layout|null
      */
     protected $layout;

@@ -32,7 +32,7 @@ class Route
     private $route;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="routes", cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", cascade={"remove"})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"route"})
      * @var null|AbstractContent
