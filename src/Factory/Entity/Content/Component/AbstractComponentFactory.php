@@ -8,6 +8,12 @@ use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 
 abstract class AbstractComponentFactory extends AbstractFactory
 {
+    public const COMPONENT_OPS = [
+        'className' => null,
+        'parentComponent' => null,
+        'parentContent' => null
+    ];
+
     /**
      * @param AbstractComponent $component
      * @param array|null $ops
@@ -37,10 +43,6 @@ abstract class AbstractComponentFactory extends AbstractFactory
      */
     protected static function defaultOps(): array
     {
-        return [
-            'className' => null,
-            'parentComponent' => null,
-            'parentContent' => null
-        ];
+        return self::COMPONENT_OPS;
     }
 }

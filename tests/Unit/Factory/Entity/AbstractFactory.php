@@ -6,6 +6,8 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -15,15 +17,8 @@ abstract class AbstractFactory extends TestCase
      * @var array|string[][]
      */
     private $presetOptions = [
-        'component' => [
-            'className'
-        ],
-        'page' => [
-            'title',
-            'metaDescription',
-            'parent',
-            'layout'
-        ]
+        'component' => [],
+        'page' => []
     ];
 
     /**
@@ -69,6 +64,13 @@ abstract class AbstractFactory extends TestCase
      * @var MockObject|ValidatorInterface
      */
     private $validator;
+
+    public function __construct(?string $name = null, array $data = [], string $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        $this->presetOptions['component'] = array_keys(AbstractComponentFactory::COMPONENT_OPS);
+        $this->presetOptions['page'] = array_keys(PageFactory::PAGE_OPS);
+    }
 
     /**
      * @throws \ReflectionException

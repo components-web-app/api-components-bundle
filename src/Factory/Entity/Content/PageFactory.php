@@ -7,6 +7,14 @@ use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 
 class PageFactory extends AbstractFactory
 {
+    public const PAGE_OPS = [
+        'title' => 'New Page',
+        'metaDescription' => null,
+        'parent' => null,
+        'layout' => null,
+        'route' => null
+    ];
+
     /**
      * @inheritdoc
      */
@@ -23,12 +31,6 @@ class PageFactory extends AbstractFactory
      */
     protected static function defaultOps(): array
     {
-        return [
-            'title' => 'New Page',
-            'metaDescription' => null,
-            'parent' => null,
-            'layout' => null,
-            'route' => null
-        ];
+        return self::PAGE_OPS;
     }
 }

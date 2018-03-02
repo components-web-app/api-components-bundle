@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Dynamic;
 
 use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,15 +28,11 @@ final class ArticlePageFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return array_merge(
-            parent::defaultOps(),
+            PageFactory::PAGE_OPS,
             [
-                'title' => 'Untitled',
                 'subtitle' => null,
                 'content' => 'Article content',
-                'filePath' => null,
-                'layout' => null,
-                'parent' => null,
-                'metaDescription' => null
+                'filePath' => null
             ]
         );
     }

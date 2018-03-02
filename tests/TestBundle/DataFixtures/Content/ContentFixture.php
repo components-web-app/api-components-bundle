@@ -7,7 +7,6 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
-use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\ComponentGroupFactory;

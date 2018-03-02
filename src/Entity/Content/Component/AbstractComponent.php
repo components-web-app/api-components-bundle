@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 use Silverback\ApiComponentBundle\Entity\DeleteCascadeInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;

@@ -10,8 +10,8 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\ComponentLocationFactory;
-use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\ContentFixture;
 use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component\ContentFixture as ContentEntityFixture;
+use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\ContentFixture;
 
 class ComponentLocationFixture extends AbstractFixture implements DependentFixtureInterface
 {

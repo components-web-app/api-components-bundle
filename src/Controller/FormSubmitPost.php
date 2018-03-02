@@ -9,7 +9,6 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
-use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
