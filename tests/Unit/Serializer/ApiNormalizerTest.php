@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
@@ -39,21 +39,21 @@ class ApiNormalizerTest extends TestCase
      */
     private $filePath = __DIR__ . '/../../app/public/images/testImage.jpg';
     /**
-     * @var MockObject|FileSystemLoader
+     * @var MockObject|PathResolver
      */
-    private $fileSystemLoaderMock;
+    private $pathResolverMock;
 
     public function setUp()
     {
         $this->normalizerInterfaceMock = $this->getMockBuilder(AbstractItemNormalizer::class)->disableOriginalConstructor()->getMock();
         $this->cacheManagerMock = $this->getMockBuilder(CacheManager::class)->disableOriginalConstructor()->getMock();
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
-        $this->fileSystemLoaderMock = $this->getMockBuilder(FileSystemLoader::class)->disableOriginalConstructor()->getMock();
+        $this->pathResolverMock = $this->getMockBuilder(PathResolver::class)->disableOriginalConstructor()->getMock();
         $this->apiNormalizer = new ApiNormalizer(
             $this->normalizerInterfaceMock,
             $this->cacheManagerMock,
             $this->formViewFactoryMock,
-            $this->fileSystemLoaderMock
+            $this->pathResolverMock
         );
     }
 
@@ -115,9 +115,9 @@ class ApiNormalizerTest extends TestCase
 
     public function test_normalize_file(): void
     {
-        $this->fileSystemLoaderMock
+        $this->pathResolverMock
             ->expects($this->once())
-            ->method('getImaginePath')
+            ->method('resolve')
             ->with($this->filePath)
             ->willReturn($this->filePath)
         ;

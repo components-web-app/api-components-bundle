@@ -10,7 +10,7 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 
 /**
@@ -33,27 +33,27 @@ class EntitySubscriber implements EventSubscriber
      */
     private $fileNormalizer;
     /**
-     * @var FileSystemLoader
+     * @var PathResolver
      */
-    private $fileSystemLoader;
+    private $pathResolver;
 
     /**
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param FilterService $filterService
      * @param ApiNormalizer $fileNormalizer
-     * @param FileSystemLoader $fileSystemLoader
+     * @param PathResolver $pathResolver
      */
     public function __construct(
         CacheManager $imagineCacheManager,
         FilterService $filterService,
         ApiNormalizer $fileNormalizer,
-        FileSystemLoader $fileSystemLoader
+        PathResolver $pathResolver
     ) {
         $this->imagineCacheManager = $imagineCacheManager;
         $this->fileNormalizer = $fileNormalizer;
         $this->filterService = $filterService;
-        $this->fileSystemLoader = $fileSystemLoader;
+        $this->pathResolver = $pathResolver;
     }
 
     /**
@@ -154,7 +154,7 @@ class EntitySubscriber implements EventSubscriber
     {
         $filters = $file::getImagineFilters();
         foreach ($filters as $filter) {
-            $this->filterService->getUrlOfFilteredImage($this->fileSystemLoader->getImaginePath($file->getFilePath()), $filter);
+            $this->filterService->getUrlOfFilteredImage($this->pathResolver->resolve($file->getFilePath()), $filter);
         }
     }
 }

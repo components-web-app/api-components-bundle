@@ -4,11 +4,11 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 
 use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
+use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\RouteAwareSubscriber;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
@@ -27,22 +27,17 @@ return function (ContainerConfigurator $configurator) {
         ->autowire()
         ->autoconfigure()
         ->private()
+        ->bind('$formHandlers', new TaggedIteratorArgument('silverback_api_component.form_handler'))
     ;
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')
-        ->exclude('../../{Entity,Migrations,Tests,Resources,Imagine}')
+        ->exclude('../../{Entity,Migrations,Tests,Resources}')
     ;
 
     $services
         ->load('Silverback\\ApiComponentBundle\\EntityListener\\', '../../EntityListener')
         ->tag('doctrine.orm.entity_listener')
-    ;
-
-    $services
-        ->load('Silverback\\ApiComponentBundle\\DataProvider\\Item\\', '../../DataProvider/Item')
-        ->tag('api_platform.item_data_provider', ['priority' => 1])
-        ->autoconfigure(false)
     ;
 
     $services
@@ -53,26 +48,43 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(FormSubmitPost::class)
         ->tag('controller.service_arguments')
-        ->args(
-            [
-                '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
-            ]
-        )
     ;
 
     $services
-        ->alias(SlugifyInterface::class, 'slugify')
+        ->set(FormHandlerClassValidator::class)
+        ->tag('validator.constraint_validator')
+    ;
+
+    $services
+        ->set(ComponentLocationValidator::class)
+        ->tag('validator.constraint_validator')
+    ;
+
+    $services
+        ->set(EntitySubscriber::class)
+        ->tag('doctrine.event_subscriber')
+    ;
+
+    $services
+        ->set(RouteAwareSubscriber::class)
+        ->tag('doctrine.event_subscriber')
+    ;
+
+    $services
+        ->load('Silverback\\ApiComponentBundle\\DataProvider\\Item\\', '../../DataProvider/Item')
+        ->tag('api_platform.item_data_provider', ['priority' => 1])
+        ->autoconfigure(false)
     ;
 
     $services
         ->set(SwaggerDecorator::class)
         ->decorate('api_platform.swagger.normalizer.documentation')
+        ->autoconfigure(false)
         ->args(
             [
                 new Reference(SwaggerDecorator::class . '.inner')
             ]
         )
-        ->autoconfigure(false)
     ;
 
     $services
@@ -83,21 +95,6 @@ return function (ContainerConfigurator $configurator) {
                 '$formTypes' => new TaggedIteratorArgument('silverback_api_component.form_type')
             ]
         )
-    ;
-
-    $services
-        ->set(FormHandlerClassValidator::class)
-        ->tag('validator.constraint_validator')
-        ->args(
-            [
-                '$formHandlers' => new TaggedIteratorArgument('silverback_api_component.form_handler')
-            ]
-        )
-    ;
-
-    $services
-        ->set(ComponentLocationValidator::class)
-        ->tag('validator.constraint_validator')
     ;
 
     $services
@@ -114,21 +111,8 @@ return function (ContainerConfigurator $configurator) {
         ->args([new Reference(ApiContextBuilder::class . '.inner')])
     ;
 
-    $services
-        ->set(EntitySubscriber::class)
-        ->tag('doctrine.event_subscriber')
-    ;
-
-    $services
-        ->set(RouteAwareSubscriber::class)
-        ->tag('doctrine.event_subscriber')
-    ;
-
-    $services
-        ->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default')
-    ;
-
-    $services->set(Client::class);
-
+    $services->set(Client::class); // create guzzle client as a service
+    $services->alias(SlugifyInterface::class, 'slugify');
+    $services->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default');
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
 };

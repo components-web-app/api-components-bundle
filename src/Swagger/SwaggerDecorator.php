@@ -2,19 +2,18 @@
 
 namespace Silverback\ApiComponentBundle\Swagger;
 
-use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class SwaggerDecorator implements NormalizerInterface
 {
     private $decorated;
 
-    public function __construct(DocumentationNormalizer $decorated)
+    public function __construct(NormalizerInterface $decorated)
     {
         $this->decorated = $decorated;
     }
 
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         /** @var array $docs */
         $docs = $this->decorated->normalize($object, $format, $context);
@@ -61,7 +60,7 @@ final class SwaggerDecorator implements NormalizerInterface
         return $docs;
     }
 
-    public function supportsNormalization($data, $format = null)
+    public function supportsNormalization($data, $format = null): bool
     {
         return $this->decorated->supportsNormalization($data, $format);
     }

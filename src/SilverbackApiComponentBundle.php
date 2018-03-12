@@ -3,8 +3,7 @@
 namespace Silverback\ApiComponentBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ImagineFileSystemOverride;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
+use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -17,7 +16,7 @@ class SilverbackApiComponentBundle extends Bundle
     {
         parent::build($container);
         $this->addRegisterMappingsPass($container);
-        $container->addCompilerPass(new ImagineFileSystemOverride(), PassConfig::TYPE_BEFORE_OPTIMIZATION);
+        $container->addCompilerPass(new ImagineCompilerPass());
     }
 
     /**

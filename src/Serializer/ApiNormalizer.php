@@ -7,6 +7,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -17,20 +18,20 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $decorated;
     private $imagineCacheManager;
     private $formViewFactory;
-    private $fileSystemLoader;
+    private $pathResolver;
 
     /**
      * FileNormalizer constructor.
      * @param NormalizerInterface $decorated
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
-     * @param FileSystemLoader $fileSystemLoader
+     * @param PathResolver $pathResolver
      */
     public function __construct(
         NormalizerInterface $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
-        FileSystemLoader $fileSystemLoader
+        PathResolver $pathResolver
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -38,7 +39,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->decorated = $decorated;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->formViewFactory = $formViewFactory;
-        $this->fileSystemLoader = $fileSystemLoader;
+        $this->pathResolver = $pathResolver;
     }
 
     /**
@@ -94,7 +95,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             $supported = $this->isImagineSupportedFile($filePath);
             foreach ($object::getImagineFilters() as $returnKey => $filter) {
                 $data[$returnKey] = $supported ? parse_url(
-                    $this->imagineCacheManager->getBrowserPath($this->fileSystemLoader->getImaginePath($filePath), $filter),
+                    $this->imagineCacheManager->getBrowserPath($this->pathResolver->resolve($filePath), $filter),
                     PHP_URL_PATH
                 ) : null;
             }
