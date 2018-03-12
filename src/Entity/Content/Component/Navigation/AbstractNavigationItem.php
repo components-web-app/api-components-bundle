@@ -16,7 +16,7 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
 {
     /**
      * @ORM\Column()
-     * @Groups({"layout", "component", "component_item"})
+     * @Groups({"layout", "component", "component_item", "route"})
      * @var string
      */
     protected $label;
@@ -24,14 +24,14 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
      * @ORM\JoinColumn(referencedColumnName="route")
-     * @Groups({"layout", "component", "component_item"})
+     * @Groups({"layout", "component", "component_item", "route"})
      * @var null|Route
      */
     protected $route;
 
     /**
      * @ORM\Column(nullable=true)
-     * @Groups({"layout", "component", "component_item"})
+     * @Groups({"layout", "component", "component_item", "route"})
      * @var null|string
      */
     protected $fragment;

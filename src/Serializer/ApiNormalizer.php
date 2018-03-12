@@ -6,7 +6,6 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
