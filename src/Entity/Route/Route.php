@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Route
@@ -35,6 +36,7 @@ class Route
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", cascade={"remove"})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"route"})
+     * @Assert\Type("Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface")
      * @var null|AbstractContent
      */
     private $content;

@@ -44,7 +44,7 @@ class RouteFixture extends AbstractFixture implements DependentFixtureInterface
         );
     }
 
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             ContentFixture::class
