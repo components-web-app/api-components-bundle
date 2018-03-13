@@ -38,6 +38,13 @@ class Layout
      */
     private $navBar;
 
+    /**
+     * @ORM\Column(nullable=true)
+     * @Groups({"layout"})
+     * @var null|string
+     */
+    private $className;
+
     public function __construct()
     {
         $this->id = Uuid::uuid4()->getHex();
@@ -81,5 +88,21 @@ class Layout
     public function setNavBar(?NavBar $navBar): void
     {
         $this->navBar = $navBar;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getClassName(): ?string
+    {
+        return $this->className;
+    }
+
+    /**
+     * @param null|string $className
+     */
+    public function setClassName(?string $className): void
+    {
+        $this->className = $className;
     }
 }
