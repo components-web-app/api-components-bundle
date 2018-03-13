@@ -39,6 +39,7 @@ class Page extends AbstractContent implements RouteAwareInterface
     /**
      * @ORM\ManyToOne(targetEntity="Page")
      * @ORM\JoinColumn(nullable=true)
+     * @Groups({"route"})
      * @var null|Page
      */
     protected $parent;
