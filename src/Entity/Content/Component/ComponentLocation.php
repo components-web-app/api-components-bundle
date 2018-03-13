@@ -46,7 +46,7 @@ class ComponentLocation implements SortableInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent", inversedBy="locations")
      * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Groups({"component", "content", "route"})
+     * @Groups({"default"})
      * @var AbstractComponent
      */
     private $component;
