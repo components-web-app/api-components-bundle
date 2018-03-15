@@ -52,11 +52,15 @@ class RouteFactory extends AbstractFactory
     /**
      * @param RouteAwareInterface $entity
      * @param int|null $postfix
-     * @return Route
+     * @return Route|null
      */
-    public function createFromRouteAwareEntity(RouteAwareInterface $entity, int $postfix = 0): Route
+    public function createFromRouteAwareEntity(RouteAwareInterface $entity, int $postfix = 0): ?Route
     {
-        $pageRoute = $this->slugify->slugify($entity->getDefaultRoute() ?: '');
+        $unsanitizedRoute = $entity->getDefaultRoute();
+        if (false === $unsanitizedRoute) {
+            return null;
+        }
+        $pageRoute = $this->slugify->slugify($unsanitizedRoute ?: '');
         $routePrefix = $this->getRoutePrefix($entity);
         $fullRoute = $routePrefix . $pageRoute;
         if ($postfix > 0) {

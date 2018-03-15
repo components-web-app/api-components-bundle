@@ -12,7 +12,8 @@ class PageFactory extends AbstractFactory
         'metaDescription' => null,
         'parent' => null,
         'layout' => null,
-        'route' => null
+        'route' => null,
+        'routable' => true
     ];
 
     /**

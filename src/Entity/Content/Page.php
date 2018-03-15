@@ -53,6 +53,13 @@ class Page extends AbstractContent implements RouteAwareInterface
      */
     protected $layout;
 
+    /**
+     * @ORM\Column(type="boolean")
+     * @Groups({"content"})
+     * @var boolean
+     */
+    protected $routable = true;
+
     public function __construct()
     {
         parent::__construct();
@@ -124,10 +131,26 @@ class Page extends AbstractContent implements RouteAwareInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isRoutable(): bool
+    {
+        return $this->routable;
+    }
+
+    /**
+     * @param bool $routable
+     */
+    public function setRoutable(bool $routable): void
+    {
+        $this->routable = $routable;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getDefaultRoute(): string
     {
-        return $this->getTitle();
+        return $this->routable ? $this->getTitle() : false;
     }
 }
