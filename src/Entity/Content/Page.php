@@ -24,14 +24,14 @@ class Page extends AbstractContent implements RouteAwareInterface
 
     /**
      * @ORM\Column()
-     * @Groups({"content"})
+     * @Groups({"content, "route""})
      * @var string
      */
     protected $title;
 
     /**
      * @ORM\Column()
-     * @Groups({"content"})
+     * @Groups({"content", "route"})
      * @var string
      */
     protected $metaDescription;
