@@ -53,13 +53,6 @@ class Page extends AbstractContent implements RouteAwareInterface
      */
     protected $layout;
 
-    /**
-     * @ORM\Column(type="boolean")
-     * @Groups({"content"})
-     * @var boolean
-     */
-    protected $routable = true;
-
     public function __construct()
     {
         parent::__construct();

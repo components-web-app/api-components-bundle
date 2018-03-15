@@ -30,8 +30,7 @@ final class HeroFactory extends AbstractComponentFactory
             parent::defaultOps(),
             [
                 'title' => 'Untitled',
-                'subtitle' => null,
-                'tabs' => null
+                'subtitle' => null
             ]
         );
     }
