@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Serializer;
 
 use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
+use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -38,10 +39,10 @@ class ApiNormalizerTest extends TestCase
      * @var string
      */
     private $filePath = __DIR__ . '/../../app/public/images/testImage.jpg';
-    /**
-     * @var MockObject|PathResolver
-     */
+    /** @var MockObject|PathResolver */
     private $pathResolverMock;
+    /** @var MockObject|EntityManagerInterface */
+    private $entityManagerMock;
 
     public function setUp()
     {
@@ -49,11 +50,13 @@ class ApiNormalizerTest extends TestCase
         $this->cacheManagerMock = $this->getMockBuilder(CacheManager::class)->disableOriginalConstructor()->getMock();
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
         $this->pathResolverMock = $this->getMockBuilder(PathResolver::class)->disableOriginalConstructor()->getMock();
+        $this->entityManagerMock = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
         $this->apiNormalizer = new ApiNormalizer(
             $this->normalizerInterfaceMock,
             $this->cacheManagerMock,
             $this->formViewFactoryMock,
-            $this->pathResolverMock
+            $this->pathResolverMock,
+            $this->entityManagerMock
         );
     }
 

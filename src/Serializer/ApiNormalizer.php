@@ -2,9 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -18,6 +21,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $imagineCacheManager;
     private $formViewFactory;
     private $pathResolver;
+    private $em;
 
     /**
      * FileNormalizer constructor.
@@ -25,12 +29,14 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
      * @param PathResolver $pathResolver
+     * @param EntityManagerInterface $entityManager
      */
     public function __construct(
         NormalizerInterface $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
-        PathResolver $pathResolver
+        PathResolver $pathResolver,
+        EntityManagerInterface $entityManager
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -39,6 +45,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->imagineCacheManager = $imagineCacheManager;
         $this->formViewFactory = $formViewFactory;
         $this->pathResolver = $pathResolver;
+        $this->em = $entityManager;
     }
 
     /**
@@ -69,6 +76,11 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         }
         if ($object instanceof Form) {
             $data['form'] = $this->formViewFactory->create($object);
+        }
+        if ($object instanceof Page) {
+            if (!$object->getLayout()) {
+                $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
+            }
         }
 
         return $data;
