@@ -131,26 +131,10 @@ class Page extends AbstractContent implements RouteAwareInterface
     }
 
     /**
-     * @return bool
-     */
-    public function isRoutable(): bool
-    {
-        return $this->routable;
-    }
-
-    /**
-     * @param bool $routable
-     */
-    public function setRoutable(bool $routable): void
-    {
-        $this->routable = $routable;
-    }
-
-    /**
      * @inheritdoc
      */
     public function getDefaultRoute(): string
     {
-        return $this->routable ? $this->getTitle() : false;
+        return $this->getTitle();
     }
 }
