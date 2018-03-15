@@ -66,12 +66,14 @@ class RouteFactory extends AbstractFactory
         if ($existing) {
             return $this->createFromRouteAwareEntity($entity, $postfix + 1);
         }
-        return $this->create(
+        $route = $this->create(
             [
                 'route' => $fullRoute,
                 'content' => $entity
             ]
         );
+        $entity->addRoute($route);
+        return $route;
     }
 
     /**
