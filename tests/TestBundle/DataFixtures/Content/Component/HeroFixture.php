@@ -30,8 +30,7 @@ class HeroFixture extends AbstractFixture
         return $this->heroFactory->create(
             [
                 'title' => 'Hero Title',
-                'subtitle' => 'Hero Subtitle',
-                'tabs' => null
+                'subtitle' => 'Hero Subtitle'
             ]
         );
     }
