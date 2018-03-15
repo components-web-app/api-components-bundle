@@ -71,6 +71,12 @@ return function (ContainerConfigurator $configurator) {
     ;
 
     $services
+        ->load('Silverback\\ApiComponentBundle\\DataProvider\\Item\\', '../../DataProvider/Item')
+        ->tag('api_platform.item_data_provider', ['priority' => 1])
+        ->autoconfigure(false)
+    ;
+
+    $services
         ->set(SwaggerDecorator::class)
         ->decorate('api_platform.swagger.normalizer.documentation')
         ->autoconfigure(false)
