@@ -87,7 +87,7 @@ class Page extends AbstractContent implements RouteAwareInterface
      */
     public function getMetaDescription(): string
     {
-        return $this->metaDescription;
+        return $this->metaDescription ?: '';
     }
 
     /**

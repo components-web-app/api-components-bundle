@@ -11,7 +11,8 @@ abstract class AbstractComponentFactory extends AbstractFactory
     public const COMPONENT_OPS = [
         'className' => null,
         'parentComponent' => null,
-        'parentContent' => null
+        'parentContent' => null,
+        'componentGroup' => null
     ];
 
     /**
