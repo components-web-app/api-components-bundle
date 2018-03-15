@@ -69,6 +69,11 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     public function normalize($object, $format = null, array $context = [])
     {
+        if ($object instanceof Page) {
+            if (!$object->getLayout()) {
+                $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
+            }
+        }
         $data = $this->decorated->normalize($object, $format, $context);
 
         if ($object instanceof FileInterface) {
@@ -77,12 +82,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if ($object instanceof Form) {
             $data['form'] = $this->formViewFactory->create($object);
         }
-        if ($object instanceof Page) {
-            if (!$object->getLayout()) {
-                $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
-            }
-        }
-
         return $data;
     }
 
