@@ -74,7 +74,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                 $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
             }
         }
-        if ($object instanceof Form) {
+        if ($object instanceof Form && !$object->getForm()) {
             $object->setForm($this->formViewFactory->create($object));
         }
         $data = $this->decorated->normalize($object, $format, $context);
