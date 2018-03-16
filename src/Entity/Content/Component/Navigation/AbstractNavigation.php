@@ -27,7 +27,6 @@ abstract class AbstractNavigation extends AbstractComponent
     {
         parent::__construct();
         $this->childComponentGroup = new ComponentGroup();
-        $this->childComponentGroup->setParent($this);
     }
 
     /**

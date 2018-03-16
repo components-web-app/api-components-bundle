@@ -35,21 +35,21 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
 
 
     /**
-     * @return AbstractComponent
+     * @return AbstractComponent|null
      */
-    public function getParent(): AbstractComponent
+    public function getParent(): ?AbstractComponent
     {
         return $this->parent;
     }
 
     /**
-     * @param AbstractComponent $parent
+     * @param AbstractComponent|null $parent
      * @param bool|null $cascadeValidComponent
      */
-    public function setParent(AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
+    public function setParent(?AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
     {
         $this->parent = $parent;
-        if ($cascadeValidComponent !== false) {
+        if ($parent && $cascadeValidComponent !== false) {
             // convert to bool again for $force (null becomes false)
             $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
         }
