@@ -54,7 +54,7 @@ class Form extends AbstractComponent
 
     /**
      * @ApiProperty(writable=false)
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var null|FormView
      */
     private $form;

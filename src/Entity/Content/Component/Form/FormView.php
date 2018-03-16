@@ -45,25 +45,25 @@ class FormView
     ];
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var array
      */
     private $vars;
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var Collection
      */
     private $children;
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     private $rendered;
 
     /**
-     * @Groups({"component"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     private $methodRendered;
