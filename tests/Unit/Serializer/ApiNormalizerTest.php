@@ -173,7 +173,14 @@ class ApiNormalizerTest extends TestCase
             ->willReturn($formView)
         ;
 
+        $this->normalizerInterfaceMock
+            ->expects($this->once())
+            ->method('normalize')
+            ->with($formEntity, null, [])
+            ->willReturn('normalized_response')
+        ;
+
         $data = $this->apiNormalizer->normalize($formEntity);
-        $this->assertEquals($formView, $data['form']);
+        $this->assertEquals('normalized_response', $data);
     }
 }
