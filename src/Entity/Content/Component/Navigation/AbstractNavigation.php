@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Navigation;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Symfony\Component\Serializer\Annotation\Groups;
