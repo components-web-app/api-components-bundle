@@ -59,7 +59,7 @@ abstract class AbstractForm extends AbstractController
             $response = new Response();
         }
         $response->setStatusCode($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
-        $response->setContent($this->serializer->serialize($data, $_format, ['groups' => ['page']]));
+        $response->setContent($this->serializer->serialize($data, $_format, ['groups' => ['component']]));
         return $response;
     }
 

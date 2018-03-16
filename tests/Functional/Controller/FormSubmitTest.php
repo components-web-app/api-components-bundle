@@ -78,12 +78,25 @@ class FormSubmitTest extends WebTestCase
             '{"test": {"name":"Dummy"}}'
         );
         $this->assertEquals(200, self::$client->getResponse()->getStatusCode());
+        $this->assertRequestContainsForm();
     }
 
     private function createInvalidRequest(string $method)
     {
-        self::$client->request($method, self::$formRoute);
-        $this->assertEquals(406, self::$client->getResponse()->getStatusCode());
+        self::$client->request($method, self::$formRoute,
+                               [],
+                               [],
+                               ['CONTENT_TYPE' => 'application/json'],
+                               '{"test": {"name":""}}');
+        $this->assertEquals(400, self::$client->getResponse()->getStatusCode());
+        $this->assertRequestContainsForm();
+    }
+
+    private function assertRequestContainsForm()
+    {
+        $content = json_decode(self::$client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('form', $content);
+        $this->assertCount(4, $content['form']);
     }
 
     public static function tearDownAfterClass()

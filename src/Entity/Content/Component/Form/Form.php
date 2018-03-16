@@ -53,6 +53,8 @@ class Form extends AbstractComponent
     private $lastModified;
 
     /**
+     * @ApiProperty(writable=false)
+     * @Groups({"component"})
      * @var null|FormView
      */
     private $form;

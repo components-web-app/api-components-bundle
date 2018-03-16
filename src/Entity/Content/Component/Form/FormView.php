@@ -45,25 +45,25 @@ class FormView
     ];
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component"})
      * @var array
      */
     private $vars;
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component"})
      * @var Collection
      */
     private $children;
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component"})
      * @var bool
      */
     private $rendered;
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component"})
      * @var bool
      */
     private $methodRendered;
