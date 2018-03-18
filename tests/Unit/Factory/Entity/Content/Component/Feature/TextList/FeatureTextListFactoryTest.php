@@ -16,7 +16,8 @@ class FeatureTextListFactoryTest extends AbstractFactory
     {
         $this->className = FeatureTextListFactory::class;
         $this->testOps = [
-            'title' => 'dummy1'
+            'title' => 'dummy1',
+            'columns' => 999
         ];
         parent::setUp();
     }

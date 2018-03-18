@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureStacked extends AbstractFeature
 {
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var bool
      */

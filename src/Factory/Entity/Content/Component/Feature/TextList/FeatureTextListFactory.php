@@ -26,7 +26,8 @@ class FeatureTextListFactory extends AbstractComponentFactory
         return array_merge(
             parent::defaultOps(),
             [
-                'title' => null
+                'title' => null,
+                'columns' => 3
             ]
         );
     }

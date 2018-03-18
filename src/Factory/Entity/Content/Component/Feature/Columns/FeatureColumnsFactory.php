@@ -26,7 +26,6 @@ class FeatureColumnsFactory extends AbstractComponentFactory
         return array_merge(
             parent::defaultOps(),
             [
-                'columns' => null,
                 'title' => null
             ]
         );
