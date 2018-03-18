@@ -65,6 +65,9 @@ abstract class AbstractFactory extends TestCase
      */
     private $validator;
 
+    /** @var array  */
+    protected $extraConstructorArgs = [];
+
     public function __construct(?string $name = null, array $data = [], string $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
@@ -77,7 +80,7 @@ abstract class AbstractFactory extends TestCase
      */
     public function setUp()
     {
-        $constructorArgs = $this->getConstructorArgs();
+        $constructorArgs = array_merge($this->getConstructorArgs(), $this->extraConstructorArgs);
         $this->objectManager = $constructorArgs[0];
         if ($this->isFinal) {
             $this->factory = new $this->className(...$constructorArgs);
