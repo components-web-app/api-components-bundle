@@ -20,7 +20,7 @@ class AbstractFeatureItemFactoryTest extends AbstractFactory
         $this->componentClassName = AbstractFeatureItem::class;
         $this->isFinal = false;
         $this->testOps = [
-            'label' => 'dummy1',
+            'title' => 'dummy1',
             'url' => 'dummy2',
             'route' => new Route()
         ];

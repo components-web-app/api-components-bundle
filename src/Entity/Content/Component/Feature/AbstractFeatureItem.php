@@ -20,7 +20,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
      * @Groups({"component", "content"})
      * @var string
      */
-    private $label;
+    private $title;
 
     /**
      * @ORM\Column()
@@ -40,7 +40,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
         $metadata->addPropertyConstraint(
-            'label',
+            'title',
             new Assert\NotBlank()
         );
         $metadata->addPropertyConstraint(
@@ -52,18 +52,19 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     /**
      * @return string
      */
-    public function getLabel(): string
+    public function getTitle(): string
     {
-        return $this->label;
+        return $this->title;
     }
 
     /**
-     * @param string $label
+     * @param string $title
      */
-    public function setLabel(string $label): void
+    public function setTitle(string $title): void
     {
-        $this->label = $label;
+        $this->title = $title;
     }
+
 
     /**
      * @return null|string

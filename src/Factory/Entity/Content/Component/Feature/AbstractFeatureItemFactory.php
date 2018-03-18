@@ -14,7 +14,7 @@ abstract class AbstractFeatureItemFactory extends AbstractComponentFactory
         return array_merge(
             parent::defaultOps(),
             [
-                'label' => '',
+                'title' => '',
                 'url' => null,
                 'route' => null
             ]
