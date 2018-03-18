@@ -28,7 +28,8 @@ class FeatureStackedItemFactory extends AbstractFeatureItemFactory
             [
                 'description' => null,
                 'buttonText' => null,
-                'buttonClass' => null
+                'buttonClass' => null,
+                'filePath' => null
             ]
         );
     }

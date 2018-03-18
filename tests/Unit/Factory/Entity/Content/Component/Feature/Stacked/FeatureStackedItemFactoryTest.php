@@ -18,7 +18,8 @@ class FeatureStackedItemFactoryTest extends AbstractFactory
         $this->testOps = [
             'description' => 'dummy1',
             'buttonText' => 'dummy2',
-            'buttonClass' => 'dummy3'
+            'buttonClass' => 'dummy3',
+            'filePath' => null
         ];
         parent::setUp();
     }
