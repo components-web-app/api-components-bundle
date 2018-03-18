@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Trait FileTrait
@@ -13,7 +14,8 @@ trait FileTrait
 {
     /**
      * @ORM\Column(type="string", nullable=false)
-     * @Groups({"component"})
+     * @Assert\File()
+     * @Groups({"component", "content"})
      * @var null|string
      */
     protected $filePath;

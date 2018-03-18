@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1521392004">
-  <project timestamp="1521392004">
+<coverage generated="1521393077">
+  <project timestamp="1521393077">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -253,14 +253,14 @@
         <class name="FileTrait" namespace="Silverback\ApiComponentBundle\Entity\Content" fullPackage="Silverback" package="Silverback">
           <metrics complexity="5" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
         </class>
-        <line num="24" type="method" name="getFilePath" visibility="public" complexity="2" crap="2" count="6"/>
-        <line num="26" type="stmt" count="6"/>
-        <line num="32" type="method" name="setFilePath" visibility="public" complexity="2" crap="2" count="4"/>
-        <line num="34" type="stmt" count="4"/>
-        <line num="35" type="stmt" count="4"/>
-        <line num="37" type="method" name="getImagineFilters" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="40" type="stmt" count="1"/>
-        <metrics loc="44" ncloc="29" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
+        <line num="26" type="method" name="getFilePath" visibility="public" complexity="2" crap="2" count="6"/>
+        <line num="28" type="stmt" count="6"/>
+        <line num="34" type="method" name="setFilePath" visibility="public" complexity="2" crap="2" count="4"/>
+        <line num="36" type="stmt" count="4"/>
+        <line num="37" type="stmt" count="4"/>
+        <line num="39" type="method" name="getImagineFilters" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="42" type="stmt" count="1"/>
+        <metrics loc="46" ncloc="30" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Page.php">
         <class name="Silverback\ApiComponentBundle\Entity\Content\Page" namespace="Silverback\ApiComponentBundle\Entity\Content" fullPackage="Silverback" package="Silverback">
@@ -1892,8 +1892,8 @@
         <line num="163" type="stmt" count="3"/>
         <line num="164" type="stmt" count="0"/>
         <line num="167" type="stmt" count="3"/>
-        <line num="168" type="stmt" count="2"/>
-        <line num="169" type="stmt" count="2"/>
+        <line num="168" type="stmt" count="1"/>
+        <line num="169" type="stmt" count="1"/>
         <line num="171" type="stmt" count="3"/>
         <metrics loc="173" ncloc="120" classes="1" methods="8" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="45" coveredstatements="40" elements="53" coveredelements="44"/>
       </file>
@@ -2131,6 +2131,6 @@
         <metrics loc="33" ncloc="28" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="109" loc="5959" ncloc="4209" classes="87" methods="307" coveredmethods="228" conditionals="0" coveredconditionals="0" statements="1102" coveredstatements="811" elements="1409" coveredelements="1039"/>
+    <metrics files="109" loc="5961" ncloc="4210" classes="87" methods="307" coveredmethods="228" conditionals="0" coveredconditionals="0" statements="1102" coveredstatements="811" elements="1409" coveredelements="1039"/>
   </project>
 </coverage>
