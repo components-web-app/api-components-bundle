@@ -113,7 +113,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                     PHP_URL_PATH
                 ) : null;
             }
-            $publicPaths = [$this->projectDir, 'public/', 'web/'];
+            $publicPaths = [$this->projectDir, '/public/', '/web/'];
             foreach ($publicPaths as $path) {
                 if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
                     $filePath = mb_substr($filePath, $start);
