@@ -22,6 +22,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $formViewFactory;
     private $pathResolver;
     private $em;
+    private $projectDir;
 
     /**
      * FileNormalizer constructor.
@@ -30,13 +31,15 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param FormViewFactory $formViewFactory
      * @param PathResolver $pathResolver
      * @param EntityManagerInterface $entityManager
+     * @param string $projectDir
      */
     public function __construct(
         NormalizerInterface $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
         PathResolver $pathResolver,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        string $projectDir = '/'
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -46,6 +49,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->formViewFactory = $formViewFactory;
         $this->pathResolver = $pathResolver;
         $this->em = $entityManager;
+        $this->projectDir = $projectDir;
     }
 
     /**
@@ -109,6 +113,13 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                     PHP_URL_PATH
                 ) : null;
             }
+            $publicPaths = [$this->projectDir, 'public/', 'web/'];
+            foreach ($publicPaths as $path) {
+                if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
+                    $filePath = mb_substr($filePath, $start);
+                }
+            }
+            $data['filePath'] = $filePath;
         }
         return $data;
     }
