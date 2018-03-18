@@ -19,18 +19,21 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class FeatureStackedItem extends AbstractFeatureItem
 {
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
     protected $description;
 
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonText;
 
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */

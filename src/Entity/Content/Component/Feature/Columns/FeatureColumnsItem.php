@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FeatureColumnsItem extends AbstractFeatureItem
 {
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
