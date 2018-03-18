@@ -20,7 +20,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
      * @Groups({"component", "content"})
      * @var string
      */
-    private $title;
+    protected $title;
 
     /**
      * @ORM\Column()
