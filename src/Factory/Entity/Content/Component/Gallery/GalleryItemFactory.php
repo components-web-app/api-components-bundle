@@ -8,7 +8,7 @@ use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractCompo
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class GalleryItemFactory extends AbstractComponentFactory
+class GalleryItemFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc

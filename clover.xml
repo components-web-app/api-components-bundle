@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1521395173">
-  <project timestamp="1521395173">
+<coverage generated="1521397166">
+  <project timestamp="1521397166">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -1449,14 +1449,20 @@
     <package name="Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Content/Component/Gallery/GalleryFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery\GalleryFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery">
-          <metrics complexity="2" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
+          <metrics complexity="4" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="7" elements="11" coveredelements="9"/>
         </class>
-        <line num="16" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
-        <line num="18" type="stmt" count="2"/>
-        <line num="19" type="stmt" count="2"/>
-        <line num="20" type="stmt" count="2"/>
-        <line num="21" type="stmt" count="2"/>
-        <metrics loc="23" ncloc="17" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
+        <line num="18" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="20" type="stmt" count="3"/>
+        <line num="21" type="stmt" count="3"/>
+        <line num="22" type="stmt" count="3"/>
+        <line num="24" type="method" name="getItemFactory" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="26" type="stmt" count="0"/>
+        <line num="32" type="method" name="create" visibility="public" complexity="2" crap="2" count="2"/>
+        <line num="34" type="stmt" count="2"/>
+        <line num="35" type="stmt" count="2"/>
+        <line num="36" type="stmt" count="2"/>
+        <line num="37" type="stmt" count="2"/>
+        <metrics loc="39" ncloc="32" classes="1" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="7" elements="11" coveredelements="9"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Factory/Entity/Content/Component/Gallery/GalleryItemFactory.php">
         <class name="Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery\GalleryItemFactory" namespace="Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery">
@@ -1841,7 +1847,7 @@
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Serializer/ApiNormalizer.php">
         <class name="Silverback\ApiComponentBundle\Serializer\ApiNormalizer" namespace="Silverback\ApiComponentBundle\Serializer">
-          <metrics complexity="25" methods="8" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="51" coveredstatements="46" elements="59" coveredelements="50"/>
+          <metrics complexity="26" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="52" coveredstatements="47" elements="61" coveredelements="52"/>
         </class>
         <line num="36" type="method" name="__construct" visibility="public" complexity="2" crap="2.01" count="10"/>
         <line num="44" type="stmt" count="10"/>
@@ -1865,7 +1871,7 @@
         <line num="86" type="stmt" count="6"/>
         <line num="87" type="stmt" count="1"/>
         <line num="89" type="stmt" count="6"/>
-        <line num="96" type="method" name="getFileData" visibility="private" complexity="8" crap="8" count="1"/>
+        <line num="96" type="method" name="getFileData" visibility="private" complexity="5" crap="5.01" count="1"/>
         <line num="98" type="stmt" count="1"/>
         <line num="99" type="stmt" count="1"/>
         <line num="100" type="stmt" count="1"/>
@@ -1880,29 +1886,31 @@
         <line num="112" type="stmt" count="1"/>
         <line num="113" type="stmt" count="1"/>
         <line num="114" type="stmt" count="1"/>
-        <line num="116" type="stmt" count="1"/>
         <line num="117" type="stmt" count="1"/>
-        <line num="118" type="stmt" count="1"/>
         <line num="119" type="stmt" count="1"/>
-        <line num="122" type="stmt" count="1"/>
+        <line num="122" type="method" name="getPublicPath" visibility="private" complexity="4" crap="4" count="1"/>
+        <line num="123" type="stmt" count="1"/>
         <line num="124" type="stmt" count="1"/>
-        <line num="133" type="method" name="supportsDenormalization" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="135" type="stmt" count="5"/>
-        <line num="152" type="method" name="denormalize" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="154" type="stmt" count="1"/>
-        <line num="155" type="stmt" count="1"/>
-        <line num="161" type="method" name="setSerializer" visibility="public" complexity="2" crap="2" count="5"/>
-        <line num="163" type="stmt" count="5"/>
-        <line num="164" type="stmt" count="5"/>
-        <line num="166" type="stmt" count="5"/>
-        <line num="172" type="method" name="isImagineSupportedFile" visibility="public" complexity="4" crap="4.07" count="3"/>
-        <line num="174" type="stmt" count="3"/>
-        <line num="175" type="stmt" count="0"/>
-        <line num="178" type="stmt" count="3"/>
-        <line num="179" type="stmt" count="1"/>
-        <line num="180" type="stmt" count="1"/>
-        <line num="182" type="stmt" count="3"/>
-        <metrics loc="184" ncloc="130" classes="1" methods="8" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="51" coveredstatements="46" elements="59" coveredelements="50"/>
+        <line num="125" type="stmt" count="1"/>
+        <line num="126" type="stmt" count="1"/>
+        <line num="129" type="stmt" count="1"/>
+        <line num="138" type="method" name="supportsDenormalization" visibility="public" complexity="1" crap="1" count="5"/>
+        <line num="140" type="stmt" count="5"/>
+        <line num="157" type="method" name="denormalize" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="159" type="stmt" count="1"/>
+        <line num="160" type="stmt" count="1"/>
+        <line num="166" type="method" name="setSerializer" visibility="public" complexity="2" crap="2" count="5"/>
+        <line num="168" type="stmt" count="5"/>
+        <line num="169" type="stmt" count="5"/>
+        <line num="171" type="stmt" count="5"/>
+        <line num="177" type="method" name="isImagineSupportedFile" visibility="public" complexity="4" crap="4.07" count="3"/>
+        <line num="179" type="stmt" count="3"/>
+        <line num="180" type="stmt" count="0"/>
+        <line num="183" type="stmt" count="3"/>
+        <line num="184" type="stmt" count="1"/>
+        <line num="185" type="stmt" count="1"/>
+        <line num="187" type="stmt" count="3"/>
+        <metrics loc="189" ncloc="135" classes="1" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="52" coveredstatements="47" elements="61" coveredelements="52"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle">
@@ -2138,6 +2146,6 @@
         <metrics loc="33" ncloc="28" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="109" loc="5973" ncloc="4221" classes="87" methods="307" coveredmethods="228" conditionals="0" coveredconditionals="0" statements="1109" coveredstatements="817" elements="1416" coveredelements="1045"/>
+    <metrics files="109" loc="5994" ncloc="4241" classes="87" methods="310" coveredmethods="230" conditionals="0" coveredconditionals="0" statements="1114" coveredstatements="821" elements="1424" coveredelements="1051"/>
   </project>
 </coverage>
