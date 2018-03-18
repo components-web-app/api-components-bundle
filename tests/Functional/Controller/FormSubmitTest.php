@@ -97,6 +97,9 @@ class FormSubmitTest extends WebTestCase
         $content = json_decode(self::$client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('form', $content);
         $this->assertCount(4, $content['form']);
+        $this->assertArrayHasKey('vars', $content['form']);
+        $this->assertArrayHasKey('submitted', $content['form']['vars']);
+        $this->assertTrue($content['form']['vars']['submitted']);
     }
 
     public static function tearDownAfterClass()

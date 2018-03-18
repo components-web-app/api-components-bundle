@@ -14,6 +14,6 @@ class AbstractFeatureItemTest extends AbstractEntity
         $entity = $this->getMockForAbstractClass(AbstractFeatureItem::class);
         $constraints = $this->getConstraints($entity);
         $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['label']));
-        $this->assertTrue($this->instanceInArray(Url::class, $constraints['link']));
+        $this->assertTrue($this->instanceInArray(Url::class, $constraints['url']));
     }
 }

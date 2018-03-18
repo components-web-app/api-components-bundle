@@ -9,12 +9,14 @@ use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\RouteAwareSubscriber;
+use Silverback\ApiComponentBundle\Repository\RouteRepository;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
+use Silverback\ApiComponentBundle\Validator\Constraints\LinkValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -58,6 +60,16 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(ComponentLocationValidator::class)
         ->tag('validator.constraint_validator')
+    ;
+
+    $services
+        ->set(LinkValidator::class)
+        ->tag('validator.constraint_validator')
+        ->args(
+            [
+                '$routeRepository' => RouteRepository::class
+            ]
+        )
     ;
 
     $services

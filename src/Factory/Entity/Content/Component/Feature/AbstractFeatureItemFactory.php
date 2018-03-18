@@ -15,7 +15,8 @@ abstract class AbstractFeatureItemFactory extends AbstractComponentFactory
             parent::defaultOps(),
             [
                 'label' => '',
-                'link' => null
+                'url' => null,
+                'route' => null
             ]
         );
     }

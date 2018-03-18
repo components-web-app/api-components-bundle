@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Feature;
 
+use Silverback\ApiComponentBundle\Entity\Route\Route;
+
 interface FeatureItemInterface
 {
     /**
@@ -17,10 +19,20 @@ interface FeatureItemInterface
     /**
      * @return null|string
      */
-    public function getLink(): ?string;
+    public function getUrl(): ?string;
 
     /**
      * @param null|string $link
      */
-    public function setLink(?string $link): void;
+    public function setUrl(?string $link): void;
+
+    /**
+     * @return null|Route
+     */
+    public function getRoute(): ?Route;
+
+    /**
+     * @param null|Route $route
+     */
+    public function setRoute(?Route $route): void;
 }
