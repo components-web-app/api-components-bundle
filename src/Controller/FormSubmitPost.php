@@ -34,7 +34,7 @@ class FormSubmitPost extends AbstractForm
     /**
      * @Route(
      *     name="silverback_api_component_form_submit",
-     *     path="/forms/{id}/submit.{_format}",
+     *     path="/component/forms/{id}/submit.{_format}",
      *     requirements={"id"="[^/]+"},
      *     defaults={
      *         "_api_resource_class"=Form::class,

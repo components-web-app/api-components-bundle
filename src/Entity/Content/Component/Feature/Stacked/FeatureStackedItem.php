@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class FeatureStackedItem extends AbstractFeatureItem implements FileInterface

@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatu
  * Class FeatureTextListItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class FeatureTextListItem extends AbstractFeatureItem

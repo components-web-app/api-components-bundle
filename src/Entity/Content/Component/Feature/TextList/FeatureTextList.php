@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureTextList
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class FeatureTextList extends AbstractFeature

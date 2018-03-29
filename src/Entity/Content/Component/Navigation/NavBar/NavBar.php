@@ -9,7 +9,7 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 /**
  * @author Daniel West <daniel@silverback.is
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class NavBar extends AbstractNavigation

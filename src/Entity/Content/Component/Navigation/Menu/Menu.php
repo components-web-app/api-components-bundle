@@ -11,7 +11,7 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
  * Class Menu
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class Menu extends AbstractNavigation

@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 /**
  * Class Content
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Content
- * @ApiResource()
+ * @ApiResource(attributes={"routePrefix"="/component"})
  * @ORM\Entity()
  */
 class Content extends AbstractComponent
