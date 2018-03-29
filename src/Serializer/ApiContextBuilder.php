@@ -8,6 +8,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNavigation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNavigationItem;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,13 +62,11 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param bool $normalization
      * @return array
      */
-    private function getGroups(string $subject, bool $normalization): array
+    private function getGroups(string $subject, bool $normalization, bool $isItem): array
     {
         /** @var string[] $groups */
-        $groups = [[
-            'default',
-            'default' . ($normalization ? '_read' : '_write')
-        ]];
+        $groups = [['default']];
+        $groups[] = $this->getGroupNames($isItem ? 'item' : 'collection', $normalization);
         foreach (self::CLASS_GROUP_MAPPING as $class=>$groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {
@@ -88,11 +87,12 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (isset($context['groups']) && \in_array('none', $context['groups'], true)) {
+        if (\in_array('none', $context['groups'] ?? [], true)) {
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');
-        $groups = $this->getGroups($subject, $normalization);
+        $isItem = (bool)$request->attributes->get('_api_item_operation_name');
+        $groups = $this->getGroups($subject, $normalization, $isItem);
         if (\count($groups)) {
             $context['groups'] = array_merge($context['groups'] ?? [], ...$groups);
         }

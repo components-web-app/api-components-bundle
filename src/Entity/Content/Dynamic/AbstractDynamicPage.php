@@ -9,7 +9,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 abstract class AbstractDynamicPage extends Page
 {
-    /** @Groups({"route", "content"}) */
     public function getComponentLocations(): Collection
     {
         return new ArrayCollection;

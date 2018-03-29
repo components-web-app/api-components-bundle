@@ -8,7 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class ComponentGroup
@@ -20,11 +19,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class ComponentGroup extends AbstractContent implements ValidComponentInterface
 {
     use ValidComponentTrait;
-
-    /**
-     * @Groups({"route", "content", "component"})
-     */
-    protected $componentLocations;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent", inversedBy="componentGroups")
