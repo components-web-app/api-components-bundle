@@ -13,7 +13,6 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 class Collection extends AbstractComponent
 {
     /**
-     * @ApiSubresource()
      * @var mixed
      */
     private $resource;

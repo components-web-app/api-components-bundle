@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1522342565">
-  <project timestamp="1522342565">
+<coverage generated="1522344128">
+  <project timestamp="1522344128">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -413,6 +413,16 @@
         <line num="132" type="method" name="getSortCollection" visibility="public" complexity="2" crap="2" count="2"/>
         <line num="134" type="stmt" count="2"/>
         <metrics loc="136" ncloc="87" classes="1" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="24" coveredstatements="23" elements="32" coveredelements="30"/>
+      </file>
+    </package>
+    <package name="Silverback\ApiComponentBundle\Entity\Content\Component\Collection">
+      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Component/Collection/Collection.php">
+        <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Collection">
+          <metrics complexity="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
+        </class>
+        <line num="23" type="method" name="getResource" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="25" type="stmt" count="0"/>
+        <metrics loc="27" ncloc="17" classes="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Component/ComponentInterface.php">
@@ -2146,6 +2156,6 @@
         <metrics loc="33" ncloc="28" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="109" loc="5996" ncloc="4242" classes="87" methods="310" coveredmethods="230" conditionals="0" coveredconditionals="0" statements="1114" coveredstatements="821" elements="1424" coveredelements="1051"/>
+    <metrics files="110" loc="6023" ncloc="4259" classes="88" methods="311" coveredmethods="230" conditionals="0" coveredconditionals="0" statements="1115" coveredstatements="821" elements="1426" coveredelements="1051"/>
   </project>
 </coverage>
