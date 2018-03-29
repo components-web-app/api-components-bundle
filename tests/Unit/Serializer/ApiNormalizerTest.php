@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Serializer;
 
+use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -43,6 +44,8 @@ class ApiNormalizerTest extends TestCase
     private $pathResolverMock;
     /** @var MockObject|EntityManagerInterface */
     private $entityManagerMock;
+    /** @var MockObject|ContextAwareCollectionDataProviderInterface */
+    private $dataProviderMock;
 
     public function setUp()
     {
@@ -51,12 +54,14 @@ class ApiNormalizerTest extends TestCase
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
         $this->pathResolverMock = $this->getMockBuilder(PathResolver::class)->disableOriginalConstructor()->getMock();
         $this->entityManagerMock = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
+        $this->dataProviderMock = $this->getMockBuilder(ContextAwareCollectionDataProviderInterface::class)->getMock();
         $this->apiNormalizer = new ApiNormalizer(
             $this->normalizerInterfaceMock,
             $this->cacheManagerMock,
             $this->formViewFactoryMock,
             $this->pathResolverMock,
-            $this->entityManagerMock
+            $this->entityManagerMock,
+            $this->dataProviderMock
         );
     }
 

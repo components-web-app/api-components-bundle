@@ -36,7 +36,7 @@ abstract class AbstractContent implements ContentInterface
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
      * @ORM\OrderBy({"sort"="ASC"})
-     * @Groups({"item"})
+     * @Groups({"default"})
      * @MaxDepth(40)
      * @var Collection|ComponentLocation[]
      */

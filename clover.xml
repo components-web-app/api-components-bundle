@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1522351617">
-  <project timestamp="1522351617">
+<coverage generated="1522353923">
+  <project timestamp="1522353923">
     <package name="Silverback\ApiComponentBundle\Command">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Command/FormCacheClear.php">
         <class name="Silverback\ApiComponentBundle\Command\FormCacheClear" namespace="Silverback\ApiComponentBundle\Command">
@@ -140,27 +140,6 @@
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle\DataProvider\Item">
-      <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/DataProvider/Item/CollectionDataProvider.php">
-        <class name="Silverback\ApiComponentBundle\DataProvider\Item\CollectionDataProvider" namespace="Silverback\ApiComponentBundle\DataProvider\Item">
-          <metrics complexity="5" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="4" elements="15" coveredelements="6"/>
-        </class>
-        <line num="25" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
-        <line num="27" type="stmt" count="4"/>
-        <line num="28" type="stmt" count="4"/>
-        <line num="29" type="stmt" count="4"/>
-        <line num="37" type="method" name="supports" visibility="public" complexity="1" crap="1" count="4"/>
-        <line num="39" type="stmt" count="4"/>
-        <line num="50" type="method" name="getItem" visibility="public" complexity="3" crap="12" count="0"/>
-        <line num="52" type="stmt" count="0"/>
-        <line num="53" type="stmt" count="0"/>
-        <line num="54" type="stmt" count="0"/>
-        <line num="56" type="stmt" count="0"/>
-        <line num="58" type="stmt" count="0"/>
-        <line num="59" type="stmt" count="0"/>
-        <line num="61" type="stmt" count="0"/>
-        <line num="63" type="stmt" count="0"/>
-        <metrics loc="65" ncloc="40" classes="1" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="4" elements="15" coveredelements="6"/>
-      </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/DataProvider/Item/LayoutDataProvider.php">
         <class name="Silverback\ApiComponentBundle\DataProvider\Item\LayoutDataProvider" namespace="Silverback\ApiComponentBundle\DataProvider\Item">
           <metrics complexity="5" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="8" elements="13" coveredelements="10"/>
@@ -441,7 +420,7 @@
     <package name="Silverback\ApiComponentBundle\Entity\Content\Component\Collection">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Component/Collection/Collection.php">
         <class name="Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection" namespace="Silverback\ApiComponentBundle\Entity\Content\Component\Collection">
-          <metrics complexity="6" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="6" elements="15" coveredelements="10"/>
+          <metrics complexity="7" methods="7" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="6" elements="17" coveredelements="10"/>
         </class>
         <line num="40" type="method" name="getResource" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="42" type="stmt" count="1"/>
@@ -458,7 +437,9 @@
         <line num="80" type="method" name="setCollection" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="82" type="stmt" count="0"/>
         <line num="83" type="stmt" count="0"/>
-        <metrics loc="84" ncloc="47" classes="1" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="6" elements="15" coveredelements="10"/>
+        <line num="88" type="method" name="postLoad" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="90" type="stmt" count="0"/>
+        <metrics loc="91" ncloc="51" classes="1" methods="7" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="6" elements="17" coveredelements="10"/>
       </file>
     </package>
     <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Component/ComponentInterface.php">
@@ -888,9 +869,9 @@
         <class name="Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage" namespace="Silverback\ApiComponentBundle\Entity\Content\Dynamic">
           <metrics complexity="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
         </class>
-        <line num="12" type="method" name="getComponentLocations" visibility="public" complexity="1" crap="2" count="0"/>
-        <line num="14" type="stmt" count="0"/>
-        <metrics loc="16" ncloc="16" classes="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
+        <line num="11" type="method" name="getComponentLocations" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="13" type="stmt" count="0"/>
+        <metrics loc="15" ncloc="15" classes="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Entity/Content/Dynamic/ArticlePage.php">
         <class name="Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage" namespace="Silverback\ApiComponentBundle\Entity\Content\Dynamic">
@@ -1882,7 +1863,7 @@
     <package name="Silverback\ApiComponentBundle\Serializer">
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Serializer/ApiContextBuilder.php">
         <class name="Silverback\ApiComponentBundle\Serializer\ApiContextBuilder" namespace="Silverback\ApiComponentBundle\Serializer">
-          <metrics complexity="13" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="20" coveredstatements="20" elements="25" coveredelements="25"/>
+          <metrics complexity="12" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="18" coveredstatements="18" elements="23" coveredelements="23"/>
         </class>
         <line num="35" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="8"/>
         <line num="37" type="stmt" count="8"/>
@@ -1891,92 +1872,93 @@
         <line num="47" type="stmt" count="7"/>
         <line num="55" type="method" name="matchClass" visibility="private" complexity="2" crap="2" count="7"/>
         <line num="57" type="stmt" count="7"/>
-        <line num="65" type="method" name="getGroups" visibility="private" complexity="5" crap="5" count="7"/>
+        <line num="65" type="method" name="getGroups" visibility="private" complexity="4" crap="4" count="7"/>
         <line num="68" type="stmt" count="7"/>
         <line num="69" type="stmt" count="7"/>
         <line num="70" type="stmt" count="7"/>
         <line num="71" type="stmt" count="7"/>
         <line num="72" type="stmt" count="7"/>
-        <line num="73" type="stmt" count="7"/>
-        <line num="77" type="stmt" count="7"/>
-        <line num="87" type="method" name="createFromRequest" visibility="public" complexity="3" crap="3" count="8"/>
+        <line num="76" type="stmt" count="7"/>
+        <line num="86" type="method" name="createFromRequest" visibility="public" complexity="3" crap="3" count="8"/>
+        <line num="88" type="stmt" count="8"/>
         <line num="89" type="stmt" count="8"/>
-        <line num="90" type="stmt" count="8"/>
-        <line num="91" type="stmt" count="5"/>
+        <line num="90" type="stmt" count="5"/>
+        <line num="92" type="stmt" count="7"/>
         <line num="93" type="stmt" count="7"/>
         <line num="94" type="stmt" count="7"/>
         <line num="95" type="stmt" count="7"/>
-        <line num="96" type="stmt" count="7"/>
         <line num="97" type="stmt" count="7"/>
-        <line num="99" type="stmt" count="7"/>
-        <metrics loc="101" ncloc="72" classes="1" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="20" coveredstatements="20" elements="25" coveredelements="25"/>
+        <metrics loc="99" ncloc="70" classes="1" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="18" coveredstatements="18" elements="23" coveredelements="23"/>
       </file>
       <file name="/Volumes/LaCie/GitHub/_Bundles/api-component-bundle/src/Serializer/ApiNormalizer.php">
         <class name="Silverback\ApiComponentBundle\Serializer\ApiNormalizer" namespace="Silverback\ApiComponentBundle\Serializer">
-          <metrics complexity="26" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="52" coveredstatements="47" elements="61" coveredelements="52"/>
+          <metrics complexity="27" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="55" coveredstatements="49" elements="64" coveredelements="54"/>
         </class>
-        <line num="36" type="method" name="__construct" visibility="public" complexity="2" crap="2.01" count="11"/>
-        <line num="44" type="stmt" count="11"/>
-        <line num="45" type="stmt" count="0"/>
-        <line num="47" type="stmt" count="11"/>
-        <line num="48" type="stmt" count="11"/>
+        <line num="40" type="method" name="__construct" visibility="public" complexity="2" crap="2.00" count="11"/>
         <line num="49" type="stmt" count="11"/>
-        <line num="50" type="stmt" count="11"/>
-        <line num="51" type="stmt" count="11"/>
+        <line num="50" type="stmt" count="0"/>
         <line num="52" type="stmt" count="11"/>
         <line num="53" type="stmt" count="11"/>
-        <line num="60" type="method" name="supportsNormalization" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="62" type="stmt" count="5"/>
-        <line num="74" type="method" name="normalize" visibility="public" complexity="6" crap="6.40" count="6"/>
-        <line num="76" type="stmt" count="6"/>
-        <line num="77" type="stmt" count="0"/>
-        <line num="78" type="stmt" count="0"/>
-        <line num="81" type="stmt" count="6"/>
-        <line num="82" type="stmt" count="1"/>
-        <line num="84" type="stmt" count="6"/>
-        <line num="86" type="stmt" count="6"/>
-        <line num="87" type="stmt" count="1"/>
-        <line num="89" type="stmt" count="6"/>
-        <line num="96" type="method" name="getFileData" visibility="private" complexity="5" crap="5.01" count="1"/>
+        <line num="54" type="stmt" count="11"/>
+        <line num="55" type="stmt" count="11"/>
+        <line num="56" type="stmt" count="11"/>
+        <line num="57" type="stmt" count="11"/>
+        <line num="58" type="stmt" count="11"/>
+        <line num="59" type="stmt" count="11"/>
+        <line num="66" type="method" name="supportsNormalization" visibility="public" complexity="1" crap="1" count="5"/>
+        <line num="68" type="stmt" count="5"/>
+        <line num="81" type="method" name="normalize" visibility="public" complexity="7" crap="7.99" count="6"/>
+        <line num="83" type="stmt" count="6"/>
+        <line num="84" type="stmt" count="0"/>
+        <line num="85" type="stmt" count="0"/>
+        <line num="88" type="stmt" count="6"/>
+        <line num="89" type="stmt" count="1"/>
+        <line num="91" type="stmt" count="6"/>
+        <line num="93" type="stmt" count="0"/>
+        <line num="95" type="stmt" count="6"/>
+        <line num="97" type="stmt" count="6"/>
         <line num="98" type="stmt" count="1"/>
-        <line num="99" type="stmt" count="1"/>
-        <line num="100" type="stmt" count="1"/>
-        <line num="101" type="stmt" count="1"/>
-        <line num="102" type="stmt" count="1"/>
-        <line num="104" type="stmt" count="0"/>
-        <line num="106" type="stmt" count="1"/>
-        <line num="107" type="stmt" count="1"/>
+        <line num="100" type="stmt" count="6"/>
+        <line num="107" type="method" name="getFileData" visibility="private" complexity="5" crap="5.01" count="1"/>
         <line num="109" type="stmt" count="1"/>
         <line num="110" type="stmt" count="1"/>
         <line num="111" type="stmt" count="1"/>
         <line num="112" type="stmt" count="1"/>
         <line num="113" type="stmt" count="1"/>
-        <line num="114" type="stmt" count="1"/>
+        <line num="115" type="stmt" count="0"/>
         <line num="117" type="stmt" count="1"/>
-        <line num="119" type="stmt" count="1"/>
-        <line num="122" type="method" name="getPublicPath" visibility="private" complexity="4" crap="4" count="1"/>
+        <line num="118" type="stmt" count="1"/>
+        <line num="120" type="stmt" count="1"/>
+        <line num="121" type="stmt" count="1"/>
+        <line num="122" type="stmt" count="1"/>
         <line num="123" type="stmt" count="1"/>
         <line num="124" type="stmt" count="1"/>
         <line num="125" type="stmt" count="1"/>
-        <line num="126" type="stmt" count="1"/>
-        <line num="129" type="stmt" count="1"/>
-        <line num="138" type="method" name="supportsDenormalization" visibility="public" complexity="1" crap="1" count="5"/>
-        <line num="140" type="stmt" count="5"/>
-        <line num="157" type="method" name="denormalize" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="159" type="stmt" count="1"/>
-        <line num="160" type="stmt" count="1"/>
-        <line num="166" type="method" name="setSerializer" visibility="public" complexity="2" crap="2" count="5"/>
-        <line num="168" type="stmt" count="5"/>
-        <line num="169" type="stmt" count="5"/>
-        <line num="171" type="stmt" count="5"/>
-        <line num="177" type="method" name="isImagineSupportedFile" visibility="public" complexity="4" crap="4.07" count="3"/>
-        <line num="179" type="stmt" count="3"/>
-        <line num="180" type="stmt" count="0"/>
-        <line num="183" type="stmt" count="3"/>
-        <line num="184" type="stmt" count="1"/>
-        <line num="185" type="stmt" count="1"/>
-        <line num="187" type="stmt" count="3"/>
-        <metrics loc="189" ncloc="135" classes="1" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="52" coveredstatements="47" elements="61" coveredelements="52"/>
+        <line num="128" type="stmt" count="1"/>
+        <line num="130" type="stmt" count="1"/>
+        <line num="133" type="method" name="getPublicPath" visibility="private" complexity="4" crap="4" count="1"/>
+        <line num="134" type="stmt" count="1"/>
+        <line num="135" type="stmt" count="1"/>
+        <line num="136" type="stmt" count="1"/>
+        <line num="137" type="stmt" count="1"/>
+        <line num="140" type="stmt" count="1"/>
+        <line num="149" type="method" name="supportsDenormalization" visibility="public" complexity="1" crap="1" count="5"/>
+        <line num="151" type="stmt" count="5"/>
+        <line num="168" type="method" name="denormalize" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="170" type="stmt" count="1"/>
+        <line num="171" type="stmt" count="1"/>
+        <line num="177" type="method" name="setSerializer" visibility="public" complexity="2" crap="2" count="5"/>
+        <line num="179" type="stmt" count="5"/>
+        <line num="180" type="stmt" count="5"/>
+        <line num="182" type="stmt" count="5"/>
+        <line num="188" type="method" name="isImagineSupportedFile" visibility="public" complexity="4" crap="4.07" count="3"/>
+        <line num="190" type="stmt" count="3"/>
+        <line num="191" type="stmt" count="0"/>
+        <line num="194" type="stmt" count="3"/>
+        <line num="195" type="stmt" count="1"/>
+        <line num="196" type="stmt" count="1"/>
+        <line num="198" type="stmt" count="3"/>
+        <metrics loc="200" ncloc="142" classes="1" methods="9" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="55" coveredstatements="49" elements="64" coveredelements="54"/>
       </file>
     </package>
     <package name="Silverback\ApiComponentBundle">
@@ -2212,6 +2194,6 @@
         <metrics loc="33" ncloc="28" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="9" coveredelements="0"/>
       </file>
     </package>
-    <metrics files="112" loc="6195" ncloc="4364" classes="90" methods="321" coveredmethods="238" conditionals="0" coveredconditionals="0" statements="1147" coveredstatements="841" elements="1468" coveredelements="1079"/>
+    <metrics files="111" loc="6145" ncloc="4332" classes="89" methods="319" coveredmethods="236" conditionals="0" coveredconditionals="0" statements="1137" coveredstatements="837" elements="1456" coveredelements="1073"/>
   </project>
 </coverage>

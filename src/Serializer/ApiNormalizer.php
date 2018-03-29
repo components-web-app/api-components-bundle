@@ -2,8 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
@@ -23,6 +25,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $pathResolver;
     private $em;
     private $projectDir;
+    private $collectionDataProvider;
 
     /**
      * FileNormalizer constructor.
@@ -31,6 +34,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param FormViewFactory $formViewFactory
      * @param PathResolver $pathResolver
      * @param EntityManagerInterface $entityManager
+     * @param ContextAwareCollectionDataProviderInterface $collectionDataProvider
      * @param string $projectDir
      */
     public function __construct(
@@ -39,6 +43,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         FormViewFactory $formViewFactory,
         PathResolver $pathResolver,
         EntityManagerInterface $entityManager,
+        ContextAwareCollectionDataProviderInterface $collectionDataProvider,
         string $projectDir = '/'
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
@@ -49,6 +54,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->formViewFactory = $formViewFactory;
         $this->pathResolver = $pathResolver;
         $this->em = $entityManager;
+        $this->collectionDataProvider = $collectionDataProvider;
         $this->projectDir = $projectDir;
     }
 
@@ -70,6 +76,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @throws \Symfony\Component\Serializer\Exception\LogicException
      * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Serializer\Exception\CircularReferenceException
+     * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -80,6 +87,10 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         }
         if ($object instanceof Form && !$object->getForm()) {
             $object->setForm($this->formViewFactory->create($object));
+        }
+        if ($object instanceof Collection) {
+            // We should really find whatever the data provider is currently for the resource instead of just using the default
+            $object->setCollection($this->collectionDataProvider->getCollection($object->getResource(), 'GET', $context));
         }
         $data = $this->decorated->normalize($object, $format, $context);
 

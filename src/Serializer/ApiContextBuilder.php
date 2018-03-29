@@ -62,11 +62,10 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param bool $normalization
      * @return array
      */
-    private function getGroups(string $subject, bool $normalization, bool $isItem): array
+    private function getGroups(string $subject, bool $normalization): array
     {
         /** @var string[] $groups */
         $groups = [['default']];
-        $groups[] = $this->getGroupNames($isItem ? 'item' : 'collection', $normalization);
         foreach (self::CLASS_GROUP_MAPPING as $class=>$groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {
@@ -91,8 +90,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');
-        $isItem = (bool)$request->attributes->get('_api_item_operation_name');
-        $groups = $this->getGroups($subject, $normalization, $isItem);
+        $groups = $this->getGroups($subject, $normalization);
         if (\count($groups)) {
             $context['groups'] = array_merge($context['groups'] ?? [], ...$groups);
         }

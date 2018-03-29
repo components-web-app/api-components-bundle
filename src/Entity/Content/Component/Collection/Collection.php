@@ -81,4 +81,11 @@ class Collection extends AbstractComponent
     {
         $this->collection = $collection;
     }
+
+    /**
+     * @ORM\PostLoad()
+     */
+    public function postLoad() {
+
+    }
 }
