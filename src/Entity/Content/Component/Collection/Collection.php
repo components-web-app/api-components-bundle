@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content\Component\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
@@ -15,18 +16,21 @@ class Collection extends AbstractComponent
 {
     /**
      * @ORM\Column()
+     * @Groups({"component", "content"})
      * @var string
      */
     private $resource;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"component", "content"})
      * @var int
      */
     private $perPage = 12;
 
     /**
      * @var array|\Traversable
+     * @Groups({"component_read", "content_read"})
      */
     private $collection;
 
