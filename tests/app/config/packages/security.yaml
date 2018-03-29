@@ -1,0 +1,3 @@
+security:
+    providers:
+        in_memory: { memory: ~ }
