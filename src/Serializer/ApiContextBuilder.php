@@ -24,7 +24,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         ComponentLocation::class => ['component'],
         AbstractContent::class => ['content'],
         Route::class => ['route'],
-        Layout::class => ['layout']
+        Layout::class => ['layout'],
+        AbstractDynamicPage::class => ['dynamic_content']
     ];
 
     /**
