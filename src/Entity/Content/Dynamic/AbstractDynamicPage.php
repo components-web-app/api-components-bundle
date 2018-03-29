@@ -21,7 +21,7 @@ abstract class AbstractDynamicPage extends AbstractContent implements RouteAware
         $this->routes = new ArrayCollection;
     }
 
-    /** @Groups({"dynamic_content"}) */
+    /** @Groups({"dynamic_content", "route"}) */
     public function getComponentLocations(): Collection
     {
         return new ArrayCollection;
