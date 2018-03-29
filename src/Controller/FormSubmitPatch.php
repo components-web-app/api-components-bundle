@@ -14,7 +14,7 @@ class FormSubmitPatch extends AbstractForm
     /**
      * @Route(
      *     name="silverback_api_component_form_validate_item",
-     *     path="/component/forms/{id}/submit.{_format}",
+     *     path="/forms/{id}/submit.{_format}",
      *     requirements={"id"="[^/]+"},
      *     defaults={
      *         "_api_resource_class"=Form::class,

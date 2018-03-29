@@ -10,7 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNa
  * Class TabsItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"routePrefix"="/component"})
+ * @ApiResource()
  * @ORM\Entity()
  */
 class TabsItem extends AbstractNavigationItem
