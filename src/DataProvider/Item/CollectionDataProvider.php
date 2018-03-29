@@ -2,27 +2,30 @@
 
 namespace Silverback\ApiComponentBundle\DataProvider\Item;
 
+use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
 use Doctrine\Common\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 
-final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
+final class CollectionDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {
-    /**
-     * @var ManagerRegistry
-     */
+    /** @var ManagerRegistry */
     private $managerRegistry;
+    /** @var ContextAwareCollectionDataProviderInterface  */
+    private $collectionDataProvider;
 
     /**
      * LayoutDataProvider constructor.
      *
      * @param ManagerRegistry $managerRegistry
+     * @param ContextAwareCollectionDataProviderInterface $collectionDataProvider
      */
-    public function __construct(ManagerRegistry $managerRegistry)
+    public function __construct(ManagerRegistry $managerRegistry, ContextAwareCollectionDataProviderInterface $collectionDataProvider)
     {
         $this->managerRegistry = $managerRegistry;
+        $this->collectionDataProvider = $collectionDataProvider;
     }
 
     /**
@@ -33,7 +36,7 @@ final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedD
      */
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
-        return $resourceClass === Layout::class;
+        return $resourceClass === Collection::class;
     }
 
     /**
@@ -41,21 +44,22 @@ final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedD
      * @param int|string $id
      * @param string|null $operationName
      * @param array $context
-     * @return Layout|null
+     * @return Collection|null
      * @throws ResourceClassNotSupportedException
      */
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
     {
-        if ($id !== 'default') {
-            throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
-        }
         $manager = $this->managerRegistry->getManagerForClass($resourceClass);
         if (null === $manager) {
             throw new ResourceClassNotSupportedException(sprintf('No manager for the class `%s`', $resourceClass));
         }
-        // Ideally we should probably just get the id of the default layout and then forward that onto the default data provider
-        // But we don't want to do an un-necessary database lookup - perhaps as the default layout is saved we update a persistent variable somewhere...
         $repository = $manager->getRepository($resourceClass);
-        return $repository->findOneBy(['default' => true]);
+        /** @var Collection|null $collection */
+        $collection = $repository->find($id);
+        if ($collection) {
+            // In future we should find the resource's data provider in case it isn't default
+            $collection->setCollection($this->collectionDataProvider->getCollection($collection->getResource(), $operationName, $context));
+        }
+        return $collection;
     }
 }

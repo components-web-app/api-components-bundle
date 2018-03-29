@@ -39,7 +39,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "tabs" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs",
  *     "tabs_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem",
  *     "menu" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu",
- *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem"
+ *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem",
+ *     "collection" = "Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */

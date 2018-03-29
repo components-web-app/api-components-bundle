@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Resources\config;
 
+use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
@@ -128,4 +129,5 @@ return function (ContainerConfigurator $configurator) {
     $services->alias(SlugifyInterface::class, 'slugify');
     $services->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default');
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
+    $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
 };
