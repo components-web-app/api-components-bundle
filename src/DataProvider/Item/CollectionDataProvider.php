@@ -44,7 +44,7 @@ final class CollectionDataProvider implements ItemDataProviderInterface, Restric
      * @param int|string $id
      * @param string|null $operationName
      * @param array $context
-     * @return Collection|null
+     * @return object|null
      * @throws ResourceClassNotSupportedException
      */
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
@@ -54,7 +54,7 @@ final class CollectionDataProvider implements ItemDataProviderInterface, Restric
             throw new ResourceClassNotSupportedException(sprintf('No manager for the class `%s`', $resourceClass));
         }
         $repository = $manager->getRepository($resourceClass);
-        /** @var Collection|null $collection */
+        /** @var object|null|Collection $collection */
         $collection = $repository->find($id);
         if ($collection) {
             // In future we should find the resource's data provider in case it isn't default

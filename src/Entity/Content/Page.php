@@ -23,8 +23,13 @@ class Page extends AbstractContent implements RouteAwareInterface
     use RouteAwareTrait;
 
     /**
+     * @Groups({"route", "content", "component"})
+     */
+    protected $componentLocations;
+
+    /**
      * @ORM\Column()
-     * @Groups({"content", "route"})
+     * @Groups({"content", "route", "component"})
      * @var string
      */
     protected $title;
