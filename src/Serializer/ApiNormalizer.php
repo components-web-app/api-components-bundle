@@ -95,16 +95,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             // We should really find whatever the data provider is currently for the resource instead of just using the default
             $object->setCollection($this->collectionDataProvider->getCollection($object->getResource(), 'GET', $context));
         }
-        if ($object instanceof AbstractDynamicPage) {
-            $collection = new ArrayCollection;
-            foreach ($object->getComponentLocations() as $item) {
-                if (!$item instanceof ComponentLocation) {
-                    $item = new ComponentLocation($object, $item);
-                }
-                $collection->add($item);
-            }
-            $object->setCollection($collection);
-        }
         $data = $this->decorated->normalize($object, $format, $context);
 
         if ($object instanceof FileInterface) {

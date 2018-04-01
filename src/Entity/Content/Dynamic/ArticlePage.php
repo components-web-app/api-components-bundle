@@ -69,8 +69,8 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
     {
         return new ArrayCollection(
             [
-                $this->getHeroComponent(),
-                $this->getContentComponent()
+                new ComponentLocation($this, $this->getHeroComponent()),
+                new ComponentLocation($this, $this->getContentComponent())
             ]
         );
     }
