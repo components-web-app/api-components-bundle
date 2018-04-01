@@ -60,12 +60,12 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress --no-suggest --classmap-authoritative  --no-interaction
 
 # Prevent the reinstallation of vendors at every changes in the source code
-COPY ./composer.json composer.lock ./
+# composer.lock
+COPY ./composer.json ./
 RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest \
 	&& composer clear-cache
 
 COPY ./ ./
 
 RUN mkdir -p tests/app/var/cache tests/app/var/logs tests/app/var/sessions \
-  && composer dump-autoload --classmap-authoritative --no-dev \
-	  && chown -R www-data tests/app/var
+  && composer dump-autoload --classmap-authoritative --no-dev

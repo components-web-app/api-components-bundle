@@ -3,10 +3,13 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
@@ -91,6 +94,16 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if ($object instanceof Collection) {
             // We should really find whatever the data provider is currently for the resource instead of just using the default
             $object->setCollection($this->collectionDataProvider->getCollection($object->getResource(), 'GET', $context));
+        }
+        if ($object instanceof AbstractDynamicPage) {
+            $collection = new ArrayCollection;
+            foreach ($object->getCollection() as $item) {
+                if (!$item instanceof ComponentLocation) {
+                    $item = new ComponentLocation($object, $item);
+                }
+                $collection->add($item);
+            }
+            $object->setCollection($collection);
         }
         $data = $this->decorated->normalize($object, $format, $context);
 
