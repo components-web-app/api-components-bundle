@@ -97,7 +97,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         }
         if ($object instanceof AbstractDynamicPage) {
             $collection = new ArrayCollection;
-            foreach ($object->getCollection() as $item) {
+            foreach ($object->getComponentLocations() as $item) {
                 if (!$item instanceof ComponentLocation) {
                     $item = new ComponentLocation($object, $item);
                 }
