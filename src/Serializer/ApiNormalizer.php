@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
@@ -80,17 +81,16 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     public function normalize($object, $format = null, array $context = [])
     {
-        if ($object instanceof Page) {
-            if (!$object->getLayout()) {
-                $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
-            }
-        }
-        if ($object instanceof Form && !$object->getForm()) {
-            $object->setForm($this->formViewFactory->create($object));
+        if (($object instanceof Page || $object instanceof AbstractDynamicPage) && !$object->getLayout()) {
+            // Should we be using the ItemDataProvider (or detect data provider and use that, we already use a custom data provider for layouts)
+            $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
         }
         if ($object instanceof Collection) {
             // We should really find whatever the data provider is currently for the resource instead of just using the default
             $object->setCollection($this->collectionDataProvider->getCollection($object->getResource(), 'GET', $context));
+        }
+        if ($object instanceof Form && !$object->getForm()) {
+            $object->setForm($this->formViewFactory->create($object));
         }
         $data = $this->decorated->normalize($object, $format, $context);
 
