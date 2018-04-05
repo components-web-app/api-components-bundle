@@ -3,9 +3,11 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;

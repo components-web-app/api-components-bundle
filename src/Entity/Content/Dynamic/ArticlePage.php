@@ -6,6 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
@@ -68,8 +69,8 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
     {
         return new ArrayCollection(
             [
-                $this->getHeroComponent(),
-                $this->getContentComponent()
+                new ComponentLocation(null, $this->getHeroComponent()),
+                new ComponentLocation(null, $this->getContentComponent())
             ]
         );
     }
