@@ -111,4 +111,12 @@ trait PageTrait
     {
         return $this->getTitle();
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDefaultRouteName(): string
+    {
+        return $this->getTitle();
+    }
 }

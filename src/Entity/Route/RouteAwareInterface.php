@@ -27,4 +27,9 @@ interface RouteAwareInterface
      * @return Collection
      */
     public function getRoutes(): Collection;
+
+    /**
+     * @return string
+     */
+    public function getDefaultRouteName(): string;
 }

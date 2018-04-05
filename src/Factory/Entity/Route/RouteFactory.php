@@ -7,6 +7,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RouteFactory extends AbstractFactory
@@ -43,6 +44,7 @@ class RouteFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return [
+            'name' => null,
             'route' => null,
             'content' => null,
             'redirect' => null
@@ -66,8 +68,10 @@ class RouteFactory extends AbstractFactory
         if ($existing) {
             return $this->createFromRouteAwareEntity($entity, $postfix + 1);
         }
+        $converter = new CamelCaseToSnakeCaseNameConverter();
         $route = $this->create(
             [
+                'name' => $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName())),
                 'route' => $fullRoute,
                 'content' => $entity
             ]

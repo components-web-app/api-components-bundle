@@ -33,6 +33,12 @@ class Route
     private $route;
 
     /**
+     * @ORM\Column(type="string")
+     * @var string
+     */
+    private $name;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", cascade={"remove"})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"route"})
@@ -43,16 +49,33 @@ class Route
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
+     * @ORM\JoinColumn(name="redirect", referencedColumnName="name")
      * @Groups({"route"})
      * @var null|Route
      */
     private $redirect;
 
-    public function __construct(?string $route = null, ?Route $redirect = null)
+    public function __construct(?string $name = null, ?string $route = null, ?Route $redirect = null)
     {
-        $this->route = $route ?? Uuid::uuid4()->getHex();
+        $this->name = $name ?: Uuid::uuid4()->getHex();
+        $this->route = $route ?: '/' . Uuid::uuid4()->getHex();
         $this->setRedirect($redirect);
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     /**
