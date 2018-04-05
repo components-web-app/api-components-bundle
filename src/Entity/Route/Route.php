@@ -33,7 +33,8 @@ class Route
     private $route;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", unique=true)
+     * @Groups({"route"})
      * @var string
      */
     private $name;
@@ -49,7 +50,7 @@ class Route
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(name="redirect", referencedColumnName="name")
+     * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
      * @Groups({"route"})
      * @var null|Route
      */
