@@ -19,7 +19,8 @@ class ArticlePageFactoryTest extends AbstractFactory
             'title' => 'Title',
             'subtitle' => 'Subtitle',
             'content' => '<p>Some content</p>',
-            'filePath' => '/images/testImage.jpg'
+            'filePath' => '/images/testImage.jpg',
+            'parentRoute' => null
         ];
         parent::setUp();
     }

@@ -5,6 +5,7 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 trait PageTrait
@@ -118,5 +119,13 @@ trait PageTrait
     public function getDefaultRouteName(): string
     {
         return $this->getTitle();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getParentRoute(): ?Route
+    {
+        return $this->getParent() ? $this->getParent()->getRoutes()->first() : null;
     }
 }

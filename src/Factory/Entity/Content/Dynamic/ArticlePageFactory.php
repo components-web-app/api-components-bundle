@@ -32,7 +32,8 @@ final class ArticlePageFactory extends AbstractFactory
             [
                 'subtitle' => null,
                 'content' => 'Article content',
-                'filePath' => null
+                'filePath' => null,
+                'parentRoute' => null
             ]
         );
     }

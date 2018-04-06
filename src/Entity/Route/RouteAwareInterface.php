@@ -32,4 +32,9 @@ interface RouteAwareInterface
      * @return string
      */
     public function getDefaultRouteName(): string;
+
+    /**
+     * @return null|Route
+     */
+    public function getParentRoute(): ?Route;
 }

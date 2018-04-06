@@ -86,24 +86,10 @@ class RouteFactory extends AbstractFactory
      */
     private function getRoutePrefix(RouteAwareInterface $entity): string
     {
-        $parent = method_exists($entity, 'getParent') ? $entity->getParent() : null;
-        if ($parent && $parent instanceof RouteAwareInterface) {
-            $parentRoute = $this->getParentRoute($parent);
-            return $parentRoute->getRoute() . '/';
+        $parent = $entity->getParentRoute();
+        if ($parent) {
+            return $parent->getRoute() . '/';
         }
         return '/';
-    }
-
-    /**
-     * @param RouteAwareInterface $parent
-     * @return mixed|Route
-     */
-    private function getParentRoute(RouteAwareInterface $parent)
-    {
-        $parentRoute = $parent->getRoutes()->first();
-        if (!$parentRoute) {
-            $parentRoute = $this->createFromRouteAwareEntity($parent);
-        }
-        return $parentRoute;
     }
 }
