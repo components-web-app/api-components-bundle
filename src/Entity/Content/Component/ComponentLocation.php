@@ -96,9 +96,9 @@ class ComponentLocation implements SortableInterface
     }
 
     /**
-     * @return AbstractContent
+     * @return AbstractContent|null
      */
-    public function getContent(): AbstractContent
+    public function getContent(): ?AbstractContent
     {
         return $this->content;
     }
@@ -107,7 +107,7 @@ class ComponentLocation implements SortableInterface
      * @param AbstractContent $content
      * @param bool|null $sortLast
      */
-    public function setContent(AbstractContent $content, ?bool $sortLast = true): void
+    public function setContent(?AbstractContent $content, ?bool $sortLast = true): void
     {
         $this->content = $content;
         if (null === $this->sort || $sortLast !== null) {
