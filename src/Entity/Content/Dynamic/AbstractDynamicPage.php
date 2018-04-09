@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Entity\Content\Dynamic;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\PageTrait;
@@ -32,16 +31,13 @@ abstract class AbstractDynamicPage extends AbstractContent implements RouteAware
      */
     protected $nested = false;
 
+    /** @Groups({"dynamic_content", "route"}) */
+    protected $componentLocations;
+
     public function __construct()
     {
         parent::__construct();
         $this->routes = new ArrayCollection;
-    }
-
-    /** @Groups({"dynamic_content", "route"}) */
-    public function getComponentLocations(): Collection
-    {
-        return new ArrayCollection;
     }
 
     /**

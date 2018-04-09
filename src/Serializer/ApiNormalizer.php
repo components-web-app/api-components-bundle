@@ -3,9 +3,9 @@
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
@@ -86,6 +86,9 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if (($object instanceof Page || $object instanceof AbstractDynamicPage) && !$object->getLayout()) {
             // Should we be using the ItemDataProvider (or detect data provider and use that, we already use a custom data provider for layouts)
             $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
+        }
+        if ($object instanceof AbstractDynamicPage) {
+            $object = $this->populateDynamicComponents($object);
         }
         if ($object instanceof Collection) {
             // We should really find whatever the data provider is currently for the resource instead of just using the default
@@ -198,5 +201,15 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             return false;
         }
         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
+    }
+
+    private function populateDynamicComponents(AbstractDynamicPage $page): AbstractDynamicPage
+    {
+        $components = $this->em->getRepository(AbstractComponent::class)->findByDynamicPage($page);
+        foreach($components as $component)
+        {
+            $page->addComponentLocation(new ComponentLocation(null, $component));
+        }
+        return $page;
     }
 }

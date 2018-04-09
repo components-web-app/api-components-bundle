@@ -20,7 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
  *     }
  * )
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
  */
 class Route
 {

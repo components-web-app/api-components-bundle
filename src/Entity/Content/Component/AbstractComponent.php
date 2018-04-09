@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Entity\Content\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractComponent
  * @package Silverback\ApiComponentBundle\Entity\Content\Component
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentRepository")
  * @ORM\Table(name="component")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
@@ -75,6 +74,12 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @var Collection|ComponentGroup[]
      */
     protected $componentGroups;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var null|string
+     */
+    protected $dynamicPageClass;
 
     /**
      * AbstractComponent constructor.
@@ -285,5 +290,21 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
                 )
             )
         );
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDynamicPageClass(): ?string
+    {
+        return $this->dynamicPageClass;
+    }
+
+    /**
+     * @param null|string $dynamicPageClass
+     */
+    public function setDynamicPageClass(?string $dynamicPageClass): void
+    {
+        $this->dynamicPageClass = $dynamicPageClass;
     }
 }
