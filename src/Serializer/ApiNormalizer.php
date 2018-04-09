@@ -209,9 +209,11 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     public function populateDynamicComponents(AbstractDynamicPage $page): AbstractDynamicPage
     {
         $locations = $this->em->getRepository(ComponentLocation::class)->findByDynamicPage($page);
-        foreach($locations as $location)
-        {
-            $page->addComponentLocation($location);
+        if ($locations) {
+            foreach($locations as $location)
+            {
+                $page->addComponentLocation($location);
+            }
         }
         return $page;
     }

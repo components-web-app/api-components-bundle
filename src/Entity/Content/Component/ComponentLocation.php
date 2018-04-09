@@ -113,7 +113,9 @@ class ComponentLocation implements SortableInterface
         if (null === $this->sort || $sortLast !== null) {
             $this->setSort($this->calculateSort($sortLast));
         }
-        $this->content->addComponentLocation($this);
+        if ($this->content) {
+            $this->content->addComponentLocation($this);
+        }
     }
 
     /**

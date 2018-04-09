@@ -23,6 +23,6 @@ class ComponentLocationRepository extends ServiceEntityRepository
             )
             ->setParameter('cls', \get_class($page))
         ;
-        return $qb->getQuery()->getArrayResult();
+        return $qb->getQuery()->getResult();
     }
 }
