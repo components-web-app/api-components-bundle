@@ -25,7 +25,8 @@ class ComponentLocationFactory extends AbstractFactory
     {
         return [
             'component' => null,
-            'content' => null
+            'content' => null,
+            'dynamicPageClass' => null
         ];
     }
 }

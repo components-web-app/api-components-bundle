@@ -13,7 +13,7 @@ abstract class AbstractComponentFactory extends AbstractFactory
         'parentComponent' => null,
         'parentContent' => null,
         'componentGroup' => null,
-        'dynamicPageClass' => null
+        'dynamicPage' => null
     ];
 
     /**
@@ -25,10 +25,17 @@ abstract class AbstractComponentFactory extends AbstractFactory
         parent::init($component, $ops);
         if (
             $this->ops['parentContent'] &&
-            !$component->isContentComponent($this->ops['parentContent'])
+            !$component->hasParentContent($this->ops['parentContent'])
         ) {
             $location = new ComponentLocation($this->ops['parentContent'], $component);
             $component->addLocation($location);
+            $this->manager->persist($location);
+        }
+        if (
+            $this->ops['dynamicPage']
+        ) {
+            $location = new ComponentLocation(null, $component);
+            $location->setDynamicPageClass($this->ops['dynamicPage']);
             $this->manager->persist($location);
         }
     }
@@ -36,7 +43,8 @@ abstract class AbstractComponentFactory extends AbstractFactory
     protected static function getIgnoreOps(): array
     {
         return [
-            'parentContent'
+            'parentContent',
+            'dynamicPage'
         ];
     }
 

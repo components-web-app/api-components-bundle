@@ -51,6 +51,12 @@ class ComponentLocation implements SortableInterface
      */
     private $component;
 
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var null|string
+     */
+    protected $dynamicPageClass;
+
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
         $metadata->addPropertyConstraint(
@@ -132,5 +138,21 @@ class ComponentLocation implements SortableInterface
     public function getSortCollection(): Collection
     {
         return $this->content ? $this->content->getComponentLocations() : new ArrayCollection;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDynamicPageClass(): ?string
+    {
+        return $this->dynamicPageClass;
+    }
+
+    /**
+     * @param null|string $dynamicPageClass
+     */
+    public function setDynamicPageClass(?string $dynamicPageClass): void
+    {
+        $this->dynamicPageClass = $dynamicPageClass;
     }
 }

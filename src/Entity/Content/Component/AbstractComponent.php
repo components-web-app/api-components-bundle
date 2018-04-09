@@ -76,12 +76,6 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     protected $componentGroups;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
-     * @var null|string
-     */
-    protected $dynamicPageClass;
-
-    /**
      * AbstractComponent constructor.
      */
     public function __construct()
@@ -208,22 +202,6 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @param AbstractComponent $component
-     * @param int $componentGroupOffset
-     * @return ComponentGroup
-     * @throws \InvalidArgumentException
-     */
-    private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
-    {
-        /** @var ComponentGroup $componentGroup */
-        $componentGroup = $component->getComponentGroups()->get($componentGroupOffset);
-        if (null === $componentGroup) {
-            throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
-        }
-        return $componentGroup;
-    }
-
-    /**
      * @Groups({"component_write"})
      * @param AbstractComponent $parent
      * @param int $componentGroupOffset
@@ -245,7 +223,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @param AbstractContent $content
      * @return bool
      */
-    public function isContentComponent(AbstractContent $content): bool
+    public function hasParentContent(AbstractContent $content): bool
     {
         foreach ($this->locations as $location) {
             if ($location->getContent() === $content) {
@@ -253,6 +231,22 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
             }
         }
         return false;
+    }
+
+    /**
+     * @param AbstractComponent $component
+     * @param int $componentGroupOffset
+     * @return ComponentGroup
+     * @throws \InvalidArgumentException
+     */
+    private function getComponentComponentGroup(AbstractComponent $component, int $componentGroupOffset = 0): ComponentGroup
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $component->getComponentGroups()->get($componentGroupOffset);
+        if (null === $componentGroup) {
+            throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
+        }
+        return $componentGroup;
     }
 
     /**
@@ -290,21 +284,5 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
                 )
             )
         );
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getDynamicPageClass(): ?string
-    {
-        return $this->dynamicPageClass;
-    }
-
-    /**
-     * @param null|string $dynamicPageClass
-     */
-    public function setDynamicPageClass(?string $dynamicPageClass): void
-    {
-        $this->dynamicPageClass = $dynamicPageClass;
     }
 }
