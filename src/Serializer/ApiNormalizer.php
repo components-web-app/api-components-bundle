@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
@@ -203,12 +202,16 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
     }
 
-    private function populateDynamicComponents(AbstractDynamicPage $page): AbstractDynamicPage
+    /**
+     * @param AbstractDynamicPage $page
+     * @return AbstractDynamicPage
+     */
+    public function populateDynamicComponents(AbstractDynamicPage $page): AbstractDynamicPage
     {
-        $components = $this->em->getRepository(AbstractComponent::class)->findByDynamicPage($page);
-        foreach($components as $component)
+        $locations = $this->em->getRepository(ComponentLocation::class)->findByDynamicPage($page);
+        foreach($locations as $location)
         {
-            $page->addComponentLocation(new ComponentLocation(null, $component));
+            $page->addComponentLocation($location);
         }
         return $page;
     }

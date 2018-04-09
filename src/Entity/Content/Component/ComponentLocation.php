@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @package Silverback\ApiComponentBundle\Entity\Content\Component
  * @ApiResource()
  * @ACBAssert\ComponentLocation()
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentLocationRepository")
  * @ORM\InheritanceType("SINGLE_TABLE")
  */
 class ComponentLocation implements SortableInterface

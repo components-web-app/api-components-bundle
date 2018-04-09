@@ -3,24 +3,25 @@
 namespace Silverback\ApiComponentBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
-class ComponentRepository extends ServiceEntityRepository
+class ComponentLocationRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, AbstractComponent::class);
+        parent::__construct($registry, ComponentLocation::class);
     }
 
     public function findByDynamicPage(AbstractDynamicPage $page): array
     {
-        $qb = $this->createQueryBuilder('page');
+        $qb = $this->createQueryBuilder('location');
         $qb
             ->andWhere(
-                $qb->expr()->eq('page.dynamicPageClass', \get_class($page))
+                $qb->expr()->eq('location.dynamicPageClass', ':cls')
             )
+            ->setParameter('cls', \get_class($page))
         ;
         return $qb->getQuery()->getArrayResult();
     }

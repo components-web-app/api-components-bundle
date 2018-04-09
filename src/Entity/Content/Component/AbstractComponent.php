@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class AbstractComponent
  * @package Silverback\ApiComponentBundle\Entity\Content\Component
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentRepository")
+ * @ORM\Entity()
  * @ORM\Table(name="component")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")

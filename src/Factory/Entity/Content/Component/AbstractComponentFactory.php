@@ -36,6 +36,7 @@ abstract class AbstractComponentFactory extends AbstractFactory
         ) {
             $location = new ComponentLocation(null, $component);
             $location->setDynamicPageClass($this->ops['dynamicPageClass']);
+            $component->addLocation($location);
             $this->manager->persist($location);
         }
     }
