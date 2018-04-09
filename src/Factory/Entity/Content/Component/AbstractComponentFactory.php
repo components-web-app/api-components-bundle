@@ -13,7 +13,7 @@ abstract class AbstractComponentFactory extends AbstractFactory
         'parentComponent' => null,
         'parentContent' => null,
         'componentGroup' => null,
-        'dynamicPage' => null
+        'dynamicPageClass' => null
     ];
 
     /**
@@ -35,7 +35,7 @@ abstract class AbstractComponentFactory extends AbstractFactory
             $this->ops['dynamicPage']
         ) {
             $location = new ComponentLocation(null, $component);
-            $location->setDynamicPageClass($this->ops['dynamicPage']);
+            $location->setDynamicPageClass($this->ops['dynamicPageClass']);
             $this->manager->persist($location);
         }
     }
@@ -44,7 +44,7 @@ abstract class AbstractComponentFactory extends AbstractFactory
     {
         return [
             'parentContent',
-            'dynamicPage'
+            'dynamicPageClass'
         ];
     }
 
