@@ -63,6 +63,21 @@ abstract class AbstractContent implements ContentInterface
     }
 
     /**
+     * @param ComponentLocation[]|iterable $componentLocations
+     * @return AbstractContent
+     */
+    public function setComponentLocations(iterable $componentLocations): AbstractContent
+    {
+        $this->componentLocations = new ArrayCollection;
+        /** @var ComponentLocation $componentLocation */
+        foreach ($componentLocations as $componentLocation)
+        {
+            $this->componentLocations->add($componentLocation);
+        }
+        return $this;
+    }
+
+    /**
      * @param ComponentLocation $componentLocation
      * @return AbstractContent
      */

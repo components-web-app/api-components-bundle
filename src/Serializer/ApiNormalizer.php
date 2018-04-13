@@ -210,10 +210,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     {
         $locations = $this->em->getRepository(ComponentLocation::class)->findByDynamicPage($page);
         if ($locations) {
-            foreach($locations as $location)
-            {
-                $page->addComponentLocation($location);
-            }
+            $page->setComponentLocations($locations);
         }
         return $page;
     }
