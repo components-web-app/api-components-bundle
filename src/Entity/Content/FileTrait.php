@@ -15,7 +15,7 @@ trait FileTrait
     /**
      * @ORM\Column(type="string", nullable=false)
      * @Assert\File()
-     * @Groups({"component", "content"})
+     * @Groups({"component", "content", "route"})
      * @var null|string
      */
     protected $filePath;

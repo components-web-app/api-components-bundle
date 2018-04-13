@@ -30,14 +30,14 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"content", "component"})
+     * @Groups({"content", "component", "route"})
      * @var null|string
      */
     private $subtitle;
 
     /**
      * @ORM\Column(type="text")
-     * @Groups({"content", "component"})
+     * @Groups({"content", "component", "route"})
      * @var string
      */
     private $content;
