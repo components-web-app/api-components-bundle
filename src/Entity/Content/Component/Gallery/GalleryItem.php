@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class GalleryItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"routePrefix"="/component"})
+ * @ApiResource(iri="http://schema.org/ImageObject")
  * @ORM\Entity()
  */
 class GalleryItem extends AbstractComponent implements FileInterface

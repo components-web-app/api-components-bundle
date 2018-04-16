@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Class FeatureColumns
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureHorizontal
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"routePrefix"="/component"})
+ * @ApiResource()
  * @ORM\Entity()
  */
 class FeatureColumns extends AbstractFeature

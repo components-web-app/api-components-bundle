@@ -16,7 +16,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Form
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(
- *     attributes={"routePrefix"="/component"},
  *     collectionOperations={
  *         "get"={"method"="GET"},
  *         "post"={"method"="POST"},
