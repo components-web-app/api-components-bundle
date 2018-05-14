@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use function file_exists;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
@@ -112,7 +113,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     {
         $data = [];
         $filePath = $object->getFilePath();
-        if ($filePath) {
+        if ($filePath && file_exists($filePath)) {
             if (false !== \exif_imagetype($filePath)) {
                 [$width, $height] = getimagesize($filePath);
             } else {
