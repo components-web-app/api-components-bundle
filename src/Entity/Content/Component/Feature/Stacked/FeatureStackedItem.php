@@ -49,6 +49,10 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
             'description',
             new Assert\NotBlank()
         );
+        $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\Image()
+        );
     }
 
     /**

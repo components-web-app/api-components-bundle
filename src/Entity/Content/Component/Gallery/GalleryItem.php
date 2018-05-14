@@ -41,13 +41,9 @@ class GalleryItem extends AbstractComponent implements FileInterface
      */
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
-        $metadata->addPropertyConstraint(
+        $metadata->addPropertyConstraints(
             'filePath',
-            new Assert\NotBlank()
-        );
-        $metadata->addPropertyConstraint(
-            'filePath',
-            new Assert\Image()
+            [new Assert\NotBlank(), new Assert\Image()]
         );
         $metadata->addPropertyConstraint(
             'title',

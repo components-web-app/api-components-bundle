@@ -51,10 +51,10 @@ class Hero extends AbstractComponent implements FileInterface
             'title',
             new Assert\NotNull()
         );
-        $metadata->addPropertyConstraint(
-            'filePath',
-            new Assert\Image()
-        );
+//        $metadata->addPropertyConstraint(
+//            'filePath',
+//            new Assert\Image()
+//        );
     }
 
     /**

@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Trait FileTrait
@@ -14,8 +13,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 trait FileTrait
 {
     /**
+     * We are not asserting this is a file here because it may be a string for dynamic component e.g. {{ filePath }}
+     * validation constraint could be made perhaps to validate a file or a variable
      * @ORM\Column(type="string", nullable=false)
-     * @Assert\File()
      * @Groups({"component", "content", "route"})
      * @ApiProperty(iri="http://schema.org/contentUrl")
      * @var null|string
