@@ -23,7 +23,10 @@ abstract class AbstractDynamicPage extends AbstractContent implements RouteAware
      * @ApiProperty()
      * @Groups({"content","route"})
      */
-    protected $isDynamic = false;
+    public function isDynamic()
+    {
+        return true;
+    }
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")

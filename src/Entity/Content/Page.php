@@ -26,7 +26,10 @@ class Page extends AbstractContent implements RouteAwareInterface
      * @ApiProperty()
      * @Groups({"content","route"})
      */
-    protected $isDynamic = false;
+    public function isDynamic()
+    {
+        return false;
+    }
 
     /**
      * @Groups({"default"})
