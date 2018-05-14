@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,6 +21,12 @@ class Page extends AbstractContent implements RouteAwareInterface
 {
     use RouteAwareTrait;
     use PageTrait;
+
+    /**
+     * @ApiProperty()
+     * @Groups({"content","route"})
+     */
+    protected $isDynamic = false;
 
     /**
      * @Groups({"default"})

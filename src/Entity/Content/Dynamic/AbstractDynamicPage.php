@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Dynamic;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
@@ -17,6 +18,12 @@ abstract class AbstractDynamicPage extends AbstractContent implements RouteAware
     use PageTrait {
         getParentRoute as getParentParentRoute;
     }
+
+    /**
+     * @ApiProperty()
+     * @Groups({"content","route"})
+     */
+    protected $isDynamic = false;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
