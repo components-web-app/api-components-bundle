@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -18,8 +20,10 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @ApiResource()
  * @ORM\Entity()
  */
-class Hero extends AbstractComponent
+class Hero extends AbstractComponent implements FileInterface
 {
+    use FileTrait;
+
     /**
      * @ORM\Column(type="string", nullable=false)
      * @Groups({"content", "component"})
@@ -46,6 +50,10 @@ class Hero extends AbstractComponent
         $metadata->addPropertyConstraint(
             'title',
             new Assert\NotNull()
+        );
+        $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\Image()
         );
     }
 

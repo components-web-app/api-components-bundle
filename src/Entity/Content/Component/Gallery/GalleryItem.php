@@ -46,6 +46,10 @@ class GalleryItem extends AbstractComponent implements FileInterface
             new Assert\NotBlank()
         );
         $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\Image()
+        );
+        $metadata->addPropertyConstraint(
             'title',
             new Assert\NotBlank()
         );
