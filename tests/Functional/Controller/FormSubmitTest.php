@@ -33,7 +33,10 @@ class FormSubmitTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
-        self::$client = static::createClient();
+        self::$client = static::createClient([], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json'
+        ]);
         $container = self::$client->getContainer();
         $doctrine = $container->get('doctrine');
         /** @var EntityManager $entityManager */
@@ -74,32 +77,38 @@ class FormSubmitTest extends WebTestCase
             self::$formRoute,
             [],
             [],
-            ['CONTENT_TYPE' => 'application/json'],
+            [],
             '{"test": {"name":"Dummy"}}'
         );
-        $this->assertEquals(200, self::$client->getResponse()->getStatusCode());
-        $this->assertRequestContainsForm();
+        $content = self::$client->getResponse()->getContent();
+        $this->assertEquals(200, self::$client->getResponse()->getStatusCode(), $content);
+        $this->assertRequestContainsForm($content);
     }
 
     private function createInvalidRequest(string $method)
     {
-        self::$client->request($method, self::$formRoute,
-                               [],
-                               [],
-                               ['CONTENT_TYPE' => 'application/json'],
-                               '{"test": {"name":""}}');
-        $this->assertEquals(400, self::$client->getResponse()->getStatusCode());
-        $this->assertRequestContainsForm();
+        self::$client->request(
+            $method,
+            self::$formRoute,
+           [],
+           [],
+           [],
+           '{"test": {"name":""}}'
+        );
+        $content = self::$client->getResponse()->getContent();
+        $this->assertEquals(400, self::$client->getResponse()->getStatusCode(), $content);
+        $this->assertRequestContainsForm($content);
     }
 
-    private function assertRequestContainsForm()
+    private function assertRequestContainsForm($content)
     {
-        $content = json_decode(self::$client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('form', $content);
-        $this->assertCount(4, $content['form']);
-        $this->assertArrayHasKey('vars', $content['form']);
-        $this->assertArrayHasKey('submitted', $content['form']['vars']);
-        $this->assertTrue($content['form']['vars']['submitted']);
+        $decoded = json_decode($content, true);
+        $this->assertInternalType('array', $decoded, $content);
+        $this->assertArrayHasKey('form', $decoded);
+        $this->assertCount(4, $decoded['form']);
+        $this->assertArrayHasKey('vars', $decoded['form']);
+        $this->assertArrayHasKey('submitted', $decoded['form']['vars']);
+        $this->assertTrue($decoded['form']['vars']['submitted']);
     }
 
     public static function tearDownAfterClass()
