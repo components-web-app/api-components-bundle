@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
 
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Silverback\ApiComponentBundle\Uploader\FileUploader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -14,6 +15,9 @@ class ImagineCompilerPass implements CompilerPassInterface
 
         $container->getDefinition(PathResolver::class)
             ->setArgument(0, $rootPaths)
+        ;
+        $container->getDefinition(FileUploader::class)
+            ->setArgument(1, $rootPaths)
         ;
     }
 }

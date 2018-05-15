@@ -15,9 +15,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(
  *     itemOperations={
- *         "get"={"method"="GET", "path"="/routes/{id}", "requirements"={"id"=".+"}},
- *         "put"={"method"="PUT", "path"="/routes/{id}", "requirements"={"id"=".+"}},
- *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
+ *         "get"={"requirements"={"id"=".+"}},
+ *         "put"={"requirements"={"id"=".+"}},
+ *         "delete"={"requirements"={"id"=".+"}}
  *     }
  * )
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")

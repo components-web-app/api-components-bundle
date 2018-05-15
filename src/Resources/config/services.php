@@ -7,7 +7,6 @@ use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
-use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\EntitySubscriber;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\RouteAwareSubscriber;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
@@ -45,11 +44,6 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')
-        ->tag('controller.service_arguments')
-    ;
-
-    $services
-        ->set(FormSubmitPost::class)
         ->tag('controller.service_arguments')
     ;
 
