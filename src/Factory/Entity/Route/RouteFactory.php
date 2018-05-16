@@ -7,6 +7,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RouteFactory extends AbstractFactory
@@ -43,6 +44,7 @@ class RouteFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return [
+            'name' => null,
             'route' => null,
             'content' => null,
             'redirect' => null
@@ -51,18 +53,31 @@ class RouteFactory extends AbstractFactory
 
     /**
      * @param RouteAwareInterface $entity
+     * @param int|null $postfix
      * @return Route
      */
-    public function createFromRouteAwareEntity(RouteAwareInterface $entity): Route
+    public function createFromRouteAwareEntity(RouteAwareInterface $entity, int $postfix = 0): Route
     {
-        $pageRoute = $this->slugify->slugify($entity->getDefaultRoute());
+        $pageRoute = $this->slugify->slugify($entity->getDefaultRoute() ?: '');
         $routePrefix = $this->getRoutePrefix($entity);
-        return $this->create(
+        $fullRoute = $routePrefix . $pageRoute;
+        if ($postfix > 0) {
+            $fullRoute .= '-' . $postfix;
+        }
+        $existing = $this->manager->getRepository(Route::class)->find($fullRoute);
+        if ($existing) {
+            return $this->createFromRouteAwareEntity($entity, $postfix + 1);
+        }
+        $converter = new CamelCaseToSnakeCaseNameConverter();
+        $route = $this->create(
             [
-                'route' => $routePrefix . $pageRoute,
+                'name' => $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName())),
+                'route' => $fullRoute,
                 'content' => $entity
             ]
         );
+        $entity->addRoute($route);
+        return $route;
     }
 
     /**
@@ -71,24 +86,10 @@ class RouteFactory extends AbstractFactory
      */
     private function getRoutePrefix(RouteAwareInterface $entity): string
     {
-        $parent = method_exists($entity, 'getParent') ? $entity->getParent() : null;
-        if ($parent && $parent instanceof RouteAwareInterface) {
-            $parentRoute = $this->getParentRoute($parent);
-            return $parentRoute->getRoute() . '/';
+        $parent = $entity->getParentRoute();
+        if ($parent) {
+            return $parent->getRoute() . '/';
         }
         return '/';
-    }
-
-    /**
-     * @param RouteAwareInterface $parent
-     * @return mixed|Route
-     */
-    private function getParentRoute(RouteAwareInterface $parent)
-    {
-        $parentRoute = $parent->getRoutes()->first();
-        if (!$parentRoute) {
-            $parentRoute = $this->createFromRouteAwareEntity($parent);
-        }
-        return $parentRoute;
     }
 }

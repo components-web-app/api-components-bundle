@@ -18,20 +18,25 @@ class GalleryFixture extends AbstractFixture
      * @var GalleryItemFactory
      */
     private $galleryItemFactory;
+    /**
+     * @var string
+     */
+    private $projectDir;
 
     public function __construct(
         GalleryFactory $galleryFactory,
-        GalleryItemFactory $galleryItemFactory
+        GalleryItemFactory $galleryItemFactory,
+        string $projectDir = ''
     ) {
         $this->galleryFactory = $galleryFactory;
         $this->galleryItemFactory = $galleryItemFactory;
+        $this->projectDir = $projectDir;
     }
 
     public function load(ObjectManager $manager): void
     {
         $gallery = $this->createGallery();
-        $manager->persist($gallery);
-        $manager->persist($this->createGalleryItem($gallery));
+        $this->createGalleryItem($gallery);
 
         $manager->flush();
     }
@@ -47,8 +52,8 @@ class GalleryFixture extends AbstractFixture
             [
                 'title' => 'Gallery Item Title',
                 'caption' => 'Item Caption',
-                'filePath' => '/public/images/testImage.jpg',
-                'parent' => [$gallery, 0]
+                'filePath' => $this->projectDir . '/public/images/testImage.jpg',
+                'parentComponent' => [$gallery, 0]
             ]
         );
     }

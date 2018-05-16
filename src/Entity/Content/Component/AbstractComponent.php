@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 use Silverback\ApiComponentBundle\Entity\DeleteCascadeInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -34,13 +33,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "feature_stacked_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem",
  *     "feature_text_list" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList",
  *     "feature_text_list_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem",
- *     "article" = "Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article",
  *     "nav_bar" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar",
  *     "nav_bar_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBarItem",
  *     "tabs" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs",
  *     "tabs_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem",
  *     "menu" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu",
- *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem"
+ *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem",
+ *     "collection" = "Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
@@ -64,15 +63,15 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation", mappedBy="component")
-     * @var ArrayCollection|ComponentLocation[]
+     * @var Collection|ComponentLocation[]
      */
     protected $locations;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", mappedBy="parent", cascade={"persist"})
      * @ApiProperty(attributes={"fetchEager": false})
-     * @Groups({"component", "content"})
-     * @var ArrayCollection|ComponentGroup[]
+     * @Groups({"layout", "route", "content"})
+     * @var Collection|ComponentGroup[]
      */
     protected $componentGroups;
 
@@ -114,20 +113,28 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @param ContentInterface $content
+     * @return Collection|ComponentLocation[]
+     */
+    public function getLocations()
+    {
+        return $this->locations;
+    }
+
+    /**
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function addLocation(ContentInterface $content): AbstractComponent
+    public function addLocation(ComponentLocation $content): AbstractComponent
     {
         $this->locations->add($content);
         return $this;
     }
 
     /**
-     * @param ContentInterface $content
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function removeLocation(ContentInterface $content): AbstractComponent
+    public function removeLocation(ComponentLocation $content): AbstractComponent
     {
         $this->locations->removeElement($content);
         return $this;
@@ -168,7 +175,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
-     * @return ArrayCollection|ComponentGroup[]
+     * @return Collection|ComponentGroup[]
      */
     public function getComponentGroups(): Collection
     {
@@ -195,6 +202,38 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
+     * @Groups({"component_write"})
+     * @param AbstractComponent $parent
+     * @param int $componentGroupOffset
+     * @return AbstractComponent
+     * @throws \InvalidArgumentException
+     */
+    public function setParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
+    {
+        if (!\in_array($parent, $this->getParentComponents(), true)) {
+            $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
+            if (!$componentGroup->hasComponent($this)) {
+                $componentGroup->addComponentLocation(new ComponentLocation($componentGroup, $this));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param AbstractContent $content
+     * @return bool
+     */
+    public function hasParentContent(AbstractContent $content): bool
+    {
+        foreach ($this->locations as $location) {
+            if ($location->getContent() === $content) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param AbstractComponent $component
      * @param int $componentGroupOffset
      * @return ComponentGroup
@@ -208,24 +247,6 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
             throw new \InvalidArgumentException(sprintf('There is no component group child of this component with the offset %d', $componentGroupOffset));
         }
         return $componentGroup;
-    }
-
-    /**
-     * @Groups({"component_write"})
-     * @param AbstractComponent $parent
-     * @param int $componentGroupOffset
-     * @return AbstractComponent
-     * @throws \InvalidArgumentException
-     */
-    public function setParent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
-    {
-        if (!\in_array($parent, $this->getParentComponents(), true)) {
-            $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
-            if (!$componentGroup->hasComponent($this)) {
-                $componentGroup->addComponent(new ComponentLocation($componentGroup, $this));
-            }
-        }
-        return $this;
     }
 
     /**

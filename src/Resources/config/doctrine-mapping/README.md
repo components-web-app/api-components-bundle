@@ -1,2 +1,0 @@
-# Unused
-These configurations were used when using best practices for reusable bundles, however xml do not support traits which are very useful for this bundle. I have not found a reason why I should go to the extra efforts to use XML in this instance. Embeddables are not ideal and will require mapping of the embeddable variable for each entity using it. Not ideal if the end user will also use these entities.

@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
@@ -12,22 +13,22 @@ trait ValidComponentTrait
     /**
      * @ORM\Column(type="array")
      * @ACBAssert\ComponentTypeClasses()
-     * @var ArrayCollection|AbstractComponent[]
+     * @var Collection|AbstractComponent[]
      */
     protected $validComponents;
 
     private function initValidComponents(): self
     {
-        if (!($this->validComponents instanceof ArrayCollection)) {
+        if (!($this->validComponents instanceof Collection)) {
             $this->validComponents = new ArrayCollection();
         }
         return $this;
     }
 
     /**
-     * @return ArrayCollection
+     * @return Collection
      */
-    public function getValidComponents(): ArrayCollection
+    public function getValidComponents(): Collection
     {
         $this->initValidComponents();
         return $this->validComponents;

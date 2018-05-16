@@ -13,15 +13,17 @@ final class SwaggerDecorator implements NormalizerInterface
         $this->decorated = $decorated;
     }
 
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         /** @var array $docs */
         $docs = $this->decorated->normalize($object, $format, $context);
 
-        $patchOpPath = '/forms/{id}/submit';
+        $currentPath = '/forms/{id}';
+        $patchOpPath = $currentPath . '/submit';
+
         $patchOp = $docs['paths'][$patchOpPath]['patch'];
         $patchOp['summary'] = 'Submit a single input for validation';
-        $patchOp['parameters'] = $docs['paths']['/forms/{id}']['get']['parameters'];
+        $patchOp['parameters'] = $docs['paths'][$currentPath]['get']['parameters'];
         $patchOp['parameters'][] = [
             'name' => 'form',
             'in' => 'body',
@@ -40,28 +42,25 @@ final class SwaggerDecorator implements NormalizerInterface
                 ]
             ]
         ];
-        $patchOp['responses'] = $docs['paths']['/forms/{id}']['get']['responses'];
+        $patchOp['responses'] = $docs['paths'][$currentPath]['get']['responses'];
         $patchOp['responses']['200']['description'] = 'Validation passed successfully';
         $patchOp['responses']['400'] = [
             'description' => 'Validation failed',
             'schema' => [
-                '$ref' => '#/definitions/Form-page'
+                '$ref' => '#/definitions/Form'
             ]
         ];
-        // $patchOp['responses']['406']['description'] = "Invalid field name for the form ID";
-        $patchOp['consumes'] = $docs['paths']['/forms/{id}']['put']['consumes'];
-        $patchOp['produces'] = $docs['paths']['/forms/{id}']['put']['produces'];
+        $patchOp['consumes'] = $docs['paths'][$currentPath]['put']['consumes'];
+        $patchOp['produces'] = $docs['paths'][$currentPath]['put']['produces'];
 
         $docs['paths'][$patchOpPath]['patch'] = $patchOp;
         $docs['paths'][$patchOpPath]['post']['parameters'] = $docs['paths'][$patchOpPath]['patch']['parameters'];
         $docs['paths'][$patchOpPath]['post']['summary'] = 'Submit and validate the entire form';
-        // $docs['paths'][$patchOpPath]['post']['parameters'] = $patchOp['parameters'];
-        // $docs['paths'][$patchOpPath]['post']['responses']['201']['description'] = "Form successfully submitted and valid";
 
         return $docs;
     }
 
-    public function supportsNormalization($data, $format = null)
+    public function supportsNormalization($data, $format = null): bool
     {
         return $this->decorated->supportsNormalization($data, $format);
     }

@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @package Silverback\ApiComponentBundle\Entity\Content\Component
  * @ApiResource()
  * @ACBAssert\ComponentLocation()
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentLocationRepository")
  * @ORM\InheritanceType("SINGLE_TABLE")
  */
 class ComponentLocation implements SortableInterface
@@ -36,7 +36,7 @@ class ComponentLocation implements SortableInterface
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="components")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="componentLocations")
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"component"})
      * @var AbstractContent
@@ -46,10 +46,16 @@ class ComponentLocation implements SortableInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent", inversedBy="locations")
      * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Groups({"component", "content", "route"})
+     * @Groups({"default"})
      * @var AbstractComponent
      */
     private $component;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var null|string
+     */
+    protected $dynamicPageClass;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
@@ -90,9 +96,9 @@ class ComponentLocation implements SortableInterface
     }
 
     /**
-     * @return AbstractContent
+     * @return AbstractContent|null
      */
-    public function getContent(): AbstractContent
+    public function getContent(): ?AbstractContent
     {
         return $this->content;
     }
@@ -101,11 +107,14 @@ class ComponentLocation implements SortableInterface
      * @param AbstractContent $content
      * @param bool|null $sortLast
      */
-    public function setContent(AbstractContent $content, ?bool $sortLast = true): void
+    public function setContent(?AbstractContent $content, ?bool $sortLast = true): void
     {
         $this->content = $content;
         if (null === $this->sort || $sortLast !== null) {
             $this->setSort($this->calculateSort($sortLast));
+        }
+        if ($this->content) {
+            $this->content->addComponentLocation($this);
         }
     }
 
@@ -130,6 +139,22 @@ class ComponentLocation implements SortableInterface
      */
     public function getSortCollection(): Collection
     {
-        return $this->content ? $this->content->getComponents() : new ArrayCollection;
+        return $this->content ? $this->content->getComponentLocations() : new ArrayCollection;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDynamicPageClass(): ?string
+    {
+        return $this->dynamicPageClass;
+    }
+
+    /**
+     * @param null|string $dynamicPageClass
+     */
+    public function setDynamicPageClass(?string $dynamicPageClass): void
+    {
+        $this->dynamicPageClass = $dynamicPageClass;
     }
 }

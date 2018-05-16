@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class FormFactory extends AbstractFactory
+final class FormFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -27,7 +27,7 @@ final class FormFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'formType' => '',
                 'successHandler' => null

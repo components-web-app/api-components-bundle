@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
@@ -20,7 +19,8 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
  *     "page" = "Silverback\ApiComponentBundle\Entity\Content\Page",
- *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup"
+ *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup",
+ *     "article" = "Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage"
  * })
  */
 abstract class AbstractContent implements ContentInterface
@@ -34,16 +34,16 @@ abstract class AbstractContent implements ContentInterface
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
-     * @Groups({"content", "route"})
-     * @MaxDepth(10)
+     * @ORM\OrderBy({"sort"="ASC"})
+     * @MaxDepth(40)
      * @var Collection|ComponentLocation[]
      */
-    protected $components;
+    protected $componentLocations;
 
     public function __construct()
     {
         $this->id = Uuid::uuid4()->getHex();
-        $this->components = new ArrayCollection;
+        $this->componentLocations = new ArrayCollection;
     }
 
     /**
@@ -57,28 +57,43 @@ abstract class AbstractContent implements ContentInterface
     /**
      * @return Collection|ComponentLocation[]
      */
-    public function getComponents(): Collection
+    public function getComponentLocations(): Collection
     {
-        return $this->components;
+        return $this->componentLocations;
     }
 
     /**
-     * @param ComponentLocation $component
+     * @param ComponentLocation[]|iterable $componentLocations
      * @return AbstractContent
      */
-    public function addComponent(ComponentLocation $component): AbstractContent
+    public function setComponentLocations(iterable $componentLocations): AbstractContent
     {
-        $this->components->add($component);
+        $this->componentLocations = new ArrayCollection;
+        /** @var ComponentLocation $componentLocation */
+        foreach ($componentLocations as $componentLocation)
+        {
+            $this->componentLocations->add($componentLocation);
+        }
         return $this;
     }
 
     /**
-     * @param ComponentLocation $component
+     * @param ComponentLocation $componentLocation
      * @return AbstractContent
      */
-    public function removeComponent(ComponentLocation $component): AbstractContent
+    public function addComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
-        $this->components->removeElement($component);
+        $this->componentLocations->add($componentLocation);
+        return $this;
+    }
+
+    /**
+     * @param ComponentLocation $componentLocation
+     * @return AbstractContent
+     */
+    public function removeComponentLocation(ComponentLocation $componentLocation): AbstractContent
+    {
+        $this->componentLocations->removeElement($componentLocation);
         return $this;
     }
 }

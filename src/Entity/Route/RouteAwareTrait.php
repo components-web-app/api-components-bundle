@@ -2,16 +2,17 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 trait RouteAwareTrait
 {
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content", cascade={"persist"})
      * @Groups({"layout", "content", "component"})
-     * @var ArrayCollection|Route[]
+     * @var Collection|Route[]
      */
     protected $routes;
 
@@ -21,6 +22,9 @@ trait RouteAwareTrait
      */
     public function addRoute(Route $route)
     {
+        if ($this instanceof AbstractContent) {
+            $route->setContent($this);
+        }
         $this->routes->add($route);
         return $this;
     }
@@ -36,9 +40,9 @@ trait RouteAwareTrait
     }
 
     /**
-     * @return ArrayCollection|Route[]
+     * @return Collection|Route[]
      */
-    public function getRoutes(): ArrayCollection
+    public function getRoutes(): Collection
     {
         return $this->routes;
     }

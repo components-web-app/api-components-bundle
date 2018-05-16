@@ -8,6 +8,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNavigation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNavigationItem;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,10 +22,10 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         AbstractComponent::class => ['component'],
         AbstractNavigation::class => ['component'],
         ComponentLocation::class => ['component'],
-        AbstractNavigationItem::class => ['component_item'],
         AbstractContent::class => ['content'],
         Route::class => ['route'],
-        Layout::class => ['layout']
+        Layout::class => ['layout'],
+        AbstractDynamicPage::class => ['dynamic_content']
     ];
 
     /**
@@ -86,7 +87,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (isset($context['groups']) && \in_array('none', $context['groups'], true)) {
+        if (\in_array('none', $context['groups'] ?? [], true)) {
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');

@@ -5,9 +5,9 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Validator\Contraints;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Article\Article;
 use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation as ComponentLocationEntity;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocation;
@@ -30,7 +30,7 @@ class ComponentLocationValidatorTest extends TestCase
      */
     private $constraint;
     /**
-     * @var MockObject|\Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocationEntity
+     * @var MockObject|\Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation
      */
     private $entity;
     /**
@@ -62,7 +62,7 @@ class ComponentLocationValidatorTest extends TestCase
      */
     public function test_valid_component_location(): void
     {
-        $this->setUpForFullValidationChecks(new Article());
+        $this->setUpForFullValidationChecks(new Content());
         $this->context
             ->expects($this->never())
             ->method('buildViolation')
@@ -82,7 +82,7 @@ class ComponentLocationValidatorTest extends TestCase
         $violation->expects($this->once())->method('atPath')->with('component')->willReturn($violation);
         $violation->expects($this->once())->method('setParameter')->willReturn($violation);
 
-        $this->setUpForFullValidationChecks(new Content());
+        $this->setUpForFullValidationChecks(new GalleryItem());
         $this->context
             ->expects($this->once())
             ->method('buildViolation')
@@ -99,7 +99,7 @@ class ComponentLocationValidatorTest extends TestCase
         $this->content
             ->expects($this->once())
             ->method('getValidComponents')
-            ->willReturn(new ArrayCollection([Article::class]))
+            ->willReturn(new ArrayCollection([Content::class]))
         ;
         $this->entity
             ->expects($this->once())

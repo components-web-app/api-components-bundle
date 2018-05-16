@@ -42,7 +42,7 @@ class FormFactory
             null,
             [
                 'method' => 'POST',
-                'action' => $this->router->generate('silverback_api_component_form_submit', [
+                'action' => $this->router->generate('api_forms_post_item', [
                     'id' => $component->getId()
                 ])
             ]

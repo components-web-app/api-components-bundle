@@ -21,7 +21,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      * @param ContainerBuilder $container
      * @throws \Exception
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $this->loadServiceConfig($container);
     }
@@ -58,7 +58,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      * @param ContainerBuilder $container
      * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
      */
-    public function prepend(ContainerBuilder $container)
+    public function prepend(ContainerBuilder $container): void
     {
         $bundles = $container->getParameter('kernel.bundles');
         $container->prependExtensionConfig('api_platform', [
@@ -68,13 +68,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         ]);
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
-                'loaders' => [
-                    'default' => [
-                        'filesystem' => [
-                            'data_root' => '%kernel.project_dir%/public'
-                        ]
-                    ]
-                ],
                 'filter_sets' => [
                     'placeholder_square' => [
                         'jpeg_quality' => 10,

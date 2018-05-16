@@ -56,12 +56,12 @@ class NavigationFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createMenu());
-        $manager->persist($this->createMenuItem());
-        $manager->persist($this->createNavBar());
-        $manager->persist($this->createNavBarItem());
-        $manager->persist($this->createTabs());
-        $manager->persist($this->createTabsItem());
+        $this->createMenu();
+        $this->createMenuItem();
+        $this->createNavBar();
+        $this->createNavBarItem();
+        $this->createTabs();
+        $this->createTabsItem();
         $manager->flush();
     }
 

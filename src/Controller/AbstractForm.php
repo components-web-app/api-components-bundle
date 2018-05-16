@@ -49,17 +49,24 @@ abstract class AbstractForm extends AbstractController
      * @param $_format
      * @param $valid
      * @param Response|null $response
+     * @param int|null $statusCode
+     * @param array|null $context
      * @return Response
-     * @throws \InvalidArgumentException
-     * @throws \UnexpectedValueException
      */
-    protected function getResponse($data, $_format, $valid, Response $response = null): Response
+    protected function getResponse(
+        $data,
+        $_format,
+        $valid,
+        Response $response = null,
+        ?int $statusCode = null,
+        ?array $context = ['groups' => ['component']]
+    ): Response
     {
         if (!$response) {
             $response = new Response();
         }
-        $response->setStatusCode($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
-        $response->setContent($this->serializer->serialize($data, $_format, ['groups' => ['page']]));
+        $response->setStatusCode($statusCode ?? ($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
+        $response->setContent($this->serializer->serialize($data, $_format, $context));
         return $response;
     }
 

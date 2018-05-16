@@ -2,9 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation;
 
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
-abstract class AbstractNavigationItemFactory extends AbstractFactory
+abstract class AbstractNavigationItemFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -12,7 +12,7 @@ abstract class AbstractNavigationItemFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'label' => null,
                 'route' => null,

@@ -32,7 +32,7 @@ class TestType extends AbstractType
                     'constraints' => [
                         new NotBlank(
                             [
-                                "message" => "Please provide your name"
+                                'message' => 'Please provide your name'
                             ]
                         ),
                     ]

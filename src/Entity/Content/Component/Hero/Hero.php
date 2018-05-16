@@ -6,6 +6,9 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -14,11 +17,13 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class Hero
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Hero
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/hero")
+ * @ApiResource()
  * @ORM\Entity()
  */
-class Hero extends AbstractComponent
+class Hero extends AbstractComponent implements FileInterface
 {
+    use FileTrait;
+
     /**
      * @ORM\Column(type="string", nullable=false)
      * @Groups({"content", "component"})
@@ -33,13 +38,12 @@ class Hero extends AbstractComponent
      */
     private $subtitle;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="\Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
-     * @Groups({"content", "component"})
-     * @var null|Tabs
-     */
-    private $tabs;
+    public function __construct()
+    {
+        parent::__construct();
+        $this->addValidComponent(Tabs::class);
+        $this->addComponentGroup(new ComponentGroup());
+    }
 
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
@@ -47,6 +51,10 @@ class Hero extends AbstractComponent
             'title',
             new Assert\NotNull()
         );
+//        $metadata->addPropertyConstraint(
+//            'filePath',
+//            new Assert\Image()
+//        );
     }
 
     /**
@@ -79,22 +87,6 @@ class Hero extends AbstractComponent
     public function setSubtitle(?string $subtitle): void
     {
         $this->subtitle = $subtitle;
-    }
-
-    /**
-     * @return Tabs|null
-     */
-    public function getTabs(): ?Tabs
-    {
-        return $this->tabs;
-    }
-
-    /**
-     * @param Tabs|null $tabs
-     */
-    public function setTabs(?Tabs $tabs): void
-    {
-        $this->tabs = $tabs;
     }
 
     public function __toString()

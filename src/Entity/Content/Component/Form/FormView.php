@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -44,25 +45,25 @@ class FormView
     ];
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component", "content"})
      * @var array
      */
     private $vars;
 
     /**
-     * @Groups({"content_read", "component_read"})
-     * @var ArrayCollection
+     * @Groups({"component", "content"})
+     * @var Collection
      */
     private $children;
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     private $rendered;
 
     /**
-     * @Groups({"content_read", "component_read"})
+     * @Groups({"component", "content"})
      * @var bool
      */
     private $methodRendered;
@@ -122,9 +123,9 @@ class FormView
     }
 
     /**
-     * @return ArrayCollection
+     * @return Collection
      */
-    public function getChildren(): ArrayCollection
+    public function getChildren(): Collection
     {
         return $this->children;
     }

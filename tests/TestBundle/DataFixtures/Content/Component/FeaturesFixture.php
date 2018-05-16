@@ -35,9 +35,9 @@ class FeaturesFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createFeatureColumns());
-        $manager->persist($this->createFeatureStacked());
-        $manager->persist($this->createFeatureTextList());
+        $this->createFeatureColumns();
+        $this->createFeatureStacked();
+        $this->createFeatureTextList();
 
         $manager->flush();
     }
@@ -46,7 +46,6 @@ class FeaturesFixture extends AbstractFixture
     {
         return $this->featureColumnsFactory->create(
             [
-                'columns' => 3,
                 'title' => 'Column features title'
             ]
         );
@@ -65,6 +64,7 @@ class FeaturesFixture extends AbstractFixture
     {
         return $this->featureTextListFactory->create(
             [
+                'columns' => 3,
                 'title' => 'Text list features title'
             ]
         );

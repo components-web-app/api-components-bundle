@@ -2,10 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
-use Silverback\ApiComponentBundle\Entity\Content\ContentInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 
 interface ComponentInterface extends ValidComponentInterface
@@ -32,16 +30,16 @@ interface ComponentInterface extends ValidComponentInterface
     public function setClassName(?string $className): AbstractComponent;
 
     /**
-     * @param ContentInterface $content
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function addLocation(ContentInterface $content): AbstractComponent;
+    public function addLocation(ComponentLocation $content): AbstractComponent;
 
     /**
-     * @param ContentInterface $content
+     * @param ComponentLocation $content
      * @return AbstractComponent
      */
-    public function removeLocation(ContentInterface $content): AbstractComponent;
+    public function removeLocation(ComponentLocation $content): AbstractComponent;
 
     /**
      * @param array $componentGroups
@@ -62,7 +60,7 @@ interface ComponentInterface extends ValidComponentInterface
     public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent;
 
     /**
-     * @return ArrayCollection|ComponentGroup[]
+     * @return Collection|ComponentGroup[]
      */
     public function getComponentGroups(): Collection;
 

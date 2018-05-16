@@ -2,11 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 interface ValidComponentInterface
 {
-    public function getValidComponents(): ArrayCollection;
+    public function getValidComponents(): Collection;
     public function addValidComponent(string $component);
     public function removeValidComponent(string $component);
 }

@@ -5,8 +5,8 @@ namespace Silverback\ApiComponentBundle\Entity\Content\Component\Gallery;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileTrait;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class GalleryItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/gallery_item")
+ * @ApiResource(iri="http://schema.org/ImageObject")
  * @ORM\Entity()
  */
 class GalleryItem extends AbstractComponent implements FileInterface
@@ -41,9 +41,9 @@ class GalleryItem extends AbstractComponent implements FileInterface
      */
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
-        $metadata->addPropertyConstraint(
+        $metadata->addPropertyConstraints(
             'filePath',
-            new Assert\NotBlank()
+            [new Assert\NotBlank(), new Assert\Image()]
         );
         $metadata->addPropertyConstraint(
             'title',

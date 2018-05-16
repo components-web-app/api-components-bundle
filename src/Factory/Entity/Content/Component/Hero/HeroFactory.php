@@ -3,12 +3,12 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Hero;
 
 use Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
+use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class HeroFactory extends AbstractFactory
+final class HeroFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
@@ -27,11 +27,11 @@ final class HeroFactory extends AbstractFactory
     public static function defaultOps(): array
     {
         return array_merge(
-            AbstractFactory::COMPONENT_CLASSES,
+            parent::defaultOps(),
             [
                 'title' => 'Untitled',
                 'subtitle' => null,
-                'tabs' => null
+                'filePath' => null
             ]
         );
     }

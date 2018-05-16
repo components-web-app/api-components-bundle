@@ -23,7 +23,7 @@ class ContentFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createContent());
+        $this->addReference('content', $this->createContent());
         $manager->flush();
     }
 

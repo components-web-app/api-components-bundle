@@ -5,6 +5,8 @@ namespace Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -13,24 +15,29 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureStackedItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(shortName="component/feature_stacked_items")
+ * @ApiResource()
  * @ORM\Entity()
  */
-class FeatureStackedItem extends AbstractFeatureItem
+class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
 {
+    use FileTrait;
+
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
     protected $description;
 
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
     protected $buttonText;
 
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var null|string
      */
@@ -41,6 +48,10 @@ class FeatureStackedItem extends AbstractFeatureItem
         $metadata->addPropertyConstraint(
             'description',
             new Assert\NotBlank()
+        );
+        $metadata->addPropertyConstraint(
+            'filePath',
+            new Assert\Image()
         );
     }
 

@@ -35,7 +35,7 @@ class ComponentListener
     {
         foreach ($component->getComponentGroups() as $componentGroup) {
             $this->em->remove($componentGroup);
-            foreach ($componentGroup->getComponents() as $componentLocation) {
+            foreach ($componentGroup->getComponentLocations() as $componentLocation) {
                 $component = $componentLocation->getComponent();
                 $this->em->remove($componentLocation);
                 $this->em->remove($component);

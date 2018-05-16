@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 interface RouteAwareInterface
 {
@@ -24,7 +24,17 @@ interface RouteAwareInterface
     public function getDefaultRoute(): string;
 
     /**
-     * @return ArrayCollection
+     * @return Collection
      */
-    public function getRoutes(): ArrayCollection;
+    public function getRoutes(): Collection;
+
+    /**
+     * @return string
+     */
+    public function getDefaultRouteName(): string;
+
+    /**
+     * @return null|Route
+     */
+    public function getParentRoute(): ?Route;
 }

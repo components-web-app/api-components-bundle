@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class ComponentGroup
@@ -19,6 +20,11 @@ use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 class ComponentGroup extends AbstractContent implements ValidComponentInterface
 {
     use ValidComponentTrait;
+
+    /**
+     * @Groups({"default"})
+     */
+    protected $componentLocations;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent", inversedBy="componentGroups")
@@ -35,21 +41,21 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
 
 
     /**
-     * @return AbstractComponent
+     * @return AbstractComponent|null
      */
-    public function getParent(): AbstractComponent
+    public function getParent(): ?AbstractComponent
     {
         return $this->parent;
     }
 
     /**
-     * @param AbstractComponent $parent
+     * @param AbstractComponent|null $parent
      * @param bool|null $cascadeValidComponent
      */
-    public function setParent(AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
+    public function setParent(?AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
     {
         $this->parent = $parent;
-        if ($cascadeValidComponent !== false) {
+        if ($parent && $cascadeValidComponent !== false) {
             // convert to bool again for $force (null becomes false)
             $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
         }
@@ -57,7 +63,7 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
 
     public function hasComponent(AbstractComponent $component)
     {
-        foreach ($this->getComponents() as $componentLocation) {
+        foreach ($this->getComponentLocations() as $componentLocation) {
             if ($component === $componentLocation->getComponent()) {
                 return true;
             }

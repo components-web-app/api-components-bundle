@@ -16,7 +16,8 @@ class FeatureColumnsItemFactoryTest extends AbstractFactory
     {
         $this->className = FeatureColumnsItemFactory::class;
         $this->testOps = [
-            'description' => 'dummy'
+            'description' => 'dummy',
+            'filePath' => null
         ];
         parent::setUp();
     }

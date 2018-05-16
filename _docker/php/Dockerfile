@@ -17,7 +17,6 @@ RUN set -xe \
 		freetype-dev \
 		libpng-dev \
 		libjpeg-turbo-dev \
-		rabbitmq-c-dev \
 		libssh-dev \
 		libxml2-dev autoconf g++ imagemagick-dev libtool make \
 	&& docker-php-ext-install \
@@ -26,11 +25,9 @@ RUN set -xe \
     sockets \
   && pecl install \
     apcu-${APCU_VERSION} \
-    amqp \
     imagick \
   && docker-php-ext-enable --ini-name 20-apcu.ini apcu \
   && docker-php-ext-enable --ini-name 05-opcache.ini opcache \
-  && docker-php-ext-enable amqp \
   && docker-php-ext-enable imagick \
 	&& docker-php-ext-install \
 		pdo pdo_mysql \
@@ -60,12 +57,12 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress --no-suggest --classmap-authoritative  --no-interaction
 
 # Prevent the reinstallation of vendors at every changes in the source code
-COPY ./composer.json composer.lock ./
+# composer.lock
+COPY ./composer.json ./
 RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest \
 	&& composer clear-cache
 
 COPY ./ ./
 
 RUN mkdir -p tests/app/var/cache tests/app/var/logs tests/app/var/sessions \
-  && composer dump-autoload --classmap-authoritative --no-dev \
-	  && chown -R www-data tests/app/var
+  && composer dump-autoload --classmap-authoritative --no-dev

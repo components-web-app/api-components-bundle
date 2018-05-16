@@ -26,7 +26,8 @@ class FeatureColumnsItemFactory extends AbstractFeatureItemFactory
         return array_merge(
             parent::defaultOps(),
             [
-                'description' => null
+                'description' => null,
+                'filePath' => null
             ]
         );
     }

@@ -17,7 +17,8 @@ class ComponentLocationFactoryTest extends AbstractFactory
         $this->className = ComponentLocationFactory::class;
         $this->testOps = [
             'component' => $this->getMockForAbstractClass(AbstractComponent::class),
-            'content' =>$this->getMockForAbstractClass(AbstractContent::class)
+            'content' =>$this->getMockForAbstractClass(AbstractContent::class),
+            'dynamicPageClass' => AbstractContent::class
         ];
         parent::setUp();
     }

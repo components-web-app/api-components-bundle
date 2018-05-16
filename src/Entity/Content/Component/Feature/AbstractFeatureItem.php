@@ -2,7 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Feature;
 
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -14,25 +16,35 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 abstract class AbstractFeatureItem extends AbstractComponent implements FeatureItemInterface
 {
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var string
      */
-    private $label;
+    protected $title;
 
     /**
+     * @ORM\Column()
      * @Groups({"component", "content"})
      * @var string|null
      */
-    protected $link;
+    protected $url;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
+     * @ORM\JoinColumn(referencedColumnName="route")
+     * @Groups({"component", "content"})
+     * @var Route|null
+     */
+    protected $route;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
         $metadata->addPropertyConstraint(
-            'label',
+            'title',
             new Assert\NotBlank()
         );
         $metadata->addPropertyConstraint(
-            'link',
+            'url',
             new Assert\Url()
         );
     }
@@ -40,32 +52,49 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     /**
      * @return string
      */
-    public function getLabel(): string
+    public function getTitle(): string
     {
-        return $this->label;
+        return $this->title;
     }
 
     /**
-     * @param string $label
+     * @param string $title
      */
-    public function setLabel(string $label): void
+    public function setTitle(string $title): void
     {
-        $this->label = $label;
+        $this->title = $title;
     }
+
 
     /**
      * @return null|string
      */
-    public function getLink(): ?string
+    public function getUrl(): ?string
     {
-        return $this->link;
+        return $this->url;
     }
 
     /**
-     * @param null|string $link
+     * @param null|string $url
      */
-    public function setLink(?string $link): void
+    public function setUrl(?string $url): void
     {
-        $this->link = $link;
+        $this->url = $url;
+    }
+
+    /**
+     * @return null|Route
+     */
+    public function getRoute(): ?Route
+    {
+        return $this->route;
+    }
+
+    /**
+     * @param null|Route $route
+     */
+    public function setRoute(?Route $route): void
+    {
+        $this->route = $route;
     }
 }

@@ -21,7 +21,7 @@ class HeroFixture extends AbstractFixture
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist($this->createHero());
+        $this->createHero();
         $manager->flush();
     }
 
@@ -30,8 +30,7 @@ class HeroFixture extends AbstractFixture
         return $this->heroFactory->create(
             [
                 'title' => 'Hero Title',
-                'subtitle' => 'Hero Subtitle',
-                'tabs' => null
+                'subtitle' => 'Hero Subtitle'
             ]
         );
     }

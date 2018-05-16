@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Route
@@ -14,12 +15,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(
  *     itemOperations={
- *         "get"={"method"="GET", "path"="/routes/{id}", "requirements"={"id"=".+"}},
- *         "put"={"method"="PUT", "path"="/routes/{id}", "requirements"={"id"=".+"}},
- *         "delete"={"method"="DELETE", "path"="/routes/{id}", "requirements"={"id"=".+"}}
+ *         "get"={"requirements"={"id"=".+"}},
+ *         "put"={"requirements"={"id"=".+"}},
+ *         "delete"={"requirements"={"id"=".+"}}
  *     }
  * )
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
  */
 class Route
 {
@@ -32,9 +33,17 @@ class Route
     private $route;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", inversedBy="routes", cascade={"remove"})
+     * @ORM\Column(type="string", unique=true)
+     * @Groups({"route"})
+     * @var string
+     */
+    private $name;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\AbstractContent", cascade={"remove"})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Groups({"route"})
+     * @Assert\Type("Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface")
      * @var null|AbstractContent
      */
     private $content;
@@ -47,9 +56,27 @@ class Route
      */
     private $redirect;
 
-    public function __construct(?string $route = null)
+    public function __construct(?string $name = null, ?string $route = null, ?Route $redirect = null)
     {
-        $this->route = $route ?? Uuid::uuid4()->getHex();
+        $this->name = $name ?: Uuid::uuid4()->getHex();
+        $this->route = $route ?: '/' . Uuid::uuid4()->getHex();
+        $this->setRedirect($redirect);
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     /**

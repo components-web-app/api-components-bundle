@@ -2,11 +2,19 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use function file_exists;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
+use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
-use Silverback\ApiComponentBundle\Imagine\FileSystemLoader;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -17,20 +25,29 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $decorated;
     private $imagineCacheManager;
     private $formViewFactory;
-    private $fileSystemLoader;
+    private $pathResolver;
+    private $em;
+    private $projectDir;
+    private $collectionDataProvider;
 
     /**
      * FileNormalizer constructor.
      * @param NormalizerInterface $decorated
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
-     * @param FileSystemLoader $fileSystemLoader
+     * @param PathResolver $pathResolver
+     * @param EntityManagerInterface $entityManager
+     * @param ContextAwareCollectionDataProviderInterface $collectionDataProvider
+     * @param string $projectDir
      */
     public function __construct(
         NormalizerInterface $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
-        FileSystemLoader $fileSystemLoader
+        PathResolver $pathResolver,
+        EntityManagerInterface $entityManager,
+        ContextAwareCollectionDataProviderInterface $collectionDataProvider,
+        string $projectDir = '/'
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -38,7 +55,10 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->decorated = $decorated;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->formViewFactory = $formViewFactory;
-        $this->fileSystemLoader = $fileSystemLoader;
+        $this->pathResolver = $pathResolver;
+        $this->em = $entityManager;
+        $this->collectionDataProvider = $collectionDataProvider;
+        $this->projectDir = $projectDir;
     }
 
     /**
@@ -59,30 +79,41 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @throws \Symfony\Component\Serializer\Exception\LogicException
      * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Serializer\Exception\CircularReferenceException
+     * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
      */
     public function normalize($object, $format = null, array $context = [])
     {
+        if (($object instanceof Page || $object instanceof AbstractDynamicPage) && !$object->getLayout()) {
+            // Should we be using the ItemDataProvider (or detect data provider and use that, we already use a custom data provider for layouts)
+            $object->setLayout($this->em->getRepository(Layout::class)->findOneBy(['default' => true]));
+        }
+        if ($object instanceof AbstractDynamicPage) {
+            $object = $this->populateDynamicComponents($object);
+        }
+        if ($object instanceof Collection) {
+            // We should really find whatever the data provider is currently for the resource instead of just using the default
+            $object->setCollection($this->collectionDataProvider->getCollection($object->getResource(), 'GET', $context));
+        }
+        if ($object instanceof Form && !$object->getForm()) {
+            $object->setForm($this->formViewFactory->create($object));
+        }
         $data = $this->decorated->normalize($object, $format, $context);
 
         if ($object instanceof FileInterface) {
             $data = array_merge($data, $this->getFileData($object));
         }
-        if ($object instanceof Form) {
-            $data['form'] = $this->formViewFactory->create($object);
-        }
-
         return $data;
     }
 
     /**
-     * @param FileInterface $object
+     * @param \Silverback\ApiComponentBundle\Entity\Content\FileInterface $object
      * @return array
      */
     private function getFileData(FileInterface $object): array
     {
         $data = [];
         $filePath = $object->getFilePath();
-        if ($filePath) {
+        if ($filePath && file_exists($filePath)) {
             if (false !== \exif_imagetype($filePath)) {
                 [$width, $height] = getimagesize($filePath);
             } else {
@@ -94,12 +125,24 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             $supported = $this->isImagineSupportedFile($filePath);
             foreach ($object::getImagineFilters() as $returnKey => $filter) {
                 $data[$returnKey] = $supported ? parse_url(
-                    $this->imagineCacheManager->getBrowserPath($this->fileSystemLoader->getImaginePath($filePath), $filter),
+                    $this->imagineCacheManager->getBrowserPath($this->pathResolver->resolve($filePath), $filter),
                     PHP_URL_PATH
                 ) : null;
             }
+
+            $data['filePath'] = $this->getPublicPath($filePath);
         }
         return $data;
+    }
+
+    private function getPublicPath(string $filePath) {
+        $publicPaths = [$this->projectDir, '/public/', '/web/'];
+        foreach ($publicPaths as $path) {
+            if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
+                $filePath = mb_substr($filePath, $start);
+            }
+        }
+        return $filePath;
     }
 
     /**
@@ -158,5 +201,18 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             return false;
         }
         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
+    }
+
+    /**
+     * @param AbstractDynamicPage $page
+     * @return AbstractDynamicPage
+     */
+    public function populateDynamicComponents(AbstractDynamicPage $page): AbstractDynamicPage
+    {
+        $locations = $this->em->getRepository(ComponentLocation::class)->findByDynamicPage($page);
+        if ($locations) {
+            $page->setComponentLocations($locations);
+        }
+        return $page;
     }
 }

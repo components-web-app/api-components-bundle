@@ -33,10 +33,17 @@ class Layout
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar")
      * @ORM\JoinColumn(onDelete="SET NULL")
-     * @Groups({"layout", "default"})
+     * @Groups({"layout", "route"})
      * @var null|NavBar
      */
     private $navBar;
+
+    /**
+     * @ORM\Column(nullable=true)
+     * @Groups({"layout"})
+     * @var null|string
+     */
+    private $className;
 
     public function __construct()
     {
@@ -81,5 +88,21 @@ class Layout
     public function setNavBar(?NavBar $navBar): void
     {
         $this->navBar = $navBar;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getClassName(): ?string
+    {
+        return $this->className;
+    }
+
+    /**
+     * @param null|string $className
+     */
+    public function setClassName(?string $className): void
+    {
+        $this->className = $className;
     }
 }
