@@ -39,7 +39,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "tabs_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem",
  *     "menu" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu",
  *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem",
- *     "collection" = "Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection"
+ *     "collection" = "Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection",
+ *     "layout_side_column" = "Silverback\ApiComponentBundle\Entity\Content\Component\Layout\SideColumn"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
@@ -74,6 +75,13 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @var Collection|ComponentGroup[]
      */
     protected $componentGroups;
+
+    /**
+     * @ORM\Column(nullable=true)
+     * @Groups({"content", "component"})
+     * @var string|null
+     */
+    protected $componentName;
 
     /**
      * AbstractComponent constructor.
@@ -183,12 +191,22 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
+     * @param null|string $componentName
+     */
+    public function setComponentName(?string $componentName): void
+    {
+        $this->componentName = $componentName;
+    }
+
+    /**
      * Return the component name for front-end to decipher
-     * @Groups({"content", "component"})
      * @return string
      */
-    public static function getComponentName(): string
+    public function getComponentName(): string
     {
+        if ($this->componentName) {
+            return $this->componentName;
+        }
         $explodedClass = explode('\\', static::class);
         return array_pop($explodedClass);
     }

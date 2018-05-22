@@ -13,7 +13,8 @@ abstract class AbstractComponentFactory extends AbstractFactory
         'parentComponent' => null,
         'parentContent' => null,
         'componentGroup' => null,
-        'dynamicPageClass' => null
+        'dynamicPageClass' => null,
+        'componentName' => null
     ];
 
     /**

@@ -67,5 +67,5 @@ interface ComponentInterface extends ValidComponentInterface
     /**
      * @return string
      */
-    public static function getComponentName(): string;
+    public function getComponentName(): string;
 }
