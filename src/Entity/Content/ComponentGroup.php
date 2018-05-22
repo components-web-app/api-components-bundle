@@ -4,8 +4,11 @@ namespace Silverback\ApiComponentBundle\Entity\Content;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -17,8 +20,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ApiResource()
  * @ORM\Entity()
  */
-class ComponentGroup extends AbstractContent implements ValidComponentInterface
+class ComponentGroup extends AbstractContent implements ValidComponentInterface, SortableInterface
 {
+    use SortableTrait;
     use ValidComponentTrait;
 
     /**
@@ -54,13 +58,17 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
     /**
      * @param AbstractComponent|null $parent
      * @param bool|null $cascadeValidComponent
+     * @param bool|null $sortLast
      */
-    public function setParent(?AbstractComponent $parent, ?bool $cascadeValidComponent = null): void
+    public function setParent(?AbstractComponent $parent, ?bool $cascadeValidComponent = null, ?bool $sortLast = true): void
     {
         $this->parent = $parent;
         if ($parent && $cascadeValidComponent !== false) {
             // convert to bool again for $force (null becomes false)
             $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
+        }
+        if (null === $this->sort || $sortLast !== null) {
+            $this->setSort($this->calculateSort($sortLast));
         }
     }
 
@@ -72,5 +80,10 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
             }
         }
         return false;
+    }
+
+    public function getSortCollection(): Collection
+    {
+        return $this->parent ? $this->parent->getComponentGroups() : new ArrayCollection;
     }
 }

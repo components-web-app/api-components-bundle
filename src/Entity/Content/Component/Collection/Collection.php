@@ -29,6 +29,13 @@ class Collection extends AbstractComponent
     private $perPage = 12;
 
     /**
+     * @ORM\Column(nullable=true)
+     * @Groups({"component", "content"})
+     * @var string|null
+     */
+    private $title;
+
+    /**
      * @var array|\Traversable
      * @Groups({"component_read", "content_read"})
      */
@@ -64,6 +71,22 @@ class Collection extends AbstractComponent
     public function setPerPage(int $perPage): void
     {
         $this->perPage = $perPage;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param null|string $title
+     */
+    public function setTitle(?string $title): void
+    {
+        $this->title = $title;
     }
 
     /**

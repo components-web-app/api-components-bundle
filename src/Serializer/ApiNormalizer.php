@@ -15,6 +15,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -41,7 +42,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param string $projectDir
      */
     public function __construct(
-        NormalizerInterface $decorated,
+        AbstractNormalizer $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
         PathResolver $pathResolver,
@@ -52,6 +53,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
         }
+        // If a page will list itself again as a component then we should re-serialize it as it'll have different context/groups applied
+        $decorated->setCircularReferenceLimit(2);
         $this->decorated = $decorated;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->formViewFactory = $formViewFactory;

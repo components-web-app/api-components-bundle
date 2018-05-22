@@ -24,7 +24,8 @@ class ComponentGroupFactory extends AbstractFactory
     protected static function defaultOps(): array
     {
         return [
-            'parent' => null
+            'parent' => null,
+            'sort' => null
         ];
     }
 }

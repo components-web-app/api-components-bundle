@@ -30,7 +30,8 @@ final class CollectionFactory extends AbstractComponentFactory
             parent::defaultOps(),
             [
                 'resource' => '',
-                'perPage' => null
+                'perPage' => null,
+                'title' => null
             ]
         );
     }
