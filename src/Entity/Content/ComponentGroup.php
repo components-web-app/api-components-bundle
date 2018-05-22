@@ -33,8 +33,11 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface
      */
     protected $parent;
 
-    public function __construct()
+    public function __construct(?AbstractComponent $parent = null)
     {
+        if ($parent) {
+            $this->setParent($parent);
+        }
         $this->validComponents = new ArrayCollection;
         parent::__construct();
     }

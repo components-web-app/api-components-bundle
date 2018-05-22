@@ -20,7 +20,7 @@ class Gallery extends AbstractComponent
     {
         parent::__construct();
         $this->addValidComponent(GalleryItem::class);
-        $this->addComponentGroup(new ComponentGroup());
+        $this->addComponentGroup(new ComponentGroup($this));
     }
 
     public function onDeleteCascade(): bool

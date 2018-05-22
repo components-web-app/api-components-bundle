@@ -19,7 +19,7 @@ class SideColumn extends AbstractComponent
     public function __construct()
     {
         parent::__construct();
-        $this->addComponentGroup(new ComponentGroup());
-        $this->addComponentGroup(new ComponentGroup());
+        $this->addComponentGroup(new ComponentGroup($this));
+        $this->addComponentGroup(new ComponentGroup($this));
     }
 }

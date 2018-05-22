@@ -98,8 +98,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             $object->setForm($this->formViewFactory->create($object));
         }
         $data = $this->decorated->normalize($object, $format, $context);
-
-        if ($object instanceof FileInterface) {
+        // data may be a string if circular reference
+        if (\is_array($data) && $object instanceof FileInterface) {
             $data = array_merge($data, $this->getFileData($object));
         }
         return $data;
