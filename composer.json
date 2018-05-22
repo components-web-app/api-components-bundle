@@ -26,6 +26,7 @@
         "symfony/serializer": "^4.0@dev"
     },
     "require-dev": {
+        "ext-imagick": "*",
         "behat/behat": "^3.1",
         "behat/mink": "^1.7",
         "behat/mink-browserkit-driver": "dev-master",
