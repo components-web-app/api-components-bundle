@@ -7,6 +7,9 @@ checks:
     php: true
 
 build:
+    dependencies:
+        before:
+            - 'pecl install imagick'
     environment:
         php:
             version: 7.2

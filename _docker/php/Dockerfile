@@ -4,7 +4,7 @@ WORKDIR /srv/api
 
 # Prevent Symfony Flex from generating a project ID at build time
 ARG SYMFONY_SKIP_REGISTRATION=1
-# ARG APP_ENV=prod
+ARG APP_ENV=prod
 
 COPY composer.* ./
 RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-suggest
@@ -22,4 +22,3 @@ RUN chmod +x /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
 
 CMD ["php-fpm"]
-
