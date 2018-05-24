@@ -9,7 +9,9 @@ checks:
 build:
     dependencies:
         before:
-            - 'pecl install imagick'
+            - sudo apt-get -y install libmagickwand-dev libmagickcore-dev
+            - printf "\n" | pecl install imagick
+            - sed -i 's/extension="imagick.so"//g' `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
     environment:
         php:
             version: 7.2
