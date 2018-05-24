@@ -1,68 +1,25 @@
-FROM composer:1.5
-FROM php:7.2-fpm-alpine
+FROM silverbackis/php:symfony4
 
-RUN apk add --no-cache --virtual .persistent-deps \
-		git \
-		icu-libs \
-		zlib
+WORKDIR /srv/api
 
-ENV APCU_VERSION 5.1.9
+# Prevent Symfony Flex from generating a project ID at build time
+ARG SYMFONY_SKIP_REGISTRATION=1
+# ARG APP_ENV=prod
 
-RUN set -xe \
-	&& apk add --no-cache --virtual .build-deps \
-		$PHPIZE_DEPS \
-		icu-dev \
-		zlib-dev \
-	&& apk add --no-cache \
-		freetype-dev \
-		libpng-dev \
-		libjpeg-turbo-dev \
-		libssh-dev \
-		libxml2-dev autoconf g++ imagemagick-dev libtool make \
-	&& docker-php-ext-install \
-		exif \
-    bcmath \
-    sockets \
-  && pecl install \
-    apcu-${APCU_VERSION} \
-    imagick \
-  && docker-php-ext-enable --ini-name 20-apcu.ini apcu \
-  && docker-php-ext-enable --ini-name 05-opcache.ini opcache \
-  && docker-php-ext-enable imagick \
-	&& docker-php-ext-install \
-		pdo pdo_mysql \
-		intl zip \
-	&& docker-php-ext-configure gd \
-    --with-gd \
-	  --with-freetype-dir=/usr/include/ \
-	  --with-png-dir=/usr/include/ \
-	  --with-jpeg-dir=/usr/include/ \
-	&& docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd \
-	&& apk del .build-deps
+COPY composer.* ./
+RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-suggest
 
-RUN pecl install xdebug \
-  && docker-php-ext-enable xdebug
+COPY . ./
 
-COPY --from=0 /usr/bin/composer /usr/bin/composer
-COPY _docker/php/php.ini /usr/local/etc/php/php.ini
+# Adjust the following 2 lines if your web application needs any other folders creating or to be writable
+RUN mkdir -p var/cache var/sessions var/log
+RUN chown -R www-data var
+
+RUN composer dump-autoload --classmap-authoritative --no-dev
+
 COPY _docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
-
-WORKDIR /srv
 ENTRYPOINT ["docker-entrypoint"]
+
 CMD ["php-fpm"]
 
-# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER 1
-RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress --no-suggest --classmap-authoritative  --no-interaction
-
-# Prevent the reinstallation of vendors at every changes in the source code
-# composer.lock
-COPY ./composer.json ./
-RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest \
-	&& composer clear-cache
-
-COPY ./ ./
-
-RUN mkdir -p tests/app/var/cache tests/app/var/logs tests/app/var/sessions \
-  && composer dump-autoload --classmap-authoritative --no-dev

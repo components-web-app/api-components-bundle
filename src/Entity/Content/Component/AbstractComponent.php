@@ -40,7 +40,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "menu" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu",
  *     "menu_item" = "Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem",
  *     "collection" = "Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection",
- *     "layout_side_column" = "Silverback\ApiComponentBundle\Entity\Content\Component\Layout\SideColumn"
+ *     "layout_side_column" = "Silverback\ApiComponentBundle\Entity\Content\Component\Layout\SideColumn",
+ *     "image_component" = "Silverback\ApiComponentBundle\Entity\Content\Component\ImageComponent\ImageComponent"
  * })
  * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
