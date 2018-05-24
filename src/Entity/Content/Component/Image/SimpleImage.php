@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @ApiResource(iri="http://schema.org/ImageObject")
  * @ORM\Entity()
  */
-class Image extends AbstractComponent implements FileInterface
+class SimpleImage extends AbstractComponent implements FileInterface
 {
     use FileTrait;
 
@@ -48,7 +48,7 @@ class Image extends AbstractComponent implements FileInterface
 
     /**
      * @param null|string $caption
-     * @return Image
+     * @return SimpleImage
      */
     public function setCaption(?string $caption): self
     {

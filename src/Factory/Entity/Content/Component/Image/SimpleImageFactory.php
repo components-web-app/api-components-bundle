@@ -2,20 +2,20 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Image;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Image\Image;
+use Silverback\ApiComponentBundle\Entity\Content\Component\Image\SimpleImage;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ImageFactory extends AbstractComponentFactory
+class SimpleImageFactory extends AbstractComponentFactory
 {
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null): Image
+    public function create(?array $ops = null): SimpleImage
     {
-        $component = new Image();
+        $component = new SimpleImage();
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
