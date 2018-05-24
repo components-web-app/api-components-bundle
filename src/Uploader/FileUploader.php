@@ -22,15 +22,14 @@ class FileUploader
         ValidatorInterface $validator,
         EntityManagerInterface $em,
         array $rootPaths = []
-    )
-    {
+    ) {
         $this->validator = $validator;
         $this->rootPath = $rootPaths[0];
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->em = $em;
     }
 
-    private function getRealPath ($filename): string
+    private function getRealPath($filename): string
     {
         return rtrim($this->rootPath, '/') . '/' . $filename;
     }
@@ -43,7 +42,7 @@ class FileUploader
         $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $filename = $basename.'.'.$ext;
         $i=0;
-        while($fs->exists($this->getRealPath($filename))) {
+        while ($fs->exists($this->getRealPath($filename))) {
             $i++;
             $filename = $basename.".$i.$ext";
         }

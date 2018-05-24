@@ -8,6 +8,5 @@ trait NamedComponentTrait
 
     public function setComponentName()
     {
-
     }
 }

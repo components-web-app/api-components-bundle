@@ -70,8 +70,7 @@ abstract class AbstractContent implements ContentInterface
     {
         $this->componentLocations = new ArrayCollection;
         /** @var ComponentLocation $componentLocation */
-        foreach ($componentLocations as $componentLocation)
-        {
+        foreach ($componentLocations as $componentLocation) {
             $this->componentLocations->add($componentLocation);
         }
         return $this;

@@ -108,7 +108,7 @@ class Collection extends AbstractComponent
     /**
      * @ORM\PostLoad()
      */
-    public function postLoad() {
-
+    public function postLoad()
+    {
     }
 }

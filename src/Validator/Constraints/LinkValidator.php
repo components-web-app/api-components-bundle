@@ -15,10 +15,9 @@ class LinkValidator extends UrlValidator
     /** @var RouteRepository  */
     private $routeRepository;
 
-    public function __construct (
+    public function __construct(
         RouteRepository $routeRepository
-    )
-    {
+    ) {
         $this->routeRepository = $routeRepository;
     }
 

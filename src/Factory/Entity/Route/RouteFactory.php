@@ -21,8 +21,7 @@ class RouteFactory extends AbstractFactory
         ObjectManager $manager,
         ValidatorInterface $validator,
         SlugifyInterface $slugify
-    )
-    {
+    ) {
         $this->slugify = $slugify;
         parent::__construct($manager, $validator);
     }

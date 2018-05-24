@@ -60,8 +60,7 @@ abstract class AbstractForm extends AbstractController
         Response $response = null,
         ?int $statusCode = null,
         ?array $context = ['groups' => ['component']]
-    ): Response
-    {
+    ): Response {
         if (!$response) {
             $response = new Response();
         }

@@ -9,8 +9,7 @@ class PathResolver
 
     public function __construct(
         array $roots = []
-    )
-    {
+    ) {
         $this->roots = $roots;
     }
 

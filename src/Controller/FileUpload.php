@@ -24,8 +24,7 @@ class FileUpload
         ItemDataProviderInterface $itemDataProvider,
         FileUploader $uploader,
         SerializerInterface $serializer
-    )
-    {
+    ) {
         $this->urlMatcher = $urlMatcher;
         $this->itemDataProvider = $itemDataProvider;
         $this->uploader = $uploader;
@@ -81,9 +80,9 @@ class FileUpload
         $files = $request->files->all();
         try {
             $entity = $this->uploader->upload($entity, $field, reset($files));
-        }catch(InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             return new Response($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        }catch (RuntimeException $exception) {
+        } catch (RuntimeException $exception) {
             return new Response($exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

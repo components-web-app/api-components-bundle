@@ -138,7 +138,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         return $data;
     }
 
-    private function getPublicPath(string $filePath) {
+    private function getPublicPath(string $filePath)
+    {
         $publicPaths = [$this->projectDir, '/public/', '/web/'];
         foreach ($publicPaths as $path) {
             if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
