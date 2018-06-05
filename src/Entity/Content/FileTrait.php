@@ -41,8 +41,9 @@ trait FileTrait
     public static function getImagineFilters(): array
     {
         return [
-            'thumbnailPath' => 'thumbnail',
-            'placeholderPath' => 'placeholder_square'
+            'thumbnail' => 'thumbnail',
+            'placeholderSquare' => 'placeholder_square',
+            'placeholder' => 'placeholder'
         ];
     }
 }

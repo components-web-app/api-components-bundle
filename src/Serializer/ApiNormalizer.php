@@ -33,7 +33,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     /**
      * FileNormalizer constructor.
-     * @param NormalizerInterface $decorated
+     * @param AbstractNormalizer $decorated
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
      * @param PathResolver $pathResolver
@@ -117,23 +117,25 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $data = [];
         $filePath = $object->getFilePath();
         if ($filePath && file_exists($filePath)) {
-            if (false !== \exif_imagetype($filePath)) {
-                [$width, $height] = getimagesize($filePath);
-            } else {
-                $width = $height = 0;
-            }
-            $data['width'] = $width;
-            $data['height'] = $height;
+            $data['file:publicPath'] = $this->getPublicPath($filePath);
 
-            $supported = $this->isImagineSupportedFile($filePath);
-            foreach ($object::getImagineFilters() as $returnKey => $filter) {
-                $data[$returnKey] = $supported ? parse_url(
-                    $this->imagineCacheManager->getBrowserPath($this->pathResolver->resolve($filePath), $filter),
-                    PHP_URL_PATH
-                ) : null;
-            }
+            if (\exif_imagetype($filePath)) {
+                $data['file:image'] = new ImageMetadata($filePath, $this->getPublicPath($filePath));
 
-            $data['filePath'] = $this->getPublicPath($filePath);
+                $supported = $this->isImagineSupportedFile($filePath);
+                if ($supported) {
+                    $imagineData = [];
+                    foreach ($object::getImagineFilters() as $returnKey => $filter) {
+                        $imagineFilePath = ltrim(parse_url(
+                            $this->imagineCacheManager->getBrowserPath($this->pathResolver->resolve($filePath), $filter),
+                            PHP_URL_PATH
+                        ), '/');
+                        $realPath = sprintf('%s/public/%s', $this->projectDir, $imagineFilePath);
+                        $imagineData[$returnKey] = new ImageMetadata($realPath, $imagineFilePath, $filter);
+                    }
+                    $data['file:imagine'] = $imagineData;
+                }
+            }
         }
         return $data;
     }
@@ -146,7 +148,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                 $filePath = mb_substr($filePath, $start);
             }
         }
-        return $filePath;
+        return$filePath;
     }
 
     /**
