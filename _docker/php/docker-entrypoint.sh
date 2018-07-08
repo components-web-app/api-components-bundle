@@ -15,7 +15,7 @@ if [ "$1" = 'php-fpm' ] || [ "$1" = 'bin/console' ]; then
 	  composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
 	  # Check bin/console is executable now because the file should definitely exist
-    chmod +x bin/console
+    #chmod +x bin/console
 
 		# Uncomment the following line if you are using Symfony Encore
 		#yarn run watch

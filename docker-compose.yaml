@@ -8,5 +8,5 @@ services:
         env_file:
             - ./.env
         volumes:
-            - ./:/srv:rw
+            - ./:/srv/api:rw
         restart: on-failure
