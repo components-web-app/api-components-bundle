@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -16,6 +17,7 @@ trait SortableTrait
     /**
      * @ORM\Column(type="integer", nullable=false)
      * @Assert\NotNull()
+     * @Groups({"component"})
      * @var int
      */
     protected $sort;
