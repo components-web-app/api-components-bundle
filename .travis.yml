@@ -10,7 +10,7 @@ env:
     matrix:
         - SYMFONY_VERSION="^3.4"
         - SYMFONY_VERSION="^4"
-        - SYMFONY_VERSION="dev-master@dev"
+        - SYMFONY_VERSION="dev-master"
 
 before_install:
     - printf "\n" | pecl install imagick
@@ -20,7 +20,7 @@ install:
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
-    - composer install --prefer-source --dev
+    - composer install --prefer-source
 
 script:
     - bin/phpunit --coverage-clover=coverage.xml
