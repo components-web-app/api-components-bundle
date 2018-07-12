@@ -42,13 +42,16 @@ class ImageMetadata
     {
         $this->filePath = $filePath;
         $this->publicPath = $publicPath;
+
         if (!file_exists($filePath)) {
             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
-        } elseif (false === \exif_imagetype($filePath)) {
-            throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
-        } else {
-            [$this->width, $this->height] = getimagesize($filePath);
         }
+
+        if (false === \exif_imagetype($filePath)) {
+            throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+        }
+
+        [$this->width, $this->height] = getimagesize($filePath);
         $this->imagineKey= $imagineKey;
     }
 

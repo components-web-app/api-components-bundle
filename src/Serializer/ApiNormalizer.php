@@ -48,7 +48,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         PathResolver $pathResolver,
         EntityManagerInterface $entityManager,
         ContextAwareCollectionDataProviderInterface $collectionDataProvider,
-        string $projectDir = '/'
+        string $projectDir
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -118,7 +118,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $filePath = $object->getFilePath();
         if ($filePath && file_exists($filePath)) {
             $data['file:publicPath'] = $this->getPublicPath($filePath);
-
             if (\exif_imagetype($filePath)) {
                 $data['file:image'] = new ImageMetadata($filePath, $this->getPublicPath($filePath));
 
@@ -126,11 +125,36 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                 if ($supported) {
                     $imagineData = [];
                     foreach ($object::getImagineFilters() as $returnKey => $filter) {
+                        // Strip path root from beginning of string.
+                        // Whatever image roots are set in imagine will be looped and removed from the start of the string
+                        $resolvedPath = $this->pathResolver->resolve($filePath);
+                        $imagineBrowserPath = $this->imagineCacheManager->getBrowserPath($resolvedPath, $filter);
                         $imagineFilePath = ltrim(parse_url(
-                            $this->imagineCacheManager->getBrowserPath($this->pathResolver->resolve($filePath), $filter),
+                            $imagineBrowserPath,
                             PHP_URL_PATH
                         ), '/');
+
                         $realPath = sprintf('%s/public/%s', $this->projectDir, $imagineFilePath);
+//                        dump(
+//                            [
+//                                '$resolvedPath' => $resolvedPath,
+//                                '$imagineBrowserPath' => $imagineBrowserPath,
+//                                '$imagineFilePath' => $imagineFilePath,
+//                                '$this->projectDir' => $this->projectDir,
+//                                '$realPath' => $realPath
+//                            ]
+//                        );
+                        /*
+                         * array:5 [
+app_1      |   "$resolvedPath" => "/img/stoney1.jpg"
+app_1      |   "$imagineBrowserPath" => "http://varnish/media/cache/placeholder_square/img/stoney1.jpg"
+app_1      |   "$imagineFilePath" => "media/cache/placeholder_square/img/stoney1.jpg"
+app_1      |   "$this->projectDir" => "/srv/api"
+app_1      |   "$realPath" => "/srv/api/public/media/cache/placeholder_square/img/stoney1.jpg"
+app_1      | ]
+
+                         */
+
                         $imagineData[$returnKey] = new ImageMetadata($realPath, $imagineFilePath, $filter);
                     }
                     $data['file:imagine'] = $imagineData;
@@ -142,13 +166,13 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     private function getPublicPath(string $filePath)
     {
-        $publicPaths = [$this->projectDir, '/public/', '/web/'];
+        $publicPaths = [$this->projectDir, '/public/'];
         foreach ($publicPaths as $path) {
             if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
                 $filePath = mb_substr($filePath, $start);
             }
         }
-        return$filePath;
+        return $filePath;
     }
 
     /**

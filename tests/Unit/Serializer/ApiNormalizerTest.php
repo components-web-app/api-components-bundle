@@ -14,6 +14,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\ImageMetadata;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 use Symfony\Component\Serializer\Serializer;
@@ -39,20 +40,38 @@ class ApiNormalizerTest extends TestCase
     /**
      * @var string
      */
-    private $filePath = __DIR__ . '/../../app/public/images/testImage.jpg';
+    private $filePath;
     /** @var MockObject|PathResolver */
     private $pathResolverMock;
     /** @var MockObject|EntityManagerInterface */
     private $entityManagerMock;
     /** @var MockObject|ContextAwareCollectionDataProviderInterface */
     private $dataProviderMock;
+    /** @var string */
+    private $publicFilePath;
+
+    public function __construct(?string $name = null, array $data = [], string $dataName = '')
+    {
+        $this->publicFilePath = 'images/testImage.jpg';
+        $this->filePath = realpath(__DIR__ . '/../../app/public/' . $this->publicFilePath);
+        parent::__construct($name, $data, $dataName);
+    }
 
     public function setUp()
     {
+        $projectRoot = realpath(__DIR__ . '/../../app');
+
         $this->normalizerInterfaceMock = $this->getMockBuilder(AbstractItemNormalizer::class)->disableOriginalConstructor()->getMock();
         $this->cacheManagerMock = $this->getMockBuilder(CacheManager::class)->disableOriginalConstructor()->getMock();
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
-        $this->pathResolverMock = $this->getMockBuilder(PathResolver::class)->disableOriginalConstructor()->getMock();
+
+        $this->pathResolverMock = $this->getMockBuilder(PathResolver::class)->setConstructorArgs([
+            'roots' => [
+                $projectRoot . '/public'
+            ]
+        ])->getMock();
+
+
         $this->entityManagerMock = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
         $this->dataProviderMock = $this->getMockBuilder(ContextAwareCollectionDataProviderInterface::class)->getMock();
         $this->apiNormalizer = new ApiNormalizer(
@@ -61,7 +80,8 @@ class ApiNormalizerTest extends TestCase
             $this->formViewFactoryMock,
             $this->pathResolverMock,
             $this->entityManagerMock,
-            $this->dataProviderMock
+            $this->dataProviderMock,
+            $projectRoot
         );
     }
 
@@ -127,7 +147,7 @@ class ApiNormalizerTest extends TestCase
             ->expects($this->once())
             ->method('resolve')
             ->with($this->filePath)
-            ->willReturn($this->filePath)
+            ->willReturn($this->publicFilePath)
         ;
 
         $fileComponent = new FileComponent();
@@ -137,8 +157,8 @@ class ApiNormalizerTest extends TestCase
             $this->cacheManagerMock
                 ->expects($this->once())
                 ->method('getBrowserPath')
-                ->with($this->filePath, $filter)
-                ->willReturn(sprintf('http://website.com/%s/%s', $filter, $this->filePath))
+                ->with($this->publicFilePath, $filter)
+                ->willReturn(sprintf('http://website.com/%s', $this->publicFilePath))
             ;
         }
 
@@ -150,10 +170,11 @@ class ApiNormalizerTest extends TestCase
         ;
 
         $data = $this->apiNormalizer->normalize($fileComponent);
-        $this->assertEquals(100, $data['width']);
-        $this->assertEquals(100, $data['height']);
+        $expected = new ImageMetadata($this->filePath, $this->publicFilePath);
+        $this->assertEquals($expected, $data['file:image']);
         foreach (FileComponent::getImagineFilters() as $returnKey => $filter) {
-            $this->assertEquals(sprintf('/%s/%s', $filter, $this->filePath), $data[$returnKey]);
+            $expected = new ImageMetadata($this->filePath, $this->publicFilePath, $filter);
+            $this->assertEquals($expected, $data['file:imagine'][$returnKey]);
         }
     }
 
