@@ -17,7 +17,7 @@ trait SortableTrait
     /**
      * @ORM\Column(type="integer", nullable=false)
      * @Assert\NotNull()
-     * @Groups({"component"})
+     * @Groups({"default"})
      * @var int
      */
     protected $sort;
