@@ -13,10 +13,10 @@ before_install:
     - printf "\n" | pecl install imagick
 
 install:
-    - php -d memory_limit=-1 /usr/bin/composer require symfony/framework-bundle:${SYMFONY_VERSION}
+    - php -d memory_limit=-1 /usr/local/bin/composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
-    - php -d memory_limit=-1 /usr/bin/composer install --prefer-source --dev
+    - php -d memory_limit=-1 /usr/local/bin/composer install --prefer-source --dev
 
 script:
     - bin/phpunit --coverage-clover=coverage.xml
