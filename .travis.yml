@@ -13,10 +13,11 @@ before_install:
     - printf "\n" | pecl install imagick
 
 install:
-    - php -d memory_limit=-1 composer require symfony/framework-bundle:${SYMFONY_VERSION}
+    - phpenv config-add travis.php.ini
+    - composer require symfony/framework-bundle:${SYMFONY_VERSION}
 
 before_script:
-    - php -d memory_limit=-1 composer install --prefer-source --dev
+    - composer install --prefer-source --dev
 
 script:
     - bin/phpunit --coverage-clover=coverage.xml
