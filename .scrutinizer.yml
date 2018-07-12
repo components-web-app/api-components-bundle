@@ -11,6 +11,7 @@ build:
         before:
             - sudo apt-get -y install libmagickwand-dev libmagickcore-dev
             - printf "\n" | pecl install imagick
+            - phpenv config-add ci.php.ini
     environment:
         php:
             version: 7.2

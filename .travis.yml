@@ -11,7 +11,7 @@ env:
 
 before_install:
     - printf "\n" | pecl install imagick
-    - phpenv config-add travis.php.ini
+    - phpenv config-add ci.php.ini
 
 install:
     - composer require symfony/framework-bundle:${SYMFONY_VERSION}
