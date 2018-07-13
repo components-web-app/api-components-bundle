@@ -9,27 +9,22 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class ImageMetadata
 {
     /**
-     * @Groups({"component", "content", "route"})
      * @var int
      */
     private $width;
     /**
-     * @Groups({"component", "content", "route"})
      * @var int
      */
     private $height;
     /**
-     * @Groups({"component", "content", "route"})
      * @var string
      */
     private $filePath;
     /**
-     * @Groups({"component", "content", "route"})
      * @var string
      */
     private $publicPath;
     /**
-     * @Groups({"component", "content", "route"})
      * @var string|null
      */
     private $imagineKey;

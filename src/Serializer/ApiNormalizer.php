@@ -18,6 +18,8 @@ use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -30,6 +32,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $em;
     private $projectDir;
     private $collectionDataProvider;
+    private $serializer;
 
     /**
      * FileNormalizer constructor.
@@ -62,6 +65,9 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->em = $entityManager;
         $this->collectionDataProvider = $collectionDataProvider;
         $this->projectDir = $projectDir;
+
+        $normalizers = array(new ObjectNormalizer());
+        $this->serializer = new Serializer($normalizers);
     }
 
     /**
@@ -100,10 +106,11 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if ($object instanceof Form && !$object->getForm()) {
             $object->setForm($this->formViewFactory->create($object));
         }
+
         $data = $this->decorated->normalize($object, $format, $context);
         // data may be a string if circular reference
         if (\is_array($data) && $object instanceof FileInterface) {
-            $data = array_merge($data, $this->getFileData($object));
+            $data = array_merge($data, $this->getFileData($object, $format, $context));
         }
         return $data;
     }
@@ -112,15 +119,18 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param \Silverback\ApiComponentBundle\Entity\Content\FileInterface $object
      * @return array
      */
-    private function getFileData(FileInterface $object): array
+    private function getFileData(FileInterface $object, $format = null, array $context = []): array
     {
         $data = [];
         $filePath = $object->getFilePath();
         if ($filePath && file_exists($filePath)) {
             $data['file:publicPath'] = $this->getPublicPath($filePath);
             if (\exif_imagetype($filePath)) {
-                $data['file:image'] = new ImageMetadata($filePath, $this->getPublicPath($filePath));
-
+                $data['file:image'] = $this->serializer->normalize(
+                    new ImageMetadata($filePath, $this->getPublicPath($filePath)),
+                    $format,
+                    $context
+                );
                 $supported = $this->isImagineSupportedFile($filePath);
                 if ($supported) {
                     $imagineData = [];
@@ -133,29 +143,12 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                             $imagineBrowserPath,
                             PHP_URL_PATH
                         ), '/');
-
                         $realPath = sprintf('%s/public/%s', $this->projectDir, $imagineFilePath);
-//                        dump(
-//                            [
-//                                '$resolvedPath' => $resolvedPath,
-//                                '$imagineBrowserPath' => $imagineBrowserPath,
-//                                '$imagineFilePath' => $imagineFilePath,
-//                                '$this->projectDir' => $this->projectDir,
-//                                '$realPath' => $realPath
-//                            ]
-//                        );
-                        /*
-                         * array:5 [
-app_1      |   "$resolvedPath" => "/img/stoney1.jpg"
-app_1      |   "$imagineBrowserPath" => "http://varnish/media/cache/placeholder_square/img/stoney1.jpg"
-app_1      |   "$imagineFilePath" => "media/cache/placeholder_square/img/stoney1.jpg"
-app_1      |   "$this->projectDir" => "/srv/api"
-app_1      |   "$realPath" => "/srv/api/public/media/cache/placeholder_square/img/stoney1.jpg"
-app_1      | ]
-
-                         */
-
-                        $imagineData[$returnKey] = new ImageMetadata($realPath, $imagineFilePath, $filter);
+                        $imagineData[$returnKey] = $this->serializer->normalize(
+                            new ImageMetadata($realPath, $imagineFilePath, $filter),
+                            $format,
+                            $context
+                        );
                     }
                     $data['file:imagine'] = $imagineData;
                 }
