@@ -50,7 +50,7 @@ class Route
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(name="redirect", referencedColumnName="route")
+     * @ORM\JoinColumn(name="redirect", referencedColumnName="route", onDelete="SET NULL")
      * @Groups({"route"})
      * @var null|Route
      */

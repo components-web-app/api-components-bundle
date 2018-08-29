@@ -16,7 +16,7 @@ trait FileTrait
      * We are not asserting this is a file here because it may be a string for dynamic component e.g. {{ filePath }}
      * validation constraint could be made perhaps to validate a file or a variable
      * @ORM\Column(type="string", nullable=false)
-     * @Groups({"component", "content", "route"})
+     * @Groups({"component", "content"})
      * @ApiProperty(iri="http://schema.org/contentUrl")
      * @var null|string
      */

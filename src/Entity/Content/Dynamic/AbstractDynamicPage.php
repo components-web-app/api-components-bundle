@@ -30,7 +30,7 @@ abstract class AbstractDynamicPage extends AbstractContent implements RouteAware
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(nullable=true, referencedColumnName="route")
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="route", onDelete="SET NULL")
      * @var Route|null
      */
     protected $parentRoute;
