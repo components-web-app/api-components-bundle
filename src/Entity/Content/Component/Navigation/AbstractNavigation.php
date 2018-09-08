@@ -17,6 +17,7 @@ abstract class AbstractNavigation extends AbstractComponent
 {
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup", cascade={"persist"})
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      * @ApiProperty(attributes={"fetchEager": false})
      * @Groups({"default"})
      * @var ComponentGroup

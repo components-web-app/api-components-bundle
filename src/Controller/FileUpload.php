@@ -5,11 +5,13 @@ namespace Silverback\ApiComponentBundle\Controller;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use InvalidArgumentException;
 use RuntimeException;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Uploader\FileUploader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
+use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class FileUpload
@@ -61,6 +63,10 @@ class FileUpload
          * MATCH THE ID TO A ROUTE TO FIND RESOURCE CLASS AND ID
          * @var array|null $route
          */
+        $ctx = new RequestContext();
+        $ctx->fromRequest($request);
+        $ctx->setMethod('GET');
+        $this->urlMatcher->setContext($ctx);
         $route = $this->urlMatcher->match($id);
         if (!$route) {
             return new Response(sprintf('No route found for id %s', $id), Response::HTTP_BAD_REQUEST);
@@ -72,6 +78,9 @@ class FileUpload
         $entity = $this->itemDataProvider->getItem($route['_api_resource_class'], $route['id']);
         if (!$entity) {
             return new Response(sprintf('Entity not found from provider %s (ID: %s)', $route['_api_resource_class'], $route['id']), Response::HTTP_BAD_REQUEST);
+        }
+        if (!($entity instanceof FileInterface)) {
+            return new Response(sprintf('Provider %s does not implement %s', $route['_api_resource_class'], FileInterface::class), Response::HTTP_BAD_REQUEST);
         }
 
         /**

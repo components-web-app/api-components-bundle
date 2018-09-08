@@ -44,10 +44,10 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        $metadata->addPropertyConstraint(
-            'filePath',
-            new Assert\Image()
-        );
+//        $metadata->addPropertyConstraint(
+//            'filePath',
+//            new Assert\Image()
+//        );
 
         $metadata->addPropertyConstraint(
             'title',

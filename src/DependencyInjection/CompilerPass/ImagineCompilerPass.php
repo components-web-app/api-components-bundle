@@ -17,7 +17,7 @@ class ImagineCompilerPass implements CompilerPassInterface
             ->setArgument(0, $rootPaths)
         ;
         $container->getDefinition(FileUploader::class)
-            ->setArgument(1, $rootPaths)
+            ->setArgument(2, $rootPaths)
         ;
     }
 }

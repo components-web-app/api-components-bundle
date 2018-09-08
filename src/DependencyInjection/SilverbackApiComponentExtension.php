@@ -60,6 +60,11 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     public function prepend(ContainerBuilder $container): void
     {
+        $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
+        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+        }
+
         $bundles = $container->getParameter('kernel.bundles');
         $container->prependExtensionConfig('api_platform', [
             'eager_loading' => [
@@ -68,6 +73,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         ]);
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig('liip_imagine', [
+                'loaders' => [
+                    'default' => [
+                        'filesystem' => [
+                            'data_root' => [
+                                'uploads' => $uploadsDir,
+                                'default' => $container->getParameter('kernel.project_dir') . '/public'
+                            ]
+                        ]
+                    ]
+                ],
                 'filter_sets' => [
                     'placeholder_square' => [
                         'jpeg_quality' => 10,

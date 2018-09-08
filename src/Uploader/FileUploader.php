@@ -6,6 +6,7 @@ use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use RuntimeException;
+use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -24,17 +25,17 @@ class FileUploader
         array $rootPaths = []
     ) {
         $this->validator = $validator;
-        $this->rootPath = $rootPaths[0];
+        $this->rootPath = $rootPaths['uploads'];
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->em = $em;
     }
 
-    private function getRealPath($filename): string
+    private function getRealPath(string $moveToDir, string $filename): string
     {
-        return rtrim($this->rootPath, '/') . '/' . $filename;
+        return rtrim($moveToDir, '/') . '/' . $filename;
     }
 
-    private function getNewFilename(UploadedFile $file): string
+    private function getNewFilename(string $moveToDir, UploadedFile $file): string
     {
         $fs = new Filesystem();
 
@@ -42,7 +43,7 @@ class FileUploader
         $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $filename = $basename.'.'.$ext;
         $i=0;
-        while ($fs->exists($this->getRealPath($filename))) {
+        while ($fs->exists($this->getRealPath($moveToDir, $filename))) {
             $i++;
             $filename = $basename.".$i.$ext";
         }
@@ -53,7 +54,7 @@ class FileUploader
     {
         $this->propertyAccessor->setValue($entity, $field, $file);
         $errors = $this->validator->validate($entity);
-        if (\count($errors)) {
+        if ($errors !== null && \count($errors)) {
             throw new InvalidArgumentException((string) $errors);
         }
     }
@@ -67,7 +68,7 @@ class FileUploader
         unlink($currentFile->getRealPath());
     }
 
-    public function upload($entity, string $field, UploadedFile $file)
+    public function upload(FileInterface $entity, string $field, UploadedFile $file): FileInterface
     {
         /** @var File|null|string $currentFile */
         $currentFile = $this->propertyAccessor->getValue($entity, $field);
@@ -76,16 +77,15 @@ class FileUploader
         $this->validateNewFile($entity, $field, $file);
 
         // Validation passed, remove old file first (in case we don't have permission to do it)
-        if ($currentFile instanceof File) {
-            $this->unlinkFile($currentFile);
+        if ($currentFile) {
+            $this->unlinkFile(new File($currentFile));
         }
 
         // Old file removed, let's update!
-        $filename = $this->getNewFilename($file);
-        $file->move($this->rootPath, $filename);
-        // We may need this, but perhaps not so we will try to persist the UploadedFile entity first as it extends File anyway
-        // $movedFile = new File($this->getRealPath($filename));
-        $this->propertyAccessor->setValue($entity, $field, $file);
+        $moveToDir = sprintf('%s/%s', $this->rootPath, $entity->getDir());
+        $filename = $this->getNewFilename($moveToDir, $file);
+        $movedFile = $file->move($moveToDir, $filename);
+        $this->propertyAccessor->setValue($entity, $field, $movedFile->getRealPath());
         $this->em->flush();
         return $entity;
     }

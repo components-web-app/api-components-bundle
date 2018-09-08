@@ -46,4 +46,9 @@ trait FileTrait
             'placeholder' => 'placeholder'
         ];
     }
+
+    public function getDir(): ?string
+    {
+        return null;
+    }
 }

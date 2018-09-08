@@ -43,7 +43,7 @@ class GalleryItem extends AbstractComponent implements FileInterface
     {
         $metadata->addPropertyConstraints(
             'filePath',
-            [new Assert\NotBlank(), new Assert\Image()]
+            [ new Assert\Image() ] // new Assert\NotBlank(),
         );
         $metadata->addPropertyConstraint(
             'title',
@@ -93,5 +93,10 @@ class GalleryItem extends AbstractComponent implements FileInterface
     {
         $this->caption = $caption;
         return $this;
+    }
+
+    public function getDir(): ?string
+    {
+        return 'gallery';
     }
 }
