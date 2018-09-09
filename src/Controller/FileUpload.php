@@ -7,8 +7,12 @@ use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Uploader\FileUploader;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\MimeType\FileinfoMimeTypeGuesser;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
@@ -42,7 +46,7 @@ class FileUpload
      *     path="/files/{field}/{id}.{_format}",
      *     requirements={"field"="\w+", "id"=".+"},
      *     defaults={"_format"="jsonld"},
-     *     methods={"POST", "PUT"}
+     *     methods={"POST", "PUT", "GET"}
      * )
      * @return Response
      * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
@@ -51,13 +55,6 @@ class FileUpload
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         $_format = $request->attributes->get('_format') ?: $request->getFormat($contentType);
-
-        /**
-         * CHECK WE HAVE A FILE - WASTE OF TIME DOING ANYTHING ELSE OTHERWISE
-         */
-        if (!$request->files->count()) {
-            return new Response('No files have been submitted', Response::HTTP_BAD_REQUEST);
-        }
 
         /**
          * MATCH THE ID TO A ROUTE TO FIND RESOURCE CLASS AND ID
@@ -81,6 +78,34 @@ class FileUpload
         }
         if (!($entity instanceof FileInterface)) {
             return new Response(sprintf('Provider %s does not implement %s', $route['_api_resource_class'], FileInterface::class), Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($request->getMethod() === 'GET') {
+            $propertyAccessor = PropertyAccess::createPropertyAccessor();
+            $filePath = $propertyAccessor->getValue($entity, $field);
+            return new BinaryFileResponse($filePath);
+//            // To generate a file download, you need the mimetype of the file
+//            $mimeTypeGuesser = new FileinfoMimeTypeGuesser();
+//
+//            // Set the mimetype with the guesser or manually
+//            if(FileinfoMimeTypeGuesser::isSupported()){
+//                // Guess the mimetype of the file according to the extension of the file
+//                $response->headers->set('Content-Type', $mimeTypeGuesser->guess($filePath));
+//            } else {
+//                // Set the mimetype of the file manually, in this case for a text file is text/plain
+//                $response->headers->set('Content-Type', 'text/plain');
+//            }
+//
+//            // Set content disposition inline of the file
+//            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+//            return $response;
+        }
+
+        /**
+         * CHECK WE HAVE A FILE - WASTE OF TIME DOING ANYTHING ELSE OTHERWISE
+         */
+        if (!$request->files->count()) {
+            return new Response('No files have been submitted', Response::HTTP_BAD_REQUEST);
         }
 
         /**

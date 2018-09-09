@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Uploader;
 
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
-use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

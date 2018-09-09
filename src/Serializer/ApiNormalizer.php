@@ -2,6 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use ApiPlatform\Core\Api\IdentifiersExtractor;
+use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
+use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use function file_exists;
@@ -15,6 +18,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Page;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -33,6 +37,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $projectDir;
     private $collectionDataProvider;
     private $serializer;
+    private $router;
+    private $iriConverter;
 
     /**
      * FileNormalizer constructor.
@@ -42,6 +48,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param PathResolver $pathResolver
      * @param EntityManagerInterface $entityManager
      * @param ContextAwareCollectionDataProviderInterface $collectionDataProvider
+     * @param RouterInterface $router
+     * @param IriConverterInterface $iriConverter
      * @param string $projectDir
      */
     public function __construct(
@@ -51,6 +59,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         PathResolver $pathResolver,
         EntityManagerInterface $entityManager,
         ContextAwareCollectionDataProviderInterface $collectionDataProvider,
+        RouterInterface $router,
+        IriConverterInterface $iriConverter,
         string $projectDir
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
@@ -64,6 +74,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->pathResolver = $pathResolver;
         $this->em = $entityManager;
         $this->collectionDataProvider = $collectionDataProvider;
+        $this->router = $router;
+        $this->iriConverter = $iriConverter;
         $this->projectDir = $projectDir;
 
         $normalizers = array(new ObjectNormalizer());
@@ -117,6 +129,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     /**
      * @param \Silverback\ApiComponentBundle\Entity\Content\FileInterface $object
+     * @param null|string $format
+     * @param array $context
      * @return array
      */
     private function getFileData(FileInterface $object, $format = null, array $context = []): array
@@ -124,10 +138,15 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $data = [];
         $filePath = $object->getFilePath();
         if ($filePath && file_exists($filePath)) {
-            $data['file:publicPath'] = $this->getPublicPath($filePath);
+            $objectId = $this->iriConverter->getIriFromItem($object);
+            $data['file:publicPath'] = $this->router->generate(
+                'files_upload',
+                [ 'field' => 'filePath', 'id' => $objectId ]
+            );
+            // $this->getPublicPath($filePath);
             if (\exif_imagetype($filePath)) {
                 $data['file:image'] = $this->serializer->normalize(
-                    new ImageMetadata($filePath, $this->getPublicPath($filePath)),
+                    new ImageMetadata($filePath, $data['file:publicPath']),
                     $format,
                     $context
                 );
