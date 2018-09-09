@@ -3,7 +3,9 @@
 namespace Silverback\ApiComponentBundle\Uploader;
 
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -22,21 +24,28 @@ class FixtureFileUploader
     }
 
     /**
-     * @param AbstractComponentFactory $factory
+     * @param AbstractFactory $factory
      * @param array $data
-     * @param string $file
+     * @param File $file
      * @param string $field
      * @return FileInterface
      * @throws \Exception
      */
-    public function upload(AbstractComponentFactory $factory, array $data, File $file, string $field = 'filePath'): FileInterface
+    public function upload(AbstractFactory $factory, array $data, File $file, string $field = 'filePath'): FileInterface
     {
         $entity = $factory->create($data);
         if (!($entity instanceof FileInterface)) {
             throw new \Exception('Invalid entity returned from FixtureFileUploader::upload factory');
         }
+        $tempFile = tmpfile();
+        $tempPath = stream_get_meta_data($tempFile)['uri'];
+        fclose($tempFile);
+
+        $fs = new Filesystem();
+        $fs->copy($file->getRealPath(), $tempPath, true);
+
         $uploadedFile = new UploadedFile(
-            $file->getRealPath(),
+            $tempPath,
             $file->getFilename(),
             null,
             null,
