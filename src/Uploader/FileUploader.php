@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -78,7 +79,9 @@ class FileUploader
 
         // Validation passed, remove old file first (in case we don't have permission to do it)
         if ($currentFile) {
-            $this->unlinkFile(new File($currentFile));
+            try{
+                $this->unlinkFile(new File($currentFile));
+            }catch(FileNotFoundException $e){}
         }
 
         // Old file removed, let's update!

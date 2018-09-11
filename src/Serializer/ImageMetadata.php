@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\Exception\FileMissingException;
 use Silverback\ApiComponentBundle\Exception\FileNotImageException;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 class ImageMetadata
 {
