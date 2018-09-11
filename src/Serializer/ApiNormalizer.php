@@ -2,8 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
-use ApiPlatform\Core\Api\IdentifiersExtractor;
-use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;

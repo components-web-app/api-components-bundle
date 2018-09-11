@@ -240,6 +240,19 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     }
 
     /**
+     * @Groups({"component_write"})
+     * @param ComponentGroup $componentGroup
+     * @return AbstractComponent
+     */
+    public function setParentComponentGroup(ComponentGroup $componentGroup): AbstractComponent
+    {
+        if (!$componentGroup->hasComponent($this)) {
+            $componentGroup->addComponentLocation(new ComponentLocation($componentGroup, $this));
+        }
+        return $this;
+    }
+
+    /**
      * @param AbstractContent $content
      * @return bool
      */
