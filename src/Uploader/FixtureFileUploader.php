@@ -42,11 +42,10 @@ class FixtureFileUploader
 
         $fs = new Filesystem();
         $fs->copy($file->getRealPath(), $tempPath, true);
-
         $uploadedFile = new UploadedFile(
             $tempPath,
             $file->getFilename(),
-            null,
+            $file->getMimeType(),
             null,
             true
         );

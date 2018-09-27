@@ -8,8 +8,6 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Uploader\FileUploader;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\MimeType\FileinfoMimeTypeGuesser;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -84,21 +82,6 @@ class FileUpload
             $propertyAccessor = PropertyAccess::createPropertyAccessor();
             $filePath = $propertyAccessor->getValue($entity, $field);
             return new BinaryFileResponse($filePath);
-//            // To generate a file download, you need the mimetype of the file
-//            $mimeTypeGuesser = new FileinfoMimeTypeGuesser();
-//
-//            // Set the mimetype with the guesser or manually
-//            if(FileinfoMimeTypeGuesser::isSupported()){
-//                // Guess the mimetype of the file according to the extension of the file
-//                $response->headers->set('Content-Type', $mimeTypeGuesser->guess($filePath));
-//            } else {
-//                // Set the mimetype of the file manually, in this case for a text file is text/plain
-//                $response->headers->set('Content-Type', 'text/plain');
-//            }
-//
-//            // Set content disposition inline of the file
-//            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
-//            return $response;
         }
 
         /**

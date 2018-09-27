@@ -42,11 +42,11 @@ class FileUploader
 
         $ext = $file->guessExtension();
         $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $filename = $basename.'.'.$ext;
+        $filename = "$basename.$ext";
         $i=0;
         while ($fs->exists($this->getRealPath($moveToDir, $filename))) {
             $i++;
-            $filename = $basename.".$i.$ext";
+            $filename = "$basename.$i.$ext";
         }
         return $filename;
     }
@@ -83,7 +83,6 @@ class FileUploader
                 $this->unlinkFile(new File($currentFile));
             }catch(FileNotFoundException $e){}
         }
-
         // Old file removed, let's update!
         $moveToDir = sprintf('%s/%s', $this->rootPath, $entity->getDir());
         $filename = $this->getNewFilename($moveToDir, $file);
