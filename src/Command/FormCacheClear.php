@@ -2,29 +2,25 @@
 
 namespace Silverback\ApiComponentBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Cache\FormCacheClearer;
+use Silverback\ApiComponentBundle\Event\CommandNotifyEvent;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class FormCacheClear extends Command
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
-     * @var OutputInterface
-     */
-    private $output;
+    private $cacheClearer;
+    private $dispatcher;
 
     public function __construct(
-        EntityManagerInterface $em,
+        FormCacheClearer $cacheClearer,
+        EventDispatcherInterface $dispatcher,
         ?string $name = null
     ) {
-        $this->em = $em;
+        $this->cacheClearer = $cacheClearer;
+        $this->dispatcher = $dispatcher;
         parent::__construct($name);
     }
 
@@ -34,7 +30,7 @@ class FormCacheClear extends Command
     protected function configure(): void
     {
         $this
-            ->setName('app:form:cache:clear')
+            ->setName('api_component_bundle:form:clear_cache')
             ->setDescription('Purges the varnish cache for forms where files have been updated')
         ;
     }
@@ -47,32 +43,9 @@ class FormCacheClear extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->output = $output;
-
-        $repo = $this->em->getRepository(Form::class);
-        $forms = $repo->findAll();
-        foreach ($forms as $form) {
-            $this->updateFormTimestamp($form);
-        }
-        $this->em->flush();
-    }
-
-    /**
-     * @param Form $form
-     * @throws \ReflectionException
-     */
-    private function updateFormTimestamp(Form $form)
-    {
-        $formClass = $form->getFormType();
-        $reflector = new \ReflectionClass($formClass);
-        $dateTime = new \DateTime();
-        $timestamp = filemtime($reflector->getFileName());
-
-        $this->output->writeln(sprintf('<info>Checking timestamp for %s</info>', $formClass));
-        if (!$form->getLastModified() || $timestamp !== $form->getLastModified()->getTimestamp()) {
-            $dateTime->setTimestamp($timestamp);
-            $form->setLastModified($dateTime);
-            $this->output->writeln('<comment>Updated timestamp</comment>');
-        }
+        $this->dispatcher->addListener(FormCacheClearer::FORM_CACHE_EVENT_NAME, function (CommandNotifyEvent $event) use ($output) {
+            $output->writeln($event->getSubject());
+        });
+        $this->cacheClearer->clear();
     }
 }

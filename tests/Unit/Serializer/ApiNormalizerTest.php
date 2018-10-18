@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Serializer;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +18,7 @@ use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\ImageMetadata;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Serializer;
 
 class ApiNormalizerTest extends TestCase
@@ -61,7 +63,7 @@ class ApiNormalizerTest extends TestCase
     {
         $projectRoot = realpath(__DIR__ . '/../../app');
 
-        $this->normalizerInterfaceMock = $this->getMockBuilder(AbstractItemNormalizer::class)->disableOriginalConstructor()->getMock();
+        $this->normalizerInterfaceMock = $this->getMockForAbstractClass(AbstractItemNormalizer::class);
         $this->cacheManagerMock = $this->getMockBuilder(CacheManager::class)->disableOriginalConstructor()->getMock();
         $this->formViewFactoryMock = $this->getMockBuilder(FormViewFactory::class)->disableOriginalConstructor()->getMock();
 
@@ -74,6 +76,8 @@ class ApiNormalizerTest extends TestCase
 
         $this->entityManagerMock = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
         $this->dataProviderMock = $this->getMockBuilder(ContextAwareCollectionDataProviderInterface::class)->getMock();
+        $routerMock = $this->getMockBuilder(RouterInterface::class)->getMock();
+        $iriConverterMock = $this->getMockBuilder(IriConverterInterface::class)->getMock();
         $this->apiNormalizer = new ApiNormalizer(
             $this->normalizerInterfaceMock,
             $this->cacheManagerMock,
@@ -81,6 +85,8 @@ class ApiNormalizerTest extends TestCase
             $this->pathResolverMock,
             $this->entityManagerMock,
             $this->dataProviderMock,
+            $routerMock,
+            $iriConverterMock,
             $projectRoot
         );
     }
