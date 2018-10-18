@@ -12,7 +12,7 @@ class GalleryItemTest extends AbstractEntity
     {
         $entity = new GalleryItem();
         $constraints = $this->getConstraints($entity);
-        $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['filePath']));
+        // $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['filePath']));
         $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['title']));
     }
 }
