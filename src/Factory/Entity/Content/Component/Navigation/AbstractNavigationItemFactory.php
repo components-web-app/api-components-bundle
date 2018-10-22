@@ -16,7 +16,9 @@ abstract class AbstractNavigationItemFactory extends AbstractComponentFactory
             [
                 'label' => null,
                 'route' => null,
-                'fragment' => null
+                'fragment' => null,
+                'roles' => null,
+                'excludeRoles' => null
             ]
         );
     }

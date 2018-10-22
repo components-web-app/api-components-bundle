@@ -37,6 +37,20 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
     protected $fragment;
 
     /**
+     * @ORM\Column(type="array", nullable=true)
+     * @Groups({"layout", "content", "component"})
+     * @var null|array
+     */
+    protected $roles;
+
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     * @Groups({"layout", "content", "component"})
+     * @var null|array
+     */
+    protected $excludeRoles;
+
+    /**
      * @return string
      */
     public function getLabel(): string
@@ -87,6 +101,42 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
     public function setFragment(?string $fragment): AbstractNavigationItem
     {
         $this->fragment = $fragment;
+        return $this;
+    }
+
+    /**
+     * @return null|array
+     */
+    public function getRoles(): ?array
+    {
+        return $this->roles;
+    }
+
+    /**
+     * @param null|array $roles
+     * @return self
+     */
+    public function setRoles(?array $roles): self
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    /**
+     * @return null|array
+     */
+    public function getExcludeRoles(): ?array
+    {
+        return $this->excludeRoles;
+    }
+
+    /**
+     * @param null|array $excludeRoles
+     * @return self
+     */
+    public function setExcludeRoles(?array $excludeRoles): self
+    {
+        $this->excludeRoles = $excludeRoles;
         return $this;
     }
 }
