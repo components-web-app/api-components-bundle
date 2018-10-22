@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Layout;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar;
@@ -11,7 +10,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class Layout
  * @package Silverback\ApiComponentBundle\Entity\Layout
- * @ApiResource()
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
  */
 class Layout

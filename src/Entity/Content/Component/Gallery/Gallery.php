@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Gallery;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
@@ -11,7 +10,6 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
  * Class Gallery
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Gallery
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
  * @ORM\Entity()
  */
 class Gallery extends AbstractComponent

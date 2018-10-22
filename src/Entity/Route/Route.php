@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
@@ -13,13 +12,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Route
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(
- *     itemOperations={
- *         "get"={"requirements"={"id"=".+"}},
- *         "put"={"requirements"={"id"=".+"}},
- *         "delete"={"requirements"={"id"=".+"}}
- *     }
- * )
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
  */
 class Route

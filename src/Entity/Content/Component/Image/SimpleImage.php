@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Image;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
@@ -13,7 +12,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(iri="http://schema.org/ImageObject")
  * @ORM\Entity()
  */
 class SimpleImage extends AbstractComponent implements FileInterface

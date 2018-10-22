@@ -9,7 +9,6 @@ use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 /**
  * @author Daniel West <daniel@silverback.is
- * @ApiResource()
  * @ORM\Entity()
  */
 class NavBar extends AbstractNavigation

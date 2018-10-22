@@ -1,0 +1,66 @@
+resources:
+    Silverback\ApiComponentBundle\Entity\Content\Page: ~
+    Silverback\ApiComponentBundle\Entity\Content\ComponentGroup: ~
+    Silverback\ApiComponentBundle\Entity\Layout\Layout: ~
+    Silverback\ApiComponentBundle\Entity\Route\Route:
+        itemOperations:
+            get:
+                requirements:
+                    id: ".+"
+            put:
+                requirements:
+                    id: ".+"
+            delete:
+                requirements:
+                    id: ".+"
+    # components
+    Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumns: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumnsItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStacked: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Form:
+        collectionOperations:
+            get: ~
+            post: ~
+        itemOperations:
+            get: ~
+            delete: ~
+            put: ~
+            patch:
+                method: PATCH
+                path: '/forms/{id}/submit.{_format}'
+                requirements:
+                    id: '[^/]+'
+                denormalization_context:
+                    groups:
+                    - none
+                controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitPatch'
+            post:
+                method: POST
+                path: '/forms/{id}/submit.{_format}'
+                requirements:
+                    id: '[^/]+'
+                denormalization_context:
+                    groups:
+                    - none
+                controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitPost'
+    Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\Gallery: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem:
+        iri: http://schema.org/ImageObject
+    Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Image\SimpleImage:
+        iri: http://schema.org/ImageObject
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBarItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Layout\SideColumn: ~
+    Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content: ~
+    # dynamic pages
+    Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage: ~

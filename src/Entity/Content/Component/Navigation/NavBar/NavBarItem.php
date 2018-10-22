@@ -8,7 +8,6 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNa
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
  * @ORM\Entity()
  */
 class NavBarItem extends AbstractNavigationItem

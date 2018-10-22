@@ -2,14 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Collection;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity()
- * @ApiResource()
  * @author Daniel West <daniel@silverback.is>
  */
 class Collection extends AbstractComponent

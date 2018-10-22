@@ -3,10 +3,7 @@
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Controller\FormSubmitPatch;
-use Silverback\ApiComponentBundle\Controller\FormSubmitPost;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -17,31 +14,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class Form
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Form
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(
- *     collectionOperations={
- *         "get",
- *         "post",
- *     },
- *     itemOperations={
- *         "get",
- *         "delete",
- *         "put",
- *         "patch"={
- *              "method"="PATCH",
- *              "path"="/forms/{id}/submit.{_format}",
- *              "requirements"={"id"="[^/]+"},
- *              "denormalization_context"={"groups"={"none"}},
- *              "controller"=FormSubmitPatch::class
- *         },
- *         "post"={
- *              "method"="POST",
- *              "path"="/forms/{id}/submit.{_format}",
- *              "requirements"={"id"="[^/]+"},
- *              "denormalization_context"={"groups"={"none"}},
- *              "controller"=FormSubmitPost::class
- *         }
- *     }
- * )
  * @ORM\Entity()
  */
 class Form extends AbstractComponent

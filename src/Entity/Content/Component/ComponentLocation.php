@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,7 +18,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 /**
  * Class ComponentLocation
  * @package Silverback\ApiComponentBundle\Entity\Content\Component
- * @ApiResource()
  * @ACBAssert\ComponentLocation()
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentLocationRepository")
  * @ORM\InheritanceType("SINGLE_TABLE")

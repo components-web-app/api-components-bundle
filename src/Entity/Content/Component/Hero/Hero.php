@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Hero;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs;
@@ -17,7 +16,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class Hero
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\Hero
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
  * @ORM\Entity()
  */
 class Hero extends AbstractComponent implements FileInterface

@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
@@ -15,7 +14,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class FeatureColumnsItem
  * @package Silverback\ApiComponentBundle\Entity\Content\Component\FeatureList
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
  * @ORM\Entity()
  */
 class FeatureColumnsItem extends AbstractFeatureItem implements FileInterface

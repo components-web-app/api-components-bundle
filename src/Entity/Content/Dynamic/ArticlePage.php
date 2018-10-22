@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Content\Dynamic;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Content\FileTrait;
@@ -13,7 +12,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 /**
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource()
  * @ORM\Entity()
  * @ORM\AttributeOverrides({
  *      @ORM\AttributeOverride(
