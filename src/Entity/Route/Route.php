@@ -73,10 +73,12 @@ class Route
 
     /**
      * @param string $name
+     * @return Route
      */
-    public function setName(string $name): void
+    public function setName(string $name): self
     {
         $this->name = $name;
+        return $this;
     }
 
     /**
@@ -89,10 +91,12 @@ class Route
 
     /**
      * @param string $route
+     * @return Route
      */
-    public function setRoute(string $route): void
+    public function setRoute(string $route): self
     {
         $this->route = $route;
+        return $this;
     }
 
     /**
@@ -105,10 +109,12 @@ class Route
 
     /**
      * @param null|AbstractContent $content
+     * @return Route
      */
-    public function setContent(?AbstractContent $content): void
+    public function setContent(?AbstractContent $content): self
     {
         $this->content = $content;
+        return $this;
     }
 
     /**
@@ -121,9 +127,11 @@ class Route
 
     /**
      * @param null|Route $redirect
+     * @return Route
      */
-    public function setRedirect(?Route $redirect): void
+    public function setRedirect(?Route $redirect): self
     {
         $this->redirect = $redirect;
+        return $this;
     }
 }
