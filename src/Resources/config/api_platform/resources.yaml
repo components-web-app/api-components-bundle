@@ -22,7 +22,7 @@ resources:
     Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem: ~
     Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList: ~
     Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Form:
+    Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form:
         collectionOperations:
             get: ~
             post: ~
