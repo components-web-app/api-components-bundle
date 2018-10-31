@@ -3,32 +3,36 @@ language: php
 php:
     - 7.2
 
-env:
-    global:
-        SYMFONY_DEPRECATIONS_HELPER=disabled
-
-matrix:
-    fast_finish: true
+jobs:
     include:
-    - env: SYMFONY_VERSION="^3.4"
-    - env: SYMFONY_VERSION="^4"
-    - env: SYMFONY_VERSION="dev-master"
+        - php: '7.1'
+        - php: '7.2'
+        - php: '7.2'
+          env: deps=low
+        - php: '7.2'
+          env: SYMFONY_DEPRECATIONS_HELPER=0
     allow_failures:
-    - env:
-        - SYMFONY_VERSION="^4"
-        - SYMFONY_DEPRECATIONS_HELPER=0
+        - env: SYMFONY_DEPRECATIONS_HELPER=0
+        fast_finish: true
 
 before_install:
     - printf "\n" | pecl install imagick
+    - phpenv config-rm xdebug.ini || echo "xdebug not available"
     - phpenv config-add travis.php.ini
+    - export PATH="$PATH:$HOME/.composer/vendor/bin"
 
 install:
-    - composer require symfony/framework-bundle:${SYMFONY_VERSION}
+    - if [[ $deps = 'low' ]]; then
+        composer update --prefer-dist --no-progress --no-suggest --prefer-stable --prefer-lowest --ansi;
+      else
+        composer update --prefer-dist --no-progress --no-suggest --ansi;
+      fi
 
 before_script:
     - composer install --prefer-source
 
 script:
+    - tests/app/console cache:clear
     - bin/phpunit --coverage-clover=coverage.xml
 #    - vendor/bin/behat
 
