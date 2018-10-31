@@ -13,7 +13,7 @@ jobs:
           env: SYMFONY_DEPRECATIONS_HELPER=0
     allow_failures:
         - env: SYMFONY_DEPRECATIONS_HELPER=0
-        fast_finish: true
+    fast_finish: true
 
 before_install:
     - printf "\n" | pecl install imagick
