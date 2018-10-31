@@ -56,7 +56,7 @@ class AppKernel extends Kernel
     {
         $confDir = $this->getProjectDir().'/config';
         // Import routes that should be included with flex / manually
-        $routes->import($this->getProjectDir().'/../../src/Resources/routes/*'.self::CONFIG_EXTS, '/', 'glob');
+        $routes->import($this->getProjectDir().'/../../src/Resources/config/routing/*'.self::CONFIG_EXTS, '/', 'glob');
         if (is_dir($confDir.'/routes/')) {
             $routes->import($confDir.'/routes/*'.self::CONFIG_EXTS, '/', 'glob');
         }

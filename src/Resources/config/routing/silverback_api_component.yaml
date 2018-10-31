@@ -1,0 +1,3 @@
+silverback_api_components:
+    resource: '@SilverbackApiComponentBundle/Controller/FileUpload.php'
+    type: annotation
