@@ -1,5 +1,8 @@
 language: php
 
+php:
+    - 7.2
+
 env:
     global:
         SYMFONY_DEPRECATIONS_HELPER=disabled
@@ -9,8 +12,6 @@ env:
         - SYMFONY_VERSION="dev-master"
         allow_failures:
             - SYMFONY_DEPRECATIONS_HELPER=0
-php:
-    - 7.2
 
 before_install:
     - printf "\n" | pecl install imagick
