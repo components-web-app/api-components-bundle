@@ -10,6 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNa
 use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
@@ -24,7 +25,8 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         AbstractContent::class => ['content'],
         Route::class => ['route'],
         Layout::class => ['layout'],
-        AbstractDynamicPage::class => ['dynamic_content']
+        AbstractDynamicPage::class => ['dynamic_content'],
+        SortableInterface::class => ['sortable']
     ];
 
     /**

@@ -18,14 +18,14 @@ trait SortableTrait
      * @ORM\Column(type="integer", nullable=false)
      * @Assert\NotNull()
      * @Groups({"default"})
-     * @var int
+     * @var int|null
      */
     protected $sort;
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getSort(): int
+    public function getSort(): ?int
     {
         return $this->sort;
     }

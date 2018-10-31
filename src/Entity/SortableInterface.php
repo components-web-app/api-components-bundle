@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 interface SortableInterface
 {
     /**
-     * @return int
+     * @return int|null
      */
-    public function getSort(): int;
+    public function getSort(): ?int;
 
     /**
      * @param int $sort

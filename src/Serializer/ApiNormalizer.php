@@ -40,7 +40,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
 
     /**
      * FileNormalizer constructor.
-     * @param AbstractNormalizer $decorated
+     * @param NormalizerInterface $decorated
      * @param CacheManager $imagineCacheManager
      * @param FormViewFactory $formViewFactory
      * @param PathResolver $pathResolver
@@ -51,7 +51,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param string $projectDir
      */
     public function __construct(
-        AbstractNormalizer $decorated,
+        NormalizerInterface $decorated,
         CacheManager $imagineCacheManager,
         FormViewFactory $formViewFactory,
         PathResolver $pathResolver,
@@ -63,6 +63,9 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
+        }
+        if (!$decorated instanceof AbstractNormalizer) {
+            throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', AbstractNormalizer::class));
         }
         // If a page will list itself again as a component then we should re-serialize it as it'll have different context/groups applied
         $decorated->setCircularReferenceLimit(2);
@@ -172,17 +175,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
             }
         }
         return $data;
-    }
-
-    private function getPublicPath(string $filePath)
-    {
-        $publicPaths = [$this->projectDir, '/public/'];
-        foreach ($publicPaths as $path) {
-            if (mb_strpos($filePath, $path) === 0 && $start = \strlen($path)) {
-                $filePath = mb_substr($filePath, $start);
-            }
-        }
-        return $filePath;
     }
 
     /**

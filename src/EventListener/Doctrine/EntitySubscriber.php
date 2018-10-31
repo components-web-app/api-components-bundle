@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -77,7 +78,7 @@ class EntitySubscriber implements EventSubscriber
             $entityManager->getConnection()->exec('PRAGMA foreign_keys = ON;');
         }
         $unitOfWork = $entityManager->getUnitOfWork();
-        $this->processNewEntities($unitOfWork);
+        $this->processNewEntities($unitOfWork, $entityManager);
         $this->processUpdatedEntities($unitOfWork);
         $this->processDeletedEntities($unitOfWork);
     }
@@ -85,16 +86,14 @@ class EntitySubscriber implements EventSubscriber
     /**
      * @param UnitOfWork $unitOfWork
      */
-    private function processNewEntities(UnitOfWork $unitOfWork): void
+    private function processNewEntities(UnitOfWork $unitOfWork, EntityManagerInterface $entityManager): void
     {
         $newEntities = $unitOfWork->getScheduledEntityInsertions();
         foreach ($newEntities as $entity) {
-            if ($entity instanceof SortableInterface) {
-                try {
-                    $entity->getSort();
-                } catch (\TypeError $e) {
-                    $entity->setSort($entity->calculateSort(true));
-                }
+            if ($entity instanceof SortableInterface && $entity->getSort() === null) {
+                $entity->setSort($entity->calculateSort(true));
+                $metadata = $entityManager->getClassMetadata(\get_class($entity));
+                $unitOfWork->recomputeSingleEntityChangeSet($metadata, $entity);
             }
             if (
                 $entity instanceof FileInterface &&

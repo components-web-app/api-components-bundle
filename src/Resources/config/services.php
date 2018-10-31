@@ -106,9 +106,8 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ApiNormalizer::class)
-        ->decorate('api_platform.jsonld.normalizer.item')
         ->args([
-            '$decorated' => new Reference(ApiNormalizer::class . '.inner'),
+            '$decorated' => new Reference('api_platform.serializer.normalizer.item'), // ApiNormalizer::class . '.inner'
             '$projectDir' => '%kernel.project_dir%'
         ])
     ;
