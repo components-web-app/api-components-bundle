@@ -79,9 +79,10 @@ class FileUploader
 
         // Validation passed, remove old file first (in case we don't have permission to do it)
         if ($currentFile) {
-            try{
+            try {
                 $this->unlinkFile(new File($currentFile));
-            }catch(FileNotFoundException $e){}
+            } catch (FileNotFoundException $e) {
+            }
         }
         // Old file removed, let's update!
         $moveToDir = sprintf('%s/%s', $this->rootPath, $entity->getDir());

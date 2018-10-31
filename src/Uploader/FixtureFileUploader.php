@@ -16,8 +16,7 @@ class FixtureFileUploader
     public function __construct(
         FileUploader $fileUploader,
         string $projectDir = ''
-    )
-    {
+    ) {
         $this->fileUploader = $fileUploader;
         $this->uploadsDir = sprintf('%s/var/uploads/', $projectDir);
     }

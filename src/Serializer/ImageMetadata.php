@@ -32,8 +32,7 @@ class ImageMetadata
         string $filePath,
         string $publicPath,
         ?string $imagineKey = null
-    )
-    {
+    ) {
         $this->filePath = $filePath;
         $this->publicPath = $publicPath;
 

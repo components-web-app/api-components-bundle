@@ -29,7 +29,7 @@ class FormCacheClearer implements CacheClearerInterface
         try {
             $repo = $this->em->getRepository(Form::class);
             $forms = $repo->findAll();
-        } catch(\Exception $exception) {
+        } catch (\Exception $exception) {
             $this->dispatcher->dispatch(
                 self::FORM_CACHE_EVENT_NAME,
                 new CommandNotifyEvent(sprintf('<error>Could not clear form cache: %s</error>', $exception->getMessage()))

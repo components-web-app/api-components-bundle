@@ -85,6 +85,7 @@ class EntitySubscriber implements EventSubscriber
 
     /**
      * @param UnitOfWork $unitOfWork
+     * @param EntityManagerInterface $entityManager
      */
     private function processNewEntities(UnitOfWork $unitOfWork, EntityManagerInterface $entityManager): void
     {
