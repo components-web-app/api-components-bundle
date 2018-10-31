@@ -7,12 +7,10 @@ env:
         - SYMFONY_VERSION="^3.4"
         - SYMFONY_VERSION="^4"
         - SYMFONY_VERSION="dev-master"
-
-jobs:
-    include:
-        - php: 7.2
-    allow_failures:
-        -   env: SYMFONY_DEPRECATIONS_HELPER=0
+        allow_failures:
+            - SYMFONY_DEPRECATIONS_HELPER=0
+php:
+    - 7.2
 
 before_install:
     - printf "\n" | pecl install imagick
