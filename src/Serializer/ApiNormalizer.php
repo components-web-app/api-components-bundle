@@ -37,6 +37,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
     private $serializer;
     private $router;
     private $iriConverter;
+    private $fileNormalizer;
 
     /**
      * FileNormalizer constructor.
@@ -49,6 +50,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param RouterInterface $router
      * @param IriConverterInterface $iriConverter
      * @param string $projectDir
+     * @param FileNormalizer $fileNormalizer
      */
     public function __construct(
         NormalizerInterface $decorated,
@@ -59,7 +61,8 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         ContextAwareCollectionDataProviderInterface $collectionDataProvider,
         RouterInterface $router,
         IriConverterInterface $iriConverter,
-        string $projectDir
+        string $projectDir,
+        FileNormalizer $fileNormalizer
     ) {
         if (!$decorated instanceof DenormalizerInterface) {
             throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
@@ -78,6 +81,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->router = $router;
         $this->iriConverter = $iriConverter;
         $this->projectDir = $projectDir;
+        $this->fileNormalizer = $fileNormalizer;
 
         $normalizers = array(new ObjectNormalizer());
         $this->serializer = new Serializer($normalizers);
@@ -101,7 +105,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @throws \Symfony\Component\Serializer\Exception\LogicException
      * @throws \Symfony\Component\Serializer\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Serializer\Exception\CircularReferenceException
-     * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -151,7 +154,7 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
                     $format,
                     $context
                 );
-                $supported = $this->isImagineSupportedFile($filePath);
+                $supported = $this->fileNormalizer->isImagineSupportedFile($filePath);
                 if ($supported) {
                     $imagineData = [];
                     foreach ($object::getImagineFilters() as $returnKey => $filter) {
@@ -216,23 +219,6 @@ final class ApiNormalizer implements NormalizerInterface, DenormalizerInterface,
         if ($this->decorated instanceof SerializerAwareInterface) {
             $this->decorated->setSerializer($serializer);
         }
-    }
-
-    /**
-     * @param string $filePath
-     * @return bool
-     */
-    public function isImagineSupportedFile(?string $filePath): bool
-    {
-        if (!$filePath) {
-            return false;
-        }
-        try {
-            $imageType = \exif_imagetype($filePath);
-        } catch (\Exception $e) {
-            return false;
-        }
-        return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
     }
 
     /**

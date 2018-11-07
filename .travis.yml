@@ -1,8 +1,5 @@
 language: php
 
-php:
-    - 7.2
-
 env:
     global:
         - SYMFONY_DEPRECATIONS_HELPER=disabled
@@ -15,7 +12,8 @@ jobs:
         - php: '7.2'
           env: SYMFONY_DEPRECATIONS_HELPER=0
     allow_failures:
-        - env: SYMFONY_DEPRECATIONS_HELPER=0
+        - php: '7.2'
+          env: SYMFONY_DEPRECATIONS_HELPER=0
 
 matrix:
     fast_finish: true

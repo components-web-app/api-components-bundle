@@ -12,7 +12,7 @@ use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
-use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\FileNormalizer;
 
 /**
  * Class FileEntitySubscriber
@@ -30,7 +30,7 @@ class EntitySubscriber implements EventSubscriber
      */
     private $filterService;
     /**
-     * @var ApiNormalizer
+     * @var FileNormalizer
      */
     private $fileNormalizer;
     /**
@@ -42,13 +42,13 @@ class EntitySubscriber implements EventSubscriber
      * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param FilterService $filterService
-     * @param ApiNormalizer $fileNormalizer
+     * @param FileNormalizer $fileNormalizer
      * @param PathResolver $pathResolver
      */
     public function __construct(
         CacheManager $imagineCacheManager,
         FilterService $filterService,
-        ApiNormalizer $fileNormalizer,
+        FileNormalizer $fileNormalizer,
         PathResolver $pathResolver
     ) {
         $this->imagineCacheManager = $imagineCacheManager;
