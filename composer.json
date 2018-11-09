@@ -7,6 +7,7 @@
         "ext-exif": "*",
         "ext-pdo": "*",
         "api-platform/api-pack": "^1.1",
+        "doctrine/doctrine-bundle": "^1.8",
         "api-platform/core": "^2.3",
         "cocur/slugify": "^3.0",
         "doctrine/doctrine-fixtures-bundle": "^3.0",
