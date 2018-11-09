@@ -14,10 +14,6 @@ return function (ContainerConfigurator $container) {
         ->autowire()
         ->private();
     $services
-        ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
-        ->tag('doctrine.fixture.orm')
-        ->public();
-    $services
         ->set(TestHandler::class)
         ->tag('silverback_api_component.form_handler');
     $services

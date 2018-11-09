@@ -11,14 +11,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class FixtureFileUploader
 {
     private $fileUploader;
-    private $uploadsDir;
 
     public function __construct(
-        FileUploader $fileUploader,
-        string $projectDir = ''
+        FileUploader $fileUploader
     ) {
         $this->fileUploader = $fileUploader;
-        $this->uploadsDir = sprintf('%s/var/uploads/', $projectDir);
     }
 
     /**
@@ -36,6 +33,9 @@ class FixtureFileUploader
             throw new \Exception('Invalid entity returned from FixtureFileUploader::upload factory');
         }
         $tempFile = tmpfile();
+        if (!$tempFile) {
+            throw new \Exception('Could not create temporary file');
+        }
         $tempPath = stream_get_meta_data($tempFile)['uri'];
         fclose($tempFile);
 

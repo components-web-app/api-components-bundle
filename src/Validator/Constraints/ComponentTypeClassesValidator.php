@@ -33,9 +33,9 @@ class ComponentTypeClassesValidator extends ConstraintValidator
                     $conditionsStr = vsprintf(
                         '. They should all extend %s or just implement %s',
                         [
-                        AbstractComponent::class,
-                        ComponentInterface::class
-                    ]
+                            AbstractComponent::class,
+                            ComponentInterface::class
+                        ]
                     );
                     $this->context
                         ->buildViolation($constraint->message . $conditionsStr)

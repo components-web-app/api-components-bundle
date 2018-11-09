@@ -45,8 +45,8 @@ class FormFactory
                 'action' => $this->router->generate(
                     'api_forms_post_item',
                     [
-                    'id' => $component->getId()
-                ]
+                        'id' => $component->getId()
+                    ]
                 )
             ]
         );

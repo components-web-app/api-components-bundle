@@ -65,61 +65,61 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $container->prependExtensionConfig(
             'api_platform',
             [
-            'eager_loading' => [
-                'force_eager' => false
+                'eager_loading' => [
+                    'force_eager' => false
+                ]
             ]
-        ]
         );
         if (isset($bundles['LiipImagineBundle'])) {
             $container->prependExtensionConfig(
                 'liip_imagine',
                 [
-                'loaders' => [
-                    'default' => [
-                        'filesystem' => [
-                            'data_root' => [
-                                'uploads' => $uploadsDir,
-                                'default' => $container->getParameter('kernel.project_dir') . '/public'
-                            ]
-                        ]
-                    ]
-                ],
-                'filter_sets' => [
-                    'placeholder_square' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [80, 80],
-                                'mode' => 'outbound'
+                    'loaders' => [
+                        'default' => [
+                            'filesystem' => [
+                                'data_root' => [
+                                    'uploads' => $uploadsDir,
+                                    'default' => $container->getParameter('kernel.project_dir') . '/public'
+                                ]
                             ]
                         ]
                     ],
-                    'placeholder' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [100, 100],
-                                'mode' => 'inset'
+                    'filter_sets' => [
+                        'placeholder_square' => [
+                            'jpeg_quality' => 10,
+                            'png_compression_level' => 9,
+                            'filters' => [
+                                'thumbnail' => [
+                                    'size' => [80, 80],
+                                    'mode' => 'outbound'
+                                ]
                             ]
-                        ]
-                    ],
-                    'thumbnail' => [
-                        'jpeg_quality' => 95,
-                        'filters' => [
-                            'upscale' => [
-                                'min' => [636, 636]
-                            ],
-                            'thumbnail' => [
-                                'size' => [636, 636],
-                                'mode' => 'inset',
-                                'allow_upscale' => true
+                        ],
+                        'placeholder' => [
+                            'jpeg_quality' => 10,
+                            'png_compression_level' => 9,
+                            'filters' => [
+                                'thumbnail' => [
+                                    'size' => [100, 100],
+                                    'mode' => 'inset'
+                                ]
+                            ]
+                        ],
+                        'thumbnail' => [
+                            'jpeg_quality' => 95,
+                            'filters' => [
+                                'upscale' => [
+                                    'min' => [636, 636]
+                                ],
+                                'thumbnail' => [
+                                    'size' => [636, 636],
+                                    'mode' => 'inset',
+                                    'allow_upscale' => true
+                                ]
                             ]
                         ]
                     ]
                 ]
-            ]
             );
         }
     }

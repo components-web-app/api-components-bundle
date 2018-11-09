@@ -32,10 +32,10 @@ class FormTypeClassValidator extends ConstraintValidator
                 $conditionsStr = vsprintf(
                     ' It should extend %s, implement %s or tagged %s',
                     [
-                    AbstractType::class,
-                    FormTypeInterface::class,
-                    'silverback_api_component.form_type'
-                ]
+                        AbstractType::class,
+                        FormTypeInterface::class,
+                        'silverback_api_component.form_type'
+                    ]
                 );
                 $this->context
                     ->buildViolation($constraint->message . $conditionsStr)

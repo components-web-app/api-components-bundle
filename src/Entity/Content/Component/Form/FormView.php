@@ -102,7 +102,7 @@ class FormView
                 if (method_exists($choice, 'getMessage')) {
                     $this->vars[$var][] = $choice->getMessage();
                 } else {
-                    $this->vars[$var][] = (array)$choice;
+                    $this->vars[$var][] = (array) $choice;
                 }
             }
         }

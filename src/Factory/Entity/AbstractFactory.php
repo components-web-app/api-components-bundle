@@ -83,7 +83,7 @@ abstract class AbstractFactory implements FactoryInterface
      */
     protected function setOptions(?array $ops): void
     {
-        if (!$ops) {
+        if (null === $ops) {
             $ops = [];
         }
         $this->ops = array_filter(

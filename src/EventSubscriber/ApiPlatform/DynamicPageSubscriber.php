@@ -39,7 +39,7 @@ class DynamicPageSubscriber extends AbstractSubscriber
         /** @var ComponentLocationRepository $repository */
         $repository = $this->container->get(ComponentLocationRepository::class);
         $locations = $repository->findByDynamicPage($page);
-        if ($locations) {
+        if (!empty($locations)) {
             $page->setComponentLocations($locations);
         }
     }

@@ -29,9 +29,9 @@ class FormHandlerClassValidator extends ConstraintValidator
                 $conditionsStr = vsprintf(
                     ' It should implement %s or tagged %s',
                     [
-                    FormHandlerInterface::class,
-                    'silverback_api_component.form_handler'
-                ]
+                        FormHandlerInterface::class,
+                        'silverback_api_component.form_handler'
+                    ]
                 );
                 $this->context
                     ->buildViolation($constraint->message . $conditionsStr)

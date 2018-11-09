@@ -56,7 +56,7 @@ class FileUploader
         $this->propertyAccessor->setValue($entity, $field, $file);
         $errors = $this->validator->validate($entity);
         if ($errors !== null && \count($errors)) {
-            throw new InvalidArgumentException((string)$errors);
+            throw new InvalidArgumentException((string) $errors);
         }
     }
 
@@ -82,6 +82,7 @@ class FileUploader
             try {
                 $this->unlinkFile(new File($currentFile));
             } catch (FileNotFoundException $e) {
+                // If the file did not exist, there's no problem if it was not found as we are trying to delete it anyway
             }
         }
         // Old file removed, let's update!

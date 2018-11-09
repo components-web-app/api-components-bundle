@@ -47,7 +47,6 @@ class FileUpload
      *     methods={"POST", "PUT", "GET"}
      * )
      * @return Response
-     * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
      */
     public function __invoke(Request $request, string $field, string $id)
     {
@@ -63,7 +62,7 @@ class FileUpload
         $ctx->setMethod('GET');
         $this->urlMatcher->setContext($ctx);
         $route = $this->urlMatcher->match($id);
-        if (!$route) {
+        if (empty($route)) {
             return new Response(sprintf('No route found for id %s', $id), Response::HTTP_BAD_REQUEST);
         }
 

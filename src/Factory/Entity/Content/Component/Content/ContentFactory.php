@@ -52,7 +52,7 @@ final class ContentFactory extends AbstractComponentFactory
                 $url,
                 self::getGuzzleOps()
             );
-            return (string)$res->getBody();
+            return (string) $res->getBody();
         } catch (RequestException $e) {
             return vsprintf(
                 '<p><b>Request Exception</b>: %s<br/><small><a href="%s">%s</a></small></p>',
