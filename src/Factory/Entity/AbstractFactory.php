@@ -81,7 +81,7 @@ abstract class AbstractFactory implements FactoryInterface
      * @param array|null $ops
      * @throws \Silverback\ApiComponentBundle\Exception\InvalidFactoryOptionException
      */
-    protected function setOptions(?array $ops): void
+    protected function setOptions(?array $ops = null): void
     {
         if (null === $ops) {
             $ops = [];

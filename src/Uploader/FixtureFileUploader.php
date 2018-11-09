@@ -33,7 +33,7 @@ class FixtureFileUploader
             throw new \Exception('Invalid entity returned from FixtureFileUploader::upload factory');
         }
         $tempFile = tmpfile();
-        if (!$tempFile) {
+        if (false === $tempFile) {
             throw new \Exception('Could not create temporary file');
         }
         $tempPath = stream_get_meta_data($tempFile)['uri'];
