@@ -2,8 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\DataProvider\Item;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\DataProvider\Item\LayoutDataProvider;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
@@ -17,25 +15,8 @@ class LayoutDataProviderTest extends TestCase
     public function test_default_layout_data_provider()
     {
         $layout = new Layout();
-        $layout->setDefault(true);
 
-        $objectManagerMock = $this->getMockBuilder(ObjectManager::class)->getMock();
-        $managerRegistryMock = $this->getMockBuilder(ManagerRegistry::class)->getMock();
         $layoutRepositoryMock = $this->getMockBuilder(LayoutRepository::class)->disableOriginalConstructor()->getMock();
-
-        $objectManagerMock
-            ->expects($this->once())
-            ->method('getRepository')
-            ->with(Layout::class)
-            ->willReturn($layoutRepositoryMock)
-        ;
-
-        $managerRegistryMock
-            ->expects($this->once())
-            ->method('getManagerForClass')
-            ->with(Layout::class)
-            ->willReturn($objectManagerMock)
-        ;
 
         $layoutRepositoryMock
             ->expects($this->once())
@@ -44,8 +25,7 @@ class LayoutDataProviderTest extends TestCase
             ->willReturn($layout)
         ;
 
-        /** @var ManagerRegistry $managerRegistryMock */
-        $provider = new LayoutDataProvider($managerRegistryMock);
+        $provider = new LayoutDataProvider($layoutRepositoryMock);
         $this->assertEquals($layout, $provider->getItem(Layout::class, 'default'));
     }
 }

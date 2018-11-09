@@ -3,7 +3,6 @@
 namespace Silverback\ApiComponentBundle\Tests\config;
 
 use Psr\Log\LoggerInterface;
-use Silverback\ApiComponentBundle\Tests\TestBundle\DataFixtures\Content\Component\GalleryFixture;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -14,7 +13,6 @@ return function (ContainerConfigurator $container) {
         ->autoconfigure()
         ->autowire()
         ->private()
-        ->bind('$projectDirectory', '%kernel.project_dir%')
     ;
     $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\', '../../TestBundle/*')
@@ -22,16 +20,6 @@ return function (ContainerConfigurator $container) {
     $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
         ->tag('doctrine.fixture.orm')
-        ->public()
-    ;
-    $services
-        ->set(GalleryFixture::class)
-        ->tag('doctrine.fixture.orm')
-        ->args(
-            [
-                '$projectDir' => '%kernel.project_dir%'
-            ]
-        )
         ->public()
     ;
     $services
