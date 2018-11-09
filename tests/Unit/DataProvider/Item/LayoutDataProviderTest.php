@@ -9,9 +9,6 @@ use Silverback\ApiComponentBundle\Repository\LayoutRepository;
 
 class LayoutDataProviderTest extends TestCase
 {
-    /**
-     * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
-     */
     public function test_default_layout_data_provider()
     {
         $layout = new Layout();
@@ -22,8 +19,7 @@ class LayoutDataProviderTest extends TestCase
             ->expects($this->once())
             ->method('findOneBy')
             ->with(['default' => true])
-            ->willReturn($layout)
-        ;
+            ->willReturn($layout);
 
         $provider = new LayoutDataProvider($layoutRepositoryMock);
         $this->assertEquals($layout, $provider->getItem(Layout::class, 'default'));

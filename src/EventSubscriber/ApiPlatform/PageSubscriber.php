@@ -15,7 +15,7 @@ class PageSubscriber extends AbstractSubscriber
     {
         return [
             KernelEvents::VIEW => [
-              ['provideDefaultLayout', EventPriorities::PRE_SERIALIZE]
+                ['provideDefaultLayout', EventPriorities::PRE_SERIALIZE]
             ]
         ];
     }

@@ -40,18 +40,14 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
-            ->setLazy(true)
-        ;
+            ->setLazy(true);
         $container->registerForAutoconfiguration(FormTypeInterface::class)
-            ->addTag('silverback_api_component.form_type')
-        ;
+            ->addTag('silverback_api_component.form_type');
         $container->registerForAutoconfiguration(FactoryInterface::class)
-            ->setParent(AbstractFactory::class)
-        ;
+            ->setParent(AbstractFactory::class);
         $container->register(AbstractFactory::class)
             ->setAbstract(true)
-            ->addArgument(new Reference(ObjectManager::class))
-        ;
+            ->addArgument(new Reference(ObjectManager::class));
     }
 
     /**
@@ -66,13 +62,18 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         }
 
         $bundles = $container->getParameter('kernel.bundles');
-        $container->prependExtensionConfig('api_platform', [
+        $container->prependExtensionConfig(
+            'api_platform',
+            [
             'eager_loading' => [
                 'force_eager' => false
             ]
-        ]);
+        ]
+        );
         if (isset($bundles['LiipImagineBundle'])) {
-            $container->prependExtensionConfig('liip_imagine', [
+            $container->prependExtensionConfig(
+                'liip_imagine',
+                [
                 'loaders' => [
                     'default' => [
                         'filesystem' => [
@@ -118,7 +119,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         ]
                     ]
                 ]
-            ]);
+            ]
+            );
         }
     }
 }

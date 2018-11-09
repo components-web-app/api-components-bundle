@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 final class GalleryFactory extends AbstractComponentFactory
 {
-    /** @var GalleryItemFactory  */
+    /** @var GalleryItemFactory */
     private $itemFactory;
 
     public function __construct(ObjectManager $manager, ValidatorInterface $validator, GalleryItemFactory $itemFactory)

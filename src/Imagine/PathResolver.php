@@ -13,7 +13,7 @@ class PathResolver
         $this->roots = $roots;
     }
 
-    public function resolve($path):string
+    public function resolve($path): string
     {
         foreach ($this->roots as $root) {
             if (mb_strpos($path, $root) === 0) {

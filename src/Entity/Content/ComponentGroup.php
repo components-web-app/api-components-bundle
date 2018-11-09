@@ -44,7 +44,6 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface,
         parent::__construct();
     }
 
-
     /**
      * @return AbstractComponent|null
      */
@@ -63,7 +62,7 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface,
         $this->parent = $parent;
         if ($parent && $cascadeValidComponent !== false) {
             // convert to bool again for $force (null becomes false)
-            $this->cascadeValidComponents($parent, (bool) $cascadeValidComponent);
+            $this->cascadeValidComponents($parent, (bool)$cascadeValidComponent);
         }
         if (null === $this->sort || $sortLast !== null) {
             $this->setSort($this->calculateSort($sortLast));

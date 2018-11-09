@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints\UrlValidator;
  */
 class LinkValidator extends UrlValidator
 {
-    /** @var RouteRepository  */
+    /** @var RouteRepository */
     private $routeRepository;
 
     public function __construct(

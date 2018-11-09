@@ -22,8 +22,7 @@ class ComponentLocationRepository extends ServiceEntityRepository
                 $qb->expr()->eq('location.dynamicPageClass', ':cls')
             )
             ->setParameter('cls', \get_class($page))
-            ->addOrderBy('location.sort', 'ASC')
-        ;
+            ->addOrderBy('location.sort', 'ASC');
         return $qb->getQuery()->getResult();
     }
 }

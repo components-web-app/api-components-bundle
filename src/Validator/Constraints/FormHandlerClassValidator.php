@@ -26,22 +26,23 @@ class FormHandlerClassValidator extends ConstraintValidator
         try {
             $valid = ClassNameValidator::validate($value, $this->formHandlers);
             if (!$valid) {
-                $conditionsStr = vsprintf(' It should implement %s or tagged %s', [
+                $conditionsStr = vsprintf(
+                    ' It should implement %s or tagged %s',
+                    [
                     FormHandlerInterface::class,
                     'silverback_api_component.form_handler'
-                ]);
+                ]
+                );
                 $this->context
                     ->buildViolation($constraint->message . $conditionsStr)
                     ->setParameter('{{ string }}', $value)
-                    ->addViolation()
-                ;
+                    ->addViolation();
             }
         } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)
-                ->addViolation()
-            ;
+                ->addViolation();
         }
     }
 }

@@ -25,8 +25,7 @@ class SortableTraitTest extends TestCase
         $this->sortableMock = $this->getMockForTrait(SortableTrait::class);
         $this->sortableMock
             ->method('getSortCollection')
-            ->willReturn($collection)
-        ;
+            ->willReturn($collection);
     }
 
     public function test_get_set()

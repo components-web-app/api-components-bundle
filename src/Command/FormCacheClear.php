@@ -31,8 +31,7 @@ class FormCacheClear extends Command
     {
         $this
             ->setName('api_component_bundle:form:clear_cache')
-            ->setDescription('Purges the varnish cache for forms where files have been updated')
-        ;
+            ->setDescription('Purges the varnish cache for forms where files have been updated');
     }
 
     /**
@@ -43,9 +42,12 @@ class FormCacheClear extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dispatcher->addListener(FormCacheClearer::FORM_CACHE_EVENT_NAME, function (CommandNotifyEvent $event) use ($output) {
-            $output->writeln($event->getSubject());
-        });
+        $this->dispatcher->addListener(
+            FormCacheClearer::FORM_CACHE_EVENT_NAME,
+            function (CommandNotifyEvent $event) use ($output) {
+                $output->writeln($event->getSubject());
+            }
+        );
         $this->cacheClearer->clear();
     }
 }

@@ -65,8 +65,7 @@ class ComponentLocationValidatorTest extends TestCase
         $this->setUpForFullValidationChecks(new Content());
         $this->context
             ->expects($this->never())
-            ->method('buildViolation')
-        ;
+            ->method('buildViolation');
         $this->componentLocationValidator->validate($this->entity, $this->constraint);
     }
 
@@ -77,8 +76,7 @@ class ComponentLocationValidatorTest extends TestCase
     {
         $violation = $this
             ->getMockBuilder(ConstraintViolationBuilderInterface::class)
-            ->getMock()
-        ;
+            ->getMock();
         $violation->expects($this->once())->method('atPath')->with('component')->willReturn($violation);
         $violation->expects($this->once())->method('setParameter')->willReturn($violation);
 
@@ -86,8 +84,7 @@ class ComponentLocationValidatorTest extends TestCase
         $this->context
             ->expects($this->once())
             ->method('buildViolation')
-            ->willReturn($violation)
-        ;
+            ->willReturn($violation);
         $this->componentLocationValidator->validate($this->entity, $this->constraint);
     }
 
@@ -99,17 +96,14 @@ class ComponentLocationValidatorTest extends TestCase
         $this->content
             ->expects($this->once())
             ->method('getValidComponents')
-            ->willReturn(new ArrayCollection([Content::class]))
-        ;
+            ->willReturn(new ArrayCollection([Content::class]));
         $this->entity
             ->expects($this->once())
             ->method('getComponent')
-            ->willReturn($component)
-        ;
+            ->willReturn($component);
         $this->entity
             ->expects($this->once())
             ->method('getContent')
-            ->willReturn($this->content)
-        ;
+            ->willReturn($this->content);
     }
 }

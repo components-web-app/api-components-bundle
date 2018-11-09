@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FeatureColumnsFactory extends AbstractComponentFactory
 {
-    /** @var FeatureColumnsItemFactory  */
+    /** @var FeatureColumnsItemFactory */
     private $featureColumnsItemFactory;
 
     public function __construct(ObjectManager $manager, ValidatorInterface $validator, FeatureColumnsItemFactory $featureColumnsItemFactory)

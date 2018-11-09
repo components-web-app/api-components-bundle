@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Arti
 
 use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
-use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\NotNull;
 
 class ArticlePageTest extends AbstractEntity

@@ -43,7 +43,7 @@ class FileUploader
         $ext = $file->guessExtension();
         $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $filename = "$basename.$ext";
-        $i=0;
+        $i = 0;
         while ($fs->exists($this->getRealPath($moveToDir, $filename))) {
             $i++;
             $filename = "$basename.$i.$ext";
@@ -56,7 +56,7 @@ class FileUploader
         $this->propertyAccessor->setValue($entity, $field, $file);
         $errors = $this->validator->validate($entity);
         if ($errors !== null && \count($errors)) {
-            throw new InvalidArgumentException((string) $errors);
+            throw new InvalidArgumentException((string)$errors);
         }
     }
 

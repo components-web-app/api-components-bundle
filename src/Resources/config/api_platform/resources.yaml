@@ -37,7 +37,7 @@ resources:
                     id: '[^/]+'
                 denormalization_context:
                     groups:
-                    - none
+                        - none
                 controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitPatch'
             post:
                 method: POST
@@ -46,7 +46,7 @@ resources:
                     id: '[^/]+'
                 denormalization_context:
                     groups:
-                    - none
+                        - none
                 controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitPost'
     Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\Gallery: ~
     Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem:

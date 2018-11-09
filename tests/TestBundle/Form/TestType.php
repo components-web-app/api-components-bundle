@@ -37,7 +37,6 @@ class TestType extends AbstractType
                         ),
                     ]
                 ]
-            )
-        ;
+            );
     }
 }

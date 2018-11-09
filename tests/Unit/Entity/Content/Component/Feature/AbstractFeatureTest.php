@@ -13,7 +13,7 @@ class AbstractFeatureTest extends TestCase
     {
         /** @var AbstractFeature $entity */
         $entity = $this->getMockForAbstractClass(AbstractFeature::class);
-        $this->assertEquals(new ArrayCollection([ AbstractFeatureItem::class ]), $entity->getValidComponents());
+        $this->assertEquals(new ArrayCollection([AbstractFeatureItem::class]), $entity->getValidComponents());
         $this->assertCount(1, $entity->getComponentGroups());
     }
 }

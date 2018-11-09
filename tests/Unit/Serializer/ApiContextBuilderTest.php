@@ -43,8 +43,7 @@ class ApiContextBuilderTest extends TestCase
                         'none'
                     ]
                 ]
-            )
-        ;
+            );
 
         $context = $this->apiContextBuilder->createFromRequest($request, true);
         $this->assertArrayHasKey('groups', $context);
@@ -60,8 +59,7 @@ class ApiContextBuilderTest extends TestCase
             ->expects($this->once())
             ->method('createFromRequest')
             ->with($request, true, null)
-            ->willReturn([])
-        ;
+            ->willReturn([]);
         $context = $this->apiContextBuilder->createFromRequest($request, true);
         $this->assertGroupsOk($context);
         $this->assertReadGroups($context['groups'], $groups);
@@ -76,8 +74,7 @@ class ApiContextBuilderTest extends TestCase
             ->expects($this->once())
             ->method('createFromRequest')
             ->with($request, true, null)
-            ->willReturn([ 'groups' => [ 'dummy' ] ])
-        ;
+            ->willReturn(['groups' => ['dummy']]);
         $context = $this->apiContextBuilder->createFromRequest($request, true);
         $this->assertGroupsOk($context);
         $this->assertReadGroups($context['groups'], $groups);
@@ -93,8 +90,7 @@ class ApiContextBuilderTest extends TestCase
             ->expects($this->once())
             ->method('createFromRequest')
             ->with($request, false, null)
-            ->willReturn([])
-        ;
+            ->willReturn([]);
         $context = $this->apiContextBuilder->createFromRequest($request, false);
         $this->assertGroupsOk($context);
         foreach ($groups as $group) {
@@ -105,9 +101,11 @@ class ApiContextBuilderTest extends TestCase
 
     private function getRequestForResource()
     {
-        return new Request([], [], [
+        return new Request(
+            [], [], [
             '_api_resource_class' => AbstractComponent::class
-        ], [], [], [], '');
+        ], [], [], [], ''
+        );
     }
 
     private function assertGroupsOk($context)

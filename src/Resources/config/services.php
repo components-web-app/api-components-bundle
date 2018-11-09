@@ -27,43 +27,35 @@ return function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private()
         ->bind('$formHandlers', new TaggedIteratorArgument('silverback_api_component.form_handler'))
-        ->bind('$projectDir', '%kernel.project_dir%')
-    ;
+        ->bind('$projectDir', '%kernel.project_dir%');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')
-        ->exclude('../../{Entity,Migrations,Tests,Resources}')
-    ;
+        ->exclude('../../{Entity,Migrations,Tests,Resources}');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')
-        ->tag('controller.service_arguments')
-    ;
+        ->tag('controller.service_arguments');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\ApiPlatform\\', '../../EventSubscriber/ApiPlatform')
-        ->autoconfigure(true)
-    ;
+        ->autoconfigure(true);
 
     $services
         ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\Doctrine\\', '../../EventSubscriber/Doctrine')
-        ->tag('doctrine.event_subscriber')
-    ;
+        ->tag('doctrine.event_subscriber');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\EntityListener\\', '../../EntityListener')
-        ->tag('doctrine.orm.entity_listener')
-    ;
+        ->tag('doctrine.orm.entity_listener');
 
     $services
         ->set(FormHandlerClassValidator::class)
-        ->tag('validator.constraint_validator')
-    ;
+        ->tag('validator.constraint_validator');
 
     $services
         ->set(ComponentLocationValidator::class)
-        ->tag('validator.constraint_validator')
-    ;
+        ->tag('validator.constraint_validator');
 
     $services
         ->set(FormTypeClassValidator::class)
@@ -72,8 +64,7 @@ return function (ContainerConfigurator $configurator) {
             [
                 '$formTypes' => new TaggedIteratorArgument('silverback_api_component.form_type')
             ]
-        )
-    ;
+        );
 
     $services
         ->set(LinkValidator::class)
@@ -82,20 +73,17 @@ return function (ContainerConfigurator $configurator) {
             [
                 '$routeRepository' => RouteRepository::class
             ]
-        )
-    ;
+        );
 
     $services
         ->load('Silverback\\ApiComponentBundle\\DataProvider\\Item\\', '../../DataProvider/Item')
         ->tag('api_platform.item_data_provider', ['priority' => 1])
-        ->autoconfigure(false)
-    ;
+        ->autoconfigure(false);
 
     $services
         ->set(ApiContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
-        ->args([new Reference(ApiContextBuilder::class . '.inner')])
-    ;
+        ->args([new Reference(ApiContextBuilder::class . '.inner')]);
 
     $services
         ->set(SwaggerDecorator::class)
@@ -105,8 +93,7 @@ return function (ContainerConfigurator $configurator) {
             [
                 new Reference(SwaggerDecorator::class . '.inner')
             ]
-        )
-    ;
+        );
 
     $services->set(Client::class); // create guzzle client as a service
     $services->alias(SlugifyInterface::class, 'slugify');

@@ -14,10 +14,8 @@ class ImagineCompilerPass implements CompilerPassInterface
         $rootPaths = $container->getDefinition('liip_imagine.binary.loader.default')->getArgument(2)->getArgument(0);
 
         $container->getDefinition(PathResolver::class)
-            ->setArgument(0, $rootPaths)
-        ;
+            ->setArgument(0, $rootPaths);
         $container->getDefinition(FileUploader::class)
-            ->setArgument(2, $rootPaths)
-        ;
+            ->setArgument(2, $rootPaths);
     }
 }

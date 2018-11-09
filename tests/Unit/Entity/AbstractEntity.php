@@ -19,8 +19,7 @@ abstract class AbstractEntity extends TestCase
     {
         self::$validator = Validation::createValidatorBuilder()
             ->addMethodMapping('loadValidatorMetadata')
-            ->getValidator()
-        ;
+            ->getValidator();
     }
 
     /**

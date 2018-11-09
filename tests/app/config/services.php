@@ -12,22 +12,17 @@ return function (ContainerConfigurator $container) {
         ->defaults()
         ->autoconfigure()
         ->autowire()
-        ->private()
-    ;
+        ->private();
     $services
-        ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\', '../../TestBundle/*')
-    ;
+        ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\', '../../TestBundle/*');
     $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
         ->tag('doctrine.fixture.orm')
-        ->public()
-    ;
+        ->public();
     $services
         ->set(TestHandler::class)
-        ->tag('silverback_api_component.form_handler')
-    ;
+        ->tag('silverback_api_component.form_handler');
     $services
         ->alias('test.logger', LoggerInterface::class)
-        ->public()
-    ;
+        ->public();
 };

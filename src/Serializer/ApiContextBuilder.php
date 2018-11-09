@@ -68,7 +68,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     {
         /** @var string[] $groups */
         $groups = [['default']];
-        foreach (self::CLASS_GROUP_MAPPING as $class=>$groupMapping) {
+        foreach (self::CLASS_GROUP_MAPPING as $class => $groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {
                     $groups[] = $this->getGroupNames($group, $normalization);
@@ -85,7 +85,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @return array
      * @throws \ApiPlatform\Core\Exception\RuntimeException
      */
-    public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null) : array
+    public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
         if (\in_array('none', $context['groups'] ?? [], true)) {

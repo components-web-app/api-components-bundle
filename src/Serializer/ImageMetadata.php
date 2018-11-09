@@ -55,7 +55,7 @@ class ImageMetadata
         }
 
         [$this->width, $this->height] = getimagesize($filePath);
-        $this->imagineKey= $imagineKey;
+        $this->imagineKey = $imagineKey;
     }
 
     /**

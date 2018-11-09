@@ -42,9 +42,12 @@ class FormFactory
             null,
             [
                 'method' => 'POST',
-                'action' => $this->router->generate('api_forms_post_item', [
+                'action' => $this->router->generate(
+                    'api_forms_post_item',
+                    [
                     'id' => $component->getId()
-                ])
+                ]
+                )
             ]
         );
     }

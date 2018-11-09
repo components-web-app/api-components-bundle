@@ -15,7 +15,7 @@ class InvalidEntityException extends \InvalidArgumentException
     public function __construct(ConstraintViolationListInterface $errors, string $message = '', int $code = 0, Throwable $previous = null)
     {
         $this->errors = $errors;
-        parent::__construct((string) $errors . '. ' . $message, $code, $previous);
+        parent::__construct((string)$errors . '. ' . $message, $code, $previous);
     }
 
     public function getErrors()

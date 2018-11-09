@@ -29,23 +29,24 @@ class FormTypeClassValidator extends ConstraintValidator
         try {
             $valid = ClassNameValidator::validate($value, $this->formTypes);
             if (!$valid) {
-                $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [
+                $conditionsStr = vsprintf(
+                    ' It should extend %s, implement %s or tagged %s',
+                    [
                     AbstractType::class,
                     FormTypeInterface::class,
                     'silverback_api_component.form_type'
-                ]);
+                ]
+                );
                 $this->context
                     ->buildViolation($constraint->message . $conditionsStr)
                     ->setParameter('{{ string }}', $value)
-                    ->addViolation()
-                ;
+                    ->addViolation();
             }
         } catch (InvalidArgumentException $exception) {
             $this->context
                 ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)
-                ->addViolation()
-            ;
+                ->addViolation();
         }
     }
 }

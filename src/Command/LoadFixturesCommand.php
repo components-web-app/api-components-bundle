@@ -16,8 +16,7 @@ class LoadFixturesCommand extends Command
     {
         $this
             ->setName('api-component-bundle:fixtures:load')
-            ->setDescription('Load fixtures by dropping database/schema first')
-        ;
+            ->setDescription('Load fixtures by dropping database/schema first');
     }
 
     /**
@@ -30,7 +29,7 @@ class LoadFixturesCommand extends Command
     {
         $command = $this->getApplication()->find('doctrine:schema:drop');
         $arguments = [
-            '--force'  => true
+            '--force' => true
         ];
         $cmdInput = new ArrayInput($arguments);
         $command->run($cmdInput, $output);

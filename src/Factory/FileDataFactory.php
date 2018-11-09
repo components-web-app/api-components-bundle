@@ -56,7 +56,7 @@ class FileDataFactory implements ServiceSubscriberInterface
         $objectId = $this->iriConverter->getIriFromItem($file);
         return $this->router->generate(
             'files_upload',
-            [ 'field' => 'filePath', 'id' => $objectId ]
+            ['field' => 'filePath', 'id' => $objectId]
         );
     }
 
@@ -76,10 +76,13 @@ class FileDataFactory implements ServiceSubscriberInterface
             // Whatever image roots are set in imagine will be looped and removed from the start of the string
             $resolvedPath = $pathResolver->resolve($filePath);
             $imagineBrowserPath = $cacheManager->getBrowserPath($resolvedPath, $filter);
-            $imagineFilePath = ltrim(parse_url(
-                $imagineBrowserPath,
-                PHP_URL_PATH
-            ), '/');
+            $imagineFilePath = ltrim(
+                parse_url(
+                    $imagineBrowserPath,
+                    PHP_URL_PATH
+                ),
+                '/'
+            );
             $realPath = sprintf('%s/public/%s', $this->projectDir, $imagineFilePath);
             $imagineData[$returnKey] = new ImageMetadata($realPath, $imagineFilePath, $filter);
         }

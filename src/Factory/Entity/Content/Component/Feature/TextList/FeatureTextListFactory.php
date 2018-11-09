@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FeatureTextListFactory extends AbstractComponentFactory
 {
-    /** @var FeatureTextListItemFactory  */
+    /** @var FeatureTextListItemFactory */
     private $itemFactory;
 
     public function __construct(ObjectManager $manager, ValidatorInterface $validator, FeatureTextListItemFactory $itemFactory)

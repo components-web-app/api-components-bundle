@@ -43,7 +43,7 @@ abstract class AbstractFactory implements FactoryInterface
     protected function init($component, ?array $ops = null): void
     {
         $this->setOptions($ops);
-        foreach ($this->ops as $op=>$value) {
+        foreach ($this->ops as $op => $value) {
             if (
                 null !== $value &&
                 !\in_array($op, static::getIgnoreOps(), true)

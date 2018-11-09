@@ -65,7 +65,6 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         $this->title = $title;
     }
 
-
     /**
      * @return null|string
      */

@@ -23,7 +23,7 @@ class FileSubscriber extends AbstractSubscriber
     public static function getSubscribedServices(): array
     {
         return [
-            '?' .  FileDataFactory::class
+            '?' . FileDataFactory::class
         ];
     }
 
