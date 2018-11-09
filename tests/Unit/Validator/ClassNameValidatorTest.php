@@ -39,7 +39,6 @@ class ClassNameValidatorTest extends TestCase
      */
     public function test_class_same_validation_success(): void
     {
-
         $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->class));
         $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->proxy));
         $this->assertTrue(ClassNameValidator::isClassSame(FileInterface::class, $this->class));

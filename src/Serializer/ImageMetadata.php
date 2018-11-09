@@ -4,26 +4,36 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\Exception\FileMissingException;
 use Silverback\ApiComponentBundle\Exception\FileNotImageException;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 class ImageMetadata
 {
     /**
+     * @Groups({"component", "content"})
      * @var int
      */
     private $width;
+
     /**
+     * @Groups({"component", "content"})
      * @var int
      */
     private $height;
+
     /**
+     * @Groups({"component", "content"})
      * @var string
      */
     private $filePath;
+
     /**
+     * @Groups({"component", "content"})
      * @var string
      */
     private $publicPath;
+
     /**
+     * @Groups({"component", "content"})
      * @var string|null
      */
     private $imagineKey;

@@ -23,6 +23,12 @@ trait FileTrait
     protected $filePath;
 
     /**
+     * @Groups({"component", "content"})
+     * @var FileData|null
+     */
+    private $fileData;
+
+    /**
      * @return null|string
      */
     public function getFilePath(): ?string
@@ -50,5 +56,21 @@ trait FileTrait
     public function getDir(): ?string
     {
         return null;
+    }
+
+    /**
+     * @return null|FileData
+     */
+    public function getFileData(): ?FileData
+    {
+        return $this->fileData;
+    }
+
+    /**
+     * @param null|FileData $fileData
+     */
+    public function setFileData(?FileData $fileData): void
+    {
+        $this->fileData = $fileData;
     }
 }

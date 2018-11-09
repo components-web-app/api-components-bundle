@@ -8,4 +8,6 @@ interface FileInterface
     public function setFilePath(?string $filePath): void;
     public static function getImagineFilters(): array;
     public function getDir(): ?string;
+    public function getFileData(): ?FileData;
+    public function setFileData(?FileData $fileData): void;
 }

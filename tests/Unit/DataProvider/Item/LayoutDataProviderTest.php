@@ -14,7 +14,7 @@ class LayoutDataProviderTest extends TestCase
     /**
      * @throws \ApiPlatform\Core\Exception\ResourceClassNotSupportedException
      */
-    public function test_layout_data_provider()
+    public function test_default_layout_data_provider()
     {
         $layout = new Layout();
         $layout->setDefault(true);
