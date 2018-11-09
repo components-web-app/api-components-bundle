@@ -14,8 +14,6 @@ return function (ContainerConfigurator $container) {
         ->autowire()
         ->private();
     $services
-        ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\', '../../TestBundle/*');
-    $services
         ->load('Silverback\\ApiComponentBundle\\Tests\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
         ->tag('doctrine.fixture.orm')
         ->public();
