@@ -22,7 +22,9 @@ build:
     tests:
         override:
             -
-                command: bin/phpunit --coverage-clover=clover.xml
+                command: tests/app/console cache:clear
+            -
+                command: vendor/bin/simple-phpunit --coverage-clover=coverage.xml
                 coverage:
                     file: clover.xml
                     format: php-clover
