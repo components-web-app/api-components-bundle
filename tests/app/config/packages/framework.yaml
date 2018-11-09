@@ -1,4 +1,6 @@
 framework:
+    fragments:
+        enabled: true
     test:     ~
     secret: 'silverbackNoSecret'
     validation:

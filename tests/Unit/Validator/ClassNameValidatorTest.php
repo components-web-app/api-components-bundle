@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Validator;
 
 use PHPUnit\Framework\TestCase;
+use ProxyManager\Configuration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\ProxyInterface;
 use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
@@ -25,7 +26,7 @@ class ClassNameValidatorTest extends TestCase
     public function setUp()
     {
         $this->class = new FileComponent();
-        $factory = new LazyLoadingValueHolderFactory();
+        $factory = new LazyLoadingValueHolderFactory(new Configuration());
         $this->proxy = $factory->createProxy(
             FileComponent::class,
             function (&$wrappedObject) {
