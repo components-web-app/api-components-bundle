@@ -1,6 +1,6 @@
 resources:
-    Silverback\ApiComponentBundle\Entity\Content\Page: ~
-    Silverback\ApiComponentBundle\Entity\Content\ComponentGroup: ~
+    Silverback\ApiComponentBundle\Entity\Content\Page\Page: ~
+    Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup: ~
     Silverback\ApiComponentBundle\Entity\Layout\Layout: ~
     Silverback\ApiComponentBundle\Entity\Route\Route:
         itemOperations:
@@ -14,15 +14,15 @@ resources:
                 requirements:
                     id: ".+"
     # components
-    Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumns: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumnsItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStacked: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form:
+    Silverback\ApiComponentBundle\Entity\Component\Collection\Collection: ~
+    Silverback\ApiComponentBundle\Entity\Component\ComponentLocation: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumns: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList: ~
+    Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Form\Form:
         collectionOperations:
             get: ~
             post: ~
@@ -48,19 +48,19 @@ resources:
                     groups:
                         - none
                 controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitPost'
-    Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\Gallery: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem:
+    Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery: ~
+    Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem:
         iri: http://schema.org/ImageObject
-    Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Image\SimpleImage:
+    Silverback\ApiComponentBundle\Entity\Component\Hero\Hero: ~
+    Silverback\ApiComponentBundle\Entity\Component\Image\SimpleImage:
         iri: http://schema.org/ImageObject
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBar: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\NavBar\NavBarItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\Menu: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Menu\MenuItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\Tabs: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Layout\SideColumn: ~
-    Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBarItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\Menu: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\Menu\MenuItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs: ~
+    Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem: ~
+    Silverback\ApiComponentBundle\Entity\Component\Layout\SideColumn: ~
+    Silverback\ApiComponentBundle\Entity\Component\Content\Content: ~
     # dynamic pages
-    Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage: ~
+    Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage: ~
