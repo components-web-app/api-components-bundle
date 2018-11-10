@@ -71,7 +71,7 @@ class RouteFactory extends AbstractFactory
         $generatedName = $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName()));
         $name = $generatedName;
         $counter = 0;
-        while($nameExists = $this->manager->getRepository(Route::class)->findOneBy(['name' => $name])) {
+        while ($this->manager->getRepository(Route::class)->findOneBy(['name' => $name])) {
             $counter++;
             $name = sprintf('%s-%s', $generatedName, $counter);
         }
