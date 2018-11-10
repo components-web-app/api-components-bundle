@@ -2,6 +2,12 @@
     "type": "object",
     "properties": {
         "@id": { "type": "string", "required": true },
-        "items": { "type": "array", "required": true }
+        "childComponentGroup": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "componentLocations": { "type": "array", "required": true }
+            }
+        }
     }
 }

@@ -32,12 +32,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     private function loadServiceConfig(ContainerBuilder $container)
     {
-        $loader = new PhpFileLoader(
-            $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
-        );
-        $loader->load('services.php');
-
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true);
@@ -48,6 +42,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $container->register(AbstractFactory::class)
             ->setAbstract(true)
             ->addArgument(new Reference(ObjectManager::class));
+
+        $loader = new PhpFileLoader(
+            $container,
+            new FileLocator(__DIR__ . '/../Resources/config')
+        );
+        $loader->load('services.php');
     }
 
     /**

@@ -2,7 +2,9 @@
 /composer.lock
 /vendor/
 /src/var/
-/tests/app/var/
+/tests/Functional/app/var/
+/tests/Functional/app/public/bundles/
+/tests/Functional/app/public/media/
 .DS_Store
 .php_cs.cache
 /_oldReference

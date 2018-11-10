@@ -7,8 +7,8 @@ Feature: Components
     Given I add "Content-Type" header equal to "application/ld+json"
 
   @createSchema
-  Scenario: I want a content component
-    When I send a POST request to "/component/contents" with body:
+  Scenario: Post a new component for the website
+    When I send a POST request to "/contents" with body:
     """
     {
       "className": "custom-class",
@@ -49,7 +49,7 @@ Feature: Components
     {
       "type": "object",
       "properties": {
-        "components": {
+        "componentLocations": {
           "type": "array",
           "minItems": 1,
           "required": true,

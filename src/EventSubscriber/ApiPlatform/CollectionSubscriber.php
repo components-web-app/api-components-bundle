@@ -30,9 +30,8 @@ class CollectionSubscriber extends AbstractSubscriber
     public function populateCollection(GetResponseForControllerResultEvent $event): void
     {
         $collectionEntity = $event->getControllerResult();
-        $method = $event->getRequest()->getMethod();
 
-        if (!$collectionEntity instanceof Collection || Request::METHOD_GET !== $method) {
+        if (!$collectionEntity instanceof Collection) {
             return;
         }
 

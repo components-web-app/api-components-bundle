@@ -30,9 +30,8 @@ class FileSubscriber extends AbstractSubscriber
     public function populateFileData(GetResponseForControllerResultEvent $event): void
     {
         $component = $event->getControllerResult();
-        $method = $event->getRequest()->getMethod();
 
-        if (!($component instanceof FileInterface || Request::METHOD_GET !== $method)) {
+        if (!$component instanceof FileInterface) {
             return;
         }
 

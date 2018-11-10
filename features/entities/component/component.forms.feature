@@ -8,7 +8,7 @@ Feature: Forms
 
   @createSchema
   Scenario: Create a form
-    When I send a "POST" request to "/component/forms" with body:
+    When I send a "POST" request to "/forms" with body:
     """
     {
       "formType": "Silverback\\ApiComponentBundle\\Tests\\TestBundle\\Form\\TestType",
@@ -35,7 +35,7 @@ Feature: Forms
     And the service "Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler" should have property "info" with a value of "Form submitted"
 
   Scenario: Do NOT create form with invalid class name
-    When I send a POST request to "/component/forms" with body:
+    When I send a POST request to "/forms" with body:
     """
     {
       "formType": "InvalidClassName"
@@ -44,7 +44,7 @@ Feature: Forms
     Then the response status code should be 400
 
   Scenario: Do NOT create form with invalid form success handler
-    When I send a POST request to "/component/forms" with body:
+    When I send a POST request to "/forms" with body:
     """
     {
       "formType": "Silverback\\ApiComponentBundle\\Tests\\TestBundle\\Form\\TestType",

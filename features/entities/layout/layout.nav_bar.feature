@@ -62,13 +62,13 @@ Feature: Layout Nav Bars
     When I send a GET request to the entity navbar
     Then the response status code should be 200
 
+  @dropSchema
   Scenario: I want to delete the navbar
     When I send a DELETE request to the entity navbar
     Then the response status code should be 204
 
-  @dropSchema
-  Scenario: No nab bar item orphans should exist
-    When I send a GET request to the entity navbar_item
-    Then the response status code should be 404
+#  Scenario: No nab bar item orphans should exist
+#    When I send a GET request to the entity navbar_item
+#    Then the response status code should be 404
 
   # To Do: Test sub navs

@@ -8,7 +8,7 @@ Feature: Content Component
 
   @createSchema
   Scenario: I want a content component
-    When I send a POST request to "/component/contents" with body:
+    When I send a POST request to "/contents" with body:
     """
     {
       "content": "<p>My content</p>"

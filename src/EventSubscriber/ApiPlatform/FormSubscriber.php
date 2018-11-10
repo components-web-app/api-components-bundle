@@ -30,9 +30,8 @@ class FormSubscriber extends AbstractSubscriber
     public function setForm(GetResponseForControllerResultEvent $event): void
     {
         $form = $event->getControllerResult();
-        $method = $event->getRequest()->getMethod();
 
-        if (!$form instanceof Form || Request::METHOD_GET !== $method || $form->getForm()) {
+        if (!$form instanceof Form || $form->getForm()) {
             return;
         }
 

@@ -2,6 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Form;
 
-class AbstractType extends \Symfony\Component\Form\AbstractType implements FormTypeInterface
+use Symfony\Component\Form\AbstractType as BaseAbstractType;
+
+class AbstractType extends BaseAbstractType implements FormTypeInterface
 {
 }

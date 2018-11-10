@@ -8,7 +8,7 @@ Feature: Hero Component
 
   @createSchema
   Scenario: I want a hero component
-    When I send a POST request to "/component/heroes" with body:
+    When I send a POST request to "/heroes" with body:
     """
     {
       "title": "Hero Title",

@@ -30,9 +30,8 @@ class PageSubscriber extends AbstractSubscriber
     public function provideDefaultLayout(GetResponseForControllerResultEvent $event): void
     {
         $page = $event->getControllerResult();
-        $method = $event->getRequest()->getMethod();
 
-        if (!$page instanceof Page || Request::METHOD_GET !== $method || $page->getLayout()) {
+        if (!$page instanceof Page || $page->getLayout()) {
             return;
         }
 

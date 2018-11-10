@@ -38,7 +38,7 @@ before_script:
 script:
     - tests/app/console cache:clear
     - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
-#    - vendor/bin/behat
+    - vendor/bin/behat
 
 notifications:
     email:

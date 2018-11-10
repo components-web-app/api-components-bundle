@@ -11,10 +11,9 @@ default:
     extensions:
         'Behat\Symfony2Extension':
           kernel:
-            # env: '%env(APP_ENV)%'
             debug: 'true'
-            path: 'tests/app/AppKernel.php'
-            bootstrap: 'tests/app/bootstrap.php'
+            path: 'tests/Functional/app/AppKernel.php'
+            bootstrap: 'tests/Functional/app/bootstrap.php'
         'Behat\MinkExtension':
           show_auto: true
           show_cmd: cat %s

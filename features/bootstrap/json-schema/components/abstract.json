@@ -8,6 +8,10 @@
         "componentGroups": {
             "type": "array",
             "required": true
+        },
+        "componentName": {
+            "type": ["string", "null"],
+            "required": true
         }
     }
 }

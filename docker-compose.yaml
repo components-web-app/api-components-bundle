@@ -10,3 +10,5 @@ services:
         volumes:
             - ./:/srv/api:rw
         restart: on-failure
+        ports:
+            - "8001:8000"

@@ -30,9 +30,8 @@ class DynamicPageSubscriber extends AbstractSubscriber
     public function setComponentLocations(GetResponseForControllerResultEvent $event): void
     {
         $page = $event->getControllerResult();
-        $method = $event->getRequest()->getMethod();
 
-        if (!$page instanceof AbstractDynamicPage || Request::METHOD_GET !== $method) {
+        if (!$page instanceof AbstractDynamicPage) {
             return;
         }
 

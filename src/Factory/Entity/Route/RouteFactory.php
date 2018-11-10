@@ -68,9 +68,16 @@ class RouteFactory extends AbstractFactory
             return $this->createFromRouteAwareEntity($entity, $postfix + 1);
         }
         $converter = new CamelCaseToSnakeCaseNameConverter();
+        $generatedName = $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName()));
+        $name = $generatedName;
+        $counter = 0;
+        while($nameExists = $this->manager->getRepository(Route::class)->findOneBy(['name' => $name])) {
+            $counter++;
+            $name = sprintf('%s-%s', $generatedName, $counter);
+        }
         $route = $this->create(
             [
-                'name' => $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName())),
+                'name' => $name,
                 'route' => $fullRoute,
                 'content' => $entity
             ]

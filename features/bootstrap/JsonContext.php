@@ -69,21 +69,4 @@ final class JsonContext extends BaseJsonContext
         $jsonData->$node = self::getVar($value);
         $this->saveJsonVar($name, new PyStringNode([json_encode($jsonData)], 1));
     }
-
-    /**
-     * Checks, that given JSON node matches given pattern
-     * This is introduced in behatch dev master but not released yet
-     *
-     * @Then the JSON node :node should match :pattern
-     */
-    public function theJsonNodeShouldMatch($node, $pattern)
-    {
-        $json = $this->getJson();
-        $actual = $this->inspector->evaluate($json, $node);
-        if (!((bool) preg_match($pattern, $actual))) {
-            throw new \Exception(
-                sprintf("The node value is '%s'", json_encode($actual))
-            );
-        }
-    }
 }

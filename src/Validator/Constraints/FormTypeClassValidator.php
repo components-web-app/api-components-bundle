@@ -22,7 +22,6 @@ class FormTypeClassValidator extends ConstraintValidator
     /**
      * @param mixed $value
      * @param Constraint $constraint
-     * @throws \ReflectionException
      */
     public function validate($value, Constraint $constraint): void
     {

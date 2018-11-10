@@ -73,7 +73,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup", mappedBy="parent", cascade={"persist"})
      * @ORM\OrderBy({"sort"="ASC"})
      * @ApiProperty(attributes={"fetchEager": false})
-     * @Groups({"layout", "route", "content"})
+     * @Groups({"layout", "route", "content", "component"})
      * @var Collection|ComponentGroup[]
      */
     protected $componentGroups;

@@ -1,13 +1,13 @@
 Feature: Layout
-  In order to use layouts
+  To use default layouts
   As an API user
-  I can perform all known requests with customisations and receive expected responses
+  I can add a default layout, access it via the default route and a page should always return the default value if not set
 
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
   @createSchema
-  Scenario: I need a layout for the website
+  Scenario: I want to add a default layout that pages will default to
     When I send a "POST" request to "/layouts" with body:
     """
     {
@@ -23,6 +23,30 @@ Feature: Layout
     When I send a "GET" request to "/layouts/default"
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/bootstrap/json-schema/layout.json"
+
+  Scenario: A page without a layout should return the default layout
+    Given the json variable page_post is:
+    """
+    {
+      "title": "Page Title",
+      "metaDescription": "Page Meta Description"
+    }
+    """
+    When I send a "POST" request to "/pages" with the json variable page_post as the body
+    And save the entity id as page
+    And I send a GET request to the entity page
+    Then the response status code should be 200
+    And the JSON should be valid according to this schema:
+    """
+    {
+      "type": "object",
+      "properties": {
+        "layout": {
+          "type": "string"
+        }
+      }
+    }
+    """
 
   Scenario: Update layout
     When I send a "PUT" request to the entity layout with body:
