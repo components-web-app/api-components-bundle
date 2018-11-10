@@ -36,7 +36,7 @@ before_script:
     - composer install --prefer-source
 
 script:
-    - tests/app/console cache:clear
+    - tests/Functional/app/console cache:clear
     - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
     - vendor/bin/behat
 
