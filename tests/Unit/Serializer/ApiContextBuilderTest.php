@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Serializer;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Symfony\Component\HttpFoundation\Request;
 

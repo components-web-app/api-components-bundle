@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Image;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Image\SimpleImage;
+use Silverback\ApiComponentBundle\Entity\Component\Image\SimpleImage;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**

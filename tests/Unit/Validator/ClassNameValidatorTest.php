@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\ProxyInterface;
-use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;

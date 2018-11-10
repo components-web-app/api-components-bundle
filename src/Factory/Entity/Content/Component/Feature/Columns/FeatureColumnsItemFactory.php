@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Columns;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Columns\FeatureColumnsItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Columns\FeatureColumnsItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\AbstractFeatureItemFactory;
 
 class FeatureColumnsItemFactory extends AbstractFeatureItemFactory

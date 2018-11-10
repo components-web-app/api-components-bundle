@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\TextList;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextListItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextListItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\AbstractFeatureItemFactory;
 
 class FeatureTextListItemFactory extends AbstractFeatureItemFactory

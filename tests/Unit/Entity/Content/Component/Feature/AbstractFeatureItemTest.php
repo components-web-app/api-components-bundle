@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Feature;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Url;

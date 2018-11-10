@@ -6,7 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
@@ -14,13 +14,15 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
- * @ORM\Table(name="route_content")
+ * @ORM\Table(name="content")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
- *     "page" = "Silverback\ApiComponentBundle\Entity\Content\Page",
- *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup",
- *     "article" = "Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage"
+ *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup",
+ *     "abstract_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage",
+ *     "page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Page",
+ *     "dynamic_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage",
+ *     "article_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage"
  * })
  */
 abstract class AbstractContent implements ContentInterface
@@ -33,7 +35,7 @@ abstract class AbstractContent implements ContentInterface
     protected $id;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
      * @ORM\OrderBy({"sort"="ASC"})
      * @MaxDepth(40)
      * @var Collection|ComponentLocation[]
@@ -63,7 +65,7 @@ abstract class AbstractContent implements ContentInterface
     }
 
     /**
-     * @param ComponentLocation[]|iterable $componentLocations
+     * @param \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation[]|iterable $componentLocations
      * @return AbstractContent
      */
     public function setComponentLocations(iterable $componentLocations): AbstractContent

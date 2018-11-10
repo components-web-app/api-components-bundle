@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 
 abstract class AbstractComponentFactory extends AbstractFactory
@@ -28,14 +28,14 @@ abstract class AbstractComponentFactory extends AbstractFactory
             $this->ops['parentContent'] &&
             !$component->hasParentContent($this->ops['parentContent'])
         ) {
-            $location = new ComponentLocation($this->ops['parentContent'], $component);
+            $location = new \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation($this->ops['parentContent'], $component);
             $component->addLocation($location);
             $this->manager->persist($location);
         }
         if (
         $this->ops['dynamicPageClass']
         ) {
-            $location = new ComponentLocation(null, $component);
+            $location = new \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation(null, $component);
             $location->setDynamicPageClass($this->ops['dynamicPageClass']);
             $component->addLocation($location);
             $this->manager->persist($location);

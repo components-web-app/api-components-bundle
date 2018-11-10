@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Feature\TextList;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\Range;
 

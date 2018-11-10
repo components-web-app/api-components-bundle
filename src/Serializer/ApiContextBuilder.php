@@ -4,10 +4,10 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\AbstractNavigation;
-use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;

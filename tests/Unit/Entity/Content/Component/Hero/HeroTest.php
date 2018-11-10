@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Hero;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotNull;
 

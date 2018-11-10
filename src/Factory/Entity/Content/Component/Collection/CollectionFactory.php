@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Collection;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
+use Silverback\ApiComponentBundle\Entity\Component\Collection\Collection;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**

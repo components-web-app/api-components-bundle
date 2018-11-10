@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Collection\Collection;
+use Silverback\ApiComponentBundle\Entity\Component\Collection\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\KernelEvents;

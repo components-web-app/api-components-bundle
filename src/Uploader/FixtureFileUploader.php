@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Uploader;
 
-use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
@@ -23,7 +23,7 @@ class FixtureFileUploader
      * @param array $data
      * @param File $file
      * @param string $field
-     * @return FileInterface
+     * @return \Silverback\ApiComponentBundle\Entity\Component\FileInterface
      * @throws \Exception
      */
     public function upload(AbstractFactory $factory, array $data, File $file, string $field = 'filePath'): FileInterface

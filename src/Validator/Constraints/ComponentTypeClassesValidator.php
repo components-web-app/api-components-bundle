@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\Component\ComponentInterface;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;

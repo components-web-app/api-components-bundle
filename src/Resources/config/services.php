@@ -31,7 +31,7 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')
-        ->exclude('../../{Entity,Migrations,Tests,Resources}');
+        ->exclude('../../{Entity,Migrations,Tests,Resources,Exception,Event,File}');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')

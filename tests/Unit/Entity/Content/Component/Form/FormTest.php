@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Form;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClass;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClass;

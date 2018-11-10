@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Cache;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Event\CommandNotifyEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\CacheClearer\CacheClearerInterface;

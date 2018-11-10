@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\EntityListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Content\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 
 class ComponentListener
 {

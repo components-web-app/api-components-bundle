@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content;
 
-use Silverback\ApiComponentBundle\Entity\Content\Page;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Page;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 
 class PageFactory extends AbstractFactory

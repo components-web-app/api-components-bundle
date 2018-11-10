@@ -9,7 +9,7 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
-use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;

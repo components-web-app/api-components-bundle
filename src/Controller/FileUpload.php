@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Controller;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use InvalidArgumentException;
 use RuntimeException;
-use Silverback\ApiComponentBundle\Entity\Content\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Uploader\FileUploader;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;

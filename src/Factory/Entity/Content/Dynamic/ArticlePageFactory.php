@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Dynamic;
 
-use Silverback\ApiComponentBundle\Entity\Content\Dynamic\ArticlePage;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\PageFactory;
 

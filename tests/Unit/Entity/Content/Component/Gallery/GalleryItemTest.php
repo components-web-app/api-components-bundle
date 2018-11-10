@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Gallery;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem;
+use Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 

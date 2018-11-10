@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Form\FormView;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory as ACBFormFactory;
 
 class FormViewFactory

@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Hero;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Hero\Hero;
+use Silverback\ApiComponentBundle\Entity\Component\Hero\Hero;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**

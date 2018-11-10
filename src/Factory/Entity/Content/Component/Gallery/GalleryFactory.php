@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\Gallery;
+use Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

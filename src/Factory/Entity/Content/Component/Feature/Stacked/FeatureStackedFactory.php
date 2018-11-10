@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStacked;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStacked;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Feature\Stacked;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 

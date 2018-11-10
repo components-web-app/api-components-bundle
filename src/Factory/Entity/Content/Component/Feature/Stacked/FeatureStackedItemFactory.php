@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\Stacked;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\Stacked\FeatureStackedItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\Stacked\FeatureStackedItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\AbstractFeatureItemFactory;
 
 class FeatureStackedItemFactory extends AbstractFeatureItemFactory

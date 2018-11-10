@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Feature\TextList;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\TextList\FeatureTextList;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\TextList\FeatureTextList;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

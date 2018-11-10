@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Content
 use Doctrine\Common\Persistence\ObjectManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Content\Content;
+use Silverback\ApiComponentBundle\Entity\Component\Content\Content;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

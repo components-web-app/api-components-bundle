@@ -4,8 +4,8 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Feat
 
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeature;
-use Silverback\ApiComponentBundle\Entity\Content\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
+use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
 
 class AbstractFeatureTest extends TestCase
 {

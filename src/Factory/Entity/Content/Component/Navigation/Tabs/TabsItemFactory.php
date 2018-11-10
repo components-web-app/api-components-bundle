@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\Tabs;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Navigation\Tabs\TabsItem;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Navigation\AbstractNavigationItemFactory;
 
 /**

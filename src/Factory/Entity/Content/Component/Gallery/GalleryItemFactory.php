@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Gallery;
 
-use Silverback\ApiComponentBundle\Entity\Content\Component\Gallery\GalleryItem;
+use Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem;
 use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\AbstractComponentFactory;
 
 /**

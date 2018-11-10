@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
 
 use ApiPlatform\Core\EventListener\EventPriorities;
-use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Repository\ComponentLocationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
