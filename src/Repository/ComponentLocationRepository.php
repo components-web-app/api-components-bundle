@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Content\Dynamic\AbstractDynamicPage;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class ComponentLocationRepository extends ServiceEntityRepository
