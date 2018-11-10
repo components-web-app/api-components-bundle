@@ -10,9 +10,9 @@ class ComponentLocationFactory extends AbstractFactory
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null): \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation
+    public function create(?array $ops = null): ComponentLocation
     {
-        $component = new \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation();
+        $component = new ComponentLocation();
         $this->init($component, $ops);
         $this->validate($component);
         return $component;

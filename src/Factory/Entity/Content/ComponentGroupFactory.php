@@ -10,9 +10,9 @@ class ComponentGroupFactory extends AbstractFactory
     /**
      * @inheritdoc
      */
-    public function create(?array $ops = null): ComponentGroup\ComponentGroup
+    public function create(?array $ops = null): ComponentGroup
     {
-        $component = new ComponentGroup\ComponentGroup();
+        $component = new ComponentGroup();
         $this->init($component, $ops);
         $this->validate($component);
         return $component;
