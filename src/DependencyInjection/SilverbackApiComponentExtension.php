@@ -3,8 +3,6 @@
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
-use Silverback\ApiComponentBundle\Factory\Entity\FactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -38,13 +36,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');
-
-        $container->register(AbstractFactory::class)
-            ->setAbstract(true)
-            ->addArgument(new Reference(ObjectManager::class));
-
-        $container->registerForAutoconfiguration(FactoryInterface::class)
-            ->setParent(AbstractFactory::class);
 
         $loader = new PhpFileLoader(
             $container,

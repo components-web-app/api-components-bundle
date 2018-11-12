@@ -147,9 +147,6 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      */
     public function removeLocation(ComponentLocation $componentLocation): AbstractComponent
     {
-        if ($componentLocation->getComponent() === $this) {
-            $componentLocation->setComponent(null);
-        }
         $this->locations->removeElement($componentLocation);
         return $this;
     }

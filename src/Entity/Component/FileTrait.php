@@ -25,7 +25,7 @@ trait FileTrait
 
     /**
      * @Groups({"component", "content"})
-     * @var \Silverback\ApiComponentBundle\DTO\File\FileData|null
+     * @var FileData|null
      */
     private $fileData;
 
