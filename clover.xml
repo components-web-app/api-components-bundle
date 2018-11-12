@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1542031429">
-  <project timestamp="1542031429">
+<coverage generated="1542037091">
+  <project timestamp="1542037091">
     <package name="Silverback\ApiComponentBundle\Cache">
       <file name="/srv/api/src/Cache/FormCacheClearer.php">
         <class name="Silverback\ApiComponentBundle\Cache\FormCacheClearer" namespace="Silverback\ApiComponentBundle\Cache">

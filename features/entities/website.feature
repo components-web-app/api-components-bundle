@@ -6,7 +6,7 @@ Feature: Website
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: I need a layout for the website
     When I send a "POST" request to "/layouts" with body:
     """
@@ -52,12 +52,7 @@ Feature: Website
     When I send a "DELETE" request to the entity layout
     Then the response status code should be 204
 
+  @dropSchema
   Scenario: I need to delete a page
     When I send a "DELETE" request to the entity page
     Then the response status code should be 204
-
-  @dropSchema
-  Scenario: After I have deleted a page the route should no longer exist
-    When I send a "GET" request to "/routes"
-    Then the response status code should be 200
-    And the JSON should be valid according to the schema "features/bootstrap/json-schema/empty_collection.json"

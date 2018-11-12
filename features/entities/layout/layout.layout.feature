@@ -6,7 +6,7 @@ Feature: Layout
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: I want to add a default layout that pages will default to
     When I send a "POST" request to "/layouts" with body:
     """

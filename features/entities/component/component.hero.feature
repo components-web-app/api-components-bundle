@@ -6,17 +6,25 @@ Feature: Hero Component
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: I want a hero component
     When I send a POST request to "/heroes" with body:
     """
     {
       "title": "Hero Title",
-      "subtitle": "Hero Subtitle"
+      "subtitle": "Hero Subtitle",
+      "componentGroups": [
+        {
+          "componentLocations": [
+
+          ]
+        }
+      ]
     }
     """
     Then the response status code should be 201
     And save the entity id as hero
+    And the JSON should be valid according to the schema "features/bootstrap/json-schema/components/abstract.json"
     And the JSON should be valid according to the schema "features/bootstrap/json-schema/components/hero.json"
 
   @dropSchema

@@ -39,7 +39,7 @@ class EntityManagerContext implements Context
     }
 
     /**
-     * @BeforeScenario @createSchema
+     * @BeforeScenario @updateDatabaseSchema
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
     public function createDatabase()

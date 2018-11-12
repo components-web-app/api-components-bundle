@@ -51,7 +51,8 @@ resources:
     Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery: ~
     Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem:
         iri: http://schema.org/ImageObject
-    Silverback\ApiComponentBundle\Entity\Component\Hero\Hero: ~
+    Silverback\ApiComponentBundle\Entity\Component\Hero\Hero:
+        shortName: 'heroes'
     Silverback\ApiComponentBundle\Entity\Component\Image\SimpleImage:
         iri: http://schema.org/ImageObject
     Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar: ~

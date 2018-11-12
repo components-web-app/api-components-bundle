@@ -11,33 +11,7 @@
         },
         "componentGroups": {
             "type": "array",
-            "required": true,
-            "items": {
-                "type": ["object"],
-                "required": true,
-                "properties": {
-                    "componentLocations": {
-                        "type": "array",
-                        "required": true,
-                        "items": {
-                            "type": [ "object"],
-                            "required": true,
-                            "properties": {
-                                "component": {
-                                    "type": [ "object"],
-                                    "required": true,
-                                    "properties": {
-                                        "tabs": {
-                                            "type": ["string", "null"],
-                                            "required": true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            "required": true
         }
     }
 }

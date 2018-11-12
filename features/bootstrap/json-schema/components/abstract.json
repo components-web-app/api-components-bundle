@@ -7,7 +7,32 @@
         },
         "componentGroups": {
             "type": "array",
-            "required": true
+            "required": true,
+            "minItems": 0,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "componentLocations": {
+                        "type": "array",
+                        "required": false,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "component": {
+                                    "type": "object",
+                                    "required": true,
+                                    "properties": {
+                                        "tabs": {
+                                            "type": ["string", "null"],
+                                            "required": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "componentName": {
             "type": ["string", "null"],

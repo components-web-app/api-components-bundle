@@ -6,7 +6,7 @@ Feature: Forms
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: Create a form
     When I send a "POST" request to "/forms" with body:
     """

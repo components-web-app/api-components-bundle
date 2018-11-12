@@ -6,7 +6,7 @@ Feature: Content Component
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: I want a content component
     When I send a POST request to "/contents" with body:
     """

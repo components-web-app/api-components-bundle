@@ -6,7 +6,7 @@ Feature: Layout Nav Bars
   Background:
     Given I add "Content-Type" header equal to "application/ld+json"
 
-  @createSchema
+  @updateDatabaseSchema
   Scenario: I want a navigation bar
     When I send a POST request to "/nav_bars" with body:
     """
