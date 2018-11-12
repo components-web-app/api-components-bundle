@@ -14,6 +14,7 @@ build:
     environment:
         variables:
             SYMFONY_DEPRECATIONS_HELPER: disabled
+            SYMFONY_PHPUNIT_VERSION: 7.4
         php:
             version: 7.2
             ini:

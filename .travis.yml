@@ -3,7 +3,7 @@ language: php
 env:
     global:
         - SYMFONY_DEPRECATIONS_HELPER=disabled
-#        - SYMFONY_PHPUNIT_VERSION=6.5
+        - SYMFONY_PHPUNIT_VERSION=7.4
 
 jobs:
     include:
