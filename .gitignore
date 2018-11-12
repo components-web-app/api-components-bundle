@@ -8,3 +8,4 @@
 .DS_Store
 .php_cs.cache
 /_oldReference
+.infection.log

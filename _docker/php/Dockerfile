@@ -1,6 +1,12 @@
 FROM silverbackis/php:symfony4
 
+ARG INFECTION_VERSION=0.11.0
+
 WORKDIR /srv/api
+
+RUN apk add --no-cache $PHPIZE_DEPS \
+	&& pecl install xdebug \
+	&& docker-php-ext-enable xdebug
 
 # Prevent Symfony Flex from generating a project ID at build time
 ARG SYMFONY_SKIP_REGISTRATION=1

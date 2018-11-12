@@ -9,12 +9,14 @@
     <php>
         <ini name="error_reporting" value="-1" />
         <ini name="memory_limit" value="-1" />
-        <server name="KERNEL_DIR" value="tests/app/" />
+        <server name="KERNEL_DIR" value="tests/Functional/app/" />
         <server name="KERNEL_CLASS" value="AppKernel" />
     </php>
 
     <logging>
         <log type="coverage-clover" target="clover.xml"/>
+        <log type="coverage-xml" target="/tmp/infection/coverage-xml"/>
+        <log type="junit" target="/tmp/infection/phpunit.junit.xml"/>
     </logging>
 
     <testsuites>
