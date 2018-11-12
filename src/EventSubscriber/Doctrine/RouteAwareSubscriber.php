@@ -9,7 +9,7 @@ use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
-use Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory;
+use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
 /**
  *
