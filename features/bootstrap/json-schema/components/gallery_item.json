@@ -6,7 +6,10 @@
             "required": true
         },
         "caption": {
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "required": true
         },
         "width": {

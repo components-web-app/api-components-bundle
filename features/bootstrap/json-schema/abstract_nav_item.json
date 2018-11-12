@@ -1,11 +1,41 @@
 {
     "type": "object",
     "properties": {
-        "@id": { "type": "string", "required": true },
-        "label": { "type": "string", "required": true },
-        "route": { "type": ["object", "null"], "required": true },
-        "fragment": { "type": ["string", "null"], "required": true },
-        "roles": { "type": ["array", "null"], "required": true },
-        "excludeRoles": { "type": ["array", "null"], "required": true }
+        "@id": {
+            "type": "string",
+            "required": true
+        },
+        "label": {
+            "type": "string",
+            "required": true
+        },
+        "route": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "required": true
+        },
+        "fragment": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "required": true
+        },
+        "roles": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "required": true
+        },
+        "excludeRoles": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "required": true
+        }
     }
 }

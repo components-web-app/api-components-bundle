@@ -1,9 +1,24 @@
 {
     "type": "object",
     "properties": {
-        "@id": { "type": "string", "required": true },
-        "title": { "type": "string", "required": true },
-        "metaDescription": { "type": "string", "required": true },
-        "layout": { "type": ["string", "null"], "required": true }
+        "@id": {
+            "type": "string",
+            "required": true
+        },
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "metaDescription": {
+            "type": "string",
+            "required": true
+        },
+        "layout": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "required": true
+        }
     }
 }

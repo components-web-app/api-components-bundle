@@ -5,8 +5,12 @@
             "type": "object",
             "required": true,
             "properties": {
-                "vars": { "type": "object" },
-                "children": { "type": "array" }
+                "vars": {
+                    "type": "object"
+                },
+                "children": {
+                    "type": "array"
+                }
             }
         }
     }

@@ -2,7 +2,10 @@
     "type": "object",
     "properties": {
         "className": {
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "required": true
         },
         "componentGroups": {
@@ -23,7 +26,10 @@
                                     "required": true,
                                     "properties": {
                                         "tabs": {
-                                            "type": ["string", "null"],
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
                                             "required": true
                                         }
                                     }
@@ -35,7 +41,10 @@
             }
         },
         "componentName": {
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "required": true
         }
     }

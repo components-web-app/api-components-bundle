@@ -18,6 +18,7 @@
         "liip/imagine-bundle": "^2.0",
         "ocramius/proxy-manager": "^2.2",
         "ramsey/uuid": "^3.7",
+        "ramsey/uuid": "^3.7",
         "sensio/framework-extra-bundle": "^5.1",
         "symfony/apache-pack": "^1.0",
         "symfony/browser-kit": "^3.4|^4.0",

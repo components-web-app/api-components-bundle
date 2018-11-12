@@ -12,7 +12,6 @@ use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
 /**
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class RouteAwareSubscriber implements EventSubscriber

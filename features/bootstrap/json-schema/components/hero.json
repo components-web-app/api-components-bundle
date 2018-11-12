@@ -6,7 +6,10 @@
             "required": true
         },
         "subtitle": {
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "required": true
         },
         "componentGroups": {
