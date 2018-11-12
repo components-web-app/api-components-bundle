@@ -26,9 +26,6 @@ class FixtureFileUploader
      */
     public function upload(FileInterface $entity, File $file, string $field = 'filePath'): FileInterface
     {
-        if (!($entity instanceof FileInterface)) {
-            throw new \Exception('Invalid entity returned from FixtureFileUploader::upload factory');
-        }
         $tempFile = tmpfile();
         if (false === $tempFile) {
             throw new \Exception('Could not create temporary file');
