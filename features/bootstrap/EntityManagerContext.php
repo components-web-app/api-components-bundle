@@ -44,7 +44,7 @@ class EntityManagerContext implements Context
      */
     public function createDatabase()
     {
-        $this->schemaTool->createSchema($this->classes);
+        $this->schemaTool->updateSchema($this->classes);
     }
 
     /**
