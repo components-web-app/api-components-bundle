@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Uploader;
+namespace Silverback\ApiComponentBundle\FIle\Uploader;
 
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;

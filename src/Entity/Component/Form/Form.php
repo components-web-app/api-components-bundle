@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\DTO\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -41,7 +42,7 @@ class Form extends AbstractComponent
     /**
      * @ApiProperty(writable=false)
      * @Groups({"component", "content"})
-     * @var null|FormView
+     * @var null|\Silverback\ApiComponentBundle\DTO\Form\FormView
      */
     private $form;
 
@@ -101,9 +102,9 @@ class Form extends AbstractComponent
     }
 
     /**
-     * @param null|FormView $form
+     * @param null|\Silverback\ApiComponentBundle\DTO\Form\FormView $form
      */
-    public function setForm(?FormView $form): void
+    public function setForm(?\Silverback\ApiComponentBundle\DTO\Form\FormView $form): void
     {
         $this->form = $form;
     }

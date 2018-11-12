@@ -35,13 +35,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true);
+
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');
-        $container->registerForAutoconfiguration(FactoryInterface::class)
-            ->setParent(AbstractFactory::class);
+
         $container->register(AbstractFactory::class)
             ->setAbstract(true)
             ->addArgument(new Reference(ObjectManager::class));
+
+        $container->registerForAutoconfiguration(FactoryInterface::class)
+            ->setParent(AbstractFactory::class);
 
         $loader = new PhpFileLoader(
             $container,
@@ -56,12 +59,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     public function prepend(ContainerBuilder $container): void
     {
-        $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
-        }
-
-        $bundles = $container->getParameter('kernel.bundles');
         $container->prependExtensionConfig(
             'api_platform',
             [
@@ -70,7 +67,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 ]
             ]
         );
+
+        $bundles = $container->getParameter('kernel.bundles');
         if (isset($bundles['LiipImagineBundle'])) {
+            $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
+            if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+            }
             $container->prependExtensionConfig(
                 'liip_imagine',
                 [

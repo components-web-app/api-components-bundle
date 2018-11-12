@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\File\FileData;
+use Silverback\ApiComponentBundle\DTO\File\FileData;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -25,7 +25,7 @@ trait FileTrait
 
     /**
      * @Groups({"component", "content"})
-     * @var FileData|null
+     * @var \Silverback\ApiComponentBundle\DTO\File\FileData|null
      */
     private $fileData;
 
@@ -60,7 +60,7 @@ trait FileTrait
     }
 
     /**
-     * @return null|FileData
+     * @return null|\Silverback\ApiComponentBundle\DTO\File\FileData
      */
     public function getFileData(): ?FileData
     {
@@ -68,7 +68,7 @@ trait FileTrait
     }
 
     /**
-     * @param null|FileData $fileData
+     * @param null|\Silverback\ApiComponentBundle\File\Model\\Silverback\ApiComponentBundle\DTO\File\FileData $fileData
      */
     public function setFileData(?FileData $fileData): void
     {

@@ -682,7 +682,7 @@
         <metrics loc="126" ncloc="77" classes="1" methods="9" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="20" coveredstatements="8" elements="29" coveredelements="9"/>
       </file>
       <file name="/srv/api/src/Entity/Component/Form/FormView.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Component\Form\FormView" namespace="Silverback\ApiComponentBundle\Entity\Component\Form" fullPackage="Silverback" package="Silverback">
+        <class name="Silverback\ApiComponentBundle\DTO\Form\FormView" namespace="Silverback\ApiComponentBundle\Entity\Component\Form" fullPackage="Silverback" package="Silverback">
           <metrics complexity="15" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="29" coveredstatements="26" elements="37" coveredelements="33"/>
         </class>
         <line num="71" type="method" name="__construct" visibility="public" complexity="3" crap="3" count="4"/>
@@ -2142,7 +2142,7 @@
     </package>
     <package name="Silverback\ApiComponentBundle\File">
       <file name="/srv/api/src/File/FileData.php">
-        <class name="Silverback\ApiComponentBundle\File\FileData" namespace="Silverback\ApiComponentBundle\File" fullPackage="Silverback" package="Silverback">
+        <class name="Silverback\ApiComponentBundle\DTO\File\FileData" namespace="Silverback\ApiComponentBundle\File" fullPackage="Silverback" package="Silverback">
           <metrics complexity="10" methods="4" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="11" coveredelements="0"/>
         </class>
         <line num="39" type="method" name="__construct" visibility="public" complexity="4" crap="20.00" count="0"/>
@@ -2159,7 +2159,7 @@
         <metrics loc="69" ncloc="37" classes="1" methods="4" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="0" elements="11" coveredelements="0"/>
       </file>
       <file name="/srv/api/src/File/ImageMetadata.php">
-        <class name="Silverback\ApiComponentBundle\File\ImageMetadata" namespace="Silverback\ApiComponentBundle\File">
+        <class name="Silverback\ApiComponentBundle\DTO\File\ImageMetadata" namespace="Silverback\ApiComponentBundle\File">
           <metrics complexity="10" methods="6" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="14" coveredstatements="0" elements="20" coveredelements="0"/>
         </class>
         <line num="41" type="method" name="__construct" visibility="public" complexity="4" crap="20.00" count="0"/>
@@ -2378,9 +2378,9 @@
         <metrics loc="67" ncloc="66" classes="1" methods="3" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="19" coveredstatements="0" elements="22" coveredelements="0"/>
       </file>
     </package>
-    <package name="Silverback\ApiComponentBundle\Uploader">
+    <package name="Silverback\ApiComponentBundle\FIle\Uploader">
       <file name="/srv/api/src/Uploader/FileUploader.php">
-        <class name="Silverback\ApiComponentBundle\Uploader\FileUploader" namespace="Silverback\ApiComponentBundle\Uploader">
+        <class name="Silverback\ApiComponentBundle\FIle\Uploader\FileUploader" namespace="Silverback\ApiComponentBundle\FIle\Uploader">
           <metrics complexity="12" methods="6" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="36" coveredstatements="0" elements="42" coveredelements="0"/>
         </class>
         <line num="23" type="method" name="__construct" visibility="public" complexity="1" crap="2.00" count="0"/>
@@ -2428,7 +2428,7 @@
         <metrics loc="96" ncloc="87" classes="1" methods="6" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="36" coveredstatements="0" elements="42" coveredelements="0"/>
       </file>
       <file name="/srv/api/src/Uploader/FixtureFileUploader.php">
-        <class name="Silverback\ApiComponentBundle\Uploader\FixtureFileUploader" namespace="Silverback\ApiComponentBundle\Uploader">
+        <class name="Silverback\ApiComponentBundle\FIle\Uploader\FixtureFileUploader" namespace="Silverback\ApiComponentBundle\FIle\Uploader">
           <metrics complexity="4" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="20" coveredstatements="0" elements="22" coveredelements="0"/>
         </class>
         <line num="15" type="method" name="__construct" visibility="public" complexity="1" crap="2.00" count="0"/>

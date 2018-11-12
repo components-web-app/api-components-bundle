@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\File;
+namespace Silverback\ApiComponentBundle\DTO\File;
 
 use Silverback\ApiComponentBundle\Exception\FileMissingException;
 use Silverback\ApiComponentBundle\Exception\FileNotImageException;

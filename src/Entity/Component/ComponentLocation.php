@@ -56,7 +56,7 @@ class ComponentLocation implements SortableInterface
      */
     protected $dynamicPageClass;
 
-    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
         $metadata->addPropertyConstraint(
             'content',
