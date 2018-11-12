@@ -1,9 +1,8 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\FIle\Uploader;
+namespace Silverback\ApiComponentBundle\File\Uploader;
 
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -19,16 +18,14 @@ class FixtureFileUploader
     }
 
     /**
-     * @param AbstractFactory $factory
-     * @param array $data
+     * @param FileInterface $entity
      * @param File $file
      * @param string $field
      * @return \Silverback\ApiComponentBundle\Entity\Component\FileInterface
      * @throws \Exception
      */
-    public function upload(AbstractFactory $factory, array $data, File $file, string $field = 'filePath'): FileInterface
+    public function upload(FileInterface $entity, File $file, string $field = 'filePath'): FileInterface
     {
-        $entity = $factory->create($data);
         if (!($entity instanceof FileInterface)) {
             throw new \Exception('Invalid entity returned from FixtureFileUploader::upload factory');
         }
