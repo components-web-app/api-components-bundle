@@ -85,8 +85,8 @@ abstract class AbstractContent implements ContentInterface
     public function addComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
         if (!$this->componentLocations->contains($componentLocation)) {
-            $componentLocation->setContent($this);
             $this->componentLocations->add($componentLocation);
+            $componentLocation->setContent($this);
         }
         return $this;
     }
@@ -98,10 +98,10 @@ abstract class AbstractContent implements ContentInterface
     public function removeComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
         if ($this->componentLocations->contains($componentLocation)) {
+            $this->componentLocations->removeElement($componentLocation);
             if ($componentLocation->getContent() === $this) {
                 $componentLocation->setContent(null);
             }
-            $this->componentLocations->removeElement($componentLocation);
         }
         return $this;
     }
