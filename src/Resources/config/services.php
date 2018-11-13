@@ -11,6 +11,7 @@ use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
 use Silverback\ApiComponentBundle\Validator\Constraints\ComponentLocationValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormHandlerClassValidator;
@@ -18,6 +19,7 @@ use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\LinkValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 use Symfony\Component\DependencyInjection\Reference;
 
 return function (ContainerConfigurator $configurator) {
@@ -38,10 +40,6 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')
         ->tag('controller.service_arguments');
-
-    $services
-        ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\ApiPlatform\\', '../../EventSubscriber/ApiPlatform')
-        ->autoconfigure(true);
 
     $services
         ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\Doctrine\\', '../../EventSubscriber/Doctrine')
@@ -86,6 +84,20 @@ return function (ContainerConfigurator $configurator) {
         ->set(ApiContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args([new Reference(ApiContextBuilder::class . '.inner')]);
+
+    $services
+        ->load('Silverback\\ApiComponentBundle\\Serializer\\Middleware\\', '../../Serializer/Middleware')
+        ->tag('silverback_api_component.serializer_middleware');
+
+    $services
+        ->set(ApiNormalizer::class)
+        ->autowire(false)
+        ->tag('serializer.normalizer', ['priority' => 99])
+        ->args([
+            tagged('silverback_api_component.serializer_middleware'),
+            tagged('serializer.normalizer')
+        ])
+    ;
 
     $services
         ->set(SwaggerDecorator::class)

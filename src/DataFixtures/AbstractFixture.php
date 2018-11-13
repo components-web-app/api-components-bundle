@@ -39,7 +39,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     {
         $errors = $this->validator->validate($entity);
         if (\count($errors)) {
-            throw new InvalidEntityException($errors);
+            throw new InvalidEntityException($errors, sprintf('%s failed validation: %s', \get_class($entity), (string) $errors));
         }
     }
 

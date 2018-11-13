@@ -51,10 +51,12 @@ class Collection extends AbstractComponent
 
     /**
      * @param string $resource
+     * @return Collection
      */
-    public function setResource(string $resource): void
+    public function setResource(string $resource): self
     {
         $this->resource = $resource;
+        return $this;
     }
 
     /**
@@ -67,10 +69,12 @@ class Collection extends AbstractComponent
 
     /**
      * @param int $perPage
+     * @return Collection
      */
-    public function setPerPage(int $perPage): void
+    public function setPerPage(int $perPage): self
     {
         $this->perPage = $perPage;
+        return $this;
     }
 
     /**
@@ -83,10 +87,12 @@ class Collection extends AbstractComponent
 
     /**
      * @param null|string $title
+     * @return Collection
      */
-    public function setTitle(?string $title): void
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
+        return $this;
     }
 
     /**
@@ -100,9 +106,10 @@ class Collection extends AbstractComponent
     /**
      * @param array|\Traversable $collection
      */
-    public function setCollection($collection): void
+    public function setCollection($collection): self
     {
         $this->collection = $collection;
+        return $this;
     }
 
     /**

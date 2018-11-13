@@ -73,10 +73,12 @@ class Form extends AbstractComponent
 
     /**
      * @param string $formType
+     * @return Form
      */
-    public function setFormType(string $formType): void
+    public function setFormType(string $formType): self
     {
         $this->formType = $formType;
+        return $this;
     }
 
     /**
@@ -89,10 +91,12 @@ class Form extends AbstractComponent
 
     /**
      * @param null|string $successHandler
+     * @return Form
      */
-    public function setSuccessHandler(?string $successHandler): void
+    public function setSuccessHandler(?string $successHandler): self
     {
         $this->successHandler = $successHandler;
+        return $this;
     }
 
     /**
@@ -105,10 +109,12 @@ class Form extends AbstractComponent
 
     /**
      * @param null|FormView $form
+     * @return Form
      */
-    public function setForm(?FormView $form): void
+    public function setForm(?FormView $form): self
     {
         $this->form = $form;
+        return $this;
     }
 
     /**
@@ -121,9 +127,11 @@ class Form extends AbstractComponent
 
     /**
      * @param \DateTime|null $lastModified
+     * @return Form
      */
-    public function setLastModified(?\DateTime $lastModified): void
+    public function setLastModified(?\DateTime $lastModified): self
     {
         $this->lastModified = $lastModified;
+        return $this;
     }
 }

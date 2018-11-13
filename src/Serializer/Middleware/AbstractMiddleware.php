@@ -1,14 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
+namespace Silverback\ApiComponentBundle\Serializer\Middleware;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-abstract class AbstractSubscriber implements ServiceSubscriberInterface, EventSubscriberInterface
+abstract class AbstractMiddleware implements MiddlewareInterface, ServiceSubscriberInterface
 {
     protected $container;
 
@@ -17,7 +14,9 @@ abstract class AbstractSubscriber implements ServiceSubscriberInterface, EventSu
         $this->container = $container;
     }
 
-    abstract public static function getSubscribedEvents(): array;
+    abstract public function process($object, array $context = array());
+
+    abstract public function supportsData($data): bool;
 
     abstract public static function getSubscribedServices(): array;
 }
