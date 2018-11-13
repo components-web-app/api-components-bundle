@@ -46,7 +46,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
     /**
      * @param ContainerBuilder $container
-     * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
      */
     public function prepend(ContainerBuilder $container): void
     {
