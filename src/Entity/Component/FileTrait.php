@@ -60,7 +60,7 @@ trait FileTrait
     }
 
     /**
-     * @return null|\Silverback\ApiComponentBundle\DTO\File\FileData
+     * @return null|FileData
      */
     public function getFileData(): ?FileData
     {
@@ -68,7 +68,7 @@ trait FileTrait
     }
 
     /**
-     * @param null|\Silverback\ApiComponentBundle\File\Model\\Silverback\ApiComponentBundle\DTO\File\FileData $fileData
+     * @param null|FileData $fileData
      */
     public function setFileData(?FileData $fileData): void
     {
