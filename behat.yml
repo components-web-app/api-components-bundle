@@ -1,35 +1,35 @@
 default:
     suites:
         default:
-          contexts:
-            - FeatureContext
-            - KernelContext
-            - EntityManagerContext: { doctrine: '@doctrine' }
-            - JsonContext
-            - Behat\MinkExtension\Context\MinkContext
-            - RestContext
+            contexts:
+                - FeatureContext
+                - KernelContext
+                -   EntityManagerContext: { doctrine: '@doctrine' }
+                - JsonContext
+                - Behat\MinkExtension\Context\MinkContext
+                - RestContext
     extensions:
         'Behat\Symfony2Extension':
-          kernel:
-            debug: 'true'
-            path: 'tests/Functional/app/AppKernel.php'
-            bootstrap: 'tests/Functional/app/bootstrap.php'
+            kernel:
+                debug: 'true'
+                path: 'tests/Functional/app/AppKernel.php'
+                bootstrap: 'tests/Functional/app/bootstrap.php'
         'Behat\MinkExtension':
-          show_auto: true
-          show_cmd: cat %s
-          base_url: "http://localhost"
-          sessions:
-            default:
-              symfony2: ~
+            show_auto: true
+            show_cmd: cat %s
+            base_url: "http://localhost"
+            sessions:
+                default:
+                    symfony2: ~
         'Behatch\Extension': ~
 
 coverage:
-  suites:
-    default:
-      contexts:
-        - FeatureContext
-        - KernelContext
-        - EntityManagerContext: { doctrine: '@doctrine' }
-        - JsonContext
-        - Behat\MinkExtension\Context\MinkContext
-        - RestContext
+    suites:
+        default:
+            contexts:
+                - FeatureContext
+                - KernelContext
+                -   EntityManagerContext: { doctrine: '@doctrine' }
+                - JsonContext
+                - Behat\MinkExtension\Context\MinkContext
+                - RestContext

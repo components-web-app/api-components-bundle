@@ -4,10 +4,10 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
-use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
+use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
+use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;

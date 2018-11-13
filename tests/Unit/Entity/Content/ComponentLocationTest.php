@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content;
 
-use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotBlank;
 

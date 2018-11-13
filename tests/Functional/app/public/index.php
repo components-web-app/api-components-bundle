@@ -8,8 +8,10 @@
  * file that was distributed with this source code.
  */
 declare(strict_types=1);
+
 use Symfony\Component\HttpFoundation\Request;
-require __DIR__.'/../bootstrap.php';
+
+require __DIR__ . '/../bootstrap.php';
 $env = $_SERVER['APP_ENV'] ?? 'test';
 $kernel = new AppKernel($env, $_SERVER['APP_DEBUG'] ?? ('prod' !== $env));
 $request = Request::createFromGlobals();

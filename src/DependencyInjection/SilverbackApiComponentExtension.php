@@ -2,7 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -10,7 +9,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
 
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
@@ -65,6 +63,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
             }
+
             $container->prependExtensionConfig(
                 'liip_imagine',
                 [

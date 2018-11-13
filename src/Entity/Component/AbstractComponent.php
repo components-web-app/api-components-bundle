@@ -136,8 +136,10 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      */
     public function addLocation(ComponentLocation $componentLocation): AbstractComponent
     {
-        $componentLocation->setComponent($this);
-        $this->locations->add($componentLocation);
+        if (!$this->locations->contains($componentLocation)) {
+            $componentLocation->setComponent($this);
+            $this->locations->add($componentLocation);
+        }
         return $this;
     }
 
@@ -147,7 +149,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      */
     public function removeLocation(ComponentLocation $componentLocation): AbstractComponent
     {
-        $this->locations->removeElement($componentLocation);
+        if ($this->locations->contains($componentLocation)) {
+            $this->locations->removeElement($componentLocation);
+        }
         return $this;
     }
 
@@ -170,8 +174,10 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      */
     public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
-        $componentGroup->setParent($this);
-        $this->componentGroups->add($componentGroup);
+        if (!$this->componentGroups->contains($componentGroup)) {
+            $componentGroup->setParent($this);
+            $this->componentGroups->add($componentGroup);
+        }
         return $this;
     }
 
@@ -181,7 +187,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      */
     public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
-        $this->componentGroups->removeElement($componentGroup);
+        if ($this->componentGroups->contains($componentGroup)) {
+            $this->componentGroups->removeElement($componentGroup);
+        }
         return $this;
     }
 

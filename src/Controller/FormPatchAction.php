@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Controller;
 
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\DTO\Form\FormView;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

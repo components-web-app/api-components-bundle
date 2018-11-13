@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component\Form;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\DTO\Form\FormView;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;

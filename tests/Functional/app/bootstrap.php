@@ -24,7 +24,7 @@ $getEnvVar = function ($name, $default = false) {
     }
     if (false !== $phpunitConfig) {
         $var = new DOMXpath($phpunitConfig);
-        foreach ($var->query('//php/env[@name="'.$name.'"]') as $var) {
+        foreach ($var->query('//php/env[@name="' . $name . '"]') as $var) {
             return $var->getAttribute('value');
         }
     }
@@ -33,7 +33,7 @@ $getEnvVar = function ($name, $default = false) {
 };
 $root = __DIR__ . '/../../..';
 $PHPUNIT_VERSION = $getEnvVar('SYMFONY_PHPUNIT_VERSION', '6.5');
-$PHPUNIT_DIR = $getEnvVar('SYMFONY_PHPUNIT_DIR', $root.'/vendor/bin/.phpunit');
+$PHPUNIT_DIR = $getEnvVar('SYMFONY_PHPUNIT_DIR', $root . '/vendor/bin/.phpunit');
 
 require __DIR__ . '/../../../vendor/autoload.php';
 // For behat tests to use php assertion

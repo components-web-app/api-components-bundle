@@ -50,7 +50,6 @@ class FormCacheClearer implements CacheClearerInterface
 
     /**
      * @param Form $form
-     * @throws \ReflectionException
      */
     private function updateFormTimestamp(Form $form): void
     {

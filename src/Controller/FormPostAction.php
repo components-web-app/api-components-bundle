@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\DTO\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;

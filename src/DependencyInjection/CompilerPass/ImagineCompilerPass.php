@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\File\Uploader\FileUploader;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 

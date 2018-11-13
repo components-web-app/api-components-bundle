@@ -22,12 +22,10 @@ return function (ContainerConfigurator $container) {
         ->public();
 
     $services
-        ->set(TestType::class)
-    ;
+        ->set(TestType::class);
 
     // To test it has been called from behat - not required in actual application
     $services
         ->set(TestHandler::class)
-        ->public()
-    ;
+        ->public();
 };

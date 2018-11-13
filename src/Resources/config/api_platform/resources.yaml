@@ -47,7 +47,7 @@ resources:
                 denormalization_context:
                     groups:
                         - none
-                controller: 'Silverback\ApiComponentBundle\Controller\FormSubmitAction'
+                controller: 'Silverback\ApiComponentBundle\Controller\FormPostAction'
     Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery: ~
     Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem:
         iri: http://schema.org/ImageObject

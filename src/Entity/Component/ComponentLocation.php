@@ -6,9 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeatureItem;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
@@ -108,13 +107,16 @@ class ComponentLocation implements SortableInterface
      */
     public function setContent(?AbstractContent $content, ?bool $sortLast = true): void
     {
-        $this->content = $content;
         if (null === $this->sort || $sortLast !== null) {
             $this->setSort($this->calculateSort($sortLast));
         }
-        if ($this->content) {
-            $this->content->addComponentLocation($this);
+        if ($content !== $this->content) {
+            if ($content) {
+                $content->addComponentLocation($this);
+            }
+            $this->content = $content;
         }
+
     }
 
     /**

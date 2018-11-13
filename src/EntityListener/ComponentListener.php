@@ -22,7 +22,6 @@ class ComponentListener
             $this->deleteSubComponents($component, $entityManager);
         }
     }
-
     /**
      * @param AbstractComponent $component
      * @param EntityManagerInterface $entityManager

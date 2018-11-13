@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DTO\Form;
+namespace Silverback\ApiComponentBundle\Dto\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
