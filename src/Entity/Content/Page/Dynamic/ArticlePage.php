@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic;
 
 use Doctrine\ORM\Mapping as ORM;

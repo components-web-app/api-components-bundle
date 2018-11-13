@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Dto\File;
 
 use Symfony\Component\Serializer\Annotation\Groups;

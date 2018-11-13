@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Content\ComponentGroup;
 
 use Doctrine\Common\Collections\ArrayCollection;

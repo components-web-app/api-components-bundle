@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -107,16 +109,15 @@ class ComponentLocation implements SortableInterface
      */
     public function setContent(?AbstractContent $content, ?bool $sortLast = true): void
     {
-        if (null === $this->sort || $sortLast !== null) {
-            $this->setSort($this->calculateSort($sortLast));
-        }
         if ($content !== $this->content) {
             $this->content = $content;
             if ($content) {
                 $content->addComponentLocation($this);
             }
+            if (null === $this->sort || $sortLast !== null) {
+                $this->setSort($this->calculateSort($sortLast));
+            }
         }
-
     }
 
     /**

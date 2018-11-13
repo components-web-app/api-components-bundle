@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Layout;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -66,10 +68,12 @@ class Layout
 
     /**
      * @param bool $default
+     * @return Layout
      */
-    public function setDefault(bool $default): void
+    public function setDefault(bool $default): self
     {
         $this->default = $default;
+        return $this;
     }
 
     /**
@@ -82,10 +86,12 @@ class Layout
 
     /**
      * @param null|NavBar $navBar
+     * @return Layout
      */
-    public function setNavBar(?NavBar $navBar): void
+    public function setNavBar(?NavBar $navBar): self
     {
         $this->navBar = $navBar;
+        return $this;
     }
 
     /**
@@ -98,9 +104,11 @@ class Layout
 
     /**
      * @param null|string $className
+     * @return Layout
      */
-    public function setClassName(?string $className): void
+    public function setClassName(?string $className): self
     {
         $this->className = $className;
+        return $this;
     }
 }

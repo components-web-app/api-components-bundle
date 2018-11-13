@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component\Hero;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -65,10 +67,12 @@ class Hero extends AbstractComponent implements FileInterface
 
     /**
      * @param null|string $title
+     * @return self
      */
-    public function setTitle(?string $title): void
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
+        return $this;
     }
 
     /**
@@ -81,10 +85,12 @@ class Hero extends AbstractComponent implements FileInterface
 
     /**
      * @param null|string $subtitle
+     * @return self
      */
-    public function setSubtitle(?string $subtitle): void
+    public function setSubtitle(?string $subtitle): self
     {
         $this->subtitle = $subtitle;
+        return $this;
     }
 
     public function __toString()

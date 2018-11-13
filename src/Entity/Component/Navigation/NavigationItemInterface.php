@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component\Navigation;
 
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;

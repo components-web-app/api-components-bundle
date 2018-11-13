@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Factory;
 
 use ApiPlatform\Core\Api\IriConverterInterface;

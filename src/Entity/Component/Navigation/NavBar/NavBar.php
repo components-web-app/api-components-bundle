@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\AbstractNavigation;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup;
+use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 
 /**
  * @author Daniel West <daniel@silverback.is

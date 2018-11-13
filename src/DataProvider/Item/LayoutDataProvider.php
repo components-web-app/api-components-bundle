@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\DataProvider\Item;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;

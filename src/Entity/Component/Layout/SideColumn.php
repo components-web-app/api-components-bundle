@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component\Layout;
 
 use Doctrine\ORM\Mapping as ORM;

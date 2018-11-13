@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;

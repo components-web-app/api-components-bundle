@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Component\Feature;
 
 use Silverback\ApiComponentBundle\Entity\Route\Route;

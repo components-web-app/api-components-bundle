@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Cache;
 
 use Doctrine\ORM\EntityManagerInterface;

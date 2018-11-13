@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Entity\Content\Page;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
@@ -68,10 +70,12 @@ abstract class AbstractPage extends AbstractContent implements RouteAwareInterfa
 
     /**
      * @param string $title
+     * @return AbstractPage
      */
-    public function setTitle(string $title): void
+    public function setTitle(string $title): self
     {
         $this->title = $title;
+        return $this;
     }
 
     /**
@@ -84,10 +88,12 @@ abstract class AbstractPage extends AbstractContent implements RouteAwareInterfa
 
     /**
      * @param string $metaDescription
+     * @return AbstractPage
      */
-    public function setMetaDescription(string $metaDescription): void
+    public function setMetaDescription(string $metaDescription): self
     {
         $this->metaDescription = $metaDescription;
+        return $this;
     }
 
     /**
@@ -100,10 +106,12 @@ abstract class AbstractPage extends AbstractContent implements RouteAwareInterfa
 
     /**
      * @param null|Page $parent
+     * @return AbstractPage
      */
-    public function setParent(?Page $parent): void
+    public function setParent(?Page $parent): self
     {
         $this->parent = $parent;
+        return $this;
     }
 
     /**
@@ -116,10 +124,12 @@ abstract class AbstractPage extends AbstractContent implements RouteAwareInterfa
 
     /**
      * @param Layout|null $layout
+     * @return AbstractPage
      */
-    public function setLayout(?Layout $layout): void
+    public function setLayout(?Layout $layout): self
     {
         $this->layout = $layout;
+        return $this;
     }
 
     /**
