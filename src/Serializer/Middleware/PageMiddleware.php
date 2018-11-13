@@ -7,6 +7,11 @@ use Silverback\ApiComponentBundle\Repository\LayoutRepository;
 
 class PageMiddleware extends AbstractMiddleware
 {
+    /**
+     * @param Page $page
+     * @param array $context
+     * @return object|void
+     */
     public function process($page, array $context = array())
     {
         /** @var LayoutRepository $repository */

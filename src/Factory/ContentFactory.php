@@ -14,7 +14,8 @@ class ContentFactory
     private $lipsumOps;
     private $guzzleOps;
 
-    public function __construct(Client $client, ?array $lipsumOps = null, array $guzzleOps = []) {
+    public function __construct(Client $client, ?array $lipsumOps = null, array $guzzleOps = [])
+    {
         $this->client = $client;
         $this->lipsumOps = $lipsumOps ?: [
             '5',

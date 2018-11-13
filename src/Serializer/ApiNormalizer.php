@@ -24,7 +24,7 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
     /**
      * Check if any of our entity normalizers should be called
      * @param mixed $data
-     * @param null $format
+     * @param null|string $format
      * @return bool
      */
     public function supportsNormalization($data, $format = null): bool
@@ -44,7 +44,7 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
     /**
      * Here we need to call our own entity normalizer followed by the next supported normalizer
      * @param mixed $object
-     * @param null $format
+     * @param null|string $format
      * @param array $context
      * @return array|bool|float|int|mixed|string
      */
@@ -71,6 +71,6 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
      */
     public function hasCacheableSupportsMethod(): bool
     {
-        return true;
+        return false;
     }
 }

@@ -10,7 +10,7 @@ interface MiddlewareInterface
      * @param mixed  $object  Object to normalize
      * @param array  $context Context options for the normalizer
      *
-     * @return object
+     * @return object|void
      */
     public function process($object, array $context = array());
 

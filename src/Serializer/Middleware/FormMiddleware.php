@@ -7,6 +7,11 @@ use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 
 class FormMiddleware extends AbstractMiddleware
 {
+    /**
+     * @param Form $form
+     * @param array $context
+     * @return object|void
+     */
     public function process($form, array $context = array())
     {
         /** @var FormViewFactory $factory */
