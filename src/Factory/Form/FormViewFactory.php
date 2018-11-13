@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Factory\Form;
 
-use Silverback\ApiComponentBundle\DTO\Form\FormView;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 
 class FormViewFactory

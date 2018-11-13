@@ -42,7 +42,7 @@ class Form extends AbstractComponent
     /**
      * @ApiProperty(writable=false)
      * @Groups({"component", "content"})
-     * @var null|\Silverback\ApiComponentBundle\DTO\Form\FormView
+     * @var null|\Silverback\ApiComponentBundle\Dto\Form\FormView
      */
     private $form;
 
@@ -102,9 +102,9 @@ class Form extends AbstractComponent
     }
 
     /**
-     * @param null|\Silverback\ApiComponentBundle\DTO\Form\FormView $form
+     * @param null|FormView $form
      */
-    public function setForm(?\Silverback\ApiComponentBundle\DTO\Form\FormView $form): void
+    public function setForm(?FormView $form): void
     {
         $this->form = $form;
     }

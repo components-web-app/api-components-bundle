@@ -70,7 +70,7 @@ abstract class AbstractFormAction extends AbstractController
     }
 
     /**
-     * @param \Silverback\ApiComponentBundle\DTO\Form\FormView $formView
+     * @param \Silverback\ApiComponentBundle\Dto\Form\FormView $formView
      * @return mixed
      */
     protected function getFormValid(FormView $formView)
