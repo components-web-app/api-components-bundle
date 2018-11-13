@@ -2,9 +2,6 @@
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
-use Silverback\ApiComponentBundle\Factory\Entity\FactoryInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -12,7 +9,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
 
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
@@ -37,11 +33,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             ->setLazy(true);
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');
-        $container->registerForAutoconfiguration(FactoryInterface::class)
-            ->setParent(AbstractFactory::class);
-        $container->register(AbstractFactory::class)
-            ->setAbstract(true)
-            ->addArgument(new Reference(ObjectManager::class));
 
         $loader = new PhpFileLoader(
             $container,
@@ -56,12 +47,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     public function prepend(ContainerBuilder $container): void
     {
-        $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
-        }
-
-        $bundles = $container->getParameter('kernel.bundles');
         $container->prependExtensionConfig(
             'api_platform',
             [
@@ -70,7 +55,14 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 ]
             ]
         );
+
+        $bundles = $container->getParameter('kernel.bundles');
         if (isset($bundles['LiipImagineBundle'])) {
+            $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
+            if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+            }
+
             $container->prependExtensionConfig(
                 'liip_imagine',
                 [

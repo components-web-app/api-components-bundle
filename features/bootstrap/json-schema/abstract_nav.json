@@ -1,12 +1,18 @@
 {
     "type": "object",
     "properties": {
-        "@id": { "type": "string", "required": true },
+        "@id": {
+            "type": "string",
+            "required": true
+        },
         "childComponentGroup": {
             "type": "object",
             "required": true,
             "properties": {
-                "componentLocations": { "type": "array", "required": true }
+                "componentLocations": {
+                    "type": "array",
+                    "required": true
+                }
             }
         }
     }

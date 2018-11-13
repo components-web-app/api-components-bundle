@@ -9,10 +9,9 @@ use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
-use Silverback\ApiComponentBundle\Factory\Entity\Route\RouteFactory;
+use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
 /**
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class RouteAwareSubscriber implements EventSubscriber
@@ -42,7 +41,6 @@ class RouteAwareSubscriber implements EventSubscriber
 
     /**
      * @param LifecycleEventArgs $eventArgs
-     * @throws \Doctrine\ORM\ORMException
      */
     public function prePersist(LifecycleEventArgs $eventArgs): void
     {
@@ -52,7 +50,6 @@ class RouteAwareSubscriber implements EventSubscriber
 
     /**
      * @param PreUpdateEventArgs $eventArgs
-     * @throws \Doctrine\ORM\ORMException
      */
     public function preUpdate(PreUpdateEventArgs $eventArgs): void
     {
@@ -63,7 +60,6 @@ class RouteAwareSubscriber implements EventSubscriber
     /**
      * @param mixed $entity
      * @param EntityManager $em
-     * @throws \Doctrine\ORM\ORMException
      */
     public function prePersistUpdate($entity, EntityManager $em): void
     {
@@ -77,7 +73,6 @@ class RouteAwareSubscriber implements EventSubscriber
 
     /**
      * @param PreFlushEventArgs $eventArgs
-     * @throws \Doctrine\ORM\ORMException
      */
     public function preFlush(PreFlushEventArgs $eventArgs): void
     {

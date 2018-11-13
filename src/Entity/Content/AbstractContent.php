@@ -73,7 +73,7 @@ abstract class AbstractContent implements ContentInterface
         $this->componentLocations = new ArrayCollection;
         /** @var ComponentLocation $componentLocation */
         foreach ($componentLocations as $componentLocation) {
-            $this->componentLocations->add($componentLocation);
+            $this->addComponentLocation($componentLocation);
         }
         return $this;
     }
@@ -84,7 +84,10 @@ abstract class AbstractContent implements ContentInterface
      */
     public function addComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
-        $this->componentLocations->add($componentLocation);
+        if (!$this->componentLocations->contains($componentLocation)) {
+            $componentLocation->setContent($this);
+            $this->componentLocations->add($componentLocation);
+        }
         return $this;
     }
 
@@ -94,7 +97,12 @@ abstract class AbstractContent implements ContentInterface
      */
     public function removeComponentLocation(ComponentLocation $componentLocation): AbstractContent
     {
-        $this->componentLocations->removeElement($componentLocation);
+        if ($this->componentLocations->contains($componentLocation)) {
+            if ($componentLocation->getContent() === $this) {
+                $componentLocation->setContent(null);
+            }
+            $this->componentLocations->removeElement($componentLocation);
+        }
         return $this;
     }
 }

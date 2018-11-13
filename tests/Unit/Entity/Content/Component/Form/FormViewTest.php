@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Form;
 
-use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\Form;
@@ -16,7 +16,7 @@ class FormViewTest extends TypeTestCase
     private $validator;
 
     /**
-     * @var FormView
+     * @var \Silverback\ApiComponentBundle\Dto\Form\FormView
      */
     private $formView;
 

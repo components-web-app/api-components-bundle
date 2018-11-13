@@ -4,8 +4,7 @@ namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
 
 use ApiPlatform\Core\EventListener\EventPriorities;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form\FormViewFactory;
-use Symfony\Component\HttpFoundation\Request;
+use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 

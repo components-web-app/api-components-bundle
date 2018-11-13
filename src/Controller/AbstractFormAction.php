@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
 
-abstract class AbstractForm extends AbstractController
+abstract class AbstractFormAction extends AbstractController
 {
     /**
      * @var EntityManagerInterface

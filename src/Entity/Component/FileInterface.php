@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
-use Silverback\ApiComponentBundle\File\FileData;
+use Silverback\ApiComponentBundle\Dto\File\FileData;
 
 interface FileInterface
 {

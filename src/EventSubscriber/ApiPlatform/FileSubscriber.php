@@ -5,7 +5,6 @@ namespace Silverback\ApiComponentBundle\EventSubscriber\ApiPlatform;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 

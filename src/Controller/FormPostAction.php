@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 
-class FormSubmitPost extends AbstractForm
+class FormPostAction extends AbstractFormAction
 {
     /**
      * @var iterable|FormHandlerInterface[]

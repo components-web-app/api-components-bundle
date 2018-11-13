@@ -10,7 +10,7 @@ services:
         volumes:
             - ./:/srv/api:rw
             - ./_docker/php/www.conf:/usr/local/etc/php-fpm.d/99-www.conf:rw,cached
-            - ./_docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+        #            - ./_docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
         restart: on-failure
         ports:
             - "8001:8000"

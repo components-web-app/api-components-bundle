@@ -22,7 +22,6 @@ class FormCacheClearer implements CacheClearerInterface
 
     /**
      * @param string $cacheDir
-     * @throws \ReflectionException
      */
     public function clear($cacheDir = null): void
     {
@@ -51,7 +50,6 @@ class FormCacheClearer implements CacheClearerInterface
 
     /**
      * @param Form $form
-     * @throws \ReflectionException
      */
     private function updateFormTimestamp(Form $form): void
     {

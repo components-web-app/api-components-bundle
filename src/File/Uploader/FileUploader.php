@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Uploader;
+namespace Silverback\ApiComponentBundle\File\Uploader;
 
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;

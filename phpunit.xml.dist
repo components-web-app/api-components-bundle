@@ -7,10 +7,10 @@
          colors="true"
 >
     <php>
-        <ini name="error_reporting" value="-1" />
-        <ini name="memory_limit" value="-1" />
-        <server name="KERNEL_DIR" value="tests/Functional/app/" />
-        <server name="KERNEL_CLASS" value="AppKernel" />
+        <ini name="error_reporting" value="-1"/>
+        <ini name="memory_limit" value="-1"/>
+        <server name="KERNEL_DIR" value="tests/Functional/app/"/>
+        <server name="KERNEL_CLASS" value="AppKernel"/>
     </php>
 
     <logging>
@@ -37,6 +37,6 @@
     </filter>
 
     <listeners>
-        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
     </listeners>
 </phpunit>

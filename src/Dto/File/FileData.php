@@ -1,8 +1,7 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\File;
+namespace Silverback\ApiComponentBundle\Dto\File;
 
-use Silverback\ApiComponentBundle\File\ImageMetadata;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -20,21 +19,21 @@ class FileData
 
     /**
      * @Groups({"component", "content"})
-     * @var \Silverback\ApiComponentBundle\File\ImageMetadata|null
+     * @var ImageMetadata|null
      */
     private $imageData;
 
     /**
      * @Groups({"component", "content"})
-     * @var \Silverback\ApiComponentBundle\File\ImageMetadata[]|null
+     * @var ImageMetadata[]|null
      */
     private $imagineData;
 
     /**
      * FileData constructor.
      * @param null|string $publicPath
-     * @param null|\Silverback\ApiComponentBundle\File\ImageMetadata $imageData
-     * @param null|\Silverback\ApiComponentBundle\File\ImageMetadata[] $imagineData
+     * @param null|ImageMetadata $imageData
+     * @param null|ImageMetadata[] $imagineData
      */
     public function __construct(?string $publicPath, ?ImageMetadata $imageData, ?array $imagineData)
     {
@@ -52,7 +51,7 @@ class FileData
     }
 
     /**
-     * @return null|\Silverback\ApiComponentBundle\File\ImageMetadata
+     * @return null|ImageMetadata
      */
     public function getImageData(): ?ImageMetadata
     {
@@ -60,7 +59,7 @@ class FileData
     }
 
     /**
-     * @return null|\Silverback\ApiComponentBundle\File\ImageMetadata[]
+     * @return null|ImageMetadata[]
      */
     public function getImagineData(): ?array
     {

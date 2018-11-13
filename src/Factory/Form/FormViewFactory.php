@@ -1,24 +1,21 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Entity\Content\Component\Form;
+namespace Silverback\ApiComponentBundle\Factory\Form;
 
+use Silverback\ApiComponentBundle\DTO\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
-use Silverback\ApiComponentBundle\Entity\Component\Form\FormView;
-use Silverback\ApiComponentBundle\Factory\Form\FormFactory as ACBFormFactory;
 
 class FormViewFactory
 {
     /**
-     * @var ACBFormFactory
+     * @var FormFactory
      */
     private $formFactory;
-
     public function __construct(
-        ACBFormFactory $formFactory
+        FormFactory $formFactory
     ) {
         $this->formFactory = $formFactory;
     }
-
     /**
      * @param Form $component
      * @return FormView

@@ -22,12 +22,8 @@ build:
                 memory_limit: -1
     tests:
         override:
-            -
-                command: tests/Functional/app/console cache:clear
-            -
-                command: vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+            -   command: vendor/bin/simple-phpunit --coverage-clover=coverage.xml
                 coverage:
                     file: clover.xml
                     format: php-clover
-            -
-                command: vendor/bin/behat --format=progress
+            -   command: vendor/bin/behat --format=progress

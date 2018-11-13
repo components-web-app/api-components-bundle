@@ -30,7 +30,7 @@ class FormCacheClear extends Command
     protected function configure(): void
     {
         $this
-            ->setName('api_component_bundle:form:clear_cache')
+            ->setName('silverback:api_component:clear_form_cache')
             ->setDescription('Purges the varnish cache for forms where files have been updated');
     }
 
@@ -38,7 +38,6 @@ class FormCacheClear extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|null|void
-     * @throws \ReflectionException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

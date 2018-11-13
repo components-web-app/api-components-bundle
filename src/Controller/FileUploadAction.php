@@ -6,7 +6,7 @@ use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Uploader\FileUploader;
+use Silverback\ApiComponentBundle\File\Uploader\FileUploader;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Serializer\SerializerInterface;
 
-class FileUpload
+class FileUploadAction
 {
     private $urlMatcher;
     private $itemDataProvider;

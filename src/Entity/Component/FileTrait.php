@@ -4,7 +4,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\File\FileData;
+use Silverback\ApiComponentBundle\Dto\File\FileData;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**

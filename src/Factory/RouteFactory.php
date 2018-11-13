@@ -1,53 +1,25 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Factory\Entity\Route;
+namespace Silverback\ApiComponentBundle\Factory;
 
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
-use Silverback\ApiComponentBundle\Factory\Entity\AbstractFactory;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class RouteFactory extends AbstractFactory
+class RouteFactory
 {
-    /**
-     * @var SlugifyInterface
-     */
     private $slugify;
+    private $manager;
 
     public function __construct(
         ObjectManager $manager,
-        ValidatorInterface $validator,
         SlugifyInterface $slugify
     ) {
         $this->slugify = $slugify;
-        parent::__construct($manager, $validator);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function create(?array $ops = null): Route
-    {
-        $component = new Route();
-        $this->init($component, $ops);
-        $this->validate($component);
-        return $component;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected static function defaultOps(): array
-    {
-        return [
-            'name' => null,
-            'route' => null,
-            'content' => null,
-            'redirect' => null
-        ];
+        $this->manager = $manager;
     }
 
     /**
@@ -63,25 +35,28 @@ class RouteFactory extends AbstractFactory
         if ($postfix > 0) {
             $fullRoute .= '-' . $postfix;
         }
-        $existing = $this->manager->getRepository(Route::class)->find($fullRoute);
+
+        $repository = $this->manager->getRepository(Route::class);
+        $existing = $repository->find($fullRoute);
         if ($existing) {
             return $this->createFromRouteAwareEntity($entity, $postfix + 1);
         }
+
         $converter = new CamelCaseToSnakeCaseNameConverter();
         $generatedName = $converter->normalize(str_replace(' ', '', $entity->getDefaultRouteName()));
         $name = $generatedName;
         $counter = 0;
-        while ($this->manager->getRepository(Route::class)->findOneBy(['name' => $name])) {
+        while ($repository->findOneBy(['name' => $name])) {
             $counter++;
             $name = sprintf('%s-%s', $generatedName, $counter);
         }
-        $route = $this->create(
-            [
-                'name' => $name,
-                'route' => $fullRoute,
-                'content' => $entity
-            ]
-        );
+
+        $route = new Route();
+        $route->setName($name)->setRoute($fullRoute);
+        if ($entity instanceof AbstractContent) {
+            $route->setContent($entity);
+        }
+
         $entity->addRoute($route);
         return $route;
     }
