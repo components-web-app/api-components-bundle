@@ -25,7 +25,7 @@
         "symfony/doctrine-bridge": "^3",
         "symfony/form": "^3.4|^4.0",
         "symfony/framework-bundle": "^3.4|^4.0",
-        "symfony/http-kernel": "^3.4",
+        "symfony/http-kernel": "^3.4|^4.0",
         "symfony/monolog-bundle": "^3.2",
         "symfony/monolog-bridge": "^3.3",
         "symfony/proxy-manager-bridge": "^4.1",
