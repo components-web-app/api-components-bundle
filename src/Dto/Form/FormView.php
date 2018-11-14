@@ -43,7 +43,9 @@ class FormView
         'placeholder_in_choices',
         'checked',
         'action',
-        'multiple'
+        'multiple',
+        'realtime_validate',
+        'api_request'
     ];
 
     /**

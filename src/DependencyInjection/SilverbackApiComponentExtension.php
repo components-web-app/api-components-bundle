@@ -6,6 +6,7 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Silverback\ApiComponentBundle\Serializer\Middleware\MiddlewareInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -33,6 +34,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true);
+
+        $container->registerForAutoconfiguration(MiddlewareInterface::class)
+            ->addTag('silverback_api_component.serializer_middleware');
 
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');

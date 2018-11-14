@@ -86,10 +86,6 @@ return function (ContainerConfigurator $configurator) {
         ->args([new Reference(ApiContextBuilder::class . '.inner')]);
 
     $services
-        ->load('Silverback\\ApiComponentBundle\\Serializer\\Middleware\\', '../../Serializer/Middleware')
-        ->tag('silverback_api_component.serializer_middleware');
-
-    $services
         ->set(ApiNormalizer::class)
         ->autowire(false)
         ->tag('serializer.normalizer', ['priority' => 99])

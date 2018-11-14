@@ -33,9 +33,6 @@ class FormFactory
     public function create(Form $component): FormInterface
     {
         $builder = $this->formFactory->createBuilder($component->getFormType());
-        if (!($method = $builder->getMethod()) || $method === '') {
-            $builder->setMethod('POST');
-        }
         if (!($currentAction = $builder->getAction()) || $currentAction === '') {
             $action = $this->router->generate(
                 'api_forms_post_item',
