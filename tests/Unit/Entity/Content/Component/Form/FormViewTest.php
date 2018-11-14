@@ -78,7 +78,9 @@ class FormViewTest extends TypeTestCase
             'required' => true,
             'label_attr' => [],
             'submitted' => false,
-            'action' => ''
+            'action' => '',
+            'realtime_validate' => true,
+            'api_request' => true
         ];
         $this->assertEquals($expected, $this->formView->getVars());
     }
