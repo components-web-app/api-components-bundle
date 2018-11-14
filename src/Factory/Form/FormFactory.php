@@ -11,14 +11,7 @@ use Symfony\Component\Routing\RouterInterface;
 
 class FormFactory
 {
-    /**
-     * @var FormFactoryInterface
-     */
     private $formFactory;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
 
     /**
@@ -39,18 +32,19 @@ class FormFactory
      */
     public function create(Form $component): FormInterface
     {
-        return $this->formFactory->create(
-            $component->getFormType(),
-            null,
-            [
-                'method' => 'POST',
-                'action' => $this->router->generate(
-                    'api_forms_post_item',
-                    [
-                        'id' => $component->getId()
-                    ]
-                )
-            ]
-        );
+        $builder = $this->formFactory->createBuilder($component->getFormType());
+        if (!($method = $builder->getMethod()) || $method === '') {
+            $builder->setMethod('POST');
+        }
+        if (!($currentAction = $builder->getAction()) || $currentAction === '') {
+            $action = $this->router->generate(
+                'api_forms_post_item',
+                [
+                    'id' => $component->getId()
+                ]
+            );
+            $builder->setAction($action);
+        }
+        return $builder->getForm();
     }
 }

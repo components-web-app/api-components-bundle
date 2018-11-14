@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentBundle\Controller;
 
 use Silverback\ApiComponentBundle\Dto\Form\FormView;

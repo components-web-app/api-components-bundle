@@ -32,12 +32,14 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
         if (!\is_object($data)) {
             return false;
         }
+
         $this->supportedMiddleware = [];
         foreach ($this->normalizerMiddleware as $modifier) {
             if ($modifier->supportsData($data)) {
                 $this->supportedMiddleware[] = $modifier;
             }
         }
+
         return !empty($this->supportedMiddleware);
     }
 
