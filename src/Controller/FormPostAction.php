@@ -58,8 +58,7 @@ class FormPostAction extends AbstractFormAction
         if ($valid && $data->getSuccessHandler()) {
             foreach ($this->handlers as $handler) {
                 if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler)) {
-                    $response = $handler->success($data, $form->getData(), $request);
-                    if ($response) {
+                    if ($response = $handler->success($data, $form->getData(), $request)) {
                         return $response;
                     }
                     break;
