@@ -19,7 +19,8 @@ class FormPatchAction extends AbstractFormAction
         $contentType = $request->headers->get('CONTENT_TYPE');
         $_format = $request->attributes->get('_format') ?: $request->getFormat($contentType);
 
-        $form = $this->formFactory->create($data);
+        $builder = $this->formFactory->create($data);
+        $form = $builder->getForm();
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData, false);
 

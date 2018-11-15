@@ -25,6 +25,6 @@ class FormViewFactory
     public function create(Form $component): FormView
     {
         $form = $this->formFactory->create($component);
-        return new FormView($form->createView());
+        return new FormView($form->getForm()->createView());
     }
 }

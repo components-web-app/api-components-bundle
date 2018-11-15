@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Factory\Form;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -28,9 +29,9 @@ class FormFactory
 
     /**
      * @param Form $component
-     * @return FormInterface
+     * @return FormBuilderInterface
      */
-    public function create(Form $component): FormInterface
+    public function create(Form $component): FormBuilderInterface
     {
         $builder = $this->formFactory->createBuilder($component->getFormType());
         if (!($currentAction = $builder->getAction()) || $currentAction === '') {
@@ -42,6 +43,6 @@ class FormFactory
             );
             $builder->setAction($action);
         }
-        return $builder->getForm();
+        return $builder;
     }
 }

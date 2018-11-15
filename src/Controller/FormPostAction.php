@@ -46,7 +46,8 @@ class FormPostAction extends AbstractFormAction
         $contentType = $request->headers->get('CONTENT_TYPE');
         $_format = $request->attributes->get('_format') ?: $request->getFormat($contentType);
 
-        $form = $this->formFactory->create($data);
+        $builder = $this->formFactory->create($data);
+        $form = $builder->getForm();
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData);
         if (!$form->isSubmitted()) {
@@ -57,7 +58,10 @@ class FormPostAction extends AbstractFormAction
         if ($valid && $data->getSuccessHandler()) {
             foreach ($this->handlers as $handler) {
                 if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler)) {
-                    $handler->success($data);
+                    $response = $handler->success($data, $form->getData(), $request);
+                    if ($response) {
+                        return $response;
+                    }
                     break;
                 }
             }
