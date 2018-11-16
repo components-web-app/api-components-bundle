@@ -17,7 +17,8 @@ class TestType extends AbstractType
                 'csrf_protection' => false,
                 'attr' => [
                     'novalidate' => 'novalidate'
-                ]
+                ],
+                'post_app_proxy' => '/proxy'
             ]
         );
     }

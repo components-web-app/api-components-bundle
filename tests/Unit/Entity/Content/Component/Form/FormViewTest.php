@@ -80,7 +80,8 @@ class FormViewTest extends TypeTestCase
             'submitted' => false,
             'action' => '',
             'realtime_validate' => true,
-            'api_request' => true
+            'api_request' => true,
+            'post_app_proxy' => '/proxy'
         ];
         $this->assertEquals($expected, $this->formView->getVars());
     }

@@ -45,7 +45,8 @@ class FormView
         'action',
         'multiple',
         'realtime_validate',
-        'api_request'
+        'api_request',
+        'post_app_proxy'
     ];
 
     /**

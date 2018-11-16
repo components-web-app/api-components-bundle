@@ -14,5 +14,6 @@ class AbstractType extends BaseAbstractType implements FormTypeInterface
     {
         $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
         $view->vars['api_request'] = $options['api_request'] ?? true;
+        $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
     }
 }
