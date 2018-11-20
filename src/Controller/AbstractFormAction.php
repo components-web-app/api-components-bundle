@@ -59,10 +59,13 @@ abstract class AbstractFormAction extends AbstractController
         $valid,
         Response $response = null,
         ?int $statusCode = null,
-        ?array $context = ['groups' => ['component']]
+        ?array $context = null
     ): Response {
         if (!$response) {
             $response = new Response();
+        }
+        if (!$context) {
+            $context = ['groups' => ['component']];
         }
         $response->setStatusCode($statusCode ?? ($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
         $response->setContent($this->serializer->serialize($data, $_format, $context));

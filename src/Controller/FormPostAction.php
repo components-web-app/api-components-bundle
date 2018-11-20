@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
+use Silverback\ApiComponentBundle\Form\Handler\ContextProviderInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,16 +56,24 @@ class FormPostAction extends AbstractFormAction
         }
         $valid = $form->isValid();
         $data->setForm(new FormView($form->createView()));
+        $context = null;
         if ($valid && $data->getSuccessHandler()) {
             foreach ($this->handlers as $handler) {
                 if (ClassNameValidator::isClassSame($data->getSuccessHandler(), $handler)) {
-                    if ($response = $handler->success($data, $form->getData(), $request)) {
-                        return $response;
+                    $result = $handler->success($data, $form->getData(), $request);
+                    if ($handler instanceof ContextProviderInterface) {
+                        $context = $handler->getContext();
+                    }
+                    if ($result instanceof Response) {
+                        return $result;
+                    }
+                    if ($result) {
+                        $data = $result;
                     }
                     break;
                 }
             }
         }
-        return $this->getResponse($data, $_format, $valid);
+        return $this->getResponse($data, $_format, $valid, null, null, $context);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Form;
+namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Dto\Form;
 
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Tests\TestBundle\Form\TestType;
