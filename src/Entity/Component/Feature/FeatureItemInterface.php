@@ -8,33 +8,15 @@ use Silverback\ApiComponentBundle\Entity\Route\Route;
 
 interface FeatureItemInterface
 {
-    /**
-     * @return string
-     */
     public function getTitle(): string;
 
-    /**
-     * @param string $title
-     */
-    public function setTitle(string $title): void;
+    public function setTitle(string $title): AbstractFeatureItem;
 
-    /**
-     * @return null|string
-     */
     public function getUrl(): ?string;
 
-    /**
-     * @param null|string $link
-     */
-    public function setUrl(?string $link): void;
+    public function setUrl(?string $link): AbstractFeatureItem;
 
-    /**
-     * @return null|Route
-     */
     public function getRoute(): ?Route;
 
-    /**
-     * @param null|Route $route
-     */
-    public function setRoute(?Route $route): void;
+    public function setRoute(?Route $route): AbstractFeatureItem;
 }

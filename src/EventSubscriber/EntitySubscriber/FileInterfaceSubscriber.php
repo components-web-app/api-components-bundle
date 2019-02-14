@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventSubscriber\Doctrine;
+namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
-use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -16,12 +15,7 @@ use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
 
-/**
- * Class FileEntitySubscriber
- * @package Silverback\ApiComponentBundle\EventListener
- * @author Daniel West <daniel@silverback.is>
- */
-class EntitySubscriber implements EventSubscriber
+class FileInterfaceSubscriber implements EntitySubscriberInterface
 {
     /**
      * @var CacheManager
@@ -37,7 +31,6 @@ class EntitySubscriber implements EventSubscriber
     private $pathResolver;
 
     /**
-     * FileListener constructor.
      * @param CacheManager $imagineCacheManager
      * @param FilterService $filterService
      * @param PathResolver $pathResolver
@@ -62,9 +55,13 @@ class EntitySubscriber implements EventSubscriber
         ];
     }
 
+    public function supportsEntity($entity = null): bool
+    {
+        return true;
+    }
+
     /**
      * @param OnFlushEventArgs $eventArgs
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function onFlush(OnFlushEventArgs $eventArgs): void
     {
@@ -86,6 +83,8 @@ class EntitySubscriber implements EventSubscriber
     {
         $newEntities = $unitOfWork->getScheduledEntityInsertions();
         foreach ($newEntities as $entity) {
+            // This should not really be used here, it won't be fired as validation would fail first
+            // Dynamic pages sort values need work with auto-calculating
             if ($entity instanceof SortableInterface && $entity->getSort() === null) {
                 $entity->setSort($entity->calculateSort(true));
                 $metadata = $entityManager->getClassMetadata(\get_class($entity));

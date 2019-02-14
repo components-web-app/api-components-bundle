@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraint;
  */
 class ComponentLocation extends Constraint
 {
-    public $message = 'The component is not permitted in this location. Permitted classes are {{ string }}';
+    public $message = 'The component `{{ component }}` is not permitted in this location. Permitted classes are `{{ string }}` for the content `{{ content }}`';
 
     public function getTargets()
     {

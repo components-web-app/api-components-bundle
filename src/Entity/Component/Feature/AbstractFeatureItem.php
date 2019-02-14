@@ -11,10 +11,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-/**
- * Class AbstractFeatureItem
- * @package Silverback\ApiComponentBundle\Entity\Component\Feature
- */
 abstract class AbstractFeatureItem extends AbstractComponent implements FeatureItemInterface
 {
     /**
@@ -39,6 +35,13 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
      */
     protected $route;
 
+    /**
+     * @ORM\Column(type="text")
+     * @Groups({"component", "content"})
+     * @var null|string
+     */
+    protected $description;
+
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
         $metadata->addPropertyConstraint(
@@ -59,12 +62,10 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->title;
     }
 
-    /**
-     * @param string $title
-     */
-    public function setTitle(string $title): void
+    public function setTitle(string $title): self
     {
         $this->title = $title;
+        return $this;
     }
 
     /**
@@ -75,12 +76,10 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->url;
     }
 
-    /**
-     * @param null|string $url
-     */
-    public function setUrl(?string $url): void
+    public function setUrl(?string $url): self
     {
         $this->url = $url;
+        return $this;
     }
 
     /**
@@ -91,11 +90,23 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->route;
     }
 
-    /**
-     * @param null|Route $route
-     */
-    public function setRoute(?Route $route): void
+    public function setRoute(?Route $route): self
     {
         $this->route = $route;
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+        return $this;
     }
 }

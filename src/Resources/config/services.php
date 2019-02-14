@@ -9,6 +9,7 @@ use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
+use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -42,12 +43,17 @@ return function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
-        ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\Doctrine\\', '../../EventSubscriber/Doctrine')
-        ->tag('doctrine.event_subscriber');
+        ->load('Silverback\\ApiComponentBundle\\EventSubscriber\\EntitySubscriber\\', '../../EventSubscriber/EntitySubscriber')
+        ->tag('silverback_api_component.entity_subscriber');
 
     $services
-        ->load('Silverback\\ApiComponentBundle\\EntityListener\\', '../../EntityListener')
-        ->tag('doctrine.orm.entity_listener');
+        ->set(DoctrineSubscriber::class)
+        ->tag('doctrine.event_subscriber')
+        ->args(
+            [
+                '$entitySubscribers' => new TaggedIteratorArgument('silverback_api_component.entity_subscriber')
+            ]
+        );
 
     $services
         ->set(FormHandlerClassValidator::class)

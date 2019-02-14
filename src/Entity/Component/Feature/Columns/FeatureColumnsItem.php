@@ -22,34 +22,11 @@ class FeatureColumnsItem extends AbstractFeatureItem implements FileInterface
 {
     use FileTrait;
 
-    /**
-     * @ORM\Column()
-     * @Groups({"component", "content"})
-     * @var null|string
-     */
-    protected $description;
-
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
         $metadata->addPropertyConstraint(
             'filePath',
             new Assert\Image()
         );
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @param null|string $description
-     */
-    public function setDescription(?string $description): void
-    {
-        $this->description = $description;
     }
 }

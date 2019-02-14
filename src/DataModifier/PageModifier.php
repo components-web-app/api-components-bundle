@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Silverback\ApiComponentBundle\Entity\Content\Page\Page;
 use Silverback\ApiComponentBundle\Repository\LayoutRepository;
 
-class PageMiddleware extends AbstractMiddleware
+class PageModifier extends AbstractModifier
 {
     /**
      * @param Page $page

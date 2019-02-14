@@ -9,9 +9,10 @@ use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * Class LayoutRepository
- * @package Silverback\ApiComponentBundle\Repository
+ * @method Layout|null find($id, $lockMode = null, $lockVersion = null)
  * @method Layout|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Layout[]    findAll()
+ * @method Layout[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class LayoutRepository extends ServiceEntityRepository
 {

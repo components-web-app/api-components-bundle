@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
+use Silverback\ApiComponentBundle\Entity\SortableInterface;
+use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -15,9 +18,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic
  * @ORM\Entity()
  */
-abstract class AbstractDynamicPage extends AbstractPage
+abstract class AbstractDynamicPage extends AbstractPage implements SortableInterface
 {
-    /** @Groups({"dynamic_content", "route"}) */
+    use SortableTrait;
+
+    /**
+     * @Groups({"dynamic_content", "route"})
+     */
     protected $componentLocations;
 
     /**
@@ -33,12 +40,10 @@ abstract class AbstractDynamicPage extends AbstractPage
      */
     protected $nested = false;
 
-    /**
-     * @param null|Route $parentRoute
-     */
-    public function setParentRoute(?Route $parentRoute): void
+    public function setParentRoute(?Route $parentRoute): self
     {
         $this->parentRoute = $parentRoute;
+        return $this;
     }
 
     /**
@@ -63,12 +68,10 @@ abstract class AbstractDynamicPage extends AbstractPage
         return $this->nested;
     }
 
-    /**
-     * @param bool $nested
-     */
-    public function setNested(bool $nested): void
+    public function setNested(bool $nested): self
     {
         $this->nested = $nested;
+        return $this;
     }
 
     /**
@@ -78,5 +81,10 @@ abstract class AbstractDynamicPage extends AbstractPage
     public function isDynamic(): bool
     {
         return true;
+    }
+
+    public function getSortCollection(): ?Collection
+    {
+        return null;
     }
 }

@@ -52,12 +52,19 @@ class ImageMetadata
             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
         }
 
-        if (false === \exif_imagetype($filePath)) {
-            throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
-        }
+        if (mime_content_type($filePath) === 'image/svg+xml') {
+            $xmlget = simplexml_load_string(file_get_contents($filePath));
+            $xmlattributes = $xmlget->attributes();
+            $this->width = (int) $xmlattributes->width;
+            $this->height = (int) $xmlattributes->height;
+        } else {
+            if (false === \exif_imagetype($filePath)) {
+                throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+            }
 
-        [$this->width, $this->height] = getimagesize($filePath);
-        $this->imagineKey = $imagineKey;
+            [$this->width, $this->height] = getimagesize($filePath);
+            $this->imagineKey = $imagineKey;
+        }
     }
 
     /**

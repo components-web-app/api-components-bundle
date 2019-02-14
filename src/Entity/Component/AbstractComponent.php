@@ -45,7 +45,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *     "layout_side_column" = "Silverback\ApiComponentBundle\Entity\Component\Layout\SideColumn",
  *     "simple_image" = "Silverback\ApiComponentBundle\Entity\Component\Image\SimpleImage"
  * })
- * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\ComponentListener"})
  */
 abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInterface
 {
@@ -60,7 +59,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @ORM\Column(nullable=true)
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var null|string
      */
     private $className;

@@ -2,20 +2,20 @@
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
-use Silverback\ApiComponentBundle\Serializer\Middleware\MiddlewareInterface;
+use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
-    /** @var iterable|MiddlewareInterface[] */
+    /** @var iterable|DataModifierInterface[] */
     private $normalizerMiddleware;
     /** @var iterable|NormalizerInterface[] */
     private $normalizers;
-    /** @var MiddlewareInterface[] */
-    private $supportedMiddleware = [];
+    /** @var DataModifierInterface[] */
+    private $supportedModifiers = [];
 
-    public function __construct(iterable $normalizerMiddleware, iterable $normalizers)
+    public function __construct(iterable $normalizerMiddleware = [], iterable $normalizers = [])
     {
         $this->normalizerMiddleware = $normalizerMiddleware;
         $this->normalizers = $normalizers;
@@ -33,14 +33,14 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
             return false;
         }
 
-        $this->supportedMiddleware = [];
+        $this->supportedModifiers = [];
         foreach ($this->normalizerMiddleware as $modifier) {
             if ($modifier->supportsData($data)) {
-                $this->supportedMiddleware[] = $modifier;
+                $this->supportedModifiers[] = $modifier;
             }
         }
 
-        return !empty($this->supportedMiddleware);
+        return !empty($this->supportedModifiers);
     }
 
     /**
@@ -52,12 +52,12 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        foreach ($this->supportedMiddleware as $modifier) {
+        foreach ($this->supportedModifiers as $modifier) {
             $modifier->process($object);
         }
 
         foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof self) {
+            if ($normalizer instanceof self || !$normalizer instanceof NormalizerInterface) {
                 continue;
             }
             if ($normalizer->supportsNormalization($object, $format)) {

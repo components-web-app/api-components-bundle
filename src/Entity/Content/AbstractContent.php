@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
@@ -29,6 +30,8 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  */
 abstract class AbstractContent implements ContentInterface
 {
+    use TimestampedEntityTrait;
+
     /**
      * @ORM\Id()
      * @ORM\Column(type="string")
@@ -39,7 +42,6 @@ abstract class AbstractContent implements ContentInterface
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
      * @ORM\OrderBy({"sort"="ASC"})
-     * @MaxDepth(40)
      * @var Collection|ComponentLocation[]
      */
     protected $componentLocations;

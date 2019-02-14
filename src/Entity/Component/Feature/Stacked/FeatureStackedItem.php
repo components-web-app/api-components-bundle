@@ -13,21 +13,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
- * Class FeatureStackedItem
- * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
- * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  */
 class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
 {
     use FileTrait;
-
-    /**
-     * @ORM\Column()
-     * @Groups({"component", "content"})
-     * @var null|string
-     */
-    protected $description;
 
     /**
      * @ORM\Column()
@@ -58,33 +48,15 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
     /**
      * @return null|string
      */
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @param null|string $description
-     */
-    public function setDescription(?string $description): void
-    {
-        $this->description = $description;
-    }
-
-    /**
-     * @return null|string
-     */
     public function getButtonText(): ?string
     {
         return $this->buttonText;
     }
 
-    /**
-     * @param null|string $buttonText
-     */
-    public function setButtonText(?string $buttonText): void
+    public function setButtonText(?string $buttonText): self
     {
         $this->buttonText = $buttonText;
+        return $this;
     }
 
     /**
@@ -95,11 +67,9 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
         return $this->buttonClass;
     }
 
-    /**
-     * @param null|string $buttonClass
-     */
-    public function setButtonClass(?string $buttonClass): void
+    public function setButtonClass(?string $buttonClass): self
     {
         $this->buttonClass = $buttonClass;
+        return $this;
     }
 }

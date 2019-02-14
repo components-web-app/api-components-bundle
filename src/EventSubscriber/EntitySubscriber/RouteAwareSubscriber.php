@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventSubscriber\Doctrine;
+namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
@@ -16,7 +15,7 @@ use Silverback\ApiComponentBundle\Factory\RouteFactory;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RouteAwareSubscriber implements EventSubscriber
+class RouteAwareSubscriber implements EntitySubscriberInterface
 {
     /**
      * @var RouteFactory
@@ -39,6 +38,11 @@ class RouteAwareSubscriber implements EventSubscriber
             'preUpdate',
             'preFlush'
         ];
+    }
+
+    public function supportsEntity($entity = null): bool
+    {
+        return $entity instanceof RouteAwareInterface;
     }
 
     /**

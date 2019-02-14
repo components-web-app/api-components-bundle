@@ -105,6 +105,7 @@ class Collection extends AbstractComponent
 
     /**
      * @param array|\Traversable $collection
+     * @return Collection
      */
     public function setCollection($collection): self
     {

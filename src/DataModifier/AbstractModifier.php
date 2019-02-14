@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 
-abstract class AbstractMiddleware implements MiddlewareInterface, ServiceSubscriberInterface
+abstract class AbstractModifier implements DataModifierInterface, ServiceSubscriberInterface
 {
     protected $container;
 

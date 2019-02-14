@@ -60,20 +60,16 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
         );
     }
 
-    /**
-     * @param null|string $subtitle
-     */
-    public function setSubtitle(?string $subtitle): void
+    public function setSubtitle(?string $subtitle): self
     {
         $this->subtitle = $subtitle;
+        return $this;
     }
 
-    /**
-     * @param string $content
-     */
-    public function setContent(string $content): void
+    public function setContent(string $content): self
     {
         $this->content = $content;
+        return $this;
     }
 
     /**

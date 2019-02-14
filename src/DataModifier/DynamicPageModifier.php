@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Repository\ComponentLocationRepository;
 
-class DynamicPageMiddleware extends AbstractMiddleware
+class DynamicPageModifier extends AbstractModifier
 {
     public function process($page, array $context = array())
     {

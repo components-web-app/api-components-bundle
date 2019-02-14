@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 
-class FormMiddleware extends AbstractMiddleware
+class FormModifier extends AbstractModifier
 {
     /**
      * @param Form $form

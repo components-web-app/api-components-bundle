@@ -1,12 +1,17 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 
-class FileMiddleware extends AbstractMiddleware
+class FileModifier extends AbstractModifier
 {
+    /**
+     * @param FileInterface $component
+     * @param array $context
+     * @return object|void
+     */
     public function process($component, array $context = array())
     {
         /** @var FileDataFactory $factory */

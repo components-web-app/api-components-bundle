@@ -68,10 +68,6 @@ abstract class AbstractPage extends AbstractContent implements RouteAwareInterfa
         return $this->title ?: 'unnamed';
     }
 
-    /**
-     * @param string $title
-     * @return AbstractPage
-     */
     public function setTitle(string $title): self
     {
         $this->title = $title;

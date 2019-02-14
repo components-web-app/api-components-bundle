@@ -4,8 +4,10 @@
     "license": "MIT",
     "require": {
         "php": "^7.2",
-        "ext-exif": "*",
         "ext-pdo": "*",
+        "ext-fileinfo": "*",
+        "ext-exif": "*",
+        "ext-simplexml": "*",
         "api-platform/api-pack": "^1.1",
         "api-platform/core": "^2.3.6",
         "cocur/slugify": "^3.0",

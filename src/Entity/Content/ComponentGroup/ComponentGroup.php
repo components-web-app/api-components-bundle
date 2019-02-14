@@ -16,9 +16,6 @@ use Silverback\ApiComponentBundle\Entity\ValidComponentTrait;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class ComponentGroup
- * @package Silverback\ApiComponentBundle\Entity\Component
- * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  */
 class ComponentGroup extends AbstractContent implements ValidComponentInterface, SortableInterface
@@ -82,8 +79,8 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface,
         return false;
     }
 
-    public function getSortCollection(): Collection
+    public function getSortCollection(): ?Collection
     {
-        return $this->parent ? $this->parent->getComponentGroups() : new ArrayCollection;
+        return $this->parent ? $this->parent->getComponentGroups() : null;
     }
 }

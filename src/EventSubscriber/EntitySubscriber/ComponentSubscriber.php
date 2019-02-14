@@ -2,22 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EntityListener;
+namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Events;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 
-class ComponentListener
+class ComponentSubscriber implements EntitySubscriberInterface
 {
+    public function supportsEntity($entity = null): bool
+    {
+        return $entity instanceof AbstractComponent;
+    }
+
+    public function getSubscribedEvents(): array
+    {
+        return [
+            Events::preRemove
+        ];
+    }
+
     /**
-     * @ORM\PreRemove()
-     * @param AbstractComponent $component
      * @param LifecycleEventArgs $eventArgs
-     * @throws \Doctrine\ORM\ORMInvalidArgumentException
+     * @param AbstractComponent $component
      */
-    public function preRemove(AbstractComponent $component, LifecycleEventArgs $eventArgs): void
+    public function preRemove(LifecycleEventArgs $eventArgs, AbstractComponent $component): void
     {
         $entityManager = $eventArgs->getEntityManager();
         if ($component->onDeleteCascade()) {

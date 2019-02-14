@@ -15,6 +15,7 @@ use Silverback\ApiComponentBundle\Entity\SortableTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
@@ -46,7 +47,7 @@ class ComponentLocation implements SortableInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="locations")
      * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Groups({"default"})
+     * @Groups({"default", "component"})
      * @var AbstractComponent
      */
     private $component;
@@ -60,13 +61,21 @@ class ComponentLocation implements SortableInterface
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
         $metadata->addPropertyConstraint(
-            'content',
-            new Assert\NotBlank()
-        );
-        $metadata->addPropertyConstraint(
             'component',
             new Assert\NotBlank()
         );
+    }
+
+    /**
+     * @Assert\Callback()
+     */
+    public function validate(ExecutionContextInterface $context): void
+    {
+        if (!$this->getContent() && !$this->getDynamicPageClass()) {
+            $context->buildViolation('The content is required if dynamicPageClass is not provided')
+                ->atPath('content')
+                ->addViolation();
+        }
     }
 
     /**
@@ -103,11 +112,7 @@ class ComponentLocation implements SortableInterface
         return $this->content;
     }
 
-    /**
-     * @param AbstractContent $content
-     * @param bool|null $sortLast
-     */
-    public function setContent(?AbstractContent $content, ?bool $sortLast = true): void
+    public function setContent(?AbstractContent $content, ?bool $sortLast = true): self
     {
         if ($content !== $this->content) {
             $this->content = $content;
@@ -118,6 +123,7 @@ class ComponentLocation implements SortableInterface
                 $content->addComponentLocation($this);
             }
         }
+        return $this;
     }
 
     /**
@@ -128,20 +134,18 @@ class ComponentLocation implements SortableInterface
         return $this->component;
     }
 
-    /**
-     * @param AbstractComponent $component
-     */
-    public function setComponent(AbstractComponent $component): void
+    public function setComponent(AbstractComponent $component): self
     {
         $this->component = $component;
+        return $this;
     }
 
     /**
-     * @return Collection|AbstractFeatureItem[]
+     * @return Collection|AbstractFeatureItem[]|null
      */
-    public function getSortCollection(): Collection
+    public function getSortCollection(): ?Collection
     {
-        return $this->content ? $this->content->getComponentLocations() : new ArrayCollection;
+        return $this->getContent() ? $this->getContent()->getComponentLocations() : null;
     }
 
     /**
@@ -152,11 +156,15 @@ class ComponentLocation implements SortableInterface
         return $this->dynamicPageClass;
     }
 
-    /**
-     * @param null|string $dynamicPageClass
-     */
-    public function setDynamicPageClass(?string $dynamicPageClass): void
+    public function setDynamicPageClass(?string $dynamicPageClass): self
     {
         $this->dynamicPageClass = $dynamicPageClass;
+        return $this;
+    }
+
+    public function __toString()
+    {
+        $content = $this->getContent();
+        return sprintf('location/%s/%s', $content ? get_class($content) : 'no-content', get_class($this->getComponent()));
     }
 }

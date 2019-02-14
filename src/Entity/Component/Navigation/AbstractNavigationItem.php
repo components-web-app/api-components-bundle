@@ -9,11 +9,6 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- * Class AbstractNavigationItem
- * @package Silverback\ApiComponentBundle\Entity\Navigation
- * @author Daniel West <daniel@silverback.is>
- */
 abstract class AbstractNavigationItem extends AbstractComponent implements NavigationItemInterface
 {
     /**

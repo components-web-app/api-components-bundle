@@ -6,19 +6,16 @@ namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Validator\Constraints as SilverbackAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Trait SortableTrait
- * @package Silverback\ApiComponentBundle\Entity
- * @author Daniel West <daniel@silverback.is>
+ * @SilverbackAssert\Sortable()
  */
 trait SortableTrait
 {
     /**
      * @ORM\Column(type="integer", nullable=false)
-     * @Assert\NotNull()
      * @Groups({"default"})
      * @var int|null
      */
@@ -42,15 +39,12 @@ trait SortableTrait
         return $this;
     }
 
-    /**
-     * @param bool|null $sortLast
-     * @return int
-     */
-    final public function calculateSort(?bool $sortLast = null): int
+    final public function calculateSort(?bool $sortLast = null, ?Collection $sortCollection = null): int
     {
-        /* @var $collection Collection|SortableInterface[] */
-        $collection = $this->getSortCollection();
-        if (null === $sortLast) {
+        /* @var $collection Collection|SortableInterface[]|null */
+        $collection = $sortCollection ?: $this->getSortCollection();
+
+        if ($collection === null || $sortLast === null) {
             return 0;
         }
         if ($sortLast) {
@@ -62,7 +56,7 @@ trait SortableTrait
     }
 
     /**
-     * @return Collection
+     * @return Collection|null
      */
-    abstract public function getSortCollection(): Collection;
+    abstract public function getSortCollection(): ?Collection;
 }

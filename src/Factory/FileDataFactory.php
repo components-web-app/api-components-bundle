@@ -48,9 +48,17 @@ class FileDataFactory implements ServiceSubscriberInterface
         }
 
         $publicPath = $this->getPublicPath($file);
-        $imageData = \exif_imagetype($filePath) ? new ImageMetadata($filePath, $publicPath) : null;
+        $imageData = null;
+        if ($this->fileIsImage($filePath)) {
+            $imageData = new ImageMetadata($filePath, $publicPath);
+        }
 
         return new FileData($publicPath, $imageData, $this->getImagineData($file));
+    }
+
+    private function fileIsImage($filePath): bool
+    {
+        return \exif_imagetype($filePath) || mime_content_type($filePath) === 'image/svg+xml';
     }
 
     private function getPublicPath(FileInterface $file): string

@@ -9,6 +9,12 @@ use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
+/**
+ * @method ComponentLocation|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ComponentLocation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ComponentLocation[]    findAll()
+ * @method ComponentLocation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
 class ComponentLocationRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)

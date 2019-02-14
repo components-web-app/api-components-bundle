@@ -1,8 +1,8 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\Serializer\Middleware;
+namespace Silverback\ApiComponentBundle\DataModifier;
 
-interface MiddlewareInterface
+interface DataModifierInterface
 {
     /**
      * Modifies an object with additional data where a service is required to populate the data

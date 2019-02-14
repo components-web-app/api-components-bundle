@@ -35,20 +35,18 @@ class ContentFactory
         ], $guzzleOps);
     }
 
-    public function create(?Content $contentEntity = null, ?array $lipsumOps = null, array $guzzleOps = [])
+    public function create(?Content $contentEntity = null, ?array $lipsumOps = null, array $guzzleOps = []): Content
     {
-        $lipsumOps = $lipsumOps ?: $this->lipsumOps;
-        $guzzleOps = array_merge($this->guzzleOps, $guzzleOps);
         $content = $contentEntity ?: new Content();
         $content->setContent($this->getLipsumContent($lipsumOps, $guzzleOps));
         return $content;
     }
 
-    /**
-     * @return string
-     */
-    private function getLipsumContent(array $lipsumOps, array $guzzleOps): string
+    public function getLipsumContent(?array $lipsumOps = null, array $guzzleOps = []): string
     {
+        $lipsumOps = $lipsumOps ?: $this->lipsumOps;
+        $guzzleOps = array_merge($this->guzzleOps, $guzzleOps);
+
         $url = 'https://loripsum.net/api/' . implode('/', $lipsumOps);
         try {
             $res = $this->client->request(

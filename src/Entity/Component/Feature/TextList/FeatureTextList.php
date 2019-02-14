@@ -21,13 +21,6 @@ class FeatureTextList extends AbstractFeature
     /**
      * @ORM\Column()
      * @Groups({"component", "content"})
-     * @var null|string
-     */
-    protected $title;
-
-    /**
-     * @ORM\Column()
-     * @Groups({"component", "content"})
      * @var int
      */
     protected $columns = 3;
@@ -46,22 +39,6 @@ class FeatureTextList extends AbstractFeature
                 ]
             )
         );
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @param null|string $title
-     */
-    public function setTitle(?string $title): void
-    {
-        $this->title = $title;
     }
 
     /**

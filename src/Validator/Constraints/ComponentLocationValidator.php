@@ -16,7 +16,6 @@ class ComponentLocationValidator extends ConstraintValidator
     /**
      * @param mixed $entity
      * @param Constraint $constraint
-     * @throws \ReflectionException
      */
     public function validate($entity, Constraint $constraint): void
     {
@@ -33,7 +32,9 @@ class ComponentLocationValidator extends ConstraintValidator
             if (!$componentIsValid) {
                 $this->context->buildViolation($constraint->message)
                     ->atPath('component')
+                    ->setParameter('{{ component }}', get_class($entity->getComponent()))
                     ->setParameter('{{ string }}', implode(', ', $validComponents->toArray()))
+                    ->setParameter('{{ content }}', get_class($content))
                     ->addViolation();
             }
         }
@@ -43,19 +44,19 @@ class ComponentLocationValidator extends ConstraintValidator
      * @param ComponentLocationEntity $entity
      * @param ArrayCollection $validComponents
      * @return bool
-     * @throws \ReflectionException
      */
     private function validateValidComponentInterface(ComponentLocationEntity $entity, ArrayCollection $validComponents): bool
     {
-        $componentIsValid = false;
         if ($validComponents->count()) {
+            $componentIsValid = false;
             $component = $entity->getComponent();
             foreach ($validComponents as $validComponent) {
                 if ($componentIsValid = ClassNameValidator::isClassSame($validComponent, $component)) {
                     break;
                 }
             }
+            return $componentIsValid;
         }
-        return $componentIsValid;
+        return true;
     }
 }
