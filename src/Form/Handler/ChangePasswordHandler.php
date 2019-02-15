@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use Silverback\ApiComponentBundle\Entity\User\User;
-use App\Exception\NotSupportedException;
-use App\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Exception\UnsupportedFormEntityException;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -22,12 +22,12 @@ class ChangePasswordHandler implements FormHandlerInterface
      * @param Form $form
      * @param User $user
      * @param Request $request
-     * @throws NotSupportedException
+     * @throws UnsupportedFormEntityException
      */
     public function success(Form $form, $user, Request $request): void
     {
         if (!$user instanceof User) {
-            throw new NotSupportedException(
+            throw new UnsupportedFormEntityException(
                 sprintf(
                     '`%s` only supports forms that submit the `%s` entity. Received `%s`',
                     self::class,

@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use Silverback\ApiComponentBundle\Entity\User\User;
-use App\Security\TokenGenerator;
+use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;

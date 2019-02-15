@@ -35,7 +35,8 @@ return function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private()
         ->bind('$formHandlers', new TaggedIteratorArgument('silverback_api_component.form_handler'))
-        ->bind('$projectDir', '%kernel.project_dir%');
+        ->bind('$projectDir', '%kernel.project_dir%')
+        ->bind('$fromEmailAddress', '%env(FROM_EMAIL_ADDRESS)%');
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')

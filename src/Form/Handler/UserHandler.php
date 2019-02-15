@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use Silverback\ApiComponentBundle\Entity\User\User;
-use App\Security\PasswordManager;
-use App\Security\TokenAuthenticator;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Authentication\AuthenticationSuccessHandler;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Exception\UnsupportedFormEntityException;
