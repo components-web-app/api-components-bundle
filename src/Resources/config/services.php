@@ -7,10 +7,13 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Swagger\SwaggerDecorator;
@@ -111,9 +114,19 @@ return function (ContainerConfigurator $configurator) {
             ]
         );
 
+    $services
+        ->set(TokenAuthenticator::class)
+        ->arg('$tokens', ['%env(VARNISH_TOKEN)%']);
+
+    $services
+        ->set(PasswordManager::class)
+        ->arg('$tokenTtl', 86400)
+    ;
+
     $services->set(Client::class); // create guzzle client as a service
     $services->alias(SlugifyInterface::class, 'slugify');
     $services->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default');
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
+    $services->alias(JWTManager::class, 'lexik_jwt_authentication.jwt_manager');
 };
