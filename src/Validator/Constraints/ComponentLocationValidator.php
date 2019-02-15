@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation as ComponentLocationEntity;
 use Silverback\ApiComponentBundle\Entity\ValidComponentInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
@@ -28,11 +29,12 @@ class ComponentLocationValidator extends ConstraintValidator
         if ($content instanceof ValidComponentInterface) {
             /** @var ArrayCollection $validComponents */
             $validComponents = $content->getValidComponents();
-            $componentIsValid = $this->validateValidComponentInterface($entity, $validComponents);
+            $component = $entity->getComponent();
+            $componentIsValid = $this->validateValidComponentInterface($component, $validComponents);
             if (!$componentIsValid) {
                 $this->context->buildViolation($constraint->message)
                     ->atPath('component')
-                    ->setParameter('{{ component }}', get_class($entity->getComponent()))
+                    ->setParameter('{{ component }}', get_class($component))
                     ->setParameter('{{ string }}', implode(', ', $validComponents->toArray()))
                     ->setParameter('{{ content }}', get_class($content))
                     ->addViolation();
@@ -41,15 +43,14 @@ class ComponentLocationValidator extends ConstraintValidator
     }
 
     /**
-     * @param ComponentLocationEntity $entity
+     * @param null|AbstractComponent $component
      * @param ArrayCollection $validComponents
      * @return bool
      */
-    private function validateValidComponentInterface(ComponentLocationEntity $entity, ArrayCollection $validComponents): bool
+    private function validateValidComponentInterface(?AbstractComponent $component, ArrayCollection $validComponents): bool
     {
         if ($validComponents->count()) {
             $componentIsValid = false;
-            $component = $entity->getComponent();
             foreach ($validComponents as $validComponent) {
                 if ($componentIsValid = ClassNameValidator::isClassSame($validComponent, $component)) {
                     break;

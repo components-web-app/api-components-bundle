@@ -78,7 +78,7 @@ class ComponentLocationValidatorTest extends TestCase
             ->getMockBuilder(ConstraintViolationBuilderInterface::class)
             ->getMock();
         $violation->expects($this->once())->method('atPath')->with('component')->willReturn($violation);
-        $violation->expects($this->once())->method('setParameter')->willReturn($violation);
+        $violation->expects($this->exactly(3))->method('setParameter')->willReturn($violation);
 
         $this->setUpForFullValidationChecks(new GalleryItem());
         $this->context

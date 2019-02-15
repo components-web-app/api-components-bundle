@@ -11,7 +11,8 @@ class ComponentLocationTest extends AbstractEntity
     {
         $entity = new \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation();
         $constraints = $this->getConstraints($entity);
-        $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['content']));
+        // I SHOULD BE TESTING TE RESULT OF VALIDATION ON AN ENTITY NOT THAT THE CONSTRAINT EXISTS GENERALLY SPEAKING
+        // MISSING THE CHECK ON THE CLASS VALIDATION
         $this->assertTrue($this->instanceInArray(NotBlank::class, $constraints['component']));
     }
 }

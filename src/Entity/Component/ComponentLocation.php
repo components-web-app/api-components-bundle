@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;

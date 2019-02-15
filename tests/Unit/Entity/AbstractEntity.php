@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity;
 
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\PropertyMetadata;
 use Symfony\Component\Validator\Validation;
