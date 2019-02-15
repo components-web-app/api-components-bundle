@@ -6,12 +6,8 @@ namespace Silverback\ApiComponentBundle\Entity;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Validator\Constraints as SilverbackAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- * @SilverbackAssert\Sortable()
- */
 trait SortableTrait
 {
     /**
@@ -31,7 +27,7 @@ trait SortableTrait
 
     /**
      * @param int $sort
-     * @return SortableTrait|SortableInterface
+     * @return static
      */
     public function setSort(int $sort = 0)
     {

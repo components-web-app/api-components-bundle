@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -22,15 +23,25 @@ class ComponentLocationRepository extends ServiceEntityRepository
         parent::__construct($registry, ComponentLocation::class);
     }
 
-    public function findByDynamicPage(AbstractDynamicPage $page): array
+    public function findByDynamicPage(string $dynamicPageClass): Collection
     {
         $qb = $this->createQueryBuilder('location');
         $qb
             ->andWhere(
                 $qb->expr()->eq('location.dynamicPageClass', ':cls')
             )
-            ->setParameter('cls', \get_class($page))
+            ->setParameter('cls', $dynamicPageClass)
             ->addOrderBy('location.sort', 'ASC');
-        return $qb->getQuery()->getResult();
+
+        $result = new ArrayCollection($qb->getQuery()->getResult());
+
+        $uow = $this->getEntityManager()->getUnitOfWork();
+        $scheduledInsertions = $uow->getScheduledEntityInsertions();
+        foreach ($scheduledInsertions as $scheduledInsertion) {
+            if ($scheduledInsertion instanceof ComponentLocation && $scheduledInsertion->getDynamicPageClass() === $dynamicPageClass) {
+                $result->add($scheduledInsertion);
+            }
+        }
+        return $result;
     }
 }

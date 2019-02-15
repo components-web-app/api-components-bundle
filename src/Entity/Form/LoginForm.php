@@ -2,31 +2,22 @@
 
 namespace Silverback\ApiComponentBundle\Entity\Form;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
-
 /**
- * @ApiResource(
- *     collectionOperations={}
- * )
  * @author Daniel West <daniel@silverback.is>
  */
 class LoginForm
 {
     /**
-     * @ApiProperty(identifier=true)
      * @var int
      */
     protected $id = 0;
 
     /**
-     * @ApiProperty()
      * @var string
      */
     protected $_username = '';
 
     /**
-     * @ApiProperty()
      * @var string
      */
     protected $_password = '';

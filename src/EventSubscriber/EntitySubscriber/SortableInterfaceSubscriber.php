@@ -6,19 +6,24 @@ namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
+use Silverback\ApiComponentBundle\Repository\ComponentLocationRepository;
 use Silverback\ApiComponentBundle\Repository\ContentRepository;
 
 class SortableInterfaceSubscriber implements EntitySubscriberInterface
 {
     private $contentRepository;
+    private $componentLocationRepository;
 
     public function __construct(
-        ContentRepository $contentRepository
+        ContentRepository $contentRepository,
+        ComponentLocationRepository $componentLocationRepository
     )
     {
         $this->contentRepository = $contentRepository;
+        $this->componentLocationRepository = $componentLocationRepository;
     }
 
     /**
@@ -44,8 +49,15 @@ class SortableInterfaceSubscriber implements EntitySubscriberInterface
     {
         if ($entity->getSort() === null) {
             $collection = $entity->getSortCollection();
-            if ($collection === null && $entity instanceof AbstractDynamicPage) {
-                $collection = $this->contentRepository->findPageByType(get_class($entity));
+            if ($collection === null) {
+                if ($entity instanceof AbstractDynamicPage) {
+                    $collection = $this->contentRepository->findPageByType(get_class($entity));
+                } elseif(
+                    $entity instanceof ComponentLocation &&
+                    ($dynamicPageClass = $entity->getDynamicPageClass())
+                ) {
+                    $collection = $this->componentLocationRepository->findByDynamicPage($dynamicPageClass);
+                }
             }
             $entity->setSort($entity->calculateSort(true, $collection));
         }

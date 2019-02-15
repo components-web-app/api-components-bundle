@@ -64,4 +64,17 @@ resources:
     Silverback\ApiComponentBundle\Entity\Component\Layout\SideColumn: ~
     Silverback\ApiComponentBundle\Entity\Component\Content\Content: ~
     # dynamic pages
-    Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage: ~
+    Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage:
+        attributes:
+            order:
+                created: DESC
+                sort: DESC
+            pagination_client_items_per_page: true
+            pagination_client_enabled: true
+    Silverback\ApiComponentBundle\Entity\Form\LoginForm:
+        collectionOperations: ~
+        properties:
+            id:
+                identifier: true
+            _username: ~
+            _password: ~

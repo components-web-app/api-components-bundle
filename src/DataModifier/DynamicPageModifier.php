@@ -2,17 +2,23 @@
 
 namespace Silverback\ApiComponentBundle\DataModifier;
 
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\Repository\ComponentLocationRepository;
 
 class DynamicPageModifier extends AbstractModifier
 {
+    /**
+     * @param AbstractContent $page
+     * @param array $context
+     * @return object|void
+     */
     public function process($page, array $context = array())
     {
         /** @var ComponentLocationRepository $repository */
         $repository = $this->container->get(ComponentLocationRepository::class);
-        $locations = $repository->findByDynamicPage($page);
-        if (!empty($locations)) {
+        $locations = $repository->findByDynamicPage(\get_class($page));
+        if (!$locations->isEmpty()) {
             $page->setComponentLocations($locations);
         }
     }

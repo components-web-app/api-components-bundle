@@ -40,7 +40,11 @@ abstract class AbstractDynamicPage extends AbstractPage implements SortableInter
      */
     protected $nested = false;
 
-    public function setParentRoute(?Route $parentRoute): self
+    /**
+     * @param null|Route $parentRoute
+     * @return static
+     */
+    public function setParentRoute(?Route $parentRoute)
     {
         $this->parentRoute = $parentRoute;
         return $this;
@@ -68,7 +72,11 @@ abstract class AbstractDynamicPage extends AbstractPage implements SortableInter
         return $this->nested;
     }
 
-    public function setNested(bool $nested): self
+    /**
+     * @param bool $nested
+     * @return static
+     */
+    public function setNested(bool $nested)
     {
         $this->nested = $nested;
         return $this;

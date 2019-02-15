@@ -52,7 +52,7 @@ class PasswordResetController
         $token = $data['token'];
         $user = $this->userRepository->findOneBy([
             'username' => $username,
-            'confirmationToken' => $token
+            'passwordResetConfirmationToken' => $token
         ]);
         if (!$user) {
             return new JsonResponse([], Response::HTTP_NOT_FOUND);
