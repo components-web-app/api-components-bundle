@@ -58,8 +58,7 @@ class DoctrineSubscriber implements EventSubscriber
     private function runEntitySubscribers($args, string $event): void
     {
         $entity = ($args instanceof LifecycleEventArgs) ? $args->getEntity() : null;
-        foreach ($this->entitySubscribers as $entitySubscriber)
-        {
+        foreach ($this->entitySubscribers as $entitySubscriber) {
             if ($entitySubscriber->supportsEntity($entity) && \in_array($event, $entitySubscriber->getSubscribedEvents(), true)) {
                 $entitySubscriber->$event($args, $entity);
             }

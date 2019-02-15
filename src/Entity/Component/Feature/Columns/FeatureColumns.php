@@ -14,4 +14,5 @@ use Silverback\ApiComponentBundle\Entity\Component\Feature\AbstractFeature;
  * @ORM\Entity()
  */
 class FeatureColumns extends AbstractFeature
-{}
+{
+}

@@ -20,8 +20,7 @@ class SortableInterfaceSubscriber implements EntitySubscriberInterface
     public function __construct(
         ContentRepository $contentRepository,
         ComponentLocationRepository $componentLocationRepository
-    )
-    {
+    ) {
         $this->contentRepository = $contentRepository;
         $this->componentLocationRepository = $componentLocationRepository;
     }
@@ -52,7 +51,7 @@ class SortableInterfaceSubscriber implements EntitySubscriberInterface
             if ($collection === null) {
                 if ($entity instanceof AbstractDynamicPage) {
                     $collection = $this->contentRepository->findPageByType(get_class($entity));
-                } elseif(
+                } elseif (
                     $entity instanceof ComponentLocation &&
                     ($dynamicPageClass = $entity->getDynamicPageClass())
                 ) {
