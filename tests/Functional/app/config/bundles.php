@@ -14,5 +14,7 @@ return [
     Liip\ImagineBundle\LiipImagineBundle::class => ['all' => true],
     Symfony\Bundle\WebServerBundle\WebServerBundle::class => ['dev' => true],
     Silverback\ApiComponentBundle\SilverbackApiComponentBundle::class => ['all' => true],
-    Silverback\ApiComponentBundle\Tests\TestBundle\TestBundle::class => ['all' => true]
+    Silverback\ApiComponentBundle\Tests\TestBundle\TestBundle::class => ['all' => true],
+    Gesdinet\JWTRefreshTokenBundle\GesdinetJWTRefreshTokenBundle::class => ['all' => true],
+    Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle::class => ['all' => true]
 ];
