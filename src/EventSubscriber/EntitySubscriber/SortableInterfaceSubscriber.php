@@ -44,7 +44,7 @@ class SortableInterfaceSubscriber implements EntitySubscriberInterface
      * @param LifecycleEventArgs $eventArgs
      * @param SortableInterface $entity
      */
-    public function prePersist(LifecycleEventArgs $eventArgs, SortableInterface $entity): void
+    public function prePersist(/** @scrutinizer ignore-unused */ LifecycleEventArgs $eventArgs, SortableInterface $entity): void
     {
         if ($entity->getSort() === null) {
             $collection = $entity->getSortCollection();

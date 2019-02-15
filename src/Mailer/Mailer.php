@@ -3,6 +3,7 @@
 namespace Silverback\ApiComponentBundle\Mailer;
 
 use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 
@@ -27,10 +28,18 @@ class Mailer
 
     public function passwordResetEmail(User $user, string $resetUrl): int
     {
+        $confirmationToken = $user->getPasswordResetConfirmationToken();
+        if (!$confirmationToken) {
+            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a password reset email.', User::class));
+        }
+        $username = $user->getUsername();
+        if (!$username) {
+            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', User::class));
+        }
         $resetUrl = $this->pathToAppUrl(
             $resetUrl,
-            $user->getPasswordResetConfirmationToken(),
-            $user->getUsername()
+            $confirmationToken,
+            $username
         );
         $message = (new \Swift_Message('Password Reset Request'))
             ->setFrom($this->fromEmailAddress)
@@ -55,14 +64,23 @@ class Mailer
 
     public function newUsernameConfirmation(User $user, string $confirmUrl): int
     {
+        $confirmationToken = $user->getUsernameConfirmationToken();
+        if (!$confirmationToken) {
+            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a new user confirmation email.', User::class));
+        }
+        $username = $user->getNewUsername();
+        if (!$username) {
+            throw new InvalidParameterException(sprintf('The entity %s should have a new username set to send a new user confirmation email.', User::class));
+        }
+
         $confirmUrl = $this->pathToAppUrl(
             $confirmUrl,
-            $user->getUsernameConfirmationToken(),
-            $user->getNewUsername()
+            $confirmationToken,
+            $username
         );
         $message = (new \Swift_Message('Confirm change of username'))
             ->setFrom($this->fromEmailAddress)
-            ->setTo($user->getNewUsername())
+            ->setTo($username)
             ->setBody(
                 $this->twig->render(
                     '@SilverbackApiComponent/emails/new_username_confirmation.html.twig',

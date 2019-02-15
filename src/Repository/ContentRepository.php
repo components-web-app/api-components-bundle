@@ -30,7 +30,7 @@ class ContentRepository extends ServiceEntityRepository
     public function findPageByType(string $entityClass): Collection
     {
         if (!is_subclass_of($entityClass, AbstractContent::class)) {
-            throw new RepositoryException(substr('The entity class must be a subclass of %s', AbstractContent::class));
+            throw new RepositoryException(sprintf('The entity class must be a subclass of %s', AbstractContent::class));
         }
         $childRepository = new ServiceEntityRepository($this->registry, $entityClass);
         $result = new ArrayCollection($childRepository->findAll());

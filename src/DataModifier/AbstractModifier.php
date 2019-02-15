@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\DataModifier;
 
 use Psr\Container\ContainerInterface;
-use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
+use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 abstract class AbstractModifier implements DataModifierInterface, ServiceSubscriberInterface
 {

@@ -7,7 +7,7 @@ interface EntitySubscriberInterface
     /**
      * Returns a boolean as to whether the entity that is being processed is supported by this subscriber
      *
-     * @param null $entity
+     * @param null|object $entity
      * @return bool
      */
     public function supportsEntity($entity = null): bool;

@@ -25,6 +25,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 use Symfony\Component\DependencyInjection\Reference;
+use Twig\Environment;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -130,4 +131,8 @@ return function (ContainerConfigurator $configurator) {
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(JWTManager::class, 'lexik_jwt_authentication.jwt_manager');
+
+    // Support twig minimum stability - autowiring is required with type hinted param
+    // Twig bundle 3.4.0 is minimum - 4.3.0 current and recommended at time of writing this note
+    $services->alias(Environment::class, 'twig');
 };

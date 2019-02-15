@@ -12,7 +12,7 @@ use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
-use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
+use Symfony\Contracts\Service\ServiceSubscriberInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 class FileDataFactory implements ServiceSubscriberInterface
