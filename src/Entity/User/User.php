@@ -6,6 +6,7 @@ use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Doctrine\ORM\Mapping as ORM;
 use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\Role\Role;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -45,6 +46,7 @@ class User implements Serializable, UserInterface
 
     /**
      * @ORM\Column(type="array")
+     * @var Role[]
      */
     private $roles;
 
@@ -128,6 +130,9 @@ class User implements Serializable, UserInterface
         return $this;
     }
 
+    /**
+     * @return Role[]
+     */
     public function getRoles(): array
     {
         return $this->roles;
@@ -135,7 +140,15 @@ class User implements Serializable, UserInterface
 
     public function setRoles(?array $roles): self
     {
-        $this->roles = $roles;
+        $mappedRoles = [];
+        foreach ($roles as $role) {
+            if ($role instanceof Role) {
+                $mappedRoles[] = $role;
+            } else {
+                $mappedRoles[] = new Role((string) $role);
+            }
+        }
+        $this->roles = $mappedRoles;
         return $this;
     }
 

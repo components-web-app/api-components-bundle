@@ -25,6 +25,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Twig\Environment;
 
 return function (ContainerConfigurator $configurator) {
@@ -135,4 +136,5 @@ return function (ContainerConfigurator $configurator) {
     // Support twig minimum stability - autowiring is required with type hinted param
     // Twig bundle 3.4.0 is minimum - 4.3.0 current and recommended at time of writing this note
     $services->alias(Environment::class, 'twig');
+    $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
 };
