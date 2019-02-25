@@ -10,13 +10,21 @@ interface FileInterface
 {
     public function getFilePath(): ?string;
 
-    public function setFilePath(?string $filePath): void;
-
-    public static function getImagineFilters(): array;
-
-    public function getDir(): ?string;
+    /**
+     * @param null|string $filePath
+     * @return static
+     */
+    public function setFilePath(?string $filePath);
 
     public function getFileData(): ?FileData;
 
-    public function setFileData(?FileData $fileData): void;
+    /**
+     * @param null|FileData $fileData
+     * @return static
+     */
+    public function setFileData(?FileData $fileData);
+
+    public function getDir(): ?string;
+
+    public static function getImagineFilters(): array;
 }

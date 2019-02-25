@@ -19,14 +19,14 @@ trait FileTrait
      * We are not asserting this is a file here because it may be a string for dynamic component e.g. {{ filePath }}
      * validation constraint could be made perhaps to validate a file or a variable
      * @ORM\Column(type="string", nullable=false)
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @ApiProperty(iri="http://schema.org/contentUrl")
      * @var null|string
      */
     protected $filePath;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var FileData|null
      */
     private $fileData;
@@ -41,10 +41,12 @@ trait FileTrait
 
     /**
      * @param null|string $filePath
+     * @return static
      */
-    public function setFilePath(?string $filePath): void
+    public function setFilePath(?string $filePath)
     {
         $this->filePath = $filePath;
+        return $this;
     }
 
     public static function getImagineFilters(): array
@@ -71,9 +73,11 @@ trait FileTrait
 
     /**
      * @param null|FileData $fileData
+     * @return static
      */
-    public function setFileData(?FileData $fileData): void
+    public function setFileData(?FileData $fileData)
     {
         $this->fileData = $fileData;
+        return $this;
     }
 }

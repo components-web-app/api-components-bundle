@@ -9,6 +9,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\PublishableInterface;
+use Silverback\ApiComponentBundle\Entity\PublishableTrait;
 use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
@@ -28,9 +30,10 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  *     "article_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage"
  * })
  */
-abstract class AbstractContent implements ContentInterface
+abstract class AbstractContent implements ContentInterface, PublishableInterface
 {
     use TimestampedEntityTrait;
+    use PublishableTrait;
 
     /**
      * @ORM\Id()

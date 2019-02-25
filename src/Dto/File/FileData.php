@@ -14,19 +14,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class FileData
 {
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $publicPath;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var ImageMetadata|null
      */
     private $imageData;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var ImageMetadata[]|null
      */
     private $imagineData;

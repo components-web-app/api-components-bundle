@@ -22,6 +22,8 @@ abstract class AbstractDynamicPage extends AbstractPage implements SortableInter
 {
     use SortableTrait;
 
+    protected $published = false;
+
     /**
      * @Groups({"dynamic_content", "route"})
      */

@@ -2,33 +2,41 @@
 
 namespace Silverback\ApiComponentBundle\File\Uploader;
 
-use ApiPlatform\Core\Validator\ValidatorInterface;
+use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FileUploader
 {
-    private $rootPath;
-    private $validator;
-    private $propertyAccessor;
     private $em;
+    private $resourceMetadataFactory;
+    private $validator;
+    private $apiValidator;
+    private $rootPath;
+    private $propertyAccessor;
 
     public function __construct(
-        ValidatorInterface $validator,
         EntityManagerInterface $em,
+        ResourceMetadataFactoryInterface $resourceMetadataFactory,
+        ValidatorInterface $validator,
+        ApiValidator $apiValidator,
         array $rootPaths = []
     ) {
+        $this->em = $em;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->validator = $validator;
+        $this->apiValidator = $apiValidator;
         $this->rootPath = $rootPaths['uploads'];
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->em = $em;
     }
 
     private function getRealPath(string $moveToDir, string $filename): string
@@ -51,12 +59,11 @@ class FileUploader
         return $filename;
     }
 
-    private function validateNewFile($entity, $field, UploadedFile $file): void
+    private function validateNewFile($entity, $field, UploadedFile $file, array $validationGroups): void
     {
-        $this->propertyAccessor->setValue($entity, $field, $file);
-        $errors = $this->validator->validate($entity);
+        $errors = $this->validator->validatePropertyValue($entity, $field, $file->getRealPath(), $validationGroups);
         if ($errors !== null && \count($errors)) {
-            throw new InvalidArgumentException((string) $errors);
+            throw new ValidationException($errors);
         }
     }
 
@@ -69,13 +76,21 @@ class FileUploader
         unlink($currentFile->getRealPath());
     }
 
-    public function upload(FileInterface $entity, string $field, UploadedFile $file): FileInterface
+    public function upload(FileInterface $entity, string $field, UploadedFile $file, string $itemOperationName = 'post'): FileInterface
     {
+        $resourceMetadata = $this->resourceMetadataFactory->create(get_class($entity));
+        $validationGroups = $resourceMetadata->getOperationAttribute(
+            ['item_operation_name' => $itemOperationName],
+            'validation_groups',
+            [],
+            true
+        );
+
         /** @var File|null|string $currentFile */
         $currentFile = $this->propertyAccessor->getValue($entity, $field);
 
         // Set to the new file and validate it before we upload and persist any changes
-        $this->validateNewFile($entity, $field, $file);
+        $this->validateNewFile($entity, $field, $file, $validationGroups);
 
         // Validation passed, remove old file first (in case we don't have permission to do it)
         if ($currentFile) {
@@ -90,8 +105,11 @@ class FileUploader
         $filename = $this->getNewFilename($moveToDir, $file);
         $movedFile = $file->move($moveToDir, $filename);
         $this->propertyAccessor->setValue($entity, $field, $movedFile->getRealPath());
+
+        $this->apiValidator->validate($entity, ['groups' => $validationGroups]);
         $this->em->persist($entity);
         $this->em->flush();
+
         return $entity;
     }
 }

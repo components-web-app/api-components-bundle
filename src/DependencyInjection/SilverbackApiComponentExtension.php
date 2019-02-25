@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
+use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Symfony\Component\Config\FileLocator;
@@ -63,6 +64,22 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         );
 
         $bundles = $container->getParameter('kernel.bundles');
+        if (isset($bundles['DoctrineBundle'])) {
+            $container->prependExtensionConfig(
+                'doctrine',
+                [
+                    'orm' => [
+                        'filters' => [
+                            'publishable_filter' => [
+                                'class' => PublishableFilter::class,
+                                'enabled' => false
+                            ]
+                        ]
+                    ]
+                ]
+            );
+        }
+
         if (isset($bundles['LiipImagineBundle'])) {
             $uploadsDir = $container->getParameter('kernel.project_dir') . '/var/uploads';
             if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {

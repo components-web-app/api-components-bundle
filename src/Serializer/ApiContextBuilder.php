@@ -66,7 +66,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param bool $normalization
      * @return array
      */
-    private function getGroups(string $subject, bool $normalization): array
+    public function getGroups(string $subject, bool $normalization): array
     {
         /** @var string[] $groups */
         $groups = [['default']];

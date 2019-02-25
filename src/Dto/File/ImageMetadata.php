@@ -11,31 +11,31 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class ImageMetadata
 {
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var int
      */
     private $width;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var int
      */
     private $height;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var string
      */
     private $filePath;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var string
      */
     private $publicPath;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $imagineKey;

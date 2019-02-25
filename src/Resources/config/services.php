@@ -11,6 +11,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
+use Silverback\ApiComponentBundle\EventSubscriber\PublishableConfigurator;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
 use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
@@ -26,6 +27,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Twig\Environment;
 
 return function (ContainerConfigurator $configurator) {
@@ -124,6 +126,17 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(PasswordManager::class)
         ->arg('$tokenTtl', 86400)
+    ;
+
+    $services
+        ->set(DateTimeNormalizer::class)
+        ->arg('$defaultContext', ['datetime_format' => 'Y-m-d H:i:s'])
+    ;
+
+    $services
+        ->set(PublishableConfigurator::class)
+        ->tag('kernel.event_listener', ['event' => 'kernel.request', 'priority' => 5])
+        ->autoconfigure(false)
     ;
 
     $services->set(Client::class); // create guzzle client as a service

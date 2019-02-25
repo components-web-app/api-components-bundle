@@ -40,7 +40,14 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
      * @Groups({"content", "component", "route"})
      * @var string
      */
-    private $content;
+    private $content = '';
+
+    /**
+     * @ORM\Column(type="string")
+     * @Groups({"content", "component", "route"})
+     * @var null|string
+     */
+    private $imageCaption;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
@@ -60,10 +67,20 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
         );
     }
 
+    public function getSubtitle(): ?string
+    {
+        return $this->subtitle;
+    }
+
     public function setSubtitle(?string $subtitle): self
     {
         $this->subtitle = $subtitle;
         return $this;
+    }
+
+    public function getContent(): string
+    {
+        return $this->content;
     }
 
     public function setContent(string $content): self
@@ -72,19 +89,14 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getSubtitle(): ?string
+    public function setImageCaption(string $imageCaption): self
     {
-        return $this->subtitle;
+        $this->imageCaption = $imageCaption;
+        return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getContent(): string
+    public function getImageCaption(): ?string
     {
-        return $this->content;
+        return $this->imageCaption;
     }
 }

@@ -13,7 +13,7 @@ trait RouteAwareTrait
 {
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content", orphanRemoval=true, cascade={"persist"})
-     * @Groups({"layout", "content", "component"})
+     * @Groups({"default", "route_read"})
      * @var Collection|Route[]
      */
     protected $routes;
