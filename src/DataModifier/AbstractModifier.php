@@ -14,7 +14,7 @@ abstract class AbstractModifier implements DataModifierInterface, ServiceSubscri
         $this->container = $container;
     }
 
-    abstract public function process($object, array $context = array());
+    abstract public function process($object, array $context = array(), ?string $format = null);
 
     abstract public function supportsData($data): bool;
 

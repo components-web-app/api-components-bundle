@@ -116,6 +116,9 @@ class FileInterfaceSubscriber implements EntitySubscriberInterface
                     $previousValueForField = $fpChanges[0] ?? null;
                     $newValueForField = $fpChanges[1] ?? null;
                     if ($previousValueForField !== $newValueForField) {
+                        if ($previousValueForField !== null) {
+                            @unlink($previousValueForField);
+                        }
                         if (ImagineSupportedFilePath::isValidFilePath($previousValueForField)) {
                             $this->imagineCacheManager->remove($previousValueForField);
                         }
@@ -135,11 +138,13 @@ class FileInterfaceSubscriber implements EntitySubscriberInterface
     {
         $deletedEntities = $unitOfWork->getScheduledEntityDeletions();
         foreach ($deletedEntities as $entity) {
-            if (
-                $entity instanceof FileInterface &&
-                ImagineSupportedFilePath::isValidFilePath($entity->getFilePath())
-            ) {
-                $this->imagineCacheManager->remove($entity->getFilePath());
+            if ($entity instanceof FileInterface) {
+                if ($entity->getFilePath()) {
+                    @unlink($entity->getFilePath());
+                }
+                if (ImagineSupportedFilePath::isValidFilePath($entity->getFilePath())) {
+                    $this->imagineCacheManager->remove($entity->getFilePath());
+                }
             }
         }
     }

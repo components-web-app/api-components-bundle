@@ -11,9 +11,10 @@ class DynamicPageModifier extends AbstractModifier
     /**
      * @param AbstractContent $page
      * @param array $context
+     * @param null|string $format
      * @return object|void
      */
-    public function process($page, array $context = array())
+    public function process($page, array $context = array(), ?string $format = null)
     {
         /** @var ComponentLocationRepository $repository */
         $repository = $this->container->get(ComponentLocationRepository::class);

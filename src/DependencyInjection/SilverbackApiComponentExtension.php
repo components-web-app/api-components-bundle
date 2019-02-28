@@ -8,6 +8,9 @@ use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Silverback\ApiComponentBundle\Mailer\Mailer;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -23,14 +26,30 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $this->loadServiceConfig($container);
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
+        $this->loadServiceConfig($container, $config);
+        $repeatTtl = $config['password_reset']['repeat_ttl_seconds'];
+        $timeoutSeconds = $config['password_reset']['request_timeout_seconds'];
+
+        $definition = $container->getDefinition(Mailer::class);
+        $definition->setArgument('$logoSrc', $config['mailer']['logo_src']);
+        $definition->setArgument('$websiteName', $config['mailer']['website_name']);
+        $definition->setArgument('$requestTimeout', $timeoutSeconds);
+
+        $definition = $container->getDefinition(PasswordManager::class);
+        $definition->setArgument('$tokenTtl', $repeatTtl);
+
+        $definition = $container->getDefinition(UserRepository::class);
+        $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
     }
 
     /**
      * @param ContainerBuilder $container
-     * @throws \Exception
+     * @param array $config
      */
-    private function loadServiceConfig(ContainerBuilder $container)
+    private function loadServiceConfig(ContainerBuilder $container, array $config)
     {
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
@@ -121,7 +140,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                             ]
                         ],
                         'thumbnail' => [
-                            'jpeg_quality' => 95,
+                            'jpeg_quality' => 100,
+                            'png_compression_level' => 0,
                             'filters' => [
                                 'upscale' => [
                                     'min' => [636, 636]

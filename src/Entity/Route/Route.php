@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Route;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -15,12 +18,20 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
+ * @UniqueEntity(fields={"route"}, message="This route is already in use")
  */
 class Route
 {
     /**
      * @ORM\Id()
      * @ORM\Column(type="string")
+     * @Groups({"route"})
+     * @var string
+     */
+    private $id;
+
+    /**
+     * @ORM\Column(type="string", unique=true)
      * @Groups({"default"})
      * @var string
      */
@@ -43,18 +54,40 @@ class Route
     private $content;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(name="redirect", referencedColumnName="route", onDelete="SET NULL")
-     * @Groups({"route"})
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", inversedBy="redirectedFrom")
+     * @ORM\JoinColumn(name="redirect", referencedColumnName="id", onDelete="SET NULL")
+     * @Groups({"route_read"})
      * @var null|Route
      */
     private $redirect;
 
+    /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="redirect")
+     * @Groups({"route"})
+     * @var Route[]|Collection
+     */
+    private $redirectedFrom;
+
     public function __construct(?string $name = null, ?string $route = null, ?Route $redirect = null)
     {
+        $this->id = Uuid::uuid4()->getHex();
         $this->name = $name ?: Uuid::uuid4()->getHex();
         $this->route = $route ?: '/' . Uuid::uuid4()->getHex();
+        $this->redirectedFrom = new ArrayCollection();
         $this->setRedirect($redirect);
+    }
+
+    public function getRedirectedFrom(): Collection
+    {
+        return $this->redirectedFrom;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
     }
 
     /**
@@ -127,5 +160,14 @@ class Route
     {
         $this->redirect = $redirect;
         return $this;
+    }
+
+    /**
+     * @Groups({"route_write"})
+     * @param null|Route $redirectRoute
+     */
+    public function setRedirectRoute(?Route $redirectRoute): void
+    {
+        $this->redirect = $redirectRoute;
     }
 }

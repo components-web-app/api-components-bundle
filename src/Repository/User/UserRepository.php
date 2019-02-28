@@ -14,9 +14,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class UserRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    private $passwordRequestTimeout;
+
+    public function __construct(RegistryInterface $registry, int $passwordRequestTimeout)
     {
         parent::__construct($registry, User::class);
+        $this->passwordRequestTimeout = $passwordRequestTimeout;
     }
 
     public function findOneByEmail($value): ?User
@@ -27,5 +30,21 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult()
         ;
+    }
+
+    public function findOneByPasswordResetToken(string $username, string $token)
+    {
+        $minimumRequestDateTime = new \DateTime();
+        $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.username = :username')
+            ->andWhere('u.passwordResetConfirmationToken = :token')
+            ->andWhere('u.passwordRequestedAt > :passwordRequestedAt')
+            ->setParameter('username', $username)
+            ->setParameter('token', $token)
+            ->setParameter('passwordRequestedAt', $minimumRequestDateTime)
+            ->getQuery()
+            ->getOneOrNullResult()
+            ;
     }
 }

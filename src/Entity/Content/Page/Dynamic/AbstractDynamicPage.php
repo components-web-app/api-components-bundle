@@ -8,6 +8,8 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage;
+use Silverback\ApiComponentBundle\Entity\PublishableInterface;
+use Silverback\ApiComponentBundle\Entity\PublishableTrait;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Silverback\ApiComponentBundle\Entity\SortableTrait;
@@ -18,11 +20,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @package Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic
  * @ORM\Entity()
  */
-abstract class AbstractDynamicPage extends AbstractPage implements SortableInterface
+abstract class AbstractDynamicPage extends AbstractPage implements SortableInterface, PublishableInterface
 {
     use SortableTrait;
-
-    protected $published = false;
+    use PublishableTrait;
 
     /**
      * @Groups({"dynamic_content", "route"})
@@ -31,7 +32,7 @@ abstract class AbstractDynamicPage extends AbstractPage implements SortableInter
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(nullable=true, referencedColumnName="route", onDelete="SET NULL")
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="id", onDelete="SET NULL")
      * @var Route|null
      */
     protected $parentRoute;

@@ -69,7 +69,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function getGroups(string $subject, bool $normalization): array
     {
         /** @var string[] $groups */
-        $groups = [['default']];
+        $groups = [['default', 'default' . ($normalization ? '_read' : '_write')]];
         foreach (self::CLASS_GROUP_MAPPING as $class => $groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {

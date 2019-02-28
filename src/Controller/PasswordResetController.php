@@ -48,15 +48,17 @@ class PasswordResetController
     public function resetAction(Request $request): JsonResponse
     {
         $data = \json_decode($request->getContent(), true);
+
         $username = $data['username'];
         $token = $data['token'];
-        $user = $this->userRepository->findOneBy([
-            'username' => $username,
-            'passwordResetConfirmationToken' => $token
-        ]);
+        $user = $this->userRepository->findOneByPasswordResetToken(
+            $username,
+            $token
+        );
         if (!$user) {
             return new JsonResponse([], Response::HTTP_NOT_FOUND);
         }
+
         try {
             $this->passwordManager->passwordReset($user, $data['password']);
             return new JsonResponse([], Response::HTTP_OK);

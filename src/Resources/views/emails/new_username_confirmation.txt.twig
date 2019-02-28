@@ -1,1 +1,11 @@
-You have requested to change your username. To confirm your new username/email visit {{ confirm_url|replace({'{{ token }}': user.newUsernameConfirmationToken}) }}
+Hi {{ user.username }}
+
+You appear to have requested to change your username for your {{ website_name }} account.
+
+Click the link below to confirm your new username/email.
+{{ confirm_url }}
+
+If you did not request this, please let us know.
+
+Thanks,
+{{ website_name }} Team.

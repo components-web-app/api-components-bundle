@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FileUploader
@@ -78,6 +80,12 @@ class FileUploader
 
     public function upload(FileInterface $entity, string $field, UploadedFile $file, string $itemOperationName = 'post'): FileInterface
     {
+        if ($file->getFilename() === '') {
+            $template = 'The file was not uploaded. It is likely that the file size was larger than %s';
+            throw new ValidationException(new ConstraintViolationList([
+                new ConstraintViolation(sprintf($template, ini_get('upload_max_filesize')), $template, [ ini_get('upload_max_filesize') ], $file, 'filename', $file->getFilename())
+            ]));
+        }
         $resourceMetadata = $this->resourceMetadataFactory->create(get_class($entity));
         $validationGroups = $resourceMetadata->getOperationAttribute(
             ['item_operation_name' => $itemOperationName],

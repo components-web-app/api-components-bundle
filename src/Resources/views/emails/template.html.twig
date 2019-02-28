@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="background-color: #FFFFFF; margin: 0; padding: 0;">
+<head>
+  <title>{{ subject }}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no" />
+
+  <!--[if gte mso 9]>
+  <style _tmplitem="277" >
+    .article-content ol, .article-content ul {
+      margin: 0 0 0 24px;
+      padding: 0;
+      list-style-position: inside;
+    }
+  </style>
+  <![endif]-->
+  <style>@media only screen and (max-device-width: 640px) {
+      table.w640 {
+        width: 100% !important;
+      }
+      td.w20 {
+        width: 10px !important;
+      }
+      td.w30 {
+        width: 20px;
+      }
+    }
+    @media only screen and (max-width: 320px) {
+      table.w640 {
+        width: 320px !important;
+      }
+    }
+    body {
+      width: 100% !important;
+    }
+    .ReadMsgBody {
+      width: 100%;
+    }
+    .ExternalClass {
+      width: 100%; display: block !important;
+    }
+    body {
+      background: #FFFFFF;
+    }
+    #backgroundTable {
+      background: #FFFFFF;
+    }
+    body {
+      margin: 0; padding: 0;
+    }
+    img {
+      height: auto; line-height: 100%; outline: none; text-decoration: none; display: block;
+    }
+    h1 a:active {
+      color: red !important;
+    }
+    h2 a:active {
+      color: red !important;
+    }
+    h3 a:active {
+      color: red !important;
+    }
+    h4 a:active {
+      color: red !important;
+    }
+    h5 a:active {
+      color: red !important;
+    }
+    h6 a:active {
+      color: red !important;
+    }
+    h1 a:visited {
+      color: purple !important;
+    }
+    h2 a:visited {
+      color: purple !important;
+    }
+    h3 a:visited {
+      color: purple !important;
+    }
+    h4 a:visited {
+      color: purple !important;
+    }
+    h5 a:visited {
+      color: purple !important;
+    }
+    h6 a:visited {
+      color: purple !important;
+    }
+    .yshortcuts a:visited {
+      color: black; text-decoration: none !important; border-bottom: none !important; background: none !important;
+    }
+    .yshortcuts a:hover {
+      color: black; text-decoration: none !important; border-bottom: none !important; background: none !important;
+    }
+    body {
+      font-family: Calibri, 'Open Sans', Arial, Helvetica, sans-serif;
+    }
+  </style></head>
+<body style="width: 100% !important; font-family: Calibri, 'Open Sans', Arial, Helvetica, sans-serif; margin: 0; padding: 0;" bgcolor="#FFFFFF">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" style="" bgcolor="#FFFFFF">
+  <tbody>
+  <tr style="border-collapse: collapse;">
+    <td align="center" style="border-collapse: collapse;">
+      <table class="w640 contentTable" cellpadding="0" cellspacing="0" border="0" style="width: 640px;">
+        <tbody>
+        {% if logo_src or website_name %}
+        <tr style="border-collapse: collapse;">
+          <td style="border-collapse: collapse;">
+            <table class="w640" cellpadding="0" cellspacing="0" border="0" id="logoHeader" style="width: 640px;">
+              <tbody>
+              <tr style="border-collapse: collapse;">
+                <td align="center" class="logoCell" style="border-collapse: collapse; padding-top: 10px; padding-bottom: 5px;">
+                  {% if logo_src %}
+                    <img id="customHeaderImage" src="{{ absolute_url(asset(logo_src)) }}" alt="{{ website_name }}" width="200" border="0" align="bottom" style="display: inline; height: auto; line-height: 100%; outline: none; text-decoration: none;" />
+                  {% elseif website_name %}
+                    <h1>{{ website_name }}</h1>
+                  {% endif %}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+
+        <tr style="border-collapse: collapse;">
+          <td class="w640" style="border-collapse: collapse;">
+            <table class="w640" cellpadding="0" cellspacing="0" border="0" style="width: 640px;">
+              <tbody>
+              <tr style="border-collapse: collapse;">
+                <td class="w30" style="border-collapse: collapse; width: 30px;"></td>
+                <td style="border-collapse: collapse;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tbody>
+                    <tr style="border-collapse: collapse;">
+                      <td style="border-collapse: collapse;">
+                        <div align="left" class="article-content" style="font-size: 15px; line-height: 18px; color: #121212; margin-top: 20px; margin-bottom: 18px;">
+                          {{ body_html|raw }}
+                          <p style="margin-bottom: 15px; font-size: 15px;"> </p>
+                        </div>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                  <p style="font-size: 16px; line-height: normal; margin: 0px;">
+                    <font color="#999999" style="line-height: normal; widows: 1; font-size: 10px;">
+                      This message (including any attachments) is confidential and may be legally privileged. If you are not the intended recipient, you should not disclose, copy or use any part of it - please delete all copies immediately and notify the sender
+                    </font>
+                  </p>
+                </td>
+                <td class="w30" style="border-collapse: collapse; width: 30px;"></td>
+              </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

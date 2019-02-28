@@ -10,9 +10,10 @@ class FileModifier extends AbstractModifier
     /**
      * @param FileInterface $component
      * @param array $context
+     * @param null|string $format
      * @return object|void
      */
-    public function process($component, array $context = array())
+    public function process($component, array $context = array(), ?string $format = null)
     {
         /** @var FileDataFactory $factory */
         $factory = $this->container->get(FileDataFactory::class);

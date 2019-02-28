@@ -4,24 +4,30 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Factory;
 
+use ApiPlatform\Core\Validator\ValidatorInterface;
 use Cocur\Slugify\SlugifyInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
-class RouteFactory
+final class RouteFactory
 {
     private $slugify;
     private $manager;
+    private $validator;
 
     public function __construct(
         ObjectManager $manager,
-        SlugifyInterface $slugify
+        SlugifyInterface $slugify,
+        ValidatorInterface $validator
     ) {
         $this->slugify = $slugify;
         $this->manager = $manager;
+        $this->validator = $validator;
     }
 
     /**
@@ -39,7 +45,7 @@ class RouteFactory
         }
 
         $repository = $this->manager->getRepository(Route::class);
-        $existing = $repository->find($fullRoute);
+        $existing = $repository->findOneBy(['route' => $fullRoute]);
         if ($existing) {
             return $this->createFromRouteAwareEntity($entity, $postfix + 1);
         }
@@ -62,6 +68,47 @@ class RouteFactory
         $entity->addRoute($route);
         return $route;
     }
+
+    public function createRedirectFromOldRoute(Route $oldRoute, Route $newRoute): Route
+    {
+        $oldRoute
+            ->setName($oldRoute->getName() . '_redirect')
+            ->setContent(null)
+            ->setRedirect($newRoute)
+        ;
+        return $oldRoute;
+    }
+
+    /**
+     * @param RouteAwareInterface $entity
+     * @param EntityManagerInterface|null $entityManager
+     * @return null|ArrayCollection|Route[]
+     */
+    public function createPageRoute(RouteAwareInterface $entity, ?EntityManagerInterface $entityManager = null): ?ArrayCollection
+    {
+        $em = $entityManager ?: $this->manager;
+
+        $entityRoutes = $entity->getRoutes();
+        if (($routeCount = $entityRoutes->count()) === 0 || $entity->getRegenerateRoute()) {
+            $newRoutes = new ArrayCollection();
+            $entity->setRegenerateRoute(false);
+
+            $newRoute = $this->createFromRouteAwareEntity($entity);
+            $this->validator->validate($newRoute);
+            $em->persist($newRoute);
+
+            if ($routeCount > 0 && ($defaultRoute = $entityRoutes->first())) {
+                $this->createRedirectFromOldRoute($defaultRoute, $newRoute);
+                $newRoutes->add($defaultRoute);
+                $entity->removeRoute($defaultRoute);
+            }
+
+            $newRoutes->add($newRoute);
+            return $newRoutes;
+        }
+        return null;
+    }
+
     /**
      * @param RouteAwareInterface $entity
      * @return string

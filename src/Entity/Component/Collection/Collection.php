@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Component\Collection;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -22,11 +23,11 @@ class Collection extends AbstractComponent
     private $resource;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      * @Groups({"component", "content"})
-     * @var int
+     * @var int|null
      */
-    private $perPage = 12;
+    private $perPage;
 
     /**
      * @ORM\Column(nullable=true)
@@ -40,6 +41,21 @@ class Collection extends AbstractComponent
      * @Groups({"component_read", "content_read"})
      */
     private $collection;
+
+    /**
+     * @var ArrayCollection
+     * @Groups({"component_read", "content_read"})
+     */
+    private $collectionRoutes;
+
+    /**
+     * Collection constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->collectionRoutes = new ArrayCollection;
+    }
 
     /**
      * @return string
@@ -60,18 +76,18 @@ class Collection extends AbstractComponent
     }
 
     /**
-     * @return int
+     * @return null|int
      */
-    public function getPerPage(): int
+    public function getPerPage(): ?int
     {
         return $this->perPage;
     }
 
     /**
-     * @param int $perPage
+     * @param null|int $perPage
      * @return Collection
      */
-    public function setPerPage(int $perPage): self
+    public function setPerPage(?int $perPage): self
     {
         $this->perPage = $perPage;
         return $this;
@@ -114,9 +130,24 @@ class Collection extends AbstractComponent
     }
 
     /**
-     * @ORM\PostLoad()
+     * @return ArrayCollection|null
      */
-    public function postLoad()
+    public function getCollectionRoutes(): ArrayCollection
     {
+        return $this->collectionRoutes;
+    }
+
+    /**
+     * @param string $method
+     * @param string $route
+     * @return static
+     */
+    public function addCollectionRoute(string $method, string $route)
+    {
+        if (!$this->collectionRoutes) {
+            $this->collectionRoutes = new ArrayCollection;
+        }
+        $this->collectionRoutes->set($method, $route);
+        return $this;
     }
 }

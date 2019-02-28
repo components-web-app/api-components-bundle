@@ -10,33 +10,23 @@ interface RouteAwareInterface
 {
     /**
      * @param Route $route
-     * @return RouteAwareTrait|RouteAwareInterface
+     * @return static
      */
     public function addRoute(Route $route);
-
     /**
      * @param Route $route
-     * @return RouteAwareTrait|RouteAwareInterface
+     * @return static
      */
     public function removeRoute(Route $route);
-
-    /**
-     * @return string
-     */
     public function getDefaultRoute(): string;
-
-    /**
-     * @return Collection
-     */
     public function getRoutes(): Collection;
-
-    /**
-     * @return string
-     */
     public function getDefaultRouteName(): string;
+    public function getParentRoute(): ?Route;
 
     /**
-     * @return null|Route
+     * @param bool $regnerateRoute
+     * @return static
      */
-    public function getParentRoute(): ?Route;
+    public function setRegenerateRoute(bool $regnerateRoute);
+    public function getRegenerateRoute(): bool;
 }

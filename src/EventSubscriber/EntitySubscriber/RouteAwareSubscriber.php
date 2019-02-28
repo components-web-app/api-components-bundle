@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
@@ -60,6 +60,7 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
     public function preUpdate(PreUpdateEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getEntity();
+
         $this->prePersistUpdate($entity, $eventArgs->getEntityManager());
     }
 
@@ -69,12 +70,7 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
      */
     public function prePersistUpdate($entity, EntityManager $em): void
     {
-        if (
-            $entity instanceof RouteAwareInterface &&
-            $route = $this->createPageRoute($entity)
-        ) {
-            $em->persist($route);
-        }
+        $this->routeFactory->createPageRoute($entity, $em);
     }
 
     /**
@@ -86,26 +82,12 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
         $uow = $em->getUnitOfWork();
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
             if (
-                $entity instanceof RouteAwareInterface &&
-                $route = $this->createPageRoute($entity)
+                $routes = $this->routeFactory->createPageRoute($entity)
             ) {
                 $pageClassMetaData = $em->getClassMetadata(\get_class($entity));
                 $uow = $em->getUnitOfWork();
                 $uow->recomputeSingleEntityChangeSet($pageClassMetaData, $entity);
-                $em->persist($route);
             }
         }
-    }
-
-    /**
-     * @param RouteAwareInterface $entity
-     * @return null|Route
-     */
-    private function createPageRoute(RouteAwareInterface $entity): ?Route
-    {
-        if (0 === $entity->getRoutes()->count()) {
-            return $this->routeFactory->createFromRouteAwareEntity($entity);
-        }
-        return null;
     }
 }

@@ -10,9 +10,10 @@ class FormModifier extends AbstractModifier
     /**
      * @param Form $form
      * @param array $context
+     * @param null|string $format
      * @return object|void
      */
-    public function process($form, array $context = array())
+    public function process($form, array $context = array(), ?string $format = null)
     {
         /** @var FormViewFactory $factory */
         $factory = $this->container->get(FormViewFactory::class);

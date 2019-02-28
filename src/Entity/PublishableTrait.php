@@ -8,11 +8,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 trait PublishableTrait
 {
     /**
-     * @ORM\Column(type="boolean", nullable=false)
+     * @ORM\Column(type="boolean", nullable=true)
      * @var bool
      * @Groups({"default"})
      */
-    protected $published = true;
+    protected $published = false;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)

@@ -49,6 +49,15 @@ class ArticlePage extends AbstractDynamicPage implements FileInterface
      */
     private $imageCaption;
 
+    /**
+     * ArticlePage constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->title = 'New article';
+    }
+
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
 //        $metadata->addPropertyConstraint(

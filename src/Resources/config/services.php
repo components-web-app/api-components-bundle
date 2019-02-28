@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
+use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
@@ -124,11 +125,6 @@ return function (ContainerConfigurator $configurator) {
         ->arg('$tokens', ['%env(VARNISH_TOKEN)%']);
 
     $services
-        ->set(PasswordManager::class)
-        ->arg('$tokenTtl', 86400)
-    ;
-
-    $services
         ->set(DateTimeNormalizer::class)
         ->arg('$defaultContext', ['datetime_format' => 'Y-m-d H:i:s'])
     ;
@@ -150,4 +146,5 @@ return function (ContainerConfigurator $configurator) {
     // Twig bundle 3.4.0 is minimum - 4.3.0 current and recommended at time of writing this note
     $services->alias(Environment::class, 'twig');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
+    $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
 };

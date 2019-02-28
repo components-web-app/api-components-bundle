@@ -53,7 +53,7 @@ class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInter
     public function normalize($object, $format = null, array $context = array())
     {
         foreach ($this->supportedModifiers as $modifier) {
-            $modifier->process($object);
+            $modifier->process($object, $context, $format);
         }
 
         foreach ($this->normalizers as $normalizer) {
