@@ -12,7 +12,6 @@ use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
 
 /**
- * Class AbstractContent
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()

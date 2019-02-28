@@ -89,7 +89,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 [
                     'orm' => [
                         'filters' => [
-                            'publishable_filter' => [
+                            'publishable' => [
                                 'class' => PublishableFilter::class,
                                 'enabled' => false
                             ]

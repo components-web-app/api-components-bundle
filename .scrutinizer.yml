@@ -7,6 +7,11 @@ checks:
     php: true
 
 build:
+    nodes:
+        analysis:
+            tests:
+                override:
+                    - php-scrutinizer-run
     dependencies:
         before:
             - sudo apt-get -y install libmagickwand-dev libmagickcore-dev

@@ -23,11 +23,21 @@ final class PublishableFilter extends SQLFilter
             throw new \RuntimeException(sprintf('An expression builder. Be sure to call "%s::setExpressionBuilder()".', __CLASS__));
         }
 
-        $reflection = $targetEntity->getReflectionClass();
-        if (!$reflection->implementsInterface(PublishableInterface::class)) {
+        if (!$this->supportsEntity($targetEntity)) {
             return '';
         }
+
         return $this->getWhereStatement($targetTableAlias);
+    }
+
+    private function supportsEntity(ClassMetadata $targetEntity): bool
+    {
+        if ($targetEntity->subClasses) {
+            $highestSubclass = $targetEntity->subClasses[max(\count($targetEntity->subClasses)-1, 0)];
+            return is_subclass_of($highestSubclass, PublishableInterface::class);
+        }
+        $reflection = $targetEntity->getReflectionClass();
+        return $reflection->implementsInterface(PublishableInterface::class);
     }
 
     private function getWhereStatement(string $alias): string

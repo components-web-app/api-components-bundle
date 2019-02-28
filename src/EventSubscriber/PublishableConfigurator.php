@@ -28,7 +28,7 @@ final class PublishableConfigurator
             return;
         }
         /** @var PublishableFilter $filter */
-        $filter = $this->em->getFilters()->enable('publishable_filter');
+        $filter = $this->em->getFilters()->enable('publishable');
         $filter->setExpressionBuilder(new Expr());
     }
 
