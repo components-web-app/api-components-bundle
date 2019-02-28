@@ -26,8 +26,7 @@ class CollectionModifier extends AbstractModifier
         OperationPathResolverInterface $operationPathResolver,
         NormalizerInterface $itemNormalizer,
         RequestStack $requestStack
-    )
-    {
+    ) {
         parent::__construct($container);
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->operationPathResolver = $operationPathResolver;
@@ -47,17 +46,18 @@ class CollectionModifier extends AbstractModifier
         $requestUri = null;
 
         $collectionOperations = $resourceMetadata->getCollectionOperations();
-        if ($collectionOperations) {
+        if ($collectionOperations && ($shortName = $resourceMetadata->getShortName())) {
             $collectionOperations = array_change_key_case($collectionOperations, CASE_LOWER);
             $baseRoute = trim(trim($resourceMetadata->getAttribute('route_prefix', '')), '/');
             $methods = ['post', 'get'];
             foreach ($methods as $method) {
                 if (array_key_exists($method, $collectionOperations)) {
                     $path = $baseRoute . $this->operationPathResolver->resolveOperationPath(
-                            $resourceMetadata->getShortName(),
+                            $shortName,
                             $collectionOperations[$method],
                             OperationType::COLLECTION,
-                            $method);
+                            $method
+                    );
                     $finalPath = preg_replace('/{_format}$/', $format, $path);
                     $collectionEntity->addCollectionRoute(
                         $method,
@@ -69,7 +69,6 @@ class CollectionModifier extends AbstractModifier
                 }
             }
         }
-        $collectionResourceAttributes = $resourceMetadata->getAttributes();
 
         /** @var ContextAwareCollectionDataProviderInterface $dataProvider */
         $dataProvider = $this->container->get(ContextAwareCollectionDataProviderInterface::class);
@@ -79,7 +78,7 @@ class CollectionModifier extends AbstractModifier
                 '_page' => 1
             ]];
         $request = $apiPagination = null;
-        if ($collectionEntity->getPerPage() && ($request = $this->requestStack->getCurrentRequest())) {
+        if ($collectionEntity->getPerPage() !== null && ($request = $this->requestStack->getCurrentRequest())) {
             $apiPagination = $request->attributes->get('_api_pagination');
             $originalPerPage = $apiPagination['itemsPerPage'];
             $apiPagination['itemsPerPage'] = $collectionEntity->getPerPage();
@@ -106,8 +105,9 @@ class CollectionModifier extends AbstractModifier
             $format,
             $mergedContext
         );
-
-        $collectionEntity->setCollection($normalizedCollection);
+        if (\is_array($normalizedCollection)) {
+            $collectionEntity->setCollection($normalizedCollection);
+        }
     }
 
     public function supportsData($data): bool

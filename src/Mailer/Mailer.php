@@ -110,7 +110,6 @@ final class Mailer
             ['user' => $user, 'confirm_url' => $confirmUrl, 'website_name' => $this->websiteName]
         );
         return $this->sendEmail($username, 'Confirm change of username', $htmlEmail, $textEmail);
-
     }
 
     private function pathToAppUrl(string $path, string $token, string $email): string

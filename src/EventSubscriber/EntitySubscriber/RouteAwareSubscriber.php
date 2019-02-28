@@ -81,9 +81,7 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
         $em = $eventArgs->getEntityManager();
         $uow = $em->getUnitOfWork();
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            if (
-                $routes = $this->routeFactory->createPageRoute($entity)
-            ) {
+            if ($this->routeFactory->createPageRoute($entity)) {
                 $pageClassMetaData = $em->getClassMetadata(\get_class($entity));
                 $uow = $em->getUnitOfWork();
                 $uow->recomputeSingleEntityChangeSet($pageClassMetaData, $entity);

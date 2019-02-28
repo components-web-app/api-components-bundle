@@ -6,7 +6,6 @@ use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -17,7 +16,6 @@ class PasswordManager
     private $validator;
     private $passwordEncoder;
     private $tokenGenerator;
-    private $userRepository;
     private $tokenTtl;
 
     public function __construct(

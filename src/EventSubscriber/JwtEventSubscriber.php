@@ -26,11 +26,13 @@ class JwtEventSubscriber implements EventSubscriberInterface
     {
         $user = $event->getUser();
         $data = $event->getData();
-        $rolesAsEntities = array_map(function($role) {
+        $rolesAsEntities = array_map(function ($role) {
             return new Role($role);
         }, $user->getRoles());
         $reachableRoles = $this->roleHierarchy->getReachableRoles($rolesAsEntities);
-        $data['roles'] = array_map(function(Role $role) { return (string) $role->getRole(); }, $reachableRoles);
+        $data['roles'] = array_map(function (Role $role) {
+            return (string) $role->getRole();
+        }, $reachableRoles);
         $event->setData($data);
     }
 }

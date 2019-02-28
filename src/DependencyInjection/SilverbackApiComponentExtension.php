@@ -29,7 +29,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $this->loadServiceConfig($container, $config);
+        $this->loadServiceConfig($container);
+
         $repeatTtl = $config['password_reset']['repeat_ttl_seconds'];
         $timeoutSeconds = $config['password_reset']['request_timeout_seconds'];
 
@@ -47,9 +48,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
     /**
      * @param ContainerBuilder $container
-     * @param array $config
      */
-    private function loadServiceConfig(ContainerBuilder $container, array $config)
+    private function loadServiceConfig(ContainerBuilder $container)
     {
         $container->registerForAutoconfiguration(FormHandlerInterface::class)
             ->addTag('silverback_api_component.form_handler')
