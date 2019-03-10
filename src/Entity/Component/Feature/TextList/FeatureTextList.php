@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class FeatureTextList extends AbstractFeature
 {
     /**
-     * @ORM\Column()
+     * @ORM\Column(type="integer")
      * @Groups({"component", "content"})
      * @var int
      */

@@ -18,6 +18,13 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class Content extends AbstractComponent
 {
     /**
+     * @ORM\Column()
+     * @Groups({"component", "content"})
+     * @var null|string
+     */
+    protected $title;
+
+    /**
      * @ORM\Column(type="text")
      * @Groups({"content", "component"})
      * @var string
@@ -43,6 +50,20 @@ class Content extends AbstractComponent
     public function setContent(string $content): self
     {
         $this->content = $content;
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): self
+    {
+        $this->title = $title;
         return $this;
     }
 }

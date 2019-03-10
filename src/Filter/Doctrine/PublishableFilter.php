@@ -32,7 +32,7 @@ final class PublishableFilter extends SQLFilter
 
     private function supportsEntity(ClassMetadata $targetEntity): bool
     {
-        if ($targetEntity->subClasses) {
+        if (!empty($targetEntity->subClasses)) {
             $highestSubclass = $targetEntity->subClasses[max(\count($targetEntity->subClasses)-1, 0)];
             return is_subclass_of($highestSubclass, PublishableInterface::class);
         }
