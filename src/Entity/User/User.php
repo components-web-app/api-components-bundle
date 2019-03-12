@@ -111,7 +111,11 @@ class User implements Serializable, UserInterface
         return $this->username;
     }
 
-    public function setUsername(?string $username): self
+    /**
+     * @param string|null $username
+     * @return static
+     */
+    public function setUsername(?string $username)
     {
         $this->username = $username;
         return $this;
@@ -122,7 +126,11 @@ class User implements Serializable, UserInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    /**
+     * @param string $password
+     * @return static
+     */
+    public function setPassword(string $password)
     {
         $this->password = $password;
         return $this;
@@ -133,7 +141,11 @@ class User implements Serializable, UserInterface
         return $this->roles;
     }
 
-    public function setRoles(?array $roles): self
+    /**
+     * @param array|null $roles
+     * @return static
+     */
+    public function setRoles(?array $roles)
     {
         $this->roles = $roles;
         return $this;
@@ -154,9 +166,9 @@ class User implements Serializable, UserInterface
 
     /**
      * @param null|string $plainPassword
-     * @return User
+     * @return static
      */
-    public function setPlainPassword(?string $plainPassword): self
+    public function setPlainPassword(?string $plainPassword)
     {
         $this->plainPassword = $plainPassword;
 
@@ -173,9 +185,9 @@ class User implements Serializable, UserInterface
 
     /**
      * @param null|string $passwordResetConfirmationToken
-     * @return User
+     * @return static
      */
-    public function setPasswordResetConfirmationToken(?string $passwordResetConfirmationToken): self
+    public function setPasswordResetConfirmationToken(?string $passwordResetConfirmationToken)
     {
         $this->passwordResetConfirmationToken = $passwordResetConfirmationToken;
 
@@ -192,9 +204,9 @@ class User implements Serializable, UserInterface
 
     /**
      * @param \DateTime|null $passwordRequestedAt
-     * @return User
+     * @return static
      */
-    public function setPasswordRequestedAt(?\DateTime $passwordRequestedAt): self
+    public function setPasswordRequestedAt(?\DateTime $passwordRequestedAt)
     {
         $this->passwordRequestedAt = $passwordRequestedAt;
 
@@ -218,9 +230,9 @@ class User implements Serializable, UserInterface
 
     /**
      * @param null|string $newUsername
-     * @return User
+     * @return static
      */
-    public function setNewUsername(?string $newUsername): self
+    public function setNewUsername(?string $newUsername)
     {
         $this->newUsername = $newUsername;
         return $this;
@@ -236,9 +248,9 @@ class User implements Serializable, UserInterface
 
     /**
      * @param null|string $usernameConfirmationToken
-     * @return User
+     * @return static
      */
-    public function setUsernameConfirmationToken(?string $usernameConfirmationToken): self
+    public function setUsernameConfirmationToken(?string $usernameConfirmationToken)
     {
         $this->usernameConfirmationToken = $usernameConfirmationToken;
         return $this;
