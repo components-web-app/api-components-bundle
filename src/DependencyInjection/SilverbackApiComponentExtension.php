@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
+use Silverback\ApiComponentBundle\DoctrineExtension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
@@ -44,6 +45,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
+
+        $definition = $container->getDefinition(TablePrefixExtension::class);
+        $definition->setArgument('$prefix', $config['table_prefix']);
     }
 
     /**

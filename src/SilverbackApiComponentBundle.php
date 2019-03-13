@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -17,17 +18,9 @@ class SilverbackApiComponentBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
-        $this->addRegisterMappingsPass($container);
-        $container->addCompilerPass(new ImagineCompilerPass());
-    }
-
-    /**
-     * @param ContainerBuilder $container
-     */
-    private function addRegisterMappingsPass(ContainerBuilder $container): void
-    {
         if (\class_exists(DoctrineOrmMappingsPass::class)) {
-            $container->addCompilerPass(DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']));
+            $container->addCompilerPass(new DoctrineCompilerPass());
         }
+        $container->addCompilerPass(new ImagineCompilerPass());
     }
 }

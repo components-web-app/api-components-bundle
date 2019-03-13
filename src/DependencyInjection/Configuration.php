@@ -20,6 +20,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
                 ->arrayNode('mailer')
                     ->addDefaultsIfNotSet()
                     ->children()

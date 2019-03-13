@@ -11,6 +11,7 @@ use GuzzleHttp\Client;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
 use Liip\ImagineBundle\Service\FilterService;
+use Silverback\ApiComponentBundle\DoctrineExtension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
 use Silverback\ApiComponentBundle\EventSubscriber\PublishableConfigurator;
 use Silverback\ApiComponentBundle\Repository\RouteRepository;
@@ -45,7 +46,12 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->load('Silverback\\ApiComponentBundle\\', '../../*')
-        ->exclude('../../{Entity,Exception,Event,Migrations,Resources,Tests,Dto,DTO}');
+        ->exclude('../../{Entity,Exception,Event,Migrations,Resources,Tests,Dto,DTO,DoctrineExtension}');
+
+    $services
+        ->set(TablePrefixExtension::class)
+        ->tag('doctrine.event_listener', [ 'event' => 'loadClassMetadata' ])
+    ;
 
     $services
         ->load('Silverback\\ApiComponentBundle\\Controller\\', '../../Controller')
