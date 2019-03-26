@@ -75,11 +75,12 @@ class CollectionModifier extends AbstractModifier
         $dataProviderContext = [
             'filters' => [
                 'pagination' => true,
+                'itemsPerPage' => $collectionEntity->getPerPage(),
                 '_page' => 1
             ]
         ];
         if ($collectionEntity->getPerPage() !== null && ($request = $this->requestStack->getCurrentRequest())) {
-            $request->attributes->set('_api_pagination', [ 'itemsPerPage' => $collectionEntity->getPerPage() ]);
+            $request->attributes->set('_api_pagination', [ 'itemsPerPage' => $collectionEntity->getPerPage(), 'pagination' => 'true' ]);
         }
 
         /** @var Paginator $collection */

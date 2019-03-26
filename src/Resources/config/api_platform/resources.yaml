@@ -71,10 +71,10 @@ resources:
                 sort: DESC
             pagination_client_items_per_page: true
             pagination_client_enabled: true
-    Silverback\ApiComponentBundle\Entity\Form\LoginForm:
-        collectionOperations: ~
-        properties:
-            id:
-                identifier: true
-            _username: ~
-            _password: ~
+#    Silverback\ApiComponentBundle\Entity\Form\LoginForm:
+#        collectionOperations: ~
+#        properties:
+#            id:
+#                identifier: true
+#            _username: ~
+#            _password: ~

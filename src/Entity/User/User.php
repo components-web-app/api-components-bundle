@@ -8,6 +8,7 @@ use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -29,28 +30,33 @@ class User implements Serializable, UserInterface
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email(groups={"Default"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"default"})
      */
     private $password;
 
     /**
      * @ORM\Column(type="boolean")
+     * @Groups({"default"})
      */
     private $enabled;
 
     /**
      * @ORM\Column(type="array")
+     * @Groups({"default"})
      */
     private $roles;
 
     /**
      * @Assert\NotBlank(message="Please enter your desired password", groups={"Default", "password_reset", "change_password"})
      * @Assert\Length(max="4096",min="6",maxMessage="Your password cannot be over 4096 characters",minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $plainPassword;
@@ -58,12 +64,14 @@ class User implements Serializable, UserInterface
     /**
      * Random string sent to the user email address in order to verify it.
      * @ORM\Column(nullable=true)
+     * @Groups({"default"})
      * @var string|null
      */
     private $passwordResetConfirmationToken;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
+     * @Groups({"default"})
      * @var \DateTime|null
      */
     private $passwordRequestedAt;
@@ -72,6 +80,7 @@ class User implements Serializable, UserInterface
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_username"})
      * @Assert\Email(groups={"new_username"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $newUsername;
@@ -79,12 +88,14 @@ class User implements Serializable, UserInterface
     /**
      * Random string sent to the user's new email address in order to verify it.
      * @ORM\Column(nullable=true)
+     * @Groups({"default"})
      * @var string|null
      */
     private $usernameConfirmationToken;
 
     /**
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
+     * @Groups({"default"})
      * @var string|null
      */
     private $oldPassword;
