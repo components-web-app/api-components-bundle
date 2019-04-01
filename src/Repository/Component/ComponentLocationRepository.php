@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Repository;
+namespace Silverback\ApiComponentBundle\Repository\Component;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;

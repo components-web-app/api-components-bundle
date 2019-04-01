@@ -6,13 +6,16 @@ namespace Silverback\ApiComponentBundle\Entity\Route;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 trait RouteAwareTrait
 {
+    use ChildRouteTrait;
+
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="content", cascade={"persist"})
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", mappedBy="staticPage", cascade={"persist"})
      * @Groups({"default", "route_read"})
      * @var Collection|Route[]
      */
@@ -30,8 +33,11 @@ trait RouteAwareTrait
      */
     public function addRoute(Route $route)
     {
-        if ($this instanceof AbstractContent) {
-            $route->setContent($this);
+        if ($this instanceof DynamicContent) {
+            $route->setDynamicContent($this);
+        }
+        if ($this instanceof StaticPage) {
+            $route->setStaticPage($this);
         }
         $this->routes->add($route);
         return $this;

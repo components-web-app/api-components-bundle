@@ -14,8 +14,7 @@ use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\DoctrineExtension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
 use Silverback\ApiComponentBundle\EventSubscriber\PublishableConfigurator;
-use Silverback\ApiComponentBundle\Repository\RouteRepository;
-use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Repository\Route\RouteRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -26,11 +25,11 @@ use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\LinkValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Twig\Environment;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();

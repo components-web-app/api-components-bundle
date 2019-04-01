@@ -10,8 +10,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
+use Silverback\ApiComponentBundle\Entity\Route\ChildRouteInterface;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
+use Silverback\ApiComponentBundle\Repository\Content\Page\DynamicPageRepository;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 final class RouteFactory
@@ -19,15 +22,18 @@ final class RouteFactory
     private $slugify;
     private $manager;
     private $validator;
+    private $dynamicPageRepository;
 
     public function __construct(
         ObjectManager $manager,
         SlugifyInterface $slugify,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        DynamicPageRepository $dynamicPageRepository
     ) {
         $this->slugify = $slugify;
         $this->manager = $manager;
         $this->validator = $validator;
+        $this->dynamicPageRepository = $dynamicPageRepository;
     }
 
     /**
@@ -38,7 +44,16 @@ final class RouteFactory
     public function createFromRouteAwareEntity(RouteAwareInterface $entity, int $postfix = 0): Route
     {
         $pageRoute = $this->slugify->slugify($entity->getDefaultRoute() ?: '');
-        $routePrefix = $this->getRoutePrefix($entity);
+        $prefixEntity = $entity;
+        if ($entity instanceof DynamicContent && !$entity->getParentRoute()) {
+            $dynamicPage = $this->dynamicPageRepository->findOneBy([
+                'dynamicPageClass' => \get_class($entity)
+            ]);
+            if ($dynamicPage) {
+                $prefixEntity = $dynamicPage;
+            }
+        }
+        $routePrefix = $this->getRoutePrefix($prefixEntity);
         $fullRoute = $routePrefix . $pageRoute;
         if ($postfix > 0) {
             $fullRoute .= '-' . $postfix;
@@ -62,7 +77,7 @@ final class RouteFactory
         $route = new Route();
         $route->setName($name)->setRoute($fullRoute);
         if ($entity instanceof AbstractContent) {
-            $route->setContent($entity);
+            $route->setDynamicContent($entity);
         }
 
         $entity->addRoute($route);
@@ -73,7 +88,7 @@ final class RouteFactory
     {
         $oldRoute
             ->setName($oldRoute->getName() . '_redirect')
-            ->setContent(null)
+            ->setDynamicContent(null)
             ->setRedirect($newRoute)
         ;
         return $oldRoute;
@@ -110,10 +125,10 @@ final class RouteFactory
     }
 
     /**
-     * @param RouteAwareInterface $entity
+     * @param ChildRouteInterface $entity
      * @return string
      */
-    private function getRoutePrefix(RouteAwareInterface $entity): string
+    private function getRoutePrefix(ChildRouteInterface $entity): string
     {
         $parent = $entity->getParentRoute();
         if ($parent) {

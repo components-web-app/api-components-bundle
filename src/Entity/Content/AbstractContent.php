@@ -14,16 +14,15 @@ use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
 /**
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Content\AbstractContentRepository")
  * @ORM\Table(name="content")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * @ORM\DiscriminatorMap({
- *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup",
  *     "abstract_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage",
- *     "page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Page",
- *     "dynamic_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage",
- *     "article_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage"
+ *     "static_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage",
+ *     "dynamic_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\DynamicPage",
+ *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup"
  * })
  */
 abstract class AbstractContent implements ContentInterface

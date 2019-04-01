@@ -8,7 +8,7 @@ use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
-use Silverback\ApiComponentBundle\Repository\LayoutRepository;
+use Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository;
 
 final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {

@@ -72,15 +72,23 @@ class CollectionModifier extends AbstractModifier
 
         /** @var ContextAwareCollectionDataProviderInterface $dataProvider */
         $dataProvider = $this->container->get(ContextAwareCollectionDataProviderInterface::class);
-        $dataProviderContext = [
-            'filters' => [
-                'pagination' => true,
-                'itemsPerPage' => $collectionEntity->getPerPage(),
-                '_page' => 1
-            ]
-        ];
-        if ($collectionEntity->getPerPage() !== null && ($request = $this->requestStack->getCurrentRequest())) {
-            $request->attributes->set('_api_pagination', [ 'itemsPerPage' => $collectionEntity->getPerPage(), 'pagination' => 'true' ]);
+        $isPaginated = (bool) $collectionEntity->getPerPage();
+        if (!$isPaginated) {
+            $dataProviderContext = [];
+        } else {
+            $dataProviderContext = [
+                'filters' => [
+                    'pagination' => $isPaginated,
+                    'itemsPerPage' => $collectionEntity->getPerPage(),
+                    '_page' => 1
+                ]
+            ];
+            if ($collectionEntity->getPerPage() !== null && ($request = $this->requestStack->getCurrentRequest())) {
+                $request->attributes->set('_api_pagination', [
+                    'itemsPerPage' => $collectionEntity->getPerPage(),
+                    'pagination' => 'true'
+                ]);
+            }
         }
 
         /** @var Paginator $collection */

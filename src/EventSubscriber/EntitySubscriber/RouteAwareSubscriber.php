@@ -9,6 +9,8 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
 use Silverback\ApiComponentBundle\Factory\RouteFactory;
 
@@ -36,7 +38,8 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
         return [
             'prePersist',
             'preUpdate',
-            'preFlush'
+            'preFlush',
+            'preRemove'
         ];
     }
 
@@ -47,30 +50,44 @@ class RouteAwareSubscriber implements EntitySubscriberInterface
 
     /**
      * @param LifecycleEventArgs $eventArgs
+     * @param RouteAwareInterface $entity
      */
-    public function prePersist(LifecycleEventArgs $eventArgs): void
+    public function prePersist(LifecycleEventArgs $eventArgs, RouteAwareInterface $entity): void
     {
-        $entity = $eventArgs->getEntity();
-        $this->prePersistUpdate($entity, $eventArgs->getEntityManager());
+        $this->prePersistUpdate($eventArgs->getEntityManager(), $entity);
     }
 
     /**
      * @param PreUpdateEventArgs $eventArgs
+     * @param RouteAwareInterface $entity
      */
-    public function preUpdate(PreUpdateEventArgs $eventArgs): void
+    public function preUpdate(PreUpdateEventArgs $eventArgs, RouteAwareInterface $entity): void
     {
-        $entity = $eventArgs->getEntity();
-
-        $this->prePersistUpdate($entity, $eventArgs->getEntityManager());
+        $this->prePersistUpdate($eventArgs->getEntityManager(), $entity);
     }
 
     /**
      * @param mixed $entity
      * @param EntityManager $em
      */
-    public function prePersistUpdate($entity, EntityManager $em): void
+    public function prePersistUpdate(EntityManager $em, RouteAwareInterface $entity): void
     {
         $this->routeFactory->createPageRoute($entity, $em);
+    }
+
+    public function preRemove(LifecycleEventArgs $eventArgs, RouteAwareInterface $entity): void
+    {
+        $em = $eventArgs->getEntityManager();
+        $routes = $entity->getRoutes();
+        foreach ($routes as $route) {
+            if (!$route->getRedirect()) {
+                if (($entity instanceof StaticPage) && !$route->getDynamicContent() && $route->getStaticPage() === $entity) {
+                    $em->remove($route);
+                } elseif (($entity instanceof DynamicContent) && !$route->getStaticPage() && $route->getDynamicContent() === $entity) {
+                    $em->remove($route);
+                }
+            }
+        }
     }
 
     /**

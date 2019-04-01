@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
-use Silverback\ApiComponentBundle\Repository\RouteRepository;
+use Silverback\ApiComponentBundle\Repository\Route\RouteRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\UrlValidator;
 

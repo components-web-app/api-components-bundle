@@ -1148,7 +1148,7 @@
         <metrics loc="82" ncloc="51" classes="1" methods="5" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="11" coveredstatements="0" elements="16" coveredelements="0"/>
       </file>
       <file name="/srv/api/src/Entity/Content/Page/Dynamic/ArticlePage.php">
-        <class name="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage" namespace="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic">
+        <class name="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage\ArticlePage" namespace="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic">
           <metrics complexity="7" methods="5" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="7" elements="18" coveredelements="8"/>
         </class>
         <line num="45" type="method" name="loadValidatorMetadata" visibility="public" complexity="1" crap="1" count="1"/>
@@ -1737,7 +1737,7 @@
     </package>
     <package name="Silverback\ApiComponentBundle\Repository">
       <file name="/srv/api/src/Repository/ComponentLocationRepository.php">
-        <class name="Silverback\ApiComponentBundle\Repository\ComponentLocationRepository" namespace="Silverback\ApiComponentBundle\Repository">
+        <class name="Silverback\ApiComponentBundle\Repository\Component\ComponentLocationRepository" namespace="Silverback\ApiComponentBundle\Repository">
           <metrics complexity="2" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="0" elements="10" coveredelements="0"/>
         </class>
         <line num="14" type="method" name="__construct" visibility="public" complexity="1" crap="2.00" count="0"/>
@@ -1753,7 +1753,7 @@
         <metrics loc="30" ncloc="30" classes="1" methods="2" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="0" elements="10" coveredelements="0"/>
       </file>
       <file name="/srv/api/src/Repository/LayoutRepository.php">
-        <class name="Silverback\ApiComponentBundle\Repository\LayoutRepository" namespace="Silverback\ApiComponentBundle\Repository" fullPackage="Silverback" package="Silverback">
+        <class name="Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository" namespace="Silverback\ApiComponentBundle\Repository" fullPackage="Silverback" package="Silverback">
           <metrics complexity="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="0" elements="3" coveredelements="0"/>
         </class>
         <line num="18" type="method" name="__construct" visibility="public" complexity="1" crap="2.00" count="0"/>
@@ -1762,7 +1762,7 @@
         <metrics loc="22" ncloc="17" classes="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="0" elements="3" coveredelements="0"/>
       </file>
       <file name="/srv/api/src/Repository/RouteRepository.php">
-        <class name="Silverback\ApiComponentBundle\Repository\RouteRepository" namespace="Silverback\ApiComponentBundle\Repository">
+        <class name="Silverback\ApiComponentBundle\Repository\Route\RouteRepository" namespace="Silverback\ApiComponentBundle\Repository">
           <metrics complexity="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="0" elements="3" coveredelements="0"/>
         </class>
         <line num="13" type="method" name="__construct" visibility="public" complexity="1" crap="2.00" count="0"/>

@@ -6,7 +6,7 @@ namespace Silverback\ApiComponentBundle\Entity\Route;
 
 use Doctrine\Common\Collections\Collection;
 
-interface RouteAwareInterface
+interface RouteAwareInterface extends ChildRouteInterface
 {
     /**
      * @param Route $route
@@ -19,9 +19,12 @@ interface RouteAwareInterface
      */
     public function removeRoute(Route $route);
     public function getDefaultRoute(): string;
+
+    /**
+     * @return Collection|Route[]
+     */
     public function getRoutes(): Collection;
     public function getDefaultRouteName(): string;
-    public function getParentRoute(): ?Route;
 
     /**
      * @param bool $regnerateRoute

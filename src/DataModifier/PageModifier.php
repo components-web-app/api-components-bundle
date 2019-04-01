@@ -2,13 +2,13 @@
 
 namespace Silverback\ApiComponentBundle\DataModifier;
 
-use Silverback\ApiComponentBundle\Entity\Content\Page\Page;
-use Silverback\ApiComponentBundle\Repository\LayoutRepository;
+use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
+use Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository;
 
 class PageModifier extends AbstractModifier
 {
     /**
-     * @param Page $page
+     * @param StaticPage $page
      * @param array $context
      * @param null|string $format
      * @return object|void
@@ -22,7 +22,7 @@ class PageModifier extends AbstractModifier
 
     public function supportsData($data): bool
     {
-        return $data instanceof Page && !$data->getLayout();
+        return $data instanceof StaticPage && !$data->getLayout();
     }
 
     public static function getSubscribedServices(): array

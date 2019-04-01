@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * Class ComponentLocation
  * @package Silverback\ApiComponentBundle\Entity\Component
  * @ACBAssert\ComponentLocation()
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\ComponentLocationRepository")
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Component\ComponentLocationRepository")
  * @ORM\InheritanceType("SINGLE_TABLE")
  */
 class ComponentLocation implements SortableInterface
@@ -51,30 +51,12 @@ class ComponentLocation implements SortableInterface
      */
     private $component;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     * @var null|string
-     */
-    protected $dynamicPageClass;
-
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
         $metadata->addPropertyConstraint(
             'component',
             new Assert\NotBlank()
         );
-    }
-
-    /**
-     * @Assert\Callback()
-     */
-    public function validate(ExecutionContextInterface $context): void
-    {
-        if (!$this->getContent() && !$this->getDynamicPageClass()) {
-            $context->buildViolation('The content is required if dynamicPageClass is not provided')
-                ->atPath('content')
-                ->addViolation();
-        }
     }
 
     /**
@@ -145,20 +127,6 @@ class ComponentLocation implements SortableInterface
     public function getSortCollection(): ?Collection
     {
         return $this->getContent() ? $this->getContent()->getComponentLocations() : null;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getDynamicPageClass(): ?string
-    {
-        return $this->dynamicPageClass;
-    }
-
-    public function setDynamicPageClass(?string $dynamicPageClass): self
-    {
-        $this->dynamicPageClass = $dynamicPageClass;
-        return $this;
     }
 
     public function __toString()

@@ -33,8 +33,12 @@ final class PublishableFilter extends SQLFilter
     private function supportsEntity(ClassMetadata $targetEntity): bool
     {
         if (!empty($targetEntity->subClasses)) {
-            $highestSubclass = $targetEntity->subClasses[max(\count($targetEntity->subClasses)-1, 0)];
-            return is_subclass_of($highestSubclass, PublishableInterface::class);
+            foreach ($targetEntity->subClasses as $subClass) {
+                $isPublishableEntity = is_subclass_of($subClass, PublishableInterface::class);
+                if ($isPublishableEntity) {
+                    return true;
+                }
+            }
         }
         $reflection = $targetEntity->getReflectionClass();
         return $reflection->implementsInterface(PublishableInterface::class);

@@ -7,7 +7,6 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
 use Silverback\ApiComponentBundle\File\Uploader\FileUploader;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;

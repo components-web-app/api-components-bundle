@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * Class Layout
  * @package Silverback\ApiComponentBundle\Entity\Layout
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\LayoutRepository")
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository")
  */
 class Layout
 {

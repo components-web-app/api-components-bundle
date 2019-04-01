@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Repository;
+namespace Silverback\ApiComponentBundle\Repository\Route;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Silverback\ApiComponentBundle\Entity\Route\Route;

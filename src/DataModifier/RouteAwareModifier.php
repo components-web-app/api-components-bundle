@@ -26,7 +26,7 @@ class RouteAwareModifier extends AbstractModifier
 
     public function supportsData($data): bool
     {
-        return $data instanceof RouteAwareInterface;
+        return false; // $data instanceof RouteAwareInterface;
     }
 
     public static function getSubscribedServices(): array

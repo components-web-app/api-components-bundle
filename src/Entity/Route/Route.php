@@ -9,6 +9,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,7 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Route
  * @package Silverback\ApiComponentBundle\Entity
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\RouteRepository")
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Route\RouteRepository")
  * @UniqueEntity(fields={"route"}, message="This route is already in use")
  */
 class Route
@@ -45,13 +47,22 @@ class Route
     private $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage", inversedBy="routes")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent", inversedBy="routes")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      * @Groups({"route"})
      * @Assert\Type("Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface")
-     * @var null|AbstractContent
+     * @var null|DynamicContent
      */
-    private $content;
+    private $dynamicContent;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage", inversedBy="routes")
+     * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
+     * @Groups({"route"})
+     * @Assert\Type("Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface")
+     * @var null|StaticPage
+     */
+    private $staticPage;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", inversedBy="redirectedFrom")
@@ -126,21 +137,25 @@ class Route
         return $this;
     }
 
-    /**
-     * @return null|AbstractContent
-     */
-    public function getContent(): ?AbstractContent
+    public function getDynamicContent(): ?DynamicContent
     {
-        return $this->content;
+        return $this->dynamicContent;
     }
 
-    /**
-     * @param null|AbstractContent $content
-     * @return Route
-     */
-    public function setContent(?AbstractContent $content): self
+    public function setDynamicContent(?DynamicContent $dynamicContent): self
     {
-        $this->content = $content;
+        $this->dynamicContent = $dynamicContent;
+        return $this;
+    }
+
+    public function getStaticPage(): ?StaticPage
+    {
+        return $this->staticPage;
+    }
+
+    public function setStaticPage(?StaticPage $staticPage): self
+    {
+        $this->staticPage = $staticPage;
         return $this;
     }
 

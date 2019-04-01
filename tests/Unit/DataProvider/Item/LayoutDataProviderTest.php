@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\Tests\Unit\DataProvider\Item;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\DataProvider\Item\LayoutDataProvider;
 use Silverback\ApiComponentBundle\Entity\Layout\Layout;
-use Silverback\ApiComponentBundle\Repository\LayoutRepository;
+use Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository;
 
 class LayoutDataProviderTest extends TestCase
 {

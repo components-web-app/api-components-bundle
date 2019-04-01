@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Tests\Unit\Entity\Content\Component\Article;
 
-use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage\ArticlePage;
 use Silverback\ApiComponentBundle\Tests\Unit\Entity\AbstractEntity;
 use Symfony\Component\Validator\Constraints\NotNull;
 

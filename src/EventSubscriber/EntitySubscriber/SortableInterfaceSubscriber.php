@@ -4,25 +4,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
-use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
-use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\AbstractDynamicPage;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
-use Silverback\ApiComponentBundle\Repository\ComponentLocationRepository;
-use Silverback\ApiComponentBundle\Repository\ContentRepository;
 
 class SortableInterfaceSubscriber implements EntitySubscriberInterface
 {
-    private $contentRepository;
-    private $componentLocationRepository;
+    private $managerRegistry;
 
     public function __construct(
-        ContentRepository $contentRepository,
-        ComponentLocationRepository $componentLocationRepository
+        ManagerRegistry $managerRegistry
     ) {
-        $this->contentRepository = $contentRepository;
-        $this->componentLocationRepository = $componentLocationRepository;
+        $this->managerRegistry = $managerRegistry;
     }
 
     /**
@@ -46,16 +43,23 @@ class SortableInterfaceSubscriber implements EntitySubscriberInterface
      */
     public function prePersist(/** @scrutinizer ignore-unused */ LifecycleEventArgs $eventArgs, SortableInterface $entity): void
     {
-        if ($entity->getSort() === null) {
-            $collection = $entity->getSortCollection();
-            if ($collection === null) {
-                if ($entity instanceof AbstractDynamicPage) {
-                    $collection = $this->contentRepository->findPageByType(get_class($entity));
-                } elseif (
-                    $entity instanceof ComponentLocation &&
-                    ($dynamicPageClass = $entity->getDynamicPageClass())
-                ) {
-                    $collection = $this->componentLocationRepository->findByDynamicPage($dynamicPageClass);
+        if (
+            $entity instanceof DynamicContent &&
+            $entity->getSort() === null &&
+            ($collection = $entity->getSortCollection()) === null
+        ) {
+            $resourceClass = \get_class($entity);
+            $manager = $this->managerRegistry->getManagerForClass($resourceClass);
+            if ($manager) {
+                $repository = $manager->getRepository($resourceClass);
+                $collection = new ArrayCollection($repository->findAll());
+                if ($manager instanceof EntityManagerInterface) {
+                    $scheduledInsertions = $manager->getUnitOfWork()->getScheduledEntityInsertions();
+                    foreach ($scheduledInsertions as $scheduledInsertion) {
+                        if ($scheduledInsertion !== $entity && is_a($scheduledInsertion, $resourceClass)) {
+                            $collection->add($scheduledInsertion);
+                        }
+                    }
                 }
             }
             $entity->setSort($entity->calculateSort(true, $collection));

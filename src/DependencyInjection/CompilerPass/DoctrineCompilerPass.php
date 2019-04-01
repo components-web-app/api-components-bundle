@@ -8,9 +8,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class DoctrineCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
-
     }
 }

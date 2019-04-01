@@ -5,7 +5,7 @@ namespace Silverback\ApiComponentBundle\DataProvider\Item;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
-use Silverback\ApiComponentBundle\Repository\RouteRepository;
+use Silverback\ApiComponentBundle\Repository\Route\RouteRepository;
 
 class RouteDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {
