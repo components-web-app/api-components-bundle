@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  *      )
  * })
  */
-final class ArticlePage extends DynamicContent implements FileInterface
+class ArticlePage extends DynamicContent implements FileInterface
 {
     use FileTrait;
 
