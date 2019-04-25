@@ -23,6 +23,10 @@ final class SwaggerDecorator implements NormalizerInterface
         $currentPath = '/forms/{id}';
         $patchOpPath = $currentPath . '/submit';
 
+        if (!\in_array($patchOpPath, $docs['paths'], true)) {
+            return $docs;
+        }
+
         $patchOp = $docs['paths'][$patchOpPath]['patch'];
         $patchOp['summary'] = 'Submit a single input for validation';
         $patchOp['parameters'] = $docs['paths'][$currentPath]['get']['parameters'];
