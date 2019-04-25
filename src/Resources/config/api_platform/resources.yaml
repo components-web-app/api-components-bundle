@@ -1,5 +1,6 @@
 resources:
-    Silverback\ApiComponentBundle\Entity\Content\Page\Page: ~
+    Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage: ~
+    Silverback\ApiComponentBundle\Entity\Content\Page\DynamicPage: ~
     Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup: ~
     Silverback\ApiComponentBundle\Entity\Layout\Layout: ~
     Silverback\ApiComponentBundle\Entity\Route\Route:
@@ -51,8 +52,7 @@ resources:
     Silverback\ApiComponentBundle\Entity\Component\Gallery\Gallery: ~
     Silverback\ApiComponentBundle\Entity\Component\Gallery\GalleryItem:
         iri: http://schema.org/ImageObject
-    Silverback\ApiComponentBundle\Entity\Component\Hero\Hero:
-        shortName: 'heroes'
+    Silverback\ApiComponentBundle\Entity\Component\Hero\Hero: ~
     Silverback\ApiComponentBundle\Entity\Component\Image\SimpleImage:
         iri: http://schema.org/ImageObject
     Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar: ~
@@ -64,17 +64,20 @@ resources:
     Silverback\ApiComponentBundle\Entity\Component\Layout\SideColumn: ~
     Silverback\ApiComponentBundle\Entity\Component\Content\Content: ~
     # dynamic pages
-    Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage:
+    Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\ArticlePage\ArticlePage:
         attributes:
             order:
                 created: DESC
                 sort: DESC
-            pagination_client_items_per_page: true
             pagination_client_enabled: true
-#    Silverback\ApiComponentBundle\Entity\Form\LoginForm:
-#        collectionOperations: ~
-#        properties:
-#            id:
-#                identifier: true
-#            _username: ~
-#            _password: ~
+            pagination_enabled: true
+            pagination_items_per_page: 12
+            pagination_client_items_per_page: true
+    Silverback\ApiComponentBundle\Entity\Form\LoginForm:
+        collectionOperations: ~
+        properties:
+            id:
+                identifier: true
+            _username: ~
+            _password: ~
+    Silverback\ApiComponentBundle\Entity\User\User: ~
