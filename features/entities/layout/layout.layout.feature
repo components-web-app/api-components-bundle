@@ -32,7 +32,7 @@ Feature: Layout
       "metaDescription": "Page Meta Description"
     }
     """
-    When I send a "POST" request to "/pages" with the json variable page_post as the body
+    When I send a "POST" request to "/static_pages" with the json variable page_post as the body
     And save the entity id as page
     And I send a GET request to the entity page
     Then the response status code should be 200

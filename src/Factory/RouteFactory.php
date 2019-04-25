@@ -11,6 +11,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Silverback\ApiComponentBundle\Entity\Route\ChildRouteInterface;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface;
@@ -76,8 +77,11 @@ final class RouteFactory
 
         $route = new Route();
         $route->setName($name)->setRoute($fullRoute);
-        if ($entity instanceof AbstractContent) {
+        if ($entity instanceof DynamicContent) {
             $route->setDynamicContent($entity);
+        }
+        if ($entity instanceof StaticPage) {
+            $route->setStaticPage($entity);
         }
 
         $entity->addRoute($route);

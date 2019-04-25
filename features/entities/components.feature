@@ -21,7 +21,7 @@ Feature: Components
     And the JSON node className should be equal to the string "custom-class"
 
   Scenario: I want a page for my component
-    When I send a POST request to "/pages" with body:
+    When I send a POST request to "/static_pages" with body:
     """
     {
       "title": "-",

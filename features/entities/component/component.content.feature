@@ -19,7 +19,7 @@ Feature: Content Component
     And the JSON should be valid according to the schema "features/bootstrap/json-schema/components/content.json"
 
   Scenario: I want a page for my component
-    When I send a POST request to "/pages" with body:
+    When I send a POST request to "/static_pages" with body:
     """
     {
       "title": "",

@@ -28,7 +28,7 @@ Feature: Website
     }
     """
     And the node layout of the json variable page_post is equal to the variable layout
-    When I send a "POST" request to "/pages" with the json variable page_post as the body
+    When I send a "POST" request to "/static_pages" with the json variable page_post as the body
     Then the response status code should be 201
     And save the entity id as page
     And the JSON should be valid according to the schema "features/bootstrap/json-schema/abstract_content.json"
