@@ -4,6 +4,7 @@ namespace Silverback\ApiComponentBundle\DoctrineExtension;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 class TablePrefixExtension
 {
@@ -25,9 +26,10 @@ class TablePrefixExtension
             return;
         }
 
+        $converter = new CamelCaseToSnakeCaseNameConverter();
         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
             $classMetadata->setPrimaryTable([
-                'name' => $this->prefix . $classMetadata->getTableName()
+                'name' => $this->prefix . $converter->normalize($classMetadata->getTableName())
             ]);
         }
 

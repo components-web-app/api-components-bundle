@@ -9,9 +9,17 @@
             "type": "string",
             "required": true
         },
-        "content": {
+        "dynamicContent": {
             "type": [
-                "object"
+                "object",
+                "null"
+            ],
+            "required": true
+        },
+        "staticPage": {
+            "type": [
+                "object",
+                "null"
             ],
             "required": true,
             "properties": {
