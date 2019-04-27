@@ -22,8 +22,9 @@ final class SwaggerDecorator implements NormalizerInterface
 
         $currentPath = '/forms/{id}';
         $patchOpPath = $currentPath . '/submit';
-
-        if (!\in_array($patchOpPath, $docs['paths'], true)) {
+        /** @var \ArrayObject $paths */
+        $paths = $docs['paths'];
+        if (!$paths->offsetExists($patchOpPath)) {
             return $docs;
         }
 
