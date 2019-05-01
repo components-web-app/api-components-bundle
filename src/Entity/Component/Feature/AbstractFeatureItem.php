@@ -29,7 +29,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route")
-     * @ORM\JoinColumn(referencedColumnName="id")
+     * @ORM\JoinColumn(referencedColumnName="id", onDelete="SET NULL")
      * @Groups({"component", "content"})
      * @var Route|null
      */

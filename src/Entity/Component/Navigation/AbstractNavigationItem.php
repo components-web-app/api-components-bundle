@@ -20,7 +20,7 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Route\Route", cascade={"persist"})
-     * @ORM\JoinColumn(referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(referencedColumnName="id", onDelete="SET NULL")
      * @Groups({"layout", "content", "component"})
      * @var null|Route
      */

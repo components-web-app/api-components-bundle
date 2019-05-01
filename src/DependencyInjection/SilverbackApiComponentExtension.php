@@ -6,6 +6,7 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
 use Silverback\ApiComponentBundle\DoctrineExtension\TablePrefixExtension;
+use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
@@ -64,6 +65,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');
+
+        $container->registerForAutoconfiguration(ComponentInterface::class)
+            ->addTag('silverback_api_component.entity.component');
 
         $loader = new PhpFileLoader(
             $container,
