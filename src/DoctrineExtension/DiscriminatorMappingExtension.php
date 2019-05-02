@@ -94,9 +94,9 @@ class DiscriminatorMappingExtension
      *
      * If an entity is of any inheritance type and does not contain a
      * discriminator map, then the map is generated automatically. This process
-     * is expensive computation wise. We will be looking to manually specify this in future
-     * with a default discriminator map and then further items to merge into it added
-     * via the bundle config
+     * is usually expensive computation wise, however by using caching, the only
+     * part which is always called checks whether the class names have changed. If not,
+     * no additional computation is required.
      *
      * The automatically generated discriminator map contains the lowercase short name of
      * each class as key.
@@ -106,21 +106,29 @@ class DiscriminatorMappingExtension
     private function addDefaultDiscriminatorMap(ClassMetadata $class): void
     {
         $cache = new FilesystemAdapter();
-        $map = $cache->get('component_discriminator_map', function (ItemInterface $item) use ($class) {
-            $item->expiresAfter(30);
-            return $this->getDiscriminatorMap($class);
+        $allClasses = $this->driver->getAllClassNames();
+        $cachedClasses = $cache->getItem('silverback_api_component.doctrine.driver_classes');
+        if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
+            $cachedClasses->set($allClasses);
+            $cache->save($cachedClasses);
+            $cache->deleteItem('silverback_api_component.doctrine.components_discriminator_map');
+        }
+
+        $map = $cache->get('component_discriminator_map', function () use ($class, $allClasses) {
+            return $this->getDiscriminatorMap($class, $allClasses);
         });
         $class->setDiscriminatorMap($map);
     }
 
     /**
      * @param ClassMetadata $class
+     * @param array $allClasses
      * @return array
      * @throws MappingException
      */
-    private function getDiscriminatorMap(ClassMetadata $class): array
+    private function getDiscriminatorMap(ClassMetadata $class, array $allClasses): array
     {
-        $allClasses = $this->driver->getAllClassNames();
+
         $fqcn = $class->getName();
         $map = [$this->getShortName($class->name) => $fqcn];
 
