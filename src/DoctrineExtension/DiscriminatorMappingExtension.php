@@ -30,7 +30,6 @@ use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Contracts\Cache\ItemInterface;
 
 class DiscriminatorMappingExtension
 {
@@ -105,18 +104,21 @@ class DiscriminatorMappingExtension
      */
     private function addDefaultDiscriminatorMap(ClassMetadata $class): void
     {
+        $discMapKey = 'silverback_api_component.doctrine.components_discriminator_map';
+
         $cache = new FilesystemAdapter();
         $allClasses = $this->driver->getAllClassNames();
         $cachedClasses = $cache->getItem('silverback_api_component.doctrine.driver_classes');
         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
             $cachedClasses->set($allClasses);
             $cache->save($cachedClasses);
-            $cache->deleteItem('silverback_api_component.doctrine.components_discriminator_map');
+            $cache->delete($discMapKey);
         }
 
-        $map = $cache->get('component_discriminator_map', function () use ($class, $allClasses) {
+        $map = $cache->get($discMapKey, function () use ($class, $allClasses) {
             return $this->getDiscriminatorMap($class, $allClasses);
         });
+
         $class->setDiscriminatorMap($map);
     }
 
@@ -128,7 +130,6 @@ class DiscriminatorMappingExtension
      */
     private function getDiscriminatorMap(ClassMetadata $class, array $allClasses): array
     {
-
         $fqcn = $class->getName();
         $map = [$this->getShortName($class->name) => $fqcn];
 
