@@ -40,7 +40,7 @@ final class Mailer
         }
     }
 
-    public function sendEmail(string $toEmail, string $subject, string $htmlBody, string $textBody): int
+    public function getMessage(string $toEmail, string $subject, string $htmlBody, string $textBody, ?string $replyTo = null)
     {
         $htmlTemplate = $this->twig->render('@SilverbackApiComponent/emails/template.html.twig', [
             'subject' => $subject,
@@ -54,6 +54,15 @@ final class Mailer
             ->setBody($htmlTemplate, 'text/html')
             ->addPart($textBody, 'text/plain')
         ;
+        if ($replyTo) {
+            $message->setReplyTo($replyTo);
+        }
+        return $message;
+    }
+
+    public function sendEmail(string $toEmail, string $subject, string $htmlBody, string $textBody, ?string $replyTo = null): int
+    {
+        $message = $this->getMessage($toEmail, $subject, $htmlBody, $textBody, $replyTo);
         return $this->mailer->send($message);
     }
 

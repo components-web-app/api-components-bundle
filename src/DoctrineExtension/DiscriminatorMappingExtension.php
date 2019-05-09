@@ -104,21 +104,18 @@ class DiscriminatorMappingExtension
      */
     private function addDefaultDiscriminatorMap(ClassMetadata $class): void
     {
-        $discMapKey = 'silverback_api_component.doctrine.components_discriminator_map';
-
         $cache = new FilesystemAdapter();
         $allClasses = $this->driver->getAllClassNames();
         $cachedClasses = $cache->getItem('silverback_api_component.doctrine.driver_classes');
+        $cachedMap = $cache->getItem('silverback_api_component.doctrine.components_discriminator_map');
         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
             $cachedClasses->set($allClasses);
             $cache->save($cachedClasses);
-            $cache->delete($discMapKey);
+
+            $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+            $cache->save($cachedMap);
         }
-
-        $map = $cache->get($discMapKey, function () use ($class, $allClasses) {
-            return $this->getDiscriminatorMap($class, $allClasses);
-        });
-
+        $map = $cachedMap->get();
         $class->setDiscriminatorMap($map);
     }
 
