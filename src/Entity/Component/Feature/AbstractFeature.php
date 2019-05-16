@@ -9,10 +9,6 @@ use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- * Class AbstractFeature
- * @package Silverback\ApiComponentBundle\Entity\Component\Feature
- */
 abstract class AbstractFeature extends AbstractComponent
 {
     /**

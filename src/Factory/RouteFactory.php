@@ -9,7 +9,6 @@ use Cocur\Slugify\SlugifyInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Silverback\ApiComponentBundle\Entity\Route\ChildRouteInterface;

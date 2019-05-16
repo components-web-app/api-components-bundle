@@ -64,9 +64,9 @@ class Form extends AbstractComponent
     }
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getFormType(): string
+    public function getFormType(): ?string
     {
         return $this->formType;
     }

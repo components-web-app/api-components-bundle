@@ -11,9 +11,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
- * Class FeatureTextList
- * @package Silverback\ApiComponentBundle\Entity\Component\FeatureList
- * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
  */
 class FeatureTextList extends AbstractFeature
