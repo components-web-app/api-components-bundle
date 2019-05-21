@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DoctrineExtension;
+namespace Silverback\ApiComponentBundle\Doctrine\Extension;
 
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\EntityManagerInterface;

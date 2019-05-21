@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
@@ -87,19 +88,21 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      * @param bool $normalization
      * @param array|null $extractedAttributes
      * @return array
-     * @throws \ApiPlatform\Core\Exception\RuntimeException
+     * @throws RuntimeException
      */
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (\in_array('none', $context['groups'] ?? [], true)) {
+        $ctxGroups = (array) $context['groups'];
+        if (\in_array('none', $ctxGroups, true)) {
             return $context;
         }
         $subject = $request->attributes->get('_api_resource_class');
         $groups = $this->getGroups($subject, $normalization);
         if (\count($groups)) {
-            $context['groups'] = array_merge($context['groups'] ?? [], ...$groups);
+            $ctxGroups = array_merge($ctxGroups, ...$groups);
         }
+        $context['groups'] = $ctxGroups;
         return $context;
     }
 }

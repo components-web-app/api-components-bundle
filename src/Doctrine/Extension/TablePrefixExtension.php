@@ -1,6 +1,6 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DoctrineExtension;
+namespace Silverback\ApiComponentBundle\Doctrine\Extension;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;

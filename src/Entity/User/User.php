@@ -4,7 +4,6 @@ namespace Silverback\ApiComponentBundle\Entity\User;
 
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Doctrine\ORM\Mapping as ORM;
-use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
@@ -12,11 +11,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
- * @UniqueEntity(fields={"username"}, message="A user is already registered with that email address as their username")
+ * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
+ * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewUsername(groups={"new_username", "Default"})
  */
-class User implements Serializable, UserInterface
+abstract class User implements UserInterface
 {
     /**
      * @ORM\Id()
@@ -33,25 +32,25 @@ class User implements Serializable, UserInterface
      * @Groups({"default"})
      * @var string|null
      */
-    private $username;
+    protected $username;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"default"})
      */
-    private $password;
+    protected $password;
 
     /**
      * @ORM\Column(type="boolean")
      * @Groups({"default"})
      */
-    private $enabled;
+    protected $enabled;
 
     /**
      * @ORM\Column(type="array")
      * @Groups({"default"})
      */
-    private $roles;
+    protected $roles;
 
     /**
      * @Assert\NotBlank(message="Please enter your desired password", groups={"Default", "password_reset", "change_password"})
@@ -59,7 +58,7 @@ class User implements Serializable, UserInterface
      * @Groups({"default"})
      * @var string|null
      */
-    private $plainPassword;
+    protected $plainPassword;
 
     /**
      * Random string sent to the user email address in order to verify it.
@@ -67,14 +66,14 @@ class User implements Serializable, UserInterface
      * @Groups({"default"})
      * @var string|null
      */
-    private $passwordResetConfirmationToken;
+    protected $passwordResetConfirmationToken;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      * @Groups({"default"})
      * @var \DateTime|null
      */
-    private $passwordRequestedAt;
+    protected $passwordRequestedAt;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -83,7 +82,7 @@ class User implements Serializable, UserInterface
      * @Groups({"default"})
      * @var string|null
      */
-    private $newUsername;
+    protected $newUsername;
 
     /**
      * Random string sent to the user's new email address in order to verify it.
@@ -91,14 +90,14 @@ class User implements Serializable, UserInterface
      * @Groups({"default"})
      * @var string|null
      */
-    private $usernameConfirmationToken;
+    protected $usernameConfirmationToken;
 
     /**
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
      * @Groups({"default"})
      * @var string|null
      */
-    private $oldPassword;
+    protected $oldPassword;
 
     public function __construct(
         string $username = '',

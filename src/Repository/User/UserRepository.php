@@ -16,9 +16,9 @@ class UserRepository extends ServiceEntityRepository
 {
     private $passwordRequestTimeout;
 
-    public function __construct(RegistryInterface $registry, int $passwordRequestTimeout)
+    public function __construct(RegistryInterface $registry, int $passwordRequestTimeout, string $entityClass)
     {
-        parent::__construct($registry, User::class);
+        parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;
     }
 

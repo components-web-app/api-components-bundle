@@ -47,7 +47,7 @@ class PasswordResetController
      */
     public function resetAction(Request $request): JsonResponse
     {
-        $data = \json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true);
 
         $username = $data['username'];
         $token = $data['token'];

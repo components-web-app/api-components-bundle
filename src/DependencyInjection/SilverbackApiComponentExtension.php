@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
-use Silverback\ApiComponentBundle\DoctrineExtension\TablePrefixExtension;
+use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
@@ -33,8 +33,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $this->loadServiceConfig($container);
 
-        $repeatTtl = $config['password_reset']['repeat_ttl_seconds'];
-        $timeoutSeconds = $config['password_reset']['request_timeout_seconds'];
+        $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
+        $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
+        $userClass = $config['user']['class_name'];
 
         $definition = $container->getDefinition(Mailer::class);
         $definition->setArgument('$logoSrc', $config['mailer']['logo_src']);
@@ -46,6 +47,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
+        $definition->setArgument('$entityClass', $userClass);
 
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
