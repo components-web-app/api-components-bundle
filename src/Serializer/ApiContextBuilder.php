@@ -93,7 +93,7 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        $ctxGroups = (array) $context['groups'];
+        $ctxGroups = array_key_exists('groups', $context) ? (array) $context['groups'] : [];
         if (\in_array('none', $ctxGroups, true)) {
             return $context;
         }

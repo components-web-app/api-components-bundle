@@ -49,7 +49,7 @@ final class Mailer
             'website_name' => $this->websiteName
         ]);
         $message = (new \Swift_Message($subject))
-            ->setFrom($this->fromEmailAddress)
+            ->setFrom($this->fromEmailAddress, $this->websiteName)
             ->setTo($toEmail)
             ->setBody($htmlTemplate, 'text/html')
             ->addPart($textBody, 'text/plain')
