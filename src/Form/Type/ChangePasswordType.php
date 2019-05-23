@@ -30,7 +30,8 @@ class ChangePasswordType extends AbstractType
         $builder
             ->add('username', HiddenType::class, [
                 'attr' => ['autocomplete' => 'username'],
-                'data' => $user->getUsername()
+                'data' => $user->getUsername(),
+                'disabled' => true
             ])
             ->add('oldPassword', PasswordType::class, [
                 'label' => 'Current password',

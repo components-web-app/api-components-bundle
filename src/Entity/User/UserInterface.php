@@ -3,14 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\User;
 
 use Serializable;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface as BaseUserInterface;
 
-/**
- * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
- * @UniqueEntity(fields={"username"}, message="A user is already registered with that email address as their username")
- * @APIAssert\NewUsername(groups={"new_username", "Default"})
- */
 interface UserInterface extends Serializable, BaseUserInterface
 {
     public function getId(): ?int;
