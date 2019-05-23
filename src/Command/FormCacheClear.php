@@ -7,6 +7,7 @@ namespace Silverback\ApiComponentBundle\Command;
 use Silverback\ApiComponentBundle\Cache\FormCacheClearer;
 use Silverback\ApiComponentBundle\Event\CommandNotifyEvent;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -27,7 +28,7 @@ class FormCacheClear extends Command
     }
 
     /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function configure(): void
     {

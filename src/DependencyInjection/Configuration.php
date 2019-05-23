@@ -25,6 +25,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('class_name')->isRequired()->end()
+                        ->scalarNode('change_username_path')->defaultValue('/confirm-username/{{ token }}/{{ email }}')->end()
                         ->arrayNode('password_reset')
                             ->addDefaultsIfNotSet()
                             ->children()

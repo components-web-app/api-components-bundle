@@ -10,6 +10,7 @@ use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
+use Silverback\ApiComponentBundle\Form\Handler\NewUsernameHandler;
 use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\PasswordManager;
@@ -35,7 +36,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
         $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
-        $userClass = $config['user']['class_name'];
 
         $definition = $container->getDefinition(Mailer::class);
         $definition->setArgument('$logoSrc', $config['mailer']['logo_src']);
@@ -47,10 +47,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
-        $definition->setArgument('$entityClass', $userClass);
+        $definition->setArgument('$entityClass', $config['user']['class_name']);
 
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
+
+        $definition = $container->getDefinition(NewUsernameHandler::class);
+        $definition->setArgument('$confirmUsernamePath', $config['user']['change_username_path']);
     }
 
     /**

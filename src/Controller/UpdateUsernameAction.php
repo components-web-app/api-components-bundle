@@ -36,7 +36,7 @@ class UpdateUsernameAction
         $token = $data['token'];
         $user = $this->userRepository->findOneBy([
             'newUsername' => $username,
-            'newUsernameConfirmationToken' => $token
+            'usernameConfirmationToken' => $token
         ]);
         if (null === $user) {
             $currentUser = $this->userRepository->findOneBy([
