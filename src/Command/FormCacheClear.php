@@ -33,7 +33,7 @@ class FormCacheClear extends Command
     protected function configure(): void
     {
         $this
-            ->setName('silverback:api_component:clear_form_cache')
+            ->setName('silverback:api-component:clear-form-cache')
             ->setDescription('Purges the varnish cache for forms where files have been updated');
     }
 
@@ -46,7 +46,7 @@ class FormCacheClear extends Command
     {
         $this->dispatcher->addListener(
             FormCacheClearer::FORM_CACHE_EVENT_NAME,
-            function (CommandNotifyEvent $event) use ($output) {
+            static function (CommandNotifyEvent $event) use ($output) {
                 $output->writeln($event->getSubject());
             }
         );

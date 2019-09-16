@@ -26,7 +26,7 @@ abstract class DynamicContent extends DynamicContentBase
 
     /**
      * @ORM\Id()
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", length=36)
      * @var string
      */
     protected $id;

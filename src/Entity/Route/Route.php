@@ -26,7 +26,7 @@ class Route
 {
     /**
      * @ORM\Id()
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", length=36)
      * @Groups({"route"})
      * @var string
      */

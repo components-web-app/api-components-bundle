@@ -52,7 +52,7 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @ORM\Id()
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", length=36)
      * @var string
      */
     private $id;
