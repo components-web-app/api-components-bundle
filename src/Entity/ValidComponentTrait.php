@@ -13,7 +13,7 @@ use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 trait ValidComponentTrait
 {
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="json_array")
      * @ACBAssert\ComponentTypeClasses()
      * @var Collection|AbstractComponent[]
      */

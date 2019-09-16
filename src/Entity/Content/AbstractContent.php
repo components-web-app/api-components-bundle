@@ -66,7 +66,7 @@ abstract class AbstractContent implements ContentInterface
     }
 
     /**
-     * @param \Silverback\ApiComponentBundle\Entity\Component\ComponentLocation[]|iterable $componentLocations
+     * @param ComponentLocation[]|iterable $componentLocations
      * @return AbstractContent
      */
     public function setComponentLocations(iterable $componentLocations): AbstractContent
