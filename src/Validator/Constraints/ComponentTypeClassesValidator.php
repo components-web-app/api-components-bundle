@@ -16,13 +16,12 @@ class ComponentTypeClassesValidator extends ConstraintValidator
     /**
      * @param mixed $values
      * @param Constraint $constraint
-     * @throws \ReflectionException
      */
     public function validate($values, Constraint $constraint): void
     {
-        if (!($values instanceof Collection)) {
+        if (!is_iterable($values)) {
             $this->context
-                ->buildViolation('The value should be an instance of ' . Collection::class)
+                ->buildViolation('The valid_components column value must be iterable')
                 ->addViolation();
             return;
         }
