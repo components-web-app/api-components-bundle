@@ -28,6 +28,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBar;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\NavBar\NavBarItem;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\Tabs;
 use Silverback\ApiComponentBundle\Entity\Component\Navigation\Tabs\TabsItem;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -72,8 +73,8 @@ class DiscriminatorMappingExtension
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
         $classMetadata = $eventArgs->getClassMetadata();
-        $reflection = $classMetadata->getReflectionClass();
-        if ($reflection->getName() !== AbstractComponent::class) {
+        $reflectionName = $classMetadata->getReflectionClass()->getName();
+        if ($reflectionName !== AbstractComponent::class && $reflectionName !== DynamicContent::class) {
             return;
         }
 
