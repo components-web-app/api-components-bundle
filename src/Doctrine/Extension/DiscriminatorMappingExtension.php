@@ -81,11 +81,10 @@ class DiscriminatorMappingExtension
         $this->addDiscriminatorMap($classMetadata);
     }
 
-    protected function addDiscriminatorMap(ClassMetadata $class): void
+    protected function addDiscriminatorMap(ClassMetadata $classMetadata): void
     {
-        // ! $class->discriminatorMap &&
-        if ($class->isRootEntity() && ! $class->isInheritanceTypeNone()) {
-            $this->addDefaultDiscriminatorMap($class);
+        if ($classMetadata->isRootEntity() && ! $classMetadata->isInheritanceTypeNone()) {
+            $this->addDefaultDiscriminatorMap($classMetadata);
         }
     }
 
@@ -107,8 +106,9 @@ class DiscriminatorMappingExtension
     {
         $cache = new FilesystemAdapter();
         $allClasses = $this->driver->getAllClassNames();
-        $cachedClasses = $cache->getItem('silverback_api_component.doctrine.driver_classes');
-        $cachedMap = $cache->getItem('silverback_api_component.doctrine.components_discriminator_map');
+        $className = $this->getShortName($class->name);
+        $cachedClasses = $cache->getItem(sprintf('silverback_api_component.doctrine.driver_classes.%s', $className));
+        $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
             $cachedClasses->set($allClasses);
             $cache->save($cachedClasses);
