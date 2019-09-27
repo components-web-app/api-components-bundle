@@ -81,6 +81,7 @@ class CollectionModifier extends AbstractModifier
             if ($defaultQueryString = $collectionEntity->getDefaultQueryString()) {
                 $qs = $request->server->get('QUERY_STRING');
                 if (!$qs) {
+                    $defaultQueryString = preg_replace('/{{(\s+)?NOW(\s+)?}}/i', (new \DateTime())->format('Y-m-d H:i:s'), $defaultQueryString);
                     $resetQueryString = true;
                     $request->server->set('QUERY_STRING', $defaultQueryString);
                 }
