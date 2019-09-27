@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Traversable;
 
 /**
  * @ORM\Entity()
@@ -37,7 +38,7 @@ class Collection extends AbstractComponent
     private $title;
 
     /**
-     * @var array|\Traversable
+     * @var array|Traversable
      * @Groups({"component_read", "content_read"})
      */
     private $collection;
@@ -47,6 +48,13 @@ class Collection extends AbstractComponent
      * @Groups({"component_read", "content_read"})
      */
     private $collectionRoutes;
+
+    /**
+     * @ORM\Column(nullable=true)
+     * @Groups({"component", "content"})
+     * @var string|null
+     */
+    private $defaultQueryString;
 
     /**
      * Collection constructor.
@@ -112,7 +120,7 @@ class Collection extends AbstractComponent
     }
 
     /**
-     * @return array|\Traversable
+     * @return array|Traversable
      */
     public function getCollection()
     {
@@ -120,7 +128,7 @@ class Collection extends AbstractComponent
     }
 
     /**
-     * @param array|\Traversable $collection
+     * @param array|Traversable $collection
      * @return Collection
      */
     public function setCollection($collection): self
@@ -148,6 +156,24 @@ class Collection extends AbstractComponent
             $this->collectionRoutes = new ArrayCollection;
         }
         $this->collectionRoutes->set($method, $route);
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getDefaultQueryString(): ?string
+    {
+        return $this->defaultQueryString;
+    }
+
+    /**
+     * @param null|string $defaultQueryString
+     * @return Collection
+     */
+    public function setDefaultQueryString(?string $defaultQueryString): self
+    {
+        $this->defaultQueryString = $defaultQueryString;
         return $this;
     }
 }

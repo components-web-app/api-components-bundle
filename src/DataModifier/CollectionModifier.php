@@ -76,12 +76,28 @@ class CollectionModifier extends AbstractModifier
         $isPaginated = (bool) $collectionEntity->getPerPage();
 
         if ($request = $this->requestStack->getCurrentRequest()) {
+            $resetQueryString = false;
+            // Set the default querystring for the RequestParser class if we have not passed one in the request
+            if ($defaultQueryString = $collectionEntity->getDefaultQueryString()) {
+                $qs = $request->server->get('QUERY_STRING');
+                if (!$qs) {
+                    $resetQueryString = true;
+                    $request->server->set('QUERY_STRING', $defaultQueryString);
+                }
+            }
+
             if (null === $filters = $request->attributes->get('_api_filters')) {
                 $queryString = RequestParser::getQueryString($request);
                 $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
             }
+
+            if ($resetQueryString) {
+                $request->server->set('QUERY_STRING', '');
+            }
+
             $dataProviderContext = null === $filters ? [] : ['filters' => $filters];
             if ($isPaginated) {
+                $dataProviderContext['filters'] = $dataProviderContext['filters'] ?? [];
                 $dataProviderContext['filters'] = array_merge($dataProviderContext['filters'], [
                     'pagination' => true,
                     'itemsPerPage' => $collectionEntity->getPerPage(),
