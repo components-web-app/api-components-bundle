@@ -7,6 +7,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Paginator;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
+use ApiPlatform\Core\Util\RequestParser;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Collection\Collection;
 use Symfony\Component\HttpFoundation\Request;
@@ -73,17 +74,19 @@ class CollectionModifier extends AbstractModifier
         /** @var ContextAwareCollectionDataProviderInterface $dataProvider */
         $dataProvider = $this->container->get(ContextAwareCollectionDataProviderInterface::class);
         $isPaginated = (bool) $collectionEntity->getPerPage();
-        if (!$isPaginated) {
-            $dataProviderContext = [];
-        } else {
-            $dataProviderContext = [
-                'filters' => [
+
+        if ($request = $this->requestStack->getCurrentRequest()) {
+            if (null === $filters = $request->attributes->get('_api_filters')) {
+                $queryString = RequestParser::getQueryString($request);
+                $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
+            }
+            $dataProviderContext = null === $filters ? [] : ['filters' => $filters];
+            if ($isPaginated) {
+                $dataProviderContext['filters'] = array_merge($dataProviderContext['filters'], [
                     'pagination' => true,
                     'itemsPerPage' => $collectionEntity->getPerPage(),
                     '_page' => 1
-                ]
-            ];
-            if ($request = $this->requestStack->getCurrentRequest()) {
+                ]);
                 $request->attributes->set('_api_pagination', [
                     'pagination' => 'true',
                     'itemsPerPage' => $collectionEntity->getPerPage()
