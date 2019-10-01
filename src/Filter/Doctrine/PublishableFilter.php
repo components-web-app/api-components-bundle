@@ -58,7 +58,7 @@ final class PublishableFilter extends SQLFilter
         $pdColumn = sprintf('%s.published_date', $alias);
         $stmt .= ' AND (' . $this->exprBuilder->orX(
             $this->exprBuilder->isNull($pdColumn),
-            $this->exprBuilder->gte($pdColumn, $this->getParameter('published_date'))
+            $this->exprBuilder->lte($pdColumn, $this->getParameter('published_date'))
         ) . ')';
 
         return $stmt;
