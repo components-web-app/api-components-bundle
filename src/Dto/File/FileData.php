@@ -21,6 +21,18 @@ class FileData
 
     /**
      * @Groups({"default"})
+     * @var string|null
+     */
+    private $fileExtension;
+
+    /**
+     * @Groups({"default"})
+     * @var int|null
+     */
+    private $fileSize;
+
+    /**
+     * @Groups({"default"})
      * @var ImageMetadata|null
      */
     private $imageData;
@@ -31,40 +43,43 @@ class FileData
      */
     private $imagineData;
 
-    /**
-     * FileData constructor.
-     * @param null|string $publicPath
-     * @param null|ImageMetadata $imageData
-     * @param null|ImageMetadata[] $imagineData
-     */
-    public function __construct(?string $publicPath, ?ImageMetadata $imageData, ?array $imagineData)
+    public function __construct(
+        ?string $publicPath,
+        ?ImageMetadata $imageData,
+        ?array $imagineData,
+        ?string $fileExtension,
+        ?int $fileSize
+    )
     {
         $this->publicPath = $publicPath;
         $this->imageData = $imageData;
         $this->imagineData = $imagineData;
+        $this->fileExtension = $fileExtension;
+        $this->fileSize = $fileSize;
     }
 
-    /**
-     * @return null|string
-     */
     public function getPublicPath(): ?string
     {
         return $this->publicPath;
     }
 
-    /**
-     * @return null|ImageMetadata
-     */
     public function getImageData(): ?ImageMetadata
     {
         return $this->imageData;
     }
 
-    /**
-     * @return null|ImageMetadata[]
-     */
     public function getImagineData(): ?array
     {
         return $this->imagineData;
+    }
+
+    public function getFileExtension(): ?string
+    {
+        return $this->fileExtension;
+    }
+
+    public function getFileSize(): ?float
+    {
+        return $this->fileSize;
     }
 }

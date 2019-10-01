@@ -53,7 +53,13 @@ class FileDataFactory implements ServiceSubscriberInterface
             $imageData = new ImageMetadata($filePath, $publicPath);
         }
 
-        return new FileData($publicPath, $imageData, $this->getImagineData($file));
+        return new FileData(
+            $publicPath,
+            $imageData,
+            $this->getImagineData($file),
+            pathinfo($file->getFilePath(), PATHINFO_EXTENSION),
+            filesize($file->getFilePath()) ?: null
+        );
     }
 
     private function fileIsImage($filePath): bool
