@@ -23,6 +23,9 @@ class NewUsernameValidator extends ConstraintValidator
             throw new UnexpectedTypeException($user, User::class);
         }
 
+        if (!$user->getUsername() || !$user->getNewUsername()) {
+            return;
+        }
         if ($user->getNewUsername() === $user->getUsername()) {
             $this->context->buildViolation($constraint->differentMessage)
                 ->addViolation();
