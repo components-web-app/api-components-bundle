@@ -11,7 +11,7 @@ services:
             - ./:/srv/api:rw
             - ./_docker/php/www.conf:/usr/local/etc/php-fpm.d/99-www.conf:rw,cached
             - test_cache:/srv/api/tests/Functional/app/var/cache
-            - vendor:/srv/api/vendor
+            # - vendor:/srv/api/vendor
 #            - ./_docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
         restart: on-failure
         ports:

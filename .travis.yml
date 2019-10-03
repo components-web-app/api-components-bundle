@@ -37,8 +37,8 @@ before_script:
 
 script:
     - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
-    - tests/Functional/app/console cache:clear
-    - vendor/bin/behat --format=progress
+#    - tests/Functional/app/console cache:clear
+#    - vendor/bin/behat --format=progress
 #    - infection --min-msi=48 --threads=4
 
 notifications:
