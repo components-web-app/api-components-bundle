@@ -36,7 +36,10 @@ final class DenyAccessListener
         if ($this->authorizedChecker->isAuthorized()) {
             return;
         }
-        $this->checkSecurity($event->getControllerResult());
+        $resource = $event->getRequest()->attributes->get('data');
+        if ($resource) {
+            $this->checkSecurity($resource);
+        }
     }
 
     /**

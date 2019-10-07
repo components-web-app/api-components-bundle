@@ -152,7 +152,7 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(DenyAccessListener::class)
-        ->tag('kernel.event_listener', ['event' => 'kernel.view', 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onSecurity'])
+        ->tag('kernel.event_listener', ['event' => 'kernel.view', 'priority' => EventPriorities::POST_SERIALIZE, 'method' => 'onSecurity'])
         ->autoconfigure(false)
     ;
 
