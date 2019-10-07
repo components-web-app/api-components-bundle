@@ -1,11 +1,11 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataModifier;
+namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
-abstract class AbstractModifier implements DataModifierInterface, ServiceSubscriberInterface
+abstract class AbstractDataTransformer implements DataTransformerInterface, ServiceSubscriberInterface
 {
     protected $container;
 
@@ -13,10 +13,6 @@ abstract class AbstractModifier implements DataModifierInterface, ServiceSubscri
     {
         $this->container = $container;
     }
-
-    abstract public function process($object, array $context = array(), ?string $format = null);
-
-    abstract public function supportsData($data): bool;
 
     abstract public static function getSubscribedServices(): array;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
-use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
+use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Silverback\ApiComponentBundle\Filter\Doctrine\PublishableFilter;
@@ -65,8 +65,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             ->addTag('silverback_api_component.form_handler')
             ->setLazy(true);
 
-        $container->registerForAutoconfiguration(DataModifierInterface::class)
-            ->addTag('silverback_api_component.serializer_middleware');
+        $container->registerForAutoconfiguration(DataTransformerInterface::class)
+            ->addTag('silverback_api_component.data_transformer')
+        ;
 
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');

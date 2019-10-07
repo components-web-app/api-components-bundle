@@ -1,29 +1,27 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataModifier;
+namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Repository\Content\Page\DynamicPageRepository;
 
-class DynamicContentModifier extends AbstractModifier
+final class DynamicContentDataTransformer extends AbstractDataTransformer
 {
     /**
-     * @param DynamicContent $page
-     * @param array $context
-     * @param null|string $format
-     * @return object|void
+     * @param DynamicContent $object
      */
-    public function process($page, array $context = array(), ?string $format = null)
+    public function transform($object, array $context = []): DynamicContent
     {
         /** @var DynamicPageRepository $repository */
         $repository = $this->container->get(DynamicPageRepository::class);
         $dynamicPage = $repository->findOneBy([
-            'dynamicPageClass' => \get_class($page)
+            'dynamicPageClass' => \get_class($object)
         ]);
-        $page->setDynamicPage($dynamicPage);
+        $object->setDynamicPage($dynamicPage);
+        return $object;
     }
 
-    public function supportsData($data): bool
+    public function supportsTransformation($data, array $context = []): bool
     {
         return $data instanceof DynamicContent;
     }

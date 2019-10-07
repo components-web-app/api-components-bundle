@@ -8,6 +8,7 @@
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
+use ApiPlatform\Core\Bridge\Symfony\Bundle\DependencyInjection\Configuration as ApiPlatformConfiguration;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -17,7 +18,6 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('silverback_api_component');
-
         $rootNode
             ->children()
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()

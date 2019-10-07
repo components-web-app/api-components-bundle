@@ -1,27 +1,25 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataModifier;
+namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 
-class FileModifier extends AbstractModifier
+final class FileDataTransformer extends AbstractDataTransformer
 {
     /**
-     * @param FileInterface $component
-     * @param array $context
-     * @param null|string $format
-     * @return object|void
+     * @param FileInterface $object
      */
-    public function process($component, array $context = array(), ?string $format = null)
+    public function transform($object, array $context = []): FileInterface
     {
         /** @var FileDataFactory $factory */
         $factory = $this->container->get(FileDataFactory::class);
-        $fileData = $factory->create($component);
-        $component->setFileData($fileData);
+        $fileData = $factory->create($object);
+        $object->setFileData($fileData);
+        return $object;
     }
 
-    public function supportsData($data): bool
+    public function supportsTransformation($data, array $context = []): bool
     {
         return $data instanceof FileInterface;
     }

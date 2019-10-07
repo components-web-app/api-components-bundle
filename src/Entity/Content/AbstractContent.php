@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
+use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
 use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
 
 /**
@@ -25,7 +26,7 @@ use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
  *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup"
  * })
  */
-abstract class AbstractContent implements ContentInterface
+abstract class AbstractContent implements ContentInterface, RestrictedResourceInterface
 {
     use TimestampedEntityTrait;
 
@@ -42,6 +43,12 @@ abstract class AbstractContent implements ContentInterface
      * @var Collection|ComponentLocation[]
      */
     protected $componentLocations;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     * @var array|null
+     */
+    protected $securityRoles;
 
     public function __construct()
     {
@@ -103,6 +110,30 @@ abstract class AbstractContent implements ContentInterface
             if ($componentLocation->getContent() === $this) {
                 $componentLocation->setContent(null);
             }
+        }
+        return $this;
+    }
+
+    public function getSecurityRoles(): ?array
+    {
+        return $this->securityRoles;
+    }
+
+    public function addSecurityRole(string $securityRole): self
+    {
+        $this->securityRoles[] = $securityRole;
+        return $this;
+    }
+
+    public function setSecurityRoles(?array $securityRoles): self
+    {
+        if (!$securityRoles) {
+            $this->securityRoles = $securityRoles;
+            return $this;
+        }
+        $this->securityRoles = [];
+        foreach ($securityRoles as $securityRole) {
+            $this->addSecurityRole($securityRole);
         }
         return $this;
     }

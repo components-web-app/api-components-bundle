@@ -1,26 +1,24 @@
 <?php
 
-namespace Silverback\ApiComponentBundle\DataModifier;
+namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Silverback\ApiComponentBundle\Repository\Layout\LayoutRepository;
 
-class PageModifier extends AbstractModifier
+final class PageDataTransformer extends AbstractDataTransformer
 {
     /**
-     * @param StaticPage $page
-     * @param array $context
-     * @param null|string $format
-     * @return object|void
+     * @param StaticPage $object
      */
-    public function process($page, array $context = array(), ?string $format = null)
+    public function transform($object, array $context = []): StaticPage
     {
         /** @var LayoutRepository $repository */
         $repository = $this->container->get(LayoutRepository::class);
-        $page->setLayout($repository->findOneBy(['default' => true]));
+        $object->setLayout($repository->findOneBy(['default' => true]));
+        return $object;
     }
 
-    public function supportsData($data): bool
+    public function supportsTransformation($data, array $context = []): bool
     {
         return $data instanceof StaticPage && !$data->getLayout();
     }

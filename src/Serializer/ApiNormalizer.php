@@ -1,76 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Serializer;
 
-use Silverback\ApiComponentBundle\DataModifier\DataModifierInterface;
+use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 
-class ApiNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
+class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareInterface, CacheableSupportsMethodInterface
 {
-    /** @var iterable|DataModifierInterface[] */
-    private $normalizerMiddleware;
-    /** @var iterable|NormalizerInterface[] */
-    private $normalizers;
-    /** @var DataModifierInterface[] */
-    private $supportedModifiers = [];
+    use NormalizerAwareTrait;
 
-    public function __construct(iterable $normalizerMiddleware = [], iterable $normalizers = [])
+    private const ALREADY_CALLED = 'API_COMPONENT_BUNDLE_NORMALIZER_ALREADY_CALLED';
+
+    /** @var iterable|DataTransformerInterface[] */
+    private $dataTransformers;
+
+    /** @var DataTransformerInterface[] */
+    private $supportedTransformers = [];
+
+    public function __construct(iterable $dataTransformers = [])
     {
-        $this->normalizerMiddleware = $normalizerMiddleware;
-        $this->normalizers = $normalizers;
+        $this->dataTransformers = $dataTransformers;
     }
 
-    /**
-     * Check if any of our entity normalizers should be called
-     * @param mixed $data
-     * @param null|string $format
-     * @return bool
-     */
-    public function supportsNormalization($data, $format = null): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        if (!\is_object($data)) {
+        if (!is_object($data) || isset($context[self::ALREADY_CALLED])) {
             return false;
         }
 
-        $this->supportedModifiers = [];
-        foreach ($this->normalizerMiddleware as $modifier) {
-            if ($modifier->supportsData($data)) {
-                $this->supportedModifiers[] = $modifier;
+        $this->supportedTransformers = [];
+        foreach ($this->dataTransformers as $transformer) {
+            if ($transformer->supportsTransformation($data)) {
+                $this->supportedTransformers[] = $transformer;
             }
         }
-
-        return !empty($this->supportedModifiers);
+        return !empty($this->supportedTransformers);
     }
 
-    /**
-     * Here we need to call our own entity normalizer followed by the next supported normalizer
-     * @param mixed $object
-     * @param null|string $format
-     * @param array $context
-     * @return array|bool|float|int|mixed|string
-     */
-    public function normalize($object, $format = null, array $context = array())
+    public function normalize($object, $format = null, array $context = [])
     {
-        foreach ($this->supportedModifiers as $modifier) {
-            $modifier->process($object, $context, $format);
+        foreach ($this->supportedTransformers as $transformer) {
+            $transformer->transform($object, $context);
         }
+        $context[self::ALREADY_CALLED] = true;
 
-        foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof self || !$normalizer instanceof NormalizerInterface) {
-                continue;
-            }
-            if ($normalizer->supportsNormalization($object, $format)) {
-                return $normalizer->normalize($object, $format, $context);
-            }
-        }
-
-        return $object;
+        return $this->normalizer->normalize($object, $format, $context);
     }
 
-    /**
-     * @return bool
-     */
     public function hasCacheableSupportsMethod(): bool
     {
         return false;

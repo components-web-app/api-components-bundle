@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
+use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
@@ -14,8 +15,9 @@ use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Doctrine\Extension\DiscriminatorMappingExtension;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
-use Silverback\ApiComponentBundle\EventSubscriber\PublishableConfigurator;
 use Silverback\ApiComponentBundle\Repository\Route\RouteRepository;
+use Silverback\ApiComponentBundle\Security\EventListener\DenyAccessListener;
+use Silverback\ApiComponentBundle\Security\EventListener\PublishableConfigurator;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -49,6 +51,7 @@ return function (ContainerConfigurator $configurator) {
         ->exclude('../../{Entity,Exception,Event,Migrations,Resources,Tests,Dto,DTO,Doctrine/Extension}');
 
     $services
+        ->set(TablePrefixExtension::class)
         ->set(TablePrefixExtension::class)
         ->tag('doctrine.event_listener', [ 'event' => 'loadClassMetadata' ])
     ;
@@ -109,16 +112,17 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(ApiContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
-        ->args([new Reference(ApiContextBuilder::class . '.inner')]);
+        ->args([
+            new Reference(ApiContextBuilder::class . '.inner')
+        ])
+    ;
 
     $services
         ->set(ApiNormalizer::class)
-        ->autowire(false)
-        ->tag('serializer.normalizer', ['priority' => 99])
         ->args([
-            tagged('silverback_api_component.serializer_middleware'),
-            tagged('serializer.normalizer')
+            tagged('silverback_api_component.data_transformer')
         ])
+        ->tag('serializer.normalizer', [ 'priority' => 100 ])
     ;
 
     $services
@@ -142,7 +146,13 @@ return function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableConfigurator::class)
-        ->tag('kernel.event_listener', ['event' => 'kernel.request', 'priority' => 5])
+        ->tag('kernel.event_listener', ['event' => 'kernel.request', 'priority' => EventPriorities::PRE_READ])
+        ->autoconfigure(false)
+    ;
+
+    $services
+        ->set(DenyAccessListener::class)
+        ->tag('kernel.event_listener', ['event' => 'kernel.view', 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onSecurity'])
         ->autoconfigure(false)
     ;
 
