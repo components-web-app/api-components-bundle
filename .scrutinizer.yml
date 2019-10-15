@@ -31,4 +31,4 @@ build:
                 coverage:
                     file: clover.xml
                     format: php-clover
-            -   command: vendor/bin/behat --format=progress
+#            -   command: vendor/bin/behat --format=progress
