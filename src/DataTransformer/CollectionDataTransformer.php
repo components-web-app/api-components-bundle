@@ -77,7 +77,8 @@ final class CollectionDataTransformer implements DataTransformerInterface
             'resource_class' => $object->getResource(),
             'request_uri' => $collectionRoutes ? $collectionRoutes->first() : null,
             'jsonld_has_context' => false,
-            'api_sub_level' => null
+            'api_sub_level' => null,
+            'subresource_operation_name' => 'get'
         ];
         $mergedContext = array_merge($context, $forcedContext);
         $normalizedCollection = $this->itemNormalizer->normalize(
