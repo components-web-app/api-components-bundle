@@ -12,6 +12,7 @@ use Silverback\ApiComponentBundle\Entity\Component\ComponentLocation;
 use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
 use Silverback\ApiComponentBundle\Entity\RestrictedResourceTrait;
 use Silverback\ApiComponentBundle\Entity\TimestampedEntityTrait;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Content\AbstractContentRepository")
@@ -40,6 +41,7 @@ abstract class AbstractContent implements ContentInterface, RestrictedResourceIn
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation", mappedBy="content", cascade={"persist", "remove"})
      * @ORM\OrderBy({"sort"="ASC"})
+     * @Groups({"default"})
      * @var Collection|ComponentLocation[]
      */
     protected $componentLocations;

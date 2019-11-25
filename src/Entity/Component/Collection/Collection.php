@@ -140,7 +140,7 @@ class Collection extends AbstractComponent
     /**
      * @return ArrayCollection|null
      */
-    public function getCollectionRoutes(): ArrayCollection
+    public function getCollectionRoutes(): ?ArrayCollection
     {
         return $this->collectionRoutes;
     }

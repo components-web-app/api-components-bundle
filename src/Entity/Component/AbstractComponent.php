@@ -65,7 +65,8 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     private $className;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation", mappedBy="component")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Component\ComponentLocation", mappedBy="component", cascade={"persist"})
+     * @Groups({"component"})
      * @var Collection|ComponentLocation[]
      */
     protected $locations;
