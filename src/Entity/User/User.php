@@ -2,6 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Entity\User;
 
+use DateTime;
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -36,7 +37,6 @@ abstract class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"default"})
      */
     protected $password;
 
@@ -53,9 +53,9 @@ abstract class User implements UserInterface
     protected $roles;
 
     /**
-     * @Assert\NotBlank(message="Please enter your desired password", groups={"Default", "password_reset", "change_password"})
+     * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
      * @Assert\Length(max="4096",min="6",maxMessage="Your password cannot be over 4096 characters",minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
-     * @Groups({"default"})
+     * @Groups({"default_write"})
      * @var string|null
      */
     protected $plainPassword;
@@ -63,15 +63,13 @@ abstract class User implements UserInterface
     /**
      * Random string sent to the user email address in order to verify it.
      * @ORM\Column(nullable=true)
-     * @Groups({"default"})
      * @var string|null
      */
     protected $passwordResetConfirmationToken;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     * @Groups({"default"})
-     * @var \DateTime|null
+     * @var DateTime|null
      */
     protected $passwordRequestedAt;
 
@@ -87,14 +85,13 @@ abstract class User implements UserInterface
     /**
      * Random string sent to the user's new email address in order to verify it.
      * @ORM\Column(nullable=true)
-     * @Groups({"default"})
      * @var string|null
      */
     protected $usernameConfirmationToken;
 
     /**
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
-     * @Groups({"default"})
+     * @Groups({"default_write"})
      * @var string|null
      */
     protected $oldPassword;
@@ -205,18 +202,18 @@ abstract class User implements UserInterface
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getPasswordRequestedAt(): ?\DateTime
+    public function getPasswordRequestedAt(): ?DateTime
     {
         return $this->passwordRequestedAt;
     }
 
     /**
-     * @param \DateTime|null $passwordRequestedAt
+     * @param DateTime|null $passwordRequestedAt
      * @return static
      */
-    public function setPasswordRequestedAt(?\DateTime $passwordRequestedAt)
+    public function setPasswordRequestedAt(?DateTime $passwordRequestedAt)
     {
         $this->passwordRequestedAt = $passwordRequestedAt;
 
@@ -226,7 +223,7 @@ abstract class User implements UserInterface
     public function isPasswordRequestLimitReached($ttl)
     {
         $lastRequest = $this->getPasswordRequestedAt();
-        return $lastRequest instanceof \DateTime &&
+        return $lastRequest instanceof DateTime &&
             $lastRequest->getTimestamp() + $ttl > time();
     }
 
