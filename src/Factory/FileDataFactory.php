@@ -10,6 +10,7 @@ use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Dto\File\FileData;
 use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber\FileInterfaceSubscriber;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
@@ -20,13 +21,15 @@ class FileDataFactory implements ServiceSubscriberInterface
     private $router;
     private $iriConverter;
     private $container;
+    private $fileInterfaceSubscriber;
     private $projectDir;
 
-    public function __construct(RouterInterface $router, IriConverterInterface $iriConverter, ContainerInterface $container, string $projectDir)
+    public function __construct(RouterInterface $router, IriConverterInterface $iriConverter, ContainerInterface $container, FileInterfaceSubscriber $fileInterfaceSubscriber, string $projectDir)
     {
         $this->router = $router;
         $this->iriConverter = $iriConverter;
         $this->container = $container;
+        $this->fileInterfaceSubscriber = $fileInterfaceSubscriber;
         $this->projectDir = $projectDir;
     }
 
@@ -45,6 +48,9 @@ class FileDataFactory implements ServiceSubscriberInterface
         }
         if ($file->getFileData()) {
             return $file->getFileData();
+        }
+        if (ImagineSupportedFilePath::isValidFilePath($filePath)) {
+            $this->fileInterfaceSubscriber->createFilteredImages($file);
         }
 
         $publicPath = $this->getPublicPath($file);

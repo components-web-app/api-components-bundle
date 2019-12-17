@@ -149,7 +149,7 @@ class FileInterfaceSubscriber implements EntitySubscriberInterface
         }
     }
 
-    private function createFilteredImages(FileInterface $file): void
+    public function createFilteredImages(FileInterface $file): void
     {
         $filters = $file::getImagineFilters();
         foreach ($filters as $filter) {
