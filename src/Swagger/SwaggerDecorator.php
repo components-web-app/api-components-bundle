@@ -57,8 +57,11 @@ final class SwaggerDecorator implements NormalizerInterface
                 '$ref' => '#/definitions/Form'
             ]
         ];
-        $patchOp['consumes'] = $docs['paths'][$currentPath]['put']['consumes'];
-        $patchOp['produces'] = $docs['paths'][$currentPath]['put']['produces'];
+        $putData = (array) $docs['paths'][$currentPath]['put'];
+        if (isset($putData['consumes'])) {
+            $patchOp['consumes'] = $putData['consumes'];
+            $patchOp['produces'] = $putData['produces'];
+        }
 
         $docs['paths'][$patchOpPath]['patch'] = $patchOp;
         $docs['paths'][$patchOpPath]['post']['parameters'] = $docs['paths'][$patchOpPath]['patch']['parameters'];

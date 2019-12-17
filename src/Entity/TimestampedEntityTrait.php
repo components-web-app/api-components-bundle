@@ -6,9 +6,6 @@ use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\EntityListeners({"Silverback\ApiComponentBundle\EntityListener\TimestampedEntityListener"})
- */
 trait TimestampedEntityTrait
 {
     /**
