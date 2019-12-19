@@ -9,6 +9,7 @@ final class FileDataTransformer extends AbstractDataTransformer
 {
     /**
      * @param FileInterface $object
+     * @return FileInterface
      */
     public function transform($object, array $context = []): FileInterface
     {

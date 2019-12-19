@@ -9,13 +9,13 @@ use Doctrine\ORM\Mapping as ORM;
 trait TimestampedEntityTrait
 {
     /**
-     * @ORM\Column(type="datetime_immutable", options={"default" = "CURRENT_TIMESTAMP"})
+     * @ORM\Column(type="datetime_immutable")
      * @var DateTimeImmutable
      */
     protected $created;
 
     /**
-     * @ORM\Column(type="datetime", options={"default" = "CURRENT_TIMESTAMP"})
+     * @ORM\Column(type="datetime")
      * @var DateTime
      */
     protected $modified;
