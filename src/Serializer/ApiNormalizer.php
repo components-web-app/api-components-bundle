@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
+use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
 use Symfony\Component\Security\Core\Security;
@@ -43,15 +44,23 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        if (!is_object($data) || isset($context[self::ALREADY_CALLED])) {
+        if (!isset($context[self::ALREADY_CALLED])) {
+            $context[self::ALREADY_CALLED] = [];
+        }
+        $this->supportedTransformers = [];
+
+        if (!is_object($data) || in_array($data, $context[self::ALREADY_CALLED], true)) {
             return false;
+        }
+
+        if ($data instanceof AbstractComponent) {
+            return true;
         }
 
         if ($this->isRestrictedResource($data)) {
             return true;
         }
 
-        $this->supportedTransformers = [];
         foreach ($this->dataTransformers as $transformer) {
             if ($transformer->supportsTransformation($data)) {
                 $this->supportedTransformers[] = $transformer;
@@ -85,12 +94,18 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
         ) {
             return null;
         }
-
+        $context[self::ALREADY_CALLED][] = $object;
+        if ($object instanceof AbstractComponent) {
+            $context['groups'] = array_map(static function($grp) {
+                if (strpos($grp, 'route') === 0) {
+                    return str_replace('route', 'component', $grp);
+                }
+                return $grp;
+            }, $context['groups']);
+        }
         foreach ($this->supportedTransformers as $transformer) {
             $transformer->transform($object, $context);
         }
-        $context[self::ALREADY_CALLED] = true;
-
         return $this->normalizer->normalize($object, $format, $context);
     }
 
