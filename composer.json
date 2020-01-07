@@ -1,0 +1,44 @@
+{
+    "name": "silverbackis/api-component-bundle",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "require": {
+        "php": "^7.4",
+        "ext-fileinfo": "*",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-simplexml": "*",
+        "api-platform/api-pack": "^1.1",
+        "cocur/slugify": "^3.0",
+        "doctrine/doctrine-bundle": "^1.10",
+        "doctrine/doctrine-migrations-bundle": "^2.0",
+        "symfony/console": "^4.2",
+        "symfony/framework-bundle": "^4.2"
+    },
+    "require-dev": {
+        "ext-imagick": "*",
+        "roave/security-advisories": "dev-master",
+        "symfony/debug": "^4.2",
+        "symfony/dotenv": "^4.2",
+        "symfony/maker-bundle": "^1.0",
+        "symfony/profiler-pack": "^1.0"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Silverback\\ApiComponentBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Silverback\\ApiComponentBundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

@@ -1,0 +1,5 @@
+/composer.lock
+/vendor/
+/src/var/
+.DS_Store
+.php_cs.cache
