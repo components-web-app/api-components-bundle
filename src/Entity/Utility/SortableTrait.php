@@ -6,6 +6,9 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
 
 use Doctrine\Common\Collections\Collection;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 trait SortableTrait
 {
     public ?int $sort = 0;

@@ -15,6 +15,9 @@ use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Twig\Environment;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 

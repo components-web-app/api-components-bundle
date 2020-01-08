@@ -9,6 +9,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Core\Layout;
 
 /**
+ * @author Daniel West <daniel@silverback.is>
  * @method Layout|null find($id, $lockMode = null, $lockVersion = null)
  * @method Layout|null findOneBy(array $criteria, array $orderBy = null)
  * @method Layout[]    findAll()

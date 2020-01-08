@@ -17,35 +17,17 @@ final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedD
 {
     private LayoutRepository $repository;
 
-    /**
-     * LayoutDataProvider constructor.
-     *
-     * @param LayoutRepository $repository
-     */
     public function __construct(LayoutRepository $repository)
     {
         $this->repository = $repository;
     }
 
-    /**
-     * @param string $resourceClass
-     * @param string|null $operationName
-     * @param array $context
-     * @return bool
-     */
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
         return $resourceClass === Layout::class;
     }
 
-    /**
-     * @param string $resourceClass
-     * @param int|string $id
-     * @param string|null $operationName
-     * @param array $context
-     * @return Layout|null
-     * @throws ResourceClassNotSupportedException
-     */
+    /** @throws ResourceClassNotSupportedException */
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): ?Layout
     {
         if ($id !== 'default') {

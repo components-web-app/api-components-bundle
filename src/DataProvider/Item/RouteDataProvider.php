@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\DataProvider\Item;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
@@ -7,6 +9,9 @@ use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use Silverback\ApiComponentBundle\Entity\Core\Route;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class RouteDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {
     private RouteRepository $routeRepository;

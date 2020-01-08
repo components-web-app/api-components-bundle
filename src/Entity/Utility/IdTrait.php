@@ -7,6 +7,9 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 trait IdTrait
 {
     /**

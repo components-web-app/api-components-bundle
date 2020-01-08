@@ -6,6 +6,9 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
 
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 trait UiTrait
 {
     /** @ORM\Column(nullable=true) */

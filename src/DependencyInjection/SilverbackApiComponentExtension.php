@@ -13,6 +13,9 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
     /**

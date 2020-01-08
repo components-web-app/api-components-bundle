@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
