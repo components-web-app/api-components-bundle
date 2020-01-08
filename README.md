@@ -28,3 +28,7 @@ We encourage using as much of the packages that well maintained by large communi
 - Start up the containers
 - run `docker-compose exec php sh` to bash into the php container
 - run `composer require silverbackis/api-component-bundle:2.x-dev`
+
+---
+Dev note:
+`php -d memory_limit=-1 /usr/local/bin/composer install --ignore-platform-reqs`
