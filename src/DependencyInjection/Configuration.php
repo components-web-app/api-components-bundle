@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: silverbackis
- * Date: 28/02/2019
- * Time: 12:52
- */
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
