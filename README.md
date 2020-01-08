@@ -1,7 +1,7 @@
 # API Component Bundle v2
 **Please be aware this document has been created in haste, but if you're interested in learning more about it or helping, please get in touch. It is currently just me working on this MIT licenced, free, open source framework in the hope to give back to the community and help develop my own business as well. Most urgently I would love tests to be written. If you can spare a moment to help I'd be very appreciative**
 
-This project began in 2018 to provide a framework to define UI structure and components for a front-end web application. Progressive Web Apps have become more popular and for good reason.
+This project began in 2018 to provide a framework to define UI structure and components and useful endpoints and (de)serialization tools for a front-end web application. Progressive Web Apps have become more popular and for good reason.
 
 This bundle aims to provide a reusable data structure and utilities for tasks that 99% of web applications require. From a developer's point of view it enables you to define UI components and structures easily and can then be paired with another project we are also working on - the Components Web App.
 
@@ -25,6 +25,11 @@ We encourage using as much of the packages that well maintained by large communi
 - Update the `api/Dockerfile`
   - Change PHP version to at least 7.4
   - Remove `--with-libzip` if present
+  - Add `exif` to the `docker-php-ext-install` arguments
 - Start up the containers
 - run `docker-compose exec php sh` to bash into the php container
 - run `composer require silverbackis/api-component-bundle:2.x-dev`
+
+---
+Dev note:
+`php -d memory_limit=-1 /usr/local/bin/composer install --ignore-platform-reqs`
