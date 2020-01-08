@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
@@ -40,6 +41,7 @@ class ComponentGroup implements TimestampedInterface
     public Collection $pageData;
 
     /**
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")
      * @var Collection|ComponentLocation[]
      */
     public Collection $componentLocations;
@@ -47,5 +49,6 @@ class ComponentGroup implements TimestampedInterface
     public function __construct()
     {
         $this->setId();
+        $this->componentLocations = new ArrayCollection();
     }
 }

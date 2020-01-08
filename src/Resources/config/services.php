@@ -7,7 +7,9 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Doctrine\Extension\DiscriminatorMappingExtension;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -31,6 +33,12 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(RouteRepository::class)
         ->args([ref(ManagerRegistry::class)])
+    ;
+
+    $services
+        ->set(DiscriminatorMappingExtension::class)
+        ->args([ref(EntityManagerInterface::class)])
+        ->tag('doctrine.event_listener', [ 'event' => 'loadClassMetadata' ])
     ;
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');

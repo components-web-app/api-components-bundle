@@ -23,18 +23,21 @@ class Layout implements TimestampedInterface
     use TimestampedTrait;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="componentGroups")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="layout")
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", mappedBy="componentGroups")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", mappedBy="layout")
      * @var Collection|PageData[]
      */
     public Collection $pageData;
 
-    /** @var Collection|ComponentGroup[] */
+    /**
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", mappedBy="layouts")
+     * @var Collection|ComponentGroup[]
+     */
     public Collection $componentGroups;
 
     public function __construct()

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 trait SortableTrait
 {
+    /** @ORM\Column(type="integer") */
     public ?int $sort = 0;
 
     final public function calculateSort(?bool $sortLast = null, ?Collection $sortCollection = null): int
