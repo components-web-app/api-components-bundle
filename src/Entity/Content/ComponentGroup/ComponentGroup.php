@@ -29,7 +29,7 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface,
     protected $componentLocations;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="componentGroups")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="componentGroups", cascade={"persist"})
      * @ORM\JoinColumn(onDelete="SET NULL")
      * @var AbstractComponent
      */
