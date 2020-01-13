@@ -9,6 +9,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
+        "api-platform/core": "^2.5",
         "api-platform/api-pack": "^1.1",
         "cocur/slugify": "^3.0",
         "doctrine/doctrine-bundle": "^1.10",
@@ -26,7 +27,7 @@
         "symfony/http-client": "4.4.*",
         "symfony/maker-bundle": "^1.0",
         "symfony/profiler-pack": "^1.0",
-        "symfony/test-pack": "^1.0"
+        "symfony/test-pack": "^1"
     },
     "config": {
         "preferred-install": {
