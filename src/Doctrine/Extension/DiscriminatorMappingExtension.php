@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Doctrine\Extension;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,7 +44,7 @@ class DiscriminatorMappingExtension
     {
         $classMetadata = $eventArgs->getClassMetadata();
         $reflectionName = $classMetadata->getReflectionClass()->getName();
-        if ($reflectionName !== AbstractComponent::class) {
+        if (AbstractComponent::class !== $reflectionName) {
             return;
         }
 
@@ -46,13 +57,13 @@ class DiscriminatorMappingExtension
      */
     protected function addDiscriminatorMap(ClassMetadata $classMetadata): void
     {
-        if ($classMetadata->isRootEntity() && ! $classMetadata->isInheritanceTypeNone()) {
+        if ($classMetadata->isRootEntity() && !$classMetadata->isInheritanceTypeNone()) {
             $this->addDefaultDiscriminatorMap($classMetadata);
         }
     }
 
     /**
-     * Adds a default discriminator map if no one is given
+     * Adds a default discriminator map if no one is given.
      *
      * If an entity is of any inheritance type and does not contain a
      * discriminator map, then the map is generated automatically. This process
@@ -107,9 +118,9 @@ class DiscriminatorMappingExtension
         if ($duplicates) {
             throw MappingException::duplicateDiscriminatorEntry($class->name, $duplicates, $map);
         }
+
         return $map;
     }
-
 
     /**
      * Gets the lower-case short name of a class.
@@ -117,8 +128,9 @@ class DiscriminatorMappingExtension
     private function getShortName($className): string
     {
         $nameConverter = new CamelCaseToSnakeCaseNameConverter();
-        $parts = explode("\\", $className);
+        $parts = explode('\\', $className);
         $lastPart = end($parts);
+
         return $nameConverter->normalize($lastPart);
     }
 }

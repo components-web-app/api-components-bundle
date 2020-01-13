@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Core;
@@ -24,18 +33,21 @@ class Layout implements TimestampedInterface
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="layout")
+     *
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", mappedBy="layout")
+     *
      * @var Collection|PageData[]
      */
     public Collection $pageData;
 
     /**
      * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", mappedBy="layouts")
+     *
      * @var Collection|ComponentGroup[]
      */
     public Collection $componentGroups;

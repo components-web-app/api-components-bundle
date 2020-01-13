@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Dto\Form;
@@ -17,7 +26,7 @@ final class FormView
         'choices',
         'preferred_choices',
         'errors',
-        'is_selected'
+        'is_selected',
     ];
 
     private const OUTPUT_VARS = [
@@ -44,7 +53,7 @@ final class FormView
         'submitted',
         'unique_block_prefix',
         'valid',
-        'value'
+        'value',
     ];
 
     private array $vars;
@@ -94,7 +103,7 @@ final class FormView
 
     private function addChild(SymfonyFormView $formViews): void
     {
-        $formView = new FormView($formViews);
+        $formView = new self($formViews);
         $this->children->add($formView);
     }
 

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Dto\File;
@@ -31,7 +40,7 @@ final class ImageMetadata
             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
         }
 
-        if (mime_content_type($filePath) === 'image/svg+xml') {
+        if ('image/svg+xml' === mime_content_type($filePath)) {
             $xmlGet = simplexml_load_string(file_get_contents($filePath));
             $xmlAttributes = $xmlGet->attributes();
             $this->width = (int) $xmlAttributes->width;

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Core;
@@ -13,7 +22,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ORM\MappedSuperclass()
+ * @ORM\MappedSuperclass
  */
 abstract class AbstractPage implements TimestampedInterface
 {
@@ -22,6 +31,7 @@ abstract class AbstractPage implements TimestampedInterface
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
+     *
      * @var Collection|Route[]
      */
     public Collection $routes;
