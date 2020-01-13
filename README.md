@@ -6,7 +6,7 @@ This structure will allow a developer to create UI structure and components whic
 
 It also includes the ability to have components where files can be uploaded, handling of forms (serialization, validation and successful submissions) and a built-in component to display a collection of resources with filtering and pagination (this is more of a proxy component to allow collections of component of dynamic page resources to be included within a page).
 
-You'll notice there is a 'Dynamic Template Data' (also referred to as 'Dynamic Page Data' in the diagram) resource. This will be used for pages where the template should be the same or very similar (for example Blog Articles). These pages will have routes assigned to them automatically based on the page titles.
+You'll notice there is a 'Abstract Page Data' base class for a resource. This will be used for pages where the template should be the same or very similar (for example Blog Articles). These pages will have routes assigned to them automatically based on the page titles.
 
 When 'Routes' change we will also handle creating redirects from the old route to the new one where possible.
 
