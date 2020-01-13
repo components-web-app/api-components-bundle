@@ -22,6 +22,9 @@ class ComponentGroup implements TimestampedInterface
     use IdTrait;
     use TimestampedTrait;
 
+    /** @ORM\Column(unique=true) */
+    public string $reference;
+
     /**
      * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", inversedBy="componentGroups")
      * @var Collection|Layout[]
@@ -33,12 +36,6 @@ class ComponentGroup implements TimestampedInterface
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", inversedBy="componentGroups")
-     * @var Collection|PageData[]
-     */
-    public Collection $pageData;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")

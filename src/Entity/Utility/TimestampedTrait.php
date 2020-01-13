@@ -18,13 +18,13 @@ trait TimestampedTrait
      * @ORM\Column(type="date_immutable")
      * @ApiProperty(writable=false)
      */
-    private DateTimeImmutable $created;
+    private ?DateTimeImmutable $created;
 
     /**
      * @ORM\Column(type="datetime")
      * @ApiProperty(writable=false)
      */
-    public DateTime $modified;
+    public ?DateTime $modified;
 
     /** @return static */
     public function setCreated(DateTimeImmutable $created)
@@ -35,7 +35,7 @@ trait TimestampedTrait
         return $this;
     }
 
-    public function getCreated(): DateTimeImmutable
+    public function getCreated(): ?DateTimeImmutable
     {
         return $this->created;
     }

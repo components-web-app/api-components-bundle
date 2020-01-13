@@ -12,5 +12,5 @@ use DateTimeImmutable;
 interface TimestampedInterface
 {
     public function setCreated(DateTimeImmutable $created);
-    public function getCreated(): DateTimeImmutable;
+    public function getCreated(): ?DateTimeImmutable;
 }

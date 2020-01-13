@@ -1,21 +1,19 @@
 # API Component Bundle v2
-**Please be aware this document has been created in haste, but if you're interested in learning more about it or helping, please get in touch. It is currently just me working on this MIT licenced, free, open source framework in the hope to give back to the community and help develop my own business as well. Most urgently I would love tests to be written. If you can spare a moment to help I'd be very appreciative**
+The diagram below shows what this bundle aims to implement by using Symfony and [API Platform](https://github.com/api-platform/api-platform)
+![Api Component Bundle - Basic Flow](./docs/images/API%20Component%20Bundle%20v2%20Flow.jpg)
 
-This project began in 2018 to provide a framework to define UI structure and components and useful endpoints and (de)serialization tools for a front-end web application. Progressive Web Apps have become more popular and for good reason.
+This structure will allow a developer to create UI structure and components which can be controlled by a database and then used by a front-end application to display a web app.
 
-This bundle aims to provide a reusable data structure and utilities for tasks that 99% of web applications require. From a developer's point of view it enables you to define UI components and structures easily and can then be paired with another project we are also working on - the Components Web App.
+It also includes the ability to have components where files can be uploaded, handling of forms (serialization, validation and successful submissions) and a built-in component to display a collection of resources with filtering and pagination (this is more of a proxy component to allow collections of component of dynamic page resources to be included within a page).
 
-## Content Management
-We know that you can create a front-end application and simply request specific resources from your API to populate the information. While that may work for many, this framework allows you to define the entire structure, which UI components to use where and encourages components and data to be re-used.
+You'll notice there is a 'Dynamic Template Data' (also referred to as 'Dynamic Page Data' in the diagram) resource. This will be used for pages where the template should be the same or very similar (for example Blog Articles). These pages will have routes assigned to them automatically based on the page titles.
 
-## Performance
-Because the front-end application will need to request each page's structure it is important to use caches and optimise the response speeds as much as possible. We recommend always starting your project with a fresh API Component Bundle template as that has a number of very talented maintainers and they are always looking for performance improvements and server stacks with intelligent caching layers. Your front-end web application will have to be configured take advantage of these features as well, but our Components Web App will be built in Nuxt for those who want a starting point.
+When 'Routes' change we will also handle creating redirects from the old route to the new one where possible.
 
-## File Uploads
-Often components will require an administrator to be able to upload files and images. Currently we will only support uploading files directly to the API server, however in future we will be integrating with APIs and provide ways for you to build your own file upload handlers so you can take advantage of CDNs and the other benefits that come with external assets storage.
+There is a lot to create and discuss here and most features were implemented in some way for version 1 of this bundle. Some implementations of functionality will change and there is a lot of simplification in this version of the bundle compared to the first. We hope by creating this we can provide a tool for developers and designers to easily create websites using re-usable modules which can be implemented with ease, extremely useful out-of-the-box functionality and for it to be easy to build upon.
 
-## Forms
-The bundle will serialize forms, provide the ability to define handlers for form submissions and handle individual field validation requests.
+## The front-end web application
+A starting point for a front-end web application using this API will be built as well and once complete will include security features and a couple of simple examples of components which can be modified by a website administrator. Our example will be a progressive web app using VueJS and Nuxt. We have created this for our 1st version of this bundle as an experiment but it will need to be re-made. There will be a link here once there is something to see.
 
 ## Installation
 We encourage using as much of the packages that well maintained by large communities as possible. Therefore let's start with the most up to date API Platform files and then install this bundle on top.
