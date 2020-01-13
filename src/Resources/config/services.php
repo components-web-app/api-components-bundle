@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Resources\config;
@@ -17,7 +26,7 @@ use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Twig\Environment;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
-/**
+/*
  * @author Daniel West <daniel@silverback.is>
  */
 return static function (ContainerConfigurator $configurator) {
@@ -28,18 +37,16 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private()
         // ->bind('$projectDir', '%kernel.project_dir%')
-    ;
+;
 
     $services
         ->set(RouteRepository::class)
-        ->args([ref(ManagerRegistry::class)])
-    ;
+        ->args([ref(ManagerRegistry::class)]);
 
     $services
         ->set(DiscriminatorMappingExtension::class)
         ->args([ref(EntityManagerInterface::class)])
-        ->tag('doctrine.event_listener', [ 'event' => 'loadClassMetadata' ])
-    ;
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
@@ -48,8 +55,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TablePrefixExtension::class)
-        ->tag('doctrine.event_listener', [ 'event' => 'loadClassMetadata' ])
-    ;
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services->alias(SlugifyInterface::class, 'slugify');
 };

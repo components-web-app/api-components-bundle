@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run --rm -v $(pwd):/var/www -w /var/www php:7.4 vendor/bin/simple-phpunit

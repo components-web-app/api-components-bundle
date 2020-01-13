@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Doctrine\Extension;
@@ -22,26 +31,26 @@ class TablePrefixExtension
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        if ($this->prefix === null) {
+        if (null === $this->prefix) {
             return;
         }
 
         $classMetadata = $eventArgs->getClassMetadata();
-        if (strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\ApiComponentBundle\\') !== 0) {
+        if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\ApiComponentBundle\\')) {
             return;
         }
 
         $converter = new CamelCaseToSnakeCaseNameConverter();
         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
             $classMetadata->setPrimaryTable([
-                'name' => $this->prefix . $converter->normalize($classMetadata->getTableName())
+                'name' => $this->prefix.$converter->normalize($classMetadata->getTableName()),
             ]);
         }
 
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
-            if ($mapping['type'] === ClassMetadataInfo::MANY_TO_MANY && $mapping['isOwningSide']) {
+            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
                 $mappedTableName = $mapping['joinTable']['name'];
-                $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
+                $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix.$mappedTableName;
             }
         }
     }

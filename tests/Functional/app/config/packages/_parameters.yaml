@@ -1,0 +1,4 @@
+parameters:
+    kernel.secret: NotSecret
+    kernel.debug: true
+    env(ENQUEUE_DSN): null://

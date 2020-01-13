@@ -1,9 +1,17 @@
 /composer.lock
 /vendor/
 /src/var/
+/symfony.lock
+/composer.phar
+/.php_cs
+/.php_cs.cache
+/.phpunit.result.cache
+/tests/Functional/app/var/
+/tests/Functional/app/public/bundles/
+/tests/Functional/app/public/media/
+/.infection.log
+/.idea/
 .DS_Store
-.php_cs.cache
-symfony.lock
 
 ###> symfony/phpunit-bridge ###
 .phpunit

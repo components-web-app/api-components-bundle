@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator;
@@ -8,9 +17,6 @@ use ProxyManager\Proxy\LazyLoadingInterface;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
-use function get_class;
-use function in_array;
-use function is_object;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -25,6 +31,7 @@ class ClassNameValidator
                 return true;
             }
         }
+
         return false;
     }
 
@@ -32,9 +39,10 @@ class ClassNameValidator
     public static function isClassSame(string $className, object $validClass): bool
     {
         self::validateParameters($className, $validClass);
-        if (get_class($validClass) === $className) {
+        if (\get_class($validClass) === $className) {
             return true;
         }
+
         return self::isClassSameLazy($className, $validClass) ?: ($validClass instanceof $className);
     }
 
@@ -43,7 +51,7 @@ class ClassNameValidator
         if (!class_exists($className) && !interface_exists($className)) {
             throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
         }
-        if (!is_object($validClass)) {
+        if (!\is_object($validClass)) {
             throw new InvalidArgumentException(sprintf('The $validClass parameter %s is not an object', $validClass));
         }
     }
@@ -51,10 +59,12 @@ class ClassNameValidator
     /** @throws ReflectionException */
     private static function isClassSameLazy(string $className, $validClass): bool
     {
-        if (in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
+        if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
             $reflection = new ReflectionClass($validClass);
+
             return $reflection->isSubclassOf($className);
         }
+
         return false;
     }
 }

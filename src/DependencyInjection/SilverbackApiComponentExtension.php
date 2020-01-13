@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
@@ -19,8 +28,6 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
 {
     /**
-     * @param array $configs
-     * @param ContainerBuilder $container
      * @throws Exception
      */
     public function load(array $configs, ContainerBuilder $container): void
@@ -55,27 +62,24 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $loader = new PhpFileLoader(
             $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
+            new FileLocator(__DIR__.'/../Resources/config')
         );
         $loader->load('services.php');
     }
 
-    /**
-     * @param ContainerBuilder $container
-     */
     public function prepend(ContainerBuilder $container): void
     {
         $container->prependExtensionConfig(
             'api_platform',
             [
-//                'eager_loading' => [
-//                    'force_eager' => false
-//                ]
-//                'mapping' => [
-//                    'paths' => [
-//                        __DIR__ . '/../Entity'
-//                    ]
-//                ]
+                //                'eager_loading' => [
+                //                    'force_eager' => false
+                //                ]
+                //                'mapping' => [
+                //                    'paths' => [
+                //                        __DIR__ . '/../Entity'
+                //                    ]
+                //                ]
             ]
         );
 
@@ -93,14 +97,14 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $container->prependExtensionConfig(
             'doctrine',
             [
-//                'orm' => [
-//                    'filters' => [
-//                        'publishable' => [
-//                            'class' => PublishableFilter::class,
-//                            'enabled' => false
-//                        ]
-//                    ]
-//                ]
+                //                'orm' => [
+                //                    'filters' => [
+                //                        'publishable' => [
+                //                            'class' => PublishableFilter::class,
+                //                            'enabled' => false
+                //                        ]
+                //                    ]
+                //                ]
             ]
         );
     }
@@ -108,7 +112,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     private function prependLiipConfig(ContainerBuilder $container)
     {
         $projectDir = $container->getParameter('kernel.project_dir');
-        $uploadsDir = $projectDir . '/var/uploads';
+        $uploadsDir = $projectDir.'/var/uploads';
         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
         }
@@ -120,10 +124,10 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'filesystem' => [
                             'data_root' => [
                                 'uploads' => $uploadsDir,
-                                'default' => $projectDir. '/public'
-                            ]
-                        ]
-                    ]
+                                'default' => $projectDir.'/public',
+                            ],
+                        ],
+                    ],
                 ],
                 'filter_sets' => [
                     'placeholder_square' => [
@@ -132,9 +136,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'filters' => [
                             'thumbnail' => [
                                 'size' => [80, 80],
-                                'mode' => 'outbound'
-                            ]
-                        ]
+                                'mode' => 'outbound',
+                            ],
+                        ],
                     ],
                     'placeholder' => [
                         'jpeg_quality' => 10,
@@ -142,25 +146,25 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'filters' => [
                             'thumbnail' => [
                                 'size' => [100, 100],
-                                'mode' => 'inset'
-                            ]
-                        ]
+                                'mode' => 'inset',
+                            ],
+                        ],
                     ],
                     'thumbnail' => [
                         'jpeg_quality' => 100,
                         'png_compression_level' => 0,
                         'filters' => [
                             'upscale' => [
-                                'min' => [636, 636]
+                                'min' => [636, 636],
                             ],
                             'thumbnail' => [
                                 'size' => [636, 636],
                                 'mode' => 'inset',
-                                'allow_upscale' => true
-                            ]
-                        ]
-                    ]
-                ]
+                                'allow_upscale' => true,
+                            ],
+                        ],
+                    ],
+                ],
             ]
         );
     }

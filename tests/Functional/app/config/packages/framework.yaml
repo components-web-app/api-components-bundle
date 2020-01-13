@@ -1,0 +1,11 @@
+framework:
+    fragments:
+        enabled: true
+    test:     ~
+    secret: 'silverbackNoSecret'
+    validation:
+        enable_annotations:            true
+    serializer:
+        enable_annotations:            true
+    session:
+        storage_id:                    'session.storage.mock_file'

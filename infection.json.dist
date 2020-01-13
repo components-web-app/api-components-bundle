@@ -1,0 +1,20 @@
+{
+  "timeout": 10,
+  "source": {
+    "directories": [
+      "src"
+    ]
+  },
+  "phpUnit": {
+    "configDir": ".",
+    "customPath": "vendor\/bin\/simple-phpunit"
+  },
+  "logs": {
+    "text": "infection.log"
+  },
+  "mutators": {
+    "@default": true
+  },
+  "testFramework":"phpunit",
+  "bootstrap":"./tests/Functional/app/bootstrap.php"
+}

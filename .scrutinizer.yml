@@ -1,0 +1,34 @@
+filter:
+    excluded_paths:
+        - 'tests/*'
+        - 'features/*'
+
+checks:
+    php: true
+
+build:
+    nodes:
+        analysis:
+            tests:
+                override:
+                    - php-scrutinizer-run
+#    dependencies:
+#        before:
+#            - sudo apt-get -y install libmagickwand-dev libmagickcore-dev
+#            - printf "\n" | pecl install imagick
+    environment:
+        variables:
+            SYMFONY_DEPRECATIONS_HELPER: disabled
+            SYMFONY_PHPUNIT_VERSION: 7.5
+        php:
+            version: 7.4
+            ini:
+                'date.timezone': 'Europe/London'
+                memory_limit: -1
+    tests:
+        override:
+            -   command: vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+                coverage:
+                    file: clover.xml
+                    format: php-clover
+#            -   command: vendor/bin/behat --format=progress
