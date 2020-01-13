@@ -24,6 +24,6 @@ class DoctrineCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__.'\\Entity'], [__DIR__.'/Entity']);
+        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
     }
 }

@@ -62,7 +62,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $loader = new PhpFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../Resources/config')
+            new FileLocator(__DIR__ . '/../Resources/config')
         );
         $loader->load('services.php');
     }
@@ -112,7 +112,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     private function prependLiipConfig(ContainerBuilder $container)
     {
         $projectDir = $container->getParameter('kernel.project_dir');
-        $uploadsDir = $projectDir.'/var/uploads';
+        $uploadsDir = $projectDir . '/var/uploads';
         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
         }
@@ -124,7 +124,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'filesystem' => [
                             'data_root' => [
                                 'uploads' => $uploadsDir,
-                                'default' => $projectDir.'/public',
+                                'default' => $projectDir . '/public',
                             ],
                         ],
                     ],

@@ -48,13 +48,13 @@ class FormHandlerClassValidator extends ConstraintValidator
                     ]
                 );
                 $this->context
-                    ->buildViolation($constraint->message.$conditionsStr)
+                    ->buildViolation($constraint->message . $conditionsStr)
                     ->setParameter('{{ string }}', $value)
                     ->addViolation();
             }
         } catch (InvalidArgumentException $exception) {
             $this->context
-                ->buildViolation($constraint->message.' '.$exception->getMessage())
+                ->buildViolation($constraint->message . ' ' . $exception->getMessage())
                 ->setParameter('{{ string }}', $value)
                 ->addViolation();
         }
