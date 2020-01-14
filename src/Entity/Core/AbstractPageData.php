@@ -14,17 +14,14 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
- * @ORM\Entity
- * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="routes", inversedBy="pageData")
- * })
+ * @ORM\MappedSuperclass
  */
-class PageData extends AbstractPage implements PageDataInterface
+abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     /*
      * Extend this class for pages where the same page template should be used for multiple entities.
@@ -34,4 +31,11 @@ class PageData extends AbstractPage implements PageDataInterface
      * within entities with interpolation, or add new components on the fly depending on what you have defined here. It is a very flexible
      * way of generating different layouts depending on the data in your entity.
      */
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageData", cascade={"persist"})
+     *
+     * @var Route
+     */
+    public Route $routes;
 }

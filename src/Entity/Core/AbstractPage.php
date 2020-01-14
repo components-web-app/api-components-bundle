@@ -29,16 +29,8 @@ abstract class AbstractPage implements TimestampedInterface
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
-     *
-     * @var Collection|Route[]
-     */
-    public Collection $routes;
-
     public function __construct()
     {
         $this->setId();
-        $this->routes = new ArrayCollection();
     }
 }

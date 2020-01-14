@@ -39,9 +39,9 @@ class Layout implements TimestampedInterface
     public Collection $pageTemplates;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", mappedBy="layout")
+     * @ORM\OneToMany(targetEntity="AbstractPageData", mappedBy="layout")
      *
-     * @var Collection|PageData[]
+     * @var Collection|AbstractPageData[]
      */
     public Collection $pageData;
 

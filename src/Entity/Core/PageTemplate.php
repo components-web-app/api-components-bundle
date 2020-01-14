@@ -43,6 +43,13 @@ class PageTemplate extends AbstractPage
      */
     public Collection $componentGroups;
 
+    /**
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
+     *
+     * @var Route
+     */
+    public Route $routes;
+
     public function __construct()
     {
         parent::__construct();

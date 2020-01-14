@@ -49,21 +49,23 @@ class Route implements TimestampedInterface
     private Collection $redirectedFrom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", inversedBy="routes")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="routes")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
     public PageTemplate $pageTemplate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageData", inversedBy="routes")
+     * We use this relationship type because doctrine does not support bi-directional one-to-one to mapped superclasses or discriminator mapped entities
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="routes")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
+     * @var AbstractPageData[]|Collection
      */
-    public PageData $pageData;
+    public Collection $pageData;
 
     public function __construct()
     {
         $this->setId();
-        /* @noinspection UnusedConstructorDependenciesInspection */
         $this->redirectedFrom = new ArrayCollection();
+        $this->pageData = new ArrayCollection();
     }
 }

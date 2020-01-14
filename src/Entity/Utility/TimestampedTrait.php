@@ -17,6 +17,7 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -26,14 +27,16 @@ trait TimestampedTrait
     /**
      * @ORM\Column(type="date_immutable")
      * @ApiProperty(writable=false)
+     * @Assert\NotNull()
      */
-    private ?DateTimeImmutable $created;
+    private ?DateTimeImmutable $created = null;
 
     /**
      * @ORM\Column(type="datetime")
      * @ApiProperty(writable=false)
+     * @Assert\NotNull()
      */
-    public ?DateTime $modified;
+    public ?DateTime $modified = null;
 
     /** @return static */
     public function setCreated(DateTimeImmutable $created)
