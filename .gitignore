@@ -10,6 +10,7 @@
 /tests/Functional/app/public/bundles/
 /tests/Functional/app/public/media/
 /infection.log
+/clover.xml
 /.idea/
 .DS_Store
 

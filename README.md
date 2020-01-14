@@ -1,7 +1,7 @@
 # API Component Bundle v2
 [![Build Status](https://travis-ci.org/silverbackis/ApiComponentBundle.svg?branch=v2)](https://travis-ci.org/silverbackis/ApiComponentBundle)
 [![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2)
-[![Infection MSI](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fv2)](https://dashboard.stryker-mutator.io/reports/github.com/silverbackis/ApiComponentBundle/v2)
+[![Infection MSI]( https://badge.stryker-mutator.io/github.com/silverbackis/ApiComponentBundle/v2)](https://infection.github.io)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
 
 The diagram below shows what this bundle aims to implement by using Symfony and [API Platform](https://github.com/api-platform/api-platform)
