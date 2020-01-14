@@ -28,7 +28,8 @@
         "symfony/http-client": "4.4.*",
         "symfony/maker-bundle": "^1.0",
         "symfony/profiler-pack": "^1.0",
-        "symfony/test-pack": "^1"
+        "symfony/test-pack": "^1",
+        "symfony/phpunit-bridge": "^5.0.3 || dev-master"
     },
     "config": {
         "preferred-install": {
