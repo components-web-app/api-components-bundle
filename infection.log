@@ -1,0 +1,3082 @@
+Escaped mutants:
+================
+
+Timed Out mutants:
+==================
+
+Not Covered mutants:
+====================
+
+
+1) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/LayoutDataProvider.php:36    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     }
+     public function supports(string $resourceClass, string $operationName = null, array $context = []) : bool
+     {
+-        return Layout::class === $resourceClass;
++        return Layout::class !== $resourceClass;
+     }
+     /** @throws ResourceClassNotSupportedException */
+     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []) : ?Layout
+
+
+2) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/LayoutDataProvider.php:42    [M] NotIdentical
+
+--- Original
++++ New
+@@ @@
+     /** @throws ResourceClassNotSupportedException */
+     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []) : ?Layout
+     {
+-        if ('default' !== $id) {
++        if ('default' === $id) {
+             throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
+         }
+         return $this->repository->findOneBy(['default' => true]);
+     }
+
+3) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/LayoutDataProvider.php:43    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []) : ?Layout
+     {
+         if ('default' !== $id) {
+-            throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
++            new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
+         }
+         return $this->repository->findOneBy(['default' => true]);
+     }
+ }
+
+4) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/LayoutDataProvider.php:46    [M] TrueValue
+
+--- Original
++++ New
+@@ @@
+         if ('default' !== $id) {
+             throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
+         }
+-        return $this->repository->findOneBy(['default' => true]);
++        return $this->repository->findOneBy(['default' => false]);
+     }
+ }
+
+
+5) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/LayoutDataProvider.php:46    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if ('default' !== $id) {
+             throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
+         }
+-        return $this->repository->findOneBy(['default' => true]);
++        return $this->repository->findOneBy([]);
+     }
+ }
+
+
+6) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DataProvider/Item/RouteDataProvider.php:40    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     }
+     public function supports(string $resourceClass, string $operationName = null, array $context = []) : bool
+     {
+-        return Route::class === $resourceClass;
++        return Route::class !== $resourceClass;
+     }
+ }
+
+
+7) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/CompilerPass/DoctrineCompilerPass.php:27    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function process(ContainerBuilder $container)
+     {
+-        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
++        
+     }
+ }
+
+
+8) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/CompilerPass/DoctrineCompilerPass.php:27    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function process(ContainerBuilder $container)
+     {
+-        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
++        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], []);
+     }
+ }
+
+
+9) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/CompilerPass/DoctrineCompilerPass.php:27    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function process(ContainerBuilder $container)
+     {
+-        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
++        DoctrineOrmMappingsPass::createAnnotationMappingDriver([], [__DIR__ . '/Entity']);
+     }
+ }
+
+
+10) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/Configuration.php:28    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     {
+         $treeBuilder = new TreeBuilder('silverback_api_component');
+         $rootNode = $treeBuilder->getRootNode();
+-        $rootNode->children()->scalarNode('table_prefix')->defaultValue('_acb_')->end()->end();
++        
+         return $treeBuilder;
+     }
+ }
+
+
+11) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:38    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     {
+         $configuration = new Configuration();
+         $config = $this->processConfiguration($configuration, $configs);
+-        $this->loadServiceConfig($container);
++        
+         $definition = $container->getDefinition(TablePrefixExtension::class);
+         $definition->setArgument('$prefix', $config['table_prefix']);
+     }
+
+
+12) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:41    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         $config = $this->processConfiguration($configuration, $configs);
+         $this->loadServiceConfig($container);
+         $definition = $container->getDefinition(TablePrefixExtension::class);
+-        $definition->setArgument('$prefix', $config['table_prefix']);
++        
+     }
+     /**
+      * @throws Exception
+
+
+13) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:67    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         //        $container->registerForAutoconfiguration(ComponentInterface::class)
+         //            ->addTag('silverback_api_component.entity.component');
+         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+-        $loader->load('services.php');
++        
+     }
+     public function prepend(ContainerBuilder $container) : void
+     {
+
+
+14) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:72    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     }
+     public function prepend(ContainerBuilder $container) : void
+     {
+-        $container->prependExtensionConfig('api_platform', []);
++        
+         $bundles = $container->getParameter('kernel.bundles');
+         if (isset($bundles['DoctrineBundle'])) {
+             $this->prependDoctrineConfig($container);
+
+
+15) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:88    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         $container->prependExtensionConfig('api_platform', []);
+         $bundles = $container->getParameter('kernel.bundles');
+         if (isset($bundles['DoctrineBundle'])) {
+-            $this->prependDoctrineConfig($container);
++            
+         }
+         if (isset($bundles['LiipImagineBundle'])) {
+             $this->prependLiipConfig($container);
+
+
+16) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:91    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+             $this->prependDoctrineConfig($container);
+         }
+         if (isset($bundles['LiipImagineBundle'])) {
+-            $this->prependLiipConfig($container);
++            
+         }
+     }
+     private function prependDoctrineConfig(ContainerBuilder $container)
+
+
+17) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:97    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     }
+     private function prependDoctrineConfig(ContainerBuilder $container)
+     {
+-        $container->prependExtensionConfig('doctrine', []);
++        
+     }
+     private function prependLiipConfig(ContainerBuilder $container)
+     {
+
+
+18) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:116    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     {
+         $projectDir = $container->getParameter('kernel.project_dir');
+         $uploadsDir = $projectDir . '/var/uploads';
+-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
++        if (@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+         $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+
+19) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:116    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     {
+         $projectDir = $container->getParameter('kernel.project_dir');
+         $uploadsDir = $projectDir . '/var/uploads';
+-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
++        if (!@mkdir($uploadsDir) && is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+         $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+
+20) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:116    [M] LogicalAnd
+
+--- Original
++++ New
+@@ @@
+     {
+         $projectDir = $container->getParameter('kernel.project_dir');
+         $uploadsDir = $projectDir . '/var/uploads';
+-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
++        if (!@mkdir($uploadsDir) || !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+         $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+
+21) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:117    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+         $projectDir = $container->getParameter('kernel.project_dir');
+         $uploadsDir = $projectDir . '/var/uploads';
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+-            throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
++            new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+         $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+22) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:119    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        
+     }
+ }
+
+
+23) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:121    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+24) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:122    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => [], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+25) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:123    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => []], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+26) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:124    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => []]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+27) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:125    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+28) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:132    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+29) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:133    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+30) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:134    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 11, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+31) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:134    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 9, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+32) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:135    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 10, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+33) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:135    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 8, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+34) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:136    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => []], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+35) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:137    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+36) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:138    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [79, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+37) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:138    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [81, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+38) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:138    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 79], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+39) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:138    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 81], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+40) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:138    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+41) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:143    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+42) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:144    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 11, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+43) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:144    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 9, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+44) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:145    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 8, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+45) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:145    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 10, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+46) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:146    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => []], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+47) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:147    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+48) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:148    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 101], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+49) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:148    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [101, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+50) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:148    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 99], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+51) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:148    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [99, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+52) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:148    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+53) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:153    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+54) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:154    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 101, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+55) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:154    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 99, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+56) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:155    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => -1, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+57) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:155    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 1, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+58) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:156    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+59) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:157    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => [], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+60) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:158    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [635, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+61) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:158    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [637, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+62) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:158    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 635]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+63) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:158    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 637]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+64) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:158    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+65) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:160    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+66) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:161    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [635, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+67) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:161    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 637], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+68) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:161    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+69) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:161    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 635], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+70) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:161    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [637, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
+     }
+ }
+
+
+71) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/DependencyInjection/SilverbackApiComponentExtension.php:163    [M] TrueValue
+
+--- Original
++++ New
+@@ @@
+         if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
+             throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
+         }
+-        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => true]]]]]);
++        $container->prependExtensionConfig('liip_imagine', ['loaders' => ['default' => ['filesystem' => ['data_root' => ['uploads' => $uploadsDir, 'default' => $projectDir . '/public']]]], 'filter_sets' => ['placeholder_square' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [80, 80], 'mode' => 'outbound']]], 'placeholder' => ['jpeg_quality' => 10, 'png_compression_level' => 9, 'filters' => ['thumbnail' => ['size' => [100, 100], 'mode' => 'inset']]], 'thumbnail' => ['jpeg_quality' => 100, 'png_compression_level' => 0, 'filters' => ['upscale' => ['min' => [636, 636]], 'thumbnail' => ['size' => [636, 636], 'mode' => 'inset', 'allow_upscale' => false]]]]]);
+     }
+ }
+
+
+72) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:43    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+      * @throws MappingException
+      * @throws InvalidArgumentException
+      */
+-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs) : void
++    protected function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs) : void
+     {
+         $classMetadata = $eventArgs->getClassMetadata();
+         $reflectionName = $classMetadata->getReflectionClass()->getName();
+
+
+73) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:47    [M] NotIdentical
+
+--- Original
++++ New
+@@ @@
+     {
+         $classMetadata = $eventArgs->getClassMetadata();
+         $reflectionName = $classMetadata->getReflectionClass()->getName();
+-        if (AbstractComponent::class !== $reflectionName) {
++        if (AbstractComponent::class === $reflectionName) {
+             return;
+         }
+         $this->addDiscriminatorMap($classMetadata);
+
+
+74) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:51    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         if (AbstractComponent::class !== $reflectionName) {
+             return;
+         }
+-        $this->addDiscriminatorMap($classMetadata);
++        
+     }
+     /**
+      * @throws MappingException
+
+
+75) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:58    [M] ProtectedVisibility
+
+--- Original
++++ New
+@@ @@
+      * @throws MappingException
+      * @throws InvalidArgumentException
+      */
+-    protected function addDiscriminatorMap(ClassMetadata $classMetadata) : void
++    private function addDiscriminatorMap(ClassMetadata $classMetadata) : void
+     {
+         if ($classMetadata->isRootEntity() && !$classMetadata->isInheritanceTypeNone()) {
+             $this->addDefaultDiscriminatorMap($classMetadata);
+
+
+76) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:60    [M] LogicalAnd
+
+--- Original
++++ New
+@@ @@
+      */
+     protected function addDiscriminatorMap(ClassMetadata $classMetadata) : void
+     {
+-        if ($classMetadata->isRootEntity() && !$classMetadata->isInheritanceTypeNone()) {
++        if ($classMetadata->isRootEntity() || !$classMetadata->isInheritanceTypeNone()) {
+             $this->addDefaultDiscriminatorMap($classMetadata);
+         }
+     }
+
+
+77) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:60    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+      */
+     protected function addDiscriminatorMap(ClassMetadata $classMetadata) : void
+     {
+-        if ($classMetadata->isRootEntity() && !$classMetadata->isInheritanceTypeNone()) {
++        if ($classMetadata->isRootEntity() && $classMetadata->isInheritanceTypeNone()) {
+             $this->addDefaultDiscriminatorMap($classMetadata);
+         }
+     }
+
+
+78) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:61    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     protected function addDiscriminatorMap(ClassMetadata $classMetadata) : void
+     {
+         if ($classMetadata->isRootEntity() && !$classMetadata->isInheritanceTypeNone()) {
+-            $this->addDefaultDiscriminatorMap($classMetadata);
++            
+         }
+     }
+     /**
+
+
+79) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:87    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+         $className = $this->getShortName($class->name);
+         $cachedClasses = $cache->getItem(sprintf('silverback_api_component.doctrine.driver_classes.%s', $className));
+         $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
+-        if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
++        if ($cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
+             $cachedClasses->set($allClasses);
+             $cache->save($cachedClasses);
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+
+
+80) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:87    [M] NotIdentical
+
+--- Original
++++ New
+@@ @@
+         $className = $this->getShortName($class->name);
+         $cachedClasses = $cache->getItem(sprintf('silverback_api_component.doctrine.driver_classes.%s', $className));
+         $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
+-        if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
++        if (!$cachedClasses->isHit() || $cachedClasses->get() === $allClasses) {
+             $cachedClasses->set($allClasses);
+             $cache->save($cachedClasses);
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+
+
+81) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:87    [M] LogicalOr
+
+--- Original
++++ New
+@@ @@
+         $className = $this->getShortName($class->name);
+         $cachedClasses = $cache->getItem(sprintf('silverback_api_component.doctrine.driver_classes.%s', $className));
+         $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
+-        if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
++        if (!$cachedClasses->isHit() && $cachedClasses->get() !== $allClasses) {
+             $cachedClasses->set($allClasses);
+             $cache->save($cachedClasses);
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+
+
+82) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:88    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         $cachedClasses = $cache->getItem(sprintf('silverback_api_component.doctrine.driver_classes.%s', $className));
+         $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
+         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
+-            $cachedClasses->set($allClasses);
++            
+             $cache->save($cachedClasses);
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+             $cache->save($cachedMap);
+
+
+83) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:89    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         $cachedMap = $cache->getItem(sprintf('silverback_api_component.doctrine.components_discriminator_map.%s', $className));
+         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
+             $cachedClasses->set($allClasses);
+-            $cache->save($cachedClasses);
++            
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+             $cache->save($cachedMap);
+         }
+
+
+84) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:91    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         if (!$cachedClasses->isHit() || $cachedClasses->get() !== $allClasses) {
+             $cachedClasses->set($allClasses);
+             $cache->save($cachedClasses);
+-            $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
++            
+             $cache->save($cachedMap);
+         }
+         $map = $cachedMap->get();
+
+
+85) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:92    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+             $cachedClasses->set($allClasses);
+             $cache->save($cachedClasses);
+             $cachedMap->set($this->getDiscriminatorMap($class, $allClasses));
+-            $cache->save($cachedMap);
++            
+         }
+         $map = $cachedMap->get();
+         $class->setDiscriminatorMap($map);
+
+
+86) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:95    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+             $cache->save($cachedMap);
+         }
+         $map = $cachedMap->get();
+-        $class->setDiscriminatorMap($map);
++        
+     }
+     /**
+      * @throws MappingException
+
+
+87) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:104    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+     private function getDiscriminatorMap(ClassMetadata $class, array $allClasses) : array
+     {
+         $fqcn = $class->getName();
+-        $map = [$this->getShortName($class->name) => $fqcn];
++        $map = [];
+         $duplicates = [];
+         foreach ($allClasses as $subClassCandidate) {
+             if (is_subclass_of($subClassCandidate, $fqcn)) {
+
+
+88) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:104    [M] ArrayItem
+
+--- Original
++++ New
+@@ @@
+     private function getDiscriminatorMap(ClassMetadata $class, array $allClasses) : array
+     {
+         $fqcn = $class->getName();
+-        $map = [$this->getShortName($class->name) => $fqcn];
++        $map = [$this->getShortName($class->name) > $fqcn];
+         $duplicates = [];
+         foreach ($allClasses as $subClassCandidate) {
+             if (is_subclass_of($subClassCandidate, $fqcn)) {
+
+
+89) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:107    [M] Foreach_
+
+--- Original
++++ New
+@@ @@
+         $fqcn = $class->getName();
+         $map = [$this->getShortName($class->name) => $fqcn];
+         $duplicates = [];
+-        foreach ($allClasses as $subClassCandidate) {
++        foreach (array() as $subClassCandidate) {
+             if (is_subclass_of($subClassCandidate, $fqcn)) {
+                 $shortName = $this->getShortName($subClassCandidate);
+                 if (isset($map[$shortName])) {
+
+
+90) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:119    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+             }
+         }
+         if ($duplicates) {
+-            throw MappingException::duplicateDiscriminatorEntry($class->name, $duplicates, $map);
++            MappingException::duplicateDiscriminatorEntry($class->name, $duplicates, $map);
+         }
+         return $map;
+     }
+
+
+91) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/DiscriminatorMappingExtension.php:122    [M] ArrayOneItem
+
+--- Original
++++ New
+@@ @@
+         if ($duplicates) {
+             throw MappingException::duplicateDiscriminatorEntry($class->name, $duplicates, $map);
+         }
+-        return $map;
++        return count($map) > 1 ? array_slice($map, 0, 1, true) : $map;
+     }
+     /**
+      * Gets the lower-case short name of a class.
+
+
+92) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:32    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         $this->prefix = $prefix;
+     }
+-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs) : void
++    protected function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs) : void
+     {
+         if (null === $this->prefix) {
+             return;
+
+
+93) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:34    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     }
+     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs) : void
+     {
+-        if (null === $this->prefix) {
++        if (null !== $this->prefix) {
+             return;
+         }
+         $classMetadata = $eventArgs->getClassMetadata();
+
+
+94) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:39    [M] NotIdentical
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $classMetadata = $eventArgs->getClassMetadata();
+-        if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
++        if (0 === strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+
+
+95) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:39    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $classMetadata = $eventArgs->getClassMetadata();
+-        if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
++        if (1 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+
+
+96) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:39    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $classMetadata = $eventArgs->getClassMetadata();
+-        if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
++        if (-1 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\\ApiComponentBundle\\')) {
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+
+
+97) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:44    [M] LogicalOr
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+-        if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
++        if (!$classMetadata->isInheritanceTypeSingleTable() && $classMetadata->getName() === $classMetadata->rootEntityName) {
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+
+
+98) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:44    [M] Identical
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+-        if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
++        if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() !== $classMetadata->rootEntityName) {
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+
+
+99) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:44    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+             return;
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+-        if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
++        if ($classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+
+
+100) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:45    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
+-            $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
++            
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+             if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
+
+
+101) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:45    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         }
+         $converter = new CamelCaseToSnakeCaseNameConverter();
+         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
+-            $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
++            $classMetadata->setPrimaryTable([]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+             if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
+
+
+102) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:50    [M] Foreach_
+
+--- Original
++++ New
+@@ @@
+         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+-        foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
++        foreach (array() as $fieldName => $mapping) {
+             if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
+                 $mappedTableName = $mapping['joinTable']['name'];
+                 $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
+
+
+103) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:51    [M] Identical
+
+--- Original
++++ New
+@@ @@
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+-            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
++            if (ClassMetadataInfo::MANY_TO_MANY !== $mapping['type'] && $mapping['isOwningSide']) {
+                 $mappedTableName = $mapping['joinTable']['name'];
+                 $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
+             }
+
+
+104) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Doctrine/Extension/TablePrefixExtension.php:51    [M] LogicalAnd
+
+--- Original
++++ New
+@@ @@
+             $classMetadata->setPrimaryTable(['name' => $this->prefix . $converter->normalize($classMetadata->getTableName())]);
+         }
+         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+-            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
++            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] || $mapping['isOwningSide']) {
+                 $mappedTableName = $mapping['joinTable']['name'];
+                 $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
+             }
+
+
+105) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/FileData.php:41    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+         $this->fileExtension = $fileExtension;
+         $this->fileSize = $fileSize;
+     }
+-    public function getPublicPath() : ?string
++    protected function getPublicPath() : ?string
+     {
+         return $this->publicPath;
+     }
+
+
+106) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/FileData.php:46    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->publicPath;
+     }
+-    public function getImageData() : ?ImageMetadata
++    protected function getImageData() : ?ImageMetadata
+     {
+         return $this->imageData;
+     }
+
+
+107) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/FileData.php:51    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->imageData;
+     }
+-    public function getImagineData() : ?array
++    protected function getImagineData() : ?array
+     {
+         return $this->imagineData;
+     }
+
+
+108) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/FileData.php:56    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->imagineData;
+     }
+-    public function getFileExtension() : ?string
++    protected function getFileExtension() : ?string
+     {
+         return $this->fileExtension;
+     }
+
+
+109) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/FileData.php:61    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->fileExtension;
+     }
+-    public function getFileSize() : ?float
++    protected function getFileSize() : ?float
+     {
+         return $this->fileSize;
+     }
+ }
+
+110) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:39    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     {
+         $this->filePath = $filePath;
+         $this->publicPath = $publicPath;
+-        if (!file_exists($filePath)) {
++        if (file_exists($filePath)) {
+             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
+         }
+         if ('image/svg+xml' === mime_content_type($filePath)) {
+
+
+111) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:40    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+         $this->filePath = $filePath;
+         $this->publicPath = $publicPath;
+         if (!file_exists($filePath)) {
+-            throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
++            new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
+         }
+         if ('image/svg+xml' === mime_content_type($filePath)) {
+             $xmlGet = simplexml_load_string(file_get_contents($filePath));
+
+
+112) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:43    [M] Identical
+
+--- Original
++++ New
+@@ @@
+         if (!file_exists($filePath)) {
+             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
+         }
+-        if ('image/svg+xml' === mime_content_type($filePath)) {
++        if ('image/svg+xml' !== mime_content_type($filePath)) {
+             $xmlGet = simplexml_load_string(file_get_contents($filePath));
+             $xmlAttributes = $xmlGet->attributes();
+             $this->width = (int) $xmlAttributes->width;
+
+
+113) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:46    [M] CastInt
+
+--- Original
++++ New
+@@ @@
+         if ('image/svg+xml' === mime_content_type($filePath)) {
+             $xmlGet = simplexml_load_string(file_get_contents($filePath));
+             $xmlAttributes = $xmlGet->attributes();
+-            $this->width = (int) $xmlAttributes->width;
++            $this->width = $xmlAttributes->width;
+             $this->height = (int) $xmlAttributes->height;
+         } else {
+             if (false === exif_imagetype($filePath)) {
+
+
+114) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:47    [M] CastInt
+
+--- Original
++++ New
+@@ @@
+             $xmlGet = simplexml_load_string(file_get_contents($filePath));
+             $xmlAttributes = $xmlGet->attributes();
+             $this->width = (int) $xmlAttributes->width;
+-            $this->height = (int) $xmlAttributes->height;
++            $this->height = $xmlAttributes->height;
+         } else {
+             if (false === exif_imagetype($filePath)) {
+                 throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+
+
+115) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:49    [M] Identical
+
+--- Original
++++ New
+@@ @@
+             $this->width = (int) $xmlAttributes->width;
+             $this->height = (int) $xmlAttributes->height;
+         } else {
+-            if (false === exif_imagetype($filePath)) {
++            if (false !== exif_imagetype($filePath)) {
+                 throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+             }
+             [$this->width, $this->height] = getimagesize($filePath);
+
+
+116) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:49    [M] FalseValue
+
+--- Original
++++ New
+@@ @@
+             $this->width = (int) $xmlAttributes->width;
+             $this->height = (int) $xmlAttributes->height;
+         } else {
+-            if (false === exif_imagetype($filePath)) {
++            if (true === exif_imagetype($filePath)) {
+                 throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+             }
+             [$this->width, $this->height] = getimagesize($filePath);
+
+
+117) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:50    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+             $this->height = (int) $xmlAttributes->height;
+         } else {
+             if (false === exif_imagetype($filePath)) {
+-                throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
++                new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+             }
+             [$this->width, $this->height] = getimagesize($filePath);
+             $this->imagineKey = $imagineKey;
+
+
+118) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:53    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+             if (false === exif_imagetype($filePath)) {
+                 throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
+             }
+-            [$this->width, $this->height] = getimagesize($filePath);
++            [$this->height] = getimagesize($filePath);
+             $this->imagineKey = $imagineKey;
+         }
+     }
+
+
+119) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:58    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+             $this->imagineKey = $imagineKey;
+         }
+     }
+-    public function getWidth() : int
++    protected function getWidth() : int
+     {
+         return $this->width;
+     }
+
+
+120) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:63    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->width;
+     }
+-    public function getHeight() : int
++    protected function getHeight() : int
+     {
+         return $this->height;
+     }
+
+
+121) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:68    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->height;
+     }
+-    public function getFilePath() : string
++    protected function getFilePath() : string
+     {
+         return $this->filePath;
+     }
+
+
+122) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:73    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->filePath;
+     }
+-    public function getPublicPath() : string
++    protected function getPublicPath() : string
+     {
+         return $this->publicPath;
+     }
+
+
+123) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/File/ImageMetadata.php:78    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->publicPath;
+     }
+-    public function getImagineKey() : ?string
++    protected function getImagineKey() : ?string
+     {
+         return $this->imagineKey;
+     }
+ }
+
+124) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:64    [M] TrueValue
+
+--- Original
++++ New
+@@ @@
+     private Collection $children;
+     private bool $rendered;
+     private bool $methodRendered;
+-    public function __construct(SymfonyFormView $formView, bool $children = true)
++    public function __construct(SymfonyFormView $formView, bool $children = false)
+     {
+         $this->rendered = $formView->isRendered();
+         $this->methodRendered = $formView->isMethodRendered();
+
+
+125) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:68    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     {
+         $this->rendered = $formView->isRendered();
+         $this->methodRendered = $formView->isMethodRendered();
+-        $this->processViewVars($formView);
++        
+         if ($children) {
+             $this->children = new ArrayCollection();
+             foreach ($formView->getIterator() as $view) {
+
+
+126) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:71    [M] Foreach_
+
+--- Original
++++ New
+@@ @@
+         $this->processViewVars($formView);
+         if ($children) {
+             $this->children = new ArrayCollection();
+-            foreach ($formView->getIterator() as $view) {
++            foreach (array() as $view) {
+                 $this->addChild($view);
+             }
+         }
+
+
+127) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:72    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         if ($children) {
+             $this->children = new ArrayCollection();
+             foreach ($formView->getIterator() as $view) {
+-                $this->addChild($view);
++                
+             }
+         }
+     }
+
+
+128) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:79    [M] UnwrapArrayMerge
+
+--- Original
++++ New
+@@ @@
+     }
+     private function processViewVars(SymfonyFormView $formView) : void
+     {
+-        $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
++        $outputVars = self::OUTPUT_VARS;
+         foreach ($outputVars as $var) {
+             if (isset($formView->vars[$var])) {
+                 $this->vars[$var] = $formView->vars[$var];
+
+
+129) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:79    [M] UnwrapArrayMerge
+
+--- Original
++++ New
+@@ @@
+     }
+     private function processViewVars(SymfonyFormView $formView) : void
+     {
+-        $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
++        $outputVars = self::ARRAY_OUTPUT_VARS;
+         foreach ($outputVars as $var) {
+             if (isset($formView->vars[$var])) {
+                 $this->vars[$var] = $formView->vars[$var];
+
+
+130) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:80    [M] Foreach_
+
+--- Original
++++ New
+@@ @@
+     private function processViewVars(SymfonyFormView $formView) : void
+     {
+         $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
+-        foreach ($outputVars as $var) {
++        foreach (array() as $var) {
+             if (isset($formView->vars[$var])) {
+                 $this->vars[$var] = $formView->vars[$var];
+                 $this->convertVarToArray($var);
+
+
+131) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:83    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+         foreach ($outputVars as $var) {
+             if (isset($formView->vars[$var])) {
+                 $this->vars[$var] = $formView->vars[$var];
+-                $this->convertVarToArray($var);
++                
+             }
+         }
+     }
+
+
+132) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:94    [M] Foreach_
+
+--- Original
++++ New
+@@ @@
+             /** @var iterable $choices */
+             $choices = $this->vars[$var];
+             $this->vars[$var] = [];
+-            foreach ($choices as $choice) {
++            foreach (array() as $choice) {
+                 if (method_exists($choice, 'getMessage')) {
+                     $this->vars[$var][] = $choice->getMessage();
+                 } else {
+
+
+133) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:98    [M] CastArray
+
+--- Original
++++ New
+@@ @@
+                 if (method_exists($choice, 'getMessage')) {
+                     $this->vars[$var][] = $choice->getMessage();
+                 } else {
+-                    $this->vars[$var][] = (array) $choice;
++                    $this->vars[$var][] = $choice;
+                 }
+             }
+         }
+
+
+134) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:107    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     private function addChild(SymfonyFormView $formViews) : void
+     {
+         $formView = new self($formViews);
+-        $this->children->add($formView);
++        
+     }
+     public function getVars() : array
+     {
+
+
+135) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:110    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+         $formView = new self($formViews);
+         $this->children->add($formView);
+     }
+-    public function getVars() : array
++    protected function getVars() : array
+     {
+         return $this->vars;
+     }
+
+
+136) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:115    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->vars;
+     }
+-    public function getChildren() : Collection
++    protected function getChildren() : Collection
+     {
+         return $this->children;
+     }
+
+
+137) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:120    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->children;
+     }
+-    public function isRendered() : bool
++    protected function isRendered() : bool
+     {
+         return $this->rendered;
+     }
+
+
+138) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Dto/Form/FormView.php:125    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return $this->rendered;
+     }
+-    public function isMethodRendered() : bool
++    protected function isMethodRendered() : bool
+     {
+         return $this->methodRendered;
+     }
+ }
+
+139) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Component/Form.php:38    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     public string $successHandler;
+     /** @ApiProperty(writable=false) */
+     public FormView $form;
+-    public static function loadValidatorMetadata(ClassMetadata $metadata) : void
++    protected static function loadValidatorMetadata(ClassMetadata $metadata) : void
+     {
+         $metadata->addPropertyConstraints('formType', [new ACBAssert\FormTypeClass(), new Assert\NotBlank()]);
+         $metadata->addPropertyConstraint('successHandler', new ACBAssert\FormHandlerClass());
+     }
+
+140) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Component/Form.php:40    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public FormView $form;
+     public static function loadValidatorMetadata(ClassMetadata $metadata) : void
+     {
+-        $metadata->addPropertyConstraints('formType', [new ACBAssert\FormTypeClass(), new Assert\NotBlank()]);
++        
+         $metadata->addPropertyConstraint('successHandler', new ACBAssert\FormHandlerClass());
+     }
+ }
+
+
+141) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Component/Form.php:42    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+     public FormView $form;
+     public static function loadValidatorMetadata(ClassMetadata $metadata) : void
+     {
+-        $metadata->addPropertyConstraints('formType', [new ACBAssert\FormTypeClass(), new Assert\NotBlank()]);
++        $metadata->addPropertyConstraints('formType', [new Assert\NotBlank()]);
+         $metadata->addPropertyConstraint('successHandler', new ACBAssert\FormHandlerClass());
+     }
+ }
+
+
+142) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Component/Form.php:47    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public static function loadValidatorMetadata(ClassMetadata $metadata) : void
+     {
+         $metadata->addPropertyConstraints('formType', [new ACBAssert\FormTypeClass(), new Assert\NotBlank()]);
+-        $metadata->addPropertyConstraint('successHandler', new ACBAssert\FormHandlerClass());
++        
+     }
+ }
+
+
+143) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/AbstractComponent.php:48    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public Collection $componentLocations;
+     public function __construct()
+     {
+-        $this->setId();
++        
+         $this->componentLocations = new ArrayCollection();
+     }
+ }
+
+
+144) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/AbstractPage.php:34    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     use TimestampedTrait;
+     public function __construct()
+     {
+-        $this->setId();
++        
+     }
+ }
+
+
+145) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/ComponentGroup.php:60    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public Collection $componentLocations;
+     public function __construct()
+     {
+-        $this->setId();
++        
+         $this->componentLocations = new ArrayCollection();
+     }
+ }
+
+
+146) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/ComponentLocation.php:43    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public AbstractComponent $component;
+     public function __construct()
+     {
+-        $this->setId();
++        
+     }
+     /**
+      * @return Collection|AbstractComponent[]|null
+
+
+147) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/ComponentLocation.php:49    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     /**
+      * @return Collection|AbstractComponent[]|null
+      */
+-    public function getSortCollection() : ?Collection
++    protected function getSortCollection() : ?Collection
+     {
+         return $this->componentGroup->componentLocations;
+     }
+ }
+
+148) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/Layout.php:57    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public Collection $componentGroups;
+     public function __construct()
+     {
+-        $this->setId();
++        
+         $this->pageTemplates = new ArrayCollection();
+         $this->pageData = new ArrayCollection();
+         $this->componentGroups = new ArrayCollection();
+     }
+
+149) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/PageTemplate.php:55    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public Route $routes;
+     public function __construct()
+     {
+-        parent::__construct();
++        
+         $this->componentGroups = new ArrayCollection();
+     }
+ }
+
+
+150) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Core/Route.php:67    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     public Collection $pageData;
+     public function __construct()
+     {
+-        $this->setId();
++        
+         $this->redirectedFrom = new ArrayCollection();
+         $this->pageData = new ArrayCollection();
+     }
+ }
+
+151) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Form/LoginForm.php:25    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     protected int $id = 0;
+     public string $_username = '';
+     public string $_password = '';
+-    public function getId() : int
++    protected function getId() : int
+     {
+         return $this->id;
+     }
+ }
+
+152) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/FileTrait.php:33    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+      */
+     protected ?string $filePath;
+     public ?FileData $fileData;
+-    public static function getImagineFilters() : array
++    protected static function getImagineFilters() : array
+     {
+         return ['thumbnail' => 'thumbnail', 'placeholderSquare' => 'placeholder_square', 'placeholder' => 'placeholder'];
+     }
+
+
+153) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/FileTrait.php:35    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+     public ?FileData $fileData;
+     public static function getImagineFilters() : array
+     {
+-        return ['thumbnail' => 'thumbnail', 'placeholderSquare' => 'placeholder_square', 'placeholder' => 'placeholder'];
++        return ['placeholderSquare' => 'placeholder_square', 'placeholder' => 'placeholder'];
+     }
+     public function getDirectory() : ?string
+     {
+
+
+154) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/FileTrait.php:42    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return ['thumbnail' => 'thumbnail', 'placeholderSquare' => 'placeholder_square', 'placeholder' => 'placeholder'];
+     }
+-    public function getDirectory() : ?string
++    protected function getDirectory() : ?string
+     {
+         return null;
+     }
+ }
+
+155) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/IdTrait.php:35    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         $this->id = Uuid::uuid4()->getHex();
+     }
+-    public function getId() : string
++    protected function getId() : string
+     {
+         return $this->id;
+     }
+ }
+
+156) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:27    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+ {
+     /** @ORM\Column(type="integer") */
+     public ?int $sort = 0;
+-    public final function calculateSort(?bool $sortLast = null, ?Collection $sortCollection = null) : int
++    protected final function calculateSort(?bool $sortLast = null, ?Collection $sortCollection = null) : int
+     {
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+
+
+157) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:32    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     {
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+-        if (null === $collection || null === $sortLast) {
++        if (null !== $collection || null === $sortLast) {
+             return 0;
+         }
+         if ($sortLast) {
+
+
+158) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:32    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     {
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+-        if (null === $collection || null === $sortLast) {
++        if (null === $collection || null !== $sortLast) {
+             return 0;
+         }
+         if ($sortLast) {
+
+
+159) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:32    [M] LogicalOr
+
+--- Original
++++ New
+@@ @@
+     {
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+-        if (null === $collection || null === $sortLast) {
++        if (null === $collection && null === $sortLast) {
+             return 0;
+         }
+         if ($sortLast) {
+
+
+160) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:33    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+         if (null === $collection || null === $sortLast) {
+-            return 0;
++            return 1;
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+
+
+161) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:33    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         /** @var Collection|SortableInterface[]|null $collection */
+         $collection = $sortCollection ?: $this->getSortCollection();
+         if (null === $collection || null === $sortLast) {
+-            return 0;
++            return -1;
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+
+
+162) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:38    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+-            return $lastItem ? $lastItem->getSort() + 1 : 0;
++            return $lastItem ? $lastItem->getSort() + 1 : 1;
+         }
+         $firstItem = $collection->first();
+         return $firstItem ? $firstItem->getSort() - 1 : 0;
+
+
+163) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:38    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+-            return $lastItem ? $lastItem->getSort() + 1 : 0;
++            return $lastItem ? $lastItem->getSort() + 1 : -1;
+         }
+         $firstItem = $collection->first();
+         return $firstItem ? $firstItem->getSort() - 1 : 0;
+
+
+164) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:38    [M] Plus
+
+--- Original
++++ New
+@@ @@
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+-            return $lastItem ? $lastItem->getSort() + 1 : 0;
++            return $lastItem ? $lastItem->getSort() - 1 : 0;
+         }
+         $firstItem = $collection->first();
+         return $firstItem ? $firstItem->getSort() - 1 : 0;
+
+
+165) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:38    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+-            return $lastItem ? $lastItem->getSort() + 1 : 0;
++            return $lastItem ? $lastItem->getSort() + 0 : 0;
+         }
+         $firstItem = $collection->first();
+         return $firstItem ? $firstItem->getSort() - 1 : 0;
+
+
+166) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:38    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+         }
+         if ($sortLast) {
+             $lastItem = $collection->last();
+-            return $lastItem ? $lastItem->getSort() + 1 : 0;
++            return $lastItem ? $lastItem->getSort() + 2 : 0;
+         }
+         $firstItem = $collection->first();
+         return $firstItem ? $firstItem->getSort() - 1 : 0;
+
+
+167) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:42    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+             return $lastItem ? $lastItem->getSort() + 1 : 0;
+         }
+         $firstItem = $collection->first();
+-        return $firstItem ? $firstItem->getSort() - 1 : 0;
++        return $firstItem ? $firstItem->getSort() - 0 : 0;
+     }
+     public abstract function getSortCollection() : ?Collection;
+ }
+
+
+168) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:42    [M] IncrementInteger
+
+--- Original
++++ New
+@@ @@
+             return $lastItem ? $lastItem->getSort() + 1 : 0;
+         }
+         $firstItem = $collection->first();
+-        return $firstItem ? $firstItem->getSort() - 1 : 0;
++        return $firstItem ? $firstItem->getSort() - 2 : 0;
+     }
+     public abstract function getSortCollection() : ?Collection;
+ }
+
+
+169) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:42    [M] Minus
+
+--- Original
++++ New
+@@ @@
+             return $lastItem ? $lastItem->getSort() + 1 : 0;
+         }
+         $firstItem = $collection->first();
+-        return $firstItem ? $firstItem->getSort() - 1 : 0;
++        return $firstItem ? $firstItem->getSort() + 1 : 0;
+     }
+     public abstract function getSortCollection() : ?Collection;
+ }
+
+
+170) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:42    [M] DecrementInteger
+
+--- Original
++++ New
+@@ @@
+             return $lastItem ? $lastItem->getSort() + 1 : 0;
+         }
+         $firstItem = $collection->first();
+-        return $firstItem ? $firstItem->getSort() - 1 : 0;
++        return $firstItem ? $firstItem->getSort() - 1 : -1;
+     }
+     public abstract function getSortCollection() : ?Collection;
+ }
+
+
+171) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/SortableTrait.php:42    [M] OneZeroInteger
+
+--- Original
++++ New
+@@ @@
+             return $lastItem ? $lastItem->getSort() + 1 : 0;
+         }
+         $firstItem = $collection->first();
+-        return $firstItem ? $firstItem->getSort() - 1 : 0;
++        return $firstItem ? $firstItem->getSort() - 1 : 1;
+     }
+     public abstract function getSortCollection() : ?Collection;
+ }
+
+
+172) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/TimestampedTrait.php:42    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+      */
+     public ?DateTime $modified = null;
+     /** @return static */
+-    public function setCreated(DateTimeImmutable $created)
++    protected function setCreated(DateTimeImmutable $created)
+     {
+         if (!$this->created) {
+             $this->created = $created;
+
+
+173) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/TimestampedTrait.php:44    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     /** @return static */
+     public function setCreated(DateTimeImmutable $created)
+     {
+-        if (!$this->created) {
++        if ($this->created) {
+             $this->created = $created;
+         }
+         return $this;
+
+
+174) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/TimestampedTrait.php:48    [M] This
+
+--- Original
++++ New
+@@ @@
+         if (!$this->created) {
+             $this->created = $created;
+         }
+-        return $this;
++        return null;
+     }
+     public function getCreated() : ?DateTimeImmutable
+     {
+
+
+175) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Entity/Utility/TimestampedTrait.php:51    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+         }
+         return $this;
+     }
+-    public function getCreated() : ?DateTimeImmutable
++    protected function getCreated() : ?DateTimeImmutable
+     {
+         return $this->created;
+     }
+ }
+
+176) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:30    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public static function getSubscribedEvents()
+     {
+-        return [KernelEvents::VIEW => ['callComponentPopulators', EventPriorities::PRE_SERIALIZE]];
++        return [];
+     }
+     public function callComponentPopulators(ViewEvent $event)
+     {
+
+
+177) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:31    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public static function getSubscribedEvents()
+     {
+-        return [KernelEvents::VIEW => ['callComponentPopulators', EventPriorities::PRE_SERIALIZE]];
++        return [KernelEvents::VIEW => [EventPriorities::PRE_SERIALIZE]];
+     }
+     public function callComponentPopulators(ViewEvent $event)
+     {
+
+
+178) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:35    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         return [KernelEvents::VIEW => ['callComponentPopulators', EventPriorities::PRE_SERIALIZE]];
+     }
+-    public function callComponentPopulators(ViewEvent $event)
++    protected function callComponentPopulators(ViewEvent $event)
+     {
+         $route = $event->getControllerResult();
+         $method = $event->getRequest()->getMethod();
+
+
+179) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:39    [M] NotIdentical
+
+--- Original
++++ New
+@@ @@
+     {
+         $route = $event->getControllerResult();
+         $method = $event->getRequest()->getMethod();
+-        if (!$route instanceof Route || Request::METHOD_GET !== $method) {
++        if (!$route instanceof Route || Request::METHOD_GET === $method) {
+             return;
+         }
+         // here we will call a service which will be aware of all the component populators
+
+
+180) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:39    [M] LogicalOr
+
+--- Original
++++ New
+@@ @@
+     {
+         $route = $event->getControllerResult();
+         $method = $event->getRequest()->getMethod();
+-        if (!$route instanceof Route || Request::METHOD_GET !== $method) {
++        if (!$route instanceof Route && Request::METHOD_GET !== $method) {
+             return;
+         }
+         // here we will call a service which will be aware of all the component populators
+
+
+181) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/EventListener/ApiPlatformSubscriber.php:39    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     {
+         $route = $event->getControllerResult();
+         $method = $event->getRequest()->getMethod();
+-        if (!$route instanceof Route || Request::METHOD_GET !== $method) {
++        if ($route instanceof Route || Request::METHOD_GET !== $method) {
+             return;
+         }
+         // here we will call a service which will be aware of all the component populators
+
+
+182) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Form/AbstractType.php:27    [M] Coalesce
+
+--- Original
++++ New
+@@ @@
+ {
+     public function buildView(FormView $view, FormInterface $form, array $options) : void
+     {
+-        $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
++        $view->vars['realtime_validate'] = true;
+         $view->vars['api_request'] = $options['api_request'] ?? true;
+         $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
+     }
+ }
+
+183) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Form/AbstractType.php:27    [M] TrueValue
+
+--- Original
++++ New
+@@ @@
+ {
+     public function buildView(FormView $view, FormInterface $form, array $options) : void
+     {
+-        $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
++        $view->vars['realtime_validate'] = $options['realtime_validate'] ?? false;
+         $view->vars['api_request'] = $options['api_request'] ?? true;
+         $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
+     }
+ }
+
+184) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Form/AbstractType.php:28    [M] Coalesce
+
+--- Original
++++ New
+@@ @@
+     public function buildView(FormView $view, FormInterface $form, array $options) : void
+     {
+         $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
+-        $view->vars['api_request'] = $options['api_request'] ?? true;
++        $view->vars['api_request'] = true;
+         $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
+     }
+ }
+
+
+185) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Form/AbstractType.php:28    [M] TrueValue
+
+--- Original
++++ New
+@@ @@
+     public function buildView(FormView $view, FormInterface $form, array $options) : void
+     {
+         $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
+-        $view->vars['api_request'] = $options['api_request'] ?? true;
++        $view->vars['api_request'] = $options['api_request'] ?? false;
+         $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
+     }
+ }
+
+
+186) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Form/AbstractType.php:29    [M] Coalesce
+
+--- Original
++++ New
+@@ @@
+     {
+         $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
+         $view->vars['api_request'] = $options['api_request'] ?? true;
+-        $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
++        $view->vars['post_app_proxy'] = null;
+     }
+ }
+
+
+187) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Repository/Core/LayoutRepository.php:32    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function __construct(ManagerRegistry $registry)
+     {
+-        parent::__construct($registry, Layout::class);
++        
+     }
+ }
+
+
+188) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Repository/Core/RouteRepository.php:32    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function __construct(ManagerRegistry $registry)
+     {
+-        parent::__construct($registry, Route::class);
++        
+     }
+     public function findOneByIdOrRoute(string $idOrRoute)
+     {
+
+
+189) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Repository/Core/RouteRepository.php:35    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+     {
+         parent::__construct($registry, Route::class);
+     }
+-    public function findOneByIdOrRoute(string $idOrRoute)
++    protected function findOneByIdOrRoute(string $idOrRoute)
+     {
+         $route = $this->findOneBy(['route' => $idOrRoute]);
+         if ($route) {
+
+
+190) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Repository/Core/RouteRepository.php:37    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+     }
+     public function findOneByIdOrRoute(string $idOrRoute)
+     {
+-        $route = $this->findOneBy(['route' => $idOrRoute]);
++        $route = $this->findOneBy([]);
+         if ($route) {
+             return $route;
+         }
+
+
+191) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/SilverbackApiComponentBundle.php:29    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+ {
+     public function build(ContainerBuilder $container) : void
+     {
+-        parent::build($container);
++        
+         if (class_exists(DoctrineOrmMappingsPass::class)) {
+             $container->addCompilerPass(new DoctrineCompilerPass());
+         }
+     }
+
+192) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/SilverbackApiComponentBundle.php:31    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+     {
+         parent::build($container);
+         if (class_exists(DoctrineOrmMappingsPass::class)) {
+-            $container->addCompilerPass(new DoctrineCompilerPass());
++            
+         }
+     }
+ }
+
+
+193) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ClassNameValidator.php:55    [M] Throw_
+
+--- Original
++++ New
+@@ @@
+             throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
+         }
+         if (!\is_object($validClass)) {
+-            throw new InvalidArgumentException(sprintf('The $validClass parameter %s is not an object', $validClass));
++            new InvalidArgumentException(sprintf('The $validClass parameter %s is not an object', $validClass));
+         }
+     }
+     /** @throws ReflectionException */
+
+
+194) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormHandlerClassValidator.php:37    [M] Identical
+
+--- Original
++++ New
+@@ @@
+     }
+     public function validate($value, Constraint $constraint)
+     {
+-        if (null === $value) {
++        if (null !== $value) {
+             return;
+         }
+         try {
+
+
+195) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormHandlerClassValidator.php:42    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+         }
+         try {
+             $valid = ClassNameValidator::validate($value, $this->formHandlers);
+-            if (!$valid) {
++            if ($valid) {
+                 $conditionsStr = vsprintf(' It should implement %s or tagged %s', [FormHandlerInterface::class, 'silverback_api_component.form_handler']);
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+
+
+196) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormHandlerClassValidator.php:45    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         try {
+             $valid = ClassNameValidator::validate($value, $this->formHandlers);
+             if (!$valid) {
+-                $conditionsStr = vsprintf(' It should implement %s or tagged %s', [FormHandlerInterface::class, 'silverback_api_component.form_handler']);
++                $conditionsStr = vsprintf(' It should implement %s or tagged %s', ['silverback_api_component.form_handler']);
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+         } catch (InvalidArgumentException $exception) {
+
+
+197) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormHandlerClassValidator.php:50    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+             $valid = ClassNameValidator::validate($value, $this->formHandlers);
+             if (!$valid) {
+                 $conditionsStr = vsprintf(' It should implement %s or tagged %s', [FormHandlerInterface::class, 'silverback_api_component.form_handler']);
+-                $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
++                
+             }
+         } catch (InvalidArgumentException $exception) {
+             $this->context->buildViolation($constraint->message . ' ' . $exception->getMessage())->setParameter('{{ string }}', $value)->addViolation();
+
+
+198) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormHandlerClassValidator.php:56    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+         } catch (InvalidArgumentException $exception) {
+-            $this->context->buildViolation($constraint->message . ' ' . $exception->getMessage())->setParameter('{{ string }}', $value)->addViolation();
++            
+         }
+     }
+ }
+
+
+199) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormTypeClassValidator.php:42    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+     {
+         try {
+             $valid = ClassNameValidator::validate($value, $this->formTypes);
+-            if (!$valid) {
++            if ($valid) {
+                 $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [AbstractType::class, FormTypeInterface::class, 'silverback_api_component.form_type']);
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+
+
+200) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormTypeClassValidator.php:45    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         try {
+             $valid = ClassNameValidator::validate($value, $this->formTypes);
+             if (!$valid) {
+-                $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [AbstractType::class, FormTypeInterface::class, 'silverback_api_component.form_type']);
++                $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [FormTypeInterface::class, 'silverback_api_component.form_type']);
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+         } catch (InvalidArgumentException $exception) {
+
+
+201) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormTypeClassValidator.php:51    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+             $valid = ClassNameValidator::validate($value, $this->formTypes);
+             if (!$valid) {
+                 $conditionsStr = vsprintf(' It should extend %s, implement %s or tagged %s', [AbstractType::class, FormTypeInterface::class, 'silverback_api_component.form_type']);
+-                $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
++                
+             }
+         } catch (InvalidArgumentException $exception) {
+             $this->context->buildViolation($constraint->message . ' ' . $exception->getMessage())->setParameter('{{ string }}', $value)->addViolation();
+
+
+202) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/Constraints/FormTypeClassValidator.php:57    [M] MethodCallRemoval
+
+--- Original
++++ New
+@@ @@
+                 $this->context->buildViolation($constraint->message . $conditionsStr)->setParameter('{{ string }}', $value)->addViolation();
+             }
+         } catch (InvalidArgumentException $exception) {
+-            $this->context->buildViolation($constraint->message . ' ' . $exception->getMessage())->setParameter('{{ string }}', $value)->addViolation();
++            
+         }
+     }
+ }
+
+
+203) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:21    [M] PublicVisibility
+
+--- Original
++++ New
+@@ @@
+  */
+ class ImagineSupportedFilePath
+ {
+-    public static function isValidFilePath(?string $filePath) : bool
++    protected static function isValidFilePath(?string $filePath) : bool
+     {
+         if (!$filePath || !file_exists($filePath)) {
+             return false;
+
+
+204) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:23    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+ {
+     public static function isValidFilePath(?string $filePath) : bool
+     {
+-        if (!$filePath || !file_exists($filePath)) {
++        if (!$filePath || file_exists($filePath)) {
+             return false;
+         }
+         try {
+
+
+205) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:23    [M] LogicalNot
+
+--- Original
++++ New
+@@ @@
+ {
+     public static function isValidFilePath(?string $filePath) : bool
+     {
+-        if (!$filePath || !file_exists($filePath)) {
++        if ($filePath || !file_exists($filePath)) {
+             return false;
+         }
+         try {
+
+
+206) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:23    [M] LogicalOr
+
+--- Original
++++ New
+@@ @@
+ {
+     public static function isValidFilePath(?string $filePath) : bool
+     {
+-        if (!$filePath || !file_exists($filePath)) {
++        if (!$filePath && !file_exists($filePath)) {
+             return false;
+         }
+         try {
+
+
+207) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:24    [M] FalseValue
+
+--- Original
++++ New
+@@ @@
+     public static function isValidFilePath(?string $filePath) : bool
+     {
+         if (!$filePath || !file_exists($filePath)) {
+-            return false;
++            return true;
+         }
+         try {
+             $imageType = exif_imagetype($filePath);
+
+
+208) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:29    [M] FalseValue
+
+--- Original
++++ New
+@@ @@
+         try {
+             $imageType = exif_imagetype($filePath);
+         } catch (\Exception $e) {
+-            return false;
++            return true;
+         }
+         return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
+     }
+ }
+
+209) /Volumes/Samsung_T5/GitHub/_ComponentsWebApp/ApiComponentBundle_v2/src/Validator/ImagineSupportedFilePath.php:32    [M] ArrayItemRemoval
+
+--- Original
++++ New
+@@ @@
+         } catch (\Exception $e) {
+             return false;
+         }
+-        return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
++        return \in_array($imageType, [IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
+     }
+ }
