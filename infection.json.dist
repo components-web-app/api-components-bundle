@@ -10,7 +10,10 @@
     "customPath": "vendor\/bin\/simple-phpunit"
   },
   "logs": {
-    "text": "infection.log"
+    "text": "infection.log",
+    "badge": {
+        "branch": "v2"
+    }
   },
   "mutators": {
     "@default": true

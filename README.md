@@ -1,12 +1,13 @@
 # API Component Bundle v2
 [![Build Status](https://travis-ci.org/silverbackis/ApiComponentBundle.svg?branch=v2)](https://travis-ci.org/silverbackis/ApiComponentBundle)
 [![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/silverbackis/ApiComponentBundle/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
 
 The diagram below shows what this bundle aims to implement by using Symfony and [API Platform](https://github.com/api-platform/api-platform)
 ![Api Component Bundle - Basic Flow](./docs/images/API%20Component%20Bundle%20v2%20Flow.jpg)
 
-This structure will allow a developer to create an API to provide UI structure and components resources from a database allowing front-end application to display and manipulate the resources.
+This structure will allow a developer to create an API providing UI structure and component resources from a database, thereby allowing a front-end application to display and manipulate the resources.
 
 It also includes the ability to have components where files can be uploaded, handling of forms (serialization, validation and successful submissions) and a built-in component to display a collection of resources with filtering and pagination (this is more of a proxy component to allow collections of component of dynamic page resources to be included within a page).
 
