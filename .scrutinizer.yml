@@ -27,7 +27,7 @@ build:
                 memory_limit: -1
     tests:
         override:
-            -   command: vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+            -   command: vendor/bin/simple-phpunit --coverage-clover=clover.xml
                 coverage:
                     file: clover.xml
                     format: php-clover

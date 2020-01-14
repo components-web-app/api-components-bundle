@@ -37,7 +37,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private()
         // ->bind('$projectDir', '%kernel.project_dir%')
-;
+    ;
 
     $services
         ->set(RouteRepository::class)
