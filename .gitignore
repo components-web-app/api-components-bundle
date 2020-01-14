@@ -9,7 +9,7 @@
 /tests/Functional/app/var/
 /tests/Functional/app/public/bundles/
 /tests/Functional/app/public/media/
-/.infection.log
+/infection.log
 /.idea/
 .DS_Store
 
