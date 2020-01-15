@@ -33,13 +33,29 @@ trait SortableTrait
             return 0;
         }
         if ($sortLast) {
-            $lastItem = $collection->last();
-
-            return $lastItem ? ($lastItem->getSort() + 1) : 0;
+            return $this->getLastSortValue($collection);
         }
-        $firstItem = $collection->first();
+        return $this->getFirstSortValue($collection);
+    }
 
-        return $firstItem ? ($firstItem->getSort() - 1) : 0;
+    private function isSortableResource($resource): bool
+    {
+        if (!is_object($resource)) {
+            return false;
+        }
+        return in_array(SortableTrait::class, class_uses($resource), true);
+    }
+
+    private function getLastSortValue(Collection $collection): int
+    {
+        $lastItem = $collection->last();
+        return $this->isSortableResource($lastItem) ? ($lastItem->sort + 1) : 0;
+    }
+
+    private function getFirstSortValue(Collection $collection): int
+    {
+        $firstItem = $collection->first();
+        return $this->isSortableResource($firstItem) ? ($firstItem->sort - 1) : 0;
     }
 
     abstract public function getSortCollection(): ?Collection;
