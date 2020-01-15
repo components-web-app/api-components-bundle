@@ -34,3 +34,47 @@ We encourage using as many of the packages as possible that are well maintained 
 - Start up the containers
 - run `docker-compose exec php sh` to bash into the php container
 - run `composer require silverbackis/api-component-bundle:2.x-dev`
+
+
+## Example: Creating a new 1 page website
+### Back-End Developer Work
+__Each of these components should have the appropriate properties and may use Traits provided to help. E.g. a `Title` on a `Hero` component using a trait, or `copyrightText` on the `Footer` which would not use a trait__ 
+1. Create `NavItem` component API resource
+2. Create `Footer` component API resource
+3. Create `Hero` component API resource
+4. Create a Symfony form (with validation if you want) and `FormSuccessHandler`
+ 
+### API
+#### Layout
+__Adding a new component to component groups with a `ComponentLocation` should be done in one action the the user of the front-end application. Otherwise this would be quite cumbersome to create the component resource in the API and then have to find the IDs of the appropriate component and component group to add a `ComponentLocation`__
+1. Create a `Layout` API resource
+2. Create 2 `ComponentGroup` resources within the `Layout`
+3. Create a `Collection` component defined to display the `NavItem` resource. You could also define a specific front-end component to use such as `NavBar` that the web application can read to display the collection appropriately
+4. Create a `ComponentLocation` resource placing the `Collection` into the 1st `ComponentGroup` of the `Layout`
+5. Create `NavItem` resources for the navigation bar. You could configure your `NavItem` to have an optional relation to `ComponentGroup` and then insert nested `NavItem` resources that way if you desire a tree structure to your navigation
+6. Create a `Footer` resource and a `ComponentLocation` to add it into the 2nd `ComponentGroup` for the `Layout`
+
+#### Contact Page
+1. Create a `PageTemplate` API resource
+2. Create 1 `ComponentGroup` within this `PageTemplate`
+3. Create a `Route` API resource which will direct a user to the `PageTemplate` you've just created. You now have a route directing a user to an empty page
+4. Create a `Hero` API resource (with a title and any other properties you defined) - add this to the `ComponentGroup` with a `ComponentLocation` resource
+5. Create a `Form` API resource defining the Symfony form type class and handler class you'd like to use and a `uiComponentName` of `ExampleForm`. Then add this to the `ComponentGroup` as above using a `ComponentLocation` resource.
+
+### Front-end
+__There will be examples of this in our sample Nuxt front-end application. The application will read in all of the API resources and save them all individually in a global store. It will also listen for any changes to any resource and update it in the store. Each mixin provided that you should use in components will be reading the component's data from the global store__
+
+#### Layout
+1. Create a layout and set the 1st `ComponentGroup` to render at the top and the 2nd at the bottom. The rest of the UI layout and styling is up to you. You'll want to include where you want your page to render as per your front-end framework's instructions too.
+2. Create a `NavBar` component which will be used to render the `Collection` resource of `NavItem` resources.
+3. Create `NavItem` component, making sure if you have a more nested `NavItem` resources within a `ComponentGroup` you also render these appropriately.
+
+__If you have multiple layouts, in the API you will be able to specify a `UIComponentName` for the layout which will in turn use that as the layout name in the front end application which you can configure.__
+
+#### Page
+__There will be a default template used to simply render each `ComponentGroup` and `ComponentLocation` resources stacked on top of each other. In the API you will be able to define a different UI component to use if you want to arrange the `ComponentGroup` resources within `PageTemplate` (much like we did in the `Layout`) ___
+
+1. Create a `Hero` component which will render the title. There will be mixins so you can easily get the component's data and more in relation to whether a user is logged in or not in future.
+2. Create a `ExampleForm` component. There will be a mixin which will help you to render all the form fields with automatic validation and so much more.
+
+**For all aspects of the front-end, this is an extremely brief overview. Examples and all functionality will be shown in far greater detail in the GitHub repository as we build it. Lots of the features were available in the 1st version of this system, but we realised now we have clarity over how it should all work and the features required, we need to start again. Watch this space!**
