@@ -35,18 +35,25 @@ class ComponentGroup implements TimestampedInterface
     public string $reference;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", inversedBy="componentGroups")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", mappedBy="componentGroups")
      *
      * @var Collection|Layout[]
      */
     public $layouts;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", inversedBy="componentGroups")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="componentGroups")
      *
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", mappedBy="componentGroups")
+     *
+     * @var Collection|AbstractComponent[]
+     */
+    public Collection $components;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")

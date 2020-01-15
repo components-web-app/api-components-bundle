@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
@@ -23,6 +21,9 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource
  * @ORM\Entity
+ * @ORM\AssociationOverrides({
+ *     @ORM\AssociationOverride(name="routes", inversedBy="pageData")
+ * })
  */
 class PageTemplate extends AbstractPage
 {
@@ -36,23 +37,9 @@ class PageTemplate extends AbstractPage
      */
     public ?Layout $layout;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", mappedBy="pageTemplates")
-     *
-     * @var Collection|ComponentGroup[]
-     */
-    public Collection $componentGroups;
-
-    /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
-     *
-     * @var Route
-     */
-    public Route $routes;
-
     public function __construct()
     {
         parent::__construct();
-        $this->componentGroups = new ArrayCollection();
+        $this->initComponentGroups();
     }
 }

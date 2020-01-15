@@ -20,16 +20,21 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource
  * @ORM\Entity
+ * @ORM\AssociationOverrides({
+ *     @ORM\AssociationOverride(name="componentGroups", inversedBy="layouts")
+ * })
  */
 class Layout implements TimestampedInterface
 {
     use IdTrait;
     use TimestampedTrait;
+    use UiTrait;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="layout")
@@ -38,25 +43,10 @@ class Layout implements TimestampedInterface
      */
     public Collection $pageTemplates;
 
-    /**
-     * @ORM\OneToMany(targetEntity="AbstractPageData", mappedBy="layout")
-     *
-     * @var Collection|AbstractPageData[]
-     */
-    public Collection $pageData;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", mappedBy="layouts")
-     *
-     * @var Collection|ComponentGroup[]
-     */
-    public Collection $componentGroups;
-
     public function __construct()
     {
         $this->setId();
+        $this->initComponentGroups();
         $this->pageTemplates = new ArrayCollection();
-        $this->pageData = new ArrayCollection();
-        $this->componentGroups = new ArrayCollection();
     }
 }

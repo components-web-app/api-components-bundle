@@ -20,11 +20,16 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Core\RouteRepository")
+ * @Assert\Expression(
+ *     "this.pageTemplate && this.pageData",
+ *     message="Please specify either pageTemplate or pageData, not both."
+ * )
  */
 class Route implements TimestampedInterface
 {
@@ -46,7 +51,7 @@ class Route implements TimestampedInterface
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", mappedBy="redirect")
      */
-    private Collection $redirectedFrom;
+    public Collection $redirectedFrom;
 
     /**
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="routes")
@@ -55,17 +60,14 @@ class Route implements TimestampedInterface
     public PageTemplate $pageTemplate;
 
     /**
-     * We use this relationship type because doctrine does not support bi-directional one-to-one to mapped superclasses or discriminator mapped entities
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="routes")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="routes")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
-     * @var AbstractPageData[]|Collection
      */
-    public Collection $pageData;
+    public AbstractPageData $pageData;
 
     public function __construct()
     {
         $this->setId();
         $this->redirectedFrom = new ArrayCollection();
-        $this->pageData = new ArrayCollection();
     }
 }

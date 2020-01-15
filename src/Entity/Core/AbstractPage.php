@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
@@ -28,6 +26,23 @@ abstract class AbstractPage implements TimestampedInterface
 {
     use IdTrait;
     use TimestampedTrait;
+
+    /**
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
+     *
+     * @var Route
+     */
+    public Route $routes;
+
+    /**
+     * @ORM\Column()
+     */
+    public string $title = 'Unnamed Page';
+
+    /**
+     * @ORM\Column(nullable=true)
+     */
+    public ?string $metaDescription;
 
     public function __construct()
     {

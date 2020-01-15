@@ -24,11 +24,8 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity
- * @ORM\Table(name="component")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="dtype", type="string")
- * This is populated via an extension to include any entity that extends this one.
- * @ORM\DiscriminatorMap({})
  */
 abstract class AbstractComponent implements ComponentInterface, TimestampedInterface
 {
@@ -46,6 +43,7 @@ abstract class AbstractComponent implements ComponentInterface, TimestampedInter
     public function __construct()
     {
         $this->setId();
+        $this->initComponentGroups();
         $this->componentLocations = new ArrayCollection();
     }
 }
