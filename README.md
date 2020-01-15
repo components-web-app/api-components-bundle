@@ -1,4 +1,7 @@
 # API Component Bundle
+---
+*Please be aware that this version of API Component Bundle is being completely remade from the ground up. Version 2 will not be compatible with this version and will have no way to migrate the data structure. To keep an eye on version 2 please check out the [v2 branch](https://github.com/silverbackis/ApiComponentBundle/tree/v2)*
+---
 
 | Service | Branch: Master | Branch: Develop |
 | :--- | :--- | :--- |
