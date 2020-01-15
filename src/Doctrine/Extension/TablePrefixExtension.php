@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Doctrine\Extension;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -29,29 +30,46 @@ class TablePrefixExtension
         $this->prefix = $prefix;
     }
 
-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
+    private function supportsClass(ClassMetadata $classMetadata): bool
     {
         if (null === $this->prefix) {
-            return;
+            return false;
         }
 
-        $classMetadata = $eventArgs->getClassMetadata();
         if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\ApiComponentBundle\\')) {
-            return;
+            return false;
         }
 
+        return true;
+    }
+
+    private function setPrimaryTable(ClassMetadata $classMetadata): void
+    {
         $converter = new CamelCaseToSnakeCaseNameConverter();
         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
             $classMetadata->setPrimaryTable([
                 'name' => $this->prefix . $converter->normalize($classMetadata->getTableName()),
             ]);
         }
+    }
 
+    private function setJoinTableName(ClassMetadata $classMetadata): void
+    {
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
             if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
                 $mappedTableName = $mapping['joinTable']['name'];
                 $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
             }
         }
+    }
+
+    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
+    {
+        $classMetadata = $eventArgs->getClassMetadata();
+        if (!$this->supportsClass($classMetadata)) {
+            return;
+        }
+        $this->setPrimaryTable($classMetadata);
+        $this->setJoinTableName($classMetadata);
     }
 }
