@@ -15,12 +15,16 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 trait SortableTrait
 {
+    private ?PropertyAccessor $propertyAccessor;
+
     /** @ORM\Column(type="integer") */
     public ?int $sort = 0;
 
@@ -38,24 +42,24 @@ trait SortableTrait
         return $this->getFirstSortValue($collection);
     }
 
-    private function isSortableResource($resource): bool
-    {
-        if (!is_object($resource)) {
-            return false;
-        }
-        return in_array(SortableTrait::class, class_uses($resource), true);
-    }
-
     private function getLastSortValue(Collection $collection): int
     {
         $lastItem = $collection->last();
-        return $this->isSortableResource($lastItem) ? ($lastItem->sort + 1) : 0;
+        return ($sortValue = $this->getSortValue($lastItem)) ? ($sortValue + 1) : 0;
     }
 
     private function getFirstSortValue(Collection $collection): int
     {
         $firstItem = $collection->first();
-        return $this->isSortableResource($firstItem) ? ($firstItem->sort - 1) : 0;
+        return ($sortValue = $this->getSortValue($firstItem)) ? ($sortValue - 1) : 0;
+    }
+
+    private function getSortValue($object)
+    {
+        if (!$this->propertyAccessor) {
+            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        }
+        return $this->propertyAccessor->getValue($object, 'sort');
     }
 
     abstract public function getSortCollection(): ?Collection;
