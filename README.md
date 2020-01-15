@@ -38,7 +38,7 @@ We encourage using as many of the packages as possible that are well maintained 
 
 ## Example: Creating a new 1 page website
 ### Back-End Developer Work
-__Each of these components should have the appropriate properties and may use Traits provided to help. E.g. a `Title` on a `Hero` component using a trait, or `copyrightText` on the `Footer` which would not use a trait__ 
+*Each of these components should have the appropriate properties and may use Traits provided to help. E.g. a `Title` on a `Hero` component using a trait, or `copyrightText` on the `Footer` which would not use a trait*
 1. Create `NavItem` component API resource
 2. Create `Footer` component API resource
 3. Create `Hero` component API resource
@@ -46,7 +46,7 @@ __Each of these components should have the appropriate properties and may use Tr
  
 ### API
 #### Layout
-__Adding a new component to component groups with a `ComponentLocation` should be done in one action the the user of the front-end application. Otherwise this would be quite cumbersome to create the component resource in the API and then have to find the IDs of the appropriate component and component group to add a `ComponentLocation`__
+*Adding a new component to component groups with a `ComponentLocation` should be done in one action the the user of the front-end application. Otherwise this would be quite cumbersome to create the component resource in the API and then have to find the IDs of the appropriate component and component group to add a `ComponentLocation`*
 1. Create a `Layout` API resource
 2. Create 2 `ComponentGroup` resources within the `Layout`
 3. Create a `Collection` component defined to display the `NavItem` resource. You could also define a specific front-end component to use such as `NavBar` that the web application can read to display the collection appropriately
@@ -62,17 +62,17 @@ __Adding a new component to component groups with a `ComponentLocation` should b
 5. Create a `Form` API resource defining the Symfony form type class and handler class you'd like to use and a `uiComponentName` of `ExampleForm`. Then add this to the `ComponentGroup` as above using a `ComponentLocation` resource.
 
 ### Front-end
-__There will be examples of this in our sample Nuxt front-end application. The application will read in all of the API resources and save them all individually in a global store. It will also listen for any changes to any resource and update it in the store. Each mixin provided that you should use in components will be reading the component's data from the global store__
+*There will be examples of this in our sample Nuxt front-end application. The application will read in all of the API resources and save them all individually in a global store. It will also listen for any changes to any resource and update it in the store. Each mixin provided that you should use in components will be reading the component's data from the global store*
 
 #### Layout
 1. Create a layout and set the 1st `ComponentGroup` to render at the top and the 2nd at the bottom. The rest of the UI layout and styling is up to you. You'll want to include where you want your page to render as per your front-end framework's instructions too.
 2. Create a `NavBar` component which will be used to render the `Collection` resource of `NavItem` resources.
 3. Create `NavItem` component, making sure if you have a more nested `NavItem` resources within a `ComponentGroup` you also render these appropriately.
 
-__If you have multiple layouts, in the API you will be able to specify a `UIComponentName` for the layout which will in turn use that as the layout name in the front end application which you can configure.__
+*If you have multiple layouts, in the API you will be able to specify a `UIComponentName` for the layout which will in turn use that as the layout name in the front end application which you can configure.*
 
 #### Page
-__There will be a default template used to simply render each `ComponentGroup` and `ComponentLocation` resources stacked on top of each other. In the API you will be able to define a different UI component to use if you want to arrange the `ComponentGroup` resources within `PageTemplate` (much like we did in the `Layout`) ___
+*There will be a default template used to simply render each `ComponentGroup` and `ComponentLocation` resources stacked on top of each other. In the API you will be able to define a different UI component to use if you want to arrange the `ComponentGroup` resources within `PageTemplate` (much like we did in the `Layout`)*
 
 1. Create a `Hero` component which will render the title. There will be mixins so you can easily get the component's data and more in relation to whether a user is logged in or not in future.
 2. Create a `ExampleForm` component. There will be a mixin which will help you to render all the form fields with automatic validation and so much more.
