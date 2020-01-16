@@ -70,7 +70,7 @@ class ArticlePage extends DynamicContent implements FileInterface
         return $this;
     }
 
-    public function setImageCaption(string $imageCaption): self
+    public function setImageCaption(?string $imageCaption): self
     {
         $this->imageCaption = $imageCaption;
         return $this;
