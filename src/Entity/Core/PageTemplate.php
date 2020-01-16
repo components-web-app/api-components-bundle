@@ -22,7 +22,8 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
  * @ApiResource
  * @ORM\Entity
  * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="routes", inversedBy="pageData")
+ *     @ORM\AssociationOverride(name="routes", inversedBy="pageTemplate"),
+ *     @ORM\AssociationOverride(name="componentGroups", inversedBy="pageTemplates")
  * })
  */
 class PageTemplate extends AbstractPage

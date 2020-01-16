@@ -28,7 +28,7 @@ abstract class AbstractPage implements TimestampedInterface
     use TimestampedTrait;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="pageTemplate", cascade={"persist"})
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
      *
      * @var Route
      */

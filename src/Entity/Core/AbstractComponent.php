@@ -26,6 +26,9 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
  * @ORM\Entity
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="dtype", type="string")
+ * @ORM\AssociationOverrides({
+ *     @ORM\AssociationOverride(name="componentGroups", inversedBy="components")
+ * })
  */
 abstract class AbstractComponent implements ComponentInterface, TimestampedInterface
 {
