@@ -164,6 +164,16 @@ abstract class User implements UserInterface
     }
 
     /**
+     * @param bool|null $roles
+     * @return static
+     */
+    public function setEnabled(bool $enabled)
+    {
+        $this->enabled = $enabled;
+        return $this;
+    }
+
+    /**
      * @return null|string
      */
     public function getPlainPassword(): ?string

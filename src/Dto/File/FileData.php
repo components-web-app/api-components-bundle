@@ -7,8 +7,6 @@ namespace Silverback\ApiComponentBundle\Dto\File;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class FileData
- * @package Silverback\ApiComponentBundle\Entity\Content
  * This class is to hold data about a file and is added into a File component during serialization
  */
 class FileData

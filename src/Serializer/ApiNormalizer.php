@@ -57,7 +57,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
                 $this->supportedTransformers[] = $transformer;
             }
         }
-
+        dump($data);
         if ($data instanceof AbstractComponent) {
             return true;
         }
