@@ -48,9 +48,14 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
             $context[self::ALREADY_CALLED] = [];
         }
         $this->supportedTransformers = [];
-
         if (!is_object($data) || in_array($data, $context[self::ALREADY_CALLED], true)) {
             return false;
+        }
+
+        foreach ($this->dataTransformers as $transformer) {
+            if ($transformer->supportsTransformation($data)) {
+                $this->supportedTransformers[] = $transformer;
+            }
         }
 
         if ($data instanceof AbstractComponent) {
@@ -61,11 +66,6 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
             return true;
         }
 
-        foreach ($this->dataTransformers as $transformer) {
-            if ($transformer->supportsTransformation($data)) {
-                $this->supportedTransformers[] = $transformer;
-            }
-        }
         return !empty($this->supportedTransformers);
     }
 
