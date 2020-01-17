@@ -70,8 +70,8 @@ class FileUploadAction
         $ctx->setMethod('GET');
         $this->urlMatcher->setContext($ctx);
         $route = $this->urlMatcher->match($id);
-        if (empty($route)) {
-            return new Response(sprintf('No route found for id %s', $id), Response::HTTP_BAD_REQUEST);
+        if (empty($route) || !isset($route['_api_resource_class'])) {
+            return new Response(sprintf('No route/resource found for id %s', $id), Response::HTTP_BAD_REQUEST);
         }
 
         /**
