@@ -188,7 +188,10 @@ abstract class User implements UserInterface
     public function setPlainPassword(?string $plainPassword)
     {
         $this->plainPassword = $plainPassword;
-
+        if ($plainPassword) {
+            // Needs to update mapped field to trigger update event which will encode the plain password
+            $this->password = null;
+        }
         return $this;
     }
 

@@ -6,6 +6,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber\EntitySubscriberInterface;
 
@@ -57,10 +58,17 @@ class DoctrineSubscriber implements EventSubscriber
 
     private function runEntitySubscribers($args, string $event): void
     {
-        $entity = ($args instanceof LifecycleEventArgs) ? $args->getEntity() : null;
+        $entity = ($args instanceof LifecycleEventArgs || $args instanceof PreUpdateEventArgs) ? $args->getEntity() : null;
         foreach ($this->entitySubscribers as $entitySubscriber) {
-            if ($entitySubscriber->supportsEntity($entity) && \in_array($event, $entitySubscriber->getSubscribedEvents(), true)) {
-                $entitySubscriber->$event($args, $entity);
+            $subscribedEvents = $entitySubscriber->getSubscribedEvents();
+            if ($entitySubscriber->supportsEntity($entity)) {
+                if (in_array($event, $subscribedEvents, true)) {
+                    $entitySubscriber->$event($args, $entity);
+                }
+                if (array_key_exists($event, $subscribedEvents)) {
+                    $fn = $subscribedEvents[$event];
+                    $entitySubscriber->$fn($args, $entity);
+                }
             }
         }
     }
