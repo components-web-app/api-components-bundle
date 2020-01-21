@@ -26,7 +26,7 @@ trait FileTrait
     protected $filePath;
 
     /**
-     * @Groups({"default"})
+     * @Groups({"default_read"})
      * @var FileData|null
      */
     private $fileData;
