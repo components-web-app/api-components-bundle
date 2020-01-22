@@ -31,6 +31,7 @@ class ComponentGroup extends AbstractContent implements ValidComponentInterface,
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Component\AbstractComponent", inversedBy="componentGroups", cascade={"persist"})
      * @ORM\JoinColumn(onDelete="SET NULL")
+     * @Groups({"default"})
      * @var AbstractComponent
      */
     protected $parent;
