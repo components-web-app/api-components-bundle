@@ -33,7 +33,7 @@ abstract class DynamicContent extends DynamicContentBase
 
     /**
      * @var DynamicPage|null
-     * @Groups({"content", "route", "component"})
+     * @Groups({"content_read", "route_read", "component_read"})
      */
     private $dynamicPage;
 

@@ -49,7 +49,7 @@ class Route
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent", inversedBy="routes")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
-     * @Groups({"route"})
+     * @Groups({"route_read"})
      * @Assert\Type("Silverback\ApiComponentBundle\Entity\Route\RouteAwareInterface")
      * @var null|DynamicContent
      */
