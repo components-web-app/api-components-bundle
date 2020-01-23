@@ -109,7 +109,6 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
             return null;
         }
         $context[self::ALREADY_CALLED][] = $this->getId($object);
-        dump($object);
         if ($object instanceof AbstractComponent || $object instanceof DynamicContent) {
             $context['groups'] = array_map(static function($grp) {
                 if (strpos($grp, 'route') === 0) {
