@@ -7,7 +7,10 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
+use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
@@ -27,11 +30,13 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
     private $supportedTransformers = [];
 
     private $security;
+    private $propertyAccessor;
 
     public function __construct(iterable $dataTransformers = [], Security $security)
     {
         $this->dataTransformers = $dataTransformers;
         $this->security = $security;
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     private function isRestrictedResource($data): ?RestrictedResourceInterface
@@ -42,13 +47,22 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
         return null;
     }
 
+    private function getId($object)
+    {
+        try {
+            return $this->propertyAccessor->getValue($object, 'id');
+        } catch (NoSuchPropertyException $e) {
+            return true;
+        }
+    }
+
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
         if (!isset($context[self::ALREADY_CALLED])) {
             $context[self::ALREADY_CALLED] = [];
         }
         $this->supportedTransformers = [];
-        if (!is_object($data) || in_array($data, $context[self::ALREADY_CALLED], true)) {
+        if (!is_object($data) || in_array($this->getId($data), $context[self::ALREADY_CALLED], true)) {
             return false;
         }
 
@@ -94,8 +108,9 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
         ) {
             return null;
         }
-        $context[self::ALREADY_CALLED][] = $object;
-        if ($object instanceof AbstractComponent) {
+        $context[self::ALREADY_CALLED][] = $this->getId($object);
+        dump($object);
+        if ($object instanceof AbstractComponent || $object instanceof DynamicContent) {
             $context['groups'] = array_map(static function($grp) {
                 if (strpos($grp, 'route') === 0) {
                     return str_replace('route', 'component', $grp);
