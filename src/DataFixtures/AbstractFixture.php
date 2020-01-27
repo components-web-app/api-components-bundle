@@ -6,7 +6,7 @@ namespace Silverback\ApiComponentBundle\DataFixtures;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
