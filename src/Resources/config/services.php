@@ -30,6 +30,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Twig\Environment;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
@@ -120,7 +121,8 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(ApiNormalizer::class)
         ->args([
-            tagged('silverback_api_component.data_transformer')
+            tagged('silverback_api_component.data_transformer'),
+            new Reference(Security::class)
         ])
         ->tag('serializer.normalizer', [ 'priority' => 100 ])
     ;
@@ -133,7 +135,8 @@ return function (ContainerConfigurator $configurator) {
             [
                 new Reference(SwaggerDecorator::class . '.inner')
             ]
-        );
+        )
+    ;
 
     $services
         ->set(TokenAuthenticator::class)

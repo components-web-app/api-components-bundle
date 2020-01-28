@@ -83,8 +83,11 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
         return !empty($this->supportedTransformers);
     }
 
-    private function rolesVote(iterable $roles): bool
+    private function rolesVote(array $roles): bool
     {
+        if (!count($roles)) {
+            return true;
+        }
         $negativeRoles = [];
         $positiveRoles = [];
         foreach ($roles as $role) {
