@@ -113,7 +113,6 @@ class FileUploader
         $filename = $this->getNewFilename($moveToDir, $file);
         $movedFile = $file->move($moveToDir, $filename);
         $this->propertyAccessor->setValue($entity, $field, $movedFile->getRealPath());
-
         $this->apiValidator->validate($entity, ['groups' => $validationGroups]);
         $this->em->persist($entity);
         $this->em->flush();

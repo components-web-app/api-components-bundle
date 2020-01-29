@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 trait SortableTrait
 {
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @ORM\Column(type="integer", nullable=true)
      * @Groups({"default"})
      * @var int|null
      */
@@ -26,11 +26,12 @@ trait SortableTrait
     }
 
     /**
-     * @param int $sort
+     * @param int|null $sort
      * @return static
      */
-    public function setSort(int $sort = 0)
+    public function setSort(?int $sort = 0)
     {
+        if ($sort === null) { $sort = 0; }
         $this->sort = $sort;
         return $this;
     }
