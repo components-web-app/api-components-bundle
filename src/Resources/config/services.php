@@ -18,6 +18,7 @@ use Silverback\ApiComponentBundle\EventSubscriber\DoctrineSubscriber;
 use Silverback\ApiComponentBundle\Repository\Route\RouteRepository;
 use Silverback\ApiComponentBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentBundle\Security\EventListener\PublishableConfigurator;
+use Silverback\ApiComponentBundle\Security\RestrictedResourceVoter;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
@@ -30,10 +31,9 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Twig\Environment;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 return function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -121,8 +121,8 @@ return function (ContainerConfigurator $configurator) {
     $services
         ->set(ApiNormalizer::class)
         ->args([
-            tagged('silverback_api_component.data_transformer'),
-            new Reference(Security::class)
+            tagged_iterator('silverback_api_component.data_transformer'),
+            new Reference(RestrictedResourceVoter::class)
         ])
         ->tag('serializer.normalizer', [ 'priority' => 100 ])
     ;

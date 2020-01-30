@@ -7,7 +7,9 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
+use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
 use Silverback\ApiComponentBundle\File\Uploader\FileUploader;
+use Silverback\ApiComponentBundle\Security\RestrictedResourceVoter;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +18,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class FileUploadAction
@@ -26,6 +29,7 @@ class FileUploadAction
     private $serializer;
     private $resourceMetadataFactory;
     private $apiContextBuilder;
+    private $restrictedResourceVoter;
 
     public function __construct(
         UrlMatcherInterface $urlMatcher,
@@ -33,7 +37,8 @@ class FileUploadAction
         FileUploader $uploader,
         SerializerInterface $serializer,
         ResourceMetadataFactoryInterface $resourceMetadataFactory,
-        ApiContextBuilder $apiContextBuilder
+        ApiContextBuilder $apiContextBuilder,
+        RestrictedResourceVoter $restrictedResourceVoter
     ) {
         $this->urlMatcher = $urlMatcher;
         $this->itemDataProvider = $itemDataProvider;
@@ -41,6 +46,7 @@ class FileUploadAction
         $this->serializer = $serializer;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->apiContextBuilder = $apiContextBuilder;
+        $this->restrictedResourceVoter = $restrictedResourceVoter;
     }
 
     /**
@@ -88,6 +94,9 @@ class FileUploadAction
 
         if ($method === 'get') {
             $propertyAccessor = PropertyAccess::createPropertyAccessor();
+            if (!$this->restrictedResourceVoter->vote($entity)) {
+                throw new AccessDeniedException('You are not permitted to download this file');
+            }
             $filePath = $propertyAccessor->getValue($entity, $field);
             return new BinaryFileResponse($filePath);
         }

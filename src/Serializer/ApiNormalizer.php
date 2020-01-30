@@ -6,12 +6,10 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
-use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
+use Silverback\ApiComponentBundle\Security\RestrictedResourceVoter;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -29,22 +27,14 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
     /** @var DataTransformerInterface[] */
     private $supportedTransformers = [];
 
-    private $security;
     private $propertyAccessor;
+    private $restrictedResourceVoter;
 
-    public function __construct(iterable $dataTransformers = [], Security $security)
+    public function __construct(iterable $dataTransformers = [], RestrictedResourceVoter $restrictedResourceVoter)
     {
         $this->dataTransformers = $dataTransformers;
-        $this->security = $security;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-    }
-
-    private function isRestrictedResource($data): ?RestrictedResourceInterface
-    {
-        if ($data instanceof RestrictedResourceInterface && !$data instanceof AbstractContent) {
-            return $data;
-        }
-        return null;
+        $this->restrictedResourceVoter = $restrictedResourceVoter;
     }
 
     private function getId($object)
@@ -76,39 +66,16 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
             return true;
         }
 
-        if ($this->isRestrictedResource($data)) {
+        if ($this->restrictedResourceVoter->isSupported($data)) {
             return true;
         }
 
         return !empty($this->supportedTransformers);
     }
 
-    private function rolesVote(array $roles): bool
-    {
-        if (!count($roles)) {
-            return true;
-        }
-        $negativeRoles = [];
-        $positiveRoles = [];
-        foreach ($roles as $role) {
-            if (strpos($role, '!') === 0) {
-                $negativeRoles[] = substr($role, 1);
-                continue;
-            }
-            $positiveRoles[] = $role;
-        }
-        $positivePass = count($positiveRoles) && $this->security->isGranted($positiveRoles);
-        $negativePass = count($negativeRoles) && !$this->security->isGranted($negativeRoles);
-        return $positivePass || $negativePass;
-    }
-
     public function normalize($object, $format = null, array $context = [])
     {
-        if (
-            ($restrictedResource = $this->isRestrictedResource($object)) &&
-            ($roles = $restrictedResource->getSecurityRoles()) !== null &&
-            !$this->rolesVote($roles)
-        ) {
+        if (!$this->restrictedResourceVoter->vote($object)) {
             return null;
         }
         $context[self::ALREADY_CALLED][] = $this->getId($object);
