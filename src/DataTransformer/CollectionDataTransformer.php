@@ -96,9 +96,23 @@ final class CollectionDataTransformer implements DataTransformerInterface
     {
         $filters = null;
 
+        $resetQueryString = false;
+        // Set the default querystring for the RequestParser class if we have not passed one in the request
+        if ($defaultQueryString = $object->getDefaultQueryString()) {
+            $qs = $request->server->get('QUERY_STRING');
+            if (!$qs) {
+                $resetQueryString = true;
+                $request->server->set('QUERY_STRING', $defaultQueryString);
+            }
+        }
+
         if (null === $filters = $request->attributes->get('_api_filters')) {
             $queryString = RequestParser::getQueryString($request);
             $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
+        }
+
+        if ($resetQueryString) {
+            $request->server->set('QUERY_STRING', '');
         }
 
         return $filters;
