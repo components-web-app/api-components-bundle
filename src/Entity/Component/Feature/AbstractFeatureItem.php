@@ -21,7 +21,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
     protected $title;
 
     /**
-     * @ORM\Column()
+     * @ORM\Column(nullable=true)
      * @Groups({"component", "content"})
      * @var string|null
      */
