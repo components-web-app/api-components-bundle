@@ -32,7 +32,7 @@ class Hero extends AbstractComponent implements FileInterface
     private $title;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", nullable=true)
      * @Groups({"content", "component"})
      * @var null|string
      */
