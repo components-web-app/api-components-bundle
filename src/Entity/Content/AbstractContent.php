@@ -19,12 +19,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\Table(name="content")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
- * @ORM\DiscriminatorMap({
- *     "abstract_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage",
- *     "static_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage",
- *     "dynamic_page" = "Silverback\ApiComponentBundle\Entity\Content\Page\DynamicPage",
- *     "component_group" = "Silverback\ApiComponentBundle\Entity\Content\ComponentGroup\ComponentGroup"
- * })
  */
 abstract class AbstractContent implements ContentInterface, RestrictedResourceInterface
 {
