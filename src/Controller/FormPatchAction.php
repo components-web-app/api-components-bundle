@@ -13,8 +13,13 @@ class FormPatchAction extends AbstractFormAction
     private function getNestedKey(FormInterface $form, array $formData): FormInterface
     {
         $child = $form->get($key = key($formData));
-        while(is_array($formData = $formData[$key]) && \count($formData) === 1) {
-            $child = $child->get($key = key($formData));
+        while(is_array($formData = $formData[$key]) && $count = \count($formData)) {
+            if ($count === 1) {
+                $child = $child->get($key = key($formData));
+                continue;
+            }
+            // front-end should submit empty objects for each item in a collection up to the one we are trying to validate
+            $child = $child->get($key = ($count - 1));
         }
         return $child;
     }
@@ -37,8 +42,8 @@ class FormPatchAction extends AbstractFormAction
         $dataCount = \count($formData);
         if ($dataCount === 1) {
             $formItem = $this->getNestedKey($form, $formData);
-            $data->setForm(new FormView($formItem->createView()));
-            return $this->getResponse($data, $_format, $this->getFormValid($data->getForm()));
+            $data->setForm($formView = new FormView($formItem->createView()));
+            return $this->getResponse($data, $_format, $this->getFormValid($formView));
         }
 
         $datum = [];
@@ -46,9 +51,9 @@ class FormPatchAction extends AbstractFormAction
         foreach ($formData as $key => $value) {
             $dataItem = clone $data;
             $formItem = $this->getNestedKey($form, $formData[$key]);
-            $dataItem->setForm(new FormView($formItem->createView()));
+            $dataItem->setForm($formView = new FormView($formItem->createView()));
             $datum[] = $dataItem;
-            if ($valid && !$this->getFormValid($dataItem->getForm())) {
+            if ($valid && !$this->getFormValid($formView)) {
                 $valid = false;
             }
         }
