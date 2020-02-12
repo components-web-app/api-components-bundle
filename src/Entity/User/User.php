@@ -30,7 +30,7 @@ abstract class User implements UserInterface
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email(groups={"Default"})
-     * @Groups({"default"})
+     * @Groups({"admin"})
      * @var string|null
      */
     protected $username;
@@ -42,7 +42,7 @@ abstract class User implements UserInterface
 
     /**
      * @ORM\Column(type="boolean")
-     * @Groups({"default"})
+     * @Groups({"admin"})
      */
     protected $enabled;
 
@@ -77,7 +77,7 @@ abstract class User implements UserInterface
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_username"})
      * @Assert\Email(groups={"new_username"})
-     * @Groups({"default"})
+     * @Groups({"default", "new_username"})
      * @var string|null
      */
     protected $newUsername;
@@ -95,6 +95,12 @@ abstract class User implements UserInterface
      * @var string|null
      */
     protected $oldPassword;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     * @var DateTime|null
+     */
+    protected $passwordLastUpdated;
 
     public function __construct(
         string $username = '',
@@ -128,7 +134,7 @@ abstract class User implements UserInterface
         return $this;
     }
 
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -190,7 +196,7 @@ abstract class User implements UserInterface
         $this->plainPassword = $plainPassword;
         if ($plainPassword) {
             // Needs to update mapped field to trigger update event which will encode the plain password
-            $this->password = null;
+            $this->passwordLastUpdated = new \DateTime();
         }
         return $this;
     }

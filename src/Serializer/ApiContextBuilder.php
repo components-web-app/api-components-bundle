@@ -16,6 +16,7 @@ use Silverback\ApiComponentBundle\Entity\Layout\Layout;
 use Silverback\ApiComponentBundle\Entity\Route\Route;
 use Silverback\ApiComponentBundle\Entity\SortableInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 
 class ApiContextBuilder implements SerializerContextBuilderInterface
 {
@@ -39,21 +40,13 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
      */
     private $decorated;
 
-    public function __construct(SerializerContextBuilderInterface $decorated)
+    private $security;
+
+    public function __construct(SerializerContextBuilderInterface $decorated, Security $security)
     {
         $this->decorated = $decorated;
+        $this->security = $security;
     }
-
-    /**
-     * @param string $group
-     * @param bool $normalization
-     * @return array
-     */
-    private function getGroupNames(string $group, bool $normalization): array
-    {
-        return [$group, $group . ($normalization ? '_read' : '_write')];
-    }
-
     /**
      * @param $className
      * @param $matchClassName
@@ -64,6 +57,12 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
         return $className === $matchClassName || is_subclass_of($className, $matchClassName);
     }
 
+    private function getGroupVariants(string $group, bool $normalization): array
+    {
+        $rw = ($normalization ? 'read' : 'write');
+        return [ $group, sprintf('%s_%s', $group, $rw) ];
+    }
+
     /**
      * @param string $subject
      * @param bool $normalization
@@ -72,11 +71,17 @@ class ApiContextBuilder implements SerializerContextBuilderInterface
     public function getGroups(string $subject, bool $normalization): array
     {
         /** @var string[] $groups */
-        $groups = [['default', 'default' . ($normalization ? '_read' : '_write')]];
+        $groups = [$this->getGroupVariants('default', $normalization)];
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $groups[] = $this->getGroupVariants('admin', $normalization);
+        }
+        if ($this->security->isGranted('ROLE_SUPER_ADMIN')) {
+            $groups[] = $this->getGroupVariants('super_admin', $normalization);
+        }
         foreach (self::CLASS_GROUP_MAPPING as $class => $groupMapping) {
             if ($this->matchClass($subject, $class)) {
                 foreach ($groupMapping as $group) {
-                    $groups[] = $this->getGroupNames($group, $normalization);
+                    $groups[] = $this->getGroupVariants($group, $normalization);
                 }
             }
         }

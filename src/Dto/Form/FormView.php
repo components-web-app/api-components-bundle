@@ -84,6 +84,9 @@ class FormView
             foreach ($formView->getIterator() as $view) {
                 $this->addChild($view);
             }
+            if (array_key_exists('prototype', $formView->vars)) {
+                $this->addChild($formView->vars['prototype']);
+            }
         }
     }
 

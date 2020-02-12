@@ -2,16 +2,22 @@
 
 namespace Silverback\ApiComponentBundle\Controller;
 
+use BadMethodCallException;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
+use LogicException;
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Form\Handler\ContextProviderInterface;
 use Silverback\ApiComponentBundle\Form\Handler\FormHandlerInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
+use Symfony\Component\Form\Exception\AlreadySubmittedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
+use UnexpectedValueException;
 
 class FormPostAction extends AbstractFormAction
 {
@@ -34,13 +40,12 @@ class FormPostAction extends AbstractFormAction
      * @param Request $request
      * @param Form $data
      * @return Response
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Symfony\Component\Form\Exception\AlreadySubmittedException
-     * @throws \UnexpectedValueException
-     * @throws \InvalidArgumentException
-     * @throws \Symfony\Component\Form\Exception\LogicException
-     * @throws \BadMethodCallException
-     * @throws \LogicException
+     * @throws BadRequestHttpException
+     * @throws AlreadySubmittedException
+     * @throws UnexpectedValueException
+     * @throws InvalidArgumentException
+     * @throws BadMethodCallException
+     * @throws LogicException
      */
     public function __invoke(Request $request, Form $data)
     {
