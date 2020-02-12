@@ -4,11 +4,21 @@ namespace Silverback\ApiComponentBundle\Controller;
 
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class FormPatchAction extends AbstractFormAction
 {
+    private function getNestedKey(FormInterface $form, array $formData): FormInterface
+    {
+        $child = $form->get($key = key($formData));
+        while(is_array($formData = $formData[$key]) && \count($formData) === 1) {
+            $child = $child->get($key = key($formData));
+        }
+        return $child;
+    }
+
     /**
      * @param Request $request
      * @param Form $data
@@ -26,7 +36,8 @@ class FormPatchAction extends AbstractFormAction
 
         $dataCount = \count($formData);
         if ($dataCount === 1) {
-            $data->setForm(new FormView($form->get(key($formData))->createView()));
+            $formItem = $this->getNestedKey($form, $formData);
+            $data->setForm(new FormView($formItem->createView()));
             return $this->getResponse($data, $_format, $this->getFormValid($data->getForm()));
         }
 
@@ -34,7 +45,8 @@ class FormPatchAction extends AbstractFormAction
         $valid = true;
         foreach ($formData as $key => $value) {
             $dataItem = clone $data;
-            $dataItem->setForm(new FormView($form->get($key)->createView()));
+            $formItem = $this->getNestedKey($form, $formData[$key]);
+            $dataItem->setForm(new FormView($formItem->createView()));
             $datum[] = $dataItem;
             if ($valid && !$this->getFormValid($dataItem->getForm())) {
                 $valid = false;
