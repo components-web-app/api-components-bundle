@@ -10,16 +10,39 @@ use Symfony\Component\HttpFoundation\Response;
 
 class FormPatchAction extends AbstractFormAction
 {
+    private function isAssocArray(array $arr): bool
+    {
+        if (array() === $arr) {
+            return false;
+        }
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
+    private function arrayIsStrings(array $arr): bool
+    {
+        foreach ($arr as $item) {
+            if (!is_string($item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private function getNestedKey(FormInterface $form, array $formData): FormInterface
     {
         $child = $form->get($key = key($formData));
         while(is_array($formData = $formData[$key]) && $count = \count($formData)) {
+            if (!$this->isAssocArray($formData) && $this->arrayIsStrings($formData)) {
+                break;
+            }
             if ($count === 1) {
                 $child = $child->get($key = key($formData));
                 continue;
             }
             // front-end should submit empty objects for each item in a collection up to the one we are trying to validate
-            $child = $child->get($key = ($count - 1));
+            // so let us just get the last item to validate
+            $key = ($count - 1);
+            $child = $child->get($key);
         }
         return $child;
     }
