@@ -19,7 +19,7 @@ abstract class AbstractPage extends AbstractContent implements PageInterface
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Content\Page\AbstractPage")
      * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
-     * @Groups({"route"})
+     * @Groups({"route", "component"})
      * @var null|StaticPage
      */
     protected $parent;

@@ -6,6 +6,7 @@ namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Security\RestrictedResourceVoter;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -79,7 +80,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
             return null;
         }
         $context[self::ALREADY_CALLED][] = $this->getId($object);
-        if ($object instanceof AbstractComponent || $object instanceof DynamicContent) {
+        if ($object instanceof AbstractComponent || $object instanceof DynamicContent || $object instanceof AbstractContent) {
             $context['groups'] = array_map(static function($grp) {
                 if (strpos($grp, 'route') === 0) {
                     return str_replace('route', 'component', $grp);
