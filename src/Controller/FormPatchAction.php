@@ -35,13 +35,15 @@ class FormPatchAction extends AbstractFormAction
             if (!$this->isAssocArray($formData) && $this->arrayIsStrings($formData)) {
                 break;
             }
-            if ($count === 1) {
-                $child = $child->get($key = key($formData));
-                continue;
-            }
             // front-end should submit empty objects for each item in a collection up to the one we are trying to validate
             // so let us just get the last item to validate
             $key = ($count - 1);
+
+            if ($count === 1 || !$child->has($key)) {
+                $child = $child->get($key = key($formData));
+                continue;
+            }
+
             $child = $child->get($key);
         }
         return $child;

@@ -35,10 +35,6 @@ class DynamicPage extends AbstractPage implements SortableInterface, ChildRouteI
      */
     protected $dynamicPageClass;
 
-    /**
-     * @Groups({"default"})
-     * @var bool
-     */
     protected $dynamic = true;
 
     public function getDynamicPageClass(): ?string
