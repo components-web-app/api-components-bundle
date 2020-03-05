@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DataTransformer;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Paginator;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
@@ -22,19 +23,22 @@ final class CollectionDataTransformer implements DataTransformerInterface
     private $operationPathResolver;
     private $dataProvider;
     private $itemNormalizer;
+    private $iriConverter;
 
     public function __construct(
         RequestStack $requestStack,
         ResourceMetadataFactoryInterface $resourceMetadataFactory,
         OperationPathResolverInterface $operationPathResolver,
         ContextAwareCollectionDataProviderInterface $dataProvider,
-        NormalizerInterface $itemNormalizer
+        NormalizerInterface $itemNormalizer,
+        IriConverterInterface $iriConverter
     ) {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->operationPathResolver = $operationPathResolver;
         $this->dataProvider = $dataProvider;
         $this->itemNormalizer = $itemNormalizer;
+        $this->iriConverter = $iriConverter;
     }
 
     /**
@@ -89,6 +93,12 @@ final class CollectionDataTransformer implements DataTransformerInterface
         if (\is_array($normalizedCollection)) {
             $object->setCollection($normalizedCollection);
         }
+
+        $resources = array_map(function ($object) {
+            return $this->iriConverter->getIriFromItem($object);
+        }, (array)$collection->getIterator());
+        $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
+
         return $object;
     }
 
@@ -131,8 +141,8 @@ final class CollectionDataTransformer implements DataTransformerInterface
                     $path = $baseRoute . $this->operationPathResolver->resolveOperationPath(
                         $shortName,
                         $collectionOperations[$method],
-                        OperationType::COLLECTION,
-                        $method
+                        OperationType::COLLECTION //,
+                        // $method
                     );
                     $finalPath = preg_replace('/{_format}$/', $format, $path);
                     $object->addCollectionRoute(
