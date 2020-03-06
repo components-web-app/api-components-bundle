@@ -259,7 +259,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     public function setParentComponentGroup(ComponentGroup $componentGroup): self
     {
         if (!$componentGroup->hasComponent($this)) {
-            $componentGroup->addComponentLocation(new ComponentLocation($componentGroup, $this));
+            $location = new ComponentLocation($componentGroup, $this);
+            $this->addLocation($location);
+            $componentGroup->addComponentLocation($location);
         }
         return $this;
     }
