@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form;
 
 use Silverback\ApiComponentBundle\Form\AbstractType;
@@ -16,9 +27,9 @@ class TestType extends AbstractType
             [
                 'csrf_protection' => false,
                 'attr' => [
-                    'novalidate' => 'novalidate'
+                    'novalidate' => 'novalidate',
                 ],
-                'post_app_proxy' => '/proxy'
+                'post_app_proxy' => '/proxy',
             ]
         );
     }
@@ -33,10 +44,10 @@ class TestType extends AbstractType
                     'constraints' => [
                         new NotBlank(
                             [
-                                'message' => 'Please provide your name'
+                                'message' => 'Please provide your name',
                             ]
                         ),
-                    ]
+                    ],
                 ]
             );
     }

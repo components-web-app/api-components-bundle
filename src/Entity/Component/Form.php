@@ -30,7 +30,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class Form extends AbstractComponent
 {
     public string $formType;
-    public string $successHandler;
 
     /** @ApiProperty(writable=false) */
     public FormView $form;
@@ -43,10 +42,6 @@ class Form extends AbstractComponent
                 new ACBAssert\FormTypeClass(),
                 new Assert\NotBlank(),
             ]
-        );
-        $metadata->addPropertyConstraint(
-            'successHandler',
-            new ACBAssert\FormHandlerClass()
         );
     }
 }

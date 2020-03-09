@@ -1,0 +1,26 @@
+Silverback\ApiComponentBundle\Entity\Component\Form:
+  collectionOperations:
+    get: ~
+    post: ~
+  itemOperations:
+    get: ~
+    delete: ~
+    put: ~
+    patch:
+      method: PATCH
+      path: '/forms/{id}/submit.{_format}'
+      requirements:
+        id: '[^/]+'
+      denormalization_context:
+        groups:
+          - none
+      controller: 'Silverback\ApiComponentBundle\Action\FormPostPatchAction'
+    post:
+      method: POST
+      path: '/forms/{id}/submit.{_format}'
+      requirements:
+        id: '[^/]+'
+      denormalization_context:
+        groups:
+          - none
+      controller: 'Silverback\ApiComponentBundle\Action\FormPostPatchAction'

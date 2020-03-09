@@ -39,18 +39,21 @@ trait SortableTrait
         if ($sortLast) {
             return $this->getLastSortValue($collection);
         }
+
         return $this->getFirstSortValue($collection);
     }
 
     private function getLastSortValue(Collection $collection): int
     {
         $lastItem = $collection->last();
+
         return ($sortValue = $this->getSortValue($lastItem)) ? ($sortValue + 1) : 0;
     }
 
     private function getFirstSortValue(Collection $collection): int
     {
         $firstItem = $collection->first();
+
         return ($sortValue = $this->getSortValue($firstItem)) ? ($sortValue - 1) : 0;
     }
 
@@ -59,6 +62,7 @@ trait SortableTrait
         if (!$this->propertyAccessor) {
             $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         }
+
         return $this->propertyAccessor->getValue($object, 'sort');
     }
 

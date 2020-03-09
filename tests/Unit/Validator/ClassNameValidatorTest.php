@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentBundle\Tests\Unit\Validator;
 
 use PHPUnit\Framework\TestCase;
@@ -19,7 +30,7 @@ class ClassNameValidatorTest extends TestCase
 
     private ProxyInterface $proxy;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->class = new FileComponent();
         $factory = new LazyLoadingValueHolderFactory(new Configuration());
@@ -34,7 +45,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function test_class_same_validation_success(): void
+    public function testClassSameValidationSuccess(): void
     {
         $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->class));
         $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->proxy));
@@ -44,7 +55,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function test_class_same_validation_invalid_classname(): void
+    public function testClassSameValidationInvalidClassname(): void
     {
         $this->expectException(InvalidArgumentException::class);
         ClassNameValidator::isClassSame('NotAClass', $this->class);
@@ -53,7 +64,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function test_class_same_validation_fail(): void
+    public function testClassSameValidationFail(): void
     {
         $this->assertFalse(ClassNameValidator::isClassSame(TestHandler::class, $this->class));
     }
@@ -61,7 +72,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function test_validate(): void
+    public function testValidate(): void
     {
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, $this->proxy]));
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, 'NotAnObject']));

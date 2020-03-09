@@ -16,6 +16,8 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 use Exception;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
+use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -46,19 +48,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     private function loadServiceConfig(ContainerBuilder $container): void
     {
-//        $container->registerForAutoconfiguration(FormHandlerInterface::class)
-//            ->addTag('silverback_api_component.form_handler')
-//            ->setLazy(true);
-//
+        // This will be replaced with event systems...
 //        $container->registerForAutoconfiguration(DataTransformerInterface::class)
 //            ->addTag('silverback_api_component.data_transformer')
 //        ;
-//
-//        $container->registerForAutoconfiguration(FormTypeInterface::class)
-//            ->addTag('silverback_api_component.form_type');
-//
-//        $container->registerForAutoconfiguration(ComponentInterface::class)
-//            ->addTag('silverback_api_component.entity.component');
+
+        $container->registerForAutoconfiguration(FormTypeInterface::class)
+            ->addTag('silverback_api_component.form_type');
+
+        $container->registerForAutoconfiguration(ComponentInterface::class)
+            ->addTag('silverback_api_component.entity.component');
 
         $loader = new PhpFileLoader(
             $container,

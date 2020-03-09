@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Dto\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 
 /**
@@ -60,18 +61,50 @@ final class FormView
     private Collection $children;
     private bool $rendered;
     private bool $methodRendered;
+    private FormInterface $rootForm;
 
-    public function __construct(SymfonyFormView $formView, bool $children = true)
+    public function __construct(FormInterface $rootForm, SymfonyFormView $formView = null, bool $children = true)
     {
-        $this->rendered = $formView->isRendered();
-        $this->methodRendered = $formView->isMethodRendered();
-        $this->processViewVars($formView);
-        if ($children) {
-            $this->children = new ArrayCollection();
-            foreach ($formView->getIterator() as $view) {
-                $this->addChild($view);
-            }
+        $this->setRootForm($rootForm, $formView, $children);
+    }
+
+    public function getVars(): array
+    {
+        return $this->vars;
+    }
+
+    public function getChildren(): Collection
+    {
+        return $this->children;
+    }
+
+    public function isRendered(): bool
+    {
+        return $this->rendered;
+    }
+
+    public function isMethodRendered(): bool
+    {
+        return $this->methodRendered;
+    }
+
+    public function getRootForm(): FormInterface
+    {
+        return $this->rootForm;
+    }
+
+    public function setRootForm(FormInterface $rootForm, SymfonyFormView $formView = null, bool $children = true): self
+    {
+        if (!$this->rootForm->isRoot()) {
+            throw new \InvalidArgumentException('The $rootForm cannot be set. The supplied Form is not the root.');
         }
+        $this->rootForm = $rootForm;
+        if (!$formView) {
+            $formView = $rootForm->createView();
+        }
+        $this->initFormView($formView, $children);
+
+        return $this;
     }
 
     private function processViewVars(SymfonyFormView $formView): void
@@ -103,27 +136,20 @@ final class FormView
 
     private function addChild(SymfonyFormView $formViews): void
     {
-        $formView = new self($formViews);
+        $formView = new self($this->rootForm, $formViews);
         $this->children->add($formView);
     }
 
-    public function getVars(): array
+    private function initFormView(SymfonyFormView $formView, bool $children = true): void
     {
-        return $this->vars;
-    }
-
-    public function getChildren(): Collection
-    {
-        return $this->children;
-    }
-
-    public function isRendered(): bool
-    {
-        return $this->rendered;
-    }
-
-    public function isMethodRendered(): bool
-    {
-        return $this->methodRendered;
+        $this->rendered = $formView->isRendered();
+        $this->methodRendered = $formView->isMethodRendered();
+        $this->processViewVars($formView);
+        if ($children) {
+            $this->children = new ArrayCollection();
+            foreach ($formView->getIterator() as $view) {
+                $this->addChild($view);
+            }
+        }
     }
 }
