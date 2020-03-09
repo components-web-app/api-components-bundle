@@ -6,6 +6,7 @@ namespace Silverback\ApiComponentBundle\Dto\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -74,8 +75,16 @@ class FormView
      */
     private $methodRendered;
 
-    public function __construct(SymfonyFormView $formView, bool $children = true)
+    private $form;
+
+    public function __construct(SymfonyFormView $formView, FormInterface $form, bool $children = true)
     {
+        $this->init($formView, $form, $children);
+    }
+
+    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true)
+    {
+        $this->form = $form;
         $this->rendered = $formView->isRendered();
         $this->methodRendered = $formView->isMethodRendered();
         $this->processViewVars($formView);
@@ -119,7 +128,7 @@ class FormView
 
     private function addChild(SymfonyFormView $formViews): void
     {
-        $formView = new FormView($formViews);
+        $formView = new FormView($formViews, $this->form);
         $this->children->add($formView);
     }
 
@@ -153,5 +162,16 @@ class FormView
     public function isMethodRendered(): bool
     {
         return $this->methodRendered;
+    }
+
+    public function getForm(): FormInterface
+    {
+        return $this->form;
+    }
+
+    public function setForm(FormInterface $form): self
+    {
+        $this->init($form->createView(), $form, true);
+        return $this;
     }
 }

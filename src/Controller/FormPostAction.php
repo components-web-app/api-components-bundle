@@ -60,7 +60,7 @@ class FormPostAction extends AbstractFormAction
             return $this->getResponse($data, $_format, false);
         }
         $valid = $form->isValid();
-        $data->setForm(new FormView($form->createView()));
+        $data->setForm(new FormView($form->createView(), $form));
         $context = null;
         if ($valid && $data->getSuccessHandler()) {
             foreach ($this->handlers as $handler) {

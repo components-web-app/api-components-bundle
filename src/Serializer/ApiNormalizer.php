@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Silverback\ApiComponentBundle\DataTransformer\DataTransformerInterface;
+use Silverback\ApiComponentBundle\DataTransformer\SortableDataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
@@ -62,6 +63,31 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, NormalizerAwareI
                 $this->supportedTransformers[] = $transformer;
             }
         }
+
+        $sortedTransformers = [];
+        foreach ($this->supportedTransformers as $transformer) {
+            if ($transformer instanceof SortableDataTransformerInterface) {
+                $sortedTransformers[] = [
+                    $transformer,
+                    $transformer->getSortOrder()
+                ];
+            } else {
+                $sortedTransformers[] = [
+                    $transformer,
+                    0
+                ];
+            }
+        }
+        usort($sortedTransformers, static function($a, $b) {
+            if ($a[1] === $b[1]) {
+                return 0;
+            }
+            return ($a[1] < $b[1]) ? -1 : 1;
+        });
+        $sortedTransformers = array_map(static function ($t) {
+            return $t[0];
+        }, $sortedTransformers);
+        $this->supportedTransformers = $sortedTransformers;
 
         if ($data instanceof AbstractComponent) {
             return true;

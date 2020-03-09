@@ -70,7 +70,7 @@ class FormPatchAction extends AbstractFormAction
         $dataCount = \count($formData);
         if ($dataCount === 1) {
             $formItem = $this->getNestedKey($form, $formData);
-            $data->setForm($formView = new FormView($formItem->createView()));
+            $data->setForm($formView = new FormView($formItem->createView(), $formItem));
             return $this->getResponse($data, $_format, $this->getFormValid($formView));
         }
 
@@ -79,7 +79,7 @@ class FormPatchAction extends AbstractFormAction
         foreach ($formData as $key => $value) {
             $dataItem = clone $data;
             $formItem = $this->getNestedKey($form, $formData[$key]);
-            $dataItem->setForm($formView = new FormView($formItem->createView()));
+            $dataItem->setForm($formView = new FormView($formItem->createView(), $formItem));
             $datum[] = $dataItem;
             if ($valid && !$this->getFormValid($formView)) {
                 $valid = false;
