@@ -73,7 +73,11 @@ class DiscriminatorMappingExtension
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
         $classMetadata = $eventArgs->getClassMetadata();
-        $reflectionName = $classMetadata->getReflectionClass()->getName();
+        $reflection = $classMetadata->getReflectionClass();
+        if (!$reflection) {
+            return;
+        }
+        $reflectionName = $reflection->getName();
         if ($reflectionName !== AbstractComponent::class && $reflectionName !== DynamicContent::class) {
             return;
         }
