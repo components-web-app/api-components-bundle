@@ -52,4 +52,17 @@ trait TimestampedTrait
     {
         return $this->created;
     }
+
+    /** @return static */
+    public function setModified(DateTime $modified)
+    {
+        $this->modified = $modified;
+
+        return $this;
+    }
+
+    public function getModified(): ?DateTime
+    {
+        return $this->modified;
+    }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
+use DateTime;
 use DateTimeImmutable;
 
 /**
@@ -23,4 +24,8 @@ interface TimestampedInterface
     public function setCreated(DateTimeImmutable $created);
 
     public function getCreated(): ?DateTimeImmutable;
+
+    public function setModified(DateTime $modified);
+
+    public function getModified(): ?DateTime;
 }

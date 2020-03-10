@@ -18,7 +18,8 @@
         "ramsey/uuid": "^3.9",
         "symfony/console": "^4.4",
         "symfony/form": "^4.4",
-        "symfony/framework-bundle": "^4.4"
+        "symfony/framework-bundle": "^4.4",
+        "symfony/serializer": "^5"
     },
     "require-dev": {
         "justinrainbow/json-schema": "^5.2",

@@ -17,7 +17,6 @@ use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 
 /**
@@ -42,8 +41,6 @@ class TimestampedListener
         if (!$this->entityManager->contains($entity)) {
             $entity->setCreated(new DateTimeImmutable());
         }
-        if (in_array(TimestampedTrait::class, class_uses($entity), true)) {
-            $entity->modified = new DateTime();
-        }
+        $entity->setModified(new DateTime());
     }
 }

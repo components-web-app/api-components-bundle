@@ -23,6 +23,9 @@ use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
+use function get_class;
+use function in_array;
+use function is_object;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -41,14 +44,14 @@ class ApiNormalizer implements NormalizerAwareInterface, ContextAwareNormalizerI
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         if (!isset($context[self::ALREADY_CALLED])) {
             $context[self::ALREADY_CALLED] = [];
         }
 
-        return !(!\is_object($data) ||
-            \in_array($this->getResourceId($data), $context[self::ALREADY_CALLED], true));
+        return !(!is_object($data) ||
+            in_array($this->getResourceId($data), $context[self::ALREADY_CALLED], true));
     }
 
     public function normalize($resource, string $format = null, array $context = [])
@@ -69,7 +72,7 @@ class ApiNormalizer implements NormalizerAwareInterface, ContextAwareNormalizerI
     private function getResourceId($object)
     {
         try {
-            return \get_class($object) . '/' . $this->propertyAccessor->getValue($object, 'id');
+            return get_class($object) . '/' . $this->propertyAccessor->getValue($object, 'id');
         } catch (NoSuchPropertyException $e) {
             return true;
         }
