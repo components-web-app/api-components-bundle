@@ -1,40 +1,40 @@
 language: php
 env:
   global:
-  - SYMFONY_DEPRECATIONS_HELPER=disabled
-  - SYMFONY_PHPUNIT_VERSION=7.4
-  # infection api key
-  - secure: Rm6m9kLpaojG9Wp2UpQ5QHTGxL+WSJeIBcTllV4TLPm1DMRFNes0NcZlRfMKLGhi4zItW/BrwSKaP8ytC19PpAZOIvVzMZAlIFK/jNaBJPhjF8llUw+JaW4GpKi8aCtHipUNXTdqLLNhvtzbnoFSQ+Wja375PCUPRinlq3TVYzAW6mD8li25Z+9CBTvc5Lqt0h+HJ7Ez+nEbPVxRRqKLTokNZ1rpWpRUDsopc2p0SRApE04KJ2SVCLjtaZh955tEjkO4xg6M2rOLqEBoYm83hhEwO6ozyofGwwYhcts352R2W3ZSnzTOIDPPMsr/YCoScgUbjj/WjhW2mWh3XI/wrSHcIZSPueTLWrJbdlZtGV7JQVEJ2D+tThqhrfJ1rGqw3yUoJJvojuvZe7kN0TP6+KXXmEBrTlikA54lWAgSpTztK/L0VBVMofqI0CIm+EsbY4cr4Np5OHP/xtsrab4GP0Ah/22Mnpb3xQf9PJA+EP6aMCJj8KeLRKasA1qZi8AYaMYBlHm233c/Nteqe32sYGOLqWrbX4ohmR8gEtznXc2p1r59lErkiDUpUMt25q7ivRMo/yYmt26J2aeuslYm5hCKsKgqdvun35xePkLkLjSTCZ8r9P/8yoA5ZiVXask6lYP4usrAKrQr2U6yNwGS4Lqxs/nas1zxHAzaX/Ro3uo=
+    - SYMFONY_DEPRECATIONS_HELPER=disabled
+    - SYMFONY_PHPUNIT_VERSION=7.4
+    # infection api key
+    - secure: Rm6m9kLpaojG9Wp2UpQ5QHTGxL+WSJeIBcTllV4TLPm1DMRFNes0NcZlRfMKLGhi4zItW/BrwSKaP8ytC19PpAZOIvVzMZAlIFK/jNaBJPhjF8llUw+JaW4GpKi8aCtHipUNXTdqLLNhvtzbnoFSQ+Wja375PCUPRinlq3TVYzAW6mD8li25Z+9CBTvc5Lqt0h+HJ7Ez+nEbPVxRRqKLTokNZ1rpWpRUDsopc2p0SRApE04KJ2SVCLjtaZh955tEjkO4xg6M2rOLqEBoYm83hhEwO6ozyofGwwYhcts352R2W3ZSnzTOIDPPMsr/YCoScgUbjj/WjhW2mWh3XI/wrSHcIZSPueTLWrJbdlZtGV7JQVEJ2D+tThqhrfJ1rGqw3yUoJJvojuvZe7kN0TP6+KXXmEBrTlikA54lWAgSpTztK/L0VBVMofqI0CIm+EsbY4cr4Np5OHP/xtsrab4GP0Ah/22Mnpb3xQf9PJA+EP6aMCJj8KeLRKasA1qZi8AYaMYBlHm233c/Nteqe32sYGOLqWrbX4ohmR8gEtznXc2p1r59lErkiDUpUMt25q7ivRMo/yYmt26J2aeuslYm5hCKsKgqdvun35xePkLkLjSTCZ8r9P/8yoA5ZiVXask6lYP4usrAKrQr2U6yNwGS4Lqxs/nas1zxHAzaX/Ro3uo=
 jobs:
   include:
-  - php: '7.4'
-  - php: '7.4'
-    env: deps=low
-  - php: '7.4'
-    env: SYMFONY_DEPRECATIONS_HELPER=0
+    - php: 7.4
+    - php: 7.4
+      env: deps=low
+    - php: 7.4
+      env: SYMFONY_DEPRECATIONS_HELPER=0
   allow_failures:
-  - php: '7.4'
-    env: SYMFONY_DEPRECATIONS_HELPER=0
-matrix:
-  fast_finish: true
+    - php: 7.4
+      env: SYMFONY_DEPRECATIONS_HELPER=0
+#matrix:
+#  fast_finish: true
 before_install:
-- phpenv config-add travis.php.ini
-- export PATH="$PATH:$HOME/.composer/vendor/bin"
+  - phpenv config-add travis.php.ini
+  - export PATH="$PATH:$HOME/.composer/vendor/bin"
 install:
-- if [[ $deps = 'low' ]]; then composer update --prefer-dist --no-suggest --ansi --prefer-stable
-  --prefer-lowest; else composer update --prefer-dist --no-suggest --ansi; fi
+  - if [[ $deps = 'low' ]]; then composer update --prefer-dist --no-suggest --ansi --prefer-stable
+    --prefer-lowest; else composer update --prefer-dist --no-suggest --ansi; fi
 before_script:
-- composer install --prefer-source
-- wget https://github.com/infection/infection/releases/download/0.15.0/infection.phar
-- wget https://github.com/infection/infection/releases/download/0.15.0/infection.phar.asc
-- gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
-- gpg --with-fingerprint --verify infection.phar.asc infection.phar
-- chmod +x infection.phar
+  - composer install --prefer-source
+  - wget https://github.com/infection/infection/releases/download/0.15.0/infection.phar
+  - wget https://github.com/infection/infection/releases/download/0.15.0/infection.phar.asc
+  - gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
+  - gpg --with-fingerprint --verify infection.phar.asc infection.phar
+  - chmod +x infection.phar
 script:
-- vendor/bin/simple-phpunit --coverage-clover=coverage.xml
-- if [[ $deps != 'low' ]]; then ./infection.phar --min-msi=0 --min-covered-msi=0 --threads=4; fi
+  - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+  - if [[ $deps != 'low' ]]; then ./infection.phar --min-msi=0 --min-covered-msi=0 --threads=4; fi
 notifications:
   email:
-  - daniel@silverback.is
+    - daniel@silverback.is
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)
