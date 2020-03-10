@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Tests\config;
 
 use Psr\Log\LoggerInterface;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -27,18 +26,9 @@ return static function (ContainerConfigurator $container) {
         ->private();
 
     $services
-        ->set(TestHandler::class)
-        ->tag('silverback_api_component.form_handler');
-
-    $services
         ->alias('test.logger', LoggerInterface::class)
         ->public();
 
     $services
         ->set(TestType::class);
-
-    // To test it has been called from behat - not required in actual application
-    $services
-        ->set(TestHandler::class)
-        ->public();
 };

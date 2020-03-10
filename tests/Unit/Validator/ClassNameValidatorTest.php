@@ -20,7 +20,6 @@ use ProxyManager\Proxy\ProxyInterface;
 use ReflectionException;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileComponent;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestHandler;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
@@ -64,18 +63,9 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function testClassSameValidationFail(): void
-    {
-        $this->assertFalse(ClassNameValidator::isClassSame(TestHandler::class, $this->class));
-    }
-
-    /**
-     * @throws ReflectionException
-     */
     public function testValidate(): void
     {
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, $this->proxy]));
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, 'NotAnObject']));
-        $this->assertFalse(ClassNameValidator::validate(TestHandler::class, [$this->class]));
     }
 }
