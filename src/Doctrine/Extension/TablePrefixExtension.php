@@ -47,6 +47,7 @@ class TablePrefixExtension
     {
         $converter = new CamelCaseToSnakeCaseNameConverter();
         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
+            dump($this->prefix . $converter->normalize($classMetadata->getTableName()));
             $classMetadata->setPrimaryTable([
                 'name' => $this->prefix . $converter->normalize($classMetadata->getTableName()),
             ]);
