@@ -43,7 +43,7 @@ class FormSubmitHandler
         $this->serializer = $serializer;
     }
 
-    public function handle(Request $request, Form $formResource, ?string $_format): Response
+    public function handle(Request $request, Form $formResource, string $_format): Response
     {
         $builder = $this->formFactory->create($formResource);
         $form = $builder->getForm();
@@ -57,7 +57,7 @@ class FormSubmitHandler
         return $this->handlePost($formResource, $form, $_format);
     }
 
-    private function handlePatch(Form $formResource, FormInterface $form, $_format, array $formData): Response
+    private function handlePatch(Form $formResource, FormInterface $form, string $_format, array $formData): Response
     {
         $isFormViewValid = static function (FormView $formView): bool {
             return $formView->getVars()['valid'];
@@ -86,7 +86,7 @@ class FormSubmitHandler
         return $this->getResponse($formResources, $_format, $valid);
     }
 
-    private function handlePost(Form $formResource, FormInterface $form, $_format): Response
+    private function handlePost(Form $formResource, FormInterface $form, string $_format): Response
     {
         $valid = $form->isValid();
         $formResource->form = new FormView($form);
@@ -161,8 +161,8 @@ class FormSubmitHandler
 
     private function getResponse(
         $data,
-        $_format,
-        $valid,
+        string $_format,
+        bool $valid,
         ?array $context = null
     ): Response {
         $response = new Response();

@@ -25,5 +25,7 @@ final class ApiComponentBundleEvents
      *
      * @Event("Silverback\ApiComponentBundle\Event\FormSuccessEvent")
      */
-    public const FORM_SUCCESS = 'form.success';
+    public const FORM_SUCCESS = 'api_component.form.success';
+
+    public const COMMAND_LOG = 'api_component.command_log';
 }

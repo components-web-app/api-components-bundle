@@ -52,7 +52,7 @@ class FileRequestHandler
         $this->serializer = $serializer;
     }
 
-    public function handle(Request $request, ?string $_format, string $field, string $id): Response
+    public function handle(Request $request, string $_format, string $field, string $id): Response
     {
         try {
             $routeParams = $this->getRouteParamsByIri($request, $id);
@@ -79,7 +79,7 @@ class FileRequestHandler
         }
     }
 
-    private function getSerializedResourceResponse(FileInterface $entity, ?string $_format, string $requestMethod, ResourceMetadata $resourceMetadata): Response
+    private function getSerializedResourceResponse(FileInterface $entity, string $_format, string $requestMethod, ResourceMetadata $resourceMetadata): Response
     {
         $serializerGroups = $resourceMetadata->getOperationAttribute(
             ['item_operation_name' => $requestMethod],

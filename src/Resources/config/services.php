@@ -17,7 +17,9 @@ use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
+use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
@@ -40,6 +42,14 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(RouteRepository::class)
         ->args([ref(ManagerRegistry::class)]);
+
+    $services
+        ->set(LayoutRepository::class)
+        ->args([ref(ManagerRegistry::class)]);
+
+    $services
+        ->set(FormCachePurgeCommand::class)
+        ->tag('console.command');
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
