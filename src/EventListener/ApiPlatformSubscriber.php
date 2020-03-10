@@ -25,14 +25,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class ApiPlatformSubscriber implements EventSubscriberInterface
 {
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::VIEW => ['callComponentPopulators', EventPriorities::PRE_SERIALIZE],
         ];
     }
 
-    public function callComponentPopulators(ViewEvent $event)
+    public function callComponentPopulators(ViewEvent $event): void
     {
         $route = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();

@@ -47,7 +47,6 @@ class TablePrefixExtension
     {
         $converter = new CamelCaseToSnakeCaseNameConverter();
         if (!$classMetadata->isInheritanceTypeSingleTable() || $classMetadata->getName() === $classMetadata->rootEntityName) {
-            dump($this->prefix . $converter->normalize($classMetadata->getTableName()));
             $classMetadata->setPrimaryTable([
                 'name' => $this->prefix . $converter->normalize($classMetadata->getTableName()),
             ]);
@@ -57,7 +56,7 @@ class TablePrefixExtension
     private function setJoinTableName(ClassMetadata $classMetadata): void
     {
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
-            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide']) {
+            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide'] && !\array_key_exists('inherited', $mapping)) {
                 $mappedTableName = $mapping['joinTable']['name'];
                 $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
             }
