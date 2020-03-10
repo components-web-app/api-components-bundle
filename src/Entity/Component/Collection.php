@@ -13,11 +13,33 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @ORM\Entity
  */
 class Collection extends AbstractComponent
 {
+    /**
+     * @var array|Traversable
+     */
+    private $collection;
+
+    public function getCollection()
+    {
+        return $this->collection;
+    }
+
+    public function setCollection($collection): self
+    {
+        if (!$collection instanceof Traversable && !\is_array($collection)) {
+            return $this;
+        }
+        $this->collection = $collection;
+
+        return $this;
+    }
 }

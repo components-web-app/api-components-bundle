@@ -37,6 +37,9 @@ class FormTypeClassValidator extends ConstraintValidator
     /** @throws ReflectionException */
     public function validate($value, Constraint $constraint): void
     {
+        if (!$value) {
+            return;
+        }
         try {
             $valid = ClassNameValidator::validate($value, $this->formTypes);
             if (!$valid) {

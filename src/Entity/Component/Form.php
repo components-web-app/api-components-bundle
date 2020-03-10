@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
@@ -24,11 +23,15 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
  * @ORM\Entity
  */
 class Form extends AbstractComponent
 {
+    /**
+     * @ORM\Column(nullable=false)
+     *
+     * @var string
+     */
     public string $formType;
 
     /** @ApiProperty(writable=false) */
@@ -39,8 +42,8 @@ class Form extends AbstractComponent
         $metadata->addPropertyConstraints(
             'formType',
             [
-                new ACBAssert\FormTypeClass(),
                 new Assert\NotBlank(),
+                new ACBAssert\FormTypeClass(),
             ]
         );
     }
