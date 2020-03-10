@@ -36,7 +36,7 @@ class FileUploader
     private ValidatorInterface $validator;
     private ApiValidator $apiValidator;
     private PropertyAccessor $propertyAccessor;
-    private array $rootPath;
+    private string $rootPath;
 
     public function __construct(
         EntityManagerInterface $em,

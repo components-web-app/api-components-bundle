@@ -79,7 +79,7 @@ class FileRequestHandler
         }
     }
 
-    private function getSerializedResourceResponse(FileInterface $entity, string $_format, string $requestMethod, ResourceMetadata $resourceMetadata): Response
+    private function getSerializedResourceResponse(FileInterface $entity, ?string $_format, string $requestMethod, ResourceMetadata $resourceMetadata): Response
     {
         $serializerGroups = $resourceMetadata->getOperationAttribute(
             ['item_operation_name' => $requestMethod],
