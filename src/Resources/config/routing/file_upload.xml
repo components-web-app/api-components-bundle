@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="api_component_file_upload" path="/files/{field}/{id}.{_format}"
+           controller="Silverback\ApiComponentBundle\Action\FileAction"
+           methods="POST|PUT|GET">
+        <requirement key="field">\w+</requirement>
+        <requirement key="id">.+</requirement>
+        <default key="_format">jsonld</default>
+    </route>
+</routes>

@@ -43,15 +43,13 @@ class FormSubmitHandler
         $this->serializer = $serializer;
     }
 
-    public function handle(Request $request, Form $formResource): Response
+    public function handle(Request $request, Form $formResource, ?string $_format): Response
     {
-        $contentType = $request->headers->get('CONTENT_TYPE');
         $builder = $this->formFactory->create($formResource);
         $form = $builder->getForm();
         $formData = $this->deserializeFormData($form, $request->getContent());
         $isPatchRequest = Request::METHOD_PATCH === $request->getMethod();
         $form->submit($formData, !$isPatchRequest);
-        $_format = $request->attributes->get('_format') ?: $request->getFormat($contentType);
         if ($isPatchRequest) {
             return $this->handlePatch($formResource, $form, $_format, $formData);
         }

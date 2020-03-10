@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Action;
 
+use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,17 +21,17 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class FormPostPatchAction
+class FormPostPatchAction extends AbstractAction
 {
-    protected FormSubmitHandler $formSubmitHandler;
+    private FormSubmitHandler $formSubmitHandler;
 
-    public function __construct(FormSubmitHandler $formSubmitHandler)
+    public function __construct(FormSubmitHandler $formSubmitHandler, ItemDataProviderInterface $itemDataProvider)
     {
         $this->formSubmitHandler = $formSubmitHandler;
     }
 
     public function __invoke(Request $request, Form $data)
     {
-        $this->formSubmitHandler->handle($request, $data);
+        $this->formSubmitHandler->handle($request, $data, self::getRequestFormat($request));
     }
 }
