@@ -90,7 +90,7 @@ class FormSubmitHandler
     {
         $valid = $form->isValid();
         $formResource->form = new FormView($form);
-        $context = null;
+        $context = [];
         if ($valid) {
             $event = new FormSuccessEvent($formResource, $form);
             $this->eventDispatcher->dispatch($event, ApiComponentBundleEvents::FORM_SUCCESS);
@@ -163,12 +163,9 @@ class FormSubmitHandler
         $data,
         string $_format,
         bool $valid,
-        ?array $context = null
+        array $context = []
     ): Response {
         $response = new Response();
-//        if (!$context) {
-//            $context = ['groups' => ['component']];
-//        }
         $response->setStatusCode($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
         $response->setContent($this->serializer->serialize($data, $_format, $context));
 
