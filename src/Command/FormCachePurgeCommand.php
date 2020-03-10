@@ -1,10 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Command;
 
-use Silverback\ApiComponentBundle\ApiComponentBundleEvents;
 use Silverback\ApiComponentBundle\Event\CommandLogEvent;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Symfony\Component\Console\Command\Command;
@@ -39,14 +47,12 @@ class FormCachePurgeCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|null|void
+     * @return int|void|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->dispatcher->addListener(
-            ApiComponentBundleEvents::COMMAND_LOG,
+            CommandLogEvent::class,
             static function (CommandLogEvent $event) use ($output) {
                 $output->writeln($event->getSubject());
             }

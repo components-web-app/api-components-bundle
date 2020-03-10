@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use InvalidArgumentException;
+use JsonException;
 use Silverback\ApiComponentBundle\ApiComponentBundleEvents;
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
@@ -104,7 +105,7 @@ class FormSubmitHandler
     {
         try {
             $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR | 0);
-        } catch (\JsonException $exception) {
+        } catch (JsonException $exception) {
             throw new InvalidArgumentException('json_decode error: ' . $exception->getMessage());
         }
         if (!isset($decoded[$form->getName()])) {
@@ -117,11 +118,7 @@ class FormSubmitHandler
     private function getChildFormByKey(FormInterface $form, array $formData): FormInterface
     {
         $child = $form->get($key = key($formData));
-        while (\is_array($formData = $formData[$key]) && $count = \count($formData)) {
-            if (!$this->isAssocArray($formData) && $this->arrayIsStrings($formData)) {
-                break;
-            }
-
+        while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = \count($formData)) {
             if (1 === $count) {
                 $child = $child->get($key = key($formData));
                 continue;
@@ -137,6 +134,11 @@ class FormSubmitHandler
         }
 
         return $child;
+    }
+
+    private function isSequentialStringsArray($data): bool
+    {
+        return \is_array($data) && !$this->isAssocArray($data) && $this->arrayIsStrings($data);
     }
 
     private function isAssocArray(array $arr): bool
