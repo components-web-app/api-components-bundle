@@ -23,6 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
@@ -38,7 +39,6 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
 /*
  * @author Daniel West <daniel@silverback.is>
@@ -91,11 +91,22 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(LayoutRepository::class)
-        ->args([ref(ManagerRegistry::class)]);
+        ->args([
+            new Reference(ManagerRegistry::class)
+        ]);
+
+    $services
+        ->set(PageTemplateOutputDataTransformer::class)
+        ->tag('api_platform.data_transformer')
+        ->args([
+            new Reference(LayoutRepository::class)
+        ]);
 
     $services
         ->set(RouteRepository::class)
-        ->args([ref(ManagerRegistry::class)]);
+        ->args([
+            new Reference(ManagerRegistry::class)
+        ]);
 
     $services
         ->set(TablePrefixExtension::class)

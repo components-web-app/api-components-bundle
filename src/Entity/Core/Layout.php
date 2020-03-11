@@ -43,6 +43,11 @@ class Layout implements TimestampedInterface
      */
     public Collection $pageTemplates;
 
+    /**
+     * @ORM\Column(name="`default`", type="boolean", nullable=false)
+     */
+    public bool $default;
+
     public function __construct()
     {
         $this->setId();

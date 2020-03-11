@@ -19,7 +19,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
+ * @ApiResource(attributes={"output": "Silverback\ApiComponentBundle\Entity\Core\PageTemplate"})
  * @ORM\Entity
  * @ORM\AssociationOverrides({
  *     @ORM\AssociationOverride(name="routes", inversedBy="pageTemplate"),

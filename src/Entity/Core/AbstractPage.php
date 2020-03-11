@@ -30,9 +30,9 @@ abstract class AbstractPage implements TimestampedInterface
     /**
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
      *
-     * @var Route
+     * @var null|Route
      */
-    public Route $routes;
+    public ?Route $routes;
 
     /**
      * @ORM\Column()
