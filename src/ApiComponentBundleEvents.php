@@ -26,13 +26,4 @@ final class ApiComponentBundleEvents
      * @Event("Silverback\ApiComponentBundle\Event\FormSuccessEvent")
      */
     public const FORM_SUCCESS = 'api_component.form.success';
-
-    /**
-     * The PRE_SERIALIZE event occurs immediately before a resource is normalized.
-     *
-     * This event allows you to modify the resource before the API responds with the data.
-     *
-     * @Event("Silverback\ApiComponentBundle\Event\PreNormalizeEvent")
-     */
-    public const PRE_NORMALIZE = 'api_component.data.pre_normalize';
 }

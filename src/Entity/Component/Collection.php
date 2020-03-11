@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
-use Traversable;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,21 +24,53 @@ use Traversable;
 class Collection extends AbstractComponent
 {
     /**
-     * @var array|Traversable
+     * @ORM\Column(nullable=false)
+     * @Assert\NotNull(message="The resource class for a collection component is required")
      */
-    private $collection;
+    private string $resourceClass;
 
-    public function getCollection()
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $perPage;
+
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private ?array $defaultQueryParameters;
+
+    public function getResourceClass(): string
     {
-        return $this->collection;
+        return $this->resourceClass;
     }
 
-    public function setCollection($collection): self
+    public function setResourceClass(string $resourceClass): self
     {
-        if (!$collection instanceof Traversable && !\is_array($collection)) {
-            return $this;
-        }
-        $this->collection = $collection;
+        $this->resourceClass = $resourceClass;
+
+        return $this;
+    }
+
+    public function getPerPage(): ?int
+    {
+        return $this->perPage;
+    }
+
+    public function setPerPage(?int $perPage): self
+    {
+        $this->perPage = $perPage;
+
+        return $this;
+    }
+
+    public function getDefaultQueryParameters(): ?array
+    {
+        return $this->defaultQueryParameters;
+    }
+
+    public function setDefaultQueryParameters(?array $defaultQueryParameters): self
+    {
+        $this->defaultQueryParameters = $defaultQueryParameters;
 
         return $this;
     }

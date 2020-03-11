@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class AbstractAction
 {
-    protected static function getRequestFormat(Request $request): string
+    public static function getRequestFormat(Request $request): string
     {
         return $request->attributes->get('_format') ?: $request->getFormat($request->headers->get('CONTENT_TYPE')) ?: 'jsonld';
     }

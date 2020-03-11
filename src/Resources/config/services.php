@@ -13,28 +13,30 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Resources\config;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
+use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
-use Silverback\ApiComponentBundle\Event\PreNormalizeEvent;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
-use Silverback\ApiComponentBundle\EventListener\PreNormalizeListener;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
-use Silverback\ApiComponentBundle\Serializer\DataTransformer\CollectionTransformer;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
@@ -52,7 +54,16 @@ return static function (ContainerConfigurator $configurator) {
 ;
 
     $services
-        ->set(CollectionTransformer::class);
+        ->set(CollectionOutputDataTransformer::class)
+        ->tag('api_platform.data_transformer')
+        ->args([
+            new Reference(RequestStack::class),
+            new Reference(ResourceMetadataFactoryInterface::class),
+            new Reference(OperationPathResolverInterface::class),
+            new Reference(ContextAwareCollectionDataProviderInterface::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(NormalizerInterface::class),
+        ]);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -81,11 +92,6 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(LayoutRepository::class)
         ->args([ref(ManagerRegistry::class)]);
-
-    $services
-        ->set(PreNormalizeListener::class)
-        ->tag('kernel.event_listener', ['event' => PreNormalizeEvent::class])
-        ->tag('container.service_subscriber');
 
     $services
         ->set(RouteRepository::class)

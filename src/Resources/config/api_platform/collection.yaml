@@ -1,1 +1,3 @@
-Silverback\ApiComponentBundle\Entity\Component\Collection: ~
+Silverback\ApiComponentBundle\Entity\Component\Collection:
+  attributes:
+    output: Silverback\ApiComponentBundle\Dto\Collection
