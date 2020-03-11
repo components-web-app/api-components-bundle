@@ -15,11 +15,10 @@ namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use InvalidArgumentException;
 use JsonException;
-use Silverback\ApiComponentBundle\ApiComponentBundleEvents;
 use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentBundle\Form\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,7 +93,7 @@ class FormSubmitHandler
         $context = [];
         if ($valid) {
             $event = new FormSuccessEvent($formResource, $form);
-            $this->eventDispatcher->dispatch($event, ApiComponentBundleEvents::FORM_SUCCESS);
+            $this->eventDispatcher->dispatch($event);
             $context = $event->serializerContext;
         }
 

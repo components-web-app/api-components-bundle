@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Factory;
+namespace Silverback\ApiComponentBundle\Factory;
 
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Symfony\Component\Form\FormBuilderInterface;

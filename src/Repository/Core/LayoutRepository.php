@@ -35,7 +35,7 @@ class LayoutRepository extends ServiceEntityRepository
     public function findDefault()
     {
         return $this->findOneBy([
-            'default' => true
+            'default' => true,
         ]);
     }
 }

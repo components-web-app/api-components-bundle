@@ -92,20 +92,20 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(LayoutRepository::class)
         ->args([
-            new Reference(ManagerRegistry::class)
+            new Reference(ManagerRegistry::class),
         ]);
 
     $services
         ->set(PageTemplateOutputDataTransformer::class)
         ->tag('api_platform.data_transformer')
         ->args([
-            new Reference(LayoutRepository::class)
+            new Reference(LayoutRepository::class),
         ]);
 
     $services
         ->set(RouteRepository::class)
         ->args([
-            new Reference(ManagerRegistry::class)
+            new Reference(ManagerRegistry::class),
         ]);
 
     $services
