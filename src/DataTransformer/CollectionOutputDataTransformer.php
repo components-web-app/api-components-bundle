@@ -40,8 +40,9 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private ContextAwareCollectionDataProviderInterface $dataProvider;
     private IriConverterInterface $iriConverter;
     private NormalizerInterface $itemNormalizer;
+    private string $itemsPerPageParameterName;
 
-    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer)
+    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, string $itemsPerPageParameterName = 'perPage')
     {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -49,6 +50,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $this->dataProvider = $dataProvider;
         $this->iriConverter = $iriConverter;
         $this->itemNormalizer = $itemNormalizer;
+        $this->itemsPerPageParameterName = $itemsPerPageParameterName;
     }
 
     /**
@@ -114,18 +116,15 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $isPaginated = (bool) $itemsPerPage;
         $dataProviderContext = ['filters' => $filters];
         if ($isPaginated) {
-            // perPage is configured in dependency injection for client controlled per page parameter.
-            // we should really be reading this config parameter into the class in case a user chooses
-            // a different pagination querystring parameter
             $dataProviderContext['filters'] = $dataProviderContext['filters'] ?? [];
             $dataProviderContext['filters'] = array_merge($dataProviderContext['filters'], [
                 'pagination' => true,
-                'perPage' => $itemsPerPage,
+                $this->itemsPerPageParameterName => $itemsPerPage,
                 '_page' => 1,
             ]);
             $request->attributes->set('_api_pagination', [
                 'pagination' => 'true',
-                'perPage' => $itemsPerPage,
+                $this->itemsPerPageParameterName => $itemsPerPage,
             ]);
         }
 
@@ -141,11 +140,12 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                 $request->server->set('QUERY_STRING', http_build_query($defaultQueryString));
             }
             $queryString = RequestParser::getQueryString($request);
-            $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
+            $filters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
             if ($setDefaultQuery) {
                 $request->server->set('QUERY_STRING', '');
             }
         }
+
         return $filters;
     }
 
@@ -161,7 +161,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                     continue;
                 }
                 $path = $baseRoute .
-                    /** @scrutinizer ignore-call */
+                    /* @scrutinizer ignore-call */
                     $this->operationPathResolver->resolveOperationPath(
                         $shortName,
                         $collectionOperations[$method],
