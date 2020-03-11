@@ -108,11 +108,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         }
     }
 
-    private function getDataProviderContext(CollectionResource $collectionResource, Request $request, ?array $filters): array
+    private function getDataProviderContext(CollectionResource $collectionResource, Request $request, array $filters): array
     {
         $itemsPerPage = $collectionResource->getPerPage();
         $isPaginated = (bool) $itemsPerPage;
-        $dataProviderContext = null === $filters ? [] : ['filters' => $filters];
+        $dataProviderContext = ['filters' => $filters];
         if ($isPaginated) {
             // perPage is configured in dependency injection for client controlled per page parameter.
             // we should really be reading this config parameter into the class in case a user chooses
@@ -132,10 +132,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $dataProviderContext;
     }
 
-    private function getFilters(CollectionResource $object, Request $request): ?array
+    private function getFilters(CollectionResource $object, Request $request): array
     {
         if (null === $filters = $request->attributes->get('_api_filters')) {
-            $setDefaultQuery = !$request->server->get('QUERY_STRING') && $defaultQueryString = $object->getDefaultQueryParameters();
+            $defaultQueryString = $object->getDefaultQueryParameters();
+            $setDefaultQuery = $defaultQueryString && !$request->server->get('QUERY_STRING');
             if ($setDefaultQuery) {
                 $request->server->set('QUERY_STRING', http_build_query($defaultQueryString));
             }
@@ -145,15 +146,14 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                 $request->server->set('QUERY_STRING', '');
             }
         }
-
         return $filters;
     }
 
     private function addEndpoints(Collection $object, string $format): void
     {
         $resourceMetadata = $this->resourceMetadataFactory->create($object->getResource()->getResourceClass());
-        $collectionOperations = array_change_key_case($resourceMetadata->getCollectionOperations(), CASE_LOWER);
-        if ($collectionOperations && ($shortName = $resourceMetadata->getShortName())) {
+        $collectionOperations = array_change_key_case($resourceMetadata->getCollectionOperations() ?? [], CASE_LOWER);
+        if (!empty($collectionOperations) && ($shortName = $resourceMetadata->getShortName())) {
             $baseRoute = trim($resourceMetadata->getAttribute('route_prefix', ''), ' /');
             $methods = array_map(static function ($str) { return strtolower($str); }, [Request::METHOD_GET, Request::METHOD_POST]);
             foreach ($methods as $method) {
@@ -161,6 +161,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                     continue;
                 }
                 $path = $baseRoute .
+                    /** @scrutinizer ignore-call */
                     $this->operationPathResolver->resolveOperationPath(
                         $shortName,
                         $collectionOperations[$method],
