@@ -25,9 +25,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
-use function count;
-use function is_array;
-use function is_string;
 use function json_decode;
 
 /**
@@ -66,7 +63,7 @@ class FormSubmitHandler
             return $formView->getVars()['valid'];
         };
 
-        $dataCount = count($formData);
+        $dataCount = \count($formData);
         if (1 === $dataCount) {
             $formItem = $this->getChildFormByKey($form, $formData);
             $formResource->formView = $formView = new FormView($formItem);
@@ -120,7 +117,7 @@ class FormSubmitHandler
     private function getChildFormByKey(FormInterface $form, array $formData): FormInterface
     {
         $child = $form->get($key = key($formData));
-        while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = count($formData)) {
+        while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = \count($formData)) {
             if (1 === $count) {
                 $child = $child->get($key = key($formData));
                 continue;
@@ -140,7 +137,7 @@ class FormSubmitHandler
 
     private function isSequentialStringsArray($data): bool
     {
-        return is_array($data) && !$this->isAssocArray($data) && $this->arrayIsStrings($data);
+        return \is_array($data) && !$this->isAssocArray($data) && $this->arrayIsStrings($data);
     }
 
     private function isAssocArray(array $arr): bool
@@ -149,13 +146,13 @@ class FormSubmitHandler
             return false;
         }
 
-        return array_keys($arr) !== range(0, count($arr) - 1);
+        return array_keys($arr) !== range(0, \count($arr) - 1);
     }
 
     private function arrayIsStrings(array $arr): bool
     {
         foreach ($arr as $item) {
-            if (!is_string($item)) {
+            if (!\is_string($item)) {
                 return false;
             }
         }

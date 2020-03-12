@@ -19,7 +19,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
 use Symfony\Component\Validator\Constraints as Assert;
 use Traversable;
-use function is_array;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -96,7 +95,7 @@ class Collection extends AbstractComponent
 
     public function setCollection($collection): self
     {
-        if (!$collection instanceof Traversable && !is_array($collection)) {
+        if (!$collection instanceof Traversable && !\is_array($collection)) {
             return $this;
         }
         $this->collection = $collection;
