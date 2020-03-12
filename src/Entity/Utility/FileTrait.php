@@ -48,7 +48,7 @@ trait FileTrait
     /**
      * @return static
      */
-    public function setFileData(FileData $fileData)
+    public function setFileData(?FileData $fileData)
     {
         $this->fileData = $fileData;
 

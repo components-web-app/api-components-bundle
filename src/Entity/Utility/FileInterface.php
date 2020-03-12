@@ -24,7 +24,7 @@ interface FileInterface
 
     public function setFilePath(?string $filePath);
 
-    public function setFileData(FileData $fileData);
+    public function setFileData(?FileData $fileData);
 
     public function getFileData(): ?FileData;
 
