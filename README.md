@@ -38,6 +38,22 @@ We encourage using as many of the packages as possible that are well maintained 
 - run `docker-compose exec php sh` to bash into the php container
 - run `composer require silverbackis/api-component-bundle:2.x-dev`
 
+Configure routes
+```yaml
+# /config/routes/silverback_api_component.yaml
+silverback_api_component:
+  resource: "@SilverbackApiComponentBundle/Resources/config/routing/all.xml"
+```
+
+Configure optional components for API Platform:
+```
+api_platform:
+  mapping:
+    paths:
+      # additional paths here...
+      - '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/form.yaml'
+      - '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/collection.yaml'
+```
 
 ## Example: Creating a new 1 page website
 ### Back-End Developer Work
