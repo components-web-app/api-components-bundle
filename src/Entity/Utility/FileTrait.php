@@ -26,9 +26,39 @@ trait FileTrait
      * @ORM\Column(type="string", nullable=true)
      * @ApiProperty(iri="http://schema.org/contentUrl")
      */
-    protected ?string $filePath;
+    private ?string $filePath;
 
-    public ?FileData $fileData;
+    private ?FileData $fileData = null;
+
+    public function getFilePath(): ?string
+    {
+        return $this->filePath;
+    }
+
+    /**
+     * @return static
+     */
+    public function setFilePath(?string $filePath)
+    {
+        $this->filePath = $filePath;
+
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public function setFileData(FileData $fileData)
+    {
+        $this->fileData = $fileData;
+
+        return $this;
+    }
+
+    public function getFileData(): ?FileData
+    {
+        return $this->fileData;
+    }
 
     public static function getImagineFilters(): array
     {

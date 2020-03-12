@@ -22,20 +22,20 @@ final class FileData
     private ?string $fileExtension;
     private ?int $fileSize;
     private ?ImageMetadata $imageData;
-    private ?array $imagineData;
+    private ?ImagineMetadata $imagineData;
 
     public function __construct(
         ?string $publicPath,
-        ?ImageMetadata $imageData,
-        ?array $imagineData,
         ?string $fileExtension,
-        ?int $fileSize
+        ?int $fileSize,
+        ?ImageMetadata $imageData,
+        ?ImagineMetadata $imagineData
     ) {
         $this->publicPath = $publicPath;
-        $this->imageData = $imageData;
-        $this->imagineData = $imagineData;
         $this->fileExtension = $fileExtension;
         $this->fileSize = $fileSize;
+        $this->imageData = $imageData;
+        $this->imagineData = $imagineData;
     }
 
     public function getPublicPath(): ?string
@@ -48,7 +48,7 @@ final class FileData
         return $this->imageData;
     }
 
-    public function getImagineData(): ?array
+    public function getImagineData(): ?ImagineMetadata
     {
         return $this->imagineData;
     }

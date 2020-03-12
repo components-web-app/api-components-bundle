@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Validator\Constraints as Assert;

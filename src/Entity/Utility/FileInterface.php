@@ -13,12 +13,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
+use Silverback\ApiComponentBundle\Dto\File\FileData;
+
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 interface FileInterface
 {
-    public function getDirectory(): ?string;
+    public function getFilePath(): ?string;
+
+    public function setFilePath(?string $filePath);
+
+    public function setFileData(FileData $fileData);
+
+    public function getFileData(): ?FileData;
 
     public static function getImagineFilters(): array;
+
+    public function getDirectory(): ?string;
 }

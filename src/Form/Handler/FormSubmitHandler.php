@@ -15,8 +15,8 @@ namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use InvalidArgumentException;
 use JsonException;
+use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Entity\Component\FormView;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;

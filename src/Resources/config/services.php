@@ -21,18 +21,23 @@ use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Factory\FormViewFactory;
+use Silverback\ApiComponentBundle\Factory\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Silverback\ApiComponentBundle\Form\Type\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\LoginType;
 use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
+use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -79,6 +84,18 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(FileDataFactory::class)
+        ->args([
+            new Reference(IriConverterInterface::class),
+            new Reference(RouterInterface::class),
+            new Reference(ImagineMetadataFactory::class),
+        ]);
+
+    $services
+        ->set(FileOutputDataTransformer::class)
+        ->args([new Reference(FileDataFactory::class)]);
+
+    $services
         ->set(FormCachePurgeCommand::class)
         ->tag('console.command')
         ->args([
@@ -118,6 +135,14 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(FormFactory::class)]);
 
     $services
+        ->set(ImagineMetadataFactory::class)
+        ->args([
+            new Reference(CacheManager::class),
+            new Reference(PathResolver::class),
+            '%kernel.project_dir%',
+        ]);
+
+    $services
         ->set(LayoutRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
@@ -137,6 +162,9 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(LayoutRepository::class),
         ]);
+
+    $services
+        ->set(PathResolver::class);
 
     $services
         ->set(RouteRepository::class)

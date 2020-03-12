@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Component;
+namespace Silverback\ApiComponentBundle\Dto;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
@@ -20,8 +20,6 @@ use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class FormView.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class FormView
