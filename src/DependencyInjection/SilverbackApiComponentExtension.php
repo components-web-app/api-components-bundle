@@ -48,11 +48,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
      */
     private function loadServiceConfig(ContainerBuilder $container): void
     {
-        // This will be replaced with event systems...
-//        $container->registerForAutoconfiguration(DataTransformerInterface::class)
-//            ->addTag('silverback_api_component.data_transformer')
-//        ;
-
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_component.form_type');
 

@@ -22,7 +22,6 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Util\RequestParser;
 use Silverback\ApiComponentBundle\Action\AbstractAction;
-use Silverback\ApiComponentBundle\Dto\Collection as CollectionDto;
 use Silverback\ApiComponentBundle\Entity\Component\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;

@@ -1,2 +1,2 @@
-api_component_file_upload:
-  resource: "@SilverbackApiComponentBundle/Resources/config/routing/file_upload.xml"
+silverback_api_component:
+  resource: "@SilverbackApiComponentBundle/Resources/config/routing/all.xml"

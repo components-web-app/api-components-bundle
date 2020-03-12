@@ -34,7 +34,7 @@ class Form extends AbstractComponent
     public string $formType;
 
     /** @ApiProperty(writable=false) */
-    public Form $form;
+    public ?FormView $formView = null;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {

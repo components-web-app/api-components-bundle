@@ -23,10 +23,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentBundle\Factory\FormFactory;
+use Silverback\ApiComponentBundle\Factory\FormViewFactory;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
+use Silverback\ApiComponentBundle\Form\Type\ChangePasswordType;
+use Silverback\ApiComponentBundle\Form\Type\LoginType;
+use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -34,9 +40,12 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
 
@@ -52,6 +61,10 @@ return static function (ContainerConfigurator $configurator) {
         ->private()
         // ->bind('$projectDir', '%kernel.project_dir%')
 ;
+
+    $services
+        ->set(ChangePasswordType::class)
+        ->args([new Reference(Security::class)]);
 
     $services
         ->set(CollectionOutputDataTransformer::class)
@@ -81,6 +94,17 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(FormFactory::class)
+        ->args([
+            new Reference(FormFactoryInterface::class),
+            new Reference(RouterInterface::class),
+        ]);
+
+    $services
+        ->set(FormOutputDataTransformer::class)
+        ->args([new Reference(FormViewFactory::class)]);
+
+    $services
         ->set(FormTypeClassValidator::class)
         ->tag('validator.constraint_validator')
         ->args(
@@ -90,10 +114,22 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
+        ->set(FormViewFactory::class)
+        ->args([new Reference(FormFactory::class)]);
+
+    $services
         ->set(LayoutRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
         ]);
+
+    $services
+        ->set(LoginType::class)
+        ->args([new Reference(RouterInterface::class)]);
+
+    $services
+        ->set(NewUsernameType::class)
+        ->args([new Reference(Security::class)]);
 
     $services
         ->set(PageTemplateOutputDataTransformer::class)

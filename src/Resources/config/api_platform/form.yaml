@@ -1,4 +1,6 @@
 Silverback\ApiComponentBundle\Entity\Component\Form:
+  attributes:
+    output: Silverback\ApiComponentBundle\Entity\Component\Form
   collectionOperations:
     get: ~
     post: ~

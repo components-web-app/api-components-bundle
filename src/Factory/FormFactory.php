@@ -23,8 +23,8 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class FormFactory
 {
-    private $formFactory;
-    private $router;
+    private FormFactoryInterface $formFactory;
+    private RouterInterface $router;
 
     public function __construct(
         FormFactoryInterface $formFactory,
