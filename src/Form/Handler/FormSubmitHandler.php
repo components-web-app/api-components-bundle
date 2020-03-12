@@ -15,7 +15,8 @@ namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use InvalidArgumentException;
 use JsonException;
-use Silverback\ApiComponentBundle\Dto\Form;
+use Silverback\ApiComponentBundle\Entity\Component\Form;
+use Silverback\ApiComponentBundle\Entity\Component\FormView;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -24,6 +25,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
+use function count;
+use function is_array;
+use function is_string;
 use function json_decode;
 
 /**
@@ -58,14 +62,14 @@ class FormSubmitHandler
 
     private function handlePatch(Form $formResource, FormInterface $form, string $_format, array $formData): Response
     {
-        $isFormViewValid = static function (Form $formView): bool {
+        $isFormViewValid = static function (FormView $formView): bool {
             return $formView->getVars()['valid'];
         };
 
-        $dataCount = \count($formData);
+        $dataCount = count($formData);
         if (1 === $dataCount) {
             $formItem = $this->getChildFormByKey($form, $formData);
-            $formResource->form = $formView = new Form($formItem);
+            $formResource->formView = $formView = new FormView($formItem);
 
             return $this->getResponse($formResource, $_format, $isFormViewValid($formView));
         }
@@ -75,7 +79,7 @@ class FormSubmitHandler
         foreach ($formData as $key => $value) {
             $dataItem = clone $formResource;
             $formItem = $this->getChildFormByKey($form, $formData[$key]);
-            $dataItem->form = $formView = new Form($formItem);
+            $dataItem->formView = $formView = new FormView($formItem);
             $formResources[] = $dataItem;
             if ($valid && !$isFormViewValid($formView)) {
                 $valid = false;
@@ -88,7 +92,7 @@ class FormSubmitHandler
     private function handlePost(Form $formResource, FormInterface $form, string $_format): Response
     {
         $valid = $form->isValid();
-        $formResource->form = new Form($form);
+        $formResource->formView = new FormView($form);
         $context = [];
         if ($valid) {
             $event = new FormSuccessEvent($formResource, $form);
@@ -116,7 +120,7 @@ class FormSubmitHandler
     private function getChildFormByKey(FormInterface $form, array $formData): FormInterface
     {
         $child = $form->get($key = key($formData));
-        while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = \count($formData)) {
+        while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = count($formData)) {
             if (1 === $count) {
                 $child = $child->get($key = key($formData));
                 continue;
@@ -136,7 +140,7 @@ class FormSubmitHandler
 
     private function isSequentialStringsArray($data): bool
     {
-        return \is_array($data) && !$this->isAssocArray($data) && $this->arrayIsStrings($data);
+        return is_array($data) && !$this->isAssocArray($data) && $this->arrayIsStrings($data);
     }
 
     private function isAssocArray(array $arr): bool
@@ -145,13 +149,13 @@ class FormSubmitHandler
             return false;
         }
 
-        return array_keys($arr) !== range(0, \count($arr) - 1);
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
 
     private function arrayIsStrings(array $arr): bool
     {
         foreach ($arr as $item) {
-            if (!\is_string($item)) {
+            if (!is_string($item)) {
                 return false;
             }
         }

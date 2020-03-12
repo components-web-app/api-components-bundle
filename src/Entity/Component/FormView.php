@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -62,40 +62,35 @@ class FormView
 
     /**
      * @Groups({"component", "content"})
-     *
-     * @var array
      */
-    private $vars;
+    private array $vars;
 
     /**
      * @Groups({"component", "content"})
-     *
-     * @var Collection
      */
-    private $children;
+    private DoctrineCollection $children;
 
     /**
      * @Groups({"component", "content"})
-     *
-     * @var bool
      */
-    private $rendered;
+    private bool $rendered;
 
     /**
      * @Groups({"component", "content"})
-     *
-     * @var bool
      */
-    private $methodRendered;
+    private bool $methodRendered;
 
-    private $form;
+    private FormInterface $form;
 
-    public function __construct(SymfonyFormView $formView, FormInterface $form, bool $children = true)
+    public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)
     {
+        if (!$formView) {
+            $formView = $form->createView();
+        }
         $this->init($formView, $form, $children);
     }
 
-    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true)
+    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true): void
     {
         $this->form = $form;
         $this->rendered = $formView->isRendered();
@@ -150,7 +145,7 @@ class FormView
         return $this->vars;
     }
 
-    public function getChildren(): Collection
+    public function getChildren(): DoctrineCollection
     {
         return $this->children;
     }

@@ -17,7 +17,7 @@ use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -27,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewUsername(groups={"new_username", "Default"})
  */
-abstract class User implements UserInterface
+abstract class User implements SymfonyUserInterface
 {
     /**
      * @ORM\Id

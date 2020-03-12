@@ -33,7 +33,7 @@ class ChangePasswordType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        /** @var UserInterface $user */
+        /** @var UserInterface|null $user */
         $user = $builder->getEmptyData();
 
         $builder

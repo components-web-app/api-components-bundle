@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\User;
 
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 
-class TokenUser implements UserInterface
+class TokenUser implements SymfonyUserInterface
 {
     public function getRoles(): array
     {
