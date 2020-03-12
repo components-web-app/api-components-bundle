@@ -134,9 +134,9 @@ class FormView
         }
     }
 
-    private function addChild(SymfonyFormView $formViews): void
+    private function addChild(SymfonyFormView $symfonyFormView): void
     {
-        $formView = new self($formViews, $this->form);
+        $formView = new self($this->form, $symfonyFormView);
         $this->children->add($formView);
     }
 

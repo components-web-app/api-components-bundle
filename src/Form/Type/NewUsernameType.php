@@ -22,7 +22,7 @@ use Symfony\Component\Security\Core\Security;
 
 class NewUsernameType extends AbstractType
 {
-    private $security;
+    private Security $security;
 
     public function __construct(Security $security)
     {

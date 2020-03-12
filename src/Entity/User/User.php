@@ -33,96 +33,78 @@ abstract class User implements SymfonyUserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer", length=36)
-     *
-     * @var int
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email(groups={"Default"})
      * @Groups({"admin"})
-     *
-     * @var string|null
      */
-    protected $username;
+    protected ?string $username;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    protected $password;
+    protected string $password;
 
     /**
      * @ORM\Column(type="boolean")
      * @Groups({"admin"})
      */
-    protected $enabled;
+    protected bool $enabled;
 
     /**
      * @ORM\Column(type="array")
      * @Groups({"default"})
      */
-    protected $roles;
+    protected array $roles;
 
     /**
      * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
      * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
      * @Groups({"default_write"})
-     *
-     * @var string|null
      */
-    protected $plainPassword;
+    protected ?string $plainPassword = null;
 
     /**
      * Random string sent to the user email address in order to verify it.
      *
      * @ORM\Column(nullable=true)
-     *
-     * @var string|null
      */
-    protected $passwordResetConfirmationToken;
+    protected ?string $passwordResetConfirmationToken = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     *
-     * @var DateTime|null
      */
-    protected $passwordRequestedAt;
+    protected ?DateTime $passwordRequestedAt = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_username"})
      * @Assert\Email(groups={"new_username"})
      * @Groups({"default", "new_username"})
-     *
-     * @var string|null
      */
-    protected $newUsername;
+    protected ?string $newUsername = null;
 
     /**
      * Random string sent to the user's new email address in order to verify it.
      *
      * @ORM\Column(nullable=true)
-     *
-     * @var string|null
      */
-    protected $usernameConfirmationToken;
+    protected ?string $usernameConfirmationToken = null;
 
     /**
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
      * @Groups({"default_write"})
-     *
-     * @var string|null
      */
-    protected $oldPassword;
+    protected ?string $oldPassword = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     *
-     * @var DateTime|null
      */
-    protected $passwordLastUpdated;
+    protected ?DateTime $passwordLastUpdated = null;
 
     public function __construct(
         string $username = '',
