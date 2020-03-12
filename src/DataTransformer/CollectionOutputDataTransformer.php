@@ -22,8 +22,8 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Util\RequestParser;
 use Silverback\ApiComponentBundle\Action\AbstractAction;
-use Silverback\ApiComponentBundle\Dto\Collection;
-use Silverback\ApiComponentBundle\Entity\Component\Collection as CollectionResource;
+use Silverback\ApiComponentBundle\Dto\Collection as CollectionDto;
+use Silverback\ApiComponentBundle\Entity\Component\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -56,13 +56,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     /**
      * {@inheritdoc}
      *
-     * @param CollectionResource $data
+     * @param Collection $collection
      */
-    public function transform($data, string $to, array $context = [])
+    public function transform($collection, string $to, array $context = [])
     {
-        $this->transformed[] = $data->getId();
-
-        $collection = new Collection($data);
+        $this->transformed[] = $collection->getId();
 
         $request = $this->requestStack->getCurrentRequest();
         if (!$request) {
@@ -76,12 +74,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $collection;
     }
 
-    private function addCollection(Collection $object, string $format, Request $request): void
+    private function addCollection(Collection $collection, string $format, Request $request): void
     {
-        $collectionResource = $object->getResource();
-        $filters = $this->getFilters($collectionResource, $request);
-        $dataProviderContext = $this->getDataProviderContext($collectionResource, $request, $filters);
-        $resourceClass = $collectionResource->getResourceClass();
+        $filters = $this->getFilters($collection, $request);
+        $dataProviderContext = $this->getDataProviderContext($collection, $request, $filters);
+        $resourceClass = $collection->getResourceClass();
 
         /** @var Paginator $paginator */
         $paginator = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
@@ -91,7 +88,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         }, (array) $paginator->getIterator());
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
 
-        $endpoints = $object->getEndpoints();
+        $endpoints = $collection->getEndpoints();
         $forcedContext = [
             'resource_class' => $resourceClass,
             'request_uri' => $endpoints ? $endpoints->get('get') : null,
@@ -106,13 +103,13 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             $normalizerContext
         );
         if (\is_array($normalizedCollection)) {
-            $object->setCollection($normalizedCollection);
+            $collection->setCollection($normalizedCollection);
         }
     }
 
-    private function getDataProviderContext(CollectionResource $collectionResource, Request $request, array $filters): array
+    private function getDataProviderContext(Collection $collection, Request $request, array $filters): array
     {
-        $itemsPerPage = $collectionResource->getPerPage();
+        $itemsPerPage = $collection->getPerPage();
         $isPaginated = (bool) $itemsPerPage;
         $dataProviderContext = ['filters' => $filters];
         if ($isPaginated) {
@@ -131,10 +128,10 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $dataProviderContext;
     }
 
-    private function getFilters(CollectionResource $object, Request $request): array
+    private function getFilters(Collection $collection, Request $request): array
     {
         if (null === $filters = $request->attributes->get('_api_filters')) {
-            $defaultQueryString = $object->getDefaultQueryParameters();
+            $defaultQueryString = $collection->getDefaultQueryParameters();
             $setDefaultQuery = $defaultQueryString && !$request->server->get('QUERY_STRING');
             if ($setDefaultQuery) {
                 $request->server->set('QUERY_STRING', http_build_query($defaultQueryString));
@@ -149,9 +146,9 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $filters;
     }
 
-    private function addEndpoints(Collection $object, string $format): void
+    private function addEndpoints(Collection $collection, string $format): void
     {
-        $resourceMetadata = $this->resourceMetadataFactory->create($object->getResource()->getResourceClass());
+        $resourceMetadata = $this->resourceMetadataFactory->create($collection->getResourceClass());
         $collectionOperations = array_change_key_case($resourceMetadata->getCollectionOperations() ?? [], CASE_LOWER);
         if (!empty($collectionOperations) && ($shortName = $resourceMetadata->getShortName())) {
             $baseRoute = trim($resourceMetadata->getAttribute('route_prefix', ''), ' /');
@@ -169,7 +166,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                         $method
                     );
                 $finalPath = preg_replace('/{_format}$/', $format, $path);
-                $object->addEndpoint($method, $finalPath);
+                $collection->addEndpoint($method, $finalPath);
             }
         }
     }
@@ -179,7 +176,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
      */
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
-        return $data instanceof CollectionResource &&
+        return $data instanceof Collection &&
             Collection::class === $to &&
             !\in_array($data->getId(), $this->transformed, true);
     }

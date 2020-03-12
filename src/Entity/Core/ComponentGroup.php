@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -49,6 +50,7 @@ class ComponentGroup implements TimestampedInterface
     public Collection $pageTemplates;
 
     /**
+     * @ApiProperty(writable=false)
      * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", mappedBy="componentGroups")
      *
      * @var Collection|AbstractComponent[]

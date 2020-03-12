@@ -15,8 +15,7 @@ namespace Silverback\ApiComponentBundle\Form\Handler;
 
 use InvalidArgumentException;
 use JsonException;
-use Silverback\ApiComponentBundle\Dto\Form\FormView;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
+use Silverback\ApiComponentBundle\Dto\Form;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -59,14 +58,14 @@ class FormSubmitHandler
 
     private function handlePatch(Form $formResource, FormInterface $form, string $_format, array $formData): Response
     {
-        $isFormViewValid = static function (FormView $formView): bool {
+        $isFormViewValid = static function (Form $formView): bool {
             return $formView->getVars()['valid'];
         };
 
         $dataCount = \count($formData);
         if (1 === $dataCount) {
             $formItem = $this->getChildFormByKey($form, $formData);
-            $formResource->form = $formView = new FormView($formItem);
+            $formResource->form = $formView = new Form($formItem);
 
             return $this->getResponse($formResource, $_format, $isFormViewValid($formView));
         }
@@ -76,7 +75,7 @@ class FormSubmitHandler
         foreach ($formData as $key => $value) {
             $dataItem = clone $formResource;
             $formItem = $this->getChildFormByKey($form, $formData[$key]);
-            $dataItem->form = $formView = new FormView($formItem);
+            $dataItem->form = $formView = new Form($formItem);
             $formResources[] = $dataItem;
             if ($valid && !$isFormViewValid($formView)) {
                 $valid = false;
@@ -89,7 +88,7 @@ class FormSubmitHandler
     private function handlePost(Form $formResource, FormInterface $form, string $_format): Response
     {
         $valid = $form->isValid();
-        $formResource->form = new FormView($form);
+        $formResource->form = new Form($form);
         $context = [];
         if ($valid) {
             $event = new FormSuccessEvent($formResource, $form);

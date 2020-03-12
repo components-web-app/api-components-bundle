@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Dto\Form;
+namespace Silverback\ApiComponentBundle\Dto;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,7 +21,7 @@ use Symfony\Component\Form\FormView as SymfonyFormView;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class FormView
+final class Form
 {
     private const ARRAY_OUTPUT_VARS = [
         'choices',

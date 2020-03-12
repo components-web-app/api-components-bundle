@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Dto\Form\FormView;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -35,7 +34,7 @@ class Form extends AbstractComponent
     public string $formType;
 
     /** @ApiProperty(writable=false) */
-    public FormView $form;
+    public Form $form;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {

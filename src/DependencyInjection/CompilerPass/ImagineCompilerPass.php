@@ -31,6 +31,7 @@ class ImagineCompilerPass implements CompilerPassInterface
             $container->getDefinition(FileUploader::class)
                 ->setArgument('$rootPaths', $rootPaths);
         } catch (ServiceNotFoundException $e) {
+            // Liip Imagine Bundle will not be required in future so this is just future proofing when the bundle may not be installed.
         }
     }
 }

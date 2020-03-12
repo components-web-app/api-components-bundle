@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,7 +36,10 @@ class ComponentLocation implements TimestampedInterface
     /** @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", inversedBy="componentLocations") */
     public ComponentGroup $componentGroup;
 
-    /** @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", inversedBy="componentLocations") */
+    /**
+     * @ApiProperty(writable=false)
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", inversedBy="componentLocations")
+     */
     public AbstractComponent $component;
 
     public function __construct()
