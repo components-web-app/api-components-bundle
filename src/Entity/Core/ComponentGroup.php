@@ -59,6 +59,7 @@ class ComponentGroup implements TimestampedInterface
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")
+     * @ORM\OrderBy({"sort" = "ASC"})
      *
      * @var Collection|ComponentLocation[]
      */

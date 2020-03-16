@@ -67,7 +67,7 @@ class ImagineMetadataFactory
                 '/'
             ));
             $realPath = sprintf('%s/public/%s', $this->projectDirectory, $imagineFilePath);
-            $imagineMetadata->addFilter($returnKey, new ImageMetadata($realPath, $imagineFilePath, $filter));
+            $imagineMetadata->addFilter($returnKey, new ImageMetadata($realPath, $imagineFilePath));
         }
 
         return $imagineMetadata;

@@ -20,6 +20,7 @@ use Silverback\ApiComponentBundle\Entity\Core\ComponentGroup;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @internal
  */
 trait UiTrait
 {
