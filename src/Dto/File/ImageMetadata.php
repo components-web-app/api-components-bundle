@@ -22,16 +22,14 @@ use function exif_imagetype;
  */
 final class ImageMetadata
 {
-    private int $width;
-    private int $height;
+    private int $width = 0;
+    private int $height = 0;
     private string $filePath;
     private string $publicPath;
-    private ?string $imagineKey;
 
     public function __construct(
         string $filePath,
-        string $publicPath,
-        ?string $imagineKey = null
+        string $publicPath
     ) {
         $this->filePath = $filePath;
         $this->publicPath = $publicPath;
@@ -51,7 +49,6 @@ final class ImageMetadata
             }
 
             [$this->width, $this->height] = getimagesize($filePath);
-            $this->imagineKey = $imagineKey;
         }
     }
 
@@ -73,10 +70,5 @@ final class ImageMetadata
     public function getPublicPath(): string
     {
         return $this->publicPath;
-    }
-
-    public function getImagineKey(): ?string
-    {
-        return $this->imagineKey;
     }
 }

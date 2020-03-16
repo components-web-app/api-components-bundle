@@ -28,6 +28,9 @@ trait FileTrait
      */
     private ?string $filePath;
 
+    /**
+     * @ApiProperty(writable=false)
+     */
     private ?FileData $fileData = null;
 
     public function getFilePath(): ?string

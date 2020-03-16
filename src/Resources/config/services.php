@@ -93,6 +93,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(FileOutputDataTransformer::class)
+        ->tag('api_platform.data_transformer')
         ->args([new Reference(FileDataFactory::class)]);
 
     $services
