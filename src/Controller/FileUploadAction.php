@@ -7,7 +7,6 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
-use Silverback\ApiComponentBundle\Entity\RestrictedResourceInterface;
 use Silverback\ApiComponentBundle\File\Uploader\FileUploader;
 use Silverback\ApiComponentBundle\Security\RestrictedResourceVoter;
 use Silverback\ApiComponentBundle\Serializer\ApiContextBuilder;

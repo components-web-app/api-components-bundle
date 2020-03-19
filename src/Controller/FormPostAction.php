@@ -56,6 +56,8 @@ class FormPostAction extends AbstractFormAction
         $form = $builder->getForm();
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData);
+
+
         if (!$form->isSubmitted()) {
             return $this->getResponse($data, $_format, false);
         }

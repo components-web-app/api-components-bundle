@@ -67,6 +67,8 @@ class FormPatchAction extends AbstractFormAction
         $formData = $this->deserializeFormData($form, $request->getContent());
         $form->submit($formData, false);
 
+
+
         $dataCount = \count($formData);
         if ($dataCount === 1) {
             $formItem = $this->getNestedKey($form, $formData);

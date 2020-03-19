@@ -24,6 +24,7 @@ final class CollectionDataTransformer implements DataTransformerInterface
     private $dataProvider;
     private $itemNormalizer;
     private $iriConverter;
+    private $itemsPerPageParameterName;
 
     public function __construct(
         RequestStack $requestStack,
@@ -31,7 +32,8 @@ final class CollectionDataTransformer implements DataTransformerInterface
         OperationPathResolverInterface $operationPathResolver,
         ContextAwareCollectionDataProviderInterface $dataProvider,
         NormalizerInterface $itemNormalizer,
-        IriConverterInterface $iriConverter
+        IriConverterInterface $iriConverter,
+        string $itemsPerPageParameterName = 'itemsPerPage'
     ) {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -39,6 +41,7 @@ final class CollectionDataTransformer implements DataTransformerInterface
         $this->dataProvider = $dataProvider;
         $this->itemNormalizer = $itemNormalizer;
         $this->iriConverter = $iriConverter;
+        $this->itemsPerPageParameterName = $itemsPerPageParameterName;
     }
 
     /**
@@ -65,12 +68,12 @@ final class CollectionDataTransformer implements DataTransformerInterface
             $dataProviderContext['filters'] = $dataProviderContext['filters'] ?? [];
             $dataProviderContext['filters'] = array_merge($dataProviderContext['filters'], [
                 'pagination' => true,
-                'itemsPerPage' => $itemsPerPage,
+                $this->itemsPerPageParameterName => $itemsPerPage,
                 '_page' => 1
             ]);
             $request->attributes->set('_api_pagination', [
                 'pagination' => 'true',
-                'itemsPerPage' => $itemsPerPage
+                $this->itemsPerPageParameterName => $itemsPerPage
             ]);
         }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -22,5 +23,6 @@ class SilverbackApiComponentBundle extends Bundle
             $container->addCompilerPass(new DoctrineCompilerPass());
         }
         $container->addCompilerPass(new ImagineCompilerPass());
+        $container->addCompilerPass(new ApiPlatformCompilerPass());
     }
 }

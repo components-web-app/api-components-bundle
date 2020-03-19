@@ -92,6 +92,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             [
                 'eager_loading' => [
                     'force_eager' => false
+                ],
+                'collection' => [
+                    'pagination' => [
+                        'client_items_per_page' => true,
+                        'items_per_page_parameter_name' => 'itemsPerPage',
+                        'maximum_items_per_page' => 100,
+                    ],
                 ]
             ]
         );
