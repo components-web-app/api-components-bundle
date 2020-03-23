@@ -77,9 +77,6 @@ final class CollectionDataTransformer implements DataTransformerInterface
             ]);
         }
 
-        /** @var Paginator $collection */
-        $collection = $this->dataProvider->getCollection($object->getResource(), Request::METHOD_GET, $dataProviderContext);
-
         $forcedContext = [
             'resource_class' => $object->getResource(),
             'request_uri' => $collectionRoutes ? $collectionRoutes->first() : null,
@@ -88,6 +85,13 @@ final class CollectionDataTransformer implements DataTransformerInterface
             'subresource_operation_name' => 'get'
         ];
         $mergedContext = array_merge($context, $forcedContext);
+
+        /** @var Paginator|array $collection */
+        $collection = $this->dataProvider->getCollection($object->getResource(), Request::METHOD_GET, $dataProviderContext);
+        if ($collection instanceof Paginator) {
+            $collection = (array)$collection->getIterator();
+        }
+
         $normalizedCollection = $this->itemNormalizer->normalize(
             $collection,
             $format,
@@ -96,10 +100,9 @@ final class CollectionDataTransformer implements DataTransformerInterface
         if (\is_array($normalizedCollection)) {
             $object->setCollection($normalizedCollection);
         }
-
         $resources = array_map(function ($object) {
             return $this->iriConverter->getIriFromItem($object);
-        }, (array)$collection->getIterator());
+        }, $collection);
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
 
         return $object;
