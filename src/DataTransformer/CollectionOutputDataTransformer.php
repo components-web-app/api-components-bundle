@@ -79,14 +79,6 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $dataProviderContext = $this->getDataProviderContext($collection, $request, $filters);
         $resourceClass = $collection->getResourceClass();
 
-        /** @var Paginator $paginator */
-        $paginator = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
-
-        $resources = array_map(function ($object) {
-            return $this->iriConverter->getIriFromItem($object);
-        }, (array) $paginator->getIterator());
-        $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
-
         $endpoints = $collection->getEndpoints();
         $forcedContext = [
             'resource_class' => $resourceClass,
@@ -96,6 +88,16 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             'subresource_operation_name' => 'get',
         ];
         $normalizerContext = array_merge([], $forcedContext);
+
+        /**
+         * If pagination is disabled on the resource, an array will be returned. Otherwise we get a Paginator object
+         * @var Paginator|array $collection
+         */
+        $collection = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
+        if ($collection instanceof Paginator) {
+            $collection = (array)$collection->getIterator();
+        }
+
         $normalizedCollection = $this->itemNormalizer->normalize(
             $paginator,
             $format,
@@ -104,6 +106,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         if (\is_array($normalizedCollection)) {
             $collection->setCollection($normalizedCollection);
         }
+
+        $resources = array_map(function ($object) {
+            return $this->iriConverter->getIriFromItem($object);
+        }, (array) $paginator->getIterator());
+        $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
     }
 
     private function getDataProviderContext(Collection $collection, Request $request, array $filters): array
