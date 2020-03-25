@@ -23,7 +23,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"order"={"sort": "ASC"}})
+ * @ApiResource(attributes={"order"={"sort"="ASC"}})
  * @ORM\Entity
  */
 class ComponentLocation implements TimestampedInterface
