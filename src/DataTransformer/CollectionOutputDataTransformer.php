@@ -90,16 +90,13 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $normalizerContext = array_merge([], $forcedContext);
 
         /**
-         * If pagination is disabled on the resource, an array will be returned. Otherwise we get a Paginator object
-         * @var Paginator|array $collection
+         * If pagination is disabled on the resource, an array/iterator will be returned. Otherwise we get a Paginator object
+         * @var Paginator|iterable $collection
          */
         $collection = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
-        if ($collection instanceof Paginator) {
-            $collection = (array)$collection->getIterator();
-        }
 
         $normalizedCollection = $this->itemNormalizer->normalize(
-            $paginator,
+            $collection,
             $format,
             $normalizerContext
         );
@@ -107,9 +104,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             $collection->setCollection($normalizedCollection);
         }
 
+        $arrayCollection = $collection instanceof Paginator ? (array)$collection->getIterator() : $collection;
         $resources = array_map(function ($object) {
             return $this->iriConverter->getIriFromItem($object);
-        }, (array) $paginator->getIterator());
+        }, $arrayCollection);
+
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
     }
 
