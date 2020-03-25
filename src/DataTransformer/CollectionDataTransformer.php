@@ -88,9 +88,6 @@ final class CollectionDataTransformer implements DataTransformerInterface
 
         /** @var Paginator|array $collection */
         $collection = $this->dataProvider->getCollection($object->getResource(), Request::METHOD_GET, $dataProviderContext);
-        if ($collection instanceof Paginator) {
-            $collection = (array)$collection->getIterator();
-        }
 
         $normalizedCollection = $this->itemNormalizer->normalize(
             $collection,
@@ -100,9 +97,12 @@ final class CollectionDataTransformer implements DataTransformerInterface
         if (\is_array($normalizedCollection)) {
             $object->setCollection($normalizedCollection);
         }
+
+        $arrayCollection = $collection instanceof Paginator ? (array)$collection->getIterator() : $collection;
         $resources = array_map(function ($object) {
             return $this->iriConverter->getIriFromItem($object);
-        }, $collection);
+        }, $arrayCollection);
+
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
 
         return $object;
