@@ -63,6 +63,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
     public function prepend(ContainerBuilder $container): void
     {
+        $configs = $container->getExtensionConfig($this->getAlias());
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+        $configBasePath = '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/';
+        $mappingPaths = [];
+        foreach ($config['enabled_components'] as $key => $enabled_component) {
+            if ($enabled_component === true) {
+                $mappingPaths[] = sprintf('%s%s.yaml', $configBasePath, $key);
+            }
+        }
         $container->prependExtensionConfig(
             'api_platform',
             [
@@ -73,14 +83,19 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'maximum_items_per_page' => 100,
                     ],
                 ],
-                //                'eager_loading' => [
-                //                    'force_eager' => false
-                //                ]
-                //                'mapping' => [
-                //                    'paths' => [
-                //                        __DIR__ . '/../Entity'
-                //                    ]
-                //                ]
+                'mapping' => [
+                    'paths' => $mappingPaths
+                ]
+            ]
+        );
+
+        $container->prependExtensionConfig(
+            'twig',
+            [
+                'paths' => [
+                    '%kernel.project_dir%/assets/images' => 'images',
+                    '%kernel.project_dir%/assets/css' => 'css'
+                ]
             ]
         );
 

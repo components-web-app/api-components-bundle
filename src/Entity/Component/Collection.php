@@ -38,7 +38,7 @@ class Collection extends AbstractComponent
     private ?int $perPage;
 
     /**
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
     private ?array $defaultQueryParameters;
 
