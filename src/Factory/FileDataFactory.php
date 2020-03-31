@@ -17,6 +17,7 @@ use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentBundle\Dto\File\FileData;
 use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
+use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
@@ -27,12 +28,14 @@ class FileDataFactory
     private IriConverterInterface $iriConverter;
     private RouterInterface $router;
     private ImagineMetadataFactory $imagineMetadataFactory;
+    private UrlHelper $urlHelper;
 
-    public function __construct(IriConverterInterface $iriConverter, RouterInterface $router, ImagineMetadataFactory $imagineMetadataFactory)
+    public function __construct(IriConverterInterface $iriConverter, RouterInterface $router, ImagineMetadataFactory $imagineMetadataFactory, UrlHelper $urlHelper)
     {
         $this->iriConverter = $iriConverter;
         $this->router = $router;
         $this->imagineMetadataFactory = $imagineMetadataFactory;
+        $this->urlHelper = $urlHelper;
     }
 
     public function create(FileInterface $resource): ?FileData
@@ -47,10 +50,10 @@ class FileDataFactory
 
         $publicPath = $this->getPublicPath($resource);
 
-        $imageData = self::isImage($filePath) ? new ImageMetadata($filePath, $publicPath) : null;
+        $imageData = self::isImage($filePath) ? new ImageMetadata($filePath, $this->urlHelper->getAbsoluteUrl($publicPath)) : null;
 
         return new FileData(
-            $publicPath,
+            $this->urlHelper->getAbsoluteUrl($publicPath),
             pathinfo($filePath, PATHINFO_EXTENSION),
             filesize($filePath) ?: null,
             $imageData,

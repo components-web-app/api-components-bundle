@@ -24,7 +24,7 @@ trait FileTrait
 {
     /**
      * @ORM\Column(type="string", nullable=true)
-     * @ApiProperty(iri="http://schema.org/contentUrl")
+     * @ApiProperty(readable=false)
      */
     private ?string $filePath;
 

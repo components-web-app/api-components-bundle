@@ -19,6 +19,7 @@ use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
 use Silverback\ApiComponentBundle\Dto\File\ImagineMetadata;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Symfony\Component\HttpFoundation\UrlHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -29,13 +30,15 @@ class ImagineMetadataFactory
     private PathResolver $pathResolver;
     private string $projectDirectory;
     private FilterService $filterService;
+    private UrlHelper $urlHelper;
 
-    public function __construct(CacheManager $cacheManager, PathResolver $pathResolver, string $projectDirectory, FilterService $filterService)
+    public function __construct(CacheManager $cacheManager, PathResolver $pathResolver, string $projectDirectory, FilterService $filterService, UrlHelper $urlHelper)
     {
         $this->cacheManager = $cacheManager;
         $this->pathResolver = $pathResolver;
         $this->projectDirectory = $projectDirectory;
         $this->filterService = $filterService;
+        $this->urlHelper = $urlHelper;
     }
 
     public static function isImagineFilePath(?string $filePath): bool
@@ -74,7 +77,8 @@ class ImagineMetadataFactory
                 '/'
             ));
             $realPath = sprintf('%s/public/%s', $this->projectDirectory, $imagineFilePath);
-            $imagineMetadata->addFilter($returnKey, new ImageMetadata($realPath, $imagineFilePath));
+
+            $imagineMetadata->addFilter($returnKey, new ImageMetadata($realPath, $this->urlHelper->getAbsoluteUrl($imagineFilePath)));
         }
 
         return $imagineMetadata;

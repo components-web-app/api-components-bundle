@@ -13,34 +13,39 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Dto\File;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
+
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 final class FileData
 {
-    private ?string $publicPath;
+    /**
+     * @ApiProperty(iri="http://schema.org/contentUrl", readable=false)
+     */
+    private ?string $url;
     private ?string $fileExtension;
     private ?int $fileSize;
     private ?ImageMetadata $imageData;
     private ?ImagineMetadata $imagineData;
 
     public function __construct(
-        ?string $publicPath,
+        ?string $url,
         ?string $fileExtension,
         ?int $fileSize,
         ?ImageMetadata $imageData,
         ?ImagineMetadata $imagineData
     ) {
-        $this->publicPath = $publicPath;
+        $this->url = $url;
         $this->fileExtension = $fileExtension;
         $this->fileSize = $fileSize;
         $this->imageData = $imageData;
         $this->imagineData = $imagineData;
     }
 
-    public function getPublicPath(): ?string
+    public function getUrl(): ?string
     {
-        return $this->publicPath;
+        return $this->url;
     }
 
     public function getImageData(): ?ImageMetadata

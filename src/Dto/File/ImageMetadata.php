@@ -24,19 +24,17 @@ final class ImageMetadata
 {
     private int $width = 0;
     private int $height = 0;
-    private string $filePath;
-    private string $publicPath;
+    private string $url;
 
     public function __construct(
         string $filePath,
-        string $publicPath
+        string $url
     ) {
-        $this->filePath = $filePath;
-        $this->publicPath = $publicPath;
-
         if (!file_exists($filePath)) {
             throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
         }
+
+        $this->url = $url;
 
         if ('image/svg+xml' === mime_content_type($filePath)) {
             $xmlGet = simplexml_load_string(file_get_contents($filePath));
@@ -62,13 +60,8 @@ final class ImageMetadata
         return $this->height;
     }
 
-    public function getFilePath(): string
+    public function getUrl(): string
     {
-        return $this->filePath;
-    }
-
-    public function getPublicPath(): string
-    {
-        return $this->publicPath;
+        return $this->url;
     }
 }

@@ -50,6 +50,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
@@ -99,6 +100,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
             new Reference(RouterInterface::class),
             new Reference(ImagineMetadataFactory::class),
+            new Reference(UrlHelper::class),
         ]);
 
     $services
@@ -158,7 +160,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(CacheManager::class),
             new Reference(PathResolver::class),
             '%kernel.project_dir%',
-            new Reference(FilterService::class)
+            new Reference(FilterService::class),
+            new Reference(UrlHelper::class),
         ]);
 
     $services
