@@ -18,11 +18,14 @@ use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
+use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
+use Silverback\ApiComponentBundle\Action\PasswordRequestAction;
+use Silverback\ApiComponentBundle\Action\PasswordUpdateAction;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
@@ -43,6 +46,11 @@ use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\FileInterfaceOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
+use Silverback\ApiComponentBundle\Security\TokenGenerator;
+use Silverback\ApiComponentBundle\Serializer\SuperAdminContextBuilder;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -52,10 +60,13 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Twig\Environment;
 
 /*
@@ -186,6 +197,28 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(PasswordManager::class)
+        ->args([
+            new Reference(MailerInterface::class),
+            new Reference(EntityManagerInterface::class),
+            new Reference(ValidatorInterface::class),
+            new Reference(TokenGenerator::class),
+            new Reference(RequestStack::class),
+            '%env(MAILER_EMAIL)%',
+        ]);
+
+    $services
+        ->set(PasswordRequestAction::class)
+        ->args($passwordActionArgs = [
+            new Reference(UserRepository::class),
+            new Reference(PasswordManager::class),
+        ]);
+
+    $services
+        ->set(PasswordUpdateAction::class)
+        ->args($passwordActionArgs);
+
+    $services
         ->set(PathResolver::class);
 
     $services
@@ -195,6 +228,15 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(SuperAdminContextBuilder::class)
+        ->decorate(SerializerContextBuilderInterface::class)
+        ->args([
+            new Reference(SuperAdminContextBuilder::class . '.inner'),
+            new Reference(AuthorizationCheckerInterface::class),
+        ])
+        ->autoconfigure(false);
+
+    $services
         ->set(TablePrefixExtension::class)
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
@@ -202,6 +244,21 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TimestampedListener::class)
         ->args([new Reference(EntityManagerInterface::class)])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE]);
+
+    $services
+        ->set(TokenAuthenticator::class)
+        ->args([
+            new Reference(Security::class),
+        ]);
+
+    $services
+        ->set(TokenGenerator::class);
+
+    $services
+        ->set(UserRepository::class)
+        ->args([
+            new Reference(ManagerRegistry::class)
+        ]);
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');

@@ -30,7 +30,9 @@ We encourage using as many of the packages as possible that are well maintained 
 - Update the `api/Dockerfile`
   - Change PHP version to at least 7.4
   - Remove `--with-libzip` if present
-  - Add `exif` to the `docker-php-ext-install` arguments
+  - Add `COPY assets assets/` beneath `COPY src src/`
+  - Add `exif` and `xsl` to the `docker-php-ext-install` arguments (exif is to determine whether files are images and xsl is for the Inky extension working with emails using Symfony Mailer)
+  - Add `libxslt-dev` to `apk add --no-cache --virtual .build-deps` (required to install xsl)
   - For `LiipImagineBundle` Support
     - Add to `apk add --no-cache --virtual .build-deps` command the packages `libpng-dev`, `libjpeg-turbo-dev` and `freetype-dev`
     - Add the following to include gd `docker-php-ext-configure gd --with-freetype --with-jpeg`
@@ -39,21 +41,61 @@ We encourage using as many of the packages as possible that are well maintained 
 - run `docker-compose exec php sh` to bash into the php container
 - run `composer require silverbackis/api-component-bundle:2.x-dev`
 
-Configure routes
-```yaml
-# /config/routes/silverback_api_component.yaml
-silverback_api_component:
-  resource: "@SilverbackApiComponentBundle/Resources/config/routing/all.xml"
-```
+> Be sure to run the [recipe for this bundle](https://github.com/api-platform/api-platform) or take a look at all the files and configurations in the repository that would normally have been executed if the recipe was run. It includes route mapping, bundle configuration, templates for emails, environment variables, a User database entity and more.
 
-Configure optional components for API Platform:
-```
-api_platform:
-  mapping:
-    paths:
-      # additional paths here...
-      - '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/form.yaml'
-      - '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/collection.yaml'
+Configure your security/firewall. There is a configurable token so that requests to the API where a refresh token is returned can only be made from anotehr server. This is to protect the refresh key from being passed directly to a user. You should save the refresh key in your server-side session data and handle refreshing the JWT token that way.
+```yaml
+security:
+    role_hierarchy:
+        ROLE_ADMIN:       ROLE_USER
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+    encoders:
+        App\Entity\AppUser:
+            algorithm: auto
+    providers:
+        user_provider:
+            entity:
+                class: Silverback\ApiComponentBundle\Entity\User\User
+                property: username
+    firewalls:
+      dev:
+          pattern: ^/(_(profiler|wdt)|css|images|js)/
+          security: false
+      login:
+          pattern:  ^/login
+          stateless: true
+          # anonymous: true
+          provider: user_provider
+          user_checker: Silverback\ApiComponentBundle\Security\UserChecker
+          guard:
+              authenticators:
+                  - Silverback\ApiComponentBundle\Security\TokenAuthenticator
+          json_login:
+              check_path: /login_check
+              success_handler: lexik_jwt_authentication.handler.authentication_success
+              failure_handler: lexik_jwt_authentication.handler.authentication_failure
+      user_regsiter:
+          pattern:  ^/users
+          methods: [POST]
+          guard:
+              authenticators:
+                  - Silverback\ApiComponentBundle\Security\TokenAuthenticator
+          stateless: true
+      main:
+          pattern:   ^/
+          stateless: true
+          anonymous: true
+          guard:
+              authenticators:
+                  - lexik_jwt_authentication.jwt_token_authenticator
+          # https://symfony.com/doc/current/security/impersonating_user.html
+          switch_user: true
+    access_control:
+        - { path: ^/login, roles: ROLE_TOKEN_USER }
+        - { path: ^/users, roles: ROLE_TOKEN_USER, methods: [POST] }
+        - { path: ^/password/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/components/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
 ```
 
 ## Example: Creating a new 1 page website

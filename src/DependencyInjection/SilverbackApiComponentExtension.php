@@ -18,6 +18,9 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -39,8 +42,21 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $this->loadServiceConfig($container);
 
+        $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
+        $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
+
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
+
+        $definition = $container->getDefinition(PasswordManager::class);
+        $definition->setArgument('$tokenTtl', $repeatTtl);
+
+        $definition = $container->getDefinition(TokenAuthenticator::class);
+        $definition->setArgument('$tokens', $config['security']['tokens']);
+
+        $definition = $container->getDefinition(UserRepository::class);
+        $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
+        $definition->setArgument('$entityClass', $config['user']['class_name']);
     }
 
     /**
@@ -69,7 +85,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $configBasePath = '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/';
         $mappingPaths = [];
         foreach ($config['enabled_components'] as $key => $enabled_component) {
-            if ($enabled_component === true) {
+            if (true === $enabled_component) {
                 $mappingPaths[] = sprintf('%s%s.yaml', $configBasePath, $key);
             }
         }
@@ -84,8 +100,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                     ],
                 ],
                 'mapping' => [
-                    'paths' => $mappingPaths
-                ]
+                    'paths' => $mappingPaths,
+                ],
             ]
         );
 
@@ -94,8 +110,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             [
                 'paths' => [
                     '%kernel.project_dir%/assets/images' => 'images',
-                    '%kernel.project_dir%/assets/css' => 'css'
-                ]
+                    '%kernel.project_dir%/assets/css' => 'css',
+                ],
             ]
         );
 

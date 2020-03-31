@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\User\User;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,9 +25,9 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class UserRepository extends ServiceEntityRepository
 {
-    private $passwordRequestTimeout;
+    private int $passwordRequestTimeout;
 
-    public function __construct(RegistryInterface $registry, int $passwordRequestTimeout, string $entityClass)
+    public function __construct(ManagerRegistry $registry, int $passwordRequestTimeout, string $entityClass)
     {
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;

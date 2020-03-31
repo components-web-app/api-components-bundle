@@ -5,4 +5,12 @@
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
     <route id="api_component_login_check" path="/api/login_check" />
+
+    <route id="api_component_password_request" path="/password/reset/request/{username}"
+           controller="Silverback\ApiComponentBundle\Action\PasswordRequestAction"
+           methods="GET" />
+
+    <route id="api_component_password_update" path="/password/update"
+           controller="Silverback\ApiComponentBundle\Action\PasswordUpdateAction"
+           methods="POST" />
 </routes>
