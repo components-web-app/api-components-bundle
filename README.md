@@ -32,7 +32,8 @@ We encourage using as many of the packages as possible that are well maintained 
   - Remove `--with-libzip` if present
   - Add `exif` to the `docker-php-ext-install` arguments
   - For `LiipImagineBundle` Support
-    - Add or modify to include gd `docker-php-ext-configure gd --with-freetype --with-jpeg`
+    - Add to `apk add --no-cache --virtual .build-deps` command the packages `libpng-dev`, `libjpeg-turbo-dev` and `freetype-dev`
+    - Add the following to include gd `docker-php-ext-configure gd --with-freetype --with-jpeg`
     - Add or modify to include gd `docker-php-ext-install gd`
 - Start up the containers
 - run `docker-compose exec php sh` to bash into the php container

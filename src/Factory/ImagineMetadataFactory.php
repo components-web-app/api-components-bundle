@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Factory;
 
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
 use Silverback\ApiComponentBundle\Dto\File\ImagineMetadata;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
@@ -27,12 +28,14 @@ class ImagineMetadataFactory
     private CacheManager $cacheManager;
     private PathResolver $pathResolver;
     private string $projectDirectory;
+    private FilterService $filterService;
 
-    public function __construct(CacheManager $cacheManager, PathResolver $pathResolver, string $projectDirectory)
+    public function __construct(CacheManager $cacheManager, PathResolver $pathResolver, string $projectDirectory, FilterService $filterService)
     {
         $this->cacheManager = $cacheManager;
         $this->pathResolver = $pathResolver;
         $this->projectDirectory = $projectDirectory;
+        $this->filterService = $filterService;
     }
 
     public static function isImagineFilePath(?string $filePath): bool
@@ -58,6 +61,10 @@ class ImagineMetadataFactory
         $imagineMetadata = new ImagineMetadata();
         foreach ($file::getImagineFilters() as $returnKey => $filter) {
             $resolvedPath = $this->pathResolver->resolve($filePath);
+
+            // Getting the URL will create the filtered image if it does not exist
+            $this->filterService->getUrlOfFilteredImage($resolvedPath, $filter);
+
             $imagineBrowserPath = $this->cacheManager->getBrowserPath($resolvedPath, $filter);
             $imagineFilePath = urldecode(ltrim(
                 parse_url(

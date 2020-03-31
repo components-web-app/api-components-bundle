@@ -39,7 +39,7 @@ class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactory
             return $resourceMetadata;
         }
 
-        if (!$currentOutputClass = $resourceMetadata->getAttribute('output')) {
+        if (!$resourceMetadata->getAttribute('output')) {
             $attributes = $resourceMetadata->getAttributes() ?: [];
             $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
                 'output' => [

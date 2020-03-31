@@ -22,6 +22,7 @@ use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
@@ -157,6 +158,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(CacheManager::class),
             new Reference(PathResolver::class),
             '%kernel.project_dir%',
+            new Reference(FilterService::class)
         ]);
 
     $services
@@ -200,6 +202,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
+    $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
     $services->alias(SlugifyInterface::class, 'slugify');
