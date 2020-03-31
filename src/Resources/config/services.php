@@ -38,6 +38,7 @@ use Silverback\ApiComponentBundle\Form\Type\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\LoginType;
 use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -81,6 +82,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ContextAwareCollectionDataProviderInterface::class),
             new Reference(IriConverterInterface::class),
             new Reference(NormalizerInterface::class),
+        ]);
+
+    $services
+        ->set(AutoRoutePrefixMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(AutoRoutePrefixMetadataFactory::class . '.inner'),
         ]);
 
     $services

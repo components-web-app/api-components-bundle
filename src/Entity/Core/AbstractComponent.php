@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Entity\Core;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
@@ -35,6 +36,7 @@ abstract class AbstractComponent implements ComponentInterface, TimestampedInter
     use IdTrait;
     use TimestampedTrait;
     use UiTrait;
+    use ComponentGroupsTrait;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="component")

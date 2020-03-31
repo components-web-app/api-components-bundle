@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\OperationType;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Paginator;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
@@ -26,6 +25,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -94,7 +94,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
          * DOES PAGINATION OBJECT GET RETURNED OR ANOTHER ITERABLE OR IS IT JUST AN ARRAY??
          * THIS WILL NEED TO BE HANDLED !!!
          *
-         * @var Paginator
+         * @var Traversable
          */
         $resourceCollection = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
 
@@ -103,6 +103,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             $format,
             $normalizerContext
         );
+        // IS THIS CHECK NEEDED??
         if (\is_array($normalizedCollection)) {
             $collection->setCollection($normalizedCollection);
         }

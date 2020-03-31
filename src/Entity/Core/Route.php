@@ -54,13 +54,13 @@ class Route implements TimestampedInterface
     public Collection $redirectedFrom;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="routes")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
     public PageTemplate $pageTemplate;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="routes")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
     public AbstractPageData $pageData;

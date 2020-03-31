@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
@@ -22,13 +23,14 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
  * @ApiResource(attributes={"output"="Silverback\ApiComponentBundle\Entity\Core\PageTemplate"})
  * @ORM\Entity
  * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="routes", inversedBy="pageTemplate"),
+ *     @ORM\AssociationOverride(name="route", inversedBy="pageTemplate"),
  *     @ORM\AssociationOverride(name="componentGroups", inversedBy="pageTemplates")
  * })
  */
 class PageTemplate extends AbstractPage
 {
     use UiTrait;
+    use ComponentGroupsTrait;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", inversedBy="pageTemplates")

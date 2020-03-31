@@ -32,7 +32,16 @@ abstract class AbstractPage implements TimestampedInterface
      *
      * @var Route|null
      */
-    public ?Route $routes;
+    public ?Route $route;
+
+    /**
+     * This will be se so that when auto-generating a route for a newly created PageTemplate / PageData, we can prepend parent routes.
+     *
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
+     *
+     * @var Route|null
+     */
+    public ?Route $parentRoute;
 
     /**
      * @ORM\Column()

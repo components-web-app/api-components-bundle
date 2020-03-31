@@ -17,6 +17,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
@@ -35,6 +36,7 @@ class Layout implements TimestampedInterface
     use IdTrait;
     use TimestampedTrait;
     use UiTrait;
+    use ComponentGroupsTrait;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="layout")

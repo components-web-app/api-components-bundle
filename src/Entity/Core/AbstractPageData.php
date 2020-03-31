@@ -24,7 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="dtype", type="string")
  * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="routes", inversedBy="pageData")
+ *     @ORM\AssociationOverride(name="route", inversedBy="pageData")
  * })
  */
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
