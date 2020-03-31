@@ -39,6 +39,7 @@ use Silverback\ApiComponentBundle\Form\Type\LoginType;
 use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
+use Silverback\ApiComponentBundle\Metadata\FileInterfaceOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -97,6 +98,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
             new Reference(RouterInterface::class),
             new Reference(ImagineMetadataFactory::class),
+        ]);
+
+    $services
+        ->set(FileInterfaceOutputClassMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(FileInterfaceOutputClassMetadataFactory::class . '.inner'),
         ]);
 
     $services

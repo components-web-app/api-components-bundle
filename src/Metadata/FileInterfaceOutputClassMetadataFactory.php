@@ -15,12 +15,15 @@ namespace Silverback\ApiComponentBundle\Metadata;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 
 /**
+ * This is to explicitly define the output class of any resource implementing FilterInterface
+ * This is so that the Data Transformer will be called.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
-class AutoRoutePrefixMetadataFactory implements ResourceMetadataFactoryInterface
+class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
 
@@ -32,25 +35,20 @@ class AutoRoutePrefixMetadataFactory implements ResourceMetadataFactoryInterface
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!is_subclass_of($resourceClass, AbstractComponent::class)) {
+        if (!is_subclass_of($resourceClass, FileInterface::class)) {
             return $resourceMetadata;
         }
 
-        return $this->prefixComponentRoute($resourceMetadata);
-    }
-
-    private function prefixComponentRoute(ResourceMetadata $resourceMetadata): ResourceMetadata
-    {
-        $routePrefixParts = ['component'];
-        if ($currentRoutePrefix = $resourceMetadata->getAttribute('route_prefix')) {
-            $routePrefixParts[] = trim($currentRoutePrefix, '/');
+        if (!$currentOutputClass = $resourceMetadata->getAttribute('output')) {
+            $attributes = $resourceMetadata->getAttributes() ?: [];
+            $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
+                'output' => [
+                    'class' => $resourceClass,
+                    'name' => (new \ReflectionClass($resourceClass))->getShortName(),
+                ],
+            ]));
         }
-        $newRoutePrefix = '/' . implode('/', $routePrefixParts);
 
-        $attributes = $resourceMetadata->getAttributes() ?: [];
-
-        return $resourceMetadata->withAttributes(array_merge($attributes, [
-            'route_prefix' => $newRoutePrefix,
-        ]));
+        return $resourceMetadata;
     }
 }
