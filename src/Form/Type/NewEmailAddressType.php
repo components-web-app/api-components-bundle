@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Form\Type;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -32,6 +33,9 @@ class NewEmailAddressType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $data = $this->security->getUser();
+        if (!$data instanceof AbstractUser) {
+            throw new InvalidParameterException(sprintf('The logged in user must be an instance of %s to use the form %s', AbstractUser::class, __CLASS__));
+        }
         $help = null;
         if ($data instanceof AbstractUser && $data->getNewEmailAddress()) {
             $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());

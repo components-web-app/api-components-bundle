@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Mailer;
 
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,9 +29,12 @@ class MessageEventListener
         $this->fromEmailAddress = $fromEmailAddress;
     }
 
-    public function __invoke(MessageEvent $messageEvent)
+    public function __invoke(MessageEvent $messageEvent): void
     {
         $message = $messageEvent->getMessage();
+        if (!$message instanceof Email) {
+            return;
+        }
         $message->from(Address::fromString($this->fromEmailAddress));
     }
 }
