@@ -251,7 +251,7 @@ abstract class AbstractUser implements SymfonyUserInterface
         $this->oldPassword = $oldPassword;
     }
 
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->username;
     }

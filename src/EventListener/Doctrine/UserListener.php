@@ -30,14 +30,9 @@ class UserListener
         $this->passwordEncoder = $passwordEncoder;
     }
 
-    public function prePersist(LifecycleEventArgs $args): void
+    public function prePersist(AbstractUser $user, LifecycleEventArgs $args): void
     {
-        $entity = $args->getEntity();
-        if (!$entity instanceof AbstractUser) {
-            return;
-        }
-
-        $this->encodePassword($entity);
+        $this->encodePassword($user);
     }
 
     public function postPersist(): void
@@ -47,41 +42,28 @@ class UserListener
         // send welcome email to new user if enabled (it is enabled by default)
     }
 
-    public function preUpdate(LifecycleEventArgs $args): void
+    public function preUpdate(AbstractUser $user, LifecycleEventArgs $args): void
     {
-        $entity = $args->getEntity();
-        if (!$entity instanceof AbstractUser) {
-            return;
-        }
+        $this->encodePassword($user);
 
-        $this->encodePassword($entity);
-
-        $this->changeSet = $args->getEntityManager()->getUnitOfWork()->getEntityChangeSet($entity);
+        $this->changeSet = $args->getEntityManager()->getUnitOfWork()->getEntityChangeSet($user);
     }
 
-    public function postUpdate(LifecycleEventArgs $args)
+    public function postUpdate(AbstractUser $user, LifecycleEventArgs $args): void
     {
-        $entity = $args->getEntity();
-        if (!$entity instanceof AbstractUser) {
-            return;
-        }
-
         if (!$this->changeSet) {
             return;
         }
 
-        $isNewlyEnabled = $entity->isEnabled() && isset($this->changeSet['enabled']) && !$this->changeSet['enabled'][0];
-        if ($isNewlyEnabled) {
+        if (isset($this->changeSet['enabled']) && !$this->changeSet['enabled'][0] && $user->isEnabled()) {
             // send notification email to user
         }
 
-        $isUsernameChanged = isset($this->changeSet['username']);
-        if ($isUsernameChanged) {
+        if (isset($this->changeSet['username'])) {
             // send notification email to user
         }
 
-        $isPasswordChanged = (bool) $entity->getPlainPassword();
-        if ($isPasswordChanged) {
+        if (isset($this->changeSet['password'])) {
             // send notification email to user
         }
     }

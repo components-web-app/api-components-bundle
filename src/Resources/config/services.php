@@ -279,10 +279,10 @@ return static function (ContainerConfigurator $configurator) {
     };
     $services
         ->set(UserListener::class)
-        ->tag('doctrine.event_listener', $getUserListenerTagArgs('prePersist'))
-        ->tag('doctrine.event_listener', $getUserListenerTagArgs('postPersist'))
-        ->tag('doctrine.event_listener', $getUserListenerTagArgs('preUpdate'))
-        ->tag('doctrine.event_listener', $getUserListenerTagArgs('postUpdate'))
+        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('prePersist'))
+        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('postPersist'))
+        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('preUpdate'))
+        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('postUpdate'))
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
         ]);
