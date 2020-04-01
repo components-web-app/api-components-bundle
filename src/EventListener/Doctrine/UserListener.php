@@ -23,14 +23,14 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class UserListener
 {
     private UserPasswordEncoderInterface $passwordEncoder;
-    private ?array $changeSet = null;
+    private array $changeSet = [];
 
     public function __construct(UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->passwordEncoder = $passwordEncoder;
     }
 
-    public function prePersist(AbstractUser $user, LifecycleEventArgs $args): void
+    public function prePersist(AbstractUser $user): void
     {
         $this->encodePassword($user);
     }
@@ -49,12 +49,8 @@ class UserListener
         $this->changeSet = $args->getEntityManager()->getUnitOfWork()->getEntityChangeSet($user);
     }
 
-    public function postUpdate(AbstractUser $user, LifecycleEventArgs $args): void
+    public function postUpdate(AbstractUser $user): void
     {
-        if (!$this->changeSet) {
-            return;
-        }
-
         if (isset($this->changeSet['enabled']) && !$this->changeSet['enabled'][0] && $user->isEnabled()) {
             // send notification email to user
         }

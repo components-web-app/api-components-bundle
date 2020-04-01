@@ -90,9 +90,12 @@ class PasswordManager
 
     private function passwordResetEmail(AbstractUser $user, string $resetUrl): void
     {
+        if (!($userEmail = $user->getEmail())) {
+            throw new InvalidParameterException('The user must have an email address to send a password reset email');
+        }
         $email = (new TemplatedEmail())
             ->from(Address::fromString($this->websiteEmailAddress))
-            ->to(Address::fromString($user->getEmail()))
+            ->to(Address::fromString($userEmail))
             ->subject('Your password reset request')
             ->htmlTemplate('api-component-bundle/emails/forgot_password.html.twig')
             ->context([
