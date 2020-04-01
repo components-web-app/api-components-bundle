@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 
@@ -34,6 +35,9 @@ trait IdTrait
         $this->id = Uuid::uuid4()->getHex();
     }
 
+    /**
+     * @ApiProperty(readable=false)
+     */
     public function getId(): string
     {
         return $this->id;

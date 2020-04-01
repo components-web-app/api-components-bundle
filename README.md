@@ -50,12 +50,12 @@ security:
         ROLE_ADMIN:       ROLE_USER
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
     encoders:
-        App\Entity\AppUser:
+        Silverback\ApiComponentBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
         user_provider:
             entity:
-                class: Silverback\ApiComponentBundle\Entity\User\User
+                class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
                 property: username
     firewalls:
       dev:

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 class NewUsernameValidator extends ConstraintValidator
 {
-    private $userRepository;
+    private UserRepository $userRepository;
 
     public function __construct(
         UserRepository $userRepository
@@ -31,8 +31,8 @@ class NewUsernameValidator extends ConstraintValidator
 
     public function validate($user, Constraint $constraint): void
     {
-        if (!$user instanceof User) {
-            throw new UnexpectedTypeException($user, User::class);
+        if (!$user instanceof AbstractUser) {
+            throw new UnexpectedTypeException($user, AbstractUser::class);
         }
 
         if (!$user->getUsername() || !$user->getNewUsername()) {

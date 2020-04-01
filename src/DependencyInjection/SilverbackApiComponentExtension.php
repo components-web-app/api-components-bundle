@@ -102,6 +102,14 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 'mapping' => [
                     'paths' => $mappingPaths,
                 ],
+                'swagger' => [
+                    'api_keys' => [
+                        'apiToken' => [
+                            'name' => 'X-AUTH-TOKEN',
+                            'type' => 'header',
+                        ],
+                    ],
+                ],
             ]
         );
 

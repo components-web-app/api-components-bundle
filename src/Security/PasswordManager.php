@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Security;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -52,42 +52,22 @@ class PasswordManager
         $this->tokenTtl = $tokenTtl;
     }
 
-    public function requestResetEmail(User $user, string $resetUrl): void
+    public function requestResetEmail(AbstractUser $user, string $resetUrl): void
     {
         if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {
             return;
         }
-        $confirmationToken = $user->getPasswordResetConfirmationToken();
-        if (!$confirmationToken) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a password reset email.', User::class));
-        }
         $username = $user->getUsername();
         if (!$username) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', User::class));
+            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setPasswordResetConfirmationToken($this->tokenGenerator->generateToken());
+        $user->setPasswordResetConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
         $user->setPasswordRequestedAt(new DateTime());
         $this->passwordResetEmail($user, $this->pathToAppUrl($resetUrl, $confirmationToken, $username));
         $this->entityManager->flush();
     }
 
-    private function passwordResetEmail(User $user, string $resetUrl): void
-    {
-        $email = (new TemplatedEmail())
-            ->from(Address::fromString($this->websiteEmailAddress))
-            ->to(Address::fromString($user->getUsername()))
-            ->subject('Your password reset request')
-            // path of the Twig template to render
-            ->htmlTemplate('api-component-bundle/emails/forgot_password.html.twig')
-            // pass variables (name => value) to the template
-            ->context([
-                'user' => $user,
-                'reset_url' => $resetUrl,
-            ]);
-        $this->mailer->send($email);
-    }
-
-    public function passwordReset(User $user, string $newPassword): void
+    public function passwordReset(AbstractUser $user, string $newPassword): void
     {
         $user->setPlainPassword($newPassword);
         $user->setPasswordResetConfirmationToken(null);
@@ -99,13 +79,27 @@ class PasswordManager
         $this->persistPlainPassword($user);
     }
 
-    public function persistPlainPassword(User $user): User
+    public function persistPlainPassword(AbstractUser $user): AbstractUser
     {
         $this->entityManager->persist($user);
         $this->entityManager->flush();
         $user->eraseCredentials();
 
         return $user;
+    }
+
+    private function passwordResetEmail(AbstractUser $user, string $resetUrl): void
+    {
+        $email = (new TemplatedEmail())
+            ->from(Address::fromString($this->websiteEmailAddress))
+            ->to(Address::fromString($user->getEmail()))
+            ->subject('Your password reset request')
+            ->htmlTemplate('api-component-bundle/emails/forgot_password.html.twig')
+            ->context([
+                'user' => $user,
+                'reset_url' => $resetUrl,
+            ]);
+        $this->mailer->send($email);
     }
 
     private function pathToAppUrl(string $path, string $token, string $email): string

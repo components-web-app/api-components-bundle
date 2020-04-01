@@ -15,13 +15,13 @@ namespace Silverback\ApiComponentBundle\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 
 /**
- * @method User|null find($id, $lockMode = null, $lockVersion = null)
- * @method User|null findOneBy(array $criteria, array $orderBy = null)
- * @method User[]    findAll()
- * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method AbstractUser|null find($id, $lockMode = null, $lockVersion = null)
+ * @method AbstractUser|null findOneBy(array $criteria, array $orderBy = null)
+ * @method AbstractUser[]    findAll()
+ * @method AbstractUser[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class UserRepository extends ServiceEntityRepository
 {
@@ -33,7 +33,7 @@ class UserRepository extends ServiceEntityRepository
         $this->passwordRequestTimeout = $passwordRequestTimeout;
     }
 
-    public function findOneByEmail($value): ?User
+    public function findOneByEmail($value): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.email = :val')

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
+namespace Silverback\ApiComponentBundle\EventListener;
 
 use DateTime;
 use DateTimeImmutable;

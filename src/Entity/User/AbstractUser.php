@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\User;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
@@ -27,41 +29,37 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewUsername(groups={"new_username", "Default"})
  */
-abstract class User implements SymfonyUserInterface
+abstract class AbstractUser implements SymfonyUserInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", length=36)
-     */
-    protected int $id;
+    use IdTrait;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
-     * @Assert\Email(groups={"Default"})
      * @Groups({"admin"})
      */
     protected ?string $username;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @ApiProperty(readable=false, writable=false)
      */
     protected string $password;
 
     /**
      * @ORM\Column(type="boolean")
-     * @Groups({"admin"})
+     * @Groups({"super_admin"})
      */
     protected bool $enabled;
 
     /**
      * @ORM\Column(type="array")
-     * @Groups({"default"})
+     * @Groups({"super_admin"})
      */
     protected array $roles;
 
     /**
+     * @ApiProperty(readable=false)
      * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
      * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
      * @Groups({"default_write"})
@@ -72,18 +70,19 @@ abstract class User implements SymfonyUserInterface
      * Random string sent to the user email address in order to verify it.
      *
      * @ORM\Column(nullable=true)
+     * @ApiProperty(readable=false, writable=false)
      */
     protected ?string $passwordResetConfirmationToken = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
+     * @ApiProperty(readable=false, writable=false)
      */
     protected ?DateTime $passwordRequestedAt = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_username"})
-     * @Assert\Email(groups={"new_username"})
      * @Groups({"default", "new_username"})
      */
     protected ?string $newUsername = null;
@@ -92,16 +91,19 @@ abstract class User implements SymfonyUserInterface
      * Random string sent to the user's new email address in order to verify it.
      *
      * @ORM\Column(nullable=true)
+     * @ApiProperty(readable=false, writable=false)
      */
     protected ?string $usernameConfirmationToken = null;
 
     /**
+     * @ApiProperty(readable=false)
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
      * @Groups({"default_write"})
      */
     protected ?string $oldPassword = null;
 
     /**
+     * @ApiProperty(readable=false, writable=false)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected ?DateTime $passwordLastUpdated = null;
@@ -116,11 +118,7 @@ abstract class User implements SymfonyUserInterface
         $this->roles = $roles;
         $this->password = $password;
         $this->enabled = $enabled;
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
+        $this->setId();
     }
 
     public function getUsername(): ?string
@@ -128,10 +126,7 @@ abstract class User implements SymfonyUserInterface
         return $this->username;
     }
 
-    /**
-     * @return static
-     */
-    public function setUsername(?string $username)
+    public function setUsername(?string $username): self
     {
         $this->username = $username;
 
@@ -143,10 +138,7 @@ abstract class User implements SymfonyUserInterface
         return $this->password;
     }
 
-    /**
-     * @return static
-     */
-    public function setPassword(string $password)
+    public function setPassword(string $password): self
     {
         $this->password = $password;
 
@@ -158,10 +150,7 @@ abstract class User implements SymfonyUserInterface
         return $this->roles;
     }
 
-    /**
-     * @return static
-     */
-    public function setRoles(?array $roles)
+    public function setRoles(?array $roles): self
     {
         $this->roles = $roles;
 
@@ -173,10 +162,7 @@ abstract class User implements SymfonyUserInterface
         return $this->enabled;
     }
 
-    /**
-     * @return static
-     */
-    public function setEnabled(bool $enabled)
+    public function setEnabled(bool $enabled): self
     {
         $this->enabled = $enabled;
 
@@ -188,10 +174,7 @@ abstract class User implements SymfonyUserInterface
         return $this->plainPassword;
     }
 
-    /**
-     * @return static
-     */
-    public function setPlainPassword(?string $plainPassword)
+    public function setPlainPassword(?string $plainPassword): self
     {
         $this->plainPassword = $plainPassword;
         if ($plainPassword) {
@@ -207,10 +190,7 @@ abstract class User implements SymfonyUserInterface
         return $this->passwordResetConfirmationToken;
     }
 
-    /**
-     * @return static
-     */
-    public function setPasswordResetConfirmationToken(?string $passwordResetConfirmationToken)
+    public function setPasswordResetConfirmationToken(?string $passwordResetConfirmationToken): self
     {
         $this->passwordResetConfirmationToken = $passwordResetConfirmationToken;
 
@@ -222,17 +202,14 @@ abstract class User implements SymfonyUserInterface
         return $this->passwordRequestedAt;
     }
 
-    /**
-     * @return static
-     */
-    public function setPasswordRequestedAt(?DateTime $passwordRequestedAt)
+    public function setPasswordRequestedAt(?DateTime $passwordRequestedAt): self
     {
         $this->passwordRequestedAt = $passwordRequestedAt;
 
         return $this;
     }
 
-    public function isPasswordRequestLimitReached($ttl)
+    public function isPasswordRequestLimitReached($ttl): bool
     {
         $lastRequest = $this->getPasswordRequestedAt();
 
@@ -245,10 +222,7 @@ abstract class User implements SymfonyUserInterface
         return $this->newUsername;
     }
 
-    /**
-     * @return static
-     */
-    public function setNewUsername(?string $newUsername)
+    public function setNewUsername(?string $newUsername): self
     {
         $this->newUsername = $newUsername;
 
@@ -260,10 +234,7 @@ abstract class User implements SymfonyUserInterface
         return $this->usernameConfirmationToken;
     }
 
-    /**
-     * @return static
-     */
-    public function setUsernameConfirmationToken(?string $usernameConfirmationToken)
+    public function setUsernameConfirmationToken(?string $usernameConfirmationToken): self
     {
         $this->usernameConfirmationToken = $usernameConfirmationToken;
 
@@ -278,6 +249,11 @@ abstract class User implements SymfonyUserInterface
     public function setOldPassword(?string $oldPassword): void
     {
         $this->oldPassword = $oldPassword;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->username;
     }
 
     /** @see \Serializable::serialize() */
@@ -306,12 +282,18 @@ abstract class User implements SymfonyUserInterface
         ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 
-    // Not needed - we use bcrypt
+    /**
+     * Not needed - we use bcrypt.
+     *
+     * @ApiProperty(readable=false, writable=false)
+     */
     public function getSalt()
     {
     }
 
-    // remove sensitive data - e.g. plain passwords etc.
+    /**
+     * Remove sensitive data - e.g. plain passwords etc.
+     */
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;

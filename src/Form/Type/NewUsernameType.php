@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -33,7 +33,7 @@ class NewUsernameType extends AbstractType
     {
         $data = $this->security->getUser();
         $help = null;
-        if ($data instanceof User && $data->getNewUsername()) {
+        if ($data instanceof AbstractUser && $data->getNewUsername()) {
             $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewUsername());
         }
         $builder
@@ -52,7 +52,7 @@ class NewUsernameType extends AbstractType
             'attr' => [
                 'novalidate' => 'novalidate',
             ],
-            'data_class' => User::class,
+            'data_class' => AbstractUser::class,
             'validation_groups' => ['new_username'],
             'empty_data' => $this->security->getUser(),
         ]);

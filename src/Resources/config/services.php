@@ -32,7 +32,9 @@ use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\EventListener\TimestampedListener;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Factory\FormViewFactory;
@@ -42,6 +44,7 @@ use Silverback\ApiComponentBundle\Form\Type\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\LoginType;
 use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
+use Silverback\ApiComponentBundle\Mailer\UserNotificationsMailer;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\FileInterfaceOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
@@ -50,8 +53,10 @@ use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
+use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\SuperAdminContextBuilder;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
+use Silverback\ApiComponentBundle\Validator\Constraints\NewUsernameValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -63,6 +68,7 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -190,6 +196,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(Security::class)]);
 
     $services
+        ->set(NewUsernameValidator::class)
+        ->args([
+            new Reference(UserRepository::class),
+        ]);
+
+    $services
         ->set(PageTemplateOutputDataTransformer::class)
         ->tag('api_platform.data_transformer')
         ->args([
@@ -255,9 +267,36 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TokenGenerator::class);
 
     $services
+        ->set(UserChecker::class);
+
+    $getUserListenerTagArgs = static function ($event) {
+        return [
+            'event' => $event,
+            'method' => $event,
+            'entity' => AbstractUser::class,
+            'lazy' => true,
+        ];
+    };
+    $services
+        ->set(UserListener::class)
+        ->tag('doctrine.event_listener', $getUserListenerTagArgs('prePersist'))
+        ->tag('doctrine.event_listener', $getUserListenerTagArgs('postPersist'))
+        ->tag('doctrine.event_listener', $getUserListenerTagArgs('preUpdate'))
+        ->tag('doctrine.event_listener', $getUserListenerTagArgs('postUpdate'))
+        ->args([
+            new Reference(UserPasswordEncoderInterface::class),
+        ]);
+
+    $services
+        ->set(UserNotificationsMailer::class)
+        ->args([
+            new Reference(MailerInterface::class),
+        ]);
+
+    $services
         ->set(UserRepository::class)
         ->args([
-            new Reference(ManagerRegistry::class)
+            new Reference(ManagerRegistry::class),
         ]);
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
