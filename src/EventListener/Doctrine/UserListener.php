@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -23,11 +24,13 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class UserListener
 {
     private UserPasswordEncoderInterface $passwordEncoder;
+    private UserMailer $userMailer;
     private array $changeSet = [];
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder, UserMailer $userMailer)
     {
         $this->passwordEncoder = $passwordEncoder;
+        $this->userMailer = $userMailer;
     }
 
     public function prePersist(AbstractUser $user): void
@@ -35,39 +38,41 @@ class UserListener
         $this->encodePassword($user);
     }
 
-    public function postPersist(): void
+    public function postPersist(AbstractUser $user): void
     {
-        // send new user notification email to admin if enabled (it is enabled by default)
-
-        // send welcome email to new user if enabled (it is enabled by default)
+        $this->userMailer->sendUserWelcomeEmail($user);
     }
 
     public function preUpdate(AbstractUser $user, LifecycleEventArgs $args): void
     {
-        $this->encodePassword($user);
-
-        $this->changeSet = $args->getEntityManager()->getUnitOfWork()->getEntityChangeSet($user);
+        $manager = $args->getEntityManager();
+        $uow = $manager->getUnitOfWork();
+        $passwordEncoded = $this->encodePassword($user);
+        if ($passwordEncoded) {
+            $uow->recomputeSingleEntityChangeSet($manager->getClassMetadata(AbstractUser::class), $user);
+        }
+        $this->changeSet = $uow->getEntityChangeSet($user);
     }
 
     public function postUpdate(AbstractUser $user): void
     {
         if (isset($this->changeSet['enabled']) && !$this->changeSet['enabled'][0] && $user->isEnabled()) {
-            // send notification email to user
+            $this->userMailer->sendUserEnabledEmail($user);
         }
 
         if (isset($this->changeSet['username'])) {
-            // send notification email to user
+            $this->userMailer->sendUsernameChangedEmail($user);
         }
 
         if (isset($this->changeSet['password'])) {
-            // send notification email to user
+            $this->userMailer->sendPasswordChangedEmail($user);
         }
     }
 
-    private function encodePassword(AbstractUser $entity): void
+    private function encodePassword(AbstractUser $entity): bool
     {
         if (!$entity->getPlainPassword()) {
-            return;
+            return false;
         }
         $encoded = $this->passwordEncoder->encodePassword(
             $entity,
@@ -75,5 +80,7 @@ class UserListener
         );
         $entity->setPassword($encoded);
         $entity->eraseCredentials();
+
+        return true;
     }
 }

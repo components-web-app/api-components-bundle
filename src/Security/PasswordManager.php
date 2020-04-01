@@ -17,38 +17,33 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PasswordManager
 {
-    private MailerInterface $mailer;
+    private UserMailer $userMailer;
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
     private TokenGenerator $tokenGenerator;
     private RequestStack $requestStack;
-    private string $websiteEmailAddress;
     private int $tokenTtl;
 
     public function __construct(
-        MailerInterface $mailer,
+        UserMailer $userMailer,
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
         TokenGenerator $tokenGenerator,
         RequestStack $requestStack,
-        string $websiteEmailAddress = 'no@email.com',
         int $tokenTtl = 8600
     ) {
-        $this->mailer = $mailer;
+        $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->tokenGenerator = $tokenGenerator;
         $this->requestStack = $requestStack;
-        $this->websiteEmailAddress = $websiteEmailAddress;
         $this->tokenTtl = $tokenTtl;
     }
 
@@ -61,20 +56,20 @@ class PasswordManager
         if (!$username) {
             throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setPasswordResetConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+        $user->setNewPasswordConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
         $user->setPasswordRequestedAt(new DateTime());
-        $this->passwordResetEmail($user, $this->pathToAppUrl($resetUrl, $confirmationToken, $username));
+        $this->userMailer->sendPasswordResetEmail($user, $this->pathToAppUrl($resetUrl, $confirmationToken, $username));
         $this->entityManager->flush();
     }
 
     public function passwordReset(AbstractUser $user, string $newPassword): void
     {
         $user->setPlainPassword($newPassword);
-        $user->setPasswordResetConfirmationToken(null);
+        $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
         $errors = $this->validator->validate($user, null, ['password_reset']);
         if (\count($errors)) {
-            throw new AuthenticationException($errors, 'The password entered is not valid');
+            throw new AuthenticationException('The password entered is not valid');
         }
         $this->persistPlainPassword($user);
     }
@@ -86,23 +81,6 @@ class PasswordManager
         $user->eraseCredentials();
 
         return $user;
-    }
-
-    private function passwordResetEmail(AbstractUser $user, string $resetUrl): void
-    {
-        if (!($userEmail = $user->getEmail())) {
-            throw new InvalidParameterException('The user must have an email address to send a password reset email');
-        }
-        $email = (new TemplatedEmail())
-            ->from(Address::fromString($this->websiteEmailAddress))
-            ->to(Address::fromString($userEmail))
-            ->subject('Your password reset request')
-            ->htmlTemplate('api-component-bundle/emails/forgot_password.html.twig')
-            ->context([
-                'user' => $user,
-                'reset_url' => $resetUrl,
-            ]);
-        $this->mailer->send($email);
     }
 
     private function pathToAppUrl(string $path, string $token, string $email): string

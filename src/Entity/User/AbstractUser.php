@@ -27,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
- * @APIAssert\NewUsername(groups={"new_username", "Default"})
+ * @APIAssert\NewUsername(groups={"new_email_address", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface
 {
@@ -41,10 +41,18 @@ abstract class AbstractUser implements SymfonyUserInterface
     protected ?string $username;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     * @ApiProperty(readable=false, writable=false)
+     * @ORM\Column(type="string", length=255, unique=true)
+     * @Assert\NotBlank(groups={"Default"})
+     * @Assert\Email()
+     * @Groups({"admin"})
      */
-    protected string $password;
+    protected ?string $emailAddress;
+
+    /**
+     * @ORM\Column(type="array")
+     * @Groups({"super_admin"})
+     */
+    protected array $roles;
 
     /**
      * @ORM\Column(type="boolean")
@@ -53,10 +61,10 @@ abstract class AbstractUser implements SymfonyUserInterface
     protected bool $enabled;
 
     /**
-     * @ORM\Column(type="array")
-     * @Groups({"super_admin"})
+     * @ORM\Column(type="string", length=255)
+     * @ApiProperty(readable=false, writable=false)
      */
-    protected array $roles;
+    protected string $password;
 
     /**
      * @ApiProperty(readable=false)
@@ -72,28 +80,13 @@ abstract class AbstractUser implements SymfonyUserInterface
      * @ORM\Column(nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
-    protected ?string $passwordResetConfirmationToken = null;
+    protected ?string $newPasswordConfirmationToken = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?DateTime $passwordRequestedAt = null;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     * @Assert\NotBlank(groups={"new_username"})
-     * @Groups({"default", "new_username"})
-     */
-    protected ?string $newUsername = null;
-
-    /**
-     * Random string sent to the user's new email address in order to verify it.
-     *
-     * @ORM\Column(nullable=true)
-     * @ApiProperty(readable=false, writable=false)
-     */
-    protected ?string $usernameConfirmationToken = null;
 
     /**
      * @ApiProperty(readable=false)
@@ -108,13 +101,36 @@ abstract class AbstractUser implements SymfonyUserInterface
      */
     protected ?DateTime $passwordLastUpdated = null;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Assert\NotBlank(groups={"new_email_address"})
+     * @Groups({"default", "new_email_address"})
+     */
+    protected ?string $newEmailAddress = null;
+
+    /**
+     * Random string sent to the user's new email address in order to verify it.
+     *
+     * @ORM\Column(nullable=true)
+     * @ApiProperty(readable=false, writable=false)
+     */
+    protected ?string $newEmailConfirmationToken = null;
+
+    /**
+     * @ORM\Column(type="boolean")
+     * @ApiProperty(readable=false, writable=false)
+     */
+    protected ?bool $emailAddressVerified = false;
+
     public function __construct(
         string $username = '',
+        string $emailAddress = '',
         array $roles = ['ROLE_USER'],
         string $password = '',
         bool $enabled = true
     ) {
         $this->username = $username;
+        $this->emailAddress = $emailAddress;
         $this->roles = $roles;
         $this->password = $password;
         $this->enabled = $enabled;
@@ -133,14 +149,14 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
-    public function getPassword(): ?string
+    public function getEmailAddress(): ?string
     {
-        return $this->password;
+        return $this->emailAddress;
     }
 
-    public function setPassword(string $password): self
+    public function setEmailAddress(?string $emailAddress): self
     {
-        $this->password = $password;
+        $this->emailAddress = $emailAddress;
 
         return $this;
     }
@@ -169,6 +185,18 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
     public function getPlainPassword(): ?string
     {
         return $this->plainPassword;
@@ -185,14 +213,14 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
-    public function getPasswordResetConfirmationToken(): ?string
+    public function getNewPasswordConfirmationToken(): ?string
     {
-        return $this->passwordResetConfirmationToken;
+        return $this->newPasswordConfirmationToken;
     }
 
-    public function setPasswordResetConfirmationToken(?string $passwordResetConfirmationToken): self
+    public function setNewPasswordConfirmationToken(?string $newPasswordConfirmationToken): self
     {
-        $this->passwordResetConfirmationToken = $passwordResetConfirmationToken;
+        $this->newPasswordConfirmationToken = $newPasswordConfirmationToken;
 
         return $this;
     }
@@ -209,38 +237,6 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
-    public function isPasswordRequestLimitReached($ttl): bool
-    {
-        $lastRequest = $this->getPasswordRequestedAt();
-
-        return $lastRequest instanceof DateTime &&
-            $lastRequest->getTimestamp() + $ttl > time();
-    }
-
-    public function getNewUsername(): ?string
-    {
-        return $this->newUsername;
-    }
-
-    public function setNewUsername(?string $newUsername): self
-    {
-        $this->newUsername = $newUsername;
-
-        return $this;
-    }
-
-    public function getUsernameConfirmationToken(): ?string
-    {
-        return $this->usernameConfirmationToken;
-    }
-
-    public function setUsernameConfirmationToken(?string $usernameConfirmationToken): self
-    {
-        $this->usernameConfirmationToken = $usernameConfirmationToken;
-
-        return $this;
-    }
-
     public function getOldPassword(): ?string
     {
         return $this->oldPassword;
@@ -251,9 +247,48 @@ abstract class AbstractUser implements SymfonyUserInterface
         $this->oldPassword = $oldPassword;
     }
 
-    public function getEmail(): ?string
+    public function getNewEmailAddress(): ?string
     {
-        return $this->username;
+        return $this->newEmailAddress;
+    }
+
+    public function setNewEmailAddress(?string $newEmailAddress): self
+    {
+        $this->newEmailAddress = $newEmailAddress;
+
+        return $this;
+    }
+
+    public function getNewEmailConfirmationToken(): ?string
+    {
+        return $this->newEmailConfirmationToken;
+    }
+
+    public function setNewEmailConfirmationToken(?string $newEmailConfirmationToken): self
+    {
+        $this->newEmailConfirmationToken = $newEmailConfirmationToken;
+
+        return $this;
+    }
+
+    public function isEmailAddressVerified(): ?bool
+    {
+        return $this->emailAddressVerified;
+    }
+
+    public function setEmailAddressVerified(?bool $emailAddressVerified): self
+    {
+        $this->emailAddressVerified = $emailAddressVerified;
+
+        return $this;
+    }
+
+    public function isPasswordRequestLimitReached($ttl): bool
+    {
+        $lastRequest = $this->getPasswordRequestedAt();
+
+        return $lastRequest instanceof DateTime &&
+            $lastRequest->getTimestamp() + $ttl > time();
     }
 
     /** @see \Serializable::serialize() */

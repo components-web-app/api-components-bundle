@@ -27,6 +27,7 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
         $rootNode
             ->children()
+                ->scalarNode('website_name')->isRequired()->end()
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
                 ->arrayNode('security')
                     ->addDefaultsIfNotSet()
@@ -53,6 +54,15 @@ class Configuration implements ConfigurationInterface
                             ->children()
                                 ->integerNode('repeat_ttl_seconds')->defaultValue(8600)->end()
                                 ->integerNode('request_timeout_seconds')->defaultValue(3600)->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('emails')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('user_welcome')->defaultValue(true)->end()
+                                ->booleanNode('user_enabled')->defaultValue(true)->end()
+                                ->booleanNode('user_username_changed')->defaultValue(true)->end()
+                                ->booleanNode('user_password_changed')->defaultValue(true)->end()
                             ->end()
                         ->end()
                     ->end()

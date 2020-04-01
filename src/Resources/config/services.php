@@ -34,6 +34,7 @@ use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransfor
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentBundle\EventListener\TimestampedListener;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
@@ -42,9 +43,9 @@ use Silverback\ApiComponentBundle\Factory\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Silverback\ApiComponentBundle\Form\Type\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\LoginType;
-use Silverback\ApiComponentBundle\Form\Type\NewUsernameType;
+use Silverback\ApiComponentBundle\Form\Type\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
-use Silverback\ApiComponentBundle\Mailer\UserNotificationsMailer;
+use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\FileInterfaceOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
@@ -65,6 +66,7 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -192,7 +194,14 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(RouterInterface::class)]);
 
     $services
-        ->set(NewUsernameType::class)
+        ->set(MessageEventListener::class)
+        ->tag('kernel.event_listener', ['event' => MessageEvent::class])
+        ->args([
+            '%env(MAILER_EMAIL)%',
+        ]);
+
+    $services
+        ->set(NewEmailAddressType::class)
         ->args([new Reference(Security::class)]);
 
     $services
@@ -211,12 +220,11 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PasswordManager::class)
         ->args([
-            new Reference(MailerInterface::class),
+            new Reference(UserMailer::class),
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(TokenGenerator::class),
             new Reference(RequestStack::class),
-            '%env(MAILER_EMAIL)%',
         ]);
 
     $services
@@ -285,10 +293,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('postUpdate'))
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
+            new Reference(UserMailer::class),
         ]);
 
     $services
-        ->set(UserNotificationsMailer::class)
+        ->set(UserMailer::class)
         ->args([
             new Reference(MailerInterface::class),
         ]);

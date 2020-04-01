@@ -18,6 +18,7 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
+use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
@@ -57,6 +58,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
+
+        $definition = $container->getDefinition(UserMailer::class);
+        $definition->setArgument('$websiteName', $config['website_name']);
+        $definition->setArgument('$sendUserWelcomeEmailEnabled', $config['user']['emails']['user_welcome']);
+        $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
+        $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
+        $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
     }
 
     /**
@@ -89,9 +97,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 $mappingPaths[] = sprintf('%s%s.yaml', $configBasePath, $key);
             }
         }
+        $websiteName = $config['website_name'];
         $container->prependExtensionConfig(
             'api_platform',
             [
+                'title' => $websiteName,
+                'description' => sprintf('API for %s', $websiteName),
                 'collection' => [
                     'pagination' => [
                         'client_items_per_page' => true,
@@ -109,16 +120,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                             'type' => 'header',
                         ],
                     ],
-                ],
-            ]
-        );
-
-        $container->prependExtensionConfig(
-            'twig',
-            [
-                'paths' => [
-                    '%kernel.project_dir%/assets/images' => 'images',
-                    '%kernel.project_dir%/assets/css' => 'css',
                 ],
             ]
         );

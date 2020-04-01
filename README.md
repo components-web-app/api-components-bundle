@@ -56,7 +56,6 @@ security:
         user_provider:
             entity:
                 class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
-                property: username
     firewalls:
       dev:
           pattern: ^/(_(profiler|wdt)|css|images|js)/

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type;
 
+use Doctrine\DBAL\Types\TextType;
 use Silverback\ApiComponentBundle\Entity\Form\LoginForm;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -35,12 +36,19 @@ class LoginType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username', EmailType::class, [
+            ->add('username', TextType::class, [
                 'attr' => [
                     'placeholder' => '',
-                    'autocomplete' => 'username email',
+                    'autocomplete' => 'username',
                 ],
-                'label' => 'Email',
+                'label' => 'Username',
+            ])
+            ->add('emailAddress', EmailType::class, [
+                'attr' => [
+                    'placeholder' => '',
+                    'autocomplete' => 'email',
+                ],
+                'label' => 'Email Address',
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Password',
@@ -65,14 +73,14 @@ class LoginType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        // Post to the js server to store credentials in session
         $resolver->setDefaults([
             'csrf_protection' => false,
             'data_class' => LoginForm::class,
             'attr' => [
-                'id' => 'login',
+                'id' => 'login_form',
                 'novalidate' => 'novalidate',
             ],
-            // Post to the js server to store credentials in session
             'action' => '/login',
             'realtime_validate' => false,
             'api_request' => false,

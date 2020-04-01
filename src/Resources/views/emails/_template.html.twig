@@ -1,0 +1,22 @@
+{% apply inky_to_html|inline_css(source('@SilverbackApiComponent/assets/css/foundation-emails.css'), source('@SilverbackApiComponent/assets/css/emails.css')) %}
+  <container>
+    <row class="header">
+      <columns>
+
+        <spacer size="16"></spacer>
+
+        <center>
+          <img src="{{ email.image('@SilverbackApiComponent/assets/images/email_logo.png') }}" alt="Logo" class="logo">
+        </center>
+      </columns>
+    </row>
+    <row>
+      <columns>
+        <spacer size="16"></spacer>
+
+        {% block content %}{% endblock %}
+      </columns>
+    </row>
+    <spacer size="16"></spacer>
+  </container>
+{% endapply %}

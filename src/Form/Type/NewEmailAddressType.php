@@ -20,7 +20,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
 
-class NewUsernameType extends AbstractType
+class NewEmailAddressType extends AbstractType
 {
     private Security $security;
 
@@ -33,14 +33,14 @@ class NewUsernameType extends AbstractType
     {
         $data = $this->security->getUser();
         $help = null;
-        if ($data instanceof AbstractUser && $data->getNewUsername()) {
-            $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewUsername());
+        if ($data instanceof AbstractUser && $data->getNewEmailAddress()) {
+            $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());
         }
         $builder
-            ->add('newUsername', EmailType::class, [
+            ->add('newEmailAddress', EmailType::class, [
                 'label' => 'Login Email',
                 'attr' => ['autocomplete' => 'username email'],
-                'data' => $data ? $data->getUsername() : null,
+                'data' => $data ? $data->getEmailAddress() : null,
                 'help' => $help,
             ]);
     }
@@ -53,7 +53,7 @@ class NewUsernameType extends AbstractType
                 'novalidate' => 'novalidate',
             ],
             'data_class' => AbstractUser::class,
-            'validation_groups' => ['new_username'],
+            'validation_groups' => ['new_email_address'],
             'empty_data' => $this->security->getUser(),
         ]);
     }

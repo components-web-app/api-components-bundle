@@ -11,19 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Mailer;
-
-use Symfony\Component\Mailer\MailerInterface;
+namespace Silverback\ApiComponentBundle\EventListener\Form;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserNotificationsMailer
+class NewEmailAddressListener
 {
-    private MailerInterface $mailer;
-
-    public function __construct(MailerInterface $mailer)
-    {
-        $this->mailer = $mailer;
-    }
 }

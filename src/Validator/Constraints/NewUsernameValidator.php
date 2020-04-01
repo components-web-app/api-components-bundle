@@ -35,17 +35,17 @@ class NewUsernameValidator extends ConstraintValidator
             throw new UnexpectedTypeException($user, AbstractUser::class);
         }
 
-        if (!$user->getUsername() || !$user->getNewUsername()) {
+        if (!$user->getUsername() || !$user->getNewEmailAddress()) {
             return;
         }
-        if ($user->getNewUsername() === $user->getUsername()) {
+        if ($user->getNewEmailAddress() === $user->getUsername()) {
             $this->context->buildViolation($constraint->differentMessage)
                 ->addViolation();
 
             return;
         }
 
-        if ($this->userRepository->findOneBy(['username' => $user->getNewUsername()])) {
+        if ($this->userRepository->findOneBy(['username' => $user->getNewEmailAddress()])) {
             $this->context->buildViolation($constraint->uniqueMessage)
                 ->addViolation();
 
