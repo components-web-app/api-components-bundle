@@ -205,7 +205,7 @@ class UserMailer
 
     private function getEmailConfirmationUrl(AbstractUser $user, string $userUsername): string
     {
-        $token = $user->getNewEmailConfirmationToken();
+        $token = $user->getNewEmailVerificationToken();
         if (!$token) {
             throw new InvalidParameterException('A new email confirmation token must be set to send the `email verification` email');
         }

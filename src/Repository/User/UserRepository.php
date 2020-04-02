@@ -42,7 +42,7 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneByPasswordResetToken(string $username, string $token)
+    public function findOneByPasswordResetToken(string $username, string $token): ?AbstractUser
     {
         $minimumRequestDateTime = new \DateTime();
         $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
@@ -59,19 +59,21 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneByChangeEmailToken(string $username, string $token)
+    public function findOneByEmailVerificationToken(string $username, string $email, string $token): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
-            ->andWhere('u.newEmailConfirmationToken = :token')
-            ->andWhere('u.newEmailConfirmationToken NOT NULL')
+            ->andWhere('u.newEmail = :email')
+            ->andWhere('u.newEmailVerificationToken = :token')
+            ->andWhere('u.newEmailVerificationToken NOT NULL')
             ->setParameter('username', $username)
+            ->setParameter('email', $email)
             ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function loadUserByUsername($usernameOrEmail)
+    public function loadUserByUsername($usernameOrEmail): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')

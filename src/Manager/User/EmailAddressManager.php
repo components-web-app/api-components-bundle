@@ -13,9 +13,39 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Manager\User;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class EmailAddressManager
 {
+    private EntityManagerInterface $entityManager;
+    private UserRepository $userRepository;
+
+    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
+    {
+        $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
+    }
+
+    public function verifyNewEmailAddress(string $username, string $email, string $token): void
+    {
+        $user = $this->userRepository->findOneByEmailVerificationToken(
+            $username,
+            $email,
+            $token
+        );
+        if (!$user) {
+            throw new NotFoundHttpException();
+        }
+
+        $user
+            ->setEmailAddress($user->getNewEmailAddress())
+            ->setNewEmailAddress(null)
+            ->setEmailAddressVerified(true);
+        $this->entityManager->flush();
+    }
 }

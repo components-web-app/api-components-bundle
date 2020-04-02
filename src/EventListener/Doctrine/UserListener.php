@@ -51,8 +51,11 @@ class UserListener
     {
         $this->encodePassword($user);
         $user->setEmailAddressVerified($this->initialEmailVerifiedState);
-        if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
-            $user->setNewEmailConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+        if (!$this->initialEmailVerifiedState) {
+            $user->setNewEmailAddress($user->getEmailAddress());
+            if (!$this->verifyEmailOnRegister) {
+                $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
+            }
         }
     }
 
@@ -75,7 +78,7 @@ class UserListener
         $this->changeSet = $uow->getEntityChangeSet($user);
 
         if ($this->changeSet['newEmailAddress']) {
-            $user->setNewEmailConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+            $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
             $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
             $this->changeSet = $uow->getEntityChangeSet($user);
         }

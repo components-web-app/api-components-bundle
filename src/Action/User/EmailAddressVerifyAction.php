@@ -17,6 +17,9 @@ use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -35,8 +38,23 @@ class EmailAddressVerifyAction extends AbstractAction
     public function __invoke(Request $request)
     {
         $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
+        $requiredKeys = ['username', 'token', 'email'];
+        foreach ($requiredKeys as $requiredKey) {
+            if (!isset($data[$requiredKey])) {
+                throw new BadRequestHttpException(sprintf('the key `%s` was not found in POST data', $requiredKey));
+            }
+            ${$requiredKey} = (string) $data[$requiredKey];
+        }
+        /* @var string $username
+         * @var string $token
+         * @var string $email
+         */
+        try {
+            $this->emailAddressManager->verifyNewEmailAddress($username, $email, $token);
 
-        $username = $data['username'];
-        $token = $data['token'];
+            return $this->getResponse($request);
+        } catch (NotFoundHttpException $exception) {
+            return $this->getResponse($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
+        }
     }
 }

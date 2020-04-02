@@ -34,8 +34,7 @@ class PasswordUpdateAction extends AbstractPasswordAction
             }
             ${$requiredKey} = (string) $data[$requiredKey];
         }
-        /*
-         * @var string $username
+        /* @var string $username
          * @var string $token
          * @var string $password
          */

@@ -114,7 +114,7 @@ abstract class AbstractUser implements SymfonyUserInterface
      * @ORM\Column(nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
-    protected ?string $newEmailConfirmationToken = null;
+    protected ?string $newEmailVerificationToken = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=false)
@@ -261,14 +261,14 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
-    public function getNewEmailConfirmationToken(): ?string
+    public function getNewEmailVerificationToken(): ?string
     {
-        return $this->newEmailConfirmationToken;
+        return $this->newEmailVerificationToken;
     }
 
-    public function setNewEmailConfirmationToken(?string $newEmailConfirmationToken): self
+    public function setNewEmailVerificationToken(?string $newEmailVerificationToken): self
     {
-        $this->newEmailConfirmationToken = $newEmailConfirmationToken;
+        $this->newEmailVerificationToken = $newEmailVerificationToken;
 
         return $this;
     }
