@@ -5,7 +5,7 @@
   <spacer size="16"></spacer>
   <p>Hello {{ username }},</p>
   <p>Thank you for signing up to {{ website_name }}.</p>
-  {% if verify_url is defined and verify_url not null %}
+  {% if verify_url is defined and verify_url is not null %}
     <p>Please click the link below to verify your email address.</p>
     <button class="large expand" href="{{ verify_url }}">Verify Email Address</button>
   {% endif %}

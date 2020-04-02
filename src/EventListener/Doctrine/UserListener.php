@@ -77,7 +77,7 @@ class UserListener
 
         $this->changeSet = $uow->getEntityChangeSet($user);
 
-        if ($this->changeSet['newEmailAddress']) {
+        if (isset($this->changeSet['newEmailAddress'])) {
             $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
             $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
             $this->changeSet = $uow->getEntityChangeSet($user);

@@ -38,19 +38,15 @@ class EmailAddressVerifyAction extends AbstractAction
     public function __invoke(Request $request)
     {
         $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
-        $requiredKeys = ['username', 'token', 'email'];
+        $requiredKeys = ['username', 'email', 'token'];
         foreach ($requiredKeys as $requiredKey) {
             if (!isset($data[$requiredKey])) {
                 throw new BadRequestHttpException(sprintf('the key `%s` was not found in POST data', $requiredKey));
             }
-            ${$requiredKey} = (string) $data[$requiredKey];
         }
-        /* @var string $username
-         * @var string $token
-         * @var string $email
-         */
+
         try {
-            $this->emailAddressManager->verifyNewEmailAddress($username, $email, $token);
+            $this->emailAddressManager->verifyNewEmailAddress($data['username'], $data['email'], $data['token']);
 
             return $this->getResponse($request);
         } catch (NotFoundHttpException $exception) {

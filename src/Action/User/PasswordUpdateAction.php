@@ -32,14 +32,10 @@ class PasswordUpdateAction extends AbstractPasswordAction
             if (!isset($data[$requiredKey])) {
                 throw new BadRequestHttpException(sprintf('the key `%s` was not found in POST data', $requiredKey));
             }
-            ${$requiredKey} = (string) $data[$requiredKey];
         }
-        /* @var string $username
-         * @var string $token
-         * @var string $password
-         */
+
         try {
-            $this->passwordManager->passwordReset($username, $token, $password);
+            $this->passwordManager->passwordReset($data['username'], $data['token'], $data['password']);
 
             return $this->getResponse($request);
         } catch (AuthenticationException $exception) {

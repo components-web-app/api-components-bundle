@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 class AdminContextBuilder implements SerializerContextBuilderInterface
 {
@@ -31,8 +32,9 @@ class AdminContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
+        $context[AbstractObjectNormalizer::ENABLE_MAX_DEPTH] = true;
         if (!isset($context['groups'])) {
-            $context['groups'] = ['default'];
+            $context['groups'] = ['Default'];
         }
         if (isset($context['groups'])) {
             if ($this->authorizationChecker->isGranted('ROLE_ADMIN')) {

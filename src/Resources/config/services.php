@@ -31,6 +31,7 @@ use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
+use Silverback\ApiComponentBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
@@ -44,6 +45,7 @@ use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Factory\FormViewFactory;
 use Silverback\ApiComponentBundle\Factory\ImagineMetadataFactory;
+use Silverback\ApiComponentBundle\Factory\UserFactory;
 use Silverback\ApiComponentBundle\File\FileRequestHandler;
 use Silverback\ApiComponentBundle\File\FileUploader;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
@@ -51,6 +53,7 @@ use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserLoginType;
+use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
@@ -64,6 +67,7 @@ use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\AdminContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewUsernameValidator;
@@ -101,6 +105,16 @@ return static function (ContainerConfigurator $configurator) {
         ->private()
         // ->bind('$projectDir', '%kernel.project_dir%')
 ;
+
+    $services
+        ->set(ApiNormalizer::class)
+        // ->tag('serializer.normalizer', [ 'priority' => 100 ])
+        ->decorate('api_platform.jsonld.normalizer.item')
+        ->args([
+            new Reference(ApiNormalizer::class . '.inner'),
+            new Reference(EntityManagerInterface::class),
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(ChangePasswordType::class)
@@ -255,6 +269,21 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(UserCreateCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference(UserFactory::class),
+        ]);
+
+    $services
+        ->set(UserFactory::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(ValidatorInterface::class),
+            new Reference(UserRepository::class),
+        ]);
+
+    $services
         ->set(UserLoginType::class)
         ->args([new Reference(RouterInterface::class)]);
 
@@ -369,6 +398,12 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UserMailer::class),
             new Reference(TokenGenerator::class),
         ]);
+
+    $services
+        ->set(UserLoginType::class);
+
+    $services
+        ->set(UserRegisterType::class);
 
     $services
         ->set(UserMailer::class)

@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Repository\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @method AbstractUser|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,7 +24,7 @@ use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
  * @method AbstractUser[]    findAll()
  * @method AbstractUser[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
     private int $passwordRequestTimeout;
 

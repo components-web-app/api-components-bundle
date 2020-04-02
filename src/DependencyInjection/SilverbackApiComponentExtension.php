@@ -18,6 +18,7 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\Factory\UserFactory;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
@@ -48,18 +49,24 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
         $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
 
-        $definition = $container->getDefinition(TablePrefixExtension::class);
-        $definition->setArgument('$prefix', $config['table_prefix']);
-
         $definition = $container->getDefinition(PasswordManager::class);
         $definition->setArgument('$tokenTtl', $repeatTtl);
+
+        $definition = $container->getDefinition(TablePrefixExtension::class);
+        $definition->setArgument('$prefix', $config['table_prefix']);
 
         $definition = $container->getDefinition(TokenAuthenticator::class);
         $definition->setArgument('$tokens', $config['security']['tokens']);
 
-        $definition = $container->getDefinition(UserRepository::class);
-        $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
-        $definition->setArgument('$entityClass', $config['user']['class_name']);
+        $definition = $container->getDefinition(UserChecker::class);
+        $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
+
+        $definition = $container->getDefinition(UserFactory::class);
+        $definition->setArgument('$userClass', $userClass = $config['user']['class_name']);
+
+        $definition = $container->getDefinition(UserListener::class);
+        $definition->setArgument('$initialEmailVerifiedState', $config['user']['email_verification']['default']);
+        $definition->setArgument('$verifyEmailOnRegister', $config['user']['email_verification']['verify_on_register']);
 
         $definition = $container->getDefinition(UserMailer::class);
         $definition->setArgument('$websiteName', $config['website_name']);
@@ -70,12 +77,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
         $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
 
-        $definition = $container->getDefinition(UserChecker::class);
-        $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
-
-        $definition = $container->getDefinition(UserListener::class);
-        $definition->setArgument('$initialEmailVerifiedState', $config['user']['email_verification']['default']);
-        $definition->setArgument('$verifyEmailOnRegister', $config['user']['email_verification']['verify_on_register']);
+        $definition = $container->getDefinition(UserRepository::class);
+        $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
+        $definition->setArgument('$entityClass', $userClass);
     }
 
     /**
