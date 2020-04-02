@@ -56,6 +56,7 @@ class AbstractAction
         if (!\is_string($response)) {
             $response = $this->serializer->serialize($response, $format, []);
         }
+
         return new Response(
             $response,
             $status ?? Response::HTTP_OK,

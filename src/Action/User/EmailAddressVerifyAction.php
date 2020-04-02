@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Action\User;
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -31,7 +32,7 @@ class EmailAddressVerifyAction extends AbstractAction
         $this->emailAddressManager = $emailAddressManager;
     }
 
-    public function __invoke()
+    public function __invoke(Request $request)
     {
         // TODO: Implement __invoke() method.
     }

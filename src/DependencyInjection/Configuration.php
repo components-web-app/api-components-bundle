@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -29,6 +30,19 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('website_name')->isRequired()->end()
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
+            ->end();
+
+        $this->addSecurityNode($rootNode);
+        $this->addEnabledComponentsNode($rootNode);
+        $this->addUserNode($rootNode);
+
+        return $treeBuilder;
+    }
+
+    private function addSecurityNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
                 ->arrayNode('security')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -37,6 +51,13 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+            ->end();
+    }
+
+    private function addEnabledComponentsNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
                 ->arrayNode('enabled_components')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -44,6 +65,13 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('collection')->defaultValue(true)->end()
                     ->end()
                 ->end()
+            ->end();
+    }
+
+    private function addUserNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
                 ->arrayNode('user')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -82,7 +110,5 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end();
-
-        return $treeBuilder;
     }
 }
