@@ -50,10 +50,23 @@ class UserRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
             ->andWhere('u.passwordResetConfirmationToken = :token')
+            ->andWhere('u.passwordResetConfirmationToken NOT NULL')
             ->andWhere('u.passwordRequestedAt > :passwordRequestedAt')
             ->setParameter('username', $username)
             ->setParameter('token', $token)
             ->setParameter('passwordRequestedAt', $minimumRequestDateTime)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneByChangeEmailToken(string $username, string $token)
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.username = :username')
+            ->andWhere('u.newEmailConfirmationToken = :token')
+            ->andWhere('u.newEmailConfirmationToken NOT NULL')
+            ->setParameter('username', $username)
+            ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();
     }

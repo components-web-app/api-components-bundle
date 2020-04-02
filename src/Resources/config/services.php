@@ -224,7 +224,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(TokenGenerator::class),
-            new Reference(RequestStack::class),
         ]);
 
     $services
@@ -300,6 +299,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UserMailer::class)
         ->args([
             new Reference(MailerInterface::class),
+            new Reference(RequestStack::class),
         ]);
 
     $services

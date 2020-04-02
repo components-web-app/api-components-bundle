@@ -18,7 +18,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -28,7 +27,6 @@ class PasswordManager
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
     private TokenGenerator $tokenGenerator;
-    private RequestStack $requestStack;
     private int $tokenTtl;
 
     public function __construct(
@@ -36,18 +34,16 @@ class PasswordManager
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
         TokenGenerator $tokenGenerator,
-        RequestStack $requestStack,
         int $tokenTtl = 8600
     ) {
         $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->tokenGenerator = $tokenGenerator;
-        $this->requestStack = $requestStack;
         $this->tokenTtl = $tokenTtl;
     }
 
-    public function requestResetEmail(AbstractUser $user, string $resetUrl): void
+    public function requestResetEmail(AbstractUser $user): void
     {
         if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {
             return;
@@ -58,7 +54,7 @@ class PasswordManager
         }
         $user->setNewPasswordConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
         $user->setPasswordRequestedAt(new DateTime());
-        $this->userMailer->sendPasswordResetEmail($user, $this->pathToAppUrl($resetUrl, $confirmationToken, $username));
+        $this->userMailer->sendPasswordResetEmail($user);
         $this->entityManager->flush();
     }
 
@@ -81,19 +77,5 @@ class PasswordManager
         $user->eraseCredentials();
 
         return $user;
-    }
-
-    private function pathToAppUrl(string $path, string $token, string $email): string
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        $urlParts = $request ? parse_url($request->headers->get('referer')) : ['scheme' => 'https', 'host' => 'no-referrer'];
-        $path = str_replace(['{{ token }}', '{{ email }}'], [$token, $email], $path);
-
-        return sprintf(
-            '%s://%s/%s',
-            $urlParts['scheme'],
-            $urlParts['host'],
-            ltrim($path, '/')
-        );
     }
 }

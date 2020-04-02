@@ -32,7 +32,7 @@ class PasswordRequestAction extends AbstractPasswordAction
         if (!$user) {
             return new JsonResponse([], Response::HTTP_NOT_FOUND);
         }
-        $this->passwordManager->requestResetEmail($user, $request->query->get('resetPath', ''));
+        $this->passwordManager->requestResetEmail($user);
 
         return new JsonResponse([], Response::HTTP_OK);
     }

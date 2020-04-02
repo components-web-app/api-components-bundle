@@ -61,6 +61,8 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(UserMailer::class);
         $definition->setArgument('$websiteName', $config['website_name']);
+        $definition->setArgument('$defaultPasswordResetPath', $config['user']['password_reset']['default_reset_path']);
+        $definition->setArgument('$defaultChangeEmailVerifyPath', $config['user']['change_email_address']['default_verify_path']);
         $definition->setArgument('$sendUserWelcomeEmailEnabled', $config['user']['emails']['user_welcome']);
         $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
         $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
@@ -115,8 +117,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                 ],
                 'swagger' => [
                     'api_keys' => [
-                        'apiToken' => [
+                        'API Token' => [
                             'name' => 'X-AUTH-TOKEN',
+                            'type' => 'header',
+                        ],
+                        'JWT (use prefix `Bearer`)' => [
+                            'name' => 'Authorization',
                             'type' => 'header',
                         ],
                     ],
