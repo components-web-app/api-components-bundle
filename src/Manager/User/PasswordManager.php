@@ -21,6 +21,7 @@ use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use function count;
 
 class PasswordManager
 {
@@ -65,7 +66,7 @@ class PasswordManager
         $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
         $errors = $this->validator->validate($user, null, ['password_reset']);
-        if (\count($errors)) {
+        if (count($errors)) {
             throw new AuthenticationException('The password entered is not valid');
         }
         $this->persistPlainPassword($user);

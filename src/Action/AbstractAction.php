@@ -25,7 +25,10 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class AbstractAction
 {
-    protected DecoderInterface $serializer;
+    /**
+     * @var DecoderInterface|SerializerInterface
+     */
+    protected SerializerInterface $serializer;
     protected RequestFormatResolver $requestFormatResolver;
 
     public function __construct(SerializerInterface $serializer, RequestFormatResolver $requestFormatResolver)
@@ -53,7 +56,7 @@ class AbstractAction
         if (!\is_string($response)) {
             $response = $this->serializer->serialize($response, $format, []);
         }
-        new Response(
+        return new Response(
             $response,
             $status ?? Response::HTTP_OK,
             $headers

@@ -117,20 +117,22 @@ abstract class AbstractUser implements SymfonyUserInterface
     protected ?string $newEmailConfirmationToken = null;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="boolean", nullable=false)
      * @ApiProperty(readable=false, writable=false)
      */
-    protected ?bool $emailAddressVerified = false;
+    protected bool $emailAddressVerified = false;
 
     public function __construct(
         string $username = '',
         string $emailAddress = '',
+        bool $emailAddressVerified = false,
         array $roles = ['ROLE_USER'],
         string $password = '',
         bool $enabled = true
     ) {
         $this->username = $username;
         $this->emailAddress = $emailAddress;
+        $this->emailAddressVerified = $emailAddressVerified;
         $this->roles = $roles;
         $this->password = $password;
         $this->enabled = $enabled;
@@ -271,12 +273,12 @@ abstract class AbstractUser implements SymfonyUserInterface
         return $this;
     }
 
-    public function isEmailAddressVerified(): ?bool
+    public function isEmailAddressVerified(): bool
     {
         return $this->emailAddressVerified;
     }
 
-    public function setEmailAddressVerified(?bool $emailAddressVerified): self
+    public function setEmailAddressVerified(bool $emailAddressVerified): self
     {
         $this->emailAddressVerified = $emailAddressVerified;
 
