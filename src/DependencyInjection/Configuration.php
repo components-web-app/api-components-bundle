@@ -48,6 +48,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('class_name')->isRequired()->end()
+                        ->scalarNode('disabled_unverified_email_login')->isRequired()->end()
                         ->arrayNode('change_email_address')
                             ->addDefaultsIfNotSet()
                             ->children()
