@@ -20,6 +20,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class UserChecker implements UserCheckerInterface
 {
+    private bool $denyUnverifiedLogin;
+
+    public function __construct(bool $denyUnverifiedLogin)
+    {
+        $this->denyUnverifiedLogin = $denyUnverifiedLogin;
+    }
+
     public function checkPreAuth(UserInterface $user): void
     {
         if (!$user instanceof AbstractUser) {
@@ -29,6 +36,10 @@ class UserChecker implements UserCheckerInterface
         // user is deleted, show a generic Account Not Found message.
         if (!$user->isEnabled()) {
             throw new DisabledException('This user is currently disabled');
+        }
+
+        if ($this->denyUnverifiedLogin && !$user->isEmailAddressVerified()) {
+            throw new DisabledException('Please verify your email address before logging in. If you did not receive a confirmation email please try resetting your password using the forgot password feature.');
         }
     }
 

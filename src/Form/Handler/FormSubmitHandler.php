@@ -13,19 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
-use InvalidArgumentException;
-use JsonException;
 use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
-use function json_decode;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -43,12 +39,11 @@ class FormSubmitHandler
         $this->serializer = $serializer;
     }
 
-    public function handle(Request $request, Form $formResource, string $_format): Response
+    public function handle(array $decodedContent, bool $isPatchRequest, Form $formResource, string $_format): Response
     {
         $builder = $this->formFactory->create($formResource);
         $form = $builder->getForm();
-        $formData = $this->deserializeFormData($form, $request->getContent());
-        $isPatchRequest = Request::METHOD_PATCH === $request->getMethod();
+        $formData = $this->validateDecodedContent($form, $decodedContent);
         $form->submit($formData, !$isPatchRequest);
         if ($isPatchRequest) {
             return $this->handlePatch($formResource, $form, $_format, $formData);
@@ -100,18 +95,13 @@ class FormSubmitHandler
         return $this->getResponse($formResource, $_format, $valid, $context);
     }
 
-    private function deserializeFormData(FormInterface $form, $content): array
+    private function validateDecodedContent(FormInterface $form, $content): array
     {
-        try {
-            $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR | 0);
-        } catch (JsonException $exception) {
-            throw new InvalidArgumentException('json_decode error: ' . $exception->getMessage());
-        }
-        if (!isset($decoded[$form->getName()])) {
+        if (!isset($content[$form->getName()])) {
             throw new BadRequestHttpException(sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName()));
         }
 
-        return $decoded[$form->getName()];
+        return $content[$form->getName()];
     }
 
     private function getChildFormByKey(FormInterface $form, array $formData): FormInterface

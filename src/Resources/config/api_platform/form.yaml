@@ -16,7 +16,7 @@ Silverback\ApiComponentBundle\Entity\Component\Form:
       denormalization_context:
         groups:
           - none
-      controller: 'Silverback\ApiComponentBundle\Action\FormPostPatchAction'
+      controller: 'Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction'
     post:
       method: POST
       path: '/forms/{id}/submit.{_format}'
@@ -25,4 +25,4 @@ Silverback\ApiComponentBundle\Entity\Component\Form:
       denormalization_context:
         groups:
           - none
-      controller: 'Silverback\ApiComponentBundle\Action\FormPostPatchAction'
+      controller: 'Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction'

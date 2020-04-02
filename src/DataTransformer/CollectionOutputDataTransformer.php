@@ -20,8 +20,8 @@ use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Util\RequestParser;
-use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\Component\Collection;
+use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -39,9 +39,10 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private ContextAwareCollectionDataProviderInterface $dataProvider;
     private IriConverterInterface $iriConverter;
     private NormalizerInterface $itemNormalizer;
+    private RequestFormatResolver $requestFormatResolver;
     private string $itemsPerPageParameterName;
 
-    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, string $itemsPerPageParameterName = 'perPage')
+    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, RequestFormatResolver $requestFormatResolver, string $itemsPerPageParameterName = 'perPage')
     {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -49,6 +50,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $this->dataProvider = $dataProvider;
         $this->iriConverter = $iriConverter;
         $this->itemNormalizer = $itemNormalizer;
+        $this->requestFormatResolver = $requestFormatResolver;
         $this->itemsPerPageParameterName = $itemsPerPageParameterName;
     }
 
@@ -61,11 +63,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     {
         $this->transformed[] = $collection->getId();
 
-        $request = $this->requestStack->getCurrentRequest();
+        $request = $this->requestStack->getMasterRequest();
         if (!$request) {
             return $collection;
         }
-        $format = AbstractAction::getRequestFormat($request);
+        $format = $this->requestFormatResolver->getFormatFromRequest($request);
 
         $this->addEndpoints($collection, $format);
         $this->addCollection($collection, $format, $request);

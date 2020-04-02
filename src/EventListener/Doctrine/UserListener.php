@@ -14,8 +14,11 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\UnitOfWork;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
+use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -25,17 +28,32 @@ class UserListener
 {
     private UserPasswordEncoderInterface $passwordEncoder;
     private UserMailer $userMailer;
+    private TokenGenerator $tokenGenerator;
+    private bool $initialEmailVerifiedState;
+    private bool $verifyEmailOnRegister;
     private array $changeSet = [];
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder, UserMailer $userMailer)
-    {
+    public function __construct(
+        UserPasswordEncoderInterface $passwordEncoder,
+        UserMailer $userMailer,
+        TokenGenerator $tokenGenerator,
+        bool $initialEmailVerifiedState,
+        bool $verifyEmailOnRegister
+    ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->userMailer = $userMailer;
+        $this->tokenGenerator = $tokenGenerator;
+        $this->initialEmailVerifiedState = $initialEmailVerifiedState;
+        $this->verifyEmailOnRegister = $verifyEmailOnRegister;
     }
 
     public function prePersist(AbstractUser $user): void
     {
         $this->encodePassword($user);
+        $user->setEmailAddressVerified($this->initialEmailVerifiedState);
+        if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
+            $user->setNewEmailConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+        }
     }
 
     public function postPersist(AbstractUser $user): void
@@ -47,11 +65,20 @@ class UserListener
     {
         $manager = $args->getEntityManager();
         $uow = $manager->getUnitOfWork();
+        $userClassMetadata = $manager->getClassMetadata(AbstractUser::class);
+
         $passwordEncoded = $this->encodePassword($user);
         if ($passwordEncoded) {
-            $uow->recomputeSingleEntityChangeSet($manager->getClassMetadata(AbstractUser::class), $user);
+            $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
         }
+
         $this->changeSet = $uow->getEntityChangeSet($user);
+
+        if ($this->changeSet['newEmailAddress']) {
+            $user->setNewEmailConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+            $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
+            $this->changeSet = $uow->getEntityChangeSet($user);
+        }
     }
 
     public function postUpdate(AbstractUser $user): void
@@ -67,6 +94,11 @@ class UserListener
         if (isset($this->changeSet['password'])) {
             $this->userMailer->sendPasswordChangedEmail($user);
         }
+    }
+
+    private function recomputeUserChangeSet(UnitOfWork $uow, ClassMetadata $userClassMetadata, AbstractUser $user): void
+    {
+        $uow->recomputeSingleEntityChangeSet($userClassMetadata, $user);
     }
 
     private function encodePassword(AbstractUser $entity): bool

@@ -11,23 +11,29 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action;
+namespace Silverback\ApiComponentBundle\Action\User;
 
+use Silverback\ApiComponentBundle\Action\AbstractAction;
+use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AbstractPasswordAction
+abstract class AbstractPasswordAction extends AbstractAction
 {
     protected UserRepository $userRepository;
     protected PasswordManager $passwordManager;
 
     public function __construct(
+        SerializerInterface $serializer,
+        RequestFormatResolver $requestFormatResolver,
         UserRepository $userRepository,
         PasswordManager $passwordManager
     ) {
+        parent::__construct($serializer, $requestFormatResolver);
         $this->userRepository = $userRepository;
         $this->passwordManager = $passwordManager;
     }

@@ -11,13 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Security;
+namespace Silverback\ApiComponentBundle\Manager\User;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
+use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

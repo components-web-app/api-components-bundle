@@ -109,7 +109,12 @@ class UserMailer
         }
         $userEmail = $this->getUserEmail($user);
         $userUsername = $this->getUserUsername($user);
-        $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
+        try {
+            $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
+        } catch (InvalidParameterException $exception) {
+            // if we have not set the email verify token this will be thrown. this is optional though.
+            $verifyUrl = null;
+        }
         $email = (new TemplatedEmail())
             ->to(Address::fromString($userEmail))
             ->subject(sprintf('Welcome to %s', $this->websiteName))
@@ -215,7 +220,7 @@ class UserMailer
 
     private function pathToReferrerUrl(string $token, string $email, string $queryKey, string $defaultPath): string
     {
-        $request = $this->requestStack->getCurrentRequest();
+        $request = $this->requestStack->getMasterRequest();
         $path = $request ? $request->query->get($queryKey, $defaultPath) : $defaultPath;
         $urlParts = $request ? parse_url($request->headers->get('referer')) : ['scheme' => 'https', 'host' => 'no-referrer'];
         $path = str_replace(['{{ token }}', '{{ email }}'], [$token, $email], $path);

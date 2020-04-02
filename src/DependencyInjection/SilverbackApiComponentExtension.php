@@ -17,11 +17,13 @@ use Exception;
 use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
+use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Security\PasswordManager;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
+use Silverback\ApiComponentBundle\Security\UserChecker;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -67,6 +69,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
         $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
         $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
+
+        $definition = $container->getDefinition(UserChecker::class);
+        $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
+
+        $definition = $container->getDefinition(UserListener::class);
+        $definition->setArgument('$initialEmailVerifiedState', $config['user']['email_verification']['default']);
+        $definition->setArgument('$verifyEmailOnRegister', $config['user']['email_verification']['verify_on_register']);
     }
 
     /**

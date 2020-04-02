@@ -11,9 +11,8 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action;
+namespace Silverback\ApiComponentBundle\Action\User;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,14 +25,14 @@ class PasswordRequestAction extends AbstractPasswordAction
     /**
      * @Route("/request/{username}", name="password_reset_request", methods={"get"})
      */
-    public function __invoke(Request $request, string $username)
+    public function __invoke(Request $request, string $username): Response
     {
         $user = $this->userRepository->findOneBy(['email' => $username]);
         if (!$user) {
-            return new JsonResponse([], Response::HTTP_NOT_FOUND);
+            return $this->getResponse($request, null, Response::HTTP_NOT_FOUND);
         }
         $this->passwordManager->requestResetEmail($user);
 
-        return new JsonResponse([], Response::HTTP_OK);
+        return $this->getResponse($request);
     }
 }

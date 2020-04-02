@@ -11,20 +11,19 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Type;
+namespace Silverback\ApiComponentBundle\Form\Type\User;
 
-use Doctrine\DBAL\Types\TextType;
 use Silverback\ApiComponentBundle\Entity\Form\LoginForm;
 use Silverback\ApiComponentBundle\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Routing\RouterInterface;
 
-class LoginType extends AbstractType
+class UserLoginType extends AbstractType
 {
     private RouterInterface $router;
 
@@ -42,13 +41,6 @@ class LoginType extends AbstractType
                     'autocomplete' => 'username',
                 ],
                 'label' => 'Username',
-            ])
-            ->add('emailAddress', EmailType::class, [
-                'attr' => [
-                    'placeholder' => '',
-                    'autocomplete' => 'email',
-                ],
-                'label' => 'Email Address',
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Password',

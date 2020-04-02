@@ -6,11 +6,15 @@
 
     <route id="api_component_login_check" path="/api/login_check" />
 
-    <route id="api_component_password_request" path="/password/reset/request/{username}"
-           controller="Silverback\ApiComponentBundle\Action\PasswordRequestAction"
+    <route id="api_component_reset_password" path="/password/reset/request/{username}"
+           controller="Silverback\ApiComponentBundle\Action\User\PasswordRequestAction"
            methods="GET" />
 
-    <route id="api_component_password_update" path="/password/update"
-           controller="Silverback\ApiComponentBundle\Action\PasswordUpdateAction"
+    <route id="api_component_change_password" path="/password/update"
+           controller="Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction"
+           methods="POST" />
+
+    <route id="api_component_change_email_address" path="/email_address/update"
+           controller="Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction"
            methods="POST" />
 </routes>

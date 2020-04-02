@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Type;
+namespace Silverback\ApiComponentBundle\Form\Type\User;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;

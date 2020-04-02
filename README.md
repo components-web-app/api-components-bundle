@@ -91,7 +91,6 @@ security:
           switch_user: true
     access_control:
         - { path: ^/login, roles: ROLE_TOKEN_USER }
-        - { path: ^/users, roles: ROLE_TOKEN_USER, methods: [POST] }
         - { path: ^/password/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
         - { path: ^/components/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

@@ -11,9 +11,8 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action;
+namespace Silverback\ApiComponentBundle\Action\User;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
@@ -25,7 +24,7 @@ class PasswordUpdateAction extends AbstractPasswordAction
 {
     public function __invoke(Request $request)
     {
-        $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
 
         $username = $data['username'];
         $token = $data['token'];
@@ -34,17 +33,17 @@ class PasswordUpdateAction extends AbstractPasswordAction
             $token
         );
         if (!$user) {
-            return new JsonResponse([], Response::HTTP_NOT_FOUND);
+            return $this->getResponse($request, null, Response::HTTP_NOT_FOUND);
         }
 
         try {
             $this->passwordManager->passwordReset($user, $data['password']);
 
-            return new JsonResponse([], Response::HTTP_OK);
+            return $this->getResponse($request);
         } catch (AuthenticationException $exception) {
             $errors = $exception->getMessageData();
 
-            return new JsonResponse($errors, Response::HTTP_BAD_REQUEST);
+            return $this->getResponse($request, $errors, Response::HTTP_BAD_REQUEST);
         }
     }
 }

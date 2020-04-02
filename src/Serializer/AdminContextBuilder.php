@@ -17,7 +17,7 @@ use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
-class SuperAdminContextBuilder implements SerializerContextBuilderInterface
+class AdminContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
     private AuthorizationCheckerInterface $authorizationChecker;
@@ -34,8 +34,13 @@ class SuperAdminContextBuilder implements SerializerContextBuilderInterface
         if (!isset($context['groups'])) {
             $context['groups'] = ['default'];
         }
-        if (isset($context['groups']) && $this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
-            $context['groups'][] = 'super_admin';
+        if (isset($context['groups'])) {
+            if ($this->authorizationChecker->isGranted('ROLE_ADMIN')) {
+                $context['groups'][] = 'admin';
+            }
+            if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
+                $context['groups'][] = 'super_admin';
+            }
         }
 
         return $context;
