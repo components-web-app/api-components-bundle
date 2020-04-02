@@ -34,6 +34,9 @@ class EmailAddressVerifyAction extends AbstractAction
 
     public function __invoke(Request $request)
     {
-        // TODO: Implement __invoke() method.
+        $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
+
+        $username = $data['username'];
+        $token = $data['token'];
     }
 }

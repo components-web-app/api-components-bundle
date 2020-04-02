@@ -15,23 +15,20 @@ namespace Silverback\ApiComponentBundle\Action\User;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class PasswordRequestAction extends AbstractPasswordAction
 {
-    /**
-     * @Route("/request/{username}", name="password_reset_request", methods={"get"})
-     */
     public function __invoke(Request $request, string $username): Response
     {
-        $user = $this->userRepository->findOneBy(['email' => $username]);
-        if (!$user) {
+        try {
+            $this->passwordManager->requestResetEmail($username);
+        } catch (NotFoundHttpException $exception) {
             return $this->getResponse($request, null, Response::HTTP_NOT_FOUND);
         }
-        $this->passwordManager->requestResetEmail($user);
 
         return $this->getResponse($request);
     }

@@ -289,6 +289,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(TokenGenerator::class),
+            new Reference(UserRepository::class),
         ]);
 
     $services
@@ -296,7 +297,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args($passwordActionArgs = [
             new Reference(SerializerInterface::class),
             new Reference(RequestFormatResolver::class),
-            new Reference(UserRepository::class),
             new Reference(PasswordManager::class),
         ]);
 

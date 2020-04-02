@@ -18,7 +18,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -28,6 +30,7 @@ class PasswordManager
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
     private TokenGenerator $tokenGenerator;
+    private UserRepository $userRepository;
     private int $tokenTtl;
 
     public function __construct(
@@ -35,20 +38,28 @@ class PasswordManager
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
         TokenGenerator $tokenGenerator,
+        UserRepository $userRepository,
         int $tokenTtl = 8600
     ) {
         $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->tokenGenerator = $tokenGenerator;
+        $this->userRepository = $userRepository;
         $this->tokenTtl = $tokenTtl;
     }
 
-    public function requestResetEmail(AbstractUser $user): void
+    public function requestResetEmail(string $usernameQuery): void
     {
+        $user = $this->userRepository->findOneBy(['username' => $usernameQuery]);
+        if (!$user) {
+            throw new NotFoundHttpException();
+        }
+
         if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {
             return;
         }
+
         $username = $user->getUsername();
         if (!$username) {
             throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
@@ -59,8 +70,16 @@ class PasswordManager
         $this->entityManager->flush();
     }
 
-    public function passwordReset(AbstractUser $user, string $newPassword): void
+    public function passwordReset(string $username, string $token, string $newPassword): void
     {
+        $user = $this->userRepository->findOneByPasswordResetToken(
+            $username,
+            $token
+        );
+        if (!$user) {
+            throw new NotFoundHttpException();
+        }
+
         $user->setPlainPassword($newPassword);
         $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
