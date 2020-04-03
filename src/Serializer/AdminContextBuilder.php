@@ -31,19 +31,20 @@ class AdminContextBuilder implements SerializerContextBuilderInterface
 
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
+        // api_empty_resource_as_iri - investigate usage with serialization groups and max depth. We want all properties serialized as usual but with the additional admin/super_admin groups if permitted
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        $context[AbstractObjectNormalizer::ENABLE_MAX_DEPTH] = true;
-        if (!isset($context['groups'])) {
-            $context['groups'] = ['Default'];
-        }
-        if (isset($context['groups'])) {
-            if ($this->authorizationChecker->isGranted('ROLE_ADMIN')) {
-                $context['groups'][] = 'admin';
-            }
-            if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
-                $context['groups'][] = 'super_admin';
-            }
-        }
+//        $context[AbstractObjectNormalizer::ENABLE_MAX_DEPTH] = true;
+//        if (!isset($context['groups'])) {
+//            $context['groups'] = ['Default'];
+//        }
+//        if (isset($context['groups'])) {
+//            if ($this->authorizationChecker->isGranted('ROLE_ADMIN')) {
+//                $context['groups'][] = 'admin';
+//            }
+//            if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
+//                $context['groups'][] = 'super_admin';
+//            }
+//        }
 
         return $context;
     }

@@ -13,57 +13,64 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use ApiPlatform\Core\Api\ResourceClassResolverInterface;
+use ApiPlatform\Core\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Component\Serializer\SerializerAwareInterface;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
+use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
+use Traversable;
+use function is_object;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ApiNormalizer
+class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
 {
-    private NormalizerInterface $decorated;
+    use NormalizerAwareTrait;
+    use ClassInfoTrait;
+
+    private const ALREADY_CALLED = 'API_NORMALIZER_ALREADY_CALLED';
+
     private EntityManagerInterface $entityManager;
+    private ResourceClassResolverInterface $resourceClassResolver;
 
-    public function __construct(NormalizerInterface $decorated, EntityManagerInterface $entityManager)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        ResourceClassResolverInterface $resourceClassResolver
+    )
     {
-        if (!$decorated instanceof DenormalizerInterface) {
-            throw new \InvalidArgumentException(sprintf('The decorated normalizer must implement the %s.', DenormalizerInterface::class));
-        }
-
-        $this->decorated = $decorated;
         $this->entityManager = $entityManager;
-    }
-
-    public function supportsNormalization($data, $format = null): bool
-    {
-        return $this->decorated->supportsNormalization($data, $format);
+        $this->resourceClassResolver = $resourceClassResolver;
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
-        $data = $this->decorated->normalize($object, $format, $context);
-        $data['__persisted__'] = $this->entityManager->contains($object);
+        $context[self::ALREADY_CALLED] = true;
+
+        $data = $this->normalizer->normalize($object, $format, $context);
+        if (is_array($data)) {
+            $data['__PERSISTED__'] = $this->entityManager->contains($object);
+        }
 
         return $data;
     }
 
-    public function supportsDenormalization($data, $type, $format = null): bool
+    public function supportsNormalization($data, $format = null, $context = []): bool
     {
-        return $this->decorated->supportsDenormalization($data, $type, $format);
-    }
-
-    public function denormalize($data, $class, $format = null, array $context = [])
-    {
-        return $this->decorated->denormalize($data, $class, $format, $context);
-    }
-
-    public function setSerializer(SerializerInterface $serializer): void
-    {
-        if ($this->decorated instanceof SerializerAwareInterface) {
-            $this->decorated->setSerializer($serializer);
+        if (isset($context[self::ALREADY_CALLED])) {
+            return false;
         }
+
+        if (!is_object($data) || $data instanceof Traversable) {
+            return false;
+        }
+        return $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
+    }
+
+    public function hasCacheableSupportsMethod(): bool
+    {
+        return false;
     }
 }

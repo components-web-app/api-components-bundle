@@ -24,6 +24,7 @@ use Silverback\ApiComponentBundle\Entity\Component\Collection;
 use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
 
@@ -40,9 +41,10 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private IriConverterInterface $iriConverter;
     private NormalizerInterface $itemNormalizer;
     private RequestFormatResolver $requestFormatResolver;
+    private UrlHelper $urlHelper;
     private string $itemsPerPageParameterName;
 
-    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, RequestFormatResolver $requestFormatResolver, string $itemsPerPageParameterName = 'perPage')
+    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, RequestFormatResolver $requestFormatResolver, UrlHelper $urlHelper, string $itemsPerPageParameterName = 'perPage')
     {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -51,6 +53,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $this->iriConverter = $iriConverter;
         $this->itemNormalizer = $itemNormalizer;
         $this->requestFormatResolver = $requestFormatResolver;
+        $this->urlHelper = $urlHelper;
         $this->itemsPerPageParameterName = $itemsPerPageParameterName;
     }
 
@@ -161,22 +164,20 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $resourceMetadata = $this->resourceMetadataFactory->create($collection->getResourceClass());
         $collectionOperations = array_change_key_case($resourceMetadata->getCollectionOperations() ?? [], CASE_LOWER);
         if (!empty($collectionOperations) && ($shortName = $resourceMetadata->getShortName())) {
-            $baseRoute = trim($resourceMetadata->getAttribute('route_prefix', ''), ' /');
+            $baseRoute = '/' . trim($resourceMetadata->getAttribute('route_prefix', ''), ' /');
             $methods = array_map(static function ($str) { return strtolower($str); }, [Request::METHOD_GET, Request::METHOD_POST]);
             foreach ($methods as $method) {
                 if (!\array_key_exists($method, $collectionOperations)) {
                     continue;
                 }
-                $path = $baseRoute .
-                    /* @scrutinizer ignore-call */
-                    $this->operationPathResolver->resolveOperationPath(
+                $path = $this->operationPathResolver->resolveOperationPath(
                         $shortName,
                         $collectionOperations[$method],
-                        OperationType::COLLECTION,
-                        $method
+                        OperationType::COLLECTION
                     );
                 $finalPath = preg_replace('/{_format}$/', $format, $path);
-                $collection->addEndpoint($method, $finalPath);
+                $absoluteUrl = $this->urlHelper->getAbsoluteUrl($baseRoute . $finalPath);
+                $collection->addEndpoint($method, $absoluteUrl);
             }
         }
     }

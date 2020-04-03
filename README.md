@@ -45,7 +45,7 @@ We encourage using as many of the packages as possible that are well maintained 
 mkdir -p config/jwt
 openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
 openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
-```
+```§
 
 > Be sure to run the [recipe for this bundle](https://github.com/api-platform/api-platform) or take a look at all the files and configurations in the repository that would normally have been executed if the recipe was run. It includes route mapping, default package configuration and a default User entity definition.
 
@@ -79,13 +79,6 @@ security:
                 check_path: /login
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        user_regsiter:
-            pattern:  ^/users
-            methods: [POST]
-            guard:
-                authenticators:
-                    - Silverback\ApiComponentBundle\Security\TokenAuthenticator
-            stateless: true
         main:
             pattern:   ^/
             stateless: true

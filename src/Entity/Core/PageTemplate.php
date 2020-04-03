@@ -20,7 +20,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(attributes={"output"="Silverback\ApiComponentBundle\Entity\Core\PageTemplate"})
+ * @ApiResource(attributes={"output"=PageTemplate::class})
  * @ORM\Entity
  * @ORM\AssociationOverrides({
  *     @ORM\AssociationOverride(name="route", inversedBy="pageTemplate"),
@@ -44,5 +44,10 @@ class PageTemplate extends AbstractPage
     {
         parent::__construct();
         $this->initComponentGroups();
+    }
+
+    public function __clone()
+    {
+        parent::__construct();
     }
 }

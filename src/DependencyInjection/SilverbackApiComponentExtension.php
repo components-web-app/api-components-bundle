@@ -57,7 +57,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(TokenAuthenticator::class);
         $definition->setArgument('$tokens', $config['security']['tokens']);
-
+//
         $definition = $container->getDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
 
@@ -105,11 +105,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $configs = $container->getExtensionConfig($this->getAlias());
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        $configBasePath = '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src/Resources/config/api_platform/';
-        $mappingPaths = [];
+        $srcBase = '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src';
+        $configBasePath = $srcBase . '/Resources/config/api_platform';
+        $mappingPaths = [$srcBase . '/Entity/Core'];
         foreach ($config['enabled_components'] as $key => $enabled_component) {
             if (true === $enabled_component) {
-                $mappingPaths[] = sprintf('%s%s.yaml', $configBasePath, $key);
+                $mappingPaths[] = sprintf('%s/%s.yaml', $configBasePath, $key);
             }
         }
         $websiteName = $config['website_name'];

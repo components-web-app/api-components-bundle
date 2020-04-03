@@ -27,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ApiResource
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Core\RouteRepository")
  * @Assert\Expression(
- *     "this.pageTemplate && this.pageData",
+ *     "!(this.pageTemplate == null & this.pageData == null) & !(this.pageTemplate != null & this.pageData != null)",
  *     message="Please specify either pageTemplate or pageData, not both."
  * )
  */
@@ -36,17 +36,23 @@ class Route implements TimestampedInterface
     use IdTrait;
     use TimestampedTrait;
 
-    /** @ORM\Column(unique=true) */
+    /**
+     * @ORM\Column(unique=true)
+     * @Assert\NotNull()
+     */
     public string $route;
 
-    /** @ORM\Column(unique=true) */
+    /**
+     * @ORM\Column(unique=true)
+     * @Assert\NotNull()
+     */
     public string $name;
 
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="redirectedFrom")
      * @ORM\JoinColumn(name="redirect", referencedColumnName="id", onDelete="SET NULL")
      */
-    public ?Route $redirect;
+    public ?Route $redirect = null;
 
     /**
      * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", mappedBy="redirect")
@@ -57,13 +63,13 @@ class Route implements TimestampedInterface
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
-    public PageTemplate $pageTemplate;
+    public ?PageTemplate $pageTemplate = null;
 
     /**
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
-    public AbstractPageData $pageData;
+    public ?AbstractPageData $pageData = null;
 
     public function __construct()
     {

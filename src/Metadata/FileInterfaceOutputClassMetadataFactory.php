@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Metadata;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ReflectionClass;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 
 /**
@@ -44,7 +45,7 @@ class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactory
             $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
                 'output' => [
                     'class' => $resourceClass,
-                    'name' => (new \ReflectionClass($resourceClass))->getShortName(),
+                    'name' => (new ReflectionClass($resourceClass))->getShortName(),
                 ],
             ]));
         }

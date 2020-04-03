@@ -14,11 +14,14 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Resources\config;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
+use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
+use ApiPlatform\Core\Serializer\ItemNormalizer;
 use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -102,19 +105,23 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->defaults()
         ->autoconfigure()
-        ->private()
-        // ->bind('$projectDir', '%kernel.project_dir%')
-;
+        ->private();
 
     $services
         ->set(ApiNormalizer::class)
-        // ->tag('serializer.normalizer', [ 'priority' => 100 ])
-        ->decorate('api_platform.jsonld.normalizer.item')
+        ->tag('serializer.normalizer', [ 'priority' => -810 ])
         ->args([
-            new Reference(ApiNormalizer::class . '.inner'),
             new Reference(EntityManagerInterface::class),
+            new Reference(ResourceClassResolverInterface::class),
         ])
         ->autoconfigure(false);
+
+    $services
+        ->set(AutoRoutePrefixMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(AutoRoutePrefixMetadataFactory::class . '.inner'),
+        ]);
 
     $services
         ->set(ChangePasswordType::class)
@@ -131,13 +138,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
             new Reference(NormalizerInterface::class),
             new Reference(RequestFormatResolver::class),
+            new Reference(UrlHelper::class),
         ]);
 
     $services
-        ->set(AutoRoutePrefixMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(EmailAddressManager::class)
         ->args([
-            new Reference(AutoRoutePrefixMetadataFactory::class . '.inner'),
+            new Reference(EntityManagerInterface::class),
+            new Reference(UserRepository::class)
         ]);
 
     $services
@@ -170,7 +178,8 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args([
             new Reference(FileInterfaceOutputClassMetadataFactory::class . '.inner'),
-        ]);
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(FileOutputDataTransformer::class)
@@ -269,25 +278,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UserCreateCommand::class)
-        ->tag('console.command')
-        ->args([
-            new Reference(UserFactory::class),
-        ]);
-
-    $services
-        ->set(UserFactory::class)
-        ->args([
-            new Reference(EntityManagerInterface::class),
-            new Reference(ValidatorInterface::class),
-            new Reference(UserRepository::class),
-        ]);
-
-    $services
-        ->set(UserLoginType::class)
-        ->args([new Reference(RouterInterface::class)]);
-
-    $services
         ->set(MessageEventListener::class)
         ->tag('kernel.event_listener', ['event' => MessageEvent::class])
         ->args([
@@ -379,6 +369,21 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(UserChecker::class);
 
+    $services
+        ->set(UserCreateCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference(UserFactory::class),
+        ]);
+
+    $services
+        ->set(UserFactory::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(ValidatorInterface::class),
+            new Reference(UserRepository::class),
+        ]);
+
     $getUserListenerTagArgs = static function ($event) {
         return [
             'event' => $event,
@@ -400,10 +405,8 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UserLoginType::class);
-
-    $services
-        ->set(UserRegisterType::class);
+        ->set(UserLoginType::class)
+        ->args([new Reference(RouterInterface::class)]);
 
     $services
         ->set(UserMailer::class)
@@ -411,6 +414,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MailerInterface::class),
             new Reference(RequestStack::class),
         ]);
+
+    $services
+        ->set(UserRegisterType::class);
 
     $services
         ->set(UserRepository::class)
