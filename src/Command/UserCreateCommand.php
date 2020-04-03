@@ -69,9 +69,9 @@ class UserCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $username = $input->getArgument('username');
-        $email = $input->getArgument('email');
-        $password = $input->getArgument('password');
+        $username = (string) $input->getArgument('username');
+        $email = (string) $input->getArgument('email');
+        $password = (string) $input->getArgument('password');
         $inactive = $input->getOption('inactive');
         $superadmin = $input->getOption('super-admin');
         $overwrite = $input->getOption('overwrite');
