@@ -36,7 +36,7 @@ abstract class AbstractUser implements SymfonyUserInterface
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
-     * @Groups({"admin", "default_read"})
+     * @Groups({"super_admin:write", "default:read"})
      */
     protected ?string $username;
 
@@ -44,7 +44,7 @@ abstract class AbstractUser implements SymfonyUserInterface
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"admin", "default_read"})
+     * @Groups({"super_admin:write", "default:read"})
      */
     protected ?string $emailAddress;
 
@@ -70,7 +70,7 @@ abstract class AbstractUser implements SymfonyUserInterface
      * @ApiProperty(readable=false)
      * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
      * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
-     * @Groups({"default_write"})
+     * @Groups({"default:write"})
      */
     protected ?string $plainPassword = null;
 
@@ -91,7 +91,7 @@ abstract class AbstractUser implements SymfonyUserInterface
     /**
      * @ApiProperty(readable=false)
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
-     * @Groups({"default_write"})
+     * @Groups({"default:write"})
      */
     protected ?string $oldPassword = null;
 

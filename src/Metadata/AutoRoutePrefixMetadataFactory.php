@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Metadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Core\AbstractPageData;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -32,16 +33,32 @@ class AutoRoutePrefixMetadataFactory implements ResourceMetadataFactoryInterface
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!is_subclass_of($resourceClass, AbstractComponent::class)) {
+
+        $routePrefixParts = [];
+
+        if (is_subclass_of($resourceClass, AbstractComponent::class)) {
+            $routePrefixParts[] = 'component';
+        } elseif (is_subclass_of($resourceClass, AbstractPageData::class)) {
+            $routePrefixParts[] = 'page_data';
+        } else {
+            $reflection = new \ReflectionClass($resourceClass);
+            $namespace = $reflection->getNamespaceName();
+            $acbNamespace = 'Silverback\ApiComponentBundle\\';
+
+            if (0 === strpos($namespace, $acbNamespace)) {
+                $routePrefixParts[] = '_';
+            }
+        }
+
+        if (!\count($routePrefixParts)) {
             return $resourceMetadata;
         }
 
-        return $this->prefixComponentRoute($resourceMetadata);
+        return $this->prefixRoute($routePrefixParts, $resourceMetadata);
     }
 
-    private function prefixComponentRoute(ResourceMetadata $resourceMetadata): ResourceMetadata
+    private function prefixRoute(array $routePrefixParts, ResourceMetadata $resourceMetadata): ResourceMetadata
     {
-        $routePrefixParts = ['component'];
         if ($currentRoutePrefix = $resourceMetadata->getAttribute('route_prefix')) {
             $routePrefixParts[] = trim($currentRoutePrefix, '/');
         }

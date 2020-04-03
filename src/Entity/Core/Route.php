@@ -24,7 +24,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
+ * @ApiResource(
+ *     collectionOperations={
+ *         "get"={"security"="is_granted('ROLE_SUPER_ADMIN')"},
+ *         "post"
+ *     }
+ * )
  * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Core\RouteRepository")
  * @Assert\Expression(
  *     "!(this.pageTemplate == null & this.pageData == null) & !(this.pageTemplate != null & this.pageData != null)",

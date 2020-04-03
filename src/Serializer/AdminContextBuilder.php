@@ -76,6 +76,6 @@ class AdminContextBuilder implements SerializerContextBuilderInterface
 
     private function getSerializationGroups(string $groupName, bool $normalization): array
     {
-        return [$groupName, sprintf('%s_%s', $groupName, $normalization ? 'read' : 'write')];
+        return [$groupName, sprintf('%s:%s', $groupName, $normalization ? 'read' : 'write')];
     }
 }
