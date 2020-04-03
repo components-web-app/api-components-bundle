@@ -91,6 +91,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -345,6 +346,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(AdminContextBuilder::class . '.inner'),
             new Reference(AuthorizationCheckerInterface::class),
+            new Reference(ClassMetadataFactoryInterface::class),
         ])
         ->autoconfigure(false);
 

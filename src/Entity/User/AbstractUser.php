@@ -36,7 +36,7 @@ abstract class AbstractUser implements SymfonyUserInterface
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
-     * @Groups({"admin"})
+     * @Groups({"admin", "default_read"})
      */
     protected ?string $username;
 
@@ -44,7 +44,7 @@ abstract class AbstractUser implements SymfonyUserInterface
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"admin"})
+     * @Groups({"admin", "default_read"})
      */
     protected ?string $emailAddress;
 
