@@ -57,7 +57,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(TokenAuthenticator::class);
         $definition->setArgument('$tokens', $config['security']['tokens']);
-//
+
         $definition = $container->getDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
 

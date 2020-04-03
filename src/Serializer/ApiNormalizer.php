@@ -21,7 +21,6 @@ use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Traversable;
-use function is_object;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -39,8 +38,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
     public function __construct(
         EntityManagerInterface $entityManager,
         ResourceClassResolverInterface $resourceClassResolver
-    )
-    {
+    ) {
         $this->entityManager = $entityManager;
         $this->resourceClassResolver = $resourceClassResolver;
     }
@@ -50,7 +48,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
         $context[self::ALREADY_CALLED] = true;
 
         $data = $this->normalizer->normalize($object, $format, $context);
-        if (is_array($data)) {
+        if (\is_array($data)) {
             $data['__PERSISTED__'] = $this->entityManager->contains($object);
         }
 
@@ -63,9 +61,10 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
             return false;
         }
 
-        if (!is_object($data) || $data instanceof Traversable) {
+        if (!\is_object($data) || $data instanceof Traversable) {
             return false;
         }
+
         return $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
     }
 

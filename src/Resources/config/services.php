@@ -20,8 +20,6 @@ use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
-use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
-use ApiPlatform\Core\Serializer\ItemNormalizer;
 use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -110,7 +108,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ApiNormalizer::class)
-        ->tag('serializer.normalizer', [ 'priority' => -810 ])
+        ->tag('serializer.normalizer', ['priority' => -810])
         ->args([
             new Reference(EntityManagerInterface::class),
             new Reference(ResourceClassResolverInterface::class),
@@ -146,7 +144,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(EmailAddressManager::class)
         ->args([
             new Reference(EntityManagerInterface::class),
-            new Reference(UserRepository::class)
+            new Reference(UserRepository::class),
         ]);
 
     $services
