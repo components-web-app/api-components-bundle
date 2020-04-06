@@ -1,9 +1,9 @@
 <?php
 
 /*
- * This file is part of the API Platform project.
+ * This file is part of the Silverback API Component Bundle Project
  *
- * (c) Kévin Dunglas <dunglas@gmail.com>
+ * (c) Daniel West <daniel@silverback.is>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,6 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BaseJsonContext;
 use Behatch\HttpCall\HttpCallResultPool;
 use Behatch\Json\Json;
-use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
 
 final class JsonContext extends BaseJsonContext
@@ -43,7 +42,7 @@ final class JsonContext extends BaseJsonContext
         $this->assertSame(
             (string) $expected,
             (string) $actual,
-            "The json is equal to:\n".$actual->encode()
+            "The json is equal to:\n" . $actual->encode()
         );
     }
 

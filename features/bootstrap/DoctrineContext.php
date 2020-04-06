@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 use Behat\Behat\Context\Context;
@@ -13,7 +22,6 @@ use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 
 final class DoctrineContext implements Context
 {
-
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
     private JWTManager $jwtManager;
@@ -58,8 +66,7 @@ final class DoctrineContext implements Context
         $user
             ->setRoles(['ROLE_ADMIN'])
             ->setUsername('admin@admin.com')
-            ->setPassword('admin')
-        ;
+            ->setPassword('admin');
         $this->manager->persist($user);
         $this->manager->flush();
         $this->manager->clear();

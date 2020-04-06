@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentBundle\Metadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ReflectionClass;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 
 /**

@@ -1,9 +1,9 @@
 <?php
 
 /*
- * This file is part of the API Platform project.
+ * This file is part of the Silverback API Component Bundle Project
  *
- * (c) Kévin Dunglas <dunglas@gmail.com>
+ * (c) Daniel West <daniel@silverback.is>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -37,7 +37,7 @@ final class CoverageContext implements Context
     public static function setup()
     {
         $filter = new Filter();
-        $filter->addDirectoryToWhitelist(__DIR__.'/../../src');
+        $filter->addDirectoryToWhitelist(__DIR__ . '/../../src');
         self::$coverage = new CodeCoverage(null, $filter);
     }
 
@@ -47,7 +47,7 @@ final class CoverageContext implements Context
     public static function teardown()
     {
         $feature = getenv('FEATURE') ?: 'behat';
-        (new PHP())->process(self::$coverage, __DIR__."/../../build/coverage/coverage-$feature.cov");
+        (new PHP())->process(self::$coverage, __DIR__ . "/../../build/coverage/coverage-$feature.cov");
     }
 
     /**
