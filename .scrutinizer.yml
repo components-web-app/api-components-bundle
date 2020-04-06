@@ -25,6 +25,8 @@ build:
             ini:
                 'date.timezone': 'Europe/London'
                 memory_limit: -1
+            pecl_extensions:
+
     tests:
         override:
             -   command: vendor/bin/simple-phpunit --coverage-clover=clover.xml
