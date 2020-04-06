@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ v2 ]
 
+env:
+  COMPOSER_ALLOW_SUPERUSER: '1' # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
+  COMPOSER_INSTALLER_COMMIT: fb22b78362d31c0d2bf516d1f8cdfd2745caa431
+  COVERAGE: '0'
+  EXT_PCOV_VERSION: '1.0.6'
+
 jobs:
   php-cs-fixer:
     name: PHP-CS-Fixer (PHP ${{ matrix.php }})
