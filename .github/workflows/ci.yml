@@ -148,8 +148,6 @@ jobs:
             symfony/flex
       - name: Update project dependencies
         run: |
-          mkdir -p /tmp/api-component/core/vendor
-          ln -s /tmp/api-component/core/vendor vendor
           composer update --no-progress --no-suggest --ansi
       - name: Clear test app cache
         run: |
