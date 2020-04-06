@@ -10,7 +10,7 @@
   },
   "phpUnit": {
     "configDir": ".",
-    "customPath": "vendor\/bin\/simple-phpunit"
+    "customPath": "vendor\/bin\/phpunit"
   },
   "logs": {
     "text": "infection.log",

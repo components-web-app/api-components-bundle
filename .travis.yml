@@ -32,8 +32,8 @@ install:
     --prefer-lowest; else composer update --prefer-dist --no-suggest --ansi; fi
 before_script:
   - composer install --prefer-source
-  - wget https://github.com/infection/infection/releases/download/0.16.1/infection.phar
-  - wget https://github.com/infection/infection/releases/download/0.16.1/infection.phar.asc
+  - wget https://github.com/infection/infection/releases/download/0.16.0/infection.phar
+  - wget https://github.com/infection/infection/releases/download/0.16.0/infection.phar.asc
   - gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
   - gpg --with-fingerprint --verify infection.phar.asc infection.phar
   - chmod +x infection.phar
@@ -45,5 +45,5 @@ script:
 notifications:
   email:
     - daniel@silverback.is
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+#after_success:
+#  - bash <(curl -s https://codecov.io/bash)

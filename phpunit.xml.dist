@@ -6,6 +6,8 @@
          backupGlobals="false"
          colors="true"
          bootstrap="tests/Functional/app/bootstrap.php"
+         executionOrder="default"
+         resolveDependencies="true"
 >
     <php>
         <ini name="error_reporting" value="-1" />
