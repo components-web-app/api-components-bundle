@@ -148,6 +148,8 @@ jobs:
             symfony/flex
       - name: Update project dependencies
         run: |
+          mkdir -p /tmp/api-component/core/vendor
+          ln -s /tmp/api-component/core/vendor vendor
           composer update --no-progress --no-suggest --ansi
       - name: Clear test app cache
         run: |
@@ -165,6 +167,19 @@ jobs:
           else
             vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
           fi
+      - name: Run Infection Mutation Tests
+        if: matrix.coverage
+        run: |
+          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
+          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
+          gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
+          gpg --with-fingerprint --verify infection.phar.asc infection.phar
+          chmod +x infection.phar
+          ls -la
+          ls -la vendor/*
+          ls -la vendor/bin/*
+          ls -la vendor/bin/.phpunit
+          ./infection.phar
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v1
@@ -180,15 +195,6 @@ jobs:
           flags: phpunit
           fail_ci_if_error: true
         continue-on-error: true
-      - name: Run Infection Mutation Tests
-        if: matrix.coverage
-        run: |
-          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
-          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
-          gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
-          gpg --with-fingerprint --verify infection.phar.asc infection.phar
-          chmod +x infection.phar
-          ./infection.phar
 
   behat:
     name: Behat (PHP ${{ matrix.php }})
