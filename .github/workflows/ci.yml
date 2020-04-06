@@ -98,6 +98,10 @@ jobs:
           apk add \
             bash \
             unzip \
+            libxslt-dev \
+            libpng-dev \
+            libjpeg-turbo-dev \
+            freetype-dev
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -115,6 +119,13 @@ jobs:
           make -j"$(nproc)"
           make -j"$(nproc)" install
           docker-php-ext-enable pcov
+      - name: Install exif PHP extension
+        run: |
+          docker-php-ext-install exif xsl
+      - name: Install php image extensions
+        run: |
+          docker-php-ext-configure gd --with-freetype --with-jpeg
+          docker-php-ext-install gd
       - name: Disable PHP memory limit
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
@@ -140,8 +151,8 @@ jobs:
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
-          ln -s /tmp/api-component/core/var tests/Fixtures/app/var
-          tests/Fixtures/app/console cache:clear --ansi
+          ln -s /tmp/api-component/core/var tests/Functional/app/var
+          tests/Functional/app/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo '::set-env name=COVERAGE::1'
@@ -202,6 +213,10 @@ jobs:
           apk add \
             bash \
             unzip \
+            libxslt-dev \
+            libpng-dev \
+            libjpeg-turbo-dev \
+            freetype-dev
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -219,6 +234,13 @@ jobs:
           make -j"$(nproc)"
           make -j"$(nproc)" install
           docker-php-ext-enable pcov
+      - name: Install exif PHP extension
+        run: |
+          docker-php-ext-install exif xsl
+      - name: Install php image extensions
+        run: |
+          docker-php-ext-configure gd --with-freetype --with-jpeg
+          docker-php-ext-install gd
       - name: Disable PHP memory limit
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
@@ -244,8 +266,8 @@ jobs:
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
-          ln -s /tmp/api-component/core/var tests/Fixtures/app/var
-          tests/Fixtures/app/console cache:clear --ansi
+          ln -s /tmp/api-component/core/var tests/Functional/app/var
+          tests/Functional/app/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo '::set-env name=COVERAGE::1'
