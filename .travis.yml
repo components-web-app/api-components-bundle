@@ -38,7 +38,7 @@ before_script:
   - gpg --with-fingerprint --verify infection.phar.asc infection.phar
   - chmod +x infection.phar
 script:
-  - vendor/bin/simple-phpunit --coverage-clover=coverage.xml
+  - vendor/bin/phpunit --coverage-clover=coverage.xml
   - tests/Functional/app/console cache:clear
   - vendor/bin/behat --format=progress
   - if [[ $deps != 'low' ]]; then ./infection.phar --min-msi=0 --min-covered-msi=0 --threads=4; fi
