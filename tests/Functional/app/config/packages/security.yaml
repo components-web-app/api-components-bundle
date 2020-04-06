@@ -1,6 +1,42 @@
 security:
+    role_hierarchy:
+        ROLE_ADMIN:       ROLE_USER
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+    encoders:
+        Silverback\ApiComponentBundle\Entity\User\AbstractUser:
+            algorithm: auto
     providers:
-        in_memory: { memory: ~ }
+        user_provider:
+            entity:
+                class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
     firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        login:
+            pattern:  ^/login
+            stateless: true
+            # anonymous: true
+            provider: user_provider
+            user_checker: Silverback\ApiComponentBundle\Security\UserChecker
+            guard:
+                authenticators:
+                    - Silverback\ApiComponentBundle\Security\TokenAuthenticator
+            json_login:
+                check_path: /login
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
         main:
-            anonymous: ~
+            pattern:   ^/
+            stateless: true
+            anonymous: true
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            switch_user: true
+    access_control:
+        - { path: ^/login, roles: ROLE_TOKEN_USER }
+        - { path: ^/password/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/components/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

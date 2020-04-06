@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Metadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ReflectionClass;
+use Silverback\ApiComponentBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 
 /**
@@ -24,7 +25,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactoryInterface
+class ResourceDtoOutputClassMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
 
@@ -36,7 +37,8 @@ class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactory
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!is_subclass_of($resourceClass, FileInterface::class)) {
+        $reflection = new ReflectionClass($resourceClass);
+        if (!$reflection->isSubclassOf(FileInterface::class)) {
             return $resourceMetadata;
         }
 
@@ -45,7 +47,7 @@ class FileInterfaceOutputClassMetadataFactory implements ResourceMetadataFactory
             $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
                 'output' => [
                     'class' => $resourceClass,
-                    'name' => (new ReflectionClass($resourceClass))->getShortName(),
+                    'name' => $reflection->getShortName(),
                 ],
             ]));
         }

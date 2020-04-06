@@ -1,0 +1,45 @@
+default:
+  suites:
+    default:
+      contexts:
+        - 'DoctrineContext':
+            doctrine: '@doctrine'
+            jwtManager: '@lexik_jwt_authentication.jwt_manager'
+        - 'JsonContext'
+        - 'Behat\MinkExtension\Context\MinkContext'
+        - 'Behatch\Context\RestContext'
+  extensions:
+    'Behat\Symfony2Extension':
+      kernel:
+        env: 'test'
+        debug: 'true'
+        path: 'tests/Functional/app/AppKernel.php'
+        bootstrap: 'tests/Functional/app/bootstrap.php'
+    'Behat\MinkExtension':
+      base_url: 'http://example.com/'
+      files_path: 'features/files'
+      sessions:
+        default:
+          symfony2: ~
+    'Behatch\Extension': ~
+
+default-coverage:
+  suites:
+    default: &default-coverage-suite
+      contexts:
+        - 'CoverageContext'
+        - 'DoctrineContext':
+            doctrine: '@doctrine'
+            jwtManager: '@lexik_jwt_authentication.jwt_manager'
+        - 'JsonContext'
+        - 'Behat\MinkExtension\Context\MinkContext'
+        - 'Behatch\Context\RestContext'
+
+default-legacy:
+  suites:
+    default: ~
+
+default-legacy-coverage:
+  suites:
+    default:
+      <<: *default-coverage-suite

@@ -1,1 +1,15 @@
-silverback_api_component: ~
+silverback_api_component:
+  website_name: New Website
+  user:
+    class_name: Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User
+    email_verification:
+      default: false
+      verify_on_register: true
+      deny_unverified_login: true
+    change_email_address:
+      default_verify_path: /account/confirm-username/{{ token }}/{{ email }}
+    password_reset:
+      default_reset_path: /reset-password/{{ token }}/{{ email }}
+  security:
+    tokens:
+      - '%env(API_SECRET_TOKEN)%'

@@ -1,4 +1,9 @@
 parameters:
     kernel.secret: NotSecret
     kernel.debug: true
-    env(ENQUEUE_DSN): null://
+    env(JWT_SECRET_KEY): '%kernel.project_dir%/config/jwt/private.pem'
+    env(JWT_PUBLIC_KEY): '%kernel.project_dir%/config/jwt/public.pem'
+    env(JWT_PASSPHRASE): ab0a54cf2375ab2368d97166b94e108c
+    env(MAILER_DSN): null://null
+    env(MAILER_EMAIL): test@website.com
+    env(API_SECRET_TOKEN): not_a_secret

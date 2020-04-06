@@ -60,7 +60,7 @@ use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
-use Silverback\ApiComponentBundle\Metadata\FileInterfaceOutputClassMetadataFactory;
+use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -173,10 +173,10 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(FileInterfaceOutputClassMetadataFactory::class)
+        ->set(ResourceDtoOutputClassMetadataFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args([
-            new Reference(FileInterfaceOutputClassMetadataFactory::class . '.inner'),
+            new Reference(ResourceDtoOutputClassMetadataFactory::class . '.inner'),
         ])
         ->autoconfigure(false);
 

@@ -105,7 +105,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $configs = $container->getExtensionConfig($this->getAlias());
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        $srcBase = '%kernel.project_dir%/vendor/silverbackis/api-component-bundle/src';
+        $srcBase = __DIR__ . '/..';
         $configBasePath = $srcBase . '/Resources/config/api_platform';
         $mappingPaths = [$srcBase . '/Entity/Core'];
         foreach ($config['enabled_components'] as $key => $enabled_component) {

@@ -41,13 +41,7 @@ abstract class AbstractPageData extends AbstractPage implements PageDataInterfac
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate")
      * @ORM\JoinColumn(nullable=false)
      *
-     * @var PageTemplate[]|Collection
+     * @var PageTemplate
      */
-    public Collection $pageTemplate;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->pageTemplate = new ArrayCollection();
-    }
+    public PageTemplate $pageTemplate;
 }
