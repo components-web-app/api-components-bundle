@@ -32,7 +32,7 @@ trait IdTrait
 
     private function setId(): void
     {
-        $this->id = Uuid::uuid4()->getHex();
+        $this->id = Uuid::uuid4()->getHex()->toString();
     }
 
     /**

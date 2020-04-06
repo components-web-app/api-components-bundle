@@ -1,4 +1,11 @@
 language: php
+addons:
+  apt:
+    packages:
+      - libxslt-dev
+      - libjpeg-dev
+      - libpng-dev
+      - freetype*
 env:
   global:
     - SYMFONY_DEPRECATIONS_HELPER=disabled

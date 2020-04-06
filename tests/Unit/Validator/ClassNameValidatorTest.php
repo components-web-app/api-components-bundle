@@ -29,7 +29,7 @@ class ClassNameValidatorTest extends TestCase
 
     private ProxyInterface $proxy;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->class = new FileComponent();
         $factory = new LazyLoadingValueHolderFactory(new Configuration());
