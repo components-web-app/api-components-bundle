@@ -1,4 +1,4 @@
-name: PHP Composer
+name: CI
 
 on:
   push:
@@ -11,6 +11,7 @@ env:
   COMPOSER_INSTALLER_COMMIT: fb22b78362d31c0d2bf516d1f8cdfd2745caa431
   COVERAGE: '0'
   EXT_PCOV_VERSION: '1.0.6'
+  INFECTION_VERSION: '0.16.0'
 
 jobs:
   php-cs-fixer:
@@ -73,6 +74,7 @@ jobs:
           export PATH="$PATH:$HOME/.composer/vendor/bin"
           mkdir -p /var/cache/php-cs-fixer
           php-cs-fixer fix --dry-run --diff --cache-file=/var/cache/php-cs-fixer/.php_cs.cache --ansi
+
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -101,7 +103,8 @@ jobs:
             libxslt-dev \
             libpng-dev \
             libjpeg-turbo-dev \
-            freetype-dev
+            freetype-dev \
+            gnupg
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -179,15 +182,16 @@ jobs:
           flags: phpunit
           fail_ci_if_error: true
         continue-on-error: true
-#       - name: Upload coverage results to Coveralls
-#         if: matrix.coverage
-#         env:
-#           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: |
-#           composer global require --prefer-dist --no-progress --no-suggest --ansi cedx/coveralls
-#           export PATH="$PATH:$HOME/.composer/vendor/bin"
-#           coveralls build/logs/phpunit/clover.xml
-#         continue-on-error: true
+      - name: Run Infection Mutation Tests
+        if: matrix.coverage
+        run: |
+          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
+          wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
+          gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
+          gpg --with-fingerprint --verify infection.phar.asc infection.phar
+          chmod +x infection.phar
+          ./infection.phar
+
   behat:
     name: Behat (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -301,15 +305,6 @@ jobs:
           flags: behat
           fail_ci_if_error: true
         continue-on-error: true
-#       - name: Upload coverage results to Coveralls
-#         if: matrix.coverage
-#         env:
-#           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: |
-#           composer global require --prefer-dist --no-progress --no-suggest --ansi cedx/coveralls
-#           export PATH="$PATH:$HOME/.composer/vendor/bin"
-#           coveralls build/logs/behat/clover.xml
-#         continue-on-error: true
 
   phpunit-lowest-deps:
     name: PHPUnit (PHP ${{ matrix.php }}) (lowest dependencies)

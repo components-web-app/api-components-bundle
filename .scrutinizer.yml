@@ -12,10 +12,6 @@ build:
             tests:
                 override:
                     - php-scrutinizer-run
-#    dependencies:
-#        before:
-#            - sudo apt-get -y install libmagickwand-dev libmagickcore-dev
-#            - printf "\n" | pecl install imagick
     environment:
         variables:
             SYMFONY_DEPRECATIONS_HELPER: disabled
@@ -33,4 +29,3 @@ build:
                 coverage:
                     file: clover.xml
                     format: php-clover
-            -   command: vendor/bin/behat --format=progress
