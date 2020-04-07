@@ -52,40 +52,6 @@ class FormSubmitHandler
         return $this->handlePost($formResource, $form, $_format);
     }
 
-    private function handlePatch(Form $formResource, FormInterface $form, string $_format, array $formData): Response
-    {
-        $isFormViewValid = static function (FormView $formView): bool {
-            return $formView->getVars()['valid'];
-        };
-
-        $dataCount = \count($formData);
-        if (!$dataCount) {
-            return $this->getResponse($formResource, $_format, true);
-        }
-
-        if (1 === $dataCount) {
-            $formItem = $this->getChildFormByKey($form, $formData);
-            $formResource->formView = $formView = new FormView($formItem);
-
-            return $this->getResponse($formResource, $_format, $isFormViewValid($formView));
-        }
-
-        $formResources = [];
-        $valid = true;
-        foreach ($formData as $key => $value) {
-            $dataItem = clone $formResource;
-            $data = \is_string($formData[$key]) ? [$key => $formData[$key]] : $formData[$key];
-            $formItem = $this->getChildFormByKey($form, $data);
-            $dataItem->formView = $formView = new FormView($formItem);
-            $formResources[] = $dataItem;
-            if ($valid && !$isFormViewValid($formView)) {
-                $valid = false;
-            }
-        }
-
-        return $this->getResponse($formResources, $_format, $valid);
-    }
-
     private function handlePost(Form $formResource, FormInterface $form, string $_format): Response
     {
         $valid = $form->isValid();
@@ -100,6 +66,43 @@ class FormSubmitHandler
         }
 
         return $this->getResponse($response, $_format, $valid, $context);
+    }
+
+    private function handlePatch(Form $formResource, FormInterface $form, string $_format, array $formData): Response
+    {
+        $dataCount = \count($formData);
+        if (!$dataCount) {
+            return $this->getResponse($formResource, $_format, true);
+        }
+
+        if (1 === $dataCount) {
+            $formData = [$formData];
+        }
+
+        return $this->getPatchValidationResponse($formResource, $form, $_format, $formData);
+    }
+
+    private function getPatchValidationResponse(Form $formResource, FormInterface $form, string $_format, array $formData): Response
+    {
+        $formResources = [];
+        $valid = true;
+        foreach ($formData as $key => $value) {
+            $dataItem = clone $formResource;
+            $data = \is_string($formData[$key]) ? [$key => $formData[$key]] : $formData[$key];
+            $formItem = $this->getChildFormByKey($form, $data);
+            $dataItem->formView = $formView = new FormView($formItem);
+            $formResources[] = $dataItem;
+            if ($valid && !self::isFormViewValid($formView)) {
+                $valid = false;
+            }
+        }
+
+        return $this->getResponse($formResources, $_format, $valid);
+    }
+
+    private static function isFormViewValid(FormView $formView): bool
+    {
+        return $formView->getVars()['valid'];
     }
 
     private function validateDecodedContent(FormInterface $form, $content): array
