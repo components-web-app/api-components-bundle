@@ -41,5 +41,6 @@ class UserRegisterListener
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        $event->response = $user;
     }
 }

@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type\User;
 
+use DateTime;
+use DateTimeImmutable;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -24,6 +27,16 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class UserRegisterType extends AbstractType
 {
+    private string $userClass;
+
+    public function __construct(string $userClass)
+    {
+        $this->userClass = $userClass;
+        if (!is_subclass_of($this->userClass, AbstractUser::class)) {
+            throw new InvalidParameterException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+        }
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -59,13 +72,22 @@ class UserRegisterType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        /**
+         * @var $user AbstractUser
+         */
+        $user = new $this->userClass();
+        $user
+            ->setCreated(new DateTimeImmutable())
+            ->setModified(new DateTime());
+
         $resolver->setDefaults(
             [
                 'csrf_protection' => false,
                 'attr' => [
                     'novalidate' => 'novalidate',
                 ],
-                'data_class' => AbstractUser::class,
+                'data_class' => $this->userClass,
+                'empty_data' => $user
             ]
         );
     }

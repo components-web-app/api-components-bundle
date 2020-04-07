@@ -23,8 +23,8 @@ use Doctrine\ORM\Mapping as ORM;
 trait UiTrait
 {
     /** @ORM\Column(nullable=true) */
-    public ?string $uiComponent;
+    public ?string $uiComponent = null;
 
     /** @ORM\Column(type="json", nullable=true) */
-    public ?array $uiClassNames;
+    public ?array $uiClassNames = null;
 }

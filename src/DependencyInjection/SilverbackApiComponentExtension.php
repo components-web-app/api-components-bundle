@@ -20,6 +20,9 @@ use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\Factory\UserFactory;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
+use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
+use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -48,6 +51,13 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
         $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
+        $userClass = $config['user']['class_name'];
+
+        $definition = $container->getDefinition(ChangePasswordType::class);
+        $definition->setArgument('$userClass', $userClass);
+
+        $definition = $container->getDefinition(NewEmailAddressType::class);
+        $definition->setArgument('$userClass', $userClass);
 
         $definition = $container->getDefinition(PasswordManager::class);
         $definition->setArgument('$tokenTtl', $repeatTtl);
@@ -62,7 +72,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
 
         $definition = $container->getDefinition(UserFactory::class);
-        $definition->setArgument('$userClass', $userClass = $config['user']['class_name']);
+        $definition->setArgument('$userClass', $userClass);
 
         $definition = $container->getDefinition(UserListener::class);
         $definition->setArgument('$initialEmailVerifiedState', $config['user']['email_verification']['default']);
@@ -76,6 +86,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
         $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
         $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
+
+        $definition = $container->getDefinition(UserRegisterType::class);
+        $definition->setArgument('$userClass', $userClass);
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);

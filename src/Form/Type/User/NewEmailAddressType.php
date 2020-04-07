@@ -24,10 +24,15 @@ use Symfony\Component\Security\Core\Security;
 class NewEmailAddressType extends AbstractType
 {
     private Security $security;
+    private string $userClass;
 
-    public function __construct(Security $security)
+    public function __construct(Security $security, string $userClass)
     {
         $this->security = $security;
+        $this->userClass = $userClass;
+        if (!is_subclass_of($this->userClass, AbstractUser::class)) {
+            throw new InvalidParameterException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+        }
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -56,7 +61,7 @@ class NewEmailAddressType extends AbstractType
             'attr' => [
                 'novalidate' => 'novalidate',
             ],
-            'data_class' => AbstractUser::class,
+            'data_class' => $this->userClass,
             'validation_groups' => ['new_email_address'],
             'empty_data' => $this->security->getUser(),
         ]);

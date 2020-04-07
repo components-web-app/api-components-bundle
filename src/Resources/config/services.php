@@ -39,9 +39,13 @@ use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
+use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
+use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentBundle\EventListener\TimestampedListener;
 use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Factory\FormViewFactory;
@@ -75,7 +79,6 @@ use Silverback\ApiComponentBundle\Validator\Constraints\NewUsernameValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -106,6 +109,17 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private();
 
+
+    $services
+        ->set(AdminContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            new Reference(AdminContextBuilder::class . '.inner'),
+            new Reference(AuthorizationCheckerInterface::class),
+            new Reference(ClassMetadataFactoryInterface::class),
+        ])
+        ->autoconfigure(false);
+
     $services
         ->set(ApiNormalizer::class)
         ->tag('serializer.normalizer', ['priority' => -810])
@@ -114,6 +128,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResourceClassResolverInterface::class),
         ])
         ->autoconfigure(false);
+
+    $services
+        ->set(ApiTimestampedListener::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(TimestampedListener::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE]);
 
     $services
         ->set(AutoRoutePrefixMetadataFactory::class)
@@ -237,13 +259,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializerInterface::class),
             new Reference(RequestFormatResolver::class),
             new Reference(FormSubmitHandler::class),
-        ]);
+        ])
+        ->tag('controller.service_arguments');
 
     $services
         ->set(FormSubmitHandler::class)
         ->args([
             new Reference(FormFactory::class),
-            new Reference(EventDispatcher::class),
+            new Reference(EventDispatcherInterface::class),
             new Reference(SerializerInterface::class),
         ]);
 
@@ -282,6 +305,11 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '%env(MAILER_EMAIL)%',
         ]);
+
+    $services
+        ->set(NewEmailAddressListener::class)
+        ->args([new Reference(EntityManagerInterface::class)])
+        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
         ->set(NewEmailAddressType::class)
@@ -339,23 +367,19 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(AdminContextBuilder::class)
-        ->decorate('api_platform.serializer.context_builder')
-        ->args([
-            new Reference(AdminContextBuilder::class . '.inner'),
-            new Reference(AuthorizationCheckerInterface::class),
-            new Reference(ClassMetadataFactoryInterface::class),
-        ])
-        ->autoconfigure(false);
-
-    $services
         ->set(TablePrefixExtension::class)
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
+    $getTimestampedListenerTagArgs = static function ($event) {
+        return [
+            'event' => $event,
+            'method' => $event,
+        ];
+    };
     $services
         ->set(TimestampedListener::class)
-        ->args([new Reference(EntityManagerInterface::class)])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE]);
+        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('prePersist'))
+        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('preUpdate'));
 
     $services
         ->set(TokenAuthenticator::class)
@@ -414,6 +438,11 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MailerInterface::class),
             new Reference(RequestStack::class),
         ]);
+
+    $services
+        ->set(UserRegisterListener::class)
+        ->args([new Reference(EntityManagerInterface::class)])
+        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
         ->set(UserRegisterType::class);

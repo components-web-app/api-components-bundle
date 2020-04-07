@@ -19,6 +19,8 @@ use PHPUnit\Framework\Assert;
 
 final class JsonContext extends BaseJsonContext
 {
+    public array $components = [];
+
     public function __construct(HttpCallResultPool $httpCallResultPool)
     {
         parent::__construct($httpCallResultPool);

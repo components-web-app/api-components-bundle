@@ -17,6 +17,8 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
+use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
@@ -29,9 +31,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewUsername(groups={"new_email_address", "Default"})
  */
-abstract class AbstractUser implements SymfonyUserInterface
+abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterface
 {
     use IdTrait;
+    use TimestampedTrait;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)

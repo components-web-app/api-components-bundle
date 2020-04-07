@@ -11,13 +11,15 @@
 
 declare(strict_types=1);
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
-use Behatch\Context\RestContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
+use Silverback\ApiComponentBundle\Entity\Component\Form;
+use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 
 final class DoctrineContext implements Context
@@ -25,9 +27,11 @@ final class DoctrineContext implements Context
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
     private JWTManager $jwtManager;
+    private IriConverterInterface $iriConverter;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
     private array $classes;
+    private array $components = [];
 
     /**
      * Initializes context.
@@ -36,10 +40,11 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTManager $jwtManager)
+    public function __construct(ManagerRegistry $doctrine, JWTManager $jwtManager, IriConverterInterface $iriConverter)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
+        $this->iriConverter = $iriConverter;
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
@@ -84,5 +89,35 @@ final class DoctrineContext implements Context
     public function logout(): void
     {
         $this->restContext->iAddHeaderEqualTo('Authorization', '');
+    }
+
+    /**
+     * @BeforeScenario @createRegisterForm
+     */
+    public function createRegisterForm(BeforeScenarioScope $scope)
+    {
+        $form = new Form();
+        $form->formType = UserRegisterType::class;
+        $this->manager->persist($form);
+        $this->manager->flush();
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->restContext->components['register_form'] = $this->iriConverter->getIriFromItem($form);
+    }
+
+    /**
+     * @Given a user exists with the username :username password :password and role :role
+     */
+    public function aUserExistsWithUsernamePasswordAndRole(string $username, string $password, string $role)
+    {
+        $user = new User();
+        $user
+            ->setUsername($username)
+            ->setEmailAddress('test.user@example.com')
+            ->setPassword($password)
+            ->setRoles([$role])
+        ;
+        $this->manager->persist($user);
+        $this->manager->flush();
+        $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
     }
 }

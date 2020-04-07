@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener;
+namespace Silverback\ApiComponentBundle\EventListener\Api;
 
 use DateTime;
 use DateTimeImmutable;
@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TimestampedListener
+class ApiTimestampedListener
 {
     private EntityManagerInterface $entityManager;
 

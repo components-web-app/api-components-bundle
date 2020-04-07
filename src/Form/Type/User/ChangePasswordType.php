@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type\User;
 
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Entity\User\UserInterface;
+use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -25,10 +27,15 @@ use Symfony\Component\Security\Core\Security;
 class ChangePasswordType extends AbstractType
 {
     private Security $security;
+    private string $userClass;
 
-    public function __construct(Security $security)
+    public function __construct(Security $security, string $userClass)
     {
         $this->security = $security;
+        $this->userClass = $userClass;
+        if (!is_subclass_of($this->userClass, UserInterface::class)) {
+            throw new InvalidParameterException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+        }
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -67,7 +74,7 @@ class ChangePasswordType extends AbstractType
             'attr' => [
                 'novalidate' => 'novalidate',
             ],
-            'data_class' => UserInterface::class,
+            'data_class' => $this->userClass,
             'validation_groups' => ['change_password'],
             'empty_data' => $this->security->getUser(),
         ]);

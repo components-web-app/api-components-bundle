@@ -1,0 +1,139 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The Root Schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "required": [
+        "@context",
+        "@id",
+        "@type",
+        "modified",
+        "username",
+        "emailAddress",
+        "roles",
+        "enabled",
+        "newEmailAddress",
+        "created",
+        "__PERSISTED__"
+    ],
+    "properties": {
+        "@context": {
+            "$id": "#/properties/@context",
+            "type": "string",
+            "title": "The @context Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/contexts/User"
+            ]
+        },
+        "@id": {
+            "$id": "#/properties/@id",
+            "type": "string",
+            "title": "The @id Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/_/users/09242f6f30b64754ab3fe57804411597"
+            ]
+        },
+        "@type": {
+            "$id": "#/properties/@type",
+            "type": "string",
+            "title": "The @type Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "User"
+            ]
+        },
+        "modified": {
+            "$id": "#/properties/modified",
+            "type": "string",
+            "title": "The Modified Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "2020-04-07T09:38:49+00:00"
+            ]
+        },
+        "username": {
+            "$id": "#/properties/username",
+            "type": "string",
+            "title": "The Username Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "user@email.com"
+            ]
+        },
+        "emailAddress": {
+            "$id": "#/properties/emailAddress",
+            "type": "string",
+            "title": "The Emailaddress Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "user@email.com"
+            ]
+        },
+        "roles": {
+            "$id": "#/properties/roles",
+            "type": "array",
+            "title": "The Roles Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "items": {
+                "$id": "#/properties/roles/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "default": "",
+                "examples": [
+                    "ROLE_USER"
+                ]
+            }
+        },
+        "enabled": {
+            "$id": "#/properties/enabled",
+            "type": "boolean",
+            "title": "The Enabled Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": false,
+            "examples": [
+                true
+            ]
+        },
+        "newEmailAddress": {
+            "$id": "#/properties/newEmailAddress",
+            "type": "string",
+            "title": "The Newemailaddress Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "user@email.com"
+            ]
+        },
+        "created": {
+            "$id": "#/properties/created",
+            "type": "string",
+            "title": "The Created Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "2020-04-07T09:38:48+00:00"
+            ]
+        },
+        "__PERSISTED__": {
+            "$id": "#/properties/__PERSISTED__",
+            "type": "boolean",
+            "title": "The __persisted__ Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": false,
+            "examples": [
+                true
+            ]
+        }
+    }
+}

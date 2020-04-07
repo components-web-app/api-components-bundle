@@ -48,7 +48,7 @@ class AbstractAction
     protected function getResponse(Request $request, $response = null, ?int $status = null): Response
     {
         $headers = [
-            'Content-Type' => sprintf('%s; charset=utf-8', $format = $this->getFormat($request)),
+            'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($format = $this->getFormat($request))),
             'Vary' => 'Accept',
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'deny',

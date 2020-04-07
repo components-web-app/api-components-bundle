@@ -5,9 +5,10 @@ default:
         - 'DoctrineContext':
             doctrine: '@doctrine'
             jwtManager: '@lexik_jwt_authentication.jwt_manager'
+            iriConverter: '@api_platform.iri_converter'
         - 'JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'RestContext'
   extensions:
     'Behat\Symfony2Extension':
       kernel:
@@ -31,9 +32,10 @@ default-coverage:
         - 'DoctrineContext':
             doctrine: '@doctrine'
             jwtManager: '@lexik_jwt_authentication.jwt_manager'
+            iriConverter: '@api_platform.iri_converter'
         - 'JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'RestContext'
 
 default-legacy:
   suites:

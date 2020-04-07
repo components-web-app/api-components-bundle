@@ -24,12 +24,14 @@ class FormSuccessEvent extends Event
 {
     private Form $formResource;
     private FormInterface $form;
+    public $response = null;
     public array $serializerContext = [];
 
-    public function __construct(Form $formResource, FormInterface $form)
+    public function __construct(Form $formResource, FormInterface $form, $response = null)
     {
         $this->formResource = $formResource;
         $this->form = $form;
+        $this->response = $response;
     }
 
     public function getFormResource(): Form

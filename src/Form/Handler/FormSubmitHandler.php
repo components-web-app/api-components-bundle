@@ -17,7 +17,7 @@ use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -29,10 +29,10 @@ use Symfony\Component\Serializer\SerializerInterface;
 class FormSubmitHandler
 {
     private FormFactory $formFactory;
-    private EventDispatcher $eventDispatcher;
+    private EventDispatcherInterface $eventDispatcher;
     private SerializerInterface $serializer;
 
-    public function __construct(FormFactory $formFactory, EventDispatcher $eventDispatcher, SerializerInterface $serializer)
+    public function __construct(FormFactory $formFactory, EventDispatcherInterface $eventDispatcher, SerializerInterface $serializer)
     {
         $this->formFactory = $formFactory;
         $this->eventDispatcher = $eventDispatcher;
@@ -86,13 +86,15 @@ class FormSubmitHandler
         $valid = $form->isValid();
         $formResource->formView = new FormView($form);
         $context = [];
+        $response = $formResource;
         if ($valid) {
-            $event = new FormSuccessEvent($formResource, $form);
+            $event = new FormSuccessEvent($formResource, $form, $response);
             $this->eventDispatcher->dispatch($event);
+            $response = $event->response;
             $context = $event->serializerContext;
         }
 
-        return $this->getResponse($formResource, $_format, $valid, $context);
+        return $this->getResponse($response, $_format, $valid, $context);
     }
 
     private function validateDecodedContent(FormInterface $form, $content): array
