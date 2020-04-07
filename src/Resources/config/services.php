@@ -40,9 +40,9 @@ use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransfor
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
-use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
@@ -108,7 +108,6 @@ return static function (ContainerConfigurator $configurator) {
         ->defaults()
         ->autoconfigure()
         ->private();
-
 
     $services
         ->set(AdminContextBuilder::class)

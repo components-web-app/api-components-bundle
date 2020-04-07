@@ -114,8 +114,7 @@ final class DoctrineContext implements Context
             ->setUsername($username)
             ->setEmailAddress('test.user@example.com')
             ->setPassword($password)
-            ->setRoles([$role])
-        ;
+            ->setRoles([$role]);
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);

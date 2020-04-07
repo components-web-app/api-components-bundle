@@ -73,7 +73,7 @@ class UserRegisterType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         /**
-         * @var $user AbstractUser
+         * @var AbstractUser
          */
         $user = new $this->userClass();
         $user
@@ -87,7 +87,7 @@ class UserRegisterType extends AbstractType
                     'novalidate' => 'novalidate',
                 ],
                 'data_class' => $this->userClass,
-                'empty_data' => $user
+                'empty_data' => $user,
             ]
         );
     }
