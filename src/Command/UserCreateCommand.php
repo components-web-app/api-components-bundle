@@ -86,18 +86,21 @@ class UserCreateCommand extends Command
      */
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
+        $notEmptyValidator = static function (string $label) {
+            return static function (string $string) use ($label) {
+                if (empty($string)) {
+                    throw new Exception($label . ' can not be empty');
+                }
+
+                return $string;
+            };
+        };
+
         $questions = [];
 
         if (!$input->getArgument('username')) {
             $question = new Question('Please choose a username:');
-            $question->setValidator(
-                static function ($username) {
-                    if (empty($username)) {
-                        throw new Exception('Username can not be empty');
-                    }
-
-                    return $username;
-                });
+            $question->setValidator($notEmptyValidator('Username'));
             $questions['username'] = $question;
         }
 
@@ -108,14 +111,7 @@ class UserCreateCommand extends Command
 
         if (!$input->getArgument('password')) {
             $question = new Question('Please choose a password:');
-            $question->setValidator(
-                static function ($password) {
-                    if (empty($password)) {
-                        throw new Exception('Password can not be empty');
-                    }
-
-                    return $password;
-                });
+            $question->setValidator($notEmptyValidator('Password'));
             $question->setHidden(true);
             $questions['password'] = $question;
         }
