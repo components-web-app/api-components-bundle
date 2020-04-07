@@ -29,6 +29,7 @@ class UserCreateCommand extends Command
 {
     protected static $defaultName = 'silverback:api-component:user:create';
     private UserFactory $userFactory;
+    private array $questions = [];
 
     public function __construct(UserFactory $userFactory)
     {
@@ -86,39 +87,50 @@ class UserCreateCommand extends Command
      */
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
-        $notEmptyValidator = static function (string $label) {
-            return static function (string $string) use ($label) {
-                if (empty($string)) {
-                    throw new Exception($label . ' can not be empty');
-                }
+        $this->checkUsernameQuestion($input);
+        $this->checkEmailQuestion($input);
+        $this->checkPasswordQuestion($input);
 
-                return $string;
-            };
-        };
-
-        $questions = [];
-
-        if (!$input->getArgument('username')) {
-            $question = new Question('Please choose a username:');
-            $question->setValidator($notEmptyValidator('Username'));
-            $questions['username'] = $question;
-        }
-
-        if (!$input->getArgument('email')) {
-            $question = new Question('Please choose an email (leave blank to use same as username):');
-            $questions['email'] = $question;
-        }
-
-        if (!$input->getArgument('password')) {
-            $question = new Question('Please choose a password:');
-            $question->setValidator($notEmptyValidator('Password'));
-            $question->setHidden(true);
-            $questions['password'] = $question;
-        }
-
-        foreach ($questions as $name => $question) {
+        foreach ($this->questions as $name => $question) {
             $answer = $this->getHelper('question')->ask($input, $output, $question);
             $input->setArgument($name, $answer);
         }
+    }
+
+    private function checkUsernameQuestion(InputInterface $input): void
+    {
+        if (!$input->getArgument('username')) {
+            $question = new Question('Please choose a username:');
+            $question->setValidator(self::getNotEmptyValidator('Username'));
+            $this->questions['username'] = $question;
+        }
+    }
+
+    private function checkPasswordQuestion(InputInterface $input): void
+    {
+        if (!$input->getArgument('password')) {
+            $question = new Question('Please choose a password:');
+            $question->setValidator(self::getNotEmptyValidator('Password'));
+            $this->questions['password'] = $question;
+        }
+    }
+
+    private function checkEmailQuestion(InputInterface $input): void
+    {
+        if (!$input->getArgument('email')) {
+            $question = new Question('Please choose an email (leave blank to use same as username):');
+            $this->questions['email'] = $question;
+        }
+    }
+
+    private static function getNotEmptyValidator(string $label): callable
+    {
+        return static function (string $string) use ($label) {
+            if (empty($string)) {
+                throw new Exception($label . ' can not be empty');
+            }
+
+            return $string;
+        };
     }
 }
