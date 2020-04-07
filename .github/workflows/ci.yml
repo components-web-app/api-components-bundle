@@ -253,9 +253,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.composer/cache
-          key: composer-cache-php${{ matrix.php }}-${{ github.sha }}
+          key: composer-php${{ matrix.php }}-${{ github.sha }}
           restore-keys: |
-            composer-cache-php${{ matrix.php }}-
+            composer-php${{ matrix.php }}-
             composer-
         continue-on-error: true
       - name: Install Symfony Flex
