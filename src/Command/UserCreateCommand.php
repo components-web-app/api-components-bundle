@@ -49,7 +49,7 @@ class UserCreateCommand extends Command
                 new InputOption('inactive', null, InputOption::VALUE_NONE, 'Set the user as inactive'),
                 new InputOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite the user if they already exist'),
             ])
-            ->setHelp(<<<'EOT'
+            ->setHelp(<<<EOT
                 The <info>silverback:api-component:user:create</info> command creates a user:
                   <info>php %command.full_name% daniel</info>
                 This interactive shell will ask you for an email and then a password.
