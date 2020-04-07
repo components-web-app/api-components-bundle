@@ -2,6 +2,12 @@
     "name": "silverbackis/api-component-bundle",
     "type": "symfony-bundle",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/silverbackdan/api-platform-core"
+        }
+    ],
     "require": {
         "php": "^7.4",
         "ext-exif": "*",
@@ -10,7 +16,7 @@
         "ext-pdo": "*",
         "ext-simplexml": "*",
         "api-platform/api-pack": "^1.2",
-        "api-platform/core": "^2.5.4",
+        "api-platform/core": "2.5.x-dev",
         "cocur/slugify": "^4.0",
         "doctrine/annotations": "^1.7.0",
         "doctrine/doctrine-bundle": "^2.0.7",

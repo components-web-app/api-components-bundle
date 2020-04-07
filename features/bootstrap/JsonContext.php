@@ -11,19 +11,30 @@
 
 declare(strict_types=1);
 
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BaseJsonContext;
 use Behatch\HttpCall\HttpCallResultPool;
 use Behatch\Json\Json;
+use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
 
 final class JsonContext extends BaseJsonContext
 {
     public array $components = [];
+    private RestContext $restContext;
 
     public function __construct(HttpCallResultPool $httpCallResultPool)
     {
         parent::__construct($httpCallResultPool);
+    }
+
+    /**
+     * @BeforeScenario
+     */
+    public function createDatabase(BeforeScenarioScope $scope): void
+    {
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
     }
 
     /**
@@ -83,6 +94,40 @@ final class JsonContext extends BaseJsonContext
      */
     public function theJsonShouldBeValidAccordingToTheSchemaFile(string $file)
     {
-        $this->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
+        try {
+            $this->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
+        } catch (\Exception $exception) {
+            $actual = $this->getJson();
+            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
+        }
     }
+
+    /**
+     * @Then the JSON should be an array with each entry valid according to the schema file :file
+     */
+    public function theJsonShouldBeAnArrayWithEachEntryValidAccordingToTheSchemaFile(string $file)
+    {
+        $json = $this->getJson();
+        $schema = new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1);
+        try {
+            foreach ($json as $item) {
+                $this->inspector->validate(
+                    $item,
+                    new JsonSchema($schema)
+                );
+            }
+        } catch (\Exception $exception) {
+            $actual = $this->getJson();
+            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
+        }
+    }
+
+//    /**
+//     * @Then I save the response IRI as :name
+//     */
+//    public function iSaveTheResponseIriAs($name)
+//    {
+//        $json = $this->getJson();
+//        $this->restContext->components[$name] = $json->getContent()->{'@id'};
+//    }
 }

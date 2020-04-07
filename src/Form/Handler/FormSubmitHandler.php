@@ -59,6 +59,10 @@ class FormSubmitHandler
         };
 
         $dataCount = \count($formData);
+        if (!$dataCount) {
+            return $this->getResponse($formResource, $_format, true);
+        }
+
         if (1 === $dataCount) {
             $formItem = $this->getChildFormByKey($form, $formData);
             $formResource->formView = $formView = new FormView($formItem);
@@ -70,7 +74,8 @@ class FormSubmitHandler
         $valid = true;
         foreach ($formData as $key => $value) {
             $dataItem = clone $formResource;
-            $formItem = $this->getChildFormByKey($form, $formData[$key]);
+            $data = \is_string($formData[$key]) ? [$key => $formData[$key]] : $formData[$key];
+            $formItem = $this->getChildFormByKey($form, $data);
             $dataItem->formView = $formView = new FormView($formItem);
             $formResources[] = $dataItem;
             if ($valid && !$isFormViewValid($formView)) {

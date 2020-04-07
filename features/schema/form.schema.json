@@ -5,6 +5,9 @@
     "title": "The Root Schema",
     "description": "The root schema comprises the entire JSON document.",
     "required": [
+        "@context",
+        "@id",
+        "@type",
         "formType",
         "formView",
         "componentLocations",
@@ -14,6 +17,36 @@
         "__PERSISTED__"
     ],
     "properties": {
+        "@context": {
+            "$id": "#/properties/@context",
+            "type": "string",
+            "title": "The @context Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/contexts/Form"
+            ]
+        },
+        "@id": {
+            "$id": "#/properties/@id",
+            "type": "string",
+            "title": "The @id Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/component/forms/429f977154fd434ab3ec4a13b7dcffd5"
+            ]
+        },
+        "@type": {
+            "$id": "#/properties/@type",
+            "type": "string",
+            "title": "The @type Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Form"
+            ]
+        },
         "formType": {
             "$id": "#/properties/formType",
             "type": "string",
@@ -32,34 +65,15 @@
             "default": {},
             "examples": [
                 {
-                    "methodRendered": false,
-                    "vars": {
-                        "errors": [],
-                        "valid": true,
-                        "id": "test",
-                        "post_app_proxy": "/proxy",
-                        "block_prefixes": [
-                            "form",
-                            "test",
-                            "_test"
-                        ],
-                        "name": "test",
-                        "submitted": false,
-                        "label_attr": [],
-                        "unique_block_prefix": "_test",
-                        "realtime_validate": true,
-                        "api_request": true,
-                        "full_name": "test",
-                        "required": true,
-                        "action": "/component/forms/f72445057857416d9520b8dbd266a215/submit",
-                        "attr": {
-                            "novalidate": "novalidate"
-                        },
-                        "disabled": false
-                    },
                     "children": [
                         {
+                            "rendered": false,
+                            "methodRendered": false,
                             "vars": {
+                                "name": "name",
+                                "submitted": false,
+                                "unique_block_prefix": "_test_name",
+                                "label_attr": [],
                                 "full_name": "test[name]",
                                 "required": true,
                                 "action": "",
@@ -73,52 +87,46 @@
                                     "form",
                                     "text",
                                     "_test_name"
-                                ],
-                                "submitted": false,
-                                "name": "name",
-                                "label_attr": [],
-                                "unique_block_prefix": "_test_name"
+                                ]
                             },
-                            "children": [],
-                            "@type": "FormView",
                             "form": {
                                 "name": []
                             },
-                            "rendered": false,
-                            "@context": {
-                                "rendered": "FormView/rendered",
-                                "methodRendered": "FormView/methodRendered",
-                                "vars": "FormView/vars",
-                                "children": "FormView/children",
-                                "@vocab": "http://example.com/docs.jsonld#",
-                                "hydra": "http://www.w3.org/ns/hydra/core#",
-                                "form": "FormView/form"
-                            },
-                            "@id": "_:4743",
-                            "methodRendered": false
+                            "children": []
                         }
                     ],
-                    "@type": "FormView",
+                    "rendered": false,
+                    "methodRendered": false,
+                    "vars": {
+                        "api_request": true,
+                        "full_name": "test",
+                        "required": true,
+                        "action": "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit",
+                        "attr": {
+                            "novalidate": "novalidate"
+                        },
+                        "disabled": false,
+                        "errors": [],
+                        "valid": true,
+                        "id": "test",
+                        "post_app_proxy": "/proxy",
+                        "block_prefixes": [
+                            "form",
+                            "test",
+                            "_test"
+                        ],
+                        "name": "test",
+                        "submitted": false,
+                        "unique_block_prefix": "_test",
+                        "label_attr": [],
+                        "realtime_validate": true
+                    },
                     "form": {
                         "name": []
-                    },
-                    "@id": "_:4773",
-                    "@context": {
-                        "rendered": "FormView/rendered",
-                        "methodRendered": "FormView/methodRendered",
-                        "vars": "FormView/vars",
-                        "children": "FormView/children",
-                        "@vocab": "http://example.com/docs.jsonld#",
-                        "form": "FormView/form",
-                        "hydra": "http://www.w3.org/ns/hydra/core#"
-                    },
-                    "rendered": false
+                    }
                 }
             ],
             "required": [
-                "@context",
-                "@type",
-                "@id",
                 "vars",
                 "children",
                 "rendered",
@@ -126,125 +134,6 @@
                 "form"
             ],
             "properties": {
-                "@context": {
-                    "$id": "#/properties/formView/properties/@context",
-                    "type": "object",
-                    "title": "The @context Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": {},
-                    "examples": [
-                        {
-                            "children": "FormView/children",
-                            "@vocab": "http://example.com/docs.jsonld#",
-                            "hydra": "http://www.w3.org/ns/hydra/core#",
-                            "form": "FormView/form",
-                            "rendered": "FormView/rendered",
-                            "methodRendered": "FormView/methodRendered",
-                            "vars": "FormView/vars"
-                        }
-                    ],
-                    "required": [
-                        "@vocab",
-                        "hydra",
-                        "vars",
-                        "children",
-                        "rendered",
-                        "methodRendered",
-                        "form"
-                    ],
-                    "properties": {
-                        "@vocab": {
-                            "$id": "#/properties/formView/properties/@context/properties/@vocab",
-                            "type": "string",
-                            "title": "The @vocab Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "http://example.com/docs.jsonld#"
-                            ]
-                        },
-                        "hydra": {
-                            "$id": "#/properties/formView/properties/@context/properties/hydra",
-                            "type": "string",
-                            "title": "The Hydra Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "http://www.w3.org/ns/hydra/core#"
-                            ]
-                        },
-                        "vars": {
-                            "$id": "#/properties/formView/properties/@context/properties/vars",
-                            "type": "string",
-                            "title": "The Vars Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "FormView/vars"
-                            ]
-                        },
-                        "children": {
-                            "$id": "#/properties/formView/properties/@context/properties/children",
-                            "type": "string",
-                            "title": "The Children Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "FormView/children"
-                            ]
-                        },
-                        "rendered": {
-                            "$id": "#/properties/formView/properties/@context/properties/rendered",
-                            "type": "string",
-                            "title": "The Rendered Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "FormView/rendered"
-                            ]
-                        },
-                        "methodRendered": {
-                            "$id": "#/properties/formView/properties/@context/properties/methodRendered",
-                            "type": "string",
-                            "title": "The Methodrendered Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "FormView/methodRendered"
-                            ]
-                        },
-                        "form": {
-                            "$id": "#/properties/formView/properties/@context/properties/form",
-                            "type": "string",
-                            "title": "The Form Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": "",
-                            "examples": [
-                                "FormView/form"
-                            ]
-                        }
-                    }
-                },
-                "@type": {
-                    "$id": "#/properties/formView/properties/@type",
-                    "type": "string",
-                    "title": "The @type Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "FormView"
-                    ]
-                },
-                "@id": {
-                    "$id": "#/properties/formView/properties/@id",
-                    "type": "string",
-                    "title": "The @id Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "_:4773"
-                    ]
-                },
                 "vars": {
                     "$id": "#/properties/formView/properties/vars",
                     "type": "object",
@@ -253,15 +142,6 @@
                     "default": {},
                     "examples": [
                         {
-                            "api_request": true,
-                            "full_name": "test",
-                            "required": true,
-                            "action": "/component/forms/f72445057857416d9520b8dbd266a215/submit",
-                            "attr": {
-                                "novalidate": "novalidate"
-                            },
-                            "disabled": false,
-                            "errors": [],
                             "valid": true,
                             "id": "test",
                             "post_app_proxy": "/proxy",
@@ -272,9 +152,18 @@
                             ],
                             "submitted": false,
                             "name": "test",
-                            "unique_block_prefix": "_test",
                             "label_attr": [],
-                            "realtime_validate": true
+                            "unique_block_prefix": "_test",
+                            "realtime_validate": true,
+                            "api_request": true,
+                            "full_name": "test",
+                            "required": true,
+                            "action": "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit",
+                            "attr": {
+                                "novalidate": "novalidate"
+                            },
+                            "disabled": false,
+                            "errors": []
                         }
                     ],
                     "required": [
@@ -310,7 +199,7 @@
                             "description": "An explanation about the purpose of this instance.",
                             "default": "",
                             "examples": [
-                                "/component/forms/f72445057857416d9520b8dbd266a215/submit"
+                                "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit"
                             ]
                         },
                         "api_request": {
@@ -492,24 +381,9 @@
                         "default": {},
                         "examples": [
                             {
-                                "@type": "FormView",
-                                "form": {
-                                    "name": []
-                                },
-                                "@id": "_:4743",
-                                "@context": {
-                                    "@vocab": "http://example.com/docs.jsonld#",
-                                    "form": "FormView/form",
-                                    "hydra": "http://www.w3.org/ns/hydra/core#",
-                                    "rendered": "FormView/rendered",
-                                    "methodRendered": "FormView/methodRendered",
-                                    "vars": "FormView/vars",
-                                    "children": "FormView/children"
-                                },
                                 "rendered": false,
                                 "methodRendered": false,
                                 "vars": {
-                                    "full_name": "test[name]",
                                     "required": true,
                                     "action": "",
                                     "attr": [],
@@ -526,15 +400,16 @@
                                     "name": "name",
                                     "submitted": false,
                                     "unique_block_prefix": "_test_name",
-                                    "label_attr": []
+                                    "label_attr": [],
+                                    "full_name": "test[name]"
+                                },
+                                "form": {
+                                    "name": []
                                 },
                                 "children": []
                             }
                         ],
                         "required": [
-                            "@context",
-                            "@type",
-                            "@id",
                             "vars",
                             "children",
                             "rendered",
@@ -542,125 +417,6 @@
                             "form"
                         ],
                         "properties": {
-                            "@context": {
-                                "$id": "#/properties/formView/properties/children/items/properties/@context",
-                                "type": "object",
-                                "title": "The @context Schema",
-                                "description": "An explanation about the purpose of this instance.",
-                                "default": {},
-                                "examples": [
-                                    {
-                                        "@vocab": "http://example.com/docs.jsonld#",
-                                        "hydra": "http://www.w3.org/ns/hydra/core#",
-                                        "form": "FormView/form",
-                                        "rendered": "FormView/rendered",
-                                        "methodRendered": "FormView/methodRendered",
-                                        "vars": "FormView/vars",
-                                        "children": "FormView/children"
-                                    }
-                                ],
-                                "required": [
-                                    "@vocab",
-                                    "hydra",
-                                    "vars",
-                                    "children",
-                                    "rendered",
-                                    "methodRendered",
-                                    "form"
-                                ],
-                                "properties": {
-                                    "@vocab": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/@vocab",
-                                        "type": "string",
-                                        "title": "The @vocab Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "http://example.com/docs.jsonld#"
-                                        ]
-                                    },
-                                    "hydra": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/hydra",
-                                        "type": "string",
-                                        "title": "The Hydra Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "http://www.w3.org/ns/hydra/core#"
-                                        ]
-                                    },
-                                    "vars": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/vars",
-                                        "type": "string",
-                                        "title": "The Vars Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "FormView/vars"
-                                        ]
-                                    },
-                                    "children": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/children",
-                                        "type": "string",
-                                        "title": "The Children Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "FormView/children"
-                                        ]
-                                    },
-                                    "rendered": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/rendered",
-                                        "type": "string",
-                                        "title": "The Rendered Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "FormView/rendered"
-                                        ]
-                                    },
-                                    "methodRendered": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/methodRendered",
-                                        "type": "string",
-                                        "title": "The Methodrendered Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "FormView/methodRendered"
-                                        ]
-                                    },
-                                    "form": {
-                                        "$id": "#/properties/formView/properties/children/items/properties/@context/properties/form",
-                                        "type": "string",
-                                        "title": "The Form Schema",
-                                        "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            "FormView/form"
-                                        ]
-                                    }
-                                }
-                            },
-                            "@type": {
-                                "$id": "#/properties/formView/properties/children/items/properties/@type",
-                                "type": "string",
-                                "title": "The @type Schema",
-                                "description": "An explanation about the purpose of this instance.",
-                                "default": "",
-                                "examples": [
-                                    "FormView"
-                                ]
-                            },
-                            "@id": {
-                                "$id": "#/properties/formView/properties/children/items/properties/@id",
-                                "type": "string",
-                                "title": "The @id Schema",
-                                "description": "An explanation about the purpose of this instance.",
-                                "default": "",
-                                "examples": [
-                                    "_:4743"
-                                ]
-                            },
                             "vars": {
                                 "$id": "#/properties/formView/properties/children/items/properties/vars",
                                 "type": "object",
@@ -669,6 +425,12 @@
                                 "default": {},
                                 "examples": [
                                     {
+                                        "full_name": "test[name]",
+                                        "required": true,
+                                        "action": "",
+                                        "attr": [],
+                                        "disabled": false,
+                                        "errors": [],
                                         "value": "",
                                         "valid": true,
                                         "id": "test_name",
@@ -677,16 +439,10 @@
                                             "text",
                                             "_test_name"
                                         ],
-                                        "submitted": false,
                                         "name": "name",
+                                        "submitted": false,
                                         "unique_block_prefix": "_test_name",
-                                        "label_attr": [],
-                                        "full_name": "test[name]",
-                                        "required": true,
-                                        "action": "",
-                                        "attr": [],
-                                        "disabled": false,
-                                        "errors": []
+                                        "label_attr": []
                                     }
                                 ],
                                 "required": [
@@ -962,7 +718,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "2020-04-06T10:39:32+00:00"
+                "2020-04-07T11:48:08+00:00"
             ]
         },
         "componentGroups": {
@@ -979,7 +735,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "2020-04-06T00:00:00+00:00"
+                "2020-04-07T00:00:00+00:00"
             ]
         },
         "__PERSISTED__": {

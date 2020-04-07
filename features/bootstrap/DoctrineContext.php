@@ -21,6 +21,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
 
 final class DoctrineContext implements Context
 {
@@ -102,6 +103,19 @@ final class DoctrineContext implements Context
         $this->manager->flush();
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->restContext->components['register_form'] = $this->iriConverter->getIriFromItem($form);
+    }
+
+    /**
+     * @BeforeScenario @createTestForm
+     */
+    public function createTestForm(BeforeScenarioScope $scope): void
+    {
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $form = new Form();
+        $form->formType = TestType::class;
+        $this->manager->persist($form);
+        $this->manager->flush();
+        $this->restContext->components['test_form'] = $this->iriConverter->getIriFromItem($form);
     }
 
     /**

@@ -250,6 +250,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(FormOutputDataTransformer::class)
+        ->tag('api_platform.data_transformer')
         ->args([new Reference(FormViewFactory::class)]);
 
     $services

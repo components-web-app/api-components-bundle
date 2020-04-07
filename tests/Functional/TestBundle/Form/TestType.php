@@ -49,6 +49,19 @@ class TestType extends AbstractType
                         ),
                     ],
                 ]
+            )
+            ->add(
+                'company',
+                TextType::class,
+                [
+                    'constraints' => [
+                        new NotBlank(
+                            [
+                                'message' => 'Please provide your company',
+                            ]
+                        ),
+                    ],
+                ]
             );
     }
 }
