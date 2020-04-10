@@ -18,8 +18,8 @@ final class SwaggerDecorator implements NormalizerInterface
     public function normalize($object, $format = null, array $context = []): array
     {
         /** @var array $docs */
-        $docs = $this->decorated->normalize($object, $format, $context);
-
+//        $docs = $this->decorated->normalize($object, $format, $context);
+//
 //        $currentPath = '/forms/{id}';
 //        $patchOpPath = $currentPath . '/submit';
 //        /** @var \ArrayObject $paths */
@@ -67,7 +67,7 @@ final class SwaggerDecorator implements NormalizerInterface
 //        $docs['paths'][$patchOpPath]['post']['parameters'] = $docs['paths'][$patchOpPath]['patch']['parameters'];
 //        $docs['paths'][$patchOpPath]['post']['summary'] = 'Submit and validate the entire form';
 
-        return $docs;
+        return [];
     }
 
     public function supportsNormalization($data, $format = null): bool

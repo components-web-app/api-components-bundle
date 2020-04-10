@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;

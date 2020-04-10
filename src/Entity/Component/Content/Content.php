@@ -47,7 +47,7 @@ class Content extends AbstractComponent
         return $this->content;
     }
 
-    public function setContent(string $content): self
+    public function setContent(string $content): Content
     {
         $this->content = $content;
         return $this;
@@ -61,7 +61,7 @@ class Content extends AbstractComponent
         return $this->title;
     }
 
-    public function setTitle(?string $title): self
+    public function setTitle(?string $title): Content
     {
         $this->title = $title;
         return $this;

@@ -92,7 +92,7 @@ class ComponentLocation implements SortableInterface
         return $this->content;
     }
 
-    public function setContent(?AbstractContent $content, ?bool $sortLast = true): self
+    public function setContent(?AbstractContent $content, ?bool $sortLast = true): ComponentLocation
     {
         if ($content !== $this->content) {
             $this->content = $content;
@@ -114,7 +114,7 @@ class ComponentLocation implements SortableInterface
         return $this->component;
     }
 
-    public function setComponent(AbstractComponent $component): self
+    public function setComponent(AbstractComponent $component): ComponentLocation
     {
         $this->component = $component;
         return $this;

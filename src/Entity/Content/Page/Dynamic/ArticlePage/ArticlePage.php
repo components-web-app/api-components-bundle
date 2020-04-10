@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-use Silverback\ApiComponentBundle\Dto\File\FileData;
-
 /**
  * @ORM\Entity()
  * @ORM\AttributeOverrides({
@@ -55,7 +53,7 @@ class ArticlePage extends DynamicContent implements FileInterface
         return $this->subtitle;
     }
 
-    public function setSubtitle(?string $subtitle): self
+    public function setSubtitle(?string $subtitle): ArticlePage
     {
         $this->subtitle = $subtitle;
         return $this;
@@ -66,13 +64,13 @@ class ArticlePage extends DynamicContent implements FileInterface
         return $this->content;
     }
 
-    public function setContent(string $content): self
+    public function setContent(string $content): ArticlePage
     {
         $this->content = $content;
         return $this;
     }
 
-    public function setImageCaption(?string $imageCaption): self
+    public function setImageCaption(?string $imageCaption): ArticlePage
     {
         $this->imageCaption = $imageCaption;
         return $this;

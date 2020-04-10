@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-use Silverback\ApiComponentBundle\Dto\File\FileData;
-
 /**
  * Class GalleryItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
@@ -73,7 +71,7 @@ class GalleryItem extends AbstractComponent implements FileInterface
      * @param null|string $title
      * @return GalleryItem
      */
-    public function setTitle(?string $title): self
+    public function setTitle(?string $title): GalleryItem
     {
         $this->title = $title;
         return $this;
@@ -91,7 +89,7 @@ class GalleryItem extends AbstractComponent implements FileInterface
      * @param null|string $caption
      * @return GalleryItem
      */
-    public function setCaption(?string $caption): self
+    public function setCaption(?string $caption): GalleryItem
     {
         $this->caption = $caption;
         return $this;

@@ -13,8 +13,8 @@ use Silverback\ApiComponentBundle\Entity\Component\FileInterface;
 use Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber\FileInterfaceSubscriber;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 class FileDataFactory implements ServiceSubscriberInterface
 {

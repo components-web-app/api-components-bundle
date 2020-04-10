@@ -2,11 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
-use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 
 class NewUsernameHandler implements FormHandlerInterface, ContextProviderInterface

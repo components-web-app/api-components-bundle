@@ -2,10 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\Security;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
-use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
+use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

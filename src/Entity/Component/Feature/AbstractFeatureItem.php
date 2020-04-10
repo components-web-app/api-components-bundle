@@ -62,7 +62,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): AbstractFeatureItem
     {
         $this->title = $title;
         return $this;
@@ -76,7 +76,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->url;
     }
 
-    public function setUrl(?string $url): self
+    public function setUrl(?string $url): AbstractFeatureItem
     {
         $this->url = $url;
         return $this;
@@ -90,7 +90,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->route;
     }
 
-    public function setRoute(?Route $route): self
+    public function setRoute(?Route $route): AbstractFeatureItem
     {
         $this->route = $route;
         return $this;
@@ -104,7 +104,7 @@ abstract class AbstractFeatureItem extends AbstractComponent implements FeatureI
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(?string $description): AbstractFeatureItem
     {
         $this->description = $description;
         return $this;

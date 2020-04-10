@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Entity\Content\AbstractContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -113,7 +112,7 @@ class Route
      * @param string $name
      * @return Route
      */
-    public function setName(string $name): self
+    public function setName(string $name): Route
     {
         $this->name = $name;
         return $this;
@@ -131,7 +130,7 @@ class Route
      * @param string $route
      * @return Route
      */
-    public function setRoute(string $route): self
+    public function setRoute(string $route): Route
     {
         $this->route = $route;
         return $this;
@@ -142,7 +141,7 @@ class Route
         return $this->dynamicContent;
     }
 
-    public function setDynamicContent(?DynamicContent $dynamicContent): self
+    public function setDynamicContent(?DynamicContent $dynamicContent): Route
     {
         $this->dynamicContent = $dynamicContent;
         return $this;
@@ -153,7 +152,7 @@ class Route
         return $this->staticPage;
     }
 
-    public function setStaticPage(?StaticPage $staticPage): self
+    public function setStaticPage(?StaticPage $staticPage): Route
     {
         $this->staticPage = $staticPage;
         return $this;
@@ -171,7 +170,7 @@ class Route
      * @param null|Route $redirect
      * @return Route
      */
-    public function setRedirect(?Route $redirect): self
+    public function setRedirect(?Route $redirect): Route
     {
         $this->redirect = $redirect;
         return $this;

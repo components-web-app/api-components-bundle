@@ -2,12 +2,12 @@
 
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
-use Silverback\ApiComponentBundle\Security\PasswordManager;
-use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Authentication\AuthenticationSuccessHandler;
 use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
+use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Exception\UnsupportedFormEntityException;
+use Silverback\ApiComponentBundle\Security\PasswordManager;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;

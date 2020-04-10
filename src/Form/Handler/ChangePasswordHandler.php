@@ -2,10 +2,10 @@
 
 namespace Silverback\ApiComponentBundle\Form\Handler;
 
+use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Exception\UnsupportedFormEntityException;
 use Silverback\ApiComponentBundle\Security\PasswordManager;
-use Silverback\ApiComponentBundle\Entity\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 
 class ChangePasswordHandler implements FormHandlerInterface

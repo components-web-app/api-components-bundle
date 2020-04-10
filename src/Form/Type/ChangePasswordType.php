@@ -2,13 +2,11 @@
 
 namespace Silverback\ApiComponentBundle\Form\Type;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
 use Silverback\ApiComponentBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;

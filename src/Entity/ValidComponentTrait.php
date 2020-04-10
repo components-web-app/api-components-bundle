@@ -19,7 +19,7 @@ trait ValidComponentTrait
      */
     protected $validComponents;
 
-    private function initValidComponents(): self
+    private function initValidComponents()
     {
         if (!($this->validComponents instanceof Collection)) {
             $this->validComponents = new ArrayCollection();
@@ -40,7 +40,7 @@ trait ValidComponentTrait
      * @param string $component
      * @return ValidComponentTrait
      */
-    public function addValidComponent(string $component): self
+    public function addValidComponent(string $component)
     {
         $this->initValidComponents();
         if (!$this->validComponents->contains($component)) {
@@ -53,7 +53,7 @@ trait ValidComponentTrait
      * @param string $component
      * @return ValidComponentTrait
      */
-    public function removeValidComponent(string $component): self
+    public function removeValidComponent(string $component)
     {
         $this->initValidComponents();
         $this->validComponents->removeElement($component);

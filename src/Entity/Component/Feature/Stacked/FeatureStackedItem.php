@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-use Silverback\ApiComponentBundle\Dto\File\FileData;
-
 /**
  * @ORM\Entity()
  */
@@ -55,7 +53,7 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
         return $this->buttonText;
     }
 
-    public function setButtonText(?string $buttonText): self
+    public function setButtonText(?string $buttonText): FeatureStackedItem
     {
         $this->buttonText = $buttonText;
         return $this;
@@ -69,7 +67,7 @@ class FeatureStackedItem extends AbstractFeatureItem implements FileInterface
         return $this->buttonClass;
     }
 
-    public function setButtonClass(?string $buttonClass): self
+    public function setButtonClass(?string $buttonClass): FeatureStackedItem
     {
         $this->buttonClass = $buttonClass;
         return $this;

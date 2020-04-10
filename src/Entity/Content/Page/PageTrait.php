@@ -37,7 +37,7 @@ trait PageTrait
         return $this->title ?: 'unnamed';
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title)
     {
         $this->title = $title;
         return $this;
@@ -48,7 +48,7 @@ trait PageTrait
         return $this->metaDescription ?: '';
     }
 
-    public function setMetaDescription(string $metaDescription): self
+    public function setMetaDescription(string $metaDescription)
     {
         $this->metaDescription = $metaDescription;
         return $this;
@@ -59,7 +59,7 @@ trait PageTrait
         return $this->layout;
     }
 
-    public function setLayout(?Layout $layout): self
+    public function setLayout(?Layout $layout)
     {
         $this->layout = $layout;
         return $this;

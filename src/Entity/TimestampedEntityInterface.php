@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Entity;
 
-use \DateTime;
-use \DateTimeImmutable;
+use DateTime;
+use DateTimeImmutable;
 
 interface TimestampedEntityInterface
 {

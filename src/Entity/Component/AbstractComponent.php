@@ -116,9 +116,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param null|string $className
-     * @return self
+     * @return AbstractComponent
      */
-    public function setClassName(?string $className): self
+    public function setClassName(?string $className): AbstractComponent
     {
         $this->className = $className;
         return $this;
@@ -134,9 +134,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param ComponentLocation $componentLocation
-     * @return self
+     * @return AbstractComponent
      */
-    public function addLocation(ComponentLocation $componentLocation): self
+    public function addLocation(ComponentLocation $componentLocation): AbstractComponent
     {
         if (!$this->locations->contains($componentLocation)) {
             $componentLocation->setComponent($this);
@@ -147,9 +147,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param ComponentLocation $componentLocation
-     * @return self
+     * @return AbstractComponent
      */
-    public function removeLocation(ComponentLocation $componentLocation): self
+    public function removeLocation(ComponentLocation $componentLocation): AbstractComponent
     {
         if ($this->locations->contains($componentLocation)) {
             $this->locations->removeElement($componentLocation);
@@ -159,9 +159,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param array $componentGroups
-     * @return self
+     * @return AbstractComponent
      */
-    public function setComponentGroups(array $componentGroups): self
+    public function setComponentGroups(array $componentGroups): AbstractComponent
     {
         $this->componentGroups = new ArrayCollection;
         foreach ($componentGroups as $componentGroup) {
@@ -172,9 +172,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return self
+     * @return AbstractComponent
      */
-    public function addComponentGroup(ComponentGroup $componentGroup): self
+    public function addComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
         if (!$this->componentGroups->contains($componentGroup)) {
             $this->componentGroups->add($componentGroup);
@@ -185,9 +185,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param ComponentGroup $componentGroup
-     * @return self
+     * @return AbstractComponent
      */
-    public function removeComponentGroup(ComponentGroup $componentGroup): self
+    public function removeComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
         if ($this->componentGroups->contains($componentGroup)) {
             $this->componentGroups->removeElement($componentGroup);
@@ -205,9 +205,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
 
     /**
      * @param null|string $componentName
-     * @return self
+     * @return AbstractComponent
      */
-    public function setComponentName(?string $componentName): self
+    public function setComponentName(?string $componentName): AbstractComponent
     {
         $this->componentName = $componentName;
         return $this;
@@ -238,9 +238,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
      * @Groups({"component_write"})
      * @param AbstractComponent $parent
      * @param int $componentGroupOffset
-     * @return self
+     * @return AbstractComponent
      */
-    public function setParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): self
+    public function setParentComponent(AbstractComponent $parent, int $componentGroupOffset = 0): AbstractComponent
     {
         if (!\in_array($parent, $this->getParentComponents(), true)) {
             $componentGroup = $this->getComponentComponentGroup($parent, $componentGroupOffset);
@@ -254,9 +254,9 @@ abstract class AbstractComponent implements ComponentInterface, DeleteCascadeInt
     /**
      * @Groups({"component_write"})
      * @param ComponentGroup $componentGroup
-     * @return self
+     * @return AbstractComponent
      */
-    public function setParentComponentGroup(ComponentGroup $componentGroup): self
+    public function setParentComponentGroup(ComponentGroup $componentGroup): AbstractComponent
     {
         if (!$componentGroup->hasComponent($this)) {
             $location = new ComponentLocation($componentGroup, $this);

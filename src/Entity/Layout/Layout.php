@@ -70,7 +70,7 @@ class Layout
      * @param bool $default
      * @return Layout
      */
-    public function setDefault(bool $default): self
+    public function setDefault(bool $default): Layout
     {
         $this->default = $default;
         return $this;
@@ -88,7 +88,7 @@ class Layout
      * @param null|NavBar $navBar
      * @return Layout
      */
-    public function setNavBar(?NavBar $navBar): self
+    public function setNavBar(?NavBar $navBar): Layout
     {
         $this->navBar = $navBar;
         return $this;
@@ -106,7 +106,7 @@ class Layout
      * @param null|string $className
      * @return Layout
      */
-    public function setClassName(?string $className): self
+    public function setClassName(?string $className): Layout
     {
         $this->className = $className;
         return $this;

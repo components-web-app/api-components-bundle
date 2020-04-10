@@ -14,8 +14,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-use Silverback\ApiComponentBundle\Dto\File\FileData;
-
 /**
  * Class Hero
  * @package Silverback\ApiComponentBundle\Entity\Component\Hero
@@ -69,9 +67,9 @@ class Hero extends AbstractComponent implements FileInterface
 
     /**
      * @param null|string $title
-     * @return self
+     * @return Hero
      */
-    public function setTitle(?string $title): self
+    public function setTitle(?string $title): Hero
     {
         $this->title = $title;
         return $this;
@@ -87,9 +85,9 @@ class Hero extends AbstractComponent implements FileInterface
 
     /**
      * @param null|string $subtitle
-     * @return self
+     * @return Hero
      */
-    public function setSubtitle(?string $subtitle): self
+    public function setSubtitle(?string $subtitle): Hero
     {
         $this->subtitle = $subtitle;
         return $this;

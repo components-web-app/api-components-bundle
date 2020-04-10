@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Security;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Entity\User\User;
 use Symfony\Bridge\Doctrine\Security\User\EntityUserProvider as BaseUserProvider;
 
 class EntityUserProvider extends BaseUserProvider

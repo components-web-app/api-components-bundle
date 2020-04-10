@@ -111,9 +111,9 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
 
     /**
      * @param null|array $roles
-     * @return self
+     * @return AbstractNavigationItem
      */
-    public function setRoles(?array $roles): self
+    public function setRoles(?array $roles): AbstractNavigationItem
     {
         $this->roles = $roles;
         return $this;
@@ -129,9 +129,9 @@ abstract class AbstractNavigationItem extends AbstractComponent implements Navig
 
     /**
      * @param null|array $excludeRoles
-     * @return self
+     * @return AbstractNavigationItem
      */
-    public function setExcludeRoles(?array $excludeRoles): self
+    public function setExcludeRoles(?array $excludeRoles): AbstractNavigationItem
     {
         $this->excludeRoles = $excludeRoles;
         return $this;

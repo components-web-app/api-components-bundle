@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
-use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentBundle\Entity\Component\AbstractComponent;
 use Silverback\ApiComponentBundle\Entity\Component\ComponentInterface;
 use Symfony\Component\Validator\Constraint;

@@ -12,8 +12,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
-use Silverback\ApiComponentBundle\Dto\File\FileData;
-
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ORM\Entity()
@@ -52,7 +50,7 @@ class SimpleImage extends AbstractComponent implements FileInterface
      * @param null|string $caption
      * @return SimpleImage
      */
-    public function setCaption(?string $caption): self
+    public function setCaption(?string $caption): SimpleImage
     {
         $this->caption = $caption;
         return $this;

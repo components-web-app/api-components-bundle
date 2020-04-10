@@ -2,9 +2,9 @@
 
 namespace Silverback\ApiComponentBundle\Controller;
 
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
+use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

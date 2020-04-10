@@ -36,7 +36,7 @@ abstract class AbstractPage extends AbstractContent implements PageInterface
         return $this->parent;
     }
 
-    public function setParent(?StaticPage $parent): self
+    public function setParent(?StaticPage $parent): AbstractPage
     {
         $this->parent = $parent;
         return $this;

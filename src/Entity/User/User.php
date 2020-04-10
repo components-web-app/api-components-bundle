@@ -3,8 +3,8 @@
 namespace Silverback\ApiComponentBundle\Entity\User;
 
 use DateTime;
-use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;

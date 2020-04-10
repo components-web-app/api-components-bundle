@@ -2,8 +2,8 @@
 
 namespace Silverback\ApiComponentBundle\Repository\User;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Silverback\ApiComponentBundle\Entity\User\User;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
