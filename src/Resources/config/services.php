@@ -126,7 +126,6 @@ return function (ContainerConfigurator $configurator) {
         ])
         ->tag('serializer.normalizer', [ 'priority' => 100 ])
     ;
-
     $services
         ->set(SwaggerDecorator::class)
         ->decorate('api_platform.swagger.normalizer.documentation')
@@ -137,6 +136,7 @@ return function (ContainerConfigurator $configurator) {
             ]
         )
     ;
+
 
     $services
         ->set(TokenAuthenticator::class)

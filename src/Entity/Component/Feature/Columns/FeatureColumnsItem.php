@@ -11,6 +11,8 @@ use Silverback\ApiComponentBundle\Entity\Component\FileTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
+use Silverback\ApiComponentBundle\Dto\File\FileData;
+
 /**
  * @ORM\Entity()
  */

@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
+use Silverback\ApiComponentBundle\Dto\File\FileData;
+
 /**
  * Class GalleryItem
  * @package Silverback\ApiComponentBundle\Entity\Component\Gallery
