@@ -1,6 +1,5 @@
 # API Component Bundle v2
 
-
 __Overall:__ 
 [![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=v2)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
@@ -8,7 +7,7 @@ __Overall:__
 
 __PHPUnit:__ 
 [![Code Coverage](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/coverage.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
-[![Infection MSI](https://badge.stryker-mutator.io/github.com/silverbackis/ApiComponentBundle/v2)](https://infection.github.io)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fv2)](https://infection.github.io)
 
 ---
 
