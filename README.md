@@ -1,8 +1,9 @@
 # API Component Bundle v2
-[![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=v2)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
-[![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2)
-[![Infection MSI](https://badge.stryker-mutator.io/github.com/silverbackis/ApiComponentBundle/v2)](https://infection.github.io)
+
+<sub><sup>__Overall__</sup></sub> | [![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=v2)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2) | [![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2)
+--- | --- | --- | ---
+<sub><sup>__PHPUnit__</sup></sub> | [![Code Coverage](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/coverage.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2) | [![Infection MSI](https://badge.stryker-mutator.io/github.com/silverbackis/ApiComponentBundle/v2)](https://infection.github.io)
+
 
 The diagram below shows what this bundle aims to implement by using Symfony and [API Platform](https://github.com/api-platform/api-platform)
 ![Api Component Bundle - Basic Flow](./docs/images/API%20Component%20Bundle%20v2%20Flow.jpg)
