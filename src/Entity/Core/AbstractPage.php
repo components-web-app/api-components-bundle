@@ -29,8 +29,6 @@ abstract class AbstractPage implements TimestampedInterface
 
     /**
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
-     *
-     * @var Route|null
      */
     public ?Route $route;
 
@@ -39,8 +37,6 @@ abstract class AbstractPage implements TimestampedInterface
      * PageTemplate / PageData, we can prepend parent routes.
      *
      * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
-     *
-     * @var Route|null
      */
     public ?Route $parentRoute;
 
@@ -53,8 +49,6 @@ abstract class AbstractPage implements TimestampedInterface
      * E.g. the parent route's page may just be a Hero and some Tab navigation.
      *
      * @ORM\Column(type="boolean")
-     *
-     * @var bool
      */
     public bool $isNested = true;
 

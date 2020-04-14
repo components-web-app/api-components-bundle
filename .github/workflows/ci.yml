@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 5
     env:
       PHP_CS_FIXER_FUTURE_MODE: '1'
-      PHP_CS_FIXER_VERSION: '^2.14'
+      PHP_CS_FIXER_VERSION: '^2.16'
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -184,6 +184,8 @@ jobs:
         continue-on-error: true
       - name: Run Infection Mutation Tests
         if: matrix.coverage
+        env: # Or as an environment variable
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
         run: |
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
