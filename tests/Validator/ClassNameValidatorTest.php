@@ -50,6 +50,7 @@ class ClassNameValidatorTest extends TestCase
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, $this->proxy]));
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, 'NotAnObject']));
     }
+
     /**
      * @throws ReflectionException
      */
