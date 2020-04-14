@@ -247,9 +247,11 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
         return $this->oldPassword;
     }
 
-    public function setOldPassword(?string $oldPassword): void
+    public function setOldPassword(?string $oldPassword): self
     {
         $this->oldPassword = $oldPassword;
+
+        return $this;
     }
 
     public function getNewEmailAddress(): ?string
@@ -302,24 +304,28 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
         return serialize([
             $this->id,
             $this->username,
+            $this->emailAddress,
             $this->password,
             $this->enabled,
+            $this->roles,
         ]);
     }
 
     /**
      * @see \Serializable::unserialize()
-     *
-     * @param string $serialized
      */
-    public function unserialize($serialized): void
+    public function unserialize(string $serialized): self
     {
         [
             $this->id,
             $this->username,
+            $this->emailAddress,
             $this->password,
-            $this->enabled
+            $this->enabled,
+            $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);
+
+        return $this;
     }
 
     /**
@@ -341,6 +347,6 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
 
     public function __toString()
     {
-        return (string) $this->id;
+        return $this->id;
     }
 }

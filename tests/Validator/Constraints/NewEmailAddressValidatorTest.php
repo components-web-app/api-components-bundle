@@ -17,8 +17,11 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 class NewEmailAddressValidatorTest extends TestCase
 {
+    private NewEmailAddressValidator $newEmailAddressValidator;
+    /**
+     * @var UserRepository|MockObject
+     */
     private $repositoryMock;
-    private $newEmailAddressValidator;
     /**
      * @var ExecutionContextInterface|MockObject
      */
