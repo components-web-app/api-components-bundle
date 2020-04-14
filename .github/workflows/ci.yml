@@ -190,7 +190,7 @@ jobs:
           gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar
+          ./infection.phar --only-covered
 
   behat:
     name: Behat (PHP ${{ matrix.php }})
