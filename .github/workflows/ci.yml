@@ -184,6 +184,8 @@ jobs:
         continue-on-error: true
       - name: Run Infection Mutation Tests
         if: matrix.coverage
+        env: # Or as an environment variable
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
         run: |
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
