@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
- * @APIAssert\NewUsername(groups={"new_email_address", "Default"})
+ * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterface
 {
