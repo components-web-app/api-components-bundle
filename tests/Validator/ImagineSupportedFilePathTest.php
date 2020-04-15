@@ -18,7 +18,7 @@ use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
 
 class ImagineSupportedFilePathTest extends TestCase
 {
-    public function testIsValidFilePath(): void
+    public function test_is_valid_file_path(): void
     {
         $basePath = __DIR__ . '/../Functional/TestBundle/Resources/';
         $this->assertFalse(ImagineSupportedFilePath::isValidFilePath(null));

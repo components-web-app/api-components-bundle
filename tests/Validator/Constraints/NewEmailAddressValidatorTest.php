@@ -54,7 +54,7 @@ class NewEmailAddressValidatorTest extends TestCase
             ->getMock();
     }
 
-    public function testExceptionThrownForIncorrectUserClass(): void
+    public function test_exception_thrown_for_incorrect_user_class(): void
     {
         $this->expectException(UnexpectedTypeException::class);
         $constraint = new class() extends Constraint {
@@ -64,7 +64,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
 
-    public function testNoConstraintErrorsIfNoNewEmailAddress(): void
+    public function test_no_constraint_errors_if_no_new_email_address(): void
     {
         $this->executionContextMock
             ->expects($this->never())
@@ -81,7 +81,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
 
-    public function testErrorIfNewEmailIsSameAsPrevious(): void
+    public function test_error_if_new_email_is_same_as_previous(): void
     {
         $constraint = new NewEmailAddress();
 
@@ -106,7 +106,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
 
-    public function testErrorIfNewEmailIsAlreadyInDatabase(): void
+    public function test_error_if_new_email_is_already_in_database(): void
     {
         $dummyUser = new class() extends AbstractUser {
         };
@@ -137,7 +137,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
 
-    public function testNoErrorIfNewEmailIsUnique(): void
+    public function test_no_error_if_new_email_is_unique(): void
     {
         $dummyUser = new class() extends AbstractUser {
         };

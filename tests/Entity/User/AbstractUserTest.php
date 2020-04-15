@@ -19,7 +19,7 @@ use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 
 class AbstractUserTest extends TestCase
 {
-    public function testConstruct()
+    public function test_construct(): void
     {
         $user = new class('username', 'email@address.com', true, ['ROLE_ADMIN'], 'password', false) extends AbstractUser {
         };
@@ -41,7 +41,7 @@ class AbstractUserTest extends TestCase
         $this->assertTrue($user->isEnabled());
     }
 
-    public function testGettersAndSetters()
+    public function test_getters_and_setters(): void
     {
         $user = new class() extends AbstractUser {
         };
@@ -79,14 +79,21 @@ class AbstractUserTest extends TestCase
         $this->assertEquals($user, $user->setNewEmailAddress('new@email'));
         $this->assertEquals('new@email', $user->getNewEmailAddress());
 
+        $this->assertEquals($user, $user->setNewEmailVerificationToken('emtoken'));
+        $this->assertEquals('emtoken', $user->getNewEmailVerificationToken());
+
         $this->assertEquals($user, $user->setEmailAddressVerified(true));
         $this->assertTrue($user->isEmailAddressVerified());
 
         $this->assertEquals($user, $user->setEmailAddressVerified(true));
         $this->assertTrue($user->isEmailAddressVerified());
+
+        $user->setPlainPassword('plain_password');
+        $user->eraseCredentials();
+        $this->assertNull($user->getPlainPassword());
     }
 
-    public function testIsPasswordRequestLimitReached(): void
+    public function test_is_password_request_limit_reached(): void
     {
         $user = new class() extends AbstractUser {
         };
@@ -100,7 +107,7 @@ class AbstractUserTest extends TestCase
         $this->assertFalse($user->isPasswordRequestLimitReached(1));
     }
 
-    public function testUserSerialization(): void
+    public function test_user_serialization(): void
     {
         $user = new class('username', 'email@address', true) extends AbstractUser {
         };
@@ -134,7 +141,7 @@ class AbstractUserTest extends TestCase
         $this->assertEquals(['ROLE_ADMIN'], $user->getRoles());
     }
 
-    public function testUnserializeObjectThrowsException(): void
+    public function test_unserialize_object_throws_exception(): void
     {
         $user = new class() extends AbstractUser {
         };
@@ -151,7 +158,7 @@ class AbstractUserTest extends TestCase
         $this->assertInstanceOf(\__PHP_Incomplete_Class::class, $user->getRoles()[0]);
     }
 
-    public function testClassToString(): void
+    public function test_class_to_string(): void
     {
         $user = new class() extends AbstractUser {
         };

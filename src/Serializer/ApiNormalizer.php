@@ -31,6 +31,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
     use ClassInfoTrait;
 
     private const ALREADY_CALLED = 'API_NORMALIZER_ALREADY_CALLED';
+    public const IS_PERSISTED_DATA_KEY = '__PERSISTED__';
 
     private EntityManagerInterface $entityManager;
     private ResourceClassResolverInterface $resourceClassResolver;
@@ -49,7 +50,7 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
 
         $data = $this->normalizer->normalize($object, $format, $context);
         if (\is_array($data)) {
-            $data['__PERSISTED__'] = $this->entityManager->contains($object);
+            $data[self::IS_PERSISTED_DATA_KEY] = $this->entityManager->contains($object);
         }
 
         return $data;
