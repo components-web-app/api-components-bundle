@@ -46,11 +46,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-php-cs-fixer-${{ github.sha }}
+          key: composer-php${{ matrix.php }}-cs-fixer-${{ github.sha }}
           restore-keys: |
-            composer-php${{ matrix.php }}-php-cs-fixer-
-            composer-php${{ matrix.php }}-
-            composer-
+            composer-php-cs-fixer${{ matrix.php }}-cs-fixer-
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
@@ -137,10 +135,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-${{ github.sha }}
+          key: composer-php${{ matrix.php }}-primary-deps-${{ github.sha }}
           restore-keys: |
-            composer-php${{ matrix.php }}-
-            composer-
+            composer-php${{ matrix.php }}-primary-deps-
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
@@ -255,10 +252,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-${{ github.sha }}
+          key: composer-php${{ matrix.php }}-primary-deps-${{ github.sha }}
           restore-keys: |
-            composer-php${{ matrix.php }}-
-            composer-
+            composer-php${{ matrix.php }}-primary-deps-
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
@@ -351,8 +347,7 @@ jobs:
           key: composer-php${{ matrix.php }}-lowest-deps-${{ github.sha }}
           restore-keys: |
             composer-php${{ matrix.php }}-lowest-deps-
-            composer-php${{ matrix.php }}-
-            composer-
+            composer-php${{ matrix.php }}-primary-deps-
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
@@ -423,8 +418,7 @@ jobs:
           key: composer-php${{ matrix.php }}-lowest-deps-${{ github.sha }}
           restore-keys: |
             composer-php${{ matrix.php }}-lowest-deps-
-            composer-php${{ matrix.php }}-
-            composer-
+            composer-php${{ matrix.php }}-primary-deps-
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
