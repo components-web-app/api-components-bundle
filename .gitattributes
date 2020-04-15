@@ -1,0 +1,12 @@
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.scrutinizer.yml export-ignore
+/.php_cs.dist export-ignore
+/docs export-ignore
+/behat.yml.dist export-ignore
+/infection.json.dist export-ignore
+/phpunit.xml.dist export-ignore
+/travis.php.ini export-ignore
+/tests export-ignore
+/features export-ignore

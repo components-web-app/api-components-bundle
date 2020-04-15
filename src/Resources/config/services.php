@@ -75,7 +75,7 @@ use Silverback\ApiComponentBundle\Serializer\AdminContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
-use Silverback\ApiComponentBundle\Validator\Constraints\NewUsernameValidator;
+use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -316,7 +316,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(Security::class)]);
 
     $services
-        ->set(NewUsernameValidator::class)
+        ->set(NewEmailAddressValidator::class)
         ->args([
             new Reference(UserRepository::class),
         ]);

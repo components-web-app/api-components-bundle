@@ -45,7 +45,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function testValidate(): void
+    public function test_validate(): void
     {
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, $this->proxy]));
         $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, 'NotAnObject']));
@@ -54,7 +54,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function testClassSameValidationSuccess(): void
+    public function test_class_same_validation_success(): void
     {
         $this->assertFalse(ClassNameValidator::isClassSame(User::class, $this->class));
         $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->class));
@@ -65,7 +65,7 @@ class ClassNameValidatorTest extends TestCase
     /**
      * @throws ReflectionException
      */
-    public function testClassSameValidationInvalidClassname(): void
+    public function test_class_same_validation_invalid_classname(): void
     {
         $this->expectException(InvalidArgumentException::class);
         ClassNameValidator::isClassSame('NotAClass', $this->class);

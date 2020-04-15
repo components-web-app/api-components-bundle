@@ -88,7 +88,7 @@ return PhpCsFixer\Config::create()
             'sort_algorithm' => 'alpha',
         ],
         'php_unit_method_casing' => [
-            'case' => 'camel_case',
+            'case' => 'snake_case',
         ],
         'php_unit_set_up_tear_down_visibility' => true,
         'php_unit_test_annotation' => [
