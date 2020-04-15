@@ -42,14 +42,18 @@ jobs:
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
         run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Cache Composer packages
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
         uses: actions/cache@v1
         with:
-          path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-cs-fixer-${{ github.sha }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-php${{ matrix.php }}-cs-fixer-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php-cs-fixer${{ matrix.php }}-cs-fixer-
-        continue-on-error: true
+            composer-php${{ matrix.php }}-cs-fixer-
+          continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -65,7 +69,6 @@ jobs:
           key: php-cs-fixer-php${{ matrix.php }}-${{ github.sha }}
           restore-keys: |
             php-cs-fixer-php${{ matrix.php }}-
-            php-cs-fixer-
         continue-on-error: true
       - name: Run PHP-CS-Fixer fix
         run: |
@@ -102,7 +105,8 @@ jobs:
             libpng-dev \
             libjpeg-turbo-dev \
             freetype-dev \
-            gnupg
+            gnupg \
+            git
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -131,14 +135,18 @@ jobs:
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
         run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Cache Composer packages
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
         uses: actions/cache@v1
         with:
-          path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-primary-deps-${{ github.sha }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php${{ matrix.php }}-primary-deps-
-        continue-on-error: true
+            composer-php${{ matrix.php }}-
+          continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -219,7 +227,8 @@ jobs:
             libxslt-dev \
             libpng-dev \
             libjpeg-turbo-dev \
-            freetype-dev
+            freetype-dev \
+            git
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -248,14 +257,18 @@ jobs:
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
         run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Cache Composer packages
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
         uses: actions/cache@v1
         with:
-          path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-primary-deps-${{ github.sha }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php${{ matrix.php }}-primary-deps-
-        continue-on-error: true
+            composer-php${{ matrix.php }}-
+          continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -328,7 +341,8 @@ jobs:
             libxslt-dev \
             libpng-dev \
             libjpeg-turbo-dev \
-            freetype-dev
+            freetype-dev \
+            git
       - name: Install exif PHP extension
         run: |
           docker-php-ext-install exif xsl
@@ -340,15 +354,18 @@ jobs:
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
         run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Cache Composer packages
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
         uses: actions/cache@v1
         with:
-          path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-lowest-deps-${{ github.sha }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php${{ matrix.php }}-lowest-deps-
-            composer-php${{ matrix.php }}-primary-deps-
-        continue-on-error: true
+            composer-lowest-deps-php${{ matrix.php }}-
+          continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -357,7 +374,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --prefer-stable --prefer-lowest --ansi
+          composer update --no-progress --no-suggest --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -399,7 +416,8 @@ jobs:
               libxslt-dev \
               libpng-dev \
               libjpeg-turbo-dev \
-              freetype-dev
+              freetype-dev \
+              git
       - name: Install exif PHP extension
         run: |
           docker-php-ext-install exif xsl
@@ -411,15 +429,18 @@ jobs:
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
         run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Cache Composer packages
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
         uses: actions/cache@v1
         with:
-          path: ~/.composer/cache
-          key: composer-php${{ matrix.php }}-lowest-deps-${{ github.sha }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php${{ matrix.php }}-lowest-deps-
-            composer-php${{ matrix.php }}-primary-deps-
-        continue-on-error: true
+            composer-lowest-deps-php${{ matrix.php }}-
+          continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -428,7 +449,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --prefer-stable --prefer-lowest --ansi
+          composer update --no-progress --no-suggest --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
