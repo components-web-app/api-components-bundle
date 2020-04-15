@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ v2, 'feature/**', 'patch/**' ]
+    branches-ignore: [ v1 ]
   pull_request:
-    branches: [ v2, 'feature/**', 'patch/**' ]
+    branches-ignore: [ v1 ]
 
 env:
   COMPOSER_ALLOW_SUPERUSER: '1' # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser

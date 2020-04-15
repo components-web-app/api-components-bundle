@@ -1,13 +1,13 @@
 # API Component Bundle v2
 
 __Overall:__ 
-[![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=v2)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
-[![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/v2)
+[![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=master)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=master)
+[![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master)
 
 __PHPUnit:__ 
-[![Code Coverage](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/coverage.png?b=v2)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=v2)
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fv2)](https://infection.github.io)
+[![Code Coverage](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=master)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fmaster)](https://infection.github.io)
 
 ---
 
