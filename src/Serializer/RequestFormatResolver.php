@@ -42,7 +42,6 @@ final class RequestFormatResolver
 
     public function getFormatFromRequest(Request $request): string
     {
-        return $request->getRequestFormat($this->defaultFormat);
-        // return $request->attributes->get('_format') ?: $request->getFormat($request->headers->get('CONTENT_TYPE')) ?: $this->defaultFormat;
+        return $request->getRequestFormat(null) ?: $request->getContentType() ?: $this->defaultFormat;
     }
 }
