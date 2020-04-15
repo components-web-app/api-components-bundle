@@ -16,7 +16,7 @@
         "ext-pdo": "*",
         "ext-simplexml": "*",
         "api-platform/api-pack": "^1.2",
-        "api-platform/core": "2.5.x-dev",
+        "api-platform/core": "dev-patch/dto-output-class-same-as-original as 2.5.x-dev",
         "cocur/slugify": "^4.0",
         "doctrine/annotations": "^1.7.0",
         "doctrine/doctrine-bundle": "^2.0.7",
