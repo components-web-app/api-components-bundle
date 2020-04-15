@@ -2,7 +2,6 @@
 /.github export-ignore
 /.gitignore export-ignore
 /.scrutinizer.yml export-ignore
-"/Api Component Bundle Work Overview.docx" export-ignore
 /.php_cs.dist export-ignore
 /docs export-ignore
 /behat.yml.dist export-ignore
