@@ -187,6 +187,15 @@ jobs:
           flags: phpunit
           fail_ci_if_error: true
         continue-on-error: true
+      - name: Upload coverage results to Codeclimate
+        if: matrix.coverage
+        uses: paambaati/codeclimate-action@v2.5.6
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: echo 'PHPUnit already run...'
+          coverageLocations: build/logs/behat/clover.xml:clover
+        continue-on-error: true
       - name: Run Infection Mutation Tests
         if: matrix.coverage
         env: # Or as an environment variable
@@ -197,7 +206,7 @@ jobs:
           gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=85 --threads=4
+          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=90 --threads=4
       - name: Upload Infection Mutation Logs
         if: matrix.coverage
         uses: actions/upload-artifact@v1
@@ -321,6 +330,15 @@ jobs:
           name: behat-php${{ matrix.php }}
           flags: behat
           fail_ci_if_error: true
+        continue-on-error: true
+      - name: Upload coverage results to Codeclimate
+        if: matrix.coverage
+        uses: paambaati/codeclimate-action@v2.5.6
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: echo 'PHPUnit already run...'
+          coverageLocations: build/logs/behat/clover.xml:clover
         continue-on-error: true
 
   phpunit-lowest-deps:
