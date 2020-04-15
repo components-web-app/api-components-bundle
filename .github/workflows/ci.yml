@@ -50,9 +50,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-php${{ matrix.php }}-cs-fixer-${{ hashFiles('**/composer.json') }}
+          key: composer-cs-fixer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            composer-php${{ matrix.php }}-cs-fixer-
+            composer-cs-fixer-php${{ matrix.php }}-
           continue-on-error: true
       - name: Install Symfony Flex
         run: |
@@ -168,7 +168,7 @@ jobs:
         run: |
           mkdir -p build/logs/phpunit
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/phpunit --coverage-clover build/logs/phpunit/clover.xml --log-junit build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml --colors=always
           else
             vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
           fi
@@ -197,7 +197,13 @@ jobs:
           gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --only-covered
+          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=85 --threads=4
+      - name: Upload Infection Mutation Logs
+        if: matrix.coverage
+        uses: actions/upload-artifact@v1
+        with:
+          name: infection-logs-php${{ matrix.php }}
+          path: infection.log
 
   behat:
     name: Behat (PHP ${{ matrix.php }})
