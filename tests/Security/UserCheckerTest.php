@@ -31,28 +31,24 @@ class UserCheckerTest extends TestCase
 
     public function test_pre_auth_does_nothing_if_object_is_not_user(): void
     {
-        $userChecker = new UserChecker(true);
+        $userChecker = new UserChecker();
         $this->assertNull($userChecker->checkPreAuth(new UnsupportedUser()));
     }
 
     public function test_user_not_enabled_throws_exception(): void
     {
-        $userChecker = new UserChecker(true);
+        $userChecker = new UserChecker();
         $user = new class() extends AbstractUser {
         };
 
-        $user->setEnabled(false);
-        $this->expectException(DisabledException::class);
-        $userChecker->checkPreAuth($user);
-
-        $user->setEnabled(true);
+        $user->setEnabled(false)->setEmailAddressVerified(true);
         $this->expectException(DisabledException::class);
         $userChecker->checkPreAuth($user);
     }
 
     public function test_user_with_unverified_email_throws_exception(): void
     {
-        $userChecker = new UserChecker(true);
+        $userChecker = new UserChecker();
         $user = new class() extends AbstractUser {
         };
 
