@@ -23,6 +23,7 @@ class ImagineSupportedFilePath
         if (!$filePath || !file_exists($filePath)) {
             return false;
         }
+
         try {
             $imageType = exif_imagetype($filePath);
         } catch (\Exception $e) {
