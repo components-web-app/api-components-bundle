@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraint;
 /**
  * @Annotation
  */
-class NewUsername extends Constraint
+class NewEmailAddress extends Constraint
 {
     public string $differentMessage = 'Your new username should be different';
     public string $uniqueMessage = 'Someone else is already registered with that email address';
