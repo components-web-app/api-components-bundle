@@ -458,8 +458,7 @@
                                     "required",
                                     "submitted",
                                     "unique_block_prefix",
-                                    "valid",
-                                    "value"
+                                    "valid"
                                 ],
                                 "properties": {
                                     "errors": {
@@ -642,9 +641,7 @@
                                         "name": []
                                     }
                                 ],
-                                "required": [
-                                    "name"
-                                ],
+                                "required": [],
                                 "properties": {
                                     "name": {
                                         "$id": "#/properties/formView/properties/children/items/properties/form/properties/name",
@@ -689,9 +686,7 @@
                             "name": []
                         }
                     ],
-                    "required": [
-                        "name"
-                    ],
+                    "required": [],
                     "properties": {
                         "name": {
                             "$id": "#/properties/formView/properties/form/properties/name",

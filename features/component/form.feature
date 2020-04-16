@@ -1,7 +1,7 @@
 Feature: Form component that defines a form type created in the application
-  In order to provide a form to the front-end appliation
+  In order to provide a form to the front-end application
   As an application / client
-  I need to be able to create the component and recieve serialized forms with validation and submission endpoints
+  I need to be able to create the component and receive serialized forms with validation and submission endpoints
 
   Background:
     Given I add "Accept" header equal to "application/ld+json"
@@ -218,6 +218,169 @@ Feature: Form component that defines a form type created in the application
             "name": ""
           }
         ]
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: I can validate a valid field that is a collection type with a simple field
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "text_children": [
+          "hello"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: I can validate a valid field that is a collection type with multiple simple field
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "text_children": [
+          "hello",
+          "another"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: I can validate an invalid field that is a collection type with a simple field
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "text_children": [
+          "1"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: Each text_children should have a minimum length of 1 - post invalid form
+    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [
+          {
+            "name": "A name"
+          }
+        ],
+        "text_children": [
+          "1"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: Children is required - post an invalid form
+    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [],
+        "text_children": [
+          "with minimum length"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: Post a valid form
+    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [
+          {
+            "name": "A name"
+          }
+        ],
+        "text_children": [
+          "with minimum length"
+        ]
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createTestRepeatedForm
+  Scenario: Validate repeated field - valid
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    """
+    {
+      "test_repeated": {
+        "repeat": {
+          "first": "something",
+          "second": "something"
+        }
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createTestRepeatedForm
+  Scenario: Validate repeated field - invalid
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    """
+    {
+      "test_repeated": {
+        "repeat": {
+          "first": "something",
+          "second": "no_same"
+        }
       }
     }
     """
