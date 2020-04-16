@@ -38,22 +38,15 @@ class ClassNameValidator
     /** @throws ReflectionException */
     public static function isClassSame(string $className, object $validClass): bool
     {
-        self::validateParameters($className, $validClass);
+        if (!class_exists($className) && !interface_exists($className)) {
+            throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
+        }
+
         if (\get_class($validClass) === $className) {
             return true;
         }
 
         return self::isClassSameLazy($className, $validClass) ?: ($validClass instanceof $className);
-    }
-
-    private static function validateParameters(string $className, $validClass): void
-    {
-        if (!class_exists($className) && !interface_exists($className)) {
-            throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
-        }
-        if (!\is_object($validClass)) {
-            throw new InvalidArgumentException(sprintf('The $validClass parameter %s is not an object', $validClass));
-        }
     }
 
     /** @throws ReflectionException */
