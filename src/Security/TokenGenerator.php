@@ -15,8 +15,8 @@ namespace Silverback\ApiComponentBundle\Security;
 
 class TokenGenerator
 {
-    public function generateToken(): string
+    public function generateToken(int $length = 16): string
     {
-        return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        return bin2hex(random_bytes($length));
     }
 }
