@@ -1,0 +1,4 @@
+ignore:
+  - "tests/"
+  - "features/"
+  - "src/Resources/config"
