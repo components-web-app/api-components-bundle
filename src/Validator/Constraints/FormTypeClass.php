@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
+use Silverback\ApiComponentBundle\Form\AbstractType;
+use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Symfony\Component\Validator\Constraint;
 
 /**
@@ -21,5 +23,20 @@ use Symfony\Component\Validator\Constraint;
  */
 class FormTypeClass extends Constraint
 {
-    public $message = 'The string "{{ string }}" does not refer to a class configured correctly as a form type.';
+    public string $message;
+
+    public function __construct($options = null)
+    {
+        $conditionsStr = vsprintf(
+            'It should extend %s, implement %s or tagged %s',
+            [
+                AbstractType::class,
+                FormTypeInterface::class,
+                'silverback_api_component.form_type',
+            ]
+        );
+        $this->message = 'The string "{{ string }}" does not refer to a class configured correctly as a form type. ' . $conditionsStr;
+
+        parent::__construct($options);
+    }
 }

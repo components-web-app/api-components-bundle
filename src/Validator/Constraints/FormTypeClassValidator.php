@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use ReflectionException;
-use Silverback\ApiComponentBundle\Form\AbstractType;
-use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -40,25 +38,24 @@ class FormTypeClassValidator extends ConstraintValidator
         if (!$value) {
             return;
         }
+        if (!\is_string($value)) {
+            throw new InvalidArgumentException(sprintf('The value passed to %s must be a string', __CLASS__));
+        }
+        if (!$constraint instanceof FormTypeClass) {
+            throw new InvalidArgumentException(sprintf('$constraint parameter must be %s', FormTypeClass::class));
+        }
+
         try {
             $valid = ClassNameValidator::validate($value, $this->formTypes);
             if (!$valid) {
-                $conditionsStr = vsprintf(
-                    ' It should extend %s, implement %s or tagged %s',
-                    [
-                        AbstractType::class,
-                        FormTypeInterface::class,
-                        'silverback_api_component.form_type',
-                    ]
-                );
                 $this->context
-                    ->buildViolation($constraint->message . $conditionsStr)
+                    ->buildViolation($constraint->message)
                     ->setParameter('{{ string }}', $value)
                     ->addViolation();
             }
         } catch (InvalidArgumentException $exception) {
             $this->context
-                ->buildViolation($constraint->message . ' ' . $exception->getMessage())
+                ->buildViolation($exception->getMessage())
                 ->setParameter('{{ string }}', $value)
                 ->addViolation();
         }
