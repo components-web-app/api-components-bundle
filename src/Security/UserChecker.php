@@ -22,7 +22,7 @@ class UserChecker implements UserCheckerInterface
 {
     private bool $denyUnverifiedLogin;
 
-    public function __construct(bool $denyUnverifiedLogin)
+    public function __construct(bool $denyUnverifiedLogin = true)
     {
         $this->denyUnverifiedLogin = $denyUnverifiedLogin;
     }
