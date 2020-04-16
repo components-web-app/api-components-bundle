@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Action\File;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\File\FileRequestHandler;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,9 +24,9 @@ class FileAction extends AbstractAction
 {
     private FileRequestHandler $fileRequestHandler;
 
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, FileRequestHandler $fileRequestHandler)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, FileRequestHandler $fileRequestHandler)
     {
-        parent::__construct($serializer, $requestFormatResolver);
+        parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->fileRequestHandler = $fileRequestHandler;
     }
 

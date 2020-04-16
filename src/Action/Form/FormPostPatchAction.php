@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Action\Form;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,9 +28,9 @@ class FormPostPatchAction extends AbstractAction
 {
     private FormSubmitHandler $formSubmitHandler;
 
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, FormSubmitHandler $formSubmitHandler)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, FormSubmitHandler $formSubmitHandler)
     {
-        parent::__construct($serializer, $requestFormatResolver);
+        parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->formSubmitHandler = $formSubmitHandler;
     }
 

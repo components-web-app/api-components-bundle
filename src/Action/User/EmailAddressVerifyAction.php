@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Action\User;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,9 +30,9 @@ class EmailAddressVerifyAction extends AbstractAction
 {
     private EmailAddressManager $emailAddressManager;
 
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, EmailAddressManager $emailAddressManager)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, EmailAddressManager $emailAddressManager)
     {
-        parent::__construct($serializer, $requestFormatResolver);
+        parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->emailAddressManager = $emailAddressManager;
     }
 
