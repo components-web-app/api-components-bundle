@@ -21,7 +21,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Util\RequestParser;
 use Silverback\ApiComponentBundle\Entity\Component\Collection;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
@@ -40,11 +40,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private ContextAwareCollectionDataProviderInterface $dataProvider;
     private IriConverterInterface $iriConverter;
     private NormalizerInterface $itemNormalizer;
-    private RequestFormatResolver $requestFormatResolver;
+    private SerializeFormatResolver $requestFormatResolver;
     private UrlHelper $urlHelper;
     private string $itemsPerPageParameterName;
 
-    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, RequestFormatResolver $requestFormatResolver, UrlHelper $urlHelper, string $itemsPerPageParameterName = 'perPage')
+    public function __construct(RequestStack $requestStack, ResourceMetadataFactoryInterface $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContextAwareCollectionDataProviderInterface $dataProvider, IriConverterInterface $iriConverter, NormalizerInterface $itemNormalizer, SerializeFormatResolver $requestFormatResolver, UrlHelper $urlHelper, string $itemsPerPageParameterName = 'perPage')
     {
         $this->requestStack = $requestStack;
         $this->resourceMetadataFactory = $resourceMetadataFactory;

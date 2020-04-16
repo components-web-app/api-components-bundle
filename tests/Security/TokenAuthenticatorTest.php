@@ -19,6 +19,7 @@ use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Entity\User\TokenUser;
 use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,13 +37,13 @@ class TokenAuthenticatorTest extends TestCase
     /**
      * @var MockObject|AbstractAction
      */
-    private MockObject $abstractActionMock;
+    private MockObject $reponseFactoryMock;
 
     protected function setUp(): void
     {
         $this->securityMock = $this->createMock(Security::class);
-        $this->abstractActionMock = $this->createMock(AbstractAction::class);
-        $this->tokenAuthenticator = new TokenAuthenticator($this->securityMock, $this->abstractActionMock, ['valid_token']);
+        $this->reponseFactoryMock = $this->createMock(ResponseFactory::class);
+        $this->tokenAuthenticator = new TokenAuthenticator($this->securityMock, $this->reponseFactoryMock, ['valid_token']);
     }
 
     public function test_does_not_support_if_already_logged_in_user(): void
@@ -136,9 +137,9 @@ class TokenAuthenticatorTest extends TestCase
         $expectedResponseData = [
             'message' => strtr($authenticationException->getMessageKey(), $authenticationException->getMessageData()),
         ];
-        $this->abstractActionMock
+        $this->reponseFactoryMock
             ->expects($this->once())
-            ->method('getResponse')
+            ->method('create')
             ->with($request, $expectedResponseData, Response::HTTP_FORBIDDEN)
             ->willReturn($response = new Response('my response'));
         $this->assertEquals($response, $this->tokenAuthenticator->onAuthenticationFailure($request, $authenticationException));
@@ -151,9 +152,9 @@ class TokenAuthenticatorTest extends TestCase
             'message' => 'Token Authentication Required',
         ];
 
-        $this->abstractActionMock
+        $this->reponseFactoryMock
             ->expects($this->once())
-            ->method('getResponse')
+            ->method('create')
             ->with($request, $expectedResponseData, Response::HTTP_UNAUTHORIZED)
             ->willReturn($response = new Response('my response'));
         $this->assertEquals($response, $this->tokenAuthenticator->start($request));

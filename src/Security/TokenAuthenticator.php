@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Security;
 
-use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\User\TokenUser;
 use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -28,13 +28,13 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
     private Security $security;
-    private AbstractAction $abstractAction;
+    private ResponseFactory $responseFactory;
     private array $tokens;
 
-    public function __construct(Security $security, AbstractAction $abstractAction, array $tokens = [])
+    public function __construct(Security $security, ResponseFactory $responseFactory, array $tokens = [])
     {
         $this->security = $security;
-        $this->abstractAction = $abstractAction;
+        $this->responseFactory = $responseFactory;
         $this->tokens = $tokens;
     }
 
@@ -88,7 +88,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
             'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
         ];
 
-        return $this->abstractAction->getResponse($request, $data, Response::HTTP_FORBIDDEN);
+        return $this->responseFactory->create($request, $data, Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -100,7 +100,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
             'message' => 'Token Authentication Required',
         ];
 
-        return $this->abstractAction->getResponse($request, $data, Response::HTTP_UNAUTHORIZED);
+        return $this->responseFactory->create($request, $data, Response::HTTP_UNAUTHORIZED);
     }
 
     public function supportsRememberMe(): bool

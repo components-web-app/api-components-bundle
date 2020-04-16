@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class RequestFormatResolver
+final class SerializeFormatResolver
 {
     private RequestStack $requestStack;
     private string $defaultFormat;

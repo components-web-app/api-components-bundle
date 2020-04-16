@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Action\Form;
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -27,7 +27,7 @@ class FormPostPatchAction extends AbstractAction
 {
     private FormSubmitHandler $formSubmitHandler;
 
-    public function __construct(SerializerInterface $serializer, RequestFormatResolver $requestFormatResolver, FormSubmitHandler $formSubmitHandler)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, FormSubmitHandler $formSubmitHandler)
     {
         parent::__construct($serializer, $requestFormatResolver);
         $this->formSubmitHandler = $formSubmitHandler;
@@ -35,10 +35,10 @@ class FormPostPatchAction extends AbstractAction
 
     public function __invoke(Request $request, Form $data)
     {
-        $decodedContent = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
+        $decodedContent = $this->serializer->decode($request->getContent(), $this->requestFormatResolver->getFormatFromRequest($request), []);
         $isPatchRequest = Request::METHOD_PATCH === $request->getMethod();
         $response = $this->formSubmitHandler->handle($decodedContent, $isPatchRequest, $data, $this->requestFormatResolver->getFormatFromRequest($request));
 
-        return $this->getResponse($request, $response->getContent(), $response->getStatusCode());
+        return $this->responseFactory->create($request, $response->getContent(), $response->getStatusCode());
     }
 }

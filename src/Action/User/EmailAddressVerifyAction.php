@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Action\User;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -29,7 +29,7 @@ class EmailAddressVerifyAction extends AbstractAction
 {
     private EmailAddressManager $emailAddressManager;
 
-    public function __construct(SerializerInterface $serializer, RequestFormatResolver $requestFormatResolver, EmailAddressManager $emailAddressManager)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, EmailAddressManager $emailAddressManager)
     {
         parent::__construct($serializer, $requestFormatResolver);
         $this->emailAddressManager = $emailAddressManager;
@@ -37,7 +37,7 @@ class EmailAddressVerifyAction extends AbstractAction
 
     public function __invoke(Request $request)
     {
-        $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
+        $data = $this->serializer->decode($request->getContent(), $this->requestFormatResolver->getFormatFromRequest($request), []);
         $requiredKeys = ['username', 'email', 'token'];
         foreach ($requiredKeys as $requiredKey) {
             if (!isset($data[$requiredKey])) {
@@ -48,9 +48,9 @@ class EmailAddressVerifyAction extends AbstractAction
         try {
             $this->emailAddressManager->verifyNewEmailAddress($data['username'], $data['email'], $data['token']);
 
-            return $this->getResponse($request);
+            return $this->responseFactory->create($request);
         } catch (NotFoundHttpException $exception) {
-            return $this->getResponse($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return $this->responseFactory->create($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
         }
     }
 }

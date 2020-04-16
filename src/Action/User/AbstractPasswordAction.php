@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Action\User;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -27,7 +27,7 @@ abstract class AbstractPasswordAction extends AbstractAction
 
     public function __construct(
         SerializerInterface $serializer,
-        RequestFormatResolver $requestFormatResolver,
+        SerializeFormatResolver $requestFormatResolver,
         PasswordManager $passwordManager
     ) {
         parent::__construct($serializer, $requestFormatResolver);

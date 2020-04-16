@@ -26,7 +26,7 @@ class PasswordUpdateAction extends AbstractPasswordAction
 {
     public function __invoke(Request $request)
     {
-        $data = $this->serializer->decode($request->getContent(), $this->getFormat($request), []);
+        $data = $this->serializer->decode($request->getContent(), $this->requestFormatResolver->getFormatFromRequest($request), []);
         $requiredKeys = ['username', 'token', 'password'];
         foreach ($requiredKeys as $requiredKey) {
             if (!isset($data[$requiredKey])) {
@@ -37,13 +37,13 @@ class PasswordUpdateAction extends AbstractPasswordAction
         try {
             $this->passwordManager->passwordReset($data['username'], $data['token'], $data['password']);
 
-            return $this->getResponse($request);
+            return $this->responseFactory->create($request);
         } catch (AuthenticationException $exception) {
             $errors = $exception->getMessageData();
 
-            return $this->getResponse($request, $errors, Response::HTTP_BAD_REQUEST);
+            return $this->responseFactory->create($request, $errors, Response::HTTP_BAD_REQUEST);
         } catch (NotFoundHttpException $exception) {
-            return $this->getResponse($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return $this->responseFactory->create($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
         }
     }
 }

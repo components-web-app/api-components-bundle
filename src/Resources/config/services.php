@@ -50,6 +50,7 @@ use Silverback\ApiComponentBundle\Factory\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\FormFactory;
 use Silverback\ApiComponentBundle\Factory\FormViewFactory;
 use Silverback\ApiComponentBundle\Factory\ImagineMetadataFactory;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\Factory\UserFactory;
 use Silverback\ApiComponentBundle\File\FileRequestHandler;
 use Silverback\ApiComponentBundle\File\FileUploader;
@@ -73,7 +74,7 @@ use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\AdminContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -157,7 +158,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ContextAwareCollectionDataProviderInterface::class),
             new Reference(IriConverterInterface::class),
             new Reference(NormalizerInterface::class),
-            new Reference(RequestFormatResolver::class),
+            new Reference(SerializeFormatResolver::class),
             new Reference(UrlHelper::class),
         ]);
 
@@ -172,7 +173,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(EmailAddressVerifyAction::class)
         ->args([
             new Reference(SerializerInterface::class),
-            new Reference(RequestFormatResolver::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(ResponseFactory::class),
             new Reference(EmailAddressManager::class),
         ]);
 
@@ -180,7 +182,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(FileAction::class)
         ->args([
             new Reference(SerializerInterface::class),
-            new Reference(RequestFormatResolver::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(ResponseFactory::class),
             new Reference(FileRequestHandler::class),
         ]);
 
@@ -257,7 +260,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(FormPostPatchAction::class)
         ->args([
             new Reference(SerializerInterface::class),
-            new Reference(RequestFormatResolver::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(ResponseFactory::class),
             new Reference(FormSubmitHandler::class),
         ])
         ->tag('controller.service_arguments');
@@ -342,7 +346,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PasswordRequestAction::class)
         ->args($passwordActionArgs = [
             new Reference(SerializerInterface::class),
-            new Reference(RequestFormatResolver::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(ResponseFactory::class),
             new Reference(PasswordManager::class),
         ]);
 
@@ -354,16 +359,23 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PathResolver::class);
 
     $services
-        ->set(RequestFormatResolver::class)
+        ->set(ResponseFactory::class)
         ->args([
-            new Reference(RequestStack::class),
-            'jsonld',
+            new Reference(SerializerInterface::class),
+            new Reference(SerializeFormatResolver::class),
         ]);
 
     $services
         ->set(RouteRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
+        ]);
+
+    $services
+        ->set(SerializeFormatResolver::class)
+        ->args([
+            new Reference(RequestStack::class),
+            'jsonld',
         ]);
 
     $services
@@ -385,6 +397,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TokenAuthenticator::class)
         ->args([
             new Reference(Security::class),
+            new Reference(ResponseFactory::class),
         ]);
 
     $services

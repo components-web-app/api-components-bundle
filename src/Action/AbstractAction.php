@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Action;
 
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
-use Silverback\ApiComponentBundle\Serializer\RequestFormatResolver;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Silverback\ApiComponentBundle\Factory\ResponseFactory;
+use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -29,38 +28,16 @@ class AbstractAction
      * @var DecoderInterface|SerializerInterface
      */
     protected SerializerInterface $serializer;
-    protected RequestFormatResolver $requestFormatResolver;
+    protected SerializeFormatResolver $requestFormatResolver;
+    protected ResponseFactory $responseFactory;
 
-    public function __construct(SerializerInterface $serializer, RequestFormatResolver $requestFormatResolver)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory)
     {
         if (!$serializer instanceof DecoderInterface) {
             throw new InvalidParameterException(sprintf('The serializer injected into %s should implement %s', __CLASS__, DecoderInterface::class));
         }
         $this->serializer = $serializer;
         $this->requestFormatResolver = $requestFormatResolver;
-    }
-
-    protected function getFormat(Request $request): string
-    {
-        return $this->requestFormatResolver->getFormatFromRequest($request);
-    }
-
-    public function getResponse(Request $request, $response = null, ?int $status = null): Response
-    {
-        $headers = [
-            'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($format = $this->getFormat($request))),
-            'Vary' => 'Accept',
-            'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'deny',
-        ];
-        if (!\is_string($response)) {
-            $response = $this->serializer->serialize($response, $format, []);
-        }
-
-        return new Response(
-            $response,
-            $status ?? Response::HTTP_OK,
-            $headers
-        );
+        $this->responseFactory = $responseFactory;
     }
 }

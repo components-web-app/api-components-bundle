@@ -27,9 +27,9 @@ class PasswordRequestAction extends AbstractPasswordAction
         try {
             $this->passwordManager->requestResetEmail($username);
         } catch (NotFoundHttpException $exception) {
-            return $this->getResponse($request, null, Response::HTTP_NOT_FOUND);
+            return $this->responseFactory->create($request, null, Response::HTTP_NOT_FOUND);
         }
 
-        return $this->getResponse($request);
+        return $this->responseFactory->create($request);
     }
 }
