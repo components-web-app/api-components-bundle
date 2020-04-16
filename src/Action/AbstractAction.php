@@ -45,7 +45,7 @@ class AbstractAction
         return $this->requestFormatResolver->getFormatFromRequest($request);
     }
 
-    protected function getResponse(Request $request, $response = null, ?int $status = null): Response
+    public function getResponse(Request $request, $response = null, ?int $status = null): Response
     {
         $headers = [
             'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($format = $this->getFormat($request))),

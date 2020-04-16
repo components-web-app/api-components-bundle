@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Security;
 
+use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\User\TokenUser;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -27,11 +28,13 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
     private Security $security;
+    private AbstractAction $abstractAction;
     private array $tokens;
 
-    public function __construct(Security $security, array $tokens = [])
+    public function __construct(Security $security, AbstractAction $abstractAction, array $tokens = [])
     {
         $this->security = $security;
+        $this->abstractAction = $abstractAction;
         $this->tokens = $tokens;
     }
 
@@ -64,7 +67,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
     {
         $apiToken = $credentials['token'];
         if (null === $apiToken || !\in_array($apiToken, $this->tokens, true)) {
-            return null;
+            throw new TokenAuthenticationException('The authentication token provided in the X-AUTH-TOKEN header is invalid');
         }
 
         return new TokenUser();
@@ -79,25 +82,25 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
     {
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): JsonResponse
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
         $data = [
             'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
         ];
 
-        return new JsonResponse($data, Response::HTTP_FORBIDDEN);
+        return $this->abstractAction->getResponse($request, $data, Response::HTTP_FORBIDDEN);
     }
 
     /**
      * Called when authentication is needed, but it's not sent.
      */
-    public function start(Request $request, AuthenticationException $authException = null): JsonResponse
+    public function start(Request $request, AuthenticationException $authException = null): Response
     {
         $data = [
             'message' => 'Token Authentication Required',
         ];
 
-        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
+        return $this->abstractAction->getResponse($request, $data, Response::HTTP_UNAUTHORIZED);
     }
 
     public function supportsRememberMe(): bool

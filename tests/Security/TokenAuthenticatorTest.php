@@ -1,0 +1,166 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Silverback\ApiComponentBundle\Tests\Security;
+
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentBundle\Action\AbstractAction;
+use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Entity\User\TokenUser;
+use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
+use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\User\UserInterface;
+
+class TokenAuthenticatorTest extends TestCase
+{
+    private TokenAuthenticator $tokenAuthenticator;
+    /**
+     * @var MockObject|Security
+     */
+    private MockObject $securityMock;
+    /**
+     * @var MockObject|AbstractAction
+     */
+    private MockObject $abstractActionMock;
+
+    protected function setUp(): void
+    {
+        $this->securityMock = $this->createMock(Security::class);
+        $this->abstractActionMock = $this->createMock(AbstractAction::class);
+        $this->tokenAuthenticator = new TokenAuthenticator($this->securityMock, $this->abstractActionMock, ['valid_token']);
+    }
+
+    public function test_does_not_support_if_already_logged_in_user(): void
+    {
+        $this->securityMock
+            ->expects($this->once())
+            ->method('getUser')
+            ->willReturn(new class() extends AbstractUser {
+            });
+
+        $request = new Request();
+        $this->assertFalse($this->tokenAuthenticator->supports($request));
+    }
+
+    public function test_does_not_support_if_no_x_auth_token_header(): void
+    {
+        $this->securityMock
+            ->expects($this->once())
+            ->method('getUser')
+            ->willReturn(null);
+
+        $request = new Request();
+        $this->assertFalse($this->tokenAuthenticator->supports($request));
+    }
+
+    public function test_supported_request(): void
+    {
+        $this->securityMock
+            ->expects($this->once())
+            ->method('getUser')
+            ->willReturn(null);
+
+        $request = new Request();
+        $request->headers->add(['X-AUTH-TOKEN' => 'any token']);
+        $this->assertTrue($this->tokenAuthenticator->supports($request));
+    }
+
+    public function test_get_credentials(): void
+    {
+        $request = new Request();
+        $request->headers->add(['X-AUTH-TOKEN' => 'abc']);
+        $expected = [
+            'token' => 'abc',
+        ];
+        $this->assertEquals($expected, $this->tokenAuthenticator->getCredentials($request));
+    }
+
+    public function test_do_not_get_user_null_token(): void
+    {
+        $credentials = [
+            'token' => null,
+        ];
+        $this->expectException(TokenAuthenticationException::class);
+        $this->tokenAuthenticator->getUser($credentials);
+    }
+
+    public function test_do_not_get_user_invalid_token(): void
+    {
+        $credentials = [
+            'token' => 'abc',
+        ];
+        $this->expectException(TokenAuthenticationException::class);
+        $this->tokenAuthenticator->getUser($credentials);
+    }
+
+    public function test_get_user_valid_token(): void
+    {
+        $credentials = [
+            'token' => 'valid_token',
+        ];
+        $this->assertInstanceOf(TokenUser::class, $this->tokenAuthenticator->getUser($credentials));
+    }
+
+    public function test_check_credentials_is_true(): void
+    {
+        $this->assertTrue($this->tokenAuthenticator->checkCredentials([], $this->createMock(UserInterface::class)));
+    }
+
+    public function test_on_authentication_success(): void
+    {
+        $request = new Request();
+        $tokenInterfaceMock = $this->createMock(TokenInterface::class);
+        $providerKey = null;
+        $this->assertNull($this->tokenAuthenticator->onAuthenticationSuccess($request, $tokenInterfaceMock, $providerKey));
+    }
+
+    public function test_on_authentication_failure(): void
+    {
+        $request = new Request();
+        $authenticationException = new TokenAuthenticationException('custom error message');
+        $expectedResponseData = [
+            'message' => strtr($authenticationException->getMessageKey(), $authenticationException->getMessageData()),
+        ];
+        $this->abstractActionMock
+            ->expects($this->once())
+            ->method('getResponse')
+            ->with($request, $expectedResponseData, Response::HTTP_FORBIDDEN)
+            ->willReturn($response = new Response('my response'));
+        $this->assertEquals($response, $this->tokenAuthenticator->onAuthenticationFailure($request, $authenticationException));
+    }
+
+    public function test_start_output(): void
+    {
+        $request = new Request();
+        $expectedResponseData = [
+            'message' => 'Token Authentication Required',
+        ];
+
+        $this->abstractActionMock
+            ->expects($this->once())
+            ->method('getResponse')
+            ->with($request, $expectedResponseData, Response::HTTP_UNAUTHORIZED)
+            ->willReturn($response = new Response('my response'));
+        $this->assertEquals($response, $this->tokenAuthenticator->start($request));
+    }
+
+    public function test_supports_remember_me(): void
+    {
+        $this->assertFalse($this->tokenAuthenticator->supportsRememberMe());
+    }
+}
