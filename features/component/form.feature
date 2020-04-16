@@ -160,4 +160,68 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-    # NESTED FORMS NEED TESTS!!!
+  @createSchema
+  @createNestedForm
+  Scenario: I can send a valid field for validation of one of the children in a CollectionType
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [
+          {},
+          {
+            "name": "John Smith"
+          }
+        ]
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: I can send null children in place of an empty object and validation will still pass only for the submitted fields
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [
+          null,
+          {
+            "name": "John Smith"
+          }
+        ]
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  @createSchema
+  @createNestedForm
+  Scenario: I can send an invalid field for validation of one of the children in a CollectionType
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    """
+    {
+      "nested": {
+        "children": [
+          {},
+          {
+            "name": ""
+          }
+        ]
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"

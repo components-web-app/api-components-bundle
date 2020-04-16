@@ -21,6 +21,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
 
 final class DoctrineContext implements Context
@@ -116,6 +117,19 @@ final class DoctrineContext implements Context
         $this->manager->persist($form);
         $this->manager->flush();
         $this->restContext->components['test_form'] = $this->iriConverter->getIriFromItem($form);
+    }
+
+    /**
+     * @BeforeScenario @createNestedForm
+     */
+    public function createNestedForm(BeforeScenarioScope $scope): void
+    {
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $form = new Form();
+        $form->formType = NestedType::class;
+        $this->manager->persist($form);
+        $this->manager->flush();
+        $this->restContext->components['nested_form'] = $this->iriConverter->getIriFromItem($form);
     }
 
     /**
