@@ -17,7 +17,6 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BehatchJsonContext;
-use Behatch\HttpCall\HttpCallResultPool;
 use Behatch\Json\Json;
 use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
@@ -28,7 +27,6 @@ class JsonContext implements Context
 
     /**
      * @BeforeScenario
-     * @param BeforeScenarioScope $scope
      */
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
@@ -40,7 +38,6 @@ class JsonContext implements Context
 
     /**
      * @BeforeScenario
-     * @param BeforeScenarioScope $scope
      */
     public function createDatabase(BeforeScenarioScope $scope): void
     {
@@ -80,14 +77,14 @@ class JsonContext implements Context
 
     private function sortArrays($obj)
     {
-        $isObject = is_object($obj);
+        $isObject = \is_object($obj);
 
         foreach ($obj as $key => $value) {
             if (null === $value || is_scalar($value)) {
                 continue;
             }
 
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 sort($value);
             }
 

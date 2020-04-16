@@ -35,8 +35,6 @@ class PageTemplate extends AbstractPage
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", inversedBy="pageTemplates")
      * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
-     *
-     * @var Layout|null
      */
     public ?Layout $layout;
 

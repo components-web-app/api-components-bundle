@@ -38,8 +38,6 @@ abstract class AbstractPageData extends AbstractPage implements PageDataInterfac
     /**
      * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate")
      * @ORM\JoinColumn(nullable=false)
-     *
-     * @var PageTemplate
      */
     public PageTemplate $pageTemplate;
 }
