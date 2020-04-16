@@ -11,14 +11,26 @@
 
 declare(strict_types=1);
 
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+
+use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\RestContext as BaseRestContext;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RestContext extends BaseRestContext
+class RestContext implements Context
 {
+    private BaseRestContext $restContext;
+    /**
+     * @BeforeScenario
+     */
+    public function gatherContexts(BeforeScenarioScope $scope): void
+    {
+        $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
+    }
+
     public array $components = [];
 
     /**

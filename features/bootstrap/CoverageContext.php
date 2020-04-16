@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use SebastianBergmann\CodeCoverage\CodeCoverage;

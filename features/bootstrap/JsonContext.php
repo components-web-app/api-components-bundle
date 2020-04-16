@@ -11,26 +11,36 @@
 
 declare(strict_types=1);
 
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+
+use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
-use Behatch\Context\JsonContext as BaseJsonContext;
+use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\HttpCall\HttpCallResultPool;
 use Behatch\Json\Json;
 use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
 
-final class JsonContext extends BaseJsonContext
+class JsonContext implements Context
 {
-    public array $components = [];
-    private RestContext $restContext;
-
-    public function __construct(HttpCallResultPool $httpCallResultPool)
-    {
-        parent::__construct($httpCallResultPool);
-    }
+    private BehatchJsonContext $jsonContext;
 
     /**
      * @BeforeScenario
+     * @param BeforeScenarioScope $scope
+     */
+    public function gatherContexts(BeforeScenarioScope $scope): void
+    {
+        $this->jsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
+    }
+
+    public array $components = [];
+    private RestContext $restContext;
+
+    /**
+     * @BeforeScenario
+     * @param BeforeScenarioScope $scope
      */
     public function createDatabase(BeforeScenarioScope $scope): void
     {
@@ -40,9 +50,9 @@ final class JsonContext extends BaseJsonContext
     /**
      * @Then /^the JSON should be deep equal to:$/
      */
-    public function theJsonShouldBeDeepEqualTo(PyStringNode $content)
+    public function theJsonShouldBeDeepEqualTo(PyStringNode $content): void
     {
-        $actual = $this->getJson();
+        $actual = $this->jsonContext->getJson();
         try {
             $expected = new Json($content);
         } catch (\Exception $e) {
@@ -52,7 +62,7 @@ final class JsonContext extends BaseJsonContext
         $actual = new Json(json_encode($this->sortArrays($actual->getContent())));
         $expected = new Json(json_encode($this->sortArrays($expected->getContent())));
 
-        $this->assertSame(
+        $this->jsonContext->assertSame(
             (string) $expected,
             (string) $actual,
             "The json is equal to:\n" . $actual->encode()
@@ -62,9 +72,9 @@ final class JsonContext extends BaseJsonContext
     /**
      * @Then /^the JSON should be a superset of:$/
      */
-    public function theJsonIsASupersetOf(PyStringNode $content)
+    public function theJsonIsASupersetOf(PyStringNode $content): void
     {
-        $actual = json_decode($this->httpCallResultPool->getResult()->getValue(), true);
+        $actual = json_decode($this->jsonContext->httpCallResultPool->getResult()->getValue(), true);
         Assert::assertArraySubset(json_decode($content->getRaw(), true), $actual);
     }
 
@@ -92,12 +102,12 @@ final class JsonContext extends BaseJsonContext
     /**
      * @Then the JSON should be valid according to the schema file :file
      */
-    public function theJsonShouldBeValidAccordingToTheSchemaFile(string $file)
+    public function theJsonShouldBeValidAccordingToTheSchemaFile(string $file): void
     {
         try {
-            $this->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
+            $this->jsonContext->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
         } catch (\Exception $exception) {
-            $actual = $this->getJson();
+            $actual = $this->jsonContext->getJson();
             throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
         }
     }
@@ -105,19 +115,19 @@ final class JsonContext extends BaseJsonContext
     /**
      * @Then the JSON should be an array with each entry valid according to the schema file :file
      */
-    public function theJsonShouldBeAnArrayWithEachEntryValidAccordingToTheSchemaFile(string $file)
+    public function theJsonShouldBeAnArrayWithEachEntryValidAccordingToTheSchemaFile(string $file): void
     {
-        $json = $this->getJson();
+        $json = $this->jsonContext->getJson();
         $schema = new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1);
         try {
             foreach ($json as $item) {
-                $this->inspector->validate(
+                $this->jsonContext->inspector->validate(
                     $item,
                     new JsonSchema($schema)
                 );
             }
         } catch (\Exception $exception) {
-            $actual = $this->getJson();
+            $actual = $this->jsonContext->getJson();
             throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
         }
     }
