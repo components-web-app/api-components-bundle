@@ -1,12 +1,21 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Security;
 
+use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Security\UserChecker;
-use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\UnsupportedUser;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Security\Core\Exception\DisabledException;
@@ -15,7 +24,6 @@ class UserCheckerTest extends TestCase
 {
     public function test_check_post_auth_does_nothing_and_returns_nothing(): void
     {
-
         $userChecker = new UserChecker();
         $user = new User();
         $this->assertNull($userChecker->checkPostAuth($user));
@@ -30,7 +38,8 @@ class UserCheckerTest extends TestCase
     public function test_user_not_enabled_throws_exception(): void
     {
         $userChecker = new UserChecker(true);
-        $user = new class extends AbstractUser{};
+        $user = new class() extends AbstractUser {
+        };
 
         $user->setEnabled(false);
         $this->expectException(DisabledException::class);
@@ -44,7 +53,8 @@ class UserCheckerTest extends TestCase
     public function test_user_with_unverified_email_throws_exception(): void
     {
         $userChecker = new UserChecker(true);
-        $user = new class extends AbstractUser{};
+        $user = new class() extends AbstractUser {
+        };
 
         $user->setEnabled(true);
         $user->setEmailAddressVerified(false);
@@ -55,7 +65,8 @@ class UserCheckerTest extends TestCase
     public function test_user_with_unverified_email_can_be_allowed_and_not_throw_exception(): void
     {
         $userChecker = new UserChecker(false);
-        $user = new class extends AbstractUser{};
+        $user = new class() extends AbstractUser {
+        };
 
         $user->setEnabled(true);
         $user->setEmailAddressVerified(false);
