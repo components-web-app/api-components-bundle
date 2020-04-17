@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
@@ -29,6 +30,7 @@ final class DoctrineContext implements Context
 {
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
+    private ?BehatchRestContext $baseRestContext;
     private JWTManager $jwtManager;
     private IriConverterInterface $iriConverter;
     private ObjectManager $manager;
@@ -51,6 +53,14 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+    }
+
+    /**
+     * @BeforeScenario
+     */
+    public function gatherContexts(BeforeScenarioScope $scope): void
+    {
+        $this->baseRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
     }
 
     /**
@@ -82,7 +92,7 @@ final class DoctrineContext implements Context
         $token = $this->jwtManager->create($user);
 
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->restContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
     }
 
     /**
@@ -91,7 +101,7 @@ final class DoctrineContext implements Context
      */
     public function logout(): void
     {
-        $this->restContext->iAddHeaderEqualTo('Authorization', '');
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', '');
     }
 
     /**

@@ -33,6 +33,8 @@ default-coverage:
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
+        - 'Behatch\Context\JsonContext'
+        - 'Behatch\Context\RestContext'
 
 default-legacy:
   suites:
