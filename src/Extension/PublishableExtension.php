@@ -62,12 +62,12 @@ final class PublishableExtension implements QueryItemExtensionInterface
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
                     $queryBuilder->expr()->isNotNull("$alias.publishedAt"),
-                    $queryBuilder->expr()->lte("$alias.publishedAt", ":currentTime"),
+                    $queryBuilder->expr()->lte("$alias.publishedAt", ':currentTime'),
                 ),
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->orX(
                         $queryBuilder->expr()->isNull("$alias.publishedAt"),
-                        $queryBuilder->expr()->gt("$alias.publishedAt", ":currentTime"),
+                        $queryBuilder->expr()->gt("$alias.publishedAt", ':currentTime'),
                     ),
                     $queryBuilder->expr()->eq("$publishedResourceAlias.id", ":id_$identifier"),
                 )
