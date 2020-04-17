@@ -39,6 +39,7 @@ use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
+use Silverback\ApiComponentBundle\Doctrine\EventSubscriber\PublishableEventSubscriber;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
@@ -48,6 +49,7 @@ use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListene
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
+use Silverback\ApiComponentBundle\Extension\PublishableExtension;
 use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
@@ -528,6 +530,17 @@ return static function (ContainerConfigurator $configurator) {
         ->set(WelcomeEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
+
+    // High priority because of queryBuilder reset
+    $services
+        ->set(PublishableExtension::class)
+        ->autowire(true)
+        ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100]);
+
+    $services
+        ->set(PublishableEventSubscriber::class)
+        ->autowire(true)
+        ->tag('doctrine.event_subscriber');
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');

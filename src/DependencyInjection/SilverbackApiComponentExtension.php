@@ -18,6 +18,7 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\Extension\PublishableExtension;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
@@ -67,6 +68,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
+
+        $definition = $container->getDefinition(PublishableExtension::class);
+        $definition->setArgument('$permission', $config['security']['publishable_permission']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);

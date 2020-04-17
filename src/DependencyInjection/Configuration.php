@@ -49,6 +49,9 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('tokens')
                             ->prototype('scalar')->end()
                         ->end()
+                        ->scalarNode('publishable_permission')
+                            ->defaultValue(sprintf('is_granted(ROLE_ADMIN)'))
+                        ->end()
                     ->end()
                 ->end()
             ->end();
