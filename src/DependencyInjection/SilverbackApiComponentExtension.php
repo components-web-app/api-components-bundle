@@ -70,7 +70,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$entityClass', $config['user']['class_name']);
 
         $definition = $container->getDefinition(PublishableExtension::class);
-        $definition->setArgument('$permission', $config['security']['publishable_permission']);
+        $definition->setArgument('$permission', $config['publishable']['permission']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);

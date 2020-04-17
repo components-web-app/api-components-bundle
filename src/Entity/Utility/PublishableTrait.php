@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -22,7 +21,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 trait PublishableTrait
 {
     /**
-     * @ORM\Column(type="date")
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $publishedAt = null;

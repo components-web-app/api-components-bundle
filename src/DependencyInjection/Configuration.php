@@ -32,11 +32,28 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
             ->end();
 
+        $this->addPublishableNode($rootNode);
         $this->addSecurityNode($rootNode);
         $this->addEnabledComponentsNode($rootNode);
         $this->addUserNode($rootNode);
 
         return $treeBuilder;
+    }
+
+    private function addPublishableNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('publishable')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('permission')
+                            ->cannotBeEmpty()
+                            ->defaultValue(sprintf('is_granted(ROLE_ADMIN)'))
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     private function addSecurityNode(ArrayNodeDefinition $rootNode): void
@@ -48,9 +65,6 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->arrayNode('tokens')
                             ->prototype('scalar')->end()
-                        ->end()
-                        ->scalarNode('publishable_permission')
-                            ->defaultValue(sprintf('is_granted(ROLE_ADMIN)'))
                         ->end()
                     ->end()
                 ->end()

@@ -84,6 +84,7 @@ use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
@@ -105,6 +106,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -123,6 +125,16 @@ return static function (ContainerConfigurator $configurator) {
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
         ]);
+
+    $services
+        ->set(PublishableContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            new Reference(PublishableContextBuilder::class . '.inner'),
+            new Reference(AuthorizationCheckerInterface::class),
+            new Reference(ClassMetadataFactoryInterface::class),
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(ApiNormalizer::class)
@@ -531,11 +543,12 @@ return static function (ContainerConfigurator $configurator) {
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
 
-    // High priority because of queryBuilder reset
+    // High priority for item because of queryBuilder reset
     $services
         ->set(PublishableExtension::class)
         ->autowire(true)
-        ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100]);
+        ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
+        ->tag('api_platform.doctrine.orm.query_extension.collection');
 
     $services
         ->set(PublishableEventSubscriber::class)
