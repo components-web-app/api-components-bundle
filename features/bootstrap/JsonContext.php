@@ -23,7 +23,7 @@ use PHPUnit\Framework\Assert;
 
 class JsonContext implements Context
 {
-    private BehatchJsonContext $jsonContext;
+    private ?BehatchJsonContext $jsonContext;
 
     /**
      * @BeforeScenario
@@ -32,9 +32,6 @@ class JsonContext implements Context
     {
         $this->jsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
     }
-
-    public array $components = [];
-    private RestContext $restContext;
 
     /**
      * @BeforeScenario

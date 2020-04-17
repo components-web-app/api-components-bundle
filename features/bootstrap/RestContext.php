@@ -23,7 +23,9 @@ use Behatch\Context\RestContext as BaseRestContext;
  */
 class RestContext implements Context
 {
-    private BaseRestContext $restContext;
+    private ?BaseRestContext $restContext;
+
+    public array $components = [];
 
     /**
      * @BeforeScenario
@@ -32,8 +34,6 @@ class RestContext implements Context
     {
         $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
     }
-
-    public array $components = [];
 
     /**
      * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)")? with body:$/i

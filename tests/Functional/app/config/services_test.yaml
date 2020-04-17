@@ -5,9 +5,3 @@ services:
 
   Silverback\ApiComponentBundle\Features\Bootstrap\:
     resource: '../../../../features/bootstrap/*'
-
-  Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext:
-    arguments:
-      $doctrine: '@doctrine'
-      $jwtManager: '@lexik_jwt_authentication.jwt_manager'
-      $iriConverter: '@api_platform.iri_converter'
