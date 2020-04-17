@@ -94,4 +94,3 @@ silverback_api_component:
     publishable:
         permission: "is_granted('ROLE_ADMIN')" # default value
 ```
-

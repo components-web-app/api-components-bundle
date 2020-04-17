@@ -58,21 +58,26 @@ final class PublishableEventSubscriber implements EventSubscriber
             ->getConfiguration()
             ->getNamingStrategy();
 
-        $metadata->mapField([
-            'fieldName' => $annotation->fieldName,
-            'type' => 'date',
-            'nullable' => true,
-        ]);
-        $metadata->mapOneToOne([
-            'fieldName' => $annotation->associationName,
-            'targetEntity' => $metadata->getName(),
-            'joinColumns' => [
-                [
-                    'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
-                    'referencedColumnName' => $namingStrategy->referenceColumnName(),
-                    'onDelete' => 'SET NULL',
+        if (!$metadata->hasField($annotation->fieldName)) {
+            $metadata->mapField([
+                'fieldName' => $annotation->fieldName,
+                'type' => 'date',
+                'nullable' => true,
+            ]);
+        }
+
+        if (!$metadata->hasAssociation($annotation->associationName)) {
+            $metadata->mapOneToOne([
+                'fieldName' => $annotation->associationName,
+                'targetEntity' => $metadata->getName(),
+                'joinColumns' => [
+                    [
+                        'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
+                        'referencedColumnName' => $namingStrategy->referenceColumnName(),
+                        'onDelete' => 'SET NULL',
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+        }
     }
 }
