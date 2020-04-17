@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
-class NewUsernameValidator extends ConstraintValidator
+class NewEmailAddressValidator extends ConstraintValidator
 {
     private UserRepository $userRepository;
 
@@ -35,17 +35,18 @@ class NewUsernameValidator extends ConstraintValidator
             throw new UnexpectedTypeException($user, AbstractUser::class);
         }
 
-        if (!$user->getUsername() || !$user->getNewEmailAddress()) {
+        if (!$user->getNewEmailAddress()) {
             return;
         }
-        if ($user->getNewEmailAddress() === $user->getUsername()) {
+
+        if ($user->getNewEmailAddress() === $user->getEmailAddress()) {
             $this->context->buildViolation($constraint->differentMessage)
                 ->addViolation();
 
             return;
         }
 
-        if ($this->userRepository->findOneBy(['username' => $user->getNewEmailAddress()])) {
+        if ($this->userRepository->findOneBy(['email_address' => $user->getNewEmailAddress()])) {
             $this->context->buildViolation($constraint->uniqueMessage)
                 ->addViolation();
 

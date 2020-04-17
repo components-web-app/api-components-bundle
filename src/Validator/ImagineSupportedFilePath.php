@@ -29,6 +29,6 @@ class ImagineSupportedFilePath
             return false;
         }
 
-        return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
+        return \in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_JPEG2000, IMAGETYPE_JP2, IMAGETYPE_PNG, IMAGETYPE_GIF], true);
     }
 }

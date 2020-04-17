@@ -29,8 +29,6 @@ class Form extends AbstractComponent
 {
     /**
      * @ORM\Column(nullable=false)
-     *
-     * @var string
      */
     public string $formType;
 
