@@ -17,6 +17,7 @@ use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -25,9 +26,11 @@ class SerializerCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
+        $loaderDefinition = new Definition(PublishableLoader::class);
+        $loaderDefinition->setPublic(false);
+        $loaderDefinition->setArguments([new Reference('annotations.reader')]);
+
         $definition = $container->getDefinition('serializer.mapping.chain_loader');
-        $definition->replaceArgument(0, array_merge($definition->getArgument(0), [
-            (new Definition(PublishableLoader::class))->setPublic(false),
-        ]));
+        $definition->replaceArgument(0, array_merge($definition->getArgument(0), [$loaderDefinition]));
     }
 }
