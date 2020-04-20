@@ -29,6 +29,7 @@ default-coverage:
   suites:
     default: &default-coverage-suite
       contexts:
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\CoverageContext'
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext'
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
