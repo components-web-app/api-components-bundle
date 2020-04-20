@@ -27,8 +27,8 @@ class PathResolver
     public function resolve($path): string
     {
         foreach ($this->roots as $root) {
-            if (0 === mb_strpos($path, $root)) {
-                return mb_substr($path, \strlen($root));
+            if (0 === strpos($path, $root)) {
+                return mb_substr($path, mb_strlen($root));
             }
         }
 
