@@ -13,6 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Exception;
 
-class InvalidParameterException extends \InvalidArgumentException
+class InvalidArgumentException extends \InvalidArgumentException
 {
 }

@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Manager\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
@@ -62,7 +62,7 @@ class PasswordManager
 
         $username = $user->getUsername();
         if (!$username) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
+            throw new InvalidArgumentException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
         $user->setNewPasswordConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
         $user->setPasswordRequestedAt(new DateTime());

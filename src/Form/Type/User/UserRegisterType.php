@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Form\Type\User;
 use DateTime;
 use DateTimeImmutable;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -33,7 +33,7 @@ class UserRegisterType extends AbstractType
     {
         $this->userClass = $userClass;
         if (!is_subclass_of($this->userClass, AbstractUser::class)) {
-            throw new InvalidParameterException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
     }
 

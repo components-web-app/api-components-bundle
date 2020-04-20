@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Validator\Constraints;
 
 use ReflectionException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 /**
  * @author Daniel West <daniel@silverback.is>

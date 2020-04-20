@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Tests\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use LogicException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
@@ -41,7 +41,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
 
     public function test_invalid_class(): void
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(InvalidArgumentException::class);
         new UserRepository($this->managerRegistry, 10, __CLASS__);
     }
 

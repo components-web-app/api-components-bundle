@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Tests\Validator\Constraints;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClass;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -71,14 +72,14 @@ class FormTypeClassValidatorTest extends TestCase
     {
         $this->initializeValidatorForNoErrors();
         $constraint = new FormTypeClass();
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->formTypeClassValidator->validate(new TestType(), $constraint);
     }
 
     public function test_exception_thrown_if_contraint_not_expected(): void
     {
         $this->initializeValidatorForNoErrors();
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->formTypeClassValidator->validate(TestType::class, new class() extends Constraint {
         });
     }

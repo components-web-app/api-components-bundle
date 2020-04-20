@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Form\Type\User;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -31,7 +31,7 @@ class NewEmailAddressType extends AbstractType
         $this->security = $security;
         $this->userClass = $userClass;
         if (!is_subclass_of($this->userClass, AbstractUser::class)) {
-            throw new InvalidParameterException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
     }
 
@@ -39,7 +39,7 @@ class NewEmailAddressType extends AbstractType
     {
         $data = $this->security->getUser();
         if (!$data instanceof AbstractUser) {
-            throw new InvalidParameterException(sprintf('The logged in user must be an instance of %s to use the form %s', AbstractUser::class, __CLASS__));
+            throw new InvalidArgumentException(sprintf('The logged in user must be an instance of %s to use the form %s', AbstractUser::class, __CLASS__));
         }
         $help = null;
         if ($data instanceof AbstractUser && $data->getNewEmailAddress()) {

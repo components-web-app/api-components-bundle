@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Action;
 
-use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Factory\ResponseFactory;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
@@ -34,7 +34,7 @@ class AbstractAction
     public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory)
     {
         if (!$serializer instanceof DecoderInterface) {
-            throw new InvalidParameterException(sprintf('The serializer injected into %s should implement %s', __CLASS__, DecoderInterface::class));
+            throw new InvalidArgumentException(sprintf('The serializer injected into %s should implement %s', __CLASS__, DecoderInterface::class));
         }
         $this->serializer = $serializer;
         $this->requestFormatResolver = $requestFormatResolver;

@@ -19,10 +19,10 @@ use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\ProxyInterface;
 use ReflectionException;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileComponent;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
-use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class ClassNameValidatorTest extends TestCase
 {

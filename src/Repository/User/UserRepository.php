@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Repository\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
@@ -31,7 +32,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     public function __construct(ManagerRegistry $registry, int $passwordRequestTimeout, string $entityClass)
     {
         if (!is_subclass_of($entityClass, AbstractUser::class)) {
-            throw new \LogicException(sprintf('The entity class used for %s must extend %s', __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(sprintf('The entity class used for %s must extend %s', __CLASS__, AbstractUser::class));
         }
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;

@@ -39,9 +39,14 @@ class LayoutRepositoryTest extends AbstractRepositoryTest
     public function test_get_default_layout(): void
     {
         $layout = new Layout();
-        $layout->default = true;
+        $layout->default = false;
         $this->entityManager->persist($layout);
+
+        $defaultLayout = new Layout();
+        $defaultLayout->default = true;
+        $this->entityManager->persist($defaultLayout);
+
         $this->entityManager->flush();
-        $this->assertInstanceOf(Layout::class, $this->repository->findDefault());
+        $this->assertEquals($defaultLayout, $this->repository->findDefault());
     }
 }

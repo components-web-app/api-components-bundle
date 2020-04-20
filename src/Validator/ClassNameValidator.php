@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Validator;
 use ProxyManager\Proxy\LazyLoadingInterface;
 use ReflectionClass;
 use ReflectionException;
-use Symfony\Component\Validator\Exception\InvalidArgumentException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 
 /**
  * @author Daniel West <daniel@silverback.is>

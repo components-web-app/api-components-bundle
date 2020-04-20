@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Mailer;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mailer\MailerInterface;
@@ -63,7 +63,7 @@ class UserMailer
         $userUsername = $this->getUserUsername($user);
         $token = $user->getNewPasswordConfirmationToken();
         if (!$token) {
-            throw new InvalidParameterException('A new password confirmation token must be set to send the `password reset` email');
+            throw new InvalidArgumentException('A new password confirmation token must be set to send the `password reset` email');
         }
         $resetUrl = $this->pathToReferrerUrl(
             $token,
@@ -111,7 +111,7 @@ class UserMailer
         $userUsername = $this->getUserUsername($user);
         try {
             $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
-        } catch (InvalidParameterException $exception) {
+        } catch (InvalidArgumentException $exception) {
             // if we have not set the email verify token this will be thrown. this is optional though.
             $verifyUrl = null;
         }
@@ -188,7 +188,7 @@ class UserMailer
     private function getUserEmail(AbstractUser $user): string
     {
         if (!($userEmail = $user->getEmailAddress())) {
-            throw new InvalidParameterException('The user must have an email address set to send them any email');
+            throw new InvalidArgumentException('The user must have an email address set to send them any email');
         }
 
         return $userEmail;
@@ -197,7 +197,7 @@ class UserMailer
     private function getUserUsername(AbstractUser $user): string
     {
         if (!($userUsername = $user->getUsername())) {
-            throw new InvalidParameterException('The user must have a username set to send them any email');
+            throw new InvalidArgumentException('The user must have a username set to send them any email');
         }
 
         return $userUsername;
@@ -207,7 +207,7 @@ class UserMailer
     {
         $token = $user->getNewEmailVerificationToken();
         if (!$token) {
-            throw new InvalidParameterException('A new email confirmation token must be set to send the `email verification` email');
+            throw new InvalidArgumentException('A new email confirmation token must be set to send the `email verification` email');
         }
 
         return $this->pathToReferrerUrl(
