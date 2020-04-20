@@ -26,7 +26,7 @@ use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DraftCompon
 final class PublishableContext implements Context
 {
     private DoctrineContext $doctrineContext;
-    private BehatchRestContext $behatchRestContext;
+    private ?BehatchRestContext $behatchRestContext;
     private ?BehatchJsonContext $behatchJsonContext;
     private ManagerRegistry $doctrine;
 
@@ -57,18 +57,46 @@ final class PublishableContext implements Context
             $object->name = "toto $i";
             $object->setPublishedAt(new \DateTime());
             $this->manager->persist($object);
-            $this->manager->flush();
             $object[$i] = $object;
         }
+        $this->manager->flush();
+
         for ($i = 0; $i < 2; ++$i) {
             $object = new DraftComponent();
             $object->name = "toto $i";
-            $object->setPublishedRessource($objects[$i]);
+            $object->setPublishedResource($objects[$i]);
             $this->manager->persist($object);
-            $this->manager->flush();
         }
+        $this->manager->flush();
 
         $this->behatchRestContext->iSendARequestTo('GET', '/draft_components');
+    }
+
+    /**
+     * @When I get a collection of published resources with draft resources available and published=true query filter
+     */
+    public function iGetACollectionOfPublishedResourcesWithDraftResourcesAvailableAndPublishedIsEqualTrueQueryFilter(): void
+    {
+        $objects = [];
+
+        for ($i = 0; $i < 5; ++$i) {
+            $object = new DraftComponent();
+            $object->name = "toto $i";
+            $object->setPublishedAt(new \DateTime());
+            $this->manager->persist($object);
+            $object[$i] = $object;
+        }
+        $this->manager->flush();
+
+        for ($i = 0; $i < 2; ++$i) {
+            $object = new DraftComponent();
+            $object->name = "toto $i";
+            $object->setPublishedResource($objects[$i]);
+            $this->manager->persist($object);
+        }
+        $this->manager->flush();
+
+        $this->behatchRestContext->iSendARequestTo('GET', '/draft_components?published=true');
     }
 
     /**
@@ -77,5 +105,13 @@ final class PublishableContext implements Context
     public function itShouldInculeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
         $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/draft.schema.json');
+    }
+
+    /**
+     * @Then it should include the published resources only
+     */
+    public function itShouldInculeThePublishedResourcesOnly(): void
+    {
+        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/published.schema.json');
     }
 }

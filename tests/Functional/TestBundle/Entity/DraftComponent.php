@@ -32,4 +32,31 @@ class DraftComponent extends AbstractComponent
      * @Assert\NotBlank
      */
     public string $name = '';
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    public \DateTime $createdAt;
+
+    public DraftComponent $publishedResource;
+
+    public function getPublishedResource(): self
+    {
+        return $this->publishedResource;
+    }
+
+    public function setPublishedResource(self $publishedResource): void
+    {
+        $this->publishedResource = $publishedResource;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
 }

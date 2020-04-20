@@ -1,4 +1,3 @@
-
 Feature: Access to unpublished/draft resources should be configurable
   In order to restrict access to draft components
   As a an application developer
@@ -12,7 +11,10 @@ Feature: Access to unpublished/draft resources should be configurable
     Then it should include the draft resources instead of the published ones
 
   @createSchema
+  @login
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
+    When I get a collection of published resources with draft resources available and published=true query filter
+    Then it should include the published resources only
 
   @createSchema
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
