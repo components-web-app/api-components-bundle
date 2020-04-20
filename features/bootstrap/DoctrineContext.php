@@ -96,6 +96,27 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @BeforeScenario
+     * @login_user
+     */
+    public function loginUser(BeforeScenarioScope $scope): void
+    {
+        $user = new User();
+        $user
+            ->setRoles(['ROLE_USER'])
+            ->setUsername('user@example.com')
+            ->setPassword('user');
+        $this->manager->persist($user);
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $token = $this->jwtManager->create($user);
+
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+    }
+
+    /**
      * @AfterScenario
      * @logout
      */
