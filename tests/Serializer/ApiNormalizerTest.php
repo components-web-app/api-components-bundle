@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Serializer;
+namespace Silverback\ApiComponentBundle\Tests\Serializer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;

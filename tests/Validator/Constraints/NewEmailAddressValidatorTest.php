@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Validator\Constraints;
+namespace Silverback\ApiComponentBundle\Tests\Validator\Constraints;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Entity\User;
+namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
@@ -103,6 +103,7 @@ class AbstractUserTest extends TestCase
 
         $dateTime->modify('-1 seconds');
         $user->setPasswordRequestedAt($dateTime);
+
         $this->assertTrue($user->isPasswordRequestLimitReached(2));
         $this->assertFalse($user->isPasswordRequestLimitReached(1));
     }

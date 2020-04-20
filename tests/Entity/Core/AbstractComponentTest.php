@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Entity\Core;
+namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\Core;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;

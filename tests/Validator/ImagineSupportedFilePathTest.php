@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Validator;
+namespace Silverback\ApiComponentBundle\Tests\Validator;
 
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Validator\ImagineSupportedFilePath;
