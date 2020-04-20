@@ -72,9 +72,9 @@ use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\AdminContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -93,7 +93,6 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -109,16 +108,6 @@ return static function (ContainerConfigurator $configurator) {
         ->defaults()
         ->autoconfigure()
         ->private();
-
-    $services
-        ->set(AdminContextBuilder::class)
-        ->decorate('api_platform.serializer.context_builder')
-        ->args([
-            new Reference(AdminContextBuilder::class . '.inner'),
-            new Reference(AuthorizationCheckerInterface::class),
-            new Reference(ClassMetadataFactoryInterface::class),
-        ])
-        ->autoconfigure(false);
 
     $services
         ->set(ApiNormalizer::class)
@@ -405,6 +394,15 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserChecker::class);
+
+    $services
+        ->set(UserContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            new Reference(UserContextBuilder::class . '.inner'),
+            new Reference(AuthorizationCheckerInterface::class),
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(UserCreateCommand::class)
