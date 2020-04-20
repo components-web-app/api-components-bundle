@@ -16,10 +16,10 @@ namespace Silverback\ApiComponentBundle\Mailer;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\MailerTransportException;
+use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -46,8 +46,8 @@ class UserMailer
         RefererUrlHelper $refererUrlHelper,
         RequestStack $requestStack,
         string $websiteName = 'Website Name',
-        string $defaultPasswordResetPath = '/password/reset/{{ email }}/{{ token }}',
-        string $defaultChangeEmailVerifyPath = '/verify-new-email/{{ email }}/{{ token }}',
+        string $defaultPasswordResetPath = '/reset-password/{{ username }}/{{ token }}',
+        string $defaultChangeEmailVerifyPath = '/verify-new-email/{{ username }}/{{ token }}',
         bool $sendUserWelcomeEmailEnabled = true,
         bool $sendUserEnabledEmailEnabled = true,
         bool $sendUserUsernameChangedEmailEnabled = true,
@@ -67,11 +67,12 @@ class UserMailer
 
     public function sendPasswordResetEmail(AbstractUser $user): void
     {
-        $userUsername = $this->getUserUsername($user);
         $token = $user->getNewPasswordConfirmationToken();
         if (!$token) {
             throw new InvalidArgumentException('A new password confirmation token must be set to send the `password reset` email');
         }
+
+        $userUsername = self::getUserUsername($user);
         $resetUrl = $this->pathToReferrerUrl(
             $token,
             $userUsername,
@@ -91,7 +92,7 @@ class UserMailer
 
     public function sendChangeEmailConfirmationEmail(AbstractUser $user): void
     {
-        $userUsername = $this->getUserUsername($user);
+        $userUsername = self::getUserUsername($user);
         $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
         $email = $this->createEmailMessage(
             'Your password reset request',
@@ -109,7 +110,7 @@ class UserMailer
         if (!$this->sendUserWelcomeEmailEnabled) {
             return;
         }
-        $userUsername = $this->getUserUsername($user);
+        $userUsername = self::getUserUsername($user);
         try {
             $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
         } catch (InvalidArgumentException $exception) {
@@ -166,36 +167,7 @@ class UserMailer
         $this->send($email);
     }
 
-    private function createEmailMessage(string $subject, string $htmlTemplate, AbstractUser $user, array $context = [], ?string $toEmail = null)
-    {
-        $defaultContext = [
-            'user' => $user,
-            'username' => $this->getUserUsername($user),
-            'website_name' => $this->websiteName,
-        ];
-        if (null === $toEmail) {
-            $toEmail = $this->getUserEmail($user);
-        }
-
-        return (new TemplatedEmail())
-            ->to(Address::fromString($toEmail))
-            ->subject($subject)
-            ->htmlTemplate('@SilverbackApiComponent/emails/' . $htmlTemplate)
-            ->context(array_merge($defaultContext, $context));
-    }
-
-    private function send(RawMessage $message, Envelope $envelope = null): void
-    {
-        try {
-            $this->mailer->send($message, $envelope);
-        } catch (TransportExceptionInterface $exception) {
-            $exception = new MailerTransportException($exception->getMessage());
-            $exception->appendDebug($exception->getDebug());
-            throw $exception;
-        }
-    }
-
-    private function getUserEmail(AbstractUser $user): string
+    private static function getUserEmail(AbstractUser $user): string
     {
         if (!($userEmail = $user->getEmailAddress())) {
             throw new InvalidArgumentException('The user must have an email address set to send them any email');
@@ -204,7 +176,7 @@ class UserMailer
         return $userEmail;
     }
 
-    private function getUserUsername(AbstractUser $user): string
+    private static function getUserUsername(AbstractUser $user): string
     {
         if (!($userUsername = $user->getUsername())) {
             throw new InvalidArgumentException('The user must have a username set to send them any email');
@@ -213,11 +185,44 @@ class UserMailer
         return $userUsername;
     }
 
+    private function createEmailMessage(string $subject, string $htmlTemplate, AbstractUser $user, array $context = [])
+    {
+        $defaultContext = [
+            'user' => $user,
+            'username' => self::getUserUsername($user),
+            'website_name' => $this->websiteName,
+        ];
+
+        try {
+            $toAddress = Address::fromString(self::getUserEmail($user));
+        } catch (\Symfony\Component\Mime\Exception\RfcComplianceException $exception) {
+            $exception = new RfcComplianceException($exception->getMessage());
+            throw $exception;
+        }
+
+        return (new TemplatedEmail())
+            ->to($toAddress)
+            ->subject($subject)
+            ->htmlTemplate('@SilverbackApiComponent/emails/' . $htmlTemplate)
+            ->context(array_merge($defaultContext, $context));
+    }
+
+    private function send(RawMessage $message): void
+    {
+        try {
+            $this->mailer->send($message);
+        } catch (TransportExceptionInterface $exception) {
+            $exception = new MailerTransportException($exception->getMessage());
+            $exception->appendDebug($exception->getDebug());
+            throw $exception;
+        }
+    }
+
     private function getEmailConfirmationUrl(AbstractUser $user, string $userUsername): string
     {
         $token = $user->getNewEmailVerificationToken();
         if (!$token) {
-            throw new InvalidArgumentException('A new email confirmation token must be set to send the `email verification` email');
+            throw new InvalidArgumentException('A new email verification token must be set to send the `email verification` email');
         }
 
         return $this->pathToReferrerUrl(
@@ -228,11 +233,11 @@ class UserMailer
         );
     }
 
-    private function pathToReferrerUrl(string $token, string $email, string $queryKey, string $defaultPath): string
+    private function pathToReferrerUrl(string $token, string $username, string $queryKey, string $defaultPath): string
     {
         $request = $this->requestStack->getMasterRequest();
         $path = $request ? $request->query->get($queryKey, $defaultPath) : $defaultPath;
-        $path = str_replace(['{{ token }}', '{{ email }}'], [$token, $email], $path);
+        $path = str_replace(['{{ token }}', '{{ username }}'], [$token, $username], $path);
 
         return $this->refererUrlHelper->getAbsoluteUrl($path);
     }
