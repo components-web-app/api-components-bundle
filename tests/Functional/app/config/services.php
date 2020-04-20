@@ -30,5 +30,9 @@ return static function (ContainerConfigurator $container) {
         ->public();
 
     $services
+        ->load('Silverback\\ApiComponentBundle\\Tests\\Functional\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
+        ->tag('doctrine.fixture.orm');
+
+    $services
         ->set(TestType::class);
 };
