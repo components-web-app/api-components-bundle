@@ -13,25 +13,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Repository\Core;
 
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Core\Layout;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
 
-class LayoutRepositoryTest extends KernelTestCase
+class LayoutRepositoryTest extends AbstractRepositoryTest
 {
-    private ?EntityManagerInterface $entityManager;
     private LayoutRepository $repository;
 
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
         $registry = $kernel->getContainer()->get('doctrine');
+
+        $this->clearSchema($registry);
+
         $this->repository = new LayoutRepository($registry);
-        $this->entityManager = $registry->getManager();
-        $purger = new ORMPurger($this->entityManager);
-        $purger->purge();
     }
 
     public function test_get_default_layout_does_not_exist(): void
@@ -46,12 +43,5 @@ class LayoutRepositoryTest extends KernelTestCase
         $this->entityManager->persist($layout);
         $this->entityManager->flush();
         $this->assertInstanceOf(Layout::class, $this->repository->findDefault());
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        $this->entityManager->close();
-        $this->entityManager = null; // avoid memory leaks
     }
 }

@@ -13,25 +13,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Repository\Core;
 
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Core\Route;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
 
-class RouteRepositoryTest extends KernelTestCase
+class RouteRepositoryTest extends AbstractRepositoryTest
 {
-    private ?EntityManagerInterface $entityManager;
     private RouteRepository $repository;
 
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
         $registry = $kernel->getContainer()->get('doctrine');
+
+        $this->clearSchema($registry);
+
         $this->repository = new RouteRepository($registry);
-        $this->entityManager = $registry->getManager();
-        $purger = new ORMPurger($this->entityManager);
-        $purger->purge();
     }
 
     public function test_get_default_layout(): void
@@ -48,13 +45,5 @@ class RouteRepositoryTest extends KernelTestCase
 
         $routeById = $this->repository->findOneByIdOrRoute($routeByRoute->getId());
         $this->assertInstanceOf(Route::class, $routeById);
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        $this->entityManager->close();
-        $this->entityManager = null; // avoid memory leaks
     }
 }

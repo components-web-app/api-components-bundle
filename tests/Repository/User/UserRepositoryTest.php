@@ -14,16 +14,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Tests\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
 
-class UserRepositoryTest extends KernelTestCase
+class UserRepositoryTest extends AbstractRepositoryTest
 {
-    private ?EntityManagerInterface $entityManager;
     private UserRepository $repository;
     /**
      * @var Registry|object|null
@@ -36,10 +33,10 @@ class UserRepositoryTest extends KernelTestCase
     {
         $kernel = self::bootKernel();
         $this->managerRegistry = $kernel->getContainer()->get('doctrine');
+
+        $this->clearSchema($this->managerRegistry);
+
         $this->repository = new UserRepository($this->managerRegistry, $this->passwordResetTimeoutSeconds, User::class);
-        $this->entityManager = $this->managerRegistry->getManager();
-        $purger = new ORMPurger($this->entityManager);
-        $purger->purge();
     }
 
     public function test_invalid_class(): void
@@ -134,12 +131,5 @@ class UserRepositoryTest extends KernelTestCase
 
         $this->assertEquals($user, $this->repository->loadUserByUsername($username));
         $this->assertEquals($user, $this->repository->loadUserByUsername($email));
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        $this->entityManager->close();
-        $this->entityManager = null; // avoid memory leaks
     }
 }
