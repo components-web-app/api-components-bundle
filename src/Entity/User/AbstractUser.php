@@ -39,7 +39,7 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
-     * @Groups({"super_admin:write", "default:read"})
+     * @Groups({"User:super_admin", "User:output"})
      */
     protected ?string $username;
 
@@ -47,19 +47,19 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"super_admin:write", "default:read"})
+     * @Groups({"User:super_admin", "User:output"})
      */
     protected ?string $emailAddress;
 
     /**
      * @ORM\Column(type="array")
-     * @Groups({"super_admin"})
+     * @Groups({"User:super_admin"})
      */
     protected array $roles;
 
     /**
      * @ORM\Column(type="boolean")
-     * @Groups({"super_admin"})
+     * @Groups({"User:super_admin"})
      */
     protected bool $enabled;
 
@@ -73,7 +73,7 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
      * @ApiProperty(readable=false)
      * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
      * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
-     * @Groups({"default:write"})
+     * @Groups({"User:input"})
      */
     protected ?string $plainPassword = null;
 
@@ -94,7 +94,7 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
     /**
      * @ApiProperty(readable=false)
      * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
-     * @Groups({"default:write"})
+     * @Groups({"User:input"})
      */
     protected ?string $oldPassword = null;
 
@@ -107,7 +107,7 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_email_address"})
-     * @Groups({"default", "new_email_address"})
+     * @Groups({"User:input", "User:output", "new_email_address"})
      */
     protected ?string $newEmailAddress = null;
 
