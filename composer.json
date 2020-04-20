@@ -38,10 +38,11 @@
     },
     "require-dev": {
         "behat/behat": "^3.6",
+        "doctrine/orm": "^2.6.3",
         "friends-of-behat/mink": "^1.8",
         "friends-of-behat/mink-browserkit-driver": "^1.4",
         "friends-of-behat/mink-extension": "^2.4",
-        "friends-of-behat/symfony-extension": "^2.0",
+        "friends-of-behat/symfony-extension": "^2.1",
         "behatch/contexts": "^3.3",
         "justinrainbow/json-schema": "^5.2",
         "phpspec/prophecy": "^1.8",
