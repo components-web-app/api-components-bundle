@@ -8,7 +8,7 @@
         "@context",
         "@id",
         "@type",
-        "createdAt",
+        "publishedAt",
         "publishedResource"
     ],
     "properties": {
@@ -42,8 +42,8 @@
                 "DraftComponent"
             ]
         },
-        "createdAt": {
-            "$id": "#/createdAt",
+        "publishedAt": {
+            "$id": "#/publishedAt",
             "type": "string",
             "title": "The Modified Schema",
             "description": "An explanation about the purpose of this instance.",

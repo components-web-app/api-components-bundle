@@ -36,9 +36,15 @@ class DraftComponent extends AbstractComponent
     /**
      * @ORM\Column(type="datetime")
      */
-    public \DateTime $createdAt;
+    public \DateTime $publishedAt;
 
     public DraftComponent $publishedResource;
+
+    public function __construct($name, $date = null)
+    {
+        $this->name = $name;
+        $this->publishedAt = $date;
+    }
 
     public function getPublishedResource(): self
     {
@@ -50,13 +56,13 @@ class DraftComponent extends AbstractComponent
         $this->publishedResource = $publishedResource;
     }
 
-    public function getCreatedAt(): \DateTime
+    public function getPublishedAt(): \DateTime
     {
-        return $this->createdAt;
+        return $this->publishedAt;
     }
 
-    public function setCreatedAt(\DateTime $createdAt): void
+    public function setPublishedAt(\DateTime $publishedAt): void
     {
-        $this->createdAt = $createdAt;
+        $this->publishedAt = $publishedAt;
     }
 }

@@ -15,9 +15,11 @@ namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DraftComponent;
 
 /**
@@ -29,11 +31,13 @@ final class PublishableContext implements Context
     private ?BehatchRestContext $behatchRestContext;
     private ?BehatchJsonContext $behatchJsonContext;
     private ManagerRegistry $doctrine;
+    private ObjectManager $manager;
 
     public function __construct(DoctrineContext $doctrineContext, ManagerRegistry $doctrine)
     {
         $this->doctrineContext = $doctrineContext;
         $this->doctrine = $doctrine;
+        $this->manager = $doctrine->getManager();
     }
 
     /**
@@ -100,9 +104,44 @@ final class PublishableContext implements Context
     }
 
     /**
+     * @When I create a resource
+     */
+    public function iCreateAResource(): void
+    {
+        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
+            ['{
+                "name": "John Doe"
+            }'], 1), );
+    }
+
+    /**
+     * @When I create a resource with an active publication date
+     */
+    public function iCreateAResourceWithAnActivePublicationDate(): void
+    {
+        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
+            ['{
+                "name": "John Doe",
+                "publishedAt": "2020-04-19 07:32:16"
+            }'], 1), );
+    }
+
+    /**
+     * @When I create a resource with a future publication date
+     */
+    public function iCreateAResourceWithAFuturePublicationDate(): void
+    {
+        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
+            ['{
+                "name": "John Doe",
+                "publishedAt": "2020-05-19 07:32:16"
+            }'], 1), );
+    }
+
+    /**
      * @Then it should include the draft resources instead of the published ones
      */
-    public function itShouldInculeTheDraftResourcesInsteadOfThePublishedOnes(): void
+    public function itShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
         $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/draft.schema.json');
     }
@@ -110,8 +149,40 @@ final class PublishableContext implements Context
     /**
      * @Then it should include the published resources only
      */
-    public function itShouldInculeThePublishedResourcesOnly(): void
+    public function itShouldIncludeThePublishedResourcesOnly(): void
     {
         $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/published.schema.json');
+    }
+
+    /**
+     * @Then it should not include the draft resources
+     */
+    public function itShouldNotIncludeTheDraftResources(): void
+    {
+        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/no_draft.schema.json');
+    }
+
+    /**
+     * @Then I should have the draft resource returned
+     */
+    public function iShouldHaveTheDraftResourceReturned(): void
+    {
+        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_draft.schema.json');
+    }
+
+    /**
+     * @Then I should have the published resource returned
+     */
+    public function iShouldHaveThePublishedResourceReturned(): void
+    {
+        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_published.schema.json');
+    }
+
+    /**
+     * @Then I should have the published resource returned and the publication date is automatically set
+     */
+    public function iShouldHaveThePublishedResourceReturnedAndThePublicationDateIsAutomaticallySet(): void
+    {
+        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_published.schema.json');
     }
 }

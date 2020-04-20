@@ -17,23 +17,41 @@ Feature: Access to unpublished/draft resources should be configurable
     Then it should include the published resources only
 
   @createSchema
+  @login_user
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
+    When I get a collection of published resources with draft resources available
+    Then it should include the published resources only
 
   @createSchema
+  @login_user
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should not include the draft resources.
+    When I get a collection of published resources with draft resources available and published=true query filter
+    Then it should not include the draft resources
 
   # POST
   @createSchema
+  @login
   Scenario: As a user with draft access, when I create a resource, I should have the draft resource returned.
+    When I create a resource
+    Then I should have the draft resource returned
 
   @createSchema
+  @login
   Scenario: As a user with draft access, when I create a resource with an active publication date, I should have the published resource returned.
+  When I create a resource with an active publication date
+  Then I should have the published resource returned
 
   @createSchema
+  @login
   Scenario: As a user with draft access, when I create a resource with a future publication date, I should have the draft resource returned.
+  When I create a resource with a future publication date
+  Then I should have the draft resource returned
 
   @createSchema
+  @login_user
   Scenario: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
+  When I create a resource
+  Then I should have the published resource returned and the publication date is automatically set
 
   # GET item
   @createSchema
