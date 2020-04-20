@@ -75,6 +75,7 @@ use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
+use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -355,6 +356,12 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(RefererUrlHelper::class)
+        ->args([
+            new Reference(RequestStack::class),
+        ]);
+
+    $services
         ->set(RouteRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
@@ -447,6 +454,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UserMailer::class)
         ->args([
             new Reference(MailerInterface::class),
+            new Reference(RefererUrlHelper::class),
             new Reference(RequestStack::class),
         ]);
 

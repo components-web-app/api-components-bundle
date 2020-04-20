@@ -15,10 +15,15 @@ namespace Silverback\ApiComponentBundle\Mailer;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentBundle\Exception\MailerTransportException;
+use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Mailer\Envelope;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\RawMessage;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -26,6 +31,7 @@ use Symfony\Component\Mime\Address;
 class UserMailer
 {
     private MailerInterface $mailer;
+    private RefererUrlHelper $refererUrlHelper;
     private RequestStack $requestStack;
     private string $websiteName;
     private string $defaultPasswordResetPath;
@@ -37,16 +43,18 @@ class UserMailer
 
     public function __construct(
         MailerInterface $mailer,
+        RefererUrlHelper $refererUrlHelper,
         RequestStack $requestStack,
-        string $websiteName,
-        string $defaultPasswordResetPath,
-        string $defaultChangeEmailVerifyPath,
+        string $websiteName = 'Website Name',
+        string $defaultPasswordResetPath = '/password/reset/{{ email }}/{{ token }}',
+        string $defaultChangeEmailVerifyPath = '/verify-new-email/{{ email }}/{{ token }}',
         bool $sendUserWelcomeEmailEnabled = true,
         bool $sendUserEnabledEmailEnabled = true,
         bool $sendUserUsernameChangedEmailEnabled = true,
-        bool $sendUserPasswordChangedEmailEnabled = true)
-    {
+        bool $sendUserPasswordChangedEmailEnabled = true
+    ) {
         $this->mailer = $mailer;
+        $this->refererUrlHelper = $refererUrlHelper;
         $this->requestStack = $requestStack;
         $this->defaultPasswordResetPath = $defaultPasswordResetPath;
         $this->defaultChangeEmailVerifyPath = $defaultChangeEmailVerifyPath;
@@ -59,7 +67,6 @@ class UserMailer
 
     public function sendPasswordResetEmail(AbstractUser $user): void
     {
-        $userEmail = $this->getUserEmail($user);
         $userUsername = $this->getUserUsername($user);
         $token = $user->getNewPasswordConfirmationToken();
         if (!$token) {
@@ -71,35 +78,30 @@ class UserMailer
             'resetPath',
             $this->defaultPasswordResetPath
         );
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_forgot_password.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
+        $email = $this->createEmailMessage(
+            'Your password reset request',
+            'user_forgot_password.html.twig',
+            $user,
+            [
                 'reset_url' => $resetUrl,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+            ]
+        );
+        $this->send($email);
     }
 
     public function sendChangeEmailConfirmationEmail(AbstractUser $user): void
     {
-        $userEmail = $this->getUserEmail($user);
         $userUsername = $this->getUserUsername($user);
         $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_verify_email.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
+        $email = $this->createEmailMessage(
+            'Your password reset request',
+            'user_verify_email.html.twig',
+            $user,
+            [
                 'verify_url' => $verifyUrl,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+            ]
+        );
+        $this->send($email);
     }
 
     public function sendUserWelcomeEmail(AbstractUser $user): void
@@ -107,25 +109,22 @@ class UserMailer
         if (!$this->sendUserWelcomeEmailEnabled) {
             return;
         }
-        $userEmail = $this->getUserEmail($user);
         $userUsername = $this->getUserUsername($user);
         try {
             $verifyUrl = $this->getEmailConfirmationUrl($user, $userUsername);
         } catch (InvalidArgumentException $exception) {
-            // if we have not set the email verify token this will be thrown. this is optional though.
+            // if we have not set the email verify token this will be thrown. this is an optional token though.
             $verifyUrl = null;
         }
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject(sprintf('Welcome to %s', $this->websiteName))
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_welcome.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
+        $email = $this->createEmailMessage(
+            sprintf('Welcome to %s', $this->websiteName),
+            'user_welcome.html.twig',
+            $user,
+            [
                 'verify_url' => $verifyUrl,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+            ]
+        );
+        $this->send($email);
     }
 
     public function sendUserEnabledEmail(AbstractUser $user): void
@@ -133,18 +132,12 @@ class UserMailer
         if (!$this->sendUserEnabledEmailEnabled) {
             return;
         }
-        $userEmail = $this->getUserEmail($user);
-        $userUsername = $this->getUserUsername($user);
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject('Your account has been enabled')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_enabled.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+        $email = $this->createEmailMessage(
+            'Your account has been enabled',
+            'user_enabled.html.twig',
+            $user
+        );
+        $this->send($email);
     }
 
     public function sendUsernameChangedEmail(AbstractUser $user): void
@@ -152,18 +145,12 @@ class UserMailer
         if (!$this->sendUserUsernameChangedEmailEnabled) {
             return;
         }
-        $userEmail = $this->getUserEmail($user);
-        $userUsername = $this->getUserUsername($user);
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject('Your username has been changed')
-            ->htmlTemplate('@SilverbackApiComponent/emails/username_changed.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+        $email = $this->createEmailMessage(
+            'Your username has been changed',
+            'username_changed.html.twig',
+            $user
+        );
+        $this->send($email);
     }
 
     public function sendPasswordChangedEmail(AbstractUser $user): void
@@ -171,18 +158,41 @@ class UserMailer
         if (!$this->sendUserPasswordChangedEmailEnabled) {
             return;
         }
-        $userEmail = $this->getUserEmail($user);
-        $userUsername = $this->getUserUsername($user);
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString($userEmail))
-            ->subject('Your password has been changed')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_password_changed.html.twig')
-            ->context([
-                'user' => $user,
-                'username' => $userUsername,
-                'website_name' => $this->websiteName,
-            ]);
-        $this->mailer->send($email);
+        $email = $this->createEmailMessage(
+            'Your password has been changed',
+            'user_password_changed.html.twig',
+            $user
+        );
+        $this->send($email);
+    }
+
+    private function createEmailMessage(string $subject, string $htmlTemplate, AbstractUser $user, array $context = [], ?string $toEmail = null)
+    {
+        $defaultContext = [
+            'user' => $user,
+            'username' => $this->getUserUsername($user),
+            'website_name' => $this->websiteName,
+        ];
+        if (null === $toEmail) {
+            $toEmail = $this->getUserEmail($user);
+        }
+
+        return (new TemplatedEmail())
+            ->to(Address::fromString($toEmail))
+            ->subject($subject)
+            ->htmlTemplate('@SilverbackApiComponent/emails/' . $htmlTemplate)
+            ->context(array_merge($defaultContext, $context));
+    }
+
+    private function send(RawMessage $message, Envelope $envelope = null): void
+    {
+        try {
+            $this->mailer->send($message, $envelope);
+        } catch (TransportExceptionInterface $exception) {
+            $exception = new MailerTransportException($exception->getMessage());
+            $exception->appendDebug($exception->getDebug());
+            throw $exception;
+        }
     }
 
     private function getUserEmail(AbstractUser $user): string
@@ -222,14 +232,8 @@ class UserMailer
     {
         $request = $this->requestStack->getMasterRequest();
         $path = $request ? $request->query->get($queryKey, $defaultPath) : $defaultPath;
-        $urlParts = $request ? parse_url($request->headers->get('referer')) : ['scheme' => 'https', 'host' => 'no-referrer'];
         $path = str_replace(['{{ token }}', '{{ email }}'], [$token, $email], $path);
 
-        return sprintf(
-            '%s://%s/%s',
-            $urlParts['scheme'],
-            $urlParts['host'],
-            ltrim($path, '/')
-        );
+        return $this->refererUrlHelper->getAbsoluteUrl($path);
     }
 }
