@@ -20,7 +20,7 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
@@ -31,7 +31,7 @@ final class DoctrineContext implements Context
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
     private ?BehatchRestContext $baseRestContext;
-    private JWTManager $jwtManager;
+    private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
@@ -45,7 +45,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTManager $jwtManager, IriConverterInterface $iriConverter)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;

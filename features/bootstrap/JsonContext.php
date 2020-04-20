@@ -25,6 +25,8 @@ class JsonContext implements Context
 {
     private ?BehatchJsonContext $jsonContext;
 
+    private ?RestContext $restContext;
+
     /**
      * @BeforeScenario
      */
