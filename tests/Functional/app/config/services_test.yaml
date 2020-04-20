@@ -1,0 +1,7 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Silverback\ApiComponentBundle\Features\Bootstrap\:
+    resource: '../../../../features/bootstrap/*'

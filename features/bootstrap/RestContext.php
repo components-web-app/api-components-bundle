@@ -11,15 +11,29 @@
 
 declare(strict_types=1);
 
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+
+use Behat\Behat\Context\Context;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\RestContext as BaseRestContext;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RestContext extends BaseRestContext
+class RestContext implements Context
 {
+    private ?BaseRestContext $restContext;
+
     public array $components = [];
+
+    /**
+     * @BeforeScenario
+     */
+    public function gatherContexts(BeforeScenarioScope $scope): void
+    {
+        $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
+    }
 
     /**
      * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)")? with body:$/i
@@ -31,6 +45,6 @@ class RestContext extends BaseRestContext
         }
         $endpoint = $this->components[$component] . ($postfix ?: '');
 
-        return $this->iSendARequestToWithBody($method, $endpoint, $body);
+        return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body);
     }
 }
