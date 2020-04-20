@@ -11,13 +11,16 @@
 
 declare(strict_types=1);
 
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
@@ -27,7 +30,8 @@ final class DoctrineContext implements Context
 {
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
-    private JWTManager $jwtManager;
+    private ?BehatchRestContext $baseRestContext;
+    private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
@@ -41,7 +45,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTManager $jwtManager, IriConverterInterface $iriConverter)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -49,6 +53,14 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+    }
+
+    /**
+     * @BeforeScenario
+     */
+    public function gatherContexts(BeforeScenarioScope $scope): void
+    {
+        $this->baseRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
     }
 
     /**
@@ -80,7 +92,7 @@ final class DoctrineContext implements Context
         $token = $this->jwtManager->create($user);
 
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->restContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
     }
 
     /**
@@ -89,7 +101,7 @@ final class DoctrineContext implements Context
      */
     public function logout(): void
     {
-        $this->restContext->iAddHeaderEqualTo('Authorization', '');
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', '');
     }
 
     /**
