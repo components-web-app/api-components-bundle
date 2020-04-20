@@ -2,40 +2,39 @@ default:
   suites:
     default:
       contexts:
-        - 'DoctrineContext':
-            doctrine: '@doctrine'
-            jwtManager: '@lexik_jwt_authentication.jwt_manager'
-            iriConverter: '@api_platform.iri_converter'
-        - 'JsonContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'RestContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
+        - 'Behatch\Context\JsonContext'
+        - 'Behatch\Context\RestContext'
+
   extensions:
-    'Behat\Symfony2Extension':
+    'FriendsOfBehat\SymfonyExtension':
+      bootstrap: 'tests/Functional/app/bootstrap.php'
       kernel:
-        env: 'test'
-        debug: 'true'
+        class: 'AppKernel'
         path: 'tests/Functional/app/AppKernel.php'
-        bootstrap: 'tests/Functional/app/bootstrap.php'
+        environment: 'test'
+        debug: false
     'Behat\MinkExtension':
       base_url: 'http://example.com/'
       files_path: 'features/files'
       sessions:
-        default:
-          symfony2: ~
+        symfony:
+          symfony: ~
     'Behatch\Extension': ~
 
 default-coverage:
   suites:
     default: &default-coverage-suite
       contexts:
-        - 'CoverageContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine'
-            jwtManager: '@lexik_jwt_authentication.jwt_manager'
-            iriConverter: '@api_platform.iri_converter'
-        - 'JsonContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'RestContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
+        - 'Behatch\Context\JsonContext'
+        - 'Behatch\Context\RestContext'
 
 default-legacy:
   suites:
