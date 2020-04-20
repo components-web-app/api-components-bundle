@@ -29,6 +29,9 @@ use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class FileUploader
 {
     private EntityManagerInterface $em;

@@ -21,6 +21,9 @@ use Silverback\ApiComponentBundle\Event\CommandLogEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\CacheClearer\CacheClearerInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class FormCachePurger implements CacheClearerInterface
 {
     private EntityManagerInterface $em;

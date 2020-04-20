@@ -20,6 +20,8 @@ use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
+ * @author Daniel West <daniel@silverback.is>
+ *
  * @method AbstractUser|null find($id, $lockMode = null, $lockVersion = null)
  * @method AbstractUser|null findOneBy(array $criteria, array $orderBy = null)
  * @method AbstractUser[]    findAll()

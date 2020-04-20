@@ -24,6 +24,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class ChangePasswordType extends AbstractType
 {
     private Security $security;

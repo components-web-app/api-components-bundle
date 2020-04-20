@@ -25,6 +25,9 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class UserRegisterType extends AbstractType
 {
     private string $userClass;

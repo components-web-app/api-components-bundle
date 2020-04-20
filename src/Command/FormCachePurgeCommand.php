@@ -21,6 +21,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class FormCachePurgeCommand extends Command
 {
     private FormCachePurger $formCachePurger;

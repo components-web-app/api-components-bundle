@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Imagine;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class PathResolver
 {
     /** @var array */

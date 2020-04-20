@@ -24,6 +24,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class PasswordManager
 {
     private UserMailer $userMailer;

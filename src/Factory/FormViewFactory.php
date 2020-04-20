@@ -16,6 +16,9 @@ namespace Silverback\ApiComponentBundle\Factory;
 use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class FormViewFactory
 {
     private FormFactory $formFactory;

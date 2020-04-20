@@ -19,6 +19,9 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class NewEmailAddressValidator extends ConstraintValidator
 {
     private UserRepository $userRepository;

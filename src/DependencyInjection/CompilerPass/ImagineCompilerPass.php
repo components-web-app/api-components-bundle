@@ -19,6 +19,9 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class ImagineCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void

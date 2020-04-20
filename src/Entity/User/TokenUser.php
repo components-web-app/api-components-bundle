@@ -15,6 +15,9 @@ namespace Silverback\ApiComponentBundle\Entity\User;
 
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class TokenUser implements SymfonyUserInterface
 {
     public function getRoles(): array

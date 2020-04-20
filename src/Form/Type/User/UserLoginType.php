@@ -23,6 +23,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Routing\RouterInterface;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class UserLoginType extends AbstractType
 {
     private RouterInterface $router;

@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Security;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class TokenGenerator
 {
     public function generateToken(int $length = 16): string

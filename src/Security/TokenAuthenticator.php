@@ -25,6 +25,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
     private Security $security;

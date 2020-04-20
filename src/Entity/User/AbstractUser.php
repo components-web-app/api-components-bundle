@@ -27,6 +27,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * @author Daniel West <daniel@silverback.is>
  * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
