@@ -30,6 +30,7 @@ final class PublishableContext implements Context
     private DoctrineContext $doctrineContext;
     private ?BehatchRestContext $behatchRestContext;
     private ?BehatchJsonContext $behatchJsonContext;
+    private ?JsonContext $jsonContext;
     private ManagerRegistry $doctrine;
     private ObjectManager $manager;
 
@@ -143,7 +144,7 @@ final class PublishableContext implements Context
      */
     public function itShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/draft.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('draft.schema.json');
     }
 
     /**
@@ -151,7 +152,7 @@ final class PublishableContext implements Context
      */
     public function itShouldIncludeThePublishedResourcesOnly(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/published.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('/published.schema.json');
     }
 
     /**
@@ -159,7 +160,7 @@ final class PublishableContext implements Context
      */
     public function itShouldNotIncludeTheDraftResources(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/no_draft.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('no_draft.schema.json');
     }
 
     /**
@@ -167,7 +168,7 @@ final class PublishableContext implements Context
      */
     public function iShouldHaveTheDraftResourceReturned(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_draft.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('single_draft.schema.json');
     }
 
     /**
@@ -175,7 +176,7 @@ final class PublishableContext implements Context
      */
     public function iShouldHaveThePublishedResourceReturned(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_published.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('single_published.schema.json');
     }
 
     /**
@@ -183,6 +184,6 @@ final class PublishableContext implements Context
      */
     public function iShouldHaveThePublishedResourceReturnedAndThePublicationDateIsAutomaticallySet(): void
     {
-        $this->behatchJsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../schema/single_published.schema.json');
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated('single_dateCreated_published.schema.json');
     }
 }

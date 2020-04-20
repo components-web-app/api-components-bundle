@@ -123,6 +123,14 @@ class JsonContext implements Context
         }
     }
 
+    public function theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated(string $file): void
+    {
+        $this->theJsonShouldBeValidAccordingToTheSchemaFile($file);
+        if (null === $this->getJson()->publishedAt) {
+            throw new \Exception('The date is not created');
+        }
+    }
+
     private function getJson()
     {
         return new Json($this->getContent());
