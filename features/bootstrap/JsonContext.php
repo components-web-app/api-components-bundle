@@ -18,14 +18,19 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Json\Json;
+use Behatch\Json\JsonInspector;
 use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
 
 class JsonContext implements Context
 {
+    private JsonInspector $inspector;
     private ?BehatchJsonContext $jsonContext;
 
-    private ?RestContext $restContext;
+    public function __construct()
+    {
+        $this->inspector = new JsonInspector('javascript');
+    }
 
     /**
      * @BeforeScenario
@@ -36,19 +41,11 @@ class JsonContext implements Context
     }
 
     /**
-     * @BeforeScenario
-     */
-    public function createDatabase(BeforeScenarioScope $scope): void
-    {
-        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-    }
-
-    /**
      * @Then /^the JSON should be deep equal to:$/
      */
     public function theJsonShouldBeDeepEqualTo(PyStringNode $content): void
     {
-        $actual = $this->jsonContext->getJson();
+        $actual = $this->getJson();
         try {
             $expected = new Json($content);
         } catch (\Exception $e) {
@@ -59,8 +56,8 @@ class JsonContext implements Context
         $expected = new Json(json_encode($this->sortArrays($expected->getContent())));
 
         $this->jsonContext->assertSame(
-            (string) $expected,
-            (string) $actual,
+            $expected->getContent(),
+            $actual->getContent(),
             "The json is equal to:\n" . $actual->encode()
         );
     }
@@ -70,7 +67,7 @@ class JsonContext implements Context
      */
     public function theJsonIsASupersetOf(PyStringNode $content): void
     {
-        $actual = json_decode($this->jsonContext->httpCallResultPool->getResult()->getValue(), true);
+        $actual = json_decode($this->getContent(), true);
         Assert::assertArraySubset(json_decode($content->getRaw(), true), $actual);
     }
 
@@ -103,8 +100,7 @@ class JsonContext implements Context
         try {
             $this->jsonContext->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
         } catch (\Exception $exception) {
-            $actual = $this->jsonContext->getJson();
-            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
+            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $this->getJson()->encode());
         }
     }
 
@@ -113,27 +109,27 @@ class JsonContext implements Context
      */
     public function theJsonShouldBeAnArrayWithEachEntryValidAccordingToTheSchemaFile(string $file): void
     {
-        $json = $this->jsonContext->getJson();
+        $json = $this->getJson();
         $schema = new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1);
         try {
             foreach ($json as $item) {
-                $this->jsonContext->inspector->validate(
+                $this->inspector->validate(
                     $item,
                     new JsonSchema($schema)
                 );
             }
         } catch (\Exception $exception) {
-            $actual = $this->jsonContext->getJson();
-            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $actual->encode());
+            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $this->getJson()->encode());
         }
     }
 
-//    /**
-//     * @Then I save the response IRI as :name
-//     */
-//    public function iSaveTheResponseIriAs($name)
-//    {
-//        $json = $this->getJson();
-//        $this->restContext->components[$name] = $json->getContent()->{'@id'};
-//    }
+    private function getJson()
+    {
+        return new Json($this->getContent());
+    }
+
+    private function getContent(): string
+    {
+        return $this->jsonContext->getSession()->getPage()->getContent();
+    }
 }
