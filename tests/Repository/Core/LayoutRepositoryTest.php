@@ -13,45 +13,45 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Repository\Core;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Liip\TestFixturesBundle\Test\FixturesTrait;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Core\Layout;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\DataFixtures\LayoutFixtures;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class LayoutRepositoryTest extends KernelTestCase
 {
-    use FixturesTrait;
-
-    private ?Registry $entityManager;
+    private ?EntityManagerInterface $entityManager;
+    private LayoutRepository $repository;
 
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
-        $this->entityManager = $kernel->getContainer()->get('doctrine');
-        $this->loadFixtures([]);
+        $registry = $kernel->getContainer()->get('doctrine');
+        $this->repository = new LayoutRepository($registry);
+        $this->entityManager = $registry->getManager();
+        $purger = new ORMPurger($this->entityManager);
+        $purger->purge();
     }
 
     public function test_get_default_layout_does_not_exist(): void
     {
-        $repository = new LayoutRepository($this->entityManager);
-        $this->assertNull($repository->findDefault());
+        $this->assertNull($this->repository->findDefault());
     }
 
     public function test_get_default_layout(): void
     {
-        $repository = new LayoutRepository($this->entityManager);
-        $this->loadFixtures([
-            LayoutFixtures::class,
-        ]);
-        $this->assertInstanceOf(Layout::class, $repository->findDefault());
+        $layout = new Layout();
+        $layout->default = true;
+        $this->entityManager->persist($layout);
+        $this->entityManager->flush();
+        $this->assertInstanceOf(Layout::class, $this->repository->findDefault());
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->entityManager->getManager()->close();
+        $this->entityManager->close();
         $this->entityManager = null; // avoid memory leaks
     }
 }

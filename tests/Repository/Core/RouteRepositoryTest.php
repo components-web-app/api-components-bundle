@@ -13,37 +13,40 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Repository\Core;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Liip\TestFixturesBundle\Test\FixturesTrait;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Core\Route;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\DataFixtures\RouteFixtures;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class RouteRepositoryTest extends KernelTestCase
 {
-    use FixturesTrait;
-
-    private ?Registry $entityManager;
+    private ?EntityManagerInterface $entityManager;
+    private RouteRepository $repository;
 
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
-        $this->entityManager = $kernel->getContainer()->get('doctrine');
-        $this->loadFixtures([
-            RouteFixtures::class,
-        ]);
+        $registry = $kernel->getContainer()->get('doctrine');
+        $this->repository = new RouteRepository($registry);
+        $this->entityManager = $registry->getManager();
+        $purger = new ORMPurger($this->entityManager);
+        $purger->purge();
     }
 
     public function test_get_default_layout(): void
     {
-        $repository = new RouteRepository($this->entityManager);
+        $route = new Route();
+        $route->route = '/path';
+        $route->name = 'new_route';
+        $this->entityManager->persist($route);
+        $this->entityManager->flush();
 
-        $this->assertNull($repository->findOneByIdOrRoute('/does_not_exist'));
-        $routeByRoute = $repository->findOneByIdOrRoute('/path');
+        $this->assertNull($this->repository->findOneByIdOrRoute('/does_not_exist'));
+        $routeByRoute = $this->repository->findOneByIdOrRoute('/path');
         $this->assertInstanceOf(Route::class, $routeByRoute);
 
-        $routeById = $repository->findOneByIdOrRoute($routeByRoute->getId());
+        $routeById = $this->repository->findOneByIdOrRoute($routeByRoute->getId());
         $this->assertInstanceOf(Route::class, $routeById);
     }
 
@@ -51,7 +54,7 @@ class RouteRepositoryTest extends KernelTestCase
     {
         parent::tearDown();
 
-        $this->entityManager->getManager()->close();
+        $this->entityManager->close();
         $this->entityManager = null; // avoid memory leaks
     }
 }

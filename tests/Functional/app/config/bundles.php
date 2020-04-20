@@ -29,5 +29,4 @@ return [
     Silverback\ApiComponentBundle\SilverbackApiComponentBundle::class => ['all' => true],
     Nelmio\CorsBundle\NelmioCorsBundle::class => ['all' => true],
     FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle::class => ['test' => true],
-    Liip\TestFixturesBundle\LiipTestFixturesBundle::class => ['test' => true],
 ];

@@ -46,7 +46,6 @@
         "friends-of-behat/mink-extension": "^2.4",
         "friends-of-behat/symfony-extension": "^2.1",
         "justinrainbow/json-schema": "^5.2",
-        "liip/test-fixtures-bundle": "^1.7.0",
         "phpspec/prophecy": "^1.8",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^0.12.4",

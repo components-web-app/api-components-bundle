@@ -30,6 +30,9 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
 
     public function __construct(ManagerRegistry $registry, int $passwordRequestTimeout, string $entityClass)
     {
+        if (!is_subclass_of($entityClass, AbstractUser::class)) {
+            throw new \LogicException(sprintf('The entity class used for %s must extend %s', __CLASS__, AbstractUser::class));
+        }
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;
     }
@@ -37,7 +40,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     public function findOneByEmail($value): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.email = :val')
+            ->andWhere('u.emailAddress = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult();
@@ -50,8 +53,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
 
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
-            ->andWhere('u.passwordResetConfirmationToken = :token')
-            ->andWhere('u.passwordResetConfirmationToken NOT NULL')
+            ->andWhere('u.newPasswordConfirmationToken = :token')
+            ->andWhere('u.newPasswordConfirmationToken IS NOT NULL')
             ->andWhere('u.passwordRequestedAt > :passwordRequestedAt')
             ->setParameter('username', $username)
             ->setParameter('token', $token)
@@ -64,9 +67,9 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
-            ->andWhere('u.newEmail = :email')
+            ->andWhere('u.newEmailAddress = :email')
             ->andWhere('u.newEmailVerificationToken = :token')
-            ->andWhere('u.newEmailVerificationToken NOT NULL')
+            ->andWhere('u.newEmailVerificationToken IS NOT NULL')
             ->setParameter('username', $username)
             ->setParameter('email', $email)
             ->setParameter('token', $token)
