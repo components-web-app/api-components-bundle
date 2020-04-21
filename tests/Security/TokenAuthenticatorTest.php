@@ -19,7 +19,7 @@ use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Entity\User\TokenUser;
 use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
-use Silverback\ApiComponentBundle\Factory\ResponseFactory;
+use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

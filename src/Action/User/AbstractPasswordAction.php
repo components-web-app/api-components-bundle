@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Action\User;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
-use Silverback\ApiComponentBundle\Factory\ResponseFactory;
+use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\SerializerInterface;

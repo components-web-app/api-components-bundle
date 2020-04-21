@@ -26,6 +26,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
+use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Action\File\FileAction;
 use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
@@ -46,12 +47,19 @@ use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentBundle\Factory\FileDataFactory;
-use Silverback\ApiComponentBundle\Factory\FormFactory;
-use Silverback\ApiComponentBundle\Factory\FormViewFactory;
-use Silverback\ApiComponentBundle\Factory\ImagineMetadataFactory;
-use Silverback\ApiComponentBundle\Factory\ResponseFactory;
-use Silverback\ApiComponentBundle\Factory\UserFactory;
+use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
+use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
+use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
+use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentBundle\File\FileRequestHandler;
 use Silverback\ApiComponentBundle\File\FileUploader;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
@@ -111,6 +119,14 @@ return static function (ContainerConfigurator $configurator) {
         ->private();
 
     $services
+        ->set(AbstractUserEmailFactory::class)
+        ->abstract()
+        ->args([
+            '$container' => new Reference(ContainerInterface::class),
+        ])
+        ->tag('container.service_subscriber');
+
+    $services
         ->set(ApiNormalizer::class)
         ->tag('serializer.normalizer', ['priority' => -810])
         ->args([
@@ -133,6 +149,10 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(AutoRoutePrefixMetadataFactory::class . '.inner'),
         ]);
+
+    $services
+        ->set(ChangeEmailVerificationEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(ChangePasswordType::class)
@@ -323,6 +343,10 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(PasswordChangedEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
+
+    $services
         ->set(PasswordManager::class)
         ->args([
             new Reference(UserMailer::class),
@@ -331,6 +355,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(TokenGenerator::class),
             new Reference(UserRepository::class),
         ]);
+
+    $services
+        ->set(PasswordResetEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(PasswordRequestAction::class)
@@ -419,6 +447,10 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(UserEnabledEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
+
+    $services
         ->set(UserFactory::class)
         ->args([
             new Reference(EntityManagerInterface::class),
@@ -454,9 +486,13 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UserMailer::class)
         ->args([
             new Reference(MailerInterface::class),
-            new Reference(RefererUrlHelper::class),
-            new Reference(RequestStack::class),
-        ]);
+            new Reference(ContainerInterface::class),
+        ])
+        ->tag('container.service_subscriber');
+
+    $services
+        ->set(UsernameChangedEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(UserRegisterListener::class)
@@ -471,6 +507,10 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(ManagerRegistry::class),
         ]);
+
+    $services
+        ->set(WelcomeEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class);
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');

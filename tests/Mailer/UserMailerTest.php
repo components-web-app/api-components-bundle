@@ -50,9 +50,9 @@ class UserMailerTest extends TestCase
         $this->requestStackMock = $this->createMock(RequestStack::class);
     }
 
-    private function getUserMailer($_ = null): UserMailer
+    private function getUserMailer(array $context = []): UserMailer
     {
-        return new UserMailer($this->mailerMock, $this->refererUrlHelperMock, $this->requestStackMock, ...\func_get_args());
+        return new UserMailer($this->mailerMock, $this->refererUrlHelperMock, $this->requestStackMock, $context);
     }
 
     public function test_error_if_no_token_for_password_reset_email(): void
@@ -135,18 +135,16 @@ class UserMailerTest extends TestCase
                 'website_name' => 'Website Name',
             ]);
 
-        $expectedCatchException = new TransportException();
-        $expectedCatchException->appendDebug('some debug info');
+        $expectedCatchException = new TransportException('exception message');
         $this->mailerMock
             ->expects($this->once())
             ->method('send')
             ->with($email)
             ->willThrowException($expectedCatchException);
 
-        $this->expectException(MailerTransportException::class);
-        $expectedExceptionThrown = new MailerTransportException();
-        $expectedExceptionThrown->appendDebug($expectedCatchException->getDebug());
+        $expectedExceptionThrown = new MailerTransportException('exception message');
         $this->expectExceptionObject($expectedExceptionThrown);
+
         $userMailer->sendPasswordResetEmail($user);
     }
 
@@ -181,7 +179,7 @@ class UserMailerTest extends TestCase
 
     public function test_valid_password_reset_email_with_custom_website_name_and_reset_path(): void
     {
-        $userMailer = $this->getUserMailer('My Website', '/custom-reset-path');
+        $userMailer = $this->getUserMailer(['website_name' => 'My Website', 'paths' => ['/custom-reset-path']);
         $user = new class() extends AbstractUser {
         };
         $user->setNewPasswordConfirmationToken('password_token');
@@ -256,6 +254,12 @@ class UserMailerTest extends TestCase
             ->with($email);
 
         $userMailer->sendChangeEmailConfirmationEmail($user);
+    }
+
+    public function test_send_user_welcome_email_disabled(): void
+    {
+        $userMailer = $this->getUserMailer('Website', '/pw-path', '/verify-new-email/{{ username }}/{{ token }}', false);
+
     }
 
     private function pathToRefererUrlMethodNotCalled(): void

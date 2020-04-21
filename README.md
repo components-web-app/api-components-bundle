@@ -3,7 +3,7 @@
 __Overall:__ 
 [![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=master)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master) <!-- [![Test Coverage](https://api.codeclimate.com/v1/badges/999310aca84ea8947ea9/test_coverage)](https://codeclimate.com/github/silverbackis/ApiComponentBundle/test_coverage) --> 
-[![Maintainability](https://api.codeclimate.com/v1/badges/999310aca84ea8947ea9/maintainability)](https://codeclimate.com/github/silverbackis/ApiComponentBundle/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/34e3843d9f9ec9777b0e/maintainability)](https://codeclimate.com/github/silverbackis/ApiComponentBundle/maintainability)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=master)
 
 __PHPUnit:__ 

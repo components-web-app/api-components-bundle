@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
-use Silverback\ApiComponentBundle\Factory\FileDataFactory;
+use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>

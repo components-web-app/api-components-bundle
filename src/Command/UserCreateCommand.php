@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Command;
 
 use Exception;
-use Silverback\ApiComponentBundle\Factory\UserFactory;
+use Silverback\ApiComponentBundle\Factory\User\UserFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

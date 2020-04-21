@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\DataTransformer;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Factory\FormViewFactory;
+use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>
