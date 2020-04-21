@@ -20,7 +20,7 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
+final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 {
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
@@ -40,9 +40,9 @@ class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
         return $this->createEmailMessage($context);
     }
 
-    protected static function getRequiredContextKeys(): ?array
+    protected static function getContextKeys(): ?array
     {
-        return array_merge(parent::getRequiredContextKeys(), [
+        return array_merge(parent::getContextKeys(), [
             'redirect_url',
         ]);
     }

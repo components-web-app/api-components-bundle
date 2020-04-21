@@ -36,6 +36,7 @@ use Twig\Loader\LoaderInterface;
 
 class AbstractUserEmailFactoryTest extends TestCase
 {
+    private const VALID_CONTEXT = ['website_name' => 'my website', 'test_key' => 'any value'];
     /**
      * @var MockObject|ContainerInterface
      */
@@ -89,7 +90,7 @@ class AbstractUserEmailFactoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The user must have a username set to send them any email');
 
-        $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $userEmailFactory->create($user, self::VALID_CONTEXT);
     }
 
     public function test_exception_thrown_if_user_has_no_email_address(): void
@@ -102,7 +103,7 @@ class AbstractUserEmailFactoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The user must have an email address set to send them any email');
 
-        $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $userEmailFactory->create($user, self::VALID_CONTEXT);
     }
 
     public function test_exception_thrown_if_email_not_rfc_compliant(): void
@@ -115,7 +116,7 @@ class AbstractUserEmailFactoryTest extends TestCase
         $this->expectException(RfcComplianceException::class);
         $this->expectExceptionMessageMatches('/[\s\S]/');
 
-        $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $userEmailFactory->create($user, self::VALID_CONTEXT);
     }
 
     public function test_exception_thrown_if_no_website_name_context_key(): void
@@ -126,7 +127,7 @@ class AbstractUserEmailFactoryTest extends TestCase
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(sprintf('The context key `website_name` is required to create an email message with the factory `%s`', DummyUserEmailFactory::class));
+        $this->expectExceptionMessage(sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `website_name`, `test_key`)', DummyUserEmailFactory::class));
 
         $userEmailFactory->create($user);
     }
@@ -155,10 +156,9 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->to(Address::fromString('email@address.com'))
             ->subject('website name is my website')
             ->htmlTemplate('@SilverbackApiComponent/emails/template.html.twig')
-            ->context([
-                'website_name' => 'my website',
+            ->context(array_merge(self::VALID_CONTEXT, [
                 'user' => $user,
-            ]);
+            ]));
 
         $event = new UserEmailMessageEvent(DummyUserEmailFactory::class, $emailMessage);
         $this->eventDispatcherMock
@@ -166,7 +166,7 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->method('dispatch')
             ->with($event);
 
-        $returnedEmailMessage = $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $returnedEmailMessage = $userEmailFactory->create($user, self::VALID_CONTEXT);
         $this->assertEquals($emailMessage, $returnedEmailMessage);
     }
 
@@ -190,7 +190,7 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->expects($this->never())
             ->method('dispatch');
 
-        $returnedEmailMessage = $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $returnedEmailMessage = $userEmailFactory->create($user, self::VALID_CONTEXT);
         $this->assertNull($returnedEmailMessage);
     }
 

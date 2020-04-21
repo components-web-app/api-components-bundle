@@ -19,7 +19,7 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserEnabledEmailFactory extends AbstractUserEmailFactory
+final class UserEnabledEmailFactory extends AbstractUserEmailFactory
 {
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {

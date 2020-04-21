@@ -72,7 +72,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         ];
     }
 
-    protected static function getRequiredContextKeys(): ?array
+    protected static function getContextKeys(): ?array
     {
         return [
             'website_name',
@@ -177,11 +177,10 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
     private function validateContext(array $context): void
     {
-        $requiredKeys = static::getRequiredContextKeys();
-        foreach ($requiredKeys as $requiredKey) {
-            if (!\array_key_exists($requiredKey, $context)) {
-                throw new InvalidArgumentException(sprintf('The context key `%s` is required to create an email message with the factory `%s`', $requiredKey, static::class));
-            }
+        $contextKeys = static::getContextKeys();
+        $keys = array_keys($context);
+        if (\count($differences = array_diff($contextKeys, $keys))) {
+            throw new InvalidArgumentException(sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `%s`)', static::class, implode('`, `', $differences)));
         }
     }
 

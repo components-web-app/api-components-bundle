@@ -14,16 +14,15 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Tests\Factory\Mailer\User;
 
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new ChangeEmailVerificationEmailFactory(
+        $factory = new WelcomeEmailFactory(
             $this->containerInterfaceMock,
             $this->eventDispatcherMock,
             'subject',
@@ -33,7 +32,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
         }));
     }
 
-    public function test_exception_thrown_if_no_token(): void
+    public function test_redirect_url_context_added_and_html_template_passed(): void
     {
         $user = new class() extends AbstractUser {
         };
@@ -41,19 +40,29 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new ChangeEmailVerificationEmailFactory(
+        $factory = new WelcomeEmailFactory(
             $this->containerInterfaceMock,
             $this->eventDispatcherMock,
-            'subject'
+            'subject',
+            true,
+            '/default-path'
         );
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A `new email verification token` must be set to send the verification email');
+        $this->assertCommonMockMethodsCalled();
 
-        $factory->create($user);
+        $email = (new TemplatedEmail())
+            ->to(Address::fromString('email@address.com'))
+            ->subject('subject')
+            ->htmlTemplate('@SilverbackApiComponent/emails/user_welcome.html.twig')
+            ->context([
+                'website_name' => 'my website',
+                'user' => $user,
+            ]);
+
+        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
     }
 
-    public function test_redirect_url_context_added_and_html_template_passed(): void
+    public function test_redirect_url_context_added_and_html_template_passed_with_token(): void
     {
         $user = new class() extends AbstractUser {
         };
@@ -62,7 +71,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setEmailAddress('email@address.com')
             ->setNewEmailVerificationToken('token');
 
-        $factory = new ChangeEmailVerificationEmailFactory(
+        $factory = new WelcomeEmailFactory(
             $this->containerInterfaceMock,
             $this->eventDispatcherMock,
             'subject',
@@ -75,7 +84,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
         $email = (new TemplatedEmail())
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_change_email_verification.html.twig')
+            ->htmlTemplate('@SilverbackApiComponent/emails/user_welcome.html.twig')
             ->context([
                 'website_name' => 'my website',
                 'user' => $user,

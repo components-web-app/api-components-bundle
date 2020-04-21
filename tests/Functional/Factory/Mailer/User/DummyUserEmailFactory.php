@@ -31,6 +31,14 @@ class DummyUserEmailFactory extends AbstractUserEmailFactory
         return $this->getTokenUrl('my_token', $user->getUsername());
     }
 
+    protected static function getContextKeys(): ?array
+    {
+        return [
+            'website_name',
+            'test_key',
+        ];
+    }
+
     protected function getTemplate(): string
     {
         return 'template.html.twig';

@@ -30,9 +30,9 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 
         $this->initUser($user);
 
-        $token = $user->getNewEmailVerificationToken();
+        $token = $user->getNewPasswordConfirmationToken();
         if (!$token) {
-            throw new InvalidArgumentException('A new email verification token must be set to send the `email verification` email');
+            throw new InvalidArgumentException('A new password confirmation token must be set to send the `password reset` email');
         }
 
         $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
@@ -40,9 +40,9 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
         return $this->createEmailMessage($context);
     }
 
-    protected static function getRequiredContextKeys(): ?array
+    protected static function getContextKeys(): ?array
     {
-        return array_merge(parent::getRequiredContextKeys(), [
+        return array_merge(parent::getContextKeys(), [
             'redirect_url',
         ]);
     }

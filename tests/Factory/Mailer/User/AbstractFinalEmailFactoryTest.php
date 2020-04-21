@@ -39,38 +39,43 @@ abstract class AbstractFinalEmailFactoryTest extends TestCase
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
     }
 
-    protected function assertCommonMockMethodsCalled(): void
+    protected function assertCommonMockMethodsCalled(bool $tokenPathExpected = false): void
     {
-        $requestStackMock = $this->createMock(RequestStack::class);
-        $requestStackMock
-            ->expects($this->once())
-            ->method('getMasterRequest')
-            ->willReturn(null);
+        $callIndex = 0;
+        if ($tokenPathExpected) {
+            $requestStackMock = $this->createMock(RequestStack::class);
+            $requestStackMock
+                ->expects($this->once())
+                ->method('getMasterRequest')
+                ->willReturn(null);
 
-        $this->containerInterfaceMock
-            ->expects($this->at(0))
-            ->method('get')
-            ->with(RequestStack::class)
-            ->willReturn($requestStackMock);
+            $this->containerInterfaceMock
+                ->expects($this->at($callIndex))
+                ->method('get')
+                ->with(RequestStack::class)
+                ->willReturn($requestStackMock);
+            ++$callIndex;
 
-        $refererUrlMock = $this->createMock(RefererUrlHelper::class);
-        $refererUrlMock
-            ->expects($this->once())
-            ->method('getAbsoluteUrl')
-            ->with('/default-path')
-            ->willReturn('/transformed-path');
+            $refererUrlMock = $this->createMock(RefererUrlHelper::class);
+            $refererUrlMock
+                ->expects($this->once())
+                ->method('getAbsoluteUrl')
+                ->with('/default-path')
+                ->willReturn('/transformed-path');
 
-        $this->containerInterfaceMock
-            ->expects($this->at(1))
-            ->method('get')
-            ->with(RefererUrlHelper::class)
-            ->willReturn($refererUrlMock);
+            $this->containerInterfaceMock
+                ->expects($this->at($callIndex))
+                ->method('get')
+                ->with(RefererUrlHelper::class)
+                ->willReturn($refererUrlMock);
+            ++$callIndex;
+        }
 
         $loaderMock = $this->createMock(LoaderInterface::class);
         $twig = new Environment($loaderMock);
 
         $this->containerInterfaceMock
-            ->expects($this->at(2))
+            ->expects($this->at($callIndex))
             ->method('get')
             ->with(Environment::class)
             ->willReturn($twig);
