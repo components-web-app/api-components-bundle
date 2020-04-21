@@ -73,10 +73,6 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         ];
     }
 
-    abstract public function create(AbstractUser $user, array $context = []): ?RawMessage;
-
-    abstract protected function getTemplate(): string;
-
     protected static function getRequiredContextKeys(): ?array
     {
         return [
@@ -85,9 +81,26 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         ];
     }
 
-    protected function createEmailMessage(array $context = []): TemplatedEmail
+    protected function initUser(AbstractUser $user): void
     {
-        if (!$this->user) {
+        if (!$user->getUsername()) {
+            throw new InvalidArgumentException('The user must have a username set to send them any email');
+        }
+
+        if (!$user->getEmailAddress()) {
+            throw new InvalidArgumentException('The user must have an email address set to send them any email');
+        }
+
+        $this->user = $user;
+    }
+
+    protected function createEmailMessage(array $context = []): ?TemplatedEmail
+    {
+        if (!$this->enabled) {
+            return null;
+        }
+
+        if (!isset($this->user)) {
             throw new BadMethodCallException('You must call the method `initUser` before `createEmailMessage`');
         }
 
@@ -117,19 +130,6 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $this->eventDispatcher->dispatch($event);
 
         return $event->getEmail();
-    }
-
-    protected function initUser(AbstractUser $user): void
-    {
-        if (null === $user->getUsername()) {
-            throw new InvalidArgumentException('The user must have a username set to send them any email');
-        }
-
-        if (null === $user->getEmailAddress()) {
-            throw new InvalidArgumentException('The user must have a username set to send them any email');
-        }
-
-        $this->user = $user;
     }
 
     protected function getTokenUrl(string $token, string $username): string
@@ -169,7 +169,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         preg_match_all('/{{[\s]*(\w+)[\s]*}}/', $path, $matches);
         foreach ($matches[0] as $matchIndex => $fullMatch) {
             if (\array_key_exists($varKey = $matches[1][$matchIndex], $variables)) {
-                $path = str_replace($fullMatch, $variables[$varKey], $path);
+                $path = str_replace($fullMatch, rawurlencode($variables[$varKey]), $path);
             }
         }
 
@@ -181,8 +181,12 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $requiredKeys = self::getRequiredContextKeys();
         foreach ($requiredKeys as $requiredKey) {
             if (!\array_key_exists($requiredKey, $context)) {
-                throw new InvalidArgumentException(sprintf('The context key `%s` is required to create the email message', $requiredKey));
+                throw new InvalidArgumentException(sprintf('The context key `%s` is required to create an email message with the factory `%s`', $requiredKey, static::class));
             }
         }
     }
+
+    abstract public function create(AbstractUser $user, array $context = []): ?RawMessage;
+
+    abstract protected function getTemplate(): string;
 }
