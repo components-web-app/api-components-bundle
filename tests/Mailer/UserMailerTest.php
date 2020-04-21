@@ -15,273 +15,216 @@ namespace Silverback\ApiComponentBundle\Tests\Mailer;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\MailerTransportException;
-use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Mailer\Exception\TransportException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\RawMessage;
 
 class UserMailerTest extends TestCase
 {
+    private const TEST_CONTEXT = ['context_key' => 'context_value'];
+
     /**
      * @var MockObject|MailerInterface
      */
     private MockObject $mailerMock;
     /**
-     * @var MockObject|RefererUrlHelper
+     * @var MockObject|ContainerInterface
      */
-    private MockObject $refererUrlHelperMock;
-    /**
-     * @var MockObject|RequestStack
-     */
-    private MockObject $requestStackMock;
+    private MockObject $containerMock;
+    private UserMailer $userMailer;
 
     protected function setUp(): void
     {
         $this->mailerMock = $this->createMock(MailerInterface::class);
-        $this->refererUrlHelperMock = $this->createMock(RefererUrlHelper::class);
-        $this->requestStackMock = $this->createMock(RequestStack::class);
+        $this->containerMock = $this->createMock(ContainerInterface::class);
+        $this->userMailer = new UserMailer($this->mailerMock, $this->containerMock, self::TEST_CONTEXT);
     }
 
-    private function getUserMailer($_ = null): UserMailer
+    public function test_subscribed_services(): void
     {
-        return new UserMailer($this->mailerMock, $this->refererUrlHelperMock, $this->requestStackMock, ...\func_get_args());
+        $this->assertEquals([
+            PasswordResetEmailFactory::class,
+            ChangeEmailVerificationEmailFactory::class,
+            WelcomeEmailFactory::class,
+            UserEnabledEmailFactory::class,
+            UsernameChangedEmailFactory::class,
+            PasswordChangedEmailFactory::class,
+        ], UserMailer::getSubscribedServices());
     }
 
-    public function test_error_if_no_token_for_password_reset_email(): void
+    public function test_context_can_be_omitted(): void
     {
-        $userMailer = $this->getUserMailer();
         $user = new class() extends AbstractUser {
         };
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A new password confirmation token must be set to send the `password reset` email');
-        $userMailer->sendPasswordResetEmail($user);
-    }
 
-    public function test_error_if_no_username_for_password_reset_email(): void
-    {
-        $userMailer = $this->getUserMailer();
-        $user = new class() extends AbstractUser {
-        };
-        $user->setNewPasswordConfirmationToken('password_token');
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The user must have a username set to send them any email');
+        $userMailer = new UserMailer($this->mailerMock, $this->containerMock);
 
-        $this->pathToRefererUrlMethodNotCalled();
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
-        $userMailer->sendPasswordResetEmail($user);
-    }
-
-    public function test_error_if_no_email_for_password_reset_email(): void
-    {
-        $userMailer = $this->getUserMailer();
-        $user = new class() extends AbstractUser {
-        };
-        $user
-            ->setNewPasswordConfirmationToken('password_token')
-            ->setUsername('username');
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The user must have an email address set to send them any email');
-
-        $this->pathToRefererUrlMethodCalled('/reset-password/username/password_token');
+        $factoryMock
+            ->expects($this->once())
+            ->method('create')
+            ->with($user, [])
+            ->willReturn(null);
 
         $userMailer->sendPasswordResetEmail($user);
     }
 
-    public function test_catch_invalid_email_address(): void
+    public function test_send_method_skipped_if_no_message_returned(): void
     {
-        $userMailer = $this->getUserMailer();
         $user = new class() extends AbstractUser {
         };
-        $user->setNewPasswordConfirmationToken('password_token');
-        $user->setUsername('username')->setEmailAddress('invalid');
 
-        $this->pathToRefererUrlMethodCalled('/reset-password/username/password_token');
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
+
+        $factoryMock
+            ->expects($this->once())
+            ->method('create')
+            ->with($user, self::TEST_CONTEXT)
+            ->willReturn(null);
 
         $this->mailerMock
             ->expects($this->never())
             ->method('send');
 
-        $this->expectException(RfcComplianceException::class);
-        $userMailer->sendPasswordResetEmail($user);
+        $this->userMailer->sendPasswordResetEmail($user);
     }
 
-    public function test_catch_transport_exception(): void
+    public function test_exception_thrown_if_mailer_send_throws_exception(): void
     {
-        $userMailer = $this->getUserMailer();
         $user = new class() extends AbstractUser {
         };
-        $user->setNewPasswordConfirmationToken('password_token');
-        $user->setUsername('username')->setEmailAddress('valid@email.com');
+        $templateEmail = new TemplatedEmail();
 
-        $this->pathToRefererUrlMethodCalled('/reset-password/username/password_token');
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString('valid@email.com'))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_forgot_password.html.twig')
-            ->context([
-                'reset_url' => 'https://referer.com/path',
-                'user' => $user,
-                'username' => 'username',
-                'website_name' => 'Website Name',
-            ]);
+        $factoryMock
+            ->expects($this->once())
+            ->method('create')
+            ->with($user, self::TEST_CONTEXT)
+            ->willReturn($templateEmail);
 
-        $expectedCatchException = new TransportException();
-        $expectedCatchException->appendDebug('some debug info');
+        $mockException = $this->createMock(TransportExceptionInterface::class);
         $this->mailerMock
             ->expects($this->once())
             ->method('send')
-            ->with($email)
-            ->willThrowException($expectedCatchException);
+            ->with($templateEmail)
+            ->willThrowException($mockException);
 
         $this->expectException(MailerTransportException::class);
-        $expectedExceptionThrown = new MailerTransportException();
-        $expectedExceptionThrown->appendDebug($expectedCatchException->getDebug());
-        $this->expectExceptionObject($expectedExceptionThrown);
-        $userMailer->sendPasswordResetEmail($user);
+        $this->userMailer->sendPasswordResetEmail($user);
     }
 
-    public function test_valid_password_reset_email(): void
+    public function test_send_password_reset_email(): void
     {
-        $userMailer = $this->getUserMailer();
         $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_password_reset_email';
         };
-        $user->setNewPasswordConfirmationToken('password_token');
-        $user->setUsername('username')->setEmailAddress('email@address.com');
 
-        $this->pathToRefererUrlMethodCalled('/reset-password/username/password_token');
+        $this->expectFactoryCallAndSendMailerMethod(PasswordResetEmailFactory::class, $user);
 
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString('email@address.com'))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_forgot_password.html.twig')
-            ->context([
-                'reset_url' => 'https://referer.com/path',
-                'user' => $user,
-                'username' => 'username',
-                'website_name' => 'Website Name',
-            ]);
+        $this->userMailer->sendPasswordResetEmail($user);
+    }
 
+    public function test_send_change_email_verification_email(): void
+    {
+        $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_change_email_verification_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailVerificationEmailFactory::class, $user);
+
+        $this->userMailer->sendChangeEmailVerificationEmail($user);
+    }
+
+    public function test_send_welcome_email(): void
+    {
+        $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_welcome_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(WelcomeEmailFactory::class, $user);
+
+        $this->userMailer->sendWelcomeEmail($user);
+    }
+
+    public function test_send_user_enabled_email(): void
+    {
+        $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_user_enabled_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(UserEnabledEmailFactory::class, $user);
+
+        $this->userMailer->sendUserEnabledEmail($user);
+    }
+
+    public function test_send_username_changed_email(): void
+    {
+        $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_username_changed_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(UsernameChangedEmailFactory::class, $user);
+
+        $this->userMailer->sendUsernameChangedEmail($user);
+    }
+
+    public function test_send_password_changed_email(): void
+    {
+        $user = new class() extends AbstractUser {
+            protected ?string $username = 'test_send_password_changed_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(PasswordChangedEmailFactory::class, $user);
+
+        $this->userMailer->sendPasswordChangedEmail($user);
+    }
+
+    private function expectFactoryCallAndSendMailerMethod(string $factoryClass, AbstractUser $user): void
+    {
+        $templateEmail = new TemplatedEmail();
+
+        $factoryMock = $this->getFactoryFromContainerMock($factoryClass);
+
+        $factoryMock
+            ->expects($this->once())
+            ->method('create')
+            ->with($user, self::TEST_CONTEXT)
+            ->willReturn($templateEmail);
+
+        $this->expectMailerSendMethod($templateEmail);
+    }
+
+    private function getFactoryFromContainerMock(string $factory): MockObject
+    {
+        $factoryMock = $this->createMock(AbstractUserEmailFactory::class);
+        $this->containerMock
+            ->expects($this->once())
+            ->method('get')
+            ->with($factory)
+            ->willReturn($factoryMock);
+
+        return $factoryMock;
+    }
+
+    private function expectMailerSendMethod(?RawMessage $message): void
+    {
         $this->mailerMock
             ->expects($this->once())
             ->method('send')
-            ->with($email);
-
-        $userMailer->sendPasswordResetEmail($user);
-    }
-
-    public function test_valid_password_reset_email_with_custom_website_name_and_reset_path(): void
-    {
-        $userMailer = $this->getUserMailer('My Website', '/custom-reset-path');
-        $user = new class() extends AbstractUser {
-        };
-        $user->setNewPasswordConfirmationToken('password_token');
-        $user->setUsername('username')->setEmailAddress('email@address.com');
-
-        $this->pathToRefererUrlMethodCalled('/custom-reset-path');
-
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString('email@address.com'))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_forgot_password.html.twig')
-            ->context([
-                'reset_url' => 'https://referer.com/path',
-                'user' => $user,
-                'username' => 'username',
-                'website_name' => 'My Website',
-            ]);
-
-        $this->mailerMock
-            ->expects($this->once())
-            ->method('send')
-            ->with($email);
-
-        $userMailer->sendPasswordResetEmail($user);
-    }
-
-    public function test_error_if_no_username_for_verify_change_email(): void
-    {
-        $userMailer = $this->getUserMailer();
-        $user = new class() extends AbstractUser {
-        };
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The user must have a username set to send them any email');
-        $userMailer->sendChangeEmailConfirmationEmail($user);
-    }
-
-    public function test_error_if_no_token_for_verify_change_email(): void
-    {
-        $userMailer = $this->getUserMailer();
-        $user = new class() extends AbstractUser {
-        };
-        $user->setUsername('username');
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A new email verification token must be set to send the `email verification` email');
-        $userMailer->sendChangeEmailConfirmationEmail($user);
-    }
-
-    public function test_change_email_confirmation_email(): void
-    {
-        $userMailer = $this->getUserMailer();
-        $user = new class() extends AbstractUser {
-        };
-        $user->setNewEmailVerificationToken('email_token');
-        $user->setUsername('change_email_username')->setEmailAddress('user@email.com');
-
-        $this->pathToRefererUrlMethodCalled('/verify-new-email/change_email_username/email_token');
-
-        $email = (new TemplatedEmail())
-            ->to(Address::fromString('user@email.com'))
-            ->subject('Your password reset request')
-            ->htmlTemplate('@SilverbackApiComponent/emails/user_verify_email.html.twig')
-            ->context([
-                'verify_url' => 'https://referer.com/path',
-                'user' => $user,
-                'username' => 'change_email_username',
-                'website_name' => 'Website Name',
-            ]);
-
-        $this->mailerMock
-            ->expects($this->once())
-            ->method('send')
-            ->with($email);
-
-        $userMailer->sendChangeEmailConfirmationEmail($user);
-    }
-
-    private function pathToRefererUrlMethodNotCalled(): void
-    {
-        $this->requestStackMock
-            ->expects($this->never())
-            ->method('getMasterRequest');
-
-        $this->refererUrlHelperMock
-            ->expects($this->never())
-            ->method('getAbsoluteUrl');
-    }
-
-    private function pathToRefererUrlMethodCalled($defaultPath): void
-    {
-        $request = new Request();
-
-        $this->requestStackMock
-            ->expects($this->once())
-            ->method('getMasterRequest')
-            ->willReturn($request);
-
-        $this->refererUrlHelperMock
-            ->expects($this->once())
-            ->method('getAbsoluteUrl')
-            ->with($defaultPath)
-            ->willReturn('https://referer.com/path');
+            ->with($message);
     }
 }

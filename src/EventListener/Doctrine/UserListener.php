@@ -31,6 +31,7 @@ class UserListener
     private TokenGenerator $tokenGenerator;
     private bool $initialEmailVerifiedState;
     private bool $verifyEmailOnRegister;
+    private bool $verifyEmailOnChange;
     private array $changeSet = [];
 
     public function __construct(
@@ -38,13 +39,15 @@ class UserListener
         UserMailer $userMailer,
         TokenGenerator $tokenGenerator,
         bool $initialEmailVerifiedState,
-        bool $verifyEmailOnRegister
+        bool $verifyEmailOnRegister,
+        bool $verifyEmailOnChange
     ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->userMailer = $userMailer;
         $this->tokenGenerator = $tokenGenerator;
         $this->initialEmailVerifiedState = $initialEmailVerifiedState;
         $this->verifyEmailOnRegister = $verifyEmailOnRegister;
+        $this->verifyEmailOnChange = $verifyEmailOnChange;
     }
 
     public function prePersist(AbstractUser $user): void
@@ -61,7 +64,7 @@ class UserListener
 
     public function postPersist(AbstractUser $user): void
     {
-        $this->userMailer->sendUserWelcomeEmail($user);
+        $this->userMailer->sendWelcomeEmail($user);
     }
 
     public function preUpdate(AbstractUser $user, LifecycleEventArgs $args): void
@@ -78,7 +81,12 @@ class UserListener
         $this->changeSet = $uow->getEntityChangeSet($user);
 
         if (isset($this->changeSet['newEmailAddress'])) {
-            $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
+            if (false === $this->verifyEmailOnChange) {
+                $user->setEmailAddress($user->getNewEmailAddress());
+                $user->setNewEmailAddress(null);
+            } else {
+                $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
+            }
             $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
             $this->changeSet = $uow->getEntityChangeSet($user);
         }
@@ -96,6 +104,10 @@ class UserListener
 
         if (isset($this->changeSet['password'])) {
             $this->userMailer->sendPasswordChangedEmail($user);
+        }
+
+        if (isset($this->changeSet['newEmailAddress'])) {
+            $this->userMailer->sendChangeEmailVerificationEmail($user);
         }
     }
 

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Factory;
+namespace Silverback\ApiComponentBundle\Factory\File;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentBundle\Dto\File\FileData;

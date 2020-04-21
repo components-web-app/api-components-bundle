@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Security;
 
 use Silverback\ApiComponentBundle\Entity\User\TokenUser;
 use Silverback\ApiComponentBundle\Exception\TokenAuthenticationException;
-use Silverback\ApiComponentBundle\Factory\ResponseFactory;
+use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;

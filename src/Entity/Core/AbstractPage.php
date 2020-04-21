@@ -21,6 +21,8 @@ use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ORM\MappedSuperclass
+ *
+ * @internal
  */
 abstract class AbstractPage implements TimestampedInterface
 {

@@ -3,11 +3,11 @@
 {% block content %}
   <h1 class="text-center">Welcome to {{ website_name }}</h1>
   <spacer size="16"></spacer>
-  <p>Hello {{ username }},</p>
+  <p>Hello {{ user.username }},</p>
   <p>Thank you for signing up to {{ website_name }}.</p>
-  {% if verify_url is defined and verify_url is not null %}
+  {% if redirect_url is defined and redirect_url is not null %}
     <p>Please click the link below to verify your email address.</p>
-    <button class="large expand" href="{{ verify_url }}">Verify Email Address</button>
+    <button class="large expand" href="{{ redirect_url }}">Verify Email Address</button>
   {% endif %}
   {% include "@SilverbackApiComponent/emails/_signature.html.twig" %}
 {% endblock %}

@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\Action\Form;
 
 use Silverback\ApiComponentBundle\Action\AbstractAction;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Factory\ResponseFactory;
+use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;

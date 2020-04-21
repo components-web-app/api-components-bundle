@@ -18,6 +18,7 @@ use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
+use Symfony\Component\HttpFoundation\Request;
 
 class UserRepositoryTest extends AbstractRepositoryTest
 {
@@ -32,9 +33,14 @@ class UserRepositoryTest extends AbstractRepositoryTest
     protected function setUp(): void
     {
         $kernel = self::bootKernel();
-        $this->managerRegistry = $kernel->getContainer()->get('doctrine');
-
+        $container = $kernel->getContainer();
+        $this->managerRegistry = $container->get('doctrine');
         $this->clearSchema($this->managerRegistry);
+
+        $requestStack = $container->get('request_stack');
+        $request = new Request();
+        $request->headers->set('origin', 'http://test.com');
+        $requestStack->push($request);
 
         $this->repository = new UserRepository($this->managerRegistry, $this->passwordResetTimeoutSeconds, User::class);
     }
