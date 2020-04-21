@@ -22,7 +22,7 @@ use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\RfcComplianceException as SymfonyRfcComplianceException;
@@ -36,7 +36,7 @@ use Twig\Environment;
 abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
     protected ContainerInterface $container;
-    private EventDispatcher $eventDispatcher;
+    private EventDispatcherInterface $eventDispatcher;
     protected bool $enabled;
     protected string $template;
     protected string $subject;
@@ -48,7 +48,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
     public function __construct(
         ContainerInterface $container,
-        EventDispatcher $eventDispatcher,
+        EventDispatcherInterface $eventDispatcher,
         string $subject,
         bool $enabled = true,
         ?string $defaultRedirectPath = null,

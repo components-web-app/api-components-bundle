@@ -5,7 +5,7 @@ We have built in user and security features to get you up and running quickly wi
 We have included default login and register forms to use 'out of the box' and much more.
 
 ## Getting started
-By using the flex recipe, you will already have a pre-configured `App\Entity'User` entity in your project. By default, although there is a column for the username and one for the email address in the database, these are kept in sync. You can modify the class to break these two properties. Even if you do this, the repository automatically configured for your User entity will look up users by their email address or username.
+By using the flex recipe, you will already have a pre-configured `App\Entity\User` entity in your project. By default, although there is a column for the username and one for the email address in the database, these are kept in sync. You can modify the class to break these two properties. Even if you do this, the repository automatically configured for your User entity will look up users by their email address or username.
 
 ### Configure security and firewalls
 As described [here](https://github.com/lexik/LexikJWTAuthenticationBundle/blob/master/Resources/doc/index.md#getting-started) - generate the SSH keys for JWTs. (Use the passphrase that has been generated in your .env file - in production you can generate keys using /bin/rand_string.sh which will be located in the sample project which includes the API and front-end)
@@ -15,7 +15,7 @@ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_
 openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
 ```
 
-Configure your security/firewall. There is a configurable token so that requests to the API where a refresh token is returned can only be made from anotehr server. This is to protect the refresh key from being passed directly to a user. You should save the refresh key in your server-side session data and handle refreshing the JWT token that way.
+Configure your security/firewall. There is a configurable token so that requests to the API where a refresh token returned can only be made from another server. This is to protect the refresh key from being passed directly to a user. You should save the refresh key in your server-side session data and handle refreshing the JWT token in this way.
 ```yaml
 security:
     role_hierarchy:
@@ -62,5 +62,10 @@ security:
 ```
 
 ### Continue reading...
-- [Emails](./emails.md)
-- [Emails](./emails.md)
+- [Email address verification](./emails.md)
+- [Password reset](./emails.md)
+- [Notification Emails](./emails.md)
+  - [Welcome](./emails.md)
+  - [User enabled](./emails.md)
+  - [Username changed](./emails.md)
+  - [Password changed](./emails.md)

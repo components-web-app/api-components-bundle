@@ -151,7 +151,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ChangePasswordType::class)
-        ->args([new Reference(Security::class)]);
+        ->args([new Reference(Security::class)])
+        ->tag('form.type');
 
     $services
         ->set(CollectionOutputDataTransformer::class)
@@ -306,7 +307,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(LayoutRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
-        ]);
+        ])
+        ->tag('doctrine.repository_service');
 
     $services
         ->set(MessageEventListener::class)
@@ -322,13 +324,15 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(NewEmailAddressType::class)
-        ->args([new Reference(Security::class)]);
+        ->args([new Reference(Security::class)])
+        ->tag('form.type');
 
     $services
         ->set(NewEmailAddressValidator::class)
         ->args([
             new Reference(UserRepository::class),
-        ]);
+        ])
+        ->tag('validator.constraint_validator');
 
     $services
         ->set(PageTemplateOutputDataTransformer::class)
@@ -388,7 +392,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(RouteRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
-        ]);
+        ])
+        ->tag('doctrine.repository_service');
 
     $services
         ->set(SerializeFormatResolver::class)
@@ -475,7 +480,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserLoginType::class)
-        ->args([new Reference(RouterInterface::class)]);
+        ->args([new Reference(RouterInterface::class)])
+        ->tag('form.type');
 
     $services
         ->set(UserMailer::class)
@@ -495,13 +501,15 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
-        ->set(UserRegisterType::class);
+        ->set(UserRegisterType::class)
+        ->tag('form.type');
 
     $services
         ->set(UserRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
-        ]);
+        ])
+        ->tag('doctrine.repository_service');
 
     $services
         ->set(WelcomeEmailFactory::class)

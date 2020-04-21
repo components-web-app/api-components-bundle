@@ -34,7 +34,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     public function __construct(ManagerRegistry $registry, int $passwordRequestTimeout, string $entityClass)
     {
         if (!is_subclass_of($entityClass, AbstractUser::class)) {
-            throw new InvalidArgumentException(sprintf('The entity class used for %s must extend %s', __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractUser::class));
         }
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;
