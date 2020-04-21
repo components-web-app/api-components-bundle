@@ -37,12 +37,11 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
     protected ContainerInterface $container;
     private EventDispatcherInterface $eventDispatcher;
-    protected bool $enabled;
-    protected string $template;
     protected string $subject;
-    protected array $emailContext;
+    protected bool $enabled;
     protected ?string $defaultRedirectPath;
     protected ?string $redirectPathQueryKey;
+    protected array $emailContext;
     protected ?RawMessage $message;
     private ?AbstractUser $user;
 
@@ -178,7 +177,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
     private function validateContext(array $context): void
     {
-        $requiredKeys = self::getRequiredContextKeys();
+        $requiredKeys = static::getRequiredContextKeys();
         foreach ($requiredKeys as $requiredKey) {
             if (!\array_key_exists($requiredKey, $context)) {
                 throw new InvalidArgumentException(sprintf('The context key `%s` is required to create an email message with the factory `%s`', $requiredKey, static::class));

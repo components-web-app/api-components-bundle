@@ -167,7 +167,31 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->with($event);
 
         $returnedEmailMessage = $userEmailFactory->create($user, ['website_name' => 'my website']);
-        $this->assertEquals($returnedEmailMessage, $emailMessage);
+        $this->assertEquals($emailMessage, $returnedEmailMessage);
+    }
+
+    public function test_do_not_create_email_message_if_not_enabled(): void
+    {
+        $userEmailFactory = new DummyUserEmailFactory(
+            $this->containerInterfaceMock,
+            $this->eventDispatcherMock,
+            'subject',
+            false
+        );
+        $user = new class() extends AbstractUser {
+        };
+        $user->setUsername('my_username')->setEmailAddress('email@address.com');
+
+        $this->containerInterfaceMock
+            ->expects($this->never())
+            ->method('get');
+
+        $this->eventDispatcherMock
+            ->expects($this->never())
+            ->method('dispatch');
+
+        $returnedEmailMessage = $userEmailFactory->create($user, ['website_name' => 'my website']);
+        $this->assertNull($returnedEmailMessage);
     }
 
     public function test_dummy_get_token_url_throws_exception_if_no_paths(): void
