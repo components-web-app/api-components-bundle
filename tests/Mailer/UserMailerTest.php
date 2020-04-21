@@ -179,7 +179,7 @@ class UserMailerTest extends TestCase
 
     public function test_valid_password_reset_email_with_custom_website_name_and_reset_path(): void
     {
-        $userMailer = $this->getUserMailer(['website_name' => 'My Website', 'paths' => ['/custom-reset-path']);
+        $userMailer = $this->getUserMailer(['website_name' => 'My Website', 'paths' => ['/custom-reset-path']]);
         $user = new class() extends AbstractUser {
         };
         $user->setNewPasswordConfirmationToken('password_token');
@@ -259,7 +259,6 @@ class UserMailerTest extends TestCase
     public function test_send_user_welcome_email_disabled(): void
     {
         $userMailer = $this->getUserMailer('Website', '/pw-path', '/verify-new-email/{{ username }}/{{ token }}', false);
-
     }
 
     private function pathToRefererUrlMethodNotCalled(): void

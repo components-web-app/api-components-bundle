@@ -15,17 +15,20 @@ namespace Silverback\ApiComponentBundle\Factory\Mailer\User;
 
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentBundle\Event\UserEmailMessageEvent;
 use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\RfcComplianceException as SymfonyRfcComplianceException;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
+use Twig\Environment;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,6 +36,7 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
 abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
     protected ContainerInterface $container;
+    private EventDispatcher $eventDispatcher;
     protected bool $enabled;
     protected string $template;
     protected string $subject;
@@ -44,15 +48,17 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
     public function __construct(
         ContainerInterface $container,
+        EventDispatcher $eventDispatcher,
         string $subject,
         bool $enabled = true,
-        array $emailContext = [],
         ?string $defaultRedirectPath = null,
-        ?string $redirectPathQueryKey = null
+        ?string $redirectPathQueryKey = null,
+        array $emailContext = []
     ) {
         $this->container = $container;
-        $this->enabled = $enabled;
+        $this->eventDispatcher = $eventDispatcher;
         $this->subject = $subject;
+        $this->enabled = $enabled;
         $this->emailContext = $emailContext;
         $this->defaultRedirectPath = $defaultRedirectPath;
         $this->redirectPathQueryKey = $redirectPathQueryKey;
@@ -63,6 +69,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         return [
             RequestStack::class,
             RefererUrlHelper::class,
+            Environment::class,
         ];
     }
 
@@ -81,11 +88,11 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     protected function createEmailMessage(array $context = []): TemplatedEmail
     {
         if (!$this->user) {
-            throw new BadMethodCallException('You must call the method `validateUser` before `createEmailMessage`');
+            throw new BadMethodCallException('You must call the method `initUser` before `createEmailMessage`');
         }
 
         try {
-            $toEmailAddress = Address::fromString($this->user->getEmailAddress());
+            $toEmailAddress = Address::fromString((string) $this->user->getEmailAddress());
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;
@@ -96,20 +103,29 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         ], $this->emailContext, $context);
         $this->validateContext($context);
 
-        return (new TemplatedEmail())
+        $twig = $this->container->get(Environment::class);
+        $template = $twig->createTemplate($this->subject);
+        $subject = $template->render($context);
+
+        $email = (new TemplatedEmail())
             ->to($toEmailAddress)
-            ->subject($this->subject)
+            ->subject($subject)
             ->htmlTemplate('@SilverbackApiComponent/emails/' . $this->getTemplate())
             ->context($context);
+
+        $event = new UserEmailMessageEvent(static::class, $email);
+        $this->eventDispatcher->dispatch($event);
+
+        return $event->getEmail();
     }
 
     protected function initUser(AbstractUser $user): void
     {
-        if (!$user->getUsername()) {
+        if (null === $user->getUsername()) {
             throw new InvalidArgumentException('The user must have a username set to send them any email');
         }
 
-        if (!$userEmailAddress = $user->getEmailAddress()) {
+        if (null === $user->getEmailAddress()) {
             throw new InvalidArgumentException('The user must have a username set to send them any email');
         }
 

@@ -18,6 +18,12 @@ use RuntimeException;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
@@ -49,9 +55,39 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $this->loadServiceConfig($container);
 
-        $repeatTtl = $config['user']['password_reset']['repeat_ttl_seconds'];
-        $timeoutSeconds = $config['user']['password_reset']['request_timeout_seconds'];
-        $userClass = $config['user']['class_name'];
+        $definition = $container->getDefinition(TablePrefixExtension::class);
+        $definition->setArgument('$prefix', $config['table_prefix']);
+
+        $definition = $container->getDefinition(TokenAuthenticator::class);
+        $definition->setArgument('$tokens', $config['security']['tokens']);
+
+        $definition = $container->getDefinition(PasswordManager::class);
+        $definition->setArgument('$tokenTtl', $config['user']['password_reset']['repeat_ttl_seconds']);
+
+        $definition = $container->getDefinition(UserRepository::class);
+        $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
+        $definition->setArgument('$entityClass', $config['user']['class_name']);
+
+        $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
+        $this->setUserClassArguments($container, $config['user']['class_name']);
+        $this->setMailerServiceArguments($container, $config);
+    }
+
+    private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig): void
+    {
+        $definition = $container->getDefinition(UserChecker::class);
+        $definition->setArgument('$denyUnverifiedLogin', $emailVerificationConfig['deny_unverified_login']);
+
+        $definition = $container->getDefinition(UserListener::class);
+        $definition->setArgument('$initialEmailVerifiedState', $emailVerificationConfig['default_value']);
+        $definition->setArgument('$verifyEmailOnRegister', $emailVerificationConfig['verify_on_register']);
+        $definition->setArgument('$verifyEmailOnChange', $emailVerificationConfig['verify_on_change']);
+    }
+
+    private function setUserClassArguments(ContainerBuilder $container, string $userClass): void
+    {
+        $definition = $container->getDefinition(UserFactory::class);
+        $definition->setArgument('$userClass', $userClass);
 
         $definition = $container->getDefinition(ChangePasswordType::class);
         $definition->setArgument('$userClass', $userClass);
@@ -59,43 +95,40 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition = $container->getDefinition(NewEmailAddressType::class);
         $definition->setArgument('$userClass', $userClass);
 
-        $definition = $container->getDefinition(PasswordManager::class);
-        $definition->setArgument('$tokenTtl', $repeatTtl);
-
-        $definition = $container->getDefinition(TablePrefixExtension::class);
-        $definition->setArgument('$prefix', $config['table_prefix']);
-
-        $definition = $container->getDefinition(TokenAuthenticator::class);
-        $definition->setArgument('$tokens', $config['security']['tokens']);
-
-        $definition = $container->getDefinition(UserChecker::class);
-        $definition->setArgument('$denyUnverifiedLogin', $config['user']['email_verification']['deny_unverified_login']);
-
-        $definition = $container->getDefinition(UserFactory::class);
+        $definition = $container->getDefinition(UserRegisterType::class);
         $definition->setArgument('$userClass', $userClass);
+    }
 
-        $definition = $container->getDefinition(UserListener::class);
-        $definition->setArgument('$initialEmailVerifiedState', $config['user']['email_verification']['default']);
-        $definition->setArgument('$verifyEmailOnRegister', $config['user']['email_verification']['verify_on_register']);
-
+    private function setMailerServiceArguments(ContainerBuilder $container, array $config): void
+    {
         $definition = $container->getDefinition(UserMailer::class);
         $definition->setArgument('$context', [
             'website_name' => $config['website_name'],
         ]);
 
-//        $definition->setArgument('$defaultPasswordResetPath', $config['user']['password_reset']['default_reset_path']);
-//        $definition->setArgument('$defaultChangeEmailVerifyPath', $config['user']['change_email_address']['default_verify_path']);
-//        $definition->setArgument('$sendUserWelcomeEmailEnabled', $config['user']['emails']['user_welcome']);
-//        $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
-//        $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
-//        $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
+        $mapping = [
+            PasswordChangedEmailFactory::class => 'password_changed',
+            UserEnabledEmailFactory::class => 'user_enabled',
+            UsernameChangedEmailFactory::class => 'username_changed',
+            WelcomeEmailFactory::class => 'welcome',
+        ];
+        foreach ($mapping as $class => $key) {
+            $definition = $container->getDefinition($class);
+            $definition->setArgument('$subject', $config['user']['emails'][$key]['subject']);
+            $definition->setArgument('$enabled', $config['user']['emails'][$key]['enabled']);
+        }
 
-        $definition = $container->getDefinition(UserRegisterType::class);
-        $definition->setArgument('$userClass', $userClass);
-
-        $definition = $container->getDefinition(UserRepository::class);
-        $definition->setArgument('$passwordRequestTimeout', $timeoutSeconds);
-        $definition->setArgument('$entityClass', $userClass);
+        $mapping = [
+            ChangeEmailVerificationEmailFactory::class => 'email_verification',
+            PasswordResetEmailFactory::class => 'password_reset',
+        ];
+        foreach ($mapping as $class => $key) {
+            $definition = $container->getDefinition($class);
+            $definition->setArgument('$subject', $config['user'][$key]['email']['subject']);
+            $definition->setArgument('$enabled', true);
+            $definition->setArgument('$defaultRedirectPath', $config['user'][$key]['email']['default_redirect_path']);
+            $definition->setArgument('$redirectPathQueryKey', $config['user'][$key]['email']['redirect_path_query']);
+        }
     }
 
     /**

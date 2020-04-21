@@ -5,6 +5,9 @@ We have built in user and security features to get you up and running quickly wi
 We have included default login and register forms to use 'out of the box' and much more.
 
 ## Getting started
+By using the flex recipe, you will already have a pre-configured `App\Entity'User` entity in your project. By default, although there is a column for the username and one for the email address in the database, these are kept in sync. You can modify the class to break these two properties. Even if you do this, the repository automatically configured for your User entity will look up users by their email address or username.
+
+### Configure security and firewalls
 As described [here](https://github.com/lexik/LexikJWTAuthenticationBundle/blob/master/Resources/doc/index.md#getting-started) - generate the SSH keys for JWTs. (Use the passphrase that has been generated in your .env file - in production you can generate keys using /bin/rand_string.sh which will be located in the sample project which includes the API and front-end)
 ```bash
 mkdir -p config/jwt
@@ -58,6 +61,6 @@ security:
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
 ```
 
-More docs coming soon.
-
+### Continue reading...
+- [Emails](./emails.md)
 - [Emails](./emails.md)

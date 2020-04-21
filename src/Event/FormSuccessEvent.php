@@ -24,7 +24,8 @@ class FormSuccessEvent extends Event
 {
     private Form $formResource;
     private FormInterface $form;
-    public $response = null;
+    /** @var mixed */
+    public $response;
     public array $serializerContext = [];
 
     public function __construct(Form $formResource, FormInterface $form, $response = null)

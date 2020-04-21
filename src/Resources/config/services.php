@@ -117,6 +117,7 @@ return static function (ContainerConfigurator $configurator) {
         ->abstract()
         ->args([
             '$container' => new Reference(ContainerInterface::class),
+            '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
         ])
         ->tag('container.service_subscriber');
 

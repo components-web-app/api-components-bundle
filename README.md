@@ -37,8 +37,13 @@ In the future, we will be creating a standard package you will be able to use fo
 > Be sure to run the [recipe for this bundle](https://github.com/api-platform/api-platform) or take a look at all the files and configurations in the repository that would normally have been executed if the recipe was run. It includes route mapping, default package configuration and a default User entity definition.
 
 ## Getting Started
+>Firstly, take a look through the default bundle configuration included in your project by Symfony Flex and adjust the values as required.
+
 - [Users & Security](./docs/users_and_security/index.md)
   - [Emails](./docs/users_and_security/emails.md)
 - [Resources](./docs/resources/index.md)
   - [Core resources](./docs/resources/core/index.md)
   - [Component resources](./docs/resources/components/index.md)
+- Customising database the tables prefix (docs coming soon)
+
+
