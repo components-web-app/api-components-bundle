@@ -118,8 +118,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
-        ])
-        ->tag('container.service_subscriber');
+        ]);
 
     $services
         ->set(ApiNormalizer::class)
@@ -147,7 +146,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ChangeEmailVerificationEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(ChangePasswordType::class)
@@ -343,7 +343,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PasswordChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(PasswordManager::class)
@@ -357,7 +358,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PasswordResetEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(PasswordRequestAction::class)
@@ -448,7 +450,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserEnabledEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(UserFactory::class)
@@ -493,7 +496,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UsernameChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(UserRegisterListener::class)
@@ -513,7 +517,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(WelcomeEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');

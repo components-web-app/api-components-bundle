@@ -116,6 +116,10 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
             $definition = $container->getDefinition($class);
             $definition->setArgument('$subject', $config['user']['emails'][$key]['subject']);
             $definition->setArgument('$enabled', $config['user']['emails'][$key]['enabled']);
+            if (WelcomeEmailFactory::class === $class) {
+                $definition->setArgument('$defaultRedirectPath', $config['user']['email_verification']['email']['default_redirect_path']);
+                $definition->setArgument('$redirectPathQueryKey', $config['user']['email_verification']['email']['redirect_path_query']);
+            }
         }
 
         $mapping = [

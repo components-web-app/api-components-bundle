@@ -168,8 +168,8 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     {
         preg_match_all('/{{[\s]*(\w+)[\s]*}}/', $path, $matches);
         foreach ($matches[0] as $matchIndex => $fullMatch) {
-            if (isset($variables[${$matches[1][$matchIndex]}])) {
-                $path = str_replace($fullMatch, $variables[${$matches[1][$matchIndex]}], $path);
+            if (\array_key_exists($varKey = $matches[1][$matchIndex], $variables)) {
+                $path = str_replace($fullMatch, $variables[$varKey], $path);
             }
         }
 
