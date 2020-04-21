@@ -213,7 +213,7 @@ class UserMailerTest extends TestCase
         };
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The user must have a username set to send them any email');
-        $userMailer->sendChangeEmailConfirmationEmail($user);
+        $userMailer->sendChangeEmailVerificationEmail($user);
     }
 
     public function test_error_if_no_token_for_verify_change_email(): void
@@ -224,7 +224,7 @@ class UserMailerTest extends TestCase
         $user->setUsername('username');
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A new email verification token must be set to send the `email verification` email');
-        $userMailer->sendChangeEmailConfirmationEmail($user);
+        $userMailer->sendChangeEmailVerificationEmail($user);
     }
 
     public function test_change_email_confirmation_email(): void
@@ -253,7 +253,7 @@ class UserMailerTest extends TestCase
             ->method('send')
             ->with($email);
 
-        $userMailer->sendChangeEmailConfirmationEmail($user);
+        $userMailer->sendChangeEmailVerificationEmail($user);
     }
 
     public function test_send_user_welcome_email_disabled(): void

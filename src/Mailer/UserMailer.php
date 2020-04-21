@@ -64,13 +64,13 @@ class UserMailer implements ServiceSubscriberInterface
         $this->send($email);
     }
 
-    public function sendChangeEmailConfirmationEmail(AbstractUser $user): void
+    public function sendChangeEmailVerificationEmail(AbstractUser $user): void
     {
         $email = $this->container->get(ChangeEmailVerificationEmailFactory::class)->create($user, $this->context);
         $this->send($email);
     }
 
-    public function sendUserWelcomeEmail(AbstractUser $user): void
+    public function sendWelcomeEmail(AbstractUser $user): void
     {
         $email = $this->container->get(WelcomeEmailFactory::class)->create($user, $this->context);
         $this->send($email);

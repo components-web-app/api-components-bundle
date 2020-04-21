@@ -79,13 +79,16 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition->setArgument('$verifyEmailOnRegister', $config['user']['email_verification']['verify_on_register']);
 
         $definition = $container->getDefinition(UserMailer::class);
-        $definition->setArgument('$websiteName', $config['website_name']);
-        $definition->setArgument('$defaultPasswordResetPath', $config['user']['password_reset']['default_reset_path']);
-        $definition->setArgument('$defaultChangeEmailVerifyPath', $config['user']['change_email_address']['default_verify_path']);
-        $definition->setArgument('$sendUserWelcomeEmailEnabled', $config['user']['emails']['user_welcome']);
-        $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
-        $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
-        $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
+        $definition->setArgument('$context', [
+            'website_name' => $config['website_name'],
+        ]);
+
+//        $definition->setArgument('$defaultPasswordResetPath', $config['user']['password_reset']['default_reset_path']);
+//        $definition->setArgument('$defaultChangeEmailVerifyPath', $config['user']['change_email_address']['default_verify_path']);
+//        $definition->setArgument('$sendUserWelcomeEmailEnabled', $config['user']['emails']['user_welcome']);
+//        $definition->setArgument('$sendUserEnabledEmailEnabled', $config['user']['emails']['user_enabled']);
+//        $definition->setArgument('$sendUserUsernameChangedEmailEnabled', $config['user']['emails']['user_username_changed']);
+//        $definition->setArgument('$sendUserPasswordChangedEmailEnabled', $config['user']['emails']['user_password_changed']);
 
         $definition = $container->getDefinition(UserRegisterType::class);
         $definition->setArgument('$userClass', $userClass);

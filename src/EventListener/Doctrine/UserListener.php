@@ -61,7 +61,7 @@ class UserListener
 
     public function postPersist(AbstractUser $user): void
     {
-        $this->userMailer->sendUserWelcomeEmail($user);
+        $this->userMailer->sendWelcomeEmail($user);
     }
 
     public function preUpdate(AbstractUser $user, LifecycleEventArgs $args): void

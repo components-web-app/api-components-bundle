@@ -49,6 +49,6 @@ class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_verify_email.html.twig';
+        return 'user_change_email_verification.html.twig';
     }
 }

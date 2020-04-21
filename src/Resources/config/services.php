@@ -21,7 +21,6 @@ use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
-use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -112,11 +111,6 @@ use Twig\Environment;
  */
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
-
-    $services
-        ->defaults()
-        ->autoconfigure()
-        ->private();
 
     $services
         ->set(AbstractUserEmailFactory::class)
@@ -517,5 +511,4 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
-    $services->alias(SlugifyInterface::class, 'slugify');
 };

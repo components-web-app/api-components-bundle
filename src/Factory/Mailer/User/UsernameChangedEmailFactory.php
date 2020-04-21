@@ -33,6 +33,6 @@ class UsernameChangedEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'username_changed.html.twig';
+        return 'user_username_changed.html.twig';
     }
 }

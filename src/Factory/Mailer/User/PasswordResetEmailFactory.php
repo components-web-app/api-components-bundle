@@ -49,6 +49,6 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_forgot_password.html.twig';
+        return 'user_password_reset.html.twig';
     }
 }
