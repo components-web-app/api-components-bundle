@@ -6,6 +6,7 @@ default:
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\PublishableContext'
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
 
@@ -34,6 +35,7 @@ default-coverage:
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
         - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
+        - 'Silverback\ApiComponentBundle\Features\Bootstrap\PublishableContext'
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
 
