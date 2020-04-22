@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Installation
-nav_order: 0
+nav_order: -1
 ---
 # Install API Component Bundle
 We encourage using as many of the packages as possible that are well maintained by large and active communities. Therefore, let's start with the most up to date API Platform files and then install this bundle on top.

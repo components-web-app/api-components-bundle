@@ -16,6 +16,7 @@ footer_content: "Copyright &copy; 2018-2020 Silverback IS. Distributed by an <a 
 
 plugins:
   - jekyll-seo-tag
+  - jemoji
 
 compress_html:
   clippings: all
