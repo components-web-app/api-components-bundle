@@ -1,3 +1,10 @@
+---
+layout: default
+title: 404
+nav_exclude: true
+search_exclude: true
+---
+
 **REACT**
 
 1. Create a layout

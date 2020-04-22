@@ -1,3 +1,8 @@
+---
+layout: default
+parent: Security &amp; Users
+nav_order: 1
+---
 # User Login
 
 >Because the login process serves a JWT Refresh token, this must be done by your front-end server-side application and authenticated using an API Token.
@@ -27,4 +32,4 @@ silverback_api_component:
 > It is the application's responsibility to save the refresh token server-side and refresh the token when appropriate.
 
 ## Using the refresh token
-Take a look at the [JWTRefreshTokenBundle documentation](https://github.com/markitosgv/JWTRefreshTokenBundle) for the refresh token bundle to ensure you have configured everything correctly to allow your front-end application to refresh the token. Also ensure you have setup the bundle's parameters as described in [Security & Users > Getting Started](./index.md#Configure-security-and-firewalls)
+Take a look at the [JWTRefreshTokenBundle documentation](https://github.com/markitosgv/JWTRefreshTokenBundle) for the refresh token bundle to ensure you have configured everything correctly to allow your front-end application to refresh the token. Also ensure you have setup the bundle's parameters as described in [Security & Users > Getting Started](index.md#Configure-security-and-firewalls)

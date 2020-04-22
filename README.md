@@ -1,5 +1,3 @@
-# API Component Bundle v2 [WIP]
-
 __Overall:__ 
 [![CI](https://github.com/silverbackis/ApiComponentBundle/workflows/CI/badge.svg?branch=master)](https://github.com/silverbackis/ApiComponentBundle/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master/graph/badge.svg)](https://codecov.io/gh/silverbackis/ApiComponentBundle/branch/master) <!-- [![Test Coverage](https://api.codeclimate.com/v1/badges/999310aca84ea8947ea9/test_coverage)](https://codeclimate.com/github/silverbackis/ApiComponentBundle/test_coverage) --> 
@@ -12,47 +10,9 @@ __PHPUnit:__
 
 ---
 
-## Introduction
-This bundle provides an extremely flexible API with functionality to provide the data structure and functionality for front-end web applications. With this bundle you can build website data by defining re-usable `components` for the front-end web application and define everything you would need to create a fully-featured website including an intuitive CMS.
-
-We build this bundle 'on the shoulders of giants' with large and active communities, and will not be reinventing anything which has already been created in the fantastic packages we use. The core packages we are using are [Symfony](https://symfony.com/), [Doctrine](https://www.doctrine-project.org/) and [API Platform](https://api-platform.com/). The teams behind these are fantastic, be sure to __buy them a beer :beers:__ if you ever bump into anyone involved!
-
-> Want a free and easy way to show your thanks for packages you use? Use the [`symfony/thanks`](https://github.com/symfony/thanks) - share the love :heart:
-
-There is also a front-end application in development to accompany this bundle, and when complete it will demonstrate the wide range of benefits this will provide.
-
-## Installation
-We encourage using as many of the packages as possible that are well maintained by large and active communities. Therefore, let's start with the most up to date API Platform files and then install this bundle on top.
-
-In the future, we will be creating a standard package you will be able to use for installing ACB instead of needing to follow these instructions. For now, we want to just focus on getting this bundle working well without the additional repository to maintain.
-
-- Download [API Platform files from GitHub](https://github.com/api-platform/api-platform) as described in their ['Getting Started'](https://api-platform.com/docs/core/getting-started/) instructions
-- Delete the folders `/client` and `/admin` - we do not need these
-- Remove the client and admin configurations from the `/docker-compose.yaml` file
-- Update the `api/Dockerfile`
-  - Change PHP version to at least 7.4
-  - Remove `--with-libzip` if present
-  - Add `COPY assets assets/` beneath `COPY src src/`
-  - Add `exif` and `xsl` to the `docker-php-ext-install` arguments (exif is to determine whether files are images and xsl is for the Inky extension working with emails using Symfony Mailer)
-  - Add `libxslt-dev` to `apk add --no-cache --virtual .build-deps` (required to install xsl)
-  - For `LiipImagineBundle` Support
-    - Add to `apk add --no-cache --virtual .build-deps` command the packages `libpng-dev`, `libjpeg-turbo-dev` and `freetype-dev`
-    - Add the following to include gd `docker-php-ext-configure gd --with-freetype --with-jpeg`
-    - Add or modify to include gd `docker-php-ext-install gd`
-- Start up the containers
-- run `docker-compose exec php sh` to bash into the php container
-- run `composer require silverbackis/api-component-bundle:2.x-dev`
-
-> Be sure to run the [recipe for this bundle](https://github.com/api-platform/api-platform) or take a look at all the files and configurations in the repository that would normally have been executed if the recipe was run. It includes route mapping, default package configuration and a default User entity definition.
-
-## Getting Started
->Firstly, take a look through the default bundle configuration included in your project by Symfony Flex and adjust the values as required.
-
-- [Users & Security](./docs/users_and_security/index.md)
-  - [Emails](./docs/users_and_security/emails.md)
-- [Resources](./docs/resources/index.md)
-  - [Core resources](./docs/resources/core/index.md)
-  - [Component resources](./docs/resources/components/index.md)
-- [Configuration reference](./docs/configuration_reference.md)
-
-
+<p align="center">
+    <h1 align="center">API Component Bundle v2 [WIP]</h1>
+    <p align="center">This bundle creates API to provide website structure, reusable components and common functionality for a front-end application to render.</p>
+    <p align="center"><strong><a href="https://silverbackis.github.io/ApiComponentBundle">Read the documentation</a></strong></p>
+    <br><br><br>
+</p>

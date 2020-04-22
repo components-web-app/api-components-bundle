@@ -1,3 +1,8 @@
+---
+layout: default
+nav_order: 2
+has_children: true
+---
 # Security & Users
 
 ## Types of authentication
@@ -117,14 +122,3 @@ silverback_api_component:
   user:
     class_name: App\Entity\User
 ```
-
-## Continue reading...
-- [Login](./login.md)
-- [Register](./register.md)
-- [Email address verification](./email-address-verification.md)
-- [Password reset](./password-reset.md)
-- [Configurable Notification Emails](./emails.md)
-  - [Welcome](./emails.md)
-  - [User enabled](./emails.md)
-  - [Username changed](./emails.md)
-  - [Password changed](./emails.md)

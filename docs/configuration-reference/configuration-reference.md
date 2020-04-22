@@ -1,4 +1,8 @@
-# Configuration
+---
+layout: default
+nav_order: 999
+---
+# Configuration Reference
 
 > This reference is the default configuration values without the [recommended configuration](https://github.com/silverbackis/recipes-contrib/blob/api-component-bundle/silverback/api-component-bundle/2.0/config/packages/silverback_api_component.yaml) applied (which is done so by default if you use Symfony Flex)
 

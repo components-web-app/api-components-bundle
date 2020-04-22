@@ -1,1 +1,26 @@
-theme: jekyll-theme-cayman
+title: API Component Bundle
+description: Documentation for Silverback's API Component Bundle package
+
+permalink: pretty
+
+exclude: ["*.gemspec", "*.gem", "Gemfile", "Gemfile.lock", "Api Component Bundle Work Overview.md"]
+
+remote_theme: pmarsceill/just-the-docs
+
+aux_links:
+  "View on GitHub":
+    - "https://github.com/silverbackis/ApiComponentBundle"
+
+footer_content: "Copyright &copy; 2018-2020 Silverback IS. Distributed by an <a href=\"https://github.com/silverbackis/ApiComponentBundle/blob/master/LICENSE.txt\">MIT license.</a>"
+# ga_tracking: UA-5555555-55
+
+plugins:
+  - jekyll-seo-tag
+
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  startings: []
+  blanklines: false
+  profile: false

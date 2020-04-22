@@ -1,3 +1,8 @@
+---
+layout: default
+parent: Resources
+nav_order: 1
+---
 # Core resources
 
 ### Final core resources

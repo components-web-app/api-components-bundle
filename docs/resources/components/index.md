@@ -1,3 +1,8 @@
+---
+layout: default
+parent: Resources
+nav_order: 2
+---
 # Components
 All component resource endpoints are prefixed `/component` (e.g. `/components/forms/{id}`)
 
