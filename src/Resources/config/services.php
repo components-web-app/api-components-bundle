@@ -23,6 +23,7 @@ use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
@@ -45,6 +46,7 @@ use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
+use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
@@ -302,6 +304,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FilterService::class),
             new Reference(UrlHelper::class),
         ]);
+
+    $services
+        ->set(JwtCreatedEventListener::class)
+        ->args([
+            new Reference(RoleHierarchy::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles']);
 
     $services
         ->set(LayoutRepository::class)
