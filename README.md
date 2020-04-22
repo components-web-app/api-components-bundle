@@ -12,6 +12,15 @@ __PHPUnit:__
 
 ---
 
+## Introduction
+This bundle provides an extremely flexible API with functionality to provide the data structure and functionality for front-end web applications. With this bundle you can build website data by defining re-usable `components` for the front-end web application and define everything you would need to create a fully-featured website including an intuitive CMS.
+
+We build this bundle 'on the shoulders of giants' with large and active communities, and will not be reinventing anything which has already been created in the fantastic packages we use. The core packages we are using are [Symfony](https://symfony.com/), [Doctrine](https://www.doctrine-project.org/) and [API Platform](https://api-platform.com/). The teams behind these are fantastic, be sure to __buy them a beer :beers:__ if you ever bump into anyone involved!
+
+> Want a free and easy way to show your thanks for packages you use? Use the [`symfony/thanks`](https://github.com/symfony/thanks) - share the love :heart:
+
+There is also a front-end application in development to accompany this bundle, and when complete it will demonstrate the wide range of benefits this will provide.
+
 ## Installation
 We encourage using as many of the packages as possible that are well maintained by large and active communities. Therefore, let's start with the most up to date API Platform files and then install this bundle on top.
 
@@ -44,6 +53,6 @@ In the future, we will be creating a standard package you will be able to use fo
 - [Resources](./docs/resources/index.md)
   - [Core resources](./docs/resources/core/index.md)
   - [Component resources](./docs/resources/components/index.md)
-- Customising database the tables prefix (docs coming soon)
+- [Configuration reference](./docs/configuration_reference.md)
 
 

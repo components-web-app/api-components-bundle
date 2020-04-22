@@ -43,7 +43,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     protected ?string $redirectPathQueryKey;
     protected array $emailContext;
     protected ?RawMessage $message;
-    private ?AbstractUser $user;
+    private AbstractUser $user;
 
     public function __construct(
         ContainerInterface $container,

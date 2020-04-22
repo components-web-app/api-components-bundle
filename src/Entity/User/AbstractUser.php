@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Entity\User;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
@@ -32,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
  */
-abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterface
+abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterface, JWTUserInterface
 {
     use IdTrait;
     use TimestampedTrait;
@@ -349,5 +350,13 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
     public function __toString()
     {
         return $this->id;
+    }
+
+    public static function createFromPayload($username, array $payload)
+    {
+        return new static(
+            $username,
+            $payload['roles']
+        );
     }
 }
