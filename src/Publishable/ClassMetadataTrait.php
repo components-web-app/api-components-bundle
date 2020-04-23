@@ -29,7 +29,7 @@ trait ClassMetadataTrait
 
     private function getClassMetadata(object $data): ClassMetadataInfo
     {
-        /** @var ClassMetadataInfo $classMetadata */
+        /* @var ClassMetadataInfo $classMetadata */
         return $this->getEntityManager($data)->getClassMetadata($this->getObjectClass($data));
     }
 

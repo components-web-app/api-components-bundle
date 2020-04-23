@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Mapping\Loader;
 
+use Doctrine\Common\Annotations\AnnotationReader;
+use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\Serializer\Exception\MappingException;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
@@ -27,11 +28,11 @@ use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
  */
 final class PublishableLoader implements LoaderInterface
 {
-    private PublishableHelper $publishableHelper;
+    private AnnotationReader $reader;
 
-    public function __construct(PublishableHelper $publishableHelper)
+    public function __construct(AnnotationReader $reader)
     {
-        $this->publishableHelper = $publishableHelper;
+        $this->reader = $reader;
     }
 
     /**
@@ -39,11 +40,10 @@ final class PublishableLoader implements LoaderInterface
      */
     public function loadClassMetadata(ClassMetadataInterface $classMetadata)
     {
-        if (!$this->publishableHelper->isPublishable($classMetadata->getName())) {
+        if (!$configuration = $this->reader->getClassAnnotation($classMetadata->getReflectionClass(), Publishable::class)) {
             return true;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($classMetadata->getName());
         foreach ([$configuration->fieldName, $configuration->associationName] as $field) {
             if (!$attributeMetadata = ($classMetadata->getAttributesMetadata()[$field] ?? null)) {
                 throw new MappingException(sprintf('Groups on "%s::%s" cannot be added because the field does not exist.', $classMetadata->getName(), $field));

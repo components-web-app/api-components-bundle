@@ -49,6 +49,7 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('permission')
                             ->cannotBeEmpty()
+                            ->isRequired()
                         ->end()
                     ->end()
                 ->end()

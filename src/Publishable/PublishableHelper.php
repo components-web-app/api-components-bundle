@@ -54,7 +54,7 @@ final class PublishableHelper
      */
     public function getConfiguration($class): ?Publishable
     {
-        /** @var Publishable|null $configuration */
+        /* @var Publishable|null $configuration */
         return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
     }
 }
