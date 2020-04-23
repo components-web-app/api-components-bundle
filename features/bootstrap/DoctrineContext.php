@@ -134,7 +134,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @create_test_form
+     * @BeforeScenario @createTestForm
      */
     public function createTestForm(BeforeScenarioScope $scope): void
     {
@@ -147,7 +147,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @create_nested_form
+     * @BeforeScenario @createNestedForm
      */
     public function createNestedForm(BeforeScenarioScope $scope): void
     {
@@ -160,7 +160,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @create_test_repeated_form
+     * @BeforeScenario @createTestRepeatedForm
      */
     public function createTestRepeatedForm(BeforeScenarioScope $scope): void
     {

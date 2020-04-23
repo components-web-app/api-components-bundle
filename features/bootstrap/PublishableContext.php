@@ -36,6 +36,7 @@ final class PublishableContext implements Context
     private IriConverterInterface $iriConverter;
     private array $resources = [];
     private array $publishedResourcesWithoutDrafts = [];
+    private RestContext $restContext;
 
     public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
     {
@@ -51,6 +52,7 @@ final class PublishableContext implements Context
         $this->behatchJsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
         $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
         $this->publishedResourcesWithoutDrafts = [];
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
     }
 
     /**
@@ -76,7 +78,7 @@ final class PublishableContext implements Context
     {
         for ($i = 0; $i < 2; ++$i) {
             $publishedNow = $this->createPublishableComponent(new \DateTime());
-            $draftUntilSoon = $this->thereIsADraftResource((new \DateTime())->modify('+10 seconds')->format('YYYY-mm-dd HH:ii:ss'));
+            $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('YYYY-mm-dd HH:ii:ss'));
             $draftUntilSoon->setPublishedResource($publishedNow);
 
             $this->thereIsAPublicResourceWithADraftResourceAvailable();
@@ -86,7 +88,7 @@ final class PublishableContext implements Context
             $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
 
             // $draftNoPublished
-            $this->thereIsADraftResource();
+            $this->thereIsAPublishableResource();
         }
     }
 
@@ -97,14 +99,14 @@ final class PublishableContext implements Context
     {
         $publishAt = $publishDate ? new \DateTime($publishDate) : null;
         $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
-        $draft = $this->thereIsADraftResource($publishAt);
+        $draft = $this->thereIsAPublishableResource($publishAt);
         $draft->setPublishedResource($publishedRecently);
     }
 
     /**
-     * @Given there is a draft resource(?: set to publish at "(.*)"|)
+     * @Given there is a publishable resource(?: set to publish at "(.*)"|)
      */
-    public function thereIsADraftResource(?string $publishDate = null): PublishableComponent
+    public function thereIsAPublishableResource(?string $publishDate = null): PublishableComponent
     {
         $publishAt = $publishDate ? new \DateTime($publishDate) : null;
 
@@ -122,19 +124,6 @@ final class PublishableContext implements Context
             }'],
             1
         ), );
-    }
-
-    /**
-     * @When I get the publishable resource saved with index :index(?: and the querystring "(.*)"|)
-     */
-    public function iGetThePublishableResourceSavedWithIndex(int $index, ?string $querystring = null): void
-    {
-        $resource = $this->resources[$index];
-        $path = $this->iriConverter->getIriFromItem($resource);
-        if ($querystring) {
-            $path .= '?' . $querystring;
-        }
-        $this->behatchRestContext->iSendARequestTo('GET', $path);
     }
 
     /**
@@ -222,6 +211,9 @@ final class PublishableContext implements Context
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
         $this->resources[] = $resource;
+
+        $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
+        $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
 
         return $resource;
     }
