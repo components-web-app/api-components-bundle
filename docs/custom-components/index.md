@@ -1,11 +1,12 @@
 ---
 layout: default
-parent: Components
-nav_order: 3
+nav_order: 6
 ---
-# Custom components
+# Custom Components
 
 > __Incomplete Documentation__
+
+All component resource endpoints are prefixed `/component` (e.g. `/components/forms/{id}`)
 
 ## Create a custom component
 
