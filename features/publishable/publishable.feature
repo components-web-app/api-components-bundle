@@ -7,15 +7,15 @@ Feature: Access to unpublished/draft resources should be configurable
   @create_schema
   @login_admin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, it should include the draft resources instead of the published ones.
-    Given there are draft resources available
-    And there are published resources available
-    When I get a collection of publishable resources
+    Given there are draft and published resources available
+    When I send a "GET" request to "/component/publishable_components"
     Then it should include the draft resources instead of the published ones
 
   @create_schema
   @login_admin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
-    When I get a collection of published resources with draft resources available and published=true query filter
+    Given there are draft and published resources available
+    When I send a "GET" request to "/component/publishable_components?published=true"
     Then it should include the published resources only
 
   @create_schema
@@ -36,18 +36,21 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, when I create a resource, I should have the draft resource returned.
     When I create a resource
     Then I should have the draft resource returned
+  #merge scenario outline #1
 
   @create_schema
   @login_admin
   Scenario: As a user with draft access, when I create a resource with an active publication date, I should have the published resource returned.
   When I create a resource with an active publication date
   Then I should have the published resource returned
+  #merge scenario outline #1
 
   @create_schema
   @login_admin
   Scenario: As a user with draft access, when I create a resource with a future publication date, I should have the draft resource returned.
   When I create a resource with a future publication date
   Then I should have the draft resource returned
+  #merge scenario outline #1
 
   @create_schema
   @login_user
@@ -119,3 +122,7 @@ Feature: Access to unpublished/draft resources should be configurable
 
   @create_schema
   Scenario: As a user with no draft access, I cannot delete a draft resource.
+
+  #Security
+  @create_schema
+  Scenario: I cannot modify the publishedResource property via the API

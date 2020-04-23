@@ -29,7 +29,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "/_/draft_components/09242f6f30b64754ab3fe57804411597"
+                "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
             ]
         },
         "@type": {

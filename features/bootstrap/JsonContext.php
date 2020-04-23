@@ -67,8 +67,8 @@ class JsonContext implements Context
      */
     public function theJsonIsASupersetOf(PyStringNode $content): void
     {
-        $actual = json_decode($this->getContent(), true);
-        Assert::assertArraySubset(json_decode($content->getRaw(), true), $actual);
+        // Must change to https://github.com/rdohms/phpunit-arraysubset-asserts for PHPUnit 9
+        Assert::assertArraySubset(json_decode($content->getRaw(), true), $this->getJsonAsArray());
     }
 
     private function sortArrays($obj)
@@ -139,5 +139,10 @@ class JsonContext implements Context
     private function getContent(): string
     {
         return $this->jsonContext->getSession()->getPage()->getContent();
+    }
+
+    public function getJsonAsArray(): array
+    {
+        return json_decode($this->getContent(), true, 512, JSON_THROW_ON_ERROR);
     }
 }

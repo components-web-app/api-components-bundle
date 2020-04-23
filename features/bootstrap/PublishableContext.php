@@ -20,24 +20,23 @@ use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DraftComponent;
+use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\PublishableComponent;
 
 /**
  * @author Pierre Rebeilleau <pierre@les-tilleuls.coop>
  */
 final class PublishableContext implements Context
 {
-    private DoctrineContext $doctrineContext;
     private ?BehatchRestContext $behatchRestContext;
     private ?BehatchJsonContext $behatchJsonContext;
     private ?JsonContext $jsonContext;
-    private ManagerRegistry $doctrine;
     private ObjectManager $manager;
+    private array $resources = [];
+    private array $publishedResourcesWithoutDrafts = [];
 
-    public function __construct(DoctrineContext $doctrineContext, ManagerRegistry $doctrine)
+    public function __construct(ManagerRegistry $doctrine)
     {
-        $this->doctrineContext = $doctrineContext;
-        $this->doctrine = $doctrine;
         $this->manager = $doctrine->getManager();
     }
 
@@ -48,60 +47,30 @@ final class PublishableContext implements Context
     {
         $this->behatchJsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
         $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
+        $this->publishedResourcesWithoutDrafts = [];
     }
 
     /**
-     * @When I get a collection of published resources with draft resources available
+     * @Given there are draft and published resources available
      */
-    public function iGetACollectionOfPublishedResourcesWithDraftResourcesAvailable(): void
+    public function givenThereAreDraftAndPublishedResourcesAvailable(): void
     {
-        $objects = [];
-
-        for ($i = 0; $i < 5; ++$i) {
-            $object = new DraftComponent();
-            $object->name = "toto $i";
-            $object->setPublishedAt(new \DateTime());
-            $this->manager->persist($object);
-            $object[$i] = $object;
-        }
-        $this->manager->flush();
-
         for ($i = 0; $i < 2; ++$i) {
-            $object = new DraftComponent();
-            $object->name = "toto $i";
-            $object->setPublishedResource($objects[$i]);
-            $this->manager->persist($object);
+            $publishedNow = $this->createPublishableComponent(new \DateTime(), 'is_published');
+            $draftUntilSoon = $this->createPublishableComponent((new \DateTime())->modify('+10 seconds'), 'is_draft');
+            $draftUntilSoon->setPublishedResource($publishedNow);
+
+            $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'), 'is_published');
+            $alwaysDraft = $this->createPublishableComponent(null, 'is_draft');
+            $alwaysDraft->setPublishedResource($publishedRecently);
+
+            // $publishedNoDraft
+            $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'), 'is_published');
+            $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
+
+            // $draftNoPublished
+            $this->createPublishableComponent(null, 'is_draft');
         }
-        $this->manager->flush();
-
-        $this->behatchRestContext->iSendARequestTo('GET', '/draft_components');
-    }
-
-    /**
-     * @When I get a collection of published resources with draft resources available and published=true query filter
-     */
-    public function iGetACollectionOfPublishedResourcesWithDraftResourcesAvailableAndPublishedIsEqualTrueQueryFilter(): void
-    {
-        $objects = [];
-
-        for ($i = 0; $i < 5; ++$i) {
-            $object = new DraftComponent();
-            $object->name = "toto $i";
-            $object->setPublishedAt(new \DateTime());
-            $this->manager->persist($object);
-            $object[$i] = $object;
-        }
-        $this->manager->flush();
-
-        for ($i = 0; $i < 2; ++$i) {
-            $object = new DraftComponent();
-            $object->name = "toto $i";
-            $object->setPublishedResource($objects[$i]);
-            $this->manager->persist($object);
-        }
-        $this->manager->flush();
-
-        $this->behatchRestContext->iSendARequestTo('GET', '/draft_components?published=true');
     }
 
     /**
@@ -109,7 +78,7 @@ final class PublishableContext implements Context
      */
     public function iCreateAResource(): void
     {
-        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
+        $this->behatchRestContext->iSendARequestTo('POST', '/publishable_components', new PyStringNode(
             ['{
                 "name": "John Doe"
             }'],
@@ -118,78 +87,66 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @When I create a resource with an active publication date
-     */
-    public function iCreateAResourceWithAnActivePublicationDate(): void
-    {
-        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
-            ['{
-                "name": "John Doe",
-                "publishedAt": "2020-04-19 07:32:16"
-            }'],
-            1
-        ), );
-    }
-
-    /**
-     * @When I create a resource with a future publication date
-     */
-    public function iCreateAResourceWithAFuturePublicationDate(): void
-    {
-        $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
-            ['{
-                "name": "John Doe",
-                "publishedAt": "2020-05-19 07:32:16"
-            }'],
-            1
-        ), );
-    }
-
-    /**
      * @Then it should include the draft resources instead of the published ones
      */
-    public function itShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
+    public function itShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes()
     {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('draft.schema.json');
+        $response = $this->jsonContext->getJsonAsArray();
+
+        $draftResources = array_filter($this->resources, static function (PublishableComponent $component) {
+            return 'is_draft' === $component['reference'];
+        });
+
+        $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
+        if ($expectedTotal !== ($receivedTotal = \count($response))) {
+            throw new \Exception(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+        }
+
+        $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
+
+        foreach ($response as $item) {
+            if ('is_draft' !== $item['reference'] && !\in_array($item['id'], $expectedPublishedResourceIds, true)) {
+                throw new \Exception('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+            }
+        }
     }
 
     /**
      * @Then it should include the published resources only
      */
-    public function itShouldIncludeThePublishedResourcesOnly(): void
+    public function itShouldIncludeThePublishedResourcesOnly()
     {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('/published.schema.json');
+        $response = $this->jsonContext->getJsonAsArray();
+
+        $publishedResources = array_filter($this->resources, static function (PublishableComponent $component) {
+            return 'is_published' === $component['reference'];
+        });
+
+        $expectedTotal = \count($publishedResources);
+
+        Assert::assertEquals($expectedTotal, $receivedTotal = \count($response), sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+
+        foreach ($response as $item) {
+            Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+        }
     }
 
-    /**
-     * @Then it should not include the draft resources
-     */
-    public function itShouldNotIncludeTheDraftResources(): void
+    private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
     {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('no_draft.schema.json');
+        $isPublished = $publishedAt <= new \Date();
+        $reference = $isPublished ? 'is_published' : 'is_draft';
+        $resource = new PublishableComponent($reference);
+        $resource->setPublishedAt($publishedAt);
+        $this->manager->persist($resource);
+        $this->resources[] = $resource;
+
+        return $resource;
     }
 
-    /**
-     * @Then I should have the draft resource returned
-     */
-    public function iShouldHaveTheDraftResourceReturned(): void
+    private function getResourceIds(array $resources): array
     {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('single_draft.schema.json');
-    }
-
-    /**
-     * @Then I should have the published resource returned
-     */
-    public function iShouldHaveThePublishedResourceReturned(): void
-    {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFile('single_published.schema.json');
-    }
-
-    /**
-     * @Then I should have the published resource returned and the publication date is automatically set
-     */
-    public function iShouldHaveThePublishedResourceReturnedAndThePublicationDateIsAutomaticallySet(): void
-    {
-        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated('single_dateCreated_published.schema.json');
+        return array_map(static function (PublishableComponent $component) {
+            return $component->getId();
+        }, $resources);
     }
 }
