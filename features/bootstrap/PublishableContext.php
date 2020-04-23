@@ -112,7 +112,9 @@ final class PublishableContext implements Context
         $this->behatchRestContext->iSendARequestTo('POST', '/draft_components', new PyStringNode(
             ['{
                 "name": "John Doe"
-            }'], 1), );
+            }'],
+            1
+        ), );
     }
 
     /**
@@ -124,7 +126,9 @@ final class PublishableContext implements Context
             ['{
                 "name": "John Doe",
                 "publishedAt": "2020-04-19 07:32:16"
-            }'], 1), );
+            }'],
+            1
+        ), );
     }
 
     /**
@@ -136,7 +140,9 @@ final class PublishableContext implements Context
             ['{
                 "name": "John Doe",
                 "publishedAt": "2020-05-19 07:32:16"
-            }'], 1), );
+            }'],
+            1
+        ), );
     }
 
     /**

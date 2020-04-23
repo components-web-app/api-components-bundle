@@ -67,7 +67,7 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @createSchema
+     * @create_schema
      */
     public function createDatabase(): void
     {
@@ -76,11 +76,7 @@ final class DoctrineContext implements Context
         $this->schemaTool->createSchema($this->classes);
     }
 
-    /**
-     * @BeforeScenario
-     * @login
-     */
-    public function login(BeforeScenarioScope $scope): void
+    private function login(BeforeScenarioScope $scope, array $roles = []): void
     {
         $user = new User();
         $user
@@ -99,23 +95,20 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
+     * @login_admin
+     */
+    public function loginAdmin(BeforeScenarioScope $scope): void
+    {
+        $this->login($scope, ['ROLE_ADMIN']);
+    }
+
+    /**
+     * @BeforeScenario
      * @login_user
      */
     public function loginUser(BeforeScenarioScope $scope): void
     {
-        $user = new User();
-        $user
-            ->setRoles(['ROLE_USER'])
-            ->setUsername('user@example.com')
-            ->setPassword('user');
-        $this->manager->persist($user);
-        $this->manager->flush();
-        $this->manager->clear();
-
-        $token = $this->jwtManager->create($user);
-
-        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->login($scope, ['ROLE_USER']);
     }
 
     /**
@@ -128,7 +121,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @createRegisterForm
+     * @BeforeScenario @create_register_form
      */
     public function createRegisterForm(BeforeScenarioScope $scope)
     {
@@ -141,7 +134,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @createTestForm
+     * @BeforeScenario @create_test_form
      */
     public function createTestForm(BeforeScenarioScope $scope): void
     {
@@ -154,7 +147,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @createNestedForm
+     * @BeforeScenario @create_nested_form
      */
     public function createNestedForm(BeforeScenarioScope $scope): void
     {
@@ -167,7 +160,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @createTestRepeatedForm
+     * @BeforeScenario @create_test_repeated_form
      */
     public function createTestRepeatedForm(BeforeScenarioScope $scope): void
     {
