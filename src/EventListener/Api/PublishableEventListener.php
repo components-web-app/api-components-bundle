@@ -110,10 +110,15 @@ final class PublishableEventListener
         ]);
         if (!$draft) {
             $draft = clone $data;
+
             // Reset draft identifier(s)
             $classMetadata->setIdentifierValues($draft, array_combine($classMetadata->getIdentifierFieldNames(), array_fill(0, \count($classMetadata->getIdentifierFieldNames()), null)));
 
+            // Add draft object to UnitOfWork
             $this->getEntityManager($draft)->persist($draft);
+
+            // Set publishedResource on draft
+            $classMetadata->setFieldValue($draft, $configuration->associationName, $data);
         }
 
         // Replace data by its draft

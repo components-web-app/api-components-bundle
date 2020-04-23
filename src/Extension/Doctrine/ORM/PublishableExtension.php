@@ -16,7 +16,9 @@ namespace Silverback\ApiComponentBundle\Extension\Doctrine\ORM;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -28,12 +30,14 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 {
     private PublishableHelper $publishableHelper;
     private RequestStack $requestStack;
+    private ManagerRegistry $registry;
     private ?Publishable $configuration;
 
-    public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack)
+    public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack, ManagerRegistry $registry)
     {
         $this->publishableHelper = $publishableHelper;
         $this->requestStack = $requestStack;
+        $this->registry = $registry;
     }
 
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
@@ -52,7 +56,6 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
         // Reset queryBuilder to prevent an invalid DQL
         $queryBuilder->where('1 = 1');
-
         $alias = $queryBuilder->getRootAliases()[0];
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
@@ -84,20 +87,25 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         }
 
         $alias = $queryBuilder->getRootAliases()[0];
-        $publishedResourceAlias = $queryNameGenerator->generateJoinAlias($configuration->associationName);
-        $queryBuilder->leftJoin("$alias.$configuration->associationName", $publishedResourceAlias);
+        $identifiers = $this->registry->getManagerForClass($resourceClass)->getClassMetadata($resourceClass)->getIdentifier();
+        $dql = $this->getDQL($configuration, $resourceClass);
 
-        // (o.publishedAt IS NOT NULL AND o.publishedAt <= :currentTime) OR (o.publishedAt IS NULL OR o.publishedAt > :currentTime)
-        $queryBuilder->orWhere(
-            $queryBuilder->expr()->andX(
-                $queryBuilder->expr()->isNotNull("$alias.$configuration->fieldName"),
-                $queryBuilder->expr()->lte("$alias.$configuration->fieldName", ':currentTime'),
-            ),
-            $queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull("$alias.$configuration->fieldName"),
-                $queryBuilder->expr()->gt("$alias.$configuration->fieldName", ':currentTime'),
-            ),
-        )->setParameter('currentTime', new \DateTimeImmutable());
+        // o.id NOT IN (SELECT p.publishedResource FROM {table} t WHERE t.publishedResource IS NOT NULL)
+        foreach ($identifiers as $identifier) {
+            $queryBuilder->andWhere($queryBuilder->expr()->notIn("$alias.$identifier", $dql));
+        }
+    }
+
+    private function getDQL(Publishable $configuration, string $resourceClass): string
+    {
+        /** @var EntityRepository $repository */
+        $repository = $this->registry->getManagerForClass($resourceClass)->getRepository($resourceClass);
+        $queryBuilder = $repository->createQueryBuilder('o');
+
+        return $queryBuilder
+            ->select("o.$configuration->associationName")
+            ->where($queryBuilder->expr()->isNotNull("o.$configuration->associationName"))
+            ->getDQL();
     }
 
     private function isDraftRequest(array $context): bool
