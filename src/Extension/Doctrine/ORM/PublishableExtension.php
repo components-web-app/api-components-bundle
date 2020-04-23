@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Extension;
+namespace Silverback\ApiComponentBundle\Extension\Doctrine\ORM;
 
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
@@ -43,7 +43,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        if (!$this->isAllowed($context)) {
+        if (!$this->isDraftRequest($context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
@@ -54,25 +54,19 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         $queryBuilder->where('1 = 1');
 
         $alias = $queryBuilder->getRootAliases()[0];
+
+        // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
         foreach ($identifiers as $identifier) {
-            // (o.id = :id AND o.publishedAt IS NOT NULL AND o.publishedAt <= :currentTime)
-            // OR ((o.publishedAt IS NULL OR o.publishedAt > :currentTime) AND o.publishedResource = :id)
-            $queryBuilder->orWhere(
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
-                    $queryBuilder->expr()->isNotNull("$alias.$configuration->fieldName"),
-                    $queryBuilder->expr()->lte("$alias.$configuration->fieldName", ':currentTime'),
-                ),
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->isNull("$alias.$configuration->fieldName"),
-                        $queryBuilder->expr()->gt("$alias.$configuration->fieldName", ':currentTime'),
-                    ),
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
+                    $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
                 )
-            )->setParameter('currentTime', new \DateTimeImmutable())
-            ->setParameter("id_$identifier", $identifier);
+            )->setParameter("id_$identifier", $identifier);
         }
+
+        $queryBuilder->expr()->asc($queryBuilder->expr()->isNull("$alias.$configuration->associationName"));
+        $queryBuilder->setMaxResults(1);
     }
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null, array $context = []): void
@@ -82,7 +76,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         }
 
         $configuration = $this->getConfiguration($resourceClass);
-        if (!$this->isAllowed($context)) {
+        if (!$this->isDraftRequest($context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
@@ -106,7 +100,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         )->setParameter('currentTime', new \DateTimeImmutable());
     }
 
-    private function isAllowed(array $context): bool
+    private function isDraftRequest(array $context): bool
     {
         return $this->publishableHelper->isGranted() && false === ($context['filters']['published'] ?? false);
     }
@@ -116,7 +110,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         $alias = $queryBuilder->getRootAliases()[0];
         $queryBuilder
             ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
-            ->andWhere("$alias.$configuration->fieldName >= :currentTime")
+            ->andWhere("$alias.$configuration->fieldName <= :currentTime")
             ->setParameter('currentTime', new \DateTimeImmutable());
     }
 

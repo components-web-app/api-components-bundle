@@ -50,7 +50,7 @@ use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListene
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentBundle\Extension\PublishableExtension;
+use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\PublishableExtension;
 use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
