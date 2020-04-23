@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
@@ -32,12 +33,14 @@ final class PublishableContext implements Context
     private ?BehatchJsonContext $behatchJsonContext;
     private ?JsonContext $jsonContext;
     private ObjectManager $manager;
+    private IriConverterInterface $iriConverter;
     private array $resources = [];
     private array $publishedResourcesWithoutDrafts = [];
 
-    public function __construct(ManagerRegistry $doctrine)
+    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
     {
         $this->manager = $doctrine->getManager();
+        $this->iriConverter = $iriConverter;
     }
 
     /**
@@ -51,26 +54,61 @@ final class PublishableContext implements Context
     }
 
     /**
+     * @Transform now
+     */
+    public function transformNow(): \DateTime
+    {
+        return new \DateTime();
+    }
+
+    /**
+     * @Transform null
+     */
+    public function transformNull()
+    {
+        return null;
+    }
+
+    /**
      * @Given there are draft and published resources available
      */
     public function givenThereAreDraftAndPublishedResourcesAvailable(): void
     {
         for ($i = 0; $i < 2; ++$i) {
-            $publishedNow = $this->createPublishableComponent(new \DateTime(), 'is_published');
-            $draftUntilSoon = $this->createPublishableComponent((new \DateTime())->modify('+10 seconds'), 'is_draft');
+            $publishedNow = $this->createPublishableComponent(new \DateTime());
+            $draftUntilSoon = $this->thereIsADraftResource((new \DateTime())->modify('+10 seconds')->format('YYYY-mm-dd HH:ii:ss'));
             $draftUntilSoon->setPublishedResource($publishedNow);
 
-            $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'), 'is_published');
-            $alwaysDraft = $this->createPublishableComponent(null, 'is_draft');
-            $alwaysDraft->setPublishedResource($publishedRecently);
+            $this->thereIsAPublicResourceWithADraftResourceAvailable();
 
             // $publishedNoDraft
-            $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'), 'is_published');
+            $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'));
             $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
 
             // $draftNoPublished
-            $this->createPublishableComponent(null, 'is_draft');
+            $this->thereIsADraftResource();
         }
+    }
+
+    /**
+     * @Given there is a published resource with a draft(?: set to publish at "(.*)"|)
+     */
+    public function thereIsAPublicResourceWithADraftResourceAvailable(?string $publishDate = null): void
+    {
+        $publishAt = $publishDate ? new \DateTime($publishDate) : null;
+        $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
+        $draft = $this->thereIsADraftResource($publishAt);
+        $draft->setPublishedResource($publishedRecently);
+    }
+
+    /**
+     * @Given there is a draft resource(?: set to publish at "(.*)"|)
+     */
+    public function thereIsADraftResource(?string $publishDate = null): PublishableComponent
+    {
+        $publishAt = $publishDate ? new \DateTime($publishDate) : null;
+
+        return $this->createPublishableComponent($publishAt);
     }
 
     /**
@@ -87,9 +125,22 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Then it should include the draft resources instead of the published ones
+     * @When I get the publishable resource saved with index :index(?: and the querystring "(.*)"|)
      */
-    public function itShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes()
+    public function iGetThePublishableResourceSavedWithIndex(int $index, ?string $querystring = null): void
+    {
+        $resource = $this->resources[$index];
+        $path = $this->iriConverter->getIriFromItem($resource);
+        if ($querystring) {
+            $path .= '?' . $querystring;
+        }
+        $this->behatchRestContext->iSendARequestTo('GET', $path);
+    }
+
+    /**
+     * @Then the response should include the draft resources instead of the published ones
+     */
+    public function theResponseShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
 
@@ -112,9 +163,9 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Then it should include the published resources only
+     * @Then the response should include the published resources only
      */
-    public function itShouldIncludeThePublishedResourcesOnly()
+    public function theResponseShouldIncludeThePublishedResourcesOnly(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
 
@@ -128,6 +179,38 @@ final class PublishableContext implements Context
 
         foreach ($response as $item) {
             Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+        }
+    }
+
+    /**
+     * @Then the response should include the key :arrayKey with the value :arrayValue
+     */
+    public function theResponseSHouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
+    {
+        $response = $this->jsonContext->getJsonAsArray();
+        Assert::assertArrayHasKey($arrayKey, $response);
+        Assert::assertEquals($arrayValue, $response[$arrayKey]);
+    }
+
+    /**
+     * @Then the response should be a published resource
+     */
+    public function theResponseShouldBeAPublishedResource(): void
+    {
+        $response = $this->jsonContext->getJsonAsArray();
+        $publishedAt = new \DateTime($response['publishedAt']);
+        Assert::assertLessThanOrEqual(new \DateTime(), $publishedAt);
+    }
+
+    /**
+     * @Then the response should be a draft resource
+     */
+    public function theResponseShouldBeADraftResource(): void
+    {
+        $response = $this->jsonContext->getJsonAsArray();
+        $publishedAt = new \DateTime($response['publishedAt']);
+        if (null !== $publishedAt) {
+            Assert::assertGreaterThan(new \DateTime(), $publishedAt);
         }
     }
 

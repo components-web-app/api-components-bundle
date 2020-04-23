@@ -9,81 +9,110 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, it should include the draft resources instead of the published ones.
     Given there are draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then it should include the draft resources instead of the published ones
+    Then the response should include the draft resources instead of the published ones
 
   @createSchema
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
     Given there are draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=true"
-    Then it should include the published resources only
+    Then the response should include the published resources only
 
   @createSchema
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
     Given there are draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then it should include the published resources only
+    Then the response should include the published resources only
 
   @createSchema
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
-    Then it should include the published resources only
+    Then the response should include the published resources only
 
   # POST
   @createSchema
   @loginAdmin
-  Scenario: As a user with draft access, when I create a resource, I should have the draft resource returned.
-    When I create a resource
-    Then I should have the draft resource returned
-  #merge scenario outline #1
-
-  @createSchema
-  @loginAdmin
-  Scenario: As a user with draft access, when I create a resource with an active publication date, I should have the published resource returned.
-  When I create a resource with an active publication date
-  Then I should have the published resource returned
-  #merge scenario outline #1
-
-  @createSchema
-  @loginAdmin
-  Scenario: As a user with draft access, when I create a resource with a future publication date, I should have the draft resource returned.
-  When I create a resource with a future publication date
-  Then I should have the draft resource returned
-  #merge scenario outline #1
+  Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
+    When I send a "POST" request to "/component/publishable_components" with body:
+    """
+    {
+      "reference": "test",
+      "publishedAt": "<publishedAt>"
+    }
+    """
+    Then the response should include the key "publishedAt" with the value "<publishedAt>"
+    Examples:
+      | publishedAt         |
+      | null                |
+      | now                 |
+      | 1970-01-01 00:00:00 |
+      | 2999-12-31 23:59:59 |
 
   @createSchema
   @loginUser
-  Scenario: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
-  When I create a resource
-  Then I should have the published resource returned and the publication date is automatically set
+  Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
+    When I send a "POST" request to "/component/publishable_components" with body:
+    """
+    {
+      "reference": "test",
+      "publishedAt": "<publishedAt>"
+    }
+    """
+    Then the response should be a published resource
+    Examples:
+      | publishedAt         |
+      | null                |
+      | now                 |
+      | 1970-01-01 00:00:00 |
+      | 2999-12-31 23:59:59 |
 
   # GET item
   @createSchema
+  @loginAdmin
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, I should have the draft resource returned.
-  # todo Check cache-expiry header
+    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    When I get the publishable resource saved with index 0
+    Then the response should be a draft resource
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   @createSchema
+  @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
-  # todo Check cache-expiry header
+    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    When I get the publishable resource saved with index 0 and the querystring "published=true"
+    Then the response should be a published resource
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   @createSchema
+  @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
-  # todo Check cache-expiry header
+    Given there is a draft resource set to publish at "2999-12-31 23:59:59"
+    When I get the publishable resource saved with index 0 and the querystring "published=true"
+    Then the response status code should be 404
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   @createSchema
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
-  # todo Check cache-expiry header
+    Given there is a published resource with a draft set to publish at "2020-01-01 00:00:00"
+    When I get the publishable resource saved with index 0
+    Then the response should be a published resource
+    And the header "expires" should not exist
+    And the response should include the key "publishedAt" with the value "2020-01-01 00:00:00"
 
   @createSchema
-  Scenario: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
-  # todo Check cache-expiry header
-
-  @createSchema
-  Scenario: As a user with no draft access, when I get a published resource with a draft resource available, and published=false query filter, I should have the published resource returned anyway.
-  # todo Check cache-expiry header
+  @loginUser
+  Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
+    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    When I get the publishable resource saved with index 0 and the querystring "<querystring>"
+    Then the response should be a published resource
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    Examples:
+      | querystring     |
+      | null            |
+      | published=false |
 
   # PUT
   @createSchema
