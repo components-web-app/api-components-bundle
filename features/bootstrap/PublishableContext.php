@@ -172,16 +172,6 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Then the response should include the key :arrayKey with the value :arrayValue
-     */
-    public function theResponseSHouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
-    {
-        $response = $this->jsonContext->getJsonAsArray();
-        Assert::assertArrayHasKey($arrayKey, $response);
-        Assert::assertEquals($arrayValue, $response[$arrayKey]);
-    }
-
-    /**
      * @Then the response should be a published resource
      */
     public function theResponseShouldBeAPublishedResource(): void

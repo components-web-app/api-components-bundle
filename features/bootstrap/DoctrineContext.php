@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behatch\Context\RestContext as BehatchRestContext;
@@ -186,5 +187,31 @@ final class DoctrineContext implements Context
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @Then the component :name should not exist
+     */
+    public function theComponentShouldNotExist(string $name)
+    {
+        try {
+            $iri = $this->components[$name];
+            $this->iriConverter->getItemFromIri($iri);
+            throw new \Exception(sprintf('The component %s can still be found and has not been removed', $iri));
+        } catch (ItemNotFoundException $exception) {
+        }
+    }
+
+    /**
+     * @Then the component :name should exist
+     */
+    public function theComponentShouldExist(string $name)
+    {
+        try {
+            $iri = $this->components[$name];
+            $this->iriConverter->getItemFromIri($iri);
+        } catch (ItemNotFoundException $exception) {
+            throw new \Exception(sprintf('The component %s cannot be found anymore', $iri));
+        }
     }
 }

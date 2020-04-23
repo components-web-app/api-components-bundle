@@ -26,6 +26,7 @@ class JsonContext implements Context
 {
     private JsonInspector $inspector;
     private ?BehatchJsonContext $jsonContext;
+    private ?RestContext $restContext;
 
     public function __construct()
     {
@@ -38,6 +39,7 @@ class JsonContext implements Context
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
         $this->jsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
     }
 
     /**
@@ -121,6 +123,26 @@ class JsonContext implements Context
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $this->getJson()->encode());
         }
+    }
+
+    /**
+     * @Then the response should include the key :arrayKey with the value :arrayValue
+     */
+    public function theResponseShouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
+    {
+        $response = $this->getJsonAsArray();
+        Assert::assertArrayHasKey($arrayKey, $response);
+        Assert::assertEquals($arrayValue, $response[$arrayKey]);
+    }
+
+    /**
+     * @Then the response should be the component :name
+     */
+    public function theResponseShouldBeTheComponent($name): void
+    {
+        $response = $this->getJsonAsArray();
+        Assert::assertArrayHasKey('@id', $response);
+        Assert::assertEquals($this->restContext->components[$name], $response['@id']);
     }
 
     public function theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated(string $file): void
