@@ -49,7 +49,6 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('permission')
                             ->cannotBeEmpty()
-                            ->defaultValue(sprintf('is_granted(ROLE_ADMIN)'))
                         ->end()
                     ->end()
                 ->end()

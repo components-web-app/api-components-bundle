@@ -48,7 +48,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         }
 
         if ($serializerGroupsConfigured && $this->authorizationChecker->isGranted(new Expression($this->permission))) {
-            array_push($context['groups'], ...[sprintf('%s:publishable', $context['resource_class'])]);
+            $context['groups'][] = sprintf('%s:publishable', $context['resource_class']);
         }
 
         return $context;

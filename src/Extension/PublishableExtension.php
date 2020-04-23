@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Extension;
 
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
@@ -21,14 +22,13 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Symfony\Component\ExpressionLanguage\Expression;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableExtension implements QueryItemExtensionInterface, QueryCollectionExtensionInterface
+final class PublishableExtension implements QueryItemExtensionInterface, ContextAwareQueryCollectionExtensionInterface
 {
     private AuthorizationCheckerInterface $authorizationChecker;
     private Reader $reader;
@@ -49,16 +49,13 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
     {
         $configuration = $this->getConfiguration($resourceClass);
-        if (!$configuration || !($request = $this->requestStack->getCurrentRequest()) || $request->isMethod(Request::METHOD_DELETE)) {
+        if (!$configuration || !($request = $this->requestStack->getCurrentRequest())) {
             return;
         }
 
-        $alias = $queryBuilder->getRootAliases()[0];
-        if (!$this->authorizationChecker->isGranted(new Expression($this->permission)) || true === ($context['filters']['published'] ?? false)) {
+        if (!$this->isAllowed($context)) {
             // User has no access to draft object
-            $queryBuilder
-                ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
-                ->andWhere("$alias.$configuration->fieldName >= :currentTime");
+            $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
             return;
         }
@@ -66,6 +63,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         // Reset queryBuilder to prevent an invalid DQL
         $queryBuilder->where('1 = 1');
 
+        $alias = $queryBuilder->getRootAliases()[0];
         foreach ($identifiers as $identifier) {
             // (o.id = :id AND o.publishedAt IS NOT NULL AND o.publishedAt <= :currentTime)
             // OR ((o.publishedAt IS NULL OR o.publishedAt > :currentTime) AND o.publishedResource = :id)
@@ -82,27 +80,26 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
                     ),
                     $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
                 )
-            )->setParameter('currentTime', new \DateTimeImmutable());
+            )->setParameter('currentTime', new \DateTimeImmutable())
+            ->setParameter("id_$identifier", $identifier);
         }
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null, array $context = []): void
     {
         if (!$configuration = $this->getConfiguration($resourceClass)) {
             return;
         }
 
         $configuration = $this->getConfiguration($resourceClass);
-        $alias = $queryBuilder->getRootAliases()[0];
-        if (!$this->authorizationChecker->isGranted(new Expression($this->permission)) || true === ($context['filters']['published'] ?? false)) {
+        if (!$this->isAllowed($context)) {
             // User has no access to draft object
-            $queryBuilder
-                ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
-                ->andWhere("$alias.$configuration->fieldName >= :currentTime");
+            $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
             return;
         }
 
+        $alias = $queryBuilder->getRootAliases()[0];
         $publishedResourceAlias = $queryNameGenerator->generateJoinAlias($configuration->associationName);
         $queryBuilder->leftJoin("$alias.$configuration->associationName", $publishedResourceAlias);
 
@@ -117,6 +114,20 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
                 $queryBuilder->expr()->gt("$alias.$configuration->fieldName", ':currentTime'),
             ),
         )->setParameter('currentTime', new \DateTimeImmutable());
+    }
+
+    private function isAllowed(array $context): bool
+    {
+        return $this->authorizationChecker->isGranted(new Expression($this->permission)) && false === ($context['filters']['published'] ?? false);
+    }
+
+    private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void
+    {
+        $alias = $queryBuilder->getRootAliases()[0];
+        $queryBuilder
+            ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
+            ->andWhere("$alias.$configuration->fieldName >= :currentTime")
+            ->setParameter('currentTime', new \DateTimeImmutable());
     }
 
     private function getConfiguration(string $resourceClass): ?Publishable

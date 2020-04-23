@@ -42,7 +42,7 @@ trait PublishableTrait
 
     public function isPublished(): bool
     {
-        return null !== $this->publishedAt;
+        return null !== $this->publishedAt && new \DateTimeImmutable() >= $this->publishedAt;
     }
 
     /** @return static */
