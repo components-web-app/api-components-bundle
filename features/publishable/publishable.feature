@@ -21,14 +21,16 @@ Feature: Access to unpublished/draft resources should be configurable
   @create_schema
   @login_user
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
-    When I get a collection of published resources with draft resources available
+    Given there are draft and published resources available
+    When I send a "GET" request to "/component/publishable_components"
     Then it should include the published resources only
 
   @create_schema
   @login_user
-  Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should not include the draft resources.
-    When I get a collection of published resources with draft resources available and published=true query filter
-    Then it should not include the draft resources
+  Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
+    Given there are draft and published resources available
+    When I send a "GET" request to "/component/publishable_components?published=false"
+    Then it should include the published resources only
 
   # POST
   @create_schema
