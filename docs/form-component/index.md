@@ -1,14 +1,13 @@
 ---
 layout: default
-parent: Components
-nav_order: 2
+nav_order: 4
 ---
-# Collection Component
+# Form Component
 
 ```yaml
 silverback_api_component:
   enabled_components:
-    collection: true  #default
+    form: true #default
 ```
 
 Documentation coming soon
