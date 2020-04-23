@@ -11,64 +11,51 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Doctrine\EventSubscriber;
+namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
-use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableEventSubscriber implements EventSubscriber
+final class PublishableListener
 {
-    private Reader $reader;
+    private PublishableHelper $publishableHelper;
 
-    public function __construct(Reader $reader)
+    public function __construct(PublishableHelper $publishableHelper)
     {
-        $this->reader = $reader;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getSubscribedEvents(): array
-    {
-        return [
-            Events::loadClassMetadata,
-        ];
+        $this->publishableHelper = $publishableHelper;
     }
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        /** @var Publishable $annotation */
-        if (!$annotation = $this->reader->getClassAnnotation($metadata->getReflectionClass(), Publishable::class)) {
+        if (!$this->publishableHelper->isPublishable($metadata->getName())) {
             return;
         }
 
+        $configuration = $this->publishableHelper->getConfiguration($metadata->getName());
         /** @var NamingStrategy $namingStrategy */
         $namingStrategy = $eventArgs
             ->getEntityManager()
             ->getConfiguration()
             ->getNamingStrategy();
 
-        if (!$metadata->hasField($annotation->fieldName)) {
+        if (!$metadata->hasField($configuration->fieldName)) {
             $metadata->mapField([
-                'fieldName' => $annotation->fieldName,
+                'fieldName' => $configuration->fieldName,
                 'type' => 'date',
                 'nullable' => true,
             ]);
         }
 
-        if (!$metadata->hasAssociation($annotation->associationName)) {
+        if (!$metadata->hasAssociation($configuration->associationName)) {
             $metadata->mapOneToOne([
-                'fieldName' => $annotation->associationName,
+                'fieldName' => $configuration->associationName,
                 'targetEntity' => $metadata->getName(),
                 'joinColumns' => [
                     [

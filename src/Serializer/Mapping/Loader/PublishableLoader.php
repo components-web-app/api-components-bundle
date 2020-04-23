@@ -13,24 +13,25 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Mapping\Loader;
 
-use Doctrine\Common\Annotations\Reader;
-use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\Serializer\Exception\MappingException;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
 /**
  * Adds {CLASS}:publishable serialization group on {CLASS}.publishedAt for Publishable entities.
+ * Adds {CLASS}:publishable serialization group on {CLASS}.isPublished for Publishable entities with PublishableInterface.
  *
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class PublishableLoader implements LoaderInterface
 {
-    private Reader $reader;
+    private PublishableHelper $publishableHelper;
 
-    public function __construct(Reader $reader)
+    public function __construct(PublishableHelper $publishableHelper)
     {
-        $this->reader = $reader;
+        $this->publishableHelper = $publishableHelper;
     }
 
     /**
@@ -38,16 +39,25 @@ final class PublishableLoader implements LoaderInterface
      */
     public function loadClassMetadata(ClassMetadataInterface $classMetadata)
     {
-        /** @var Publishable $annotation */
-        if (!$annotation = $this->reader->getClassAnnotation($classMetadata->getReflectionClass(), Publishable::class)) {
+        if (!$this->publishableHelper->isPublishable($classMetadata->getName())) {
             return true;
         }
 
-        if (!$attributeMetadata = ($classMetadata->getAttributesMetadata()[$annotation->fieldName] ?? null)) {
-            throw new MappingException(sprintf('Groups on "%s::%s" cannot be added because the field does not exist.', $classMetadata->getName(), $annotation->fieldName));
+        $configuration = $this->publishableHelper->getConfiguration($classMetadata->getName());
+        foreach ([$configuration->fieldName, $configuration->associationName] as $field) {
+            if (!$attributeMetadata = ($classMetadata->getAttributesMetadata()[$field] ?? null)) {
+                throw new MappingException(sprintf('Groups on "%s::%s" cannot be added because the field does not exist.', $classMetadata->getName(), $field));
+            }
+
+            $attributeMetadata->addGroup(sprintf('%s:publishable', $classMetadata->getName()));
         }
 
-        $attributeMetadata->addGroup(sprintf('%s:publishable', $classMetadata->getName()));
+        if (
+            is_a($classMetadata->getName(), PublishableInterface::class, true) &&
+            ($attributeMetadata = ($classMetadata->getAttributesMetadata()['isPublished'] ?? null))
+        ) {
+            $attributeMetadata->addGroup(sprintf('%s:publishable', $classMetadata->getName()));
+        }
 
         return true;
     }

@@ -29,16 +29,17 @@ nav_order: 3
 
 ### Publishable
 
-To set an entity component as publishable, use the following annotation:
+To set an entity component as publishable, use the following annotation and interface:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable
  */
-class Foo
+class Foo implements PublishableInterface
 {
     use PublishableTrait;
 ```
@@ -48,11 +49,12 @@ properties, update the annotation and your class:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 
 /**
  * @Silverback\Publishable(fieldName="publicationDate", associationName="originalResource")
  */
-class Foo
+class Foo implements PublishableInterface
 {
     // If not set, the Doctrine mapping is automatically configured with type="date" nullable
     private $publicationDate;
@@ -70,6 +72,11 @@ class Foo
         $this->publicationDate = $publicationDate;
 
         return $this;
+    }
+
+    public function isPublished() : bool
+    {
+        return null !== $this->publicationDate && new \DateTimeImmutable() >= $this->publicationDate;
     }
 
     public function getOriginalResource(): ?self

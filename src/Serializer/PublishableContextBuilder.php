@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use Symfony\Component\ExpressionLanguage\Expression;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 
 /**
@@ -25,16 +24,14 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 final class PublishableContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
-    private AuthorizationCheckerInterface $authorizationChecker;
+    private PublishableHelper $publishableHelper;
     private ClassMetadataFactoryInterface $classMetadataFactory;
-    private string $permission;
 
-    public function __construct(SerializerContextBuilderInterface $decorated, AuthorizationCheckerInterface $authorizationChecker, ClassMetadataFactoryInterface $classMetadataFactory, string $permission)
+    public function __construct(SerializerContextBuilderInterface $decorated, PublishableHelper $publishableHelper, ClassMetadataFactoryInterface $classMetadataFactory)
     {
         $this->decorated = $decorated;
-        $this->authorizationChecker = $authorizationChecker;
+        $this->publishableHelper = $publishableHelper;
         $this->classMetadataFactory = $classMetadataFactory;
-        $this->permission = $permission;
     }
 
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
@@ -47,7 +44,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
             $serializerGroupsConfigured = true;
         }
 
-        if ($serializerGroupsConfigured && $this->authorizationChecker->isGranted(new Expression($this->permission))) {
+        if ($serializerGroupsConfigured && $this->publishableHelper->isGranted()) {
             $context['groups'][] = sprintf('%s:publishable', $context['resource_class']);
         }
 

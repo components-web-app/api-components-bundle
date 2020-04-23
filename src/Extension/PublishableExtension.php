@@ -14,36 +14,26 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Extension;
 
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use Doctrine\Common\Annotations\Reader;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Symfony\Component\ExpressionLanguage\Expression;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class PublishableExtension implements QueryItemExtensionInterface, ContextAwareQueryCollectionExtensionInterface
 {
-    private AuthorizationCheckerInterface $authorizationChecker;
-    private Reader $reader;
-    private ManagerRegistry $registry;
+    private PublishableHelper $publishableHelper;
     private RequestStack $requestStack;
-    private string $permission;
     private ?Publishable $configuration;
 
-    public function __construct(AuthorizationCheckerInterface $authorizationChecker, Reader $reader, ManagerRegistry $registry, RequestStack $requestStack, string $permission)
+    public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack)
     {
-        $this->authorizationChecker = $authorizationChecker;
-        $this->reader = $reader;
-        $this->registry = $registry;
+        $this->publishableHelper = $publishableHelper;
         $this->requestStack = $requestStack;
-        $this->permission = $permission;
     }
 
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
@@ -118,7 +108,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function isAllowed(array $context): bool
     {
-        return $this->authorizationChecker->isGranted(new Expression($this->permission)) && false === ($context['filters']['published'] ?? false);
+        return $this->publishableHelper->isGranted() && false === ($context['filters']['published'] ?? false);
     }
 
     private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void
@@ -132,8 +122,8 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->configuration && ($em = $this->registry->getManagerForClass($resourceClass))) {
-            $this->configuration = $this->reader->getClassAnnotation($em->getClassMetadata($resourceClass)->getReflectionClass(), Publishable::class);
+        if (!$this->configuration && ($this->publishableHelper->isPublishable($resourceClass))) {
+            $this->configuration = $this->publishableHelper->getConfiguration($resourceClass);
         }
 
         return $this->configuration;

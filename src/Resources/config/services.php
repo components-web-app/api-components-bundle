@@ -38,11 +38,12 @@ use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransforme
 use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
-use Silverback\ApiComponentBundle\Doctrine\EventSubscriber\PublishableEventSubscriber;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
+use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
@@ -77,6 +78,7 @@ use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -125,16 +127,6 @@ return static function (ContainerConfigurator $configurator) {
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
         ]);
-
-    $services
-        ->set(PublishableContextBuilder::class)
-        ->decorate('api_platform.serializer.context_builder')
-        ->args([
-            new Reference(PublishableContextBuilder::class . '.inner'),
-            new Reference(AuthorizationCheckerInterface::class),
-            new Reference(ClassMetadataFactoryInterface::class),
-        ])
-        ->autoconfigure(false);
 
     $services
         ->set(ApiNormalizer::class)
@@ -341,6 +333,47 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(PublishableContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            new Reference(PublishableContextBuilder::class . '.inner'),
+            new Reference(PublishableHelper::class),
+            new Reference(ClassMetadataFactoryInterface::class),
+        ])
+        ->autoconfigure(false);
+
+    $services
+        ->set(PublishableEventListener::class)
+        ->args([
+            new Reference(PublishableHelper::class),
+            new Reference('doctrine'),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE]);
+
+    $services
+        ->set(PublishableHelper::class)
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('security.authorization_checker'),
+            '', // $permission: set in SilverbackApiComponentExtension
+        ]);
+
+    $services
+        ->set(PublishableListener::class)
+        ->args([new Reference(PublishableHelper::class)])
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    // High priority for item because of queryBuilder reset
+    $services
+        ->set(PublishableExtension::class)
+        ->args([
+            new Reference(PublishableHelper::class),
+            new Reference('request_stack'),
+        ])
+        ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
+        ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
         ->set(NewEmailAddressListener::class)
         ->args([new Reference(EntityManagerInterface::class)])
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
@@ -542,18 +575,6 @@ return static function (ContainerConfigurator $configurator) {
         ->set(WelcomeEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
-
-    // High priority for item because of queryBuilder reset
-    $services
-        ->set(PublishableExtension::class)
-        ->autowire(true)
-        ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
-        ->tag('api_platform.doctrine.orm.query_extension.collection');
-
-    $services
-        ->set(PublishableEventSubscriber::class)
-        ->autowire(true)
-        ->tag('doctrine.event_subscriber');
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
