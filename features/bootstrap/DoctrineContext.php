@@ -67,7 +67,7 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @create_schema
+     * @createSchema
      */
     public function createDatabase(): void
     {
@@ -95,7 +95,7 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @login_admin
+     * @loginAdmin
      */
     public function loginAdmin(BeforeScenarioScope $scope): void
     {
@@ -104,7 +104,7 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @login_user
+     * @loginUser
      */
     public function loginUser(BeforeScenarioScope $scope): void
     {

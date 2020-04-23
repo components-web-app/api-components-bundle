@@ -7,7 +7,7 @@ Feature: Register process via a form
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
-  @create_schema
+  @createSchema
   @create_register_form
   Scenario: Submit a user registration form
     Given a user exists with the username "user" password "password" and role "ROLE_USER"
