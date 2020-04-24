@@ -18,7 +18,6 @@ use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behatch\Context\RestContext as BehatchRestContext;
-use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
@@ -74,45 +73,9 @@ final class DoctrineContext implements Context
      */
     public function createDatabase(): void
     {
-        if (file_exists($this->cacheDir . '/db.sqlite')) {
-            return;
-        }
-
         $this->schemaTool->dropSchema($this->classes);
         $this->doctrine->getManager()->clear();
         $this->schemaTool->createSchema($this->classes);
-    }
-
-    /**
-     * @BeforeSuite
-     */
-    public static function enableKeepStaticConnections()
-    {
-        StaticDriver::setKeepStaticConnections(true);
-    }
-
-    /**
-     * @BeforeScenario
-     */
-    public function beginTransaction()
-    {
-        StaticDriver::beginTransaction();
-    }
-
-    /**
-     * @AfterScenario
-     */
-    public function rollBack()
-    {
-        StaticDriver::rollBack();
-    }
-
-    /**
-     * @AfterSuite
-     */
-    public static function disableKeepStaticConnections()
-    {
-        StaticDriver::setKeepStaticConnections(false);
     }
 
     private function login(BeforeScenarioScope $scope, array $roles = []): void
