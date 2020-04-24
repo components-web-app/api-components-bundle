@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Publishable;
 
 use Doctrine\Common\Annotations\Reader;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -26,12 +28,14 @@ final class PublishableHelper
     use ClassMetadataTrait;
 
     private Reader $reader;
+    private ManagerRegistry $registry;
     private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
-    public function __construct(Reader $reader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
+    public function __construct(Reader $reader, ManagerRegistry $registry, AuthorizationCheckerInterface $authorizationChecker, string $permission)
     {
         $this->reader = $reader;
+        $this->registry = $registry;
         $this->authorizationChecker = $authorizationChecker;
         $this->permission = $permission;
     }
@@ -39,6 +43,21 @@ final class PublishableHelper
     public function isGranted(): bool
     {
         return $this->authorizationChecker->isGranted(new Expression($this->permission));
+    }
+
+    public function isPublished(object $object): bool
+    {
+        if (!$this->isPublishable($object)) {
+            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', get_class($object)));
+        }
+
+        if ($object instanceof PublishableInterface) {
+            return $object->isPublished();
+        }
+
+        $value = $this->getClassMetadata($object)->getFieldValue($object, $this->getConfiguration($object)->fieldName);
+
+        return null !== $value && new \DateTimeImmutable() >= $value;
     }
 
     /**
@@ -54,7 +73,9 @@ final class PublishableHelper
      */
     public function getConfiguration($class): ?Publishable
     {
-        /* @var Publishable|null $configuration */
-        return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
+        /** @var Publishable|null $configuration */
+        $configuration = $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
+
+        return $configuration;
     }
 }

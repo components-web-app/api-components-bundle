@@ -87,6 +87,7 @@ use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
@@ -354,6 +355,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PublishableHelper::class)
         ->args([
             new Reference('annotations.reader'),
+            new Reference('doctrine'),
             new Reference('security.authorization_checker'),
             '', // $permission: set in SilverbackApiComponentExtension
         ]);
@@ -372,6 +374,13 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
+        ->set(PublishableNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(PublishableHelper::class),
+        ])->tag('serializer.normalizer');
 
     $services
         ->set(NewEmailAddressListener::class)
