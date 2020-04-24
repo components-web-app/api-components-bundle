@@ -37,29 +37,17 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-
-        $serializerGroupsConfigured = isset($context['groups']) && \is_array($context['groups']);
-        if (!$serializerGroupsConfigured && $this->classHasSerializerGroupsOnProperties($context['resource_class'])) {
-            $context['groups'] = [];
-            $serializerGroupsConfigured = true;
+        if (empty($resourceClass = $context['resource_class']) || empty($context['groups'])) {
+            return $context;
         }
 
-        if ($serializerGroupsConfigured && $this->publishableHelper->isGranted()) {
-            $context['groups'][] = sprintf('%s:publishable', $context['resource_class']);
+        $reflectionClass = new \ReflectionClass($resourceClass);
+        if ($normalization) {
+            $context['groups'][] = sprintf('%s:publishable:read', $reflectionClass->getShortName());
+        } elseif ($this->publishableHelper->isGranted()) {
+            $context['groups'][] = sprintf('%s:publishable:write', $reflectionClass->getShortName());
         }
 
         return $context;
-    }
-
-    private function classHasSerializerGroupsOnProperties(string $resourceClass): bool
-    {
-        $serializerAttributeMetadata = $this->classMetadataFactory->getMetadataFor($resourceClass)->getAttributesMetadata();
-        foreach ($serializerAttributeMetadata as $metadata) {
-            if (\count($metadata->groups)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

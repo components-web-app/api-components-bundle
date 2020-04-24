@@ -86,6 +86,7 @@ use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
@@ -101,6 +102,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
@@ -350,7 +352,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE]);
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE]);
 
     $services
         ->set(PublishableHelper::class)
@@ -382,8 +384,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PublishableHelper::class),
-            new Reference('doctrine'),
-            new Reference('api_platform.iri_converter'),
         ])->tag('serializer.normalizer');
 
     $services
@@ -392,6 +392,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableValidator::class . '.inner'),
             new Reference(PublishableHelper::class),
+        ]);
+
+    $services
+        ->set(PublishableLoader::class)
+        ->args([
+            new Reference('annotations.reader'),
         ]);
 
     $services

@@ -27,9 +27,9 @@ use Behatch\Context\RestContext as BaseRestContext;
 class RestContext implements Context
 {
     private ?BaseRestContext $restContext;
-
-    public array $components = [];
     private ?MinkContext $minkContext;
+    public array $components = [];
+    public string $now = '';
 
     /**
      * @BeforeScenario
@@ -38,6 +38,14 @@ class RestContext implements Context
     {
         $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function resetNow(): void
+    {
+        $this->now = '';
     }
 
     /**
@@ -77,7 +85,7 @@ class RestContext implements Context
             }
 
             if ('now' === $value) {
-                $value = date('Y-m-d H:i:s');
+                $this->now = $value = date('Y-m-d\TH:i:s+00:00');
             }
 
             return $value;

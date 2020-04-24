@@ -19,7 +19,7 @@ use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -38,7 +38,7 @@ final class PublishableEventListener
         $this->registry = $registry;
     }
 
-    public function __invoke(ViewEvent $event): void
+    public function __invoke(RequestEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
@@ -51,9 +51,7 @@ final class PublishableEventListener
 
         if ($request->isMethod(Request::METHOD_POST)) {
             $this->handlePOSTRequest($classMetadata, $configuration, $data);
-        }
-
-        if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
+        } elseif ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
             $this->handlePUTRequest($classMetadata, $configuration, $data, $request);
         }
     }
