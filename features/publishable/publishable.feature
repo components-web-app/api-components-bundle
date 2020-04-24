@@ -16,7 +16,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the draft resources instead of the published ones
 
   @loginAdmin
-  @fail
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=true"
@@ -31,7 +30,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the published resources only
 
   @loginUser
-  @fail
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
@@ -99,7 +97,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the key "published" with the value "false"
 
   @loginUser
-  @fail
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
@@ -110,7 +107,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the key "published" with the value "true"
 
   @loginAdmin
-  @fail
+  @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "GET" request to the component "publishable_draft" and the postfix "?published=true"
@@ -287,7 +284,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the component "publishable_published" should exist
 
   @loginAdmin
-  @fail
   Scenario: As a user with draft access, if I delete a published resource, with the published=true querystring it will delete the published resource
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_published" and the postfix "?published=true"

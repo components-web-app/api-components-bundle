@@ -70,11 +70,11 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Transform /(false|true)/
+     * @Transform /^(false|true)$/
      */
-    public function castFalseToBoolean(): bool
+    public function castFalseToBoolean($string): bool
     {
-        return false;
+        return 'true' === $string;
     }
 
     /**

@@ -136,7 +136,6 @@ class JsonContext implements Context
         if ('now' === $arrayValue) {
             $arrayValue = $this->restContext->now;
         }
-
         $response = $this->getJsonAsArray();
         Assert::assertArrayHasKey($arrayKey, $response);
         Assert::assertEquals($arrayValue, $response[$arrayKey]);
