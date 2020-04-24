@@ -164,7 +164,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
     Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_components" with data:
+    When I send a "PUT" request to the component "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
@@ -177,7 +177,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with data:
+    When I send a "PUT" request to the component "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
