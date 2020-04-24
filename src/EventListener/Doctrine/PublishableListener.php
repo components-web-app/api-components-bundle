@@ -48,7 +48,7 @@ final class PublishableListener
         if (!$metadata->hasField($configuration->fieldName)) {
             $metadata->mapField([
                 'fieldName' => $configuration->fieldName,
-                'type' => 'date',
+                'type' => 'datetime',
                 'nullable' => true,
             ]);
         }
