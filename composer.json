@@ -21,7 +21,6 @@
         "cocur/slugify": "^4.0",
         "doctrine/annotations": "^1.7.0",
         "doctrine/doctrine-bundle": "^2.0.7",
-        "doctrine/doctrine-migrations-bundle": "^2.1.2",
         "gesdinet/jwt-refresh-token-bundle": "^0.9.1",
         "lexik/jwt-authentication-bundle": "^2.6.5",
         "liip/imagine-bundle": "^2.3",
@@ -85,7 +84,6 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "5.0.*",
             "root-dir": "tests/app"
         }
     },

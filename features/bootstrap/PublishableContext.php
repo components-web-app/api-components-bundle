@@ -56,6 +56,7 @@ final class PublishableContext implements Context
         $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
         $this->publishedResourcesWithoutDrafts = [];
     }
 
@@ -82,7 +83,7 @@ final class PublishableContext implements Context
     {
         for ($i = 0; $i < 2; ++$i) {
             $publishedNow = $this->createPublishableComponent(new \DateTime());
-            $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('YYYY-mm-dd HH:ii:ss'));
+            $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('Y-m-d H:i:s'));
             $draftUntilSoon->setPublishedResource($publishedNow);
 
             $this->thereIsAPublicResourceWithADraftResourceAvailable();
@@ -134,7 +135,7 @@ final class PublishableContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
 
         $draftResources = array_filter($this->resources, static function (PublishableComponent $component) {
-            return 'is_draft' === $component['reference'];
+            return 'is_draft' === $component->reference;
         });
 
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
@@ -159,7 +160,7 @@ final class PublishableContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
 
         $publishedResources = array_filter($this->resources, static function (PublishableComponent $component) {
-            return 'is_published' === $component['reference'];
+            return 'is_published' === $component->reference;
         });
 
         $expectedTotal = \count($publishedResources);
@@ -194,7 +195,7 @@ final class PublishableContext implements Context
 
     private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
     {
-        $isPublished = $publishedAt <= new \Date();
+        $isPublished = $publishedAt <= new \DateTime();
         $reference = $isPublished ? 'is_published' : 'is_draft';
         $resource = new PublishableComponent($reference);
         $resource->setPublishedAt($publishedAt);
