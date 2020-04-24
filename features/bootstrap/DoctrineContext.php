@@ -39,7 +39,6 @@ final class DoctrineContext implements Context
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
     private array $classes;
-    private array $components = [];
     private string $cacheDir;
 
     /**
@@ -194,7 +193,7 @@ final class DoctrineContext implements Context
     public function theComponentShouldNotExist(string $name)
     {
         try {
-            $iri = $this->components[$name];
+            $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);
             throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri));
         } catch (ItemNotFoundException $exception) {
@@ -207,7 +206,7 @@ final class DoctrineContext implements Context
     public function theComponentShouldExist(string $name)
     {
         try {
-            $iri = $this->components[$name];
+            $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri));

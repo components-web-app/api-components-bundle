@@ -253,7 +253,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As any user, when I delete a published resource with a draft resource available, it should delete the published resource and keep the draft.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_published"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
 
@@ -261,7 +261,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, I can delete a draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_draft"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
 
@@ -269,7 +269,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, if I delete a published resource, it will delete the draft instead
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_published"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
 
@@ -277,7 +277,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, if I delete a published resource, with the published=true querystring it will delete the published resource
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_published" and the postfix "?published=true"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
 
@@ -285,6 +285,6 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with no draft access, I cannot delete a draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_draft"
-    Then the response status code should be 403
+    Then the response status code should be 404
     And the component "publishable_draft" should exist
     And the component "publishable_published" should exist
