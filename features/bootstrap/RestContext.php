@@ -36,7 +36,7 @@ class RestContext implements Context
     }
 
     /**
-     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)")? with body:$/i
+     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with body:|)|)$/i
      */
     public function iSend(string $method, string $component, ?string $postfix, PyStringNode $body)
     {

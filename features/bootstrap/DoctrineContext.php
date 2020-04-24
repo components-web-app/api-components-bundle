@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behatch\Context\RestContext as BehatchRestContext;
@@ -76,11 +77,7 @@ final class DoctrineContext implements Context
         $this->schemaTool->createSchema($this->classes);
     }
 
-    /**
-     * @BeforeScenario
-     * @login
-     */
-    public function login(BeforeScenarioScope $scope): void
+    private function login(BeforeScenarioScope $scope, array $roles = []): void
     {
         $user = new User();
         $user
@@ -99,23 +96,20 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @login_user
+     * @loginAdmin
+     */
+    public function loginAdmin(BeforeScenarioScope $scope): void
+    {
+        $this->login($scope, ['ROLE_ADMIN']);
+    }
+
+    /**
+     * @BeforeScenario
+     * @loginUser
      */
     public function loginUser(BeforeScenarioScope $scope): void
     {
-        $user = new User();
-        $user
-            ->setRoles(['ROLE_USER'])
-            ->setUsername('user@example.com')
-            ->setPassword('user');
-        $this->manager->persist($user);
-        $this->manager->flush();
-        $this->manager->clear();
-
-        $token = $this->jwtManager->create($user);
-
-        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->login($scope, ['ROLE_USER']);
     }
 
     /**
@@ -193,5 +187,31 @@ final class DoctrineContext implements Context
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @Then the component :name should not exist
+     */
+    public function theComponentShouldNotExist(string $name)
+    {
+        try {
+            $iri = $this->components[$name];
+            $this->iriConverter->getItemFromIri($iri);
+            throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri));
+        } catch (ItemNotFoundException $exception) {
+        }
+    }
+
+    /**
+     * @Then the component :name should exist
+     */
+    public function theComponentShouldExist(string $name)
+    {
+        try {
+            $iri = $this->components[$name];
+            $this->iriConverter->getItemFromIri($iri);
+        } catch (ItemNotFoundException $exception) {
+            throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri));
+        }
     }
 }

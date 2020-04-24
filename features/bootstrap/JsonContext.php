@@ -26,6 +26,7 @@ class JsonContext implements Context
 {
     private JsonInspector $inspector;
     private ?BehatchJsonContext $jsonContext;
+    private ?RestContext $restContext;
 
     public function __construct()
     {
@@ -38,6 +39,7 @@ class JsonContext implements Context
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
         $this->jsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
     }
 
     /**
@@ -67,8 +69,8 @@ class JsonContext implements Context
      */
     public function theJsonIsASupersetOf(PyStringNode $content): void
     {
-        $actual = json_decode($this->getContent(), true);
-        Assert::assertArraySubset(json_decode($content->getRaw(), true), $actual);
+        // Must change to https://github.com/rdohms/phpunit-arraysubset-asserts for PHPUnit 9
+        Assert::assertArraySubset(json_decode($content->getRaw(), true), $this->getJsonAsArray());
     }
 
     private function sortArrays($obj)
@@ -123,6 +125,26 @@ class JsonContext implements Context
         }
     }
 
+    /**
+     * @Then the response should include the key :arrayKey with the value :arrayValue
+     */
+    public function theResponseShouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
+    {
+        $response = $this->getJsonAsArray();
+        Assert::assertArrayHasKey($arrayKey, $response);
+        Assert::assertEquals($arrayValue, $response[$arrayKey]);
+    }
+
+    /**
+     * @Then the response should be the component :name
+     */
+    public function theResponseShouldBeTheComponent($name): void
+    {
+        $response = $this->getJsonAsArray();
+        Assert::assertArrayHasKey('@id', $response);
+        Assert::assertEquals($this->restContext->components[$name], $response['@id']);
+    }
+
     public function theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated(string $file): void
     {
         $this->theJsonShouldBeValidAccordingToTheSchemaFile($file);
@@ -139,5 +161,10 @@ class JsonContext implements Context
     private function getContent(): string
     {
         return $this->jsonContext->getSession()->getPage()->getContent();
+    }
+
+    public function getJsonAsArray(): array
+    {
+        return json_decode($this->getContent(), true, 512, JSON_THROW_ON_ERROR);
     }
 }

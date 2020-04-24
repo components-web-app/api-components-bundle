@@ -8,7 +8,7 @@ Feature: Form component that defines a form type created in the application
     And I add "Content-Type" header equal to "application/ld+json"
 
   @createSchema
-  @login
+  @loginAdmin
   Scenario: Create a form component resource
     When I send a "POST" request to "/component/forms" with body:
     """
