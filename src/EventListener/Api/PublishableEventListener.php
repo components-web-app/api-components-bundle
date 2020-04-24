@@ -19,6 +19,7 @@ use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -35,10 +36,31 @@ final class PublishableEventListener
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry)
     {
         $this->publishableHelper = $publishableHelper;
+        // not unused, used by the trait
         $this->registry = $registry;
     }
 
-    public function __invoke(ViewEvent $event): void
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (!$this->publishableHelper->isPublishable($data)) {
+            return;
+        }
+
+        $configuration = $this->publishableHelper->getConfiguration($data);
+        $classMetadata = $this->getClassMetadata($data);
+
+        /** @var \DateTime|null $publishedAt */
+        $publishedAt = $classMetadata->getFieldValue($data, $configuration->fieldName);
+        if (!$publishedAt) {
+            return;
+        }
+        $response = $event->getResponse();
+        $response->setExpires($publishedAt);
+    }
+
+    public function onKernelView(ViewEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');

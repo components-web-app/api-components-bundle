@@ -59,13 +59,15 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         $alias = $queryBuilder->getRootAliases()[0];
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
-        foreach ($identifiers as $identifier) {
-            $queryBuilder->andWhere(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
-                    $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
+        foreach ($identifiers as $identityField => $identifier) {
+            $queryBuilder
+                ->andWhere(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identityField"),
+                        $queryBuilder->expr()->eq("$alias.$identityField", ":id_$identityField"),
+                    )
                 )
-            )->setParameter("id_$identifier", $identifier);
+                ->setParameter("id_$identityField", $identifier);
         }
 
         $queryBuilder->expr()->asc($queryBuilder->expr()->isNull("$alias.$configuration->associationName"));
