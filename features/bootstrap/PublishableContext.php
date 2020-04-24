@@ -77,11 +77,11 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Given there are draft and published resources available
+     * @Given there are :number draft and published resources available
      */
-    public function givenThereAreDraftAndPublishedResourcesAvailable(): void
+    public function givenThereAreDraftAndPublishedResourcesAvailable($number): void
     {
-        for ($i = 0; $i < 2; ++$i) {
+        for ($i = 0; $i < (int) $number; ++$i) {
             $publishedNow = $this->createPublishableComponent(new \DateTime());
             $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('Y-m-d H:i:s'));
             $draftUntilSoon->setPublishedResource($publishedNow);

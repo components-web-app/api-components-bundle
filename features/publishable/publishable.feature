@@ -10,27 +10,31 @@ Feature: Access to unpublished/draft resources should be configurable
   # GET collection
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, it should include the draft resources instead of the published ones.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then the response should include the draft resources instead of the published ones
+    Then the response status code should be 200
+    And the response should include the draft resources instead of the published ones
 
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=true"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
   # POST
   @loginAdmin
@@ -42,7 +46,8 @@ Feature: Access to unpublished/draft resources should be configurable
       "publishedAt": "<publishedAt>"
     }
     """
-    Then the response should include the key "publishedAt" with the value "<publishedAt>"
+    Then the response status code should be 201
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
     Examples:
       | publishedAt         |
       | null                |
@@ -59,7 +64,8 @@ Feature: Access to unpublished/draft resources should be configurable
       "publishedAt": "<publishedAt>"
     }
     """
-    Then the response should be a published resource
+    Then the response status code should be 201
+    And the response should be a published resource
     Examples:
       | publishedAt         |
       | null                |
@@ -72,14 +78,16 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, I should have the draft resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "GET" request to the component "publishable_published"
-    Then the response should be the component "publishable_draft"
+    Then the response status code should be 201
+    And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
-    Then the response should be the component "publishable_published"
+    Then the response status code should be 201
+    And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   @loginAdmin
@@ -93,6 +101,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Given there is a published resource with a draft set to publish at "2020-01-01 00:00:00"
     When I send a "GET" request to the component "publishable_published"
     Then the response should be the component "publishable_published"
+    And the response status code should be 201
     And the header "expires" should not exist
     And the response should include the key "publishedAt" with the value "2020-01-01 00:00:00"
 
@@ -100,7 +109,8 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "GET" request to the component "publishable_published" and the postfix "?<querystring>"
-    Then the response should be the component "publishable_published"
+    Then the response status code should be 201
+    And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     Examples:
       | querystring     |
@@ -117,7 +127,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "reference": "updated"
     }
     """
-    Then the response should be a draft resource
+    Then the response status code should be 200
+    And the response should be a draft resource
     And the response should include the key "publishedAt" with the value "null"
     And the response should include the key "reference" with the value "updated"
 
@@ -130,7 +141,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "reference": "updated"
     }
     """
-    Then the response should include the key "publishedAt" with the value "2999-12-31 23:59:59"
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "2999-12-31 23:59:59"
     And the response should include the key "reference" with the value "updated"
 
   @loginAdmin
@@ -142,7 +154,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "publishedAt": "<publishedAt>"
     }
     """
-    Then the response should include the key "publishedAt" with the value "1970-12-31 23:59:59"
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "1970-12-31 23:59:59"
     Examples:
       | publishedAt         |
       | 1970-01-01 00:00:00 |
@@ -157,7 +170,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "publishedAt": "<publishedAt>"
     }
     """
-    Then the response should include the key "publishedAt" with the value "<publishedAt>"
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
     And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
     Examples:
@@ -178,7 +192,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "publishedAt": "2991-11-11 23:59:59"
     }
     """
-    Then the response should include the key "publishedAt" with the value "2991-11-11 23:59:59"
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "2991-11-11 23:59:59"
     And the response should be the component "publishable_published"
 
   @loginUser
@@ -190,7 +205,8 @@ Feature: Access to unpublished/draft resources should be configurable
         "reference": "updated"
     }
     """
-    Then the response should include the key "reference" with the value "updated"
+    Then the response status code should be 200
+    And the response should include the key "reference" with the value "updated"
     And the response should be the component "publishable_published"
 
   @loginUser
