@@ -20,8 +20,8 @@ use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -66,7 +66,7 @@ final class PublishableEventListener
         $response->setExpires($publishedAt);
     }
 
-    public function onKernelView(ViewEvent $event): void
+    public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
@@ -145,8 +145,14 @@ final class PublishableEventListener
             // Add draft object to UnitOfWork
             $this->getEntityManager($draft)->persist($draft);
 
+            // Empty publishedDate on draft
+            $classMetadata->setFieldValue($draft, $configuration->fieldName, null);
+
             // Set publishedResource on draft
             $classMetadata->setFieldValue($draft, $configuration->associationName, $data);
+
+            // Set draftResource on data
+            $classMetadata->setFieldValue($data, $configuration->reverseAssociationName, $draft);
         }
 
         // Replace data by its draft
