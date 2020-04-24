@@ -119,13 +119,13 @@ class FormSubmitHandler
         $child = $form->get($key = key($formData));
         while ($this->isSequentialStringsArray($formData = $formData[$key]) && $count = \count($formData)) {
             if (1 === $count) {
-                $child = $child->get($key = key($formData));
+                $child = $child->get((string) $key = key($formData));
                 continue;
             }
             // front-end should submit empty objects for each item in a collection up to the one we are trying to validate
             // so let us just get the last item to validate
             // key should be numeric, if not it is probably first and second for repeated field. These should both be checked...
-            $key = ($count - 1);
+            $key = (string) ($count - 1);
             if (!$child->has($key)) {
                 break;
             }
