@@ -17,7 +17,6 @@ use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappi
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use function class_exists;
@@ -35,6 +34,5 @@ class SilverbackApiComponentBundle extends Bundle
         }
         $container->addCompilerPass(new ImagineCompilerPass());
         $container->addCompilerPass(new ApiPlatformCompilerPass());
-        $container->addCompilerPass(new SerializerCompilerPass());
     }
 }

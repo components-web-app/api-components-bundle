@@ -61,22 +61,6 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Transform now
-     */
-    public function castNowToDateTime(): \DateTime
-    {
-        return new \DateTime();
-    }
-
-    /**
-     * @Transform null
-     */
-    public function castStringToNull()
-    {
-        return null;
-    }
-
-    /**
      * @Given there are :number draft and published resources available
      */
     public function givenThereAreDraftAndPublishedResourcesAvailable($number): void
@@ -196,8 +180,8 @@ final class PublishableContext implements Context
     private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
     {
         $isPublished = $publishedAt <= new \DateTime();
-        $reference = $isPublished ? 'is_published' : 'is_draft';
-        $resource = new PublishableComponent($reference);
+        $resource = new PublishableComponent();
+        $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
         $this->resources[] = $resource;

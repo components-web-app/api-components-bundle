@@ -35,13 +35,7 @@ class PublishableComponent extends AbstractComponent implements PublishableInter
      * @var string a reference for this component
      *
      * @ORM\Column
-     * @Assert\NotBlank
+     * @Assert\NotBlank(groups={"PublishableComponent:published"})
      */
     public string $reference = '';
-
-    public function __construct(string $reference)
-    {
-        parent::__construct();
-        $this->reference = $reference;
-    }
 }
