@@ -30,7 +30,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
+ * @ORM\Table(
+ * indexes={@ORM\Index(name="username_idx", columns={"username"}), @ORM\Index(name="email_address_idx", columns={"email_address"})})
+ *     uniqueConstraints={@ORM\UniqueConstraint(name="username_email_idx", columns={"username", "email_address"})})
+ * )
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
+ * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
  * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterface, JWTUserInterface
@@ -39,14 +44,14 @@ abstract class AbstractUser implements SymfonyUserInterface, TimestampedInterfac
     use TimestampedTrait;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
+     * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(groups={"Default"})
      * @Groups({"User:super_admin", "User:output"})
      */
     protected ?string $username;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
+     * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
      * @Groups({"User:super_admin", "User:output"})
