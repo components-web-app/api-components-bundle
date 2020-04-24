@@ -372,6 +372,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('request_stack'),
+            new Reference('doctrine'),
         ])
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
         ->tag('api_platform.doctrine.orm.query_extension.collection');

@@ -31,7 +31,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     private PublishableHelper $publishableHelper;
     private RequestStack $requestStack;
     private ManagerRegistry $registry;
-    private ?Publishable $configuration;
+    private ?Publishable $configuration = null;
 
     public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack, ManagerRegistry $registry)
     {

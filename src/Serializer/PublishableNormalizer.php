@@ -42,7 +42,6 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $data = $this->normalizer->normalize($object, $format, $context);
 
-        // todo isPublished or is_published?
         if (!\array_key_exists('isPublished', $data)) {
             $data['isPublished'] = $this->publishableHelper->isPublished($object);
         }

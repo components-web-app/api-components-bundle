@@ -38,6 +38,7 @@
     "require-dev": {
         "behat/behat": "^3.6",
         "behatch/contexts": "^3.3",
+        "dama/doctrine-test-bundle": "^6.3",
         "doctrine/doctrine-fixtures-bundle": "^3.3",
         "doctrine/orm": "^2.6.3",
         "friends-of-behat/mink": "^1.8",

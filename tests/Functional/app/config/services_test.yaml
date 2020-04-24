@@ -5,3 +5,5 @@ services:
 
   Silverback\ApiComponentBundle\Features\Bootstrap\:
     resource: '../../../../features/bootstrap/*'
+    bind:
+      $cacheDir: '%kernel.cache_dir%'
