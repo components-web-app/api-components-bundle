@@ -31,6 +31,7 @@ use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
@@ -67,6 +68,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
+
+        $definition = $container->getDefinition(PublishableHelper::class);
+        $definition->setArgument('$permission', $config['publishable']['permission']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
