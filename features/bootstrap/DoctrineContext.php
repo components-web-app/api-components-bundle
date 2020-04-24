@@ -18,6 +18,7 @@ use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behatch\Context\RestContext as BehatchRestContext;
+use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
@@ -40,6 +41,7 @@ final class DoctrineContext implements Context
     private SchemaTool $schemaTool;
     private array $classes;
     private array $components = [];
+    private string $cacheDir;
 
     /**
      * Initializes context.
@@ -48,7 +50,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, string $cacheDir)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -56,6 +58,7 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+        $this->cacheDir = $cacheDir;
     }
 
     /**
@@ -68,20 +71,55 @@ final class DoctrineContext implements Context
 
     /**
      * @BeforeScenario
-     * @createSchema
      */
     public function createDatabase(): void
     {
+        if (file_exists($this->cacheDir . '/db.sqlite')) {
+            return;
+        }
+
         $this->schemaTool->dropSchema($this->classes);
         $this->doctrine->getManager()->clear();
         $this->schemaTool->createSchema($this->classes);
+    }
+
+    /**
+     * @BeforeSuite
+     */
+    public static function enableKeepStaticConnections()
+    {
+        StaticDriver::setKeepStaticConnections(true);
+    }
+
+    /**
+     * @BeforeScenario
+     */
+    public function beginTransaction()
+    {
+        StaticDriver::beginTransaction();
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function rollBack()
+    {
+        StaticDriver::rollBack();
+    }
+
+    /**
+     * @AfterSuite
+     */
+    public static function disableKeepStaticConnections()
+    {
+        StaticDriver::setKeepStaticConnections(false);
     }
 
     private function login(BeforeScenarioScope $scope, array $roles = []): void
     {
         $user = new User();
         $user
-            ->setRoles(['ROLE_ADMIN'])
+            ->setRoles($roles)
             ->setUsername('admin@admin.com')
             ->setPassword('admin');
         $this->manager->persist($user);
@@ -95,8 +133,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario
-     * @loginAdmin
+     * @BeforeScenario @loginAdmin
      */
     public function loginAdmin(BeforeScenarioScope $scope): void
     {
@@ -104,8 +141,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario
-     * @loginUser
+     * @BeforeScenario @loginUser
      */
     public function loginUser(BeforeScenarioScope $scope): void
     {

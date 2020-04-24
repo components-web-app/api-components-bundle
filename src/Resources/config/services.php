@@ -77,6 +77,7 @@ use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
+use Silverback\ApiComponentBundle\Metadata\PublishableMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
@@ -87,6 +88,7 @@ use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
@@ -354,6 +356,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PublishableHelper::class)
         ->args([
             new Reference('annotations.reader'),
+            new Reference('doctrine'),
             new Reference('security.authorization_checker'),
             '', // $permission: set in SilverbackApiComponentExtension
         ]);
@@ -369,9 +372,26 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('request_stack'),
+            new Reference('doctrine'),
         ])
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
+        ->set(PublishableNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(PublishableHelper::class),
+        ])->tag('serializer.normalizer');
+
+    $services
+        ->set(PublishableMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(PublishableMetadataFactory::class . '.inner'),
+            new Reference(PublishableHelper::class),
+            new Reference('request_stack'),
+        ]);
 
     $services
         ->set(NewEmailAddressListener::class)

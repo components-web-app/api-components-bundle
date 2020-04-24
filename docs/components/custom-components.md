@@ -101,3 +101,59 @@ silverback_api_component:
     publishable:
         permission: "is_granted('ROLE_ADMIN')" # default value
 ```
+
+By default, default validators are applied on save, even for draft objects. If you want to apply validators only for
+published resource, configure it as following:
+
+```php
+use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+
+/**
+ * @Silverback\Publishable
+ */
+class Foo implements PublishableInterface
+{
+    /**
+     * This constraint will be applied on draft and published resources.
+     *
+     * @Assert\NotBlank
+     */
+    public string $name = '';
+
+    /**
+     * This constraint will be applied on published resources only.
+     *
+     * @Assert\NotBlank(groups={"Foo:published"})
+     */
+    public string $description = '';
+}
+```
+
+You can define a custom validation group for published resources:
+
+```php
+use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+
+/**
+ * @Silverback\Publishable(validationGroups={"custom_validation_group"})
+ */
+class Foo implements PublishableInterface
+{
+    /**
+     * This constraint will be applied on draft and published resources.
+     *
+     * @Assert\NotBlank
+     */
+    public string $name = '';
+
+    /**
+     * This constraint will be applied on published resources only.
+     * The "Foo:published" validation does not exist anymore.
+     *
+     * @Assert\NotBlank(groups={"custom_validation_group"})
+     */
+    public string $description = '';
+}
+```
