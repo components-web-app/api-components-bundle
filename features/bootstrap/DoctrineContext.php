@@ -122,7 +122,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario @create_register_form
+     * @BeforeScenario @createRegisterForm
      */
     public function createRegisterForm(BeforeScenarioScope $scope)
     {
@@ -197,7 +197,7 @@ final class DoctrineContext implements Context
         try {
             $iri = $this->components[$name];
             $this->iriConverter->getItemFromIri($iri);
-            throw new \Exception(sprintf('The component %s can still be found and has not been removed', $iri));
+            throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri));
         } catch (ItemNotFoundException $exception) {
         }
     }
@@ -211,7 +211,7 @@ final class DoctrineContext implements Context
             $iri = $this->components[$name];
             $this->iriConverter->getItemFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new \Exception(sprintf('The component %s cannot be found anymore', $iri));
+            throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri));
         }
     }
 }

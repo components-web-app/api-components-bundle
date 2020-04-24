@@ -8,7 +8,7 @@ Feature: Register process via a form
     And I add "Content-Type" header equal to "application/ld+json"
 
   @createSchema
-  @create_register_form
+  @createRegisterForm
   Scenario: Submit a user registration form
     Given a user exists with the username "user" password "password" and role "ROLE_USER"
     When I send a "POST" request to the component "register_form" and the postfix "/submit" with body:

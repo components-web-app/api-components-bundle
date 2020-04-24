@@ -36,7 +36,7 @@ final class PublishableContext implements Context
     private IriConverterInterface $iriConverter;
     private array $resources = [];
     private array $publishedResourcesWithoutDrafts = [];
-    private RestContext $restContext;
+    private ?RestContext $restContext;
 
     public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
     {
@@ -58,7 +58,7 @@ final class PublishableContext implements Context
     /**
      * @Transform now
      */
-    public function transformNow(): \DateTime
+    public function castNowToDateTime(): \DateTime
     {
         return new \DateTime();
     }
@@ -66,7 +66,7 @@ final class PublishableContext implements Context
     /**
      * @Transform null
      */
-    public function transformNull()
+    public function castStringToNull()
     {
         return null;
     }
@@ -83,17 +83,15 @@ final class PublishableContext implements Context
 
             $this->thereIsAPublicResourceWithADraftResourceAvailable();
 
-            // $publishedNoDraft
             $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'));
             $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
 
-            // $draftNoPublished
             $this->thereIsAPublishableResource();
         }
     }
 
     /**
-     * @Given there is a published resource with a draft(?: set to publish at "(.*)"|)
+     * @Given /^there is a published resource with a draft(?: set to publish at "(.*)"|)$/
      */
     public function thereIsAPublicResourceWithADraftResourceAvailable(?string $publishDate = null): void
     {
@@ -104,13 +102,11 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Given there is a publishable resource(?: set to publish at "(.*)"|)
+     * @Given /^there is a publishable resource(?: set to publish at "(.*)"|)$/
      */
     public function thereIsAPublishableResource(?string $publishDate = null): PublishableComponent
     {
-        $publishAt = $publishDate ? new \DateTime($publishDate) : null;
-
-        return $this->createPublishableComponent($publishAt);
+        return $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null);
     }
 
     /**
@@ -139,14 +135,14 @@ final class PublishableContext implements Context
 
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
         if ($expectedTotal !== ($receivedTotal = \count($response))) {
-            throw new \Exception(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+            throw new ExpectationException(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
         }
 
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
 
         foreach ($response as $item) {
             if ('is_draft' !== $item['reference'] && !\in_array($item['id'], $expectedPublishedResourceIds, true)) {
-                throw new \Exception('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+                throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
             }
         }
     }
@@ -177,8 +173,7 @@ final class PublishableContext implements Context
     public function theResponseShouldBeAPublishedResource(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
-        $publishedAt = new \DateTime($response['publishedAt']);
-        Assert::assertLessThanOrEqual(new \DateTime(), $publishedAt);
+        Assert::assertLessThanOrEqual(new \DateTime(), new \DateTime($response['publishedAt']));
     }
 
     /**
