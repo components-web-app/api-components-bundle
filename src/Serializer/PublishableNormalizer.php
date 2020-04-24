@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Serializer;
 
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -72,6 +73,9 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     {
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableHelper->getConfiguration($type);
+        if (!$configuration) {
+            throw new InvalidArgumentException(sprintf('Could not get configuration for %s', $type));
+        }
 
         // It's not possible to change the publishedResource and draftResource properties
         unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
@@ -98,7 +102,6 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
             // User changed the publication date with an earlier one on a published resource: ignore it
             if (
                 $this->publishableHelper->isPublished($object) &&
-                !empty($publicationDate) &&
                 new \DateTimeImmutable() >= $publicationDate
             ) {
                 unset($data[$configuration->fieldName]);
@@ -111,6 +114,9 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         }
 
         $em = $this->registry->getManagerForClass($type);
+        if (!$em) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+        }
         $classMetadata = $em->getClassMetadata($type);
 
         // Resource is a draft: nothing to do here anymore

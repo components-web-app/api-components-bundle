@@ -39,32 +39,36 @@ final class PublishableEventListener
         $this->registry = $registry;
     }
 
-    public function onKernelResponse(ResponseEvent $event): void
+    public function onPreWrite(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        /** @var PublishableTrait $data */
         $data = $request->attributes->get('data');
-        if (!$this->publishableHelper->isPublishable($data)) {
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data) ||
+            !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
+        ) {
             return;
         }
-        $response = $event->getResponse();
-        $response->setVary('Authorization');
 
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
-        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
+        $publishedResource = $classMetadata->getFieldValue($data, $configuration->associationName);
+        if ($publishedResource && $this->publishableHelper->isPublished($data)) {
+            $entityManager = $this->getEntityManager($data);
+            $entityManager->remove($publishedResource);
+            $entityManager->flush();
 
-        /** @var \DateTime|null $publishedAt */
-        $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
-        if (!$publishedAt || $publishedAt <= new \DateTime()) {
-            return;
+            $meta = $entityManager->getClassMetadata(\get_class($data));
+            $identifier = $meta->getSingleIdentifierFieldName();
+            $publishedIdentifier = $classMetadata->getFieldValue($publishedResource, $identifier);
+            $classMetadata->setFieldValue($data, $identifier, $publishedIdentifier);
+            $classMetadata->setFieldValue($data, $configuration->associationName, null);
         }
-
-        $response->setExpires($publishedAt);
     }
 
-    public function onKernelRequest(RequestEvent $event): void
+    public function onPostDeserialize(RequestEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
@@ -85,6 +89,34 @@ final class PublishableEventListener
         ) {
             throw new BadRequestHttpException('You cannot change the publication date of a published resource.');
         }
+    }
+
+    public function onPostRespond(ResponseEvent $event): void
+    {
+        $request = $event->getRequest();
+        /** @var PublishableTrait $data */
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data)
+        ) {
+            return;
+        }
+        $response = $event->getResponse();
+        $response->setVary('Authorization');
+
+        $configuration = $this->publishableHelper->getConfiguration($data);
+        $classMetadata = $this->getClassMetadata($data);
+
+        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
+
+        /** @var \DateTime|null $publishedAt */
+        $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
+        if (!$publishedAt || $publishedAt <= new \DateTime()) {
+            return;
+        }
+
+        $response->setExpires($publishedAt);
     }
 
     private function getValue(object $object, string $property)
