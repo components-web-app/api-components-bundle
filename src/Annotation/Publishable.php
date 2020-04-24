@@ -23,13 +23,12 @@ namespace Silverback\ApiComponentBundle\Annotation;
  */
 final class Publishable
 {
-    /**
-     * @var string
-     */
-    public $fieldName = 'publishedAt';
+    public string $fieldName = 'publishedAt';
+
+    public string $associationName = 'publishedResource';
 
     /**
-     * @var string
+     * @var string[]
      */
-    public $associationName = 'publishedResource';
+    public ?array $validationGroups = null;
 }

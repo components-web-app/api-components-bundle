@@ -77,6 +77,7 @@ use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
+use Silverback\ApiComponentBundle\Metadata\PublishableMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
@@ -381,6 +382,15 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
         ])->tag('serializer.normalizer');
+
+    $services
+        ->set(PublishableMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(PublishableMetadataFactory::class . '.inner'),
+            new Reference(PublishableHelper::class),
+            new Reference('request_stack'),
+        ]);
 
     $services
         ->set(NewEmailAddressListener::class)

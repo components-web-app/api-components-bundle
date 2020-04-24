@@ -48,7 +48,7 @@ final class PublishableHelper
     public function isPublished(object $object): bool
     {
         if (!$this->isPublishable($object)) {
-            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', get_class($object)));
+            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
         if ($object instanceof PublishableInterface) {
@@ -58,6 +58,19 @@ final class PublishableHelper
         $value = $this->getClassMetadata($object)->getFieldValue($object, $this->getConfiguration($object)->fieldName);
 
         return null !== $value && new \DateTimeImmutable() >= $value;
+    }
+
+    public function hasPublicationDate(object $object): bool
+    {
+        if (!$this->isPublishable($object)) {
+            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
+        }
+
+        if ($object instanceof PublishableInterface) {
+            return $object->isPublished();
+        }
+
+        return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->getConfiguration($object)->fieldName);
     }
 
     /**
@@ -73,9 +86,6 @@ final class PublishableHelper
      */
     public function getConfiguration($class): ?Publishable
     {
-        /** @var Publishable|null $configuration */
-        $configuration = $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
-
-        return $configuration;
+        return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
     }
 }
