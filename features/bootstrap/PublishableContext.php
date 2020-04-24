@@ -17,6 +17,8 @@ use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
+use Behat\Mink\Exception\ExpectationException;
+use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +39,7 @@ final class PublishableContext implements Context
     private array $resources = [];
     private array $publishedResourcesWithoutDrafts = [];
     private ?RestContext $restContext;
+    private ?MinkContext $minkContext;
 
     public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
     {
@@ -51,8 +54,9 @@ final class PublishableContext implements Context
     {
         $this->behatchJsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
         $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
-        $this->publishedResourcesWithoutDrafts = [];
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->publishedResourcesWithoutDrafts = [];
     }
 
     /**
@@ -135,14 +139,14 @@ final class PublishableContext implements Context
 
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
         if ($expectedTotal !== ($receivedTotal = \count($response))) {
-            throw new ExpectationException(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+            throw new ExpectationException(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal), $this->minkContext->getSession()->getDriver());
         }
 
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
 
         foreach ($response as $item) {
             if ('is_draft' !== $item['reference'] && !\in_array($item['id'], $expectedPublishedResourceIds, true)) {
-                throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+                throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
             }
         }
     }
