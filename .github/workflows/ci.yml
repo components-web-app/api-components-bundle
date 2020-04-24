@@ -93,6 +93,7 @@ jobs:
           - '5.0.*'
         include:
           - php: '7.4'
+            symfony: '5.0.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -235,6 +236,7 @@ jobs:
           - '5.0.*'
         include:
           - php: '7.4'
+            symfony: '5.0.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20

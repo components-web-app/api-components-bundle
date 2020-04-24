@@ -30,6 +30,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the published resources only
 
   @loginUser
+  @try
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
