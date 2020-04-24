@@ -85,7 +85,7 @@ final class PublishableContext implements Context
      */
     public function thereIsAPublicResourceWithADraftResourceAvailable(?string $publishDate = null): void
     {
-        $publishAt = $publishDate ? new \DateTime($publishDate) : null;
+        $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
         $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
         $draft = $this->thereIsAPublishableResource($publishAt, false);
         $draft->setPublishedResource($publishedRecently);

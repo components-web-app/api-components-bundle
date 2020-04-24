@@ -58,7 +58,7 @@ class RestContext implements Context
     }
 
     /**
-     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with data:|)|)$/i
+     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)"|)? with data:$/i
      */
     public function iSendARequestToTheComponentWithData(string $method, string $component, ?string $postfix, TableNode $tableNode)
     {
