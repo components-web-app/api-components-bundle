@@ -55,7 +55,7 @@ final class PublishableEventListener
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
-        $draftResource = $data->getDraftResource() ?? $data;
+        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
         /** @var \DateTime|null $publishedAt */
         $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);

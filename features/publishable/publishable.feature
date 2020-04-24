@@ -94,6 +94,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     And the header "vary" should contain "Authorization"
+    And the response should include the key "published" with the value "false"
 
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
@@ -103,6 +104,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     And the header "vary" should contain "Authorization"
+    And the response should include the key "published" with the value "true"
 
   @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
@@ -132,6 +134,19 @@ Feature: Access to unpublished/draft resources should be configurable
       | querystring     |
       | null            |
       | published=false |
+
+  @loginAdmin
+  Scenario: I can use a publishable entity with customised fields
+    Given there is a custom publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "GET" request to the component "publishable_draft"
+    Then the response status code should be 200
+    And the response should be the component "publishable_draft"
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the header "vary" should contain "Authorization"
+    And the response should include the key "published" with the value false
+    And the response should include the key "customPublishedAt" with the value "2999-12-31T23:59:59+00:00"
+    And the response should not include the key "customPublishedResource"
+    And the response should not include the key "customDraftResource"
 
   # PUT
   @loginAdmin
@@ -164,7 +179,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
     Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_components" with data:
+    When I send a "PUT" request to the component "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
@@ -177,7 +192,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with data:
+    When I send a "PUT" request to the component "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200

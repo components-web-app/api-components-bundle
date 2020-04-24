@@ -143,6 +143,15 @@ class JsonContext implements Context
     }
 
     /**
+     * @Then the response should not include the key :arrayKey
+     */
+    public function theResponseShouldNotIncludeTheKeyWithValue($arrayKey): void
+    {
+        $response = $this->getJsonAsArray();
+        Assert::assertArrayNotHasKey($arrayKey, $response);
+    }
+
+    /**
      * @Then the response should be the component :name
      */
     public function theResponseShouldBeTheComponent($name): void

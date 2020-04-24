@@ -24,6 +24,7 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\CustomPublishableComponent;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\PublishableComponent;
 
 /**
@@ -57,7 +58,23 @@ final class PublishableContext implements Context
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function resetResources()
+    {
+        $this->resources = [];
         $this->publishedResourcesWithoutDrafts = [];
+    }
+
+    /**
+     * @Transform /(false|true)/
+     */
+    public function castFalseToBoolean(): bool
+    {
+        return false;
     }
 
     /**
@@ -75,7 +92,7 @@ final class PublishableContext implements Context
             $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'));
             $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
 
-            $draft = $this->thereIsAPublishableResource(null, false);
+            $this->thereIsAPublishableResource(null, false);
         }
         $this->manager->flush();
     }
@@ -101,6 +118,27 @@ final class PublishableContext implements Context
         $flush && $this->manager->flush();
 
         return $object;
+    }
+
+    /**
+     * @Given /^there is a custom publishable resource(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): CustomPublishableComponent
+    {
+        $publishedAt = $publishDate ? new \DateTime($publishDate) : null;
+        $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
+        $resource = new CustomPublishableComponent();
+        $resource->reference = $isPublished ? 'is_published' : 'is_draft';
+        $resource->setCustomPublishedAt($publishedAt);
+        $this->manager->persist($resource);
+        $this->resources[] = $resource;
+
+        $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
+        $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+
+        $flush && $this->manager->flush();
+
+        return $resource;
     }
 
     /**
@@ -163,10 +201,10 @@ final class PublishableContext implements Context
         }
     }
 
-    private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
+    private function createPublishableComponent(?\DateTime $publishedAt, ?object $component = null): PublishableComponent
     {
         $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
-        $resource = new PublishableComponent();
+        $resource = $component ?? new PublishableComponent();
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
