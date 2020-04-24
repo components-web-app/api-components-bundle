@@ -130,6 +130,13 @@ class JsonContext implements Context
      */
     public function theResponseShouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
     {
+        if ('null' === $arrayValue) {
+            $arrayValue = null;
+        }
+        if ('now' === $arrayValue) {
+            $arrayValue = date('Y-m-d H:i:s');
+        }
+
         $response = $this->getJsonAsArray();
         Assert::assertArrayHasKey($arrayKey, $response);
         Assert::assertEquals($arrayValue, $response[$arrayKey]);

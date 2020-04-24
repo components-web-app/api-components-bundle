@@ -39,13 +39,9 @@ Feature: Access to unpublished/draft resources should be configurable
   # POST
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
-    When I send a "POST" request to "/component/publishable_components" with body:
-    """
-    {
-      "reference": "test",
-      "publishedAt": "<publishedAt>"
-    }
-    """
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
     Then the response status code should be 201
     And the response should include the key "publishedAt" with the value "<publishedAt>"
     Examples:
@@ -57,13 +53,9 @@ Feature: Access to unpublished/draft resources should be configurable
 
   @loginUser
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
-    When I send a "POST" request to "/component/publishable_components" with body:
-    """
-    {
-      "reference": "test",
-      "publishedAt": "<publishedAt>"
-    }
-    """
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
     Then the response status code should be 201
     And the response should be a published resource
     Examples:
@@ -148,12 +140,9 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
     Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_published" with body:
-    """
-    {
-        "publishedAt": "<publishedAt>"
-    }
-    """
+    When I send a "PUT" request to the component "publishable_components" with data:
+      | publishedAt   |
+      | <publishedAt> |
     Then the response status code should be 200
     And the response should include the key "publishedAt" with the value "1970-12-31 23:59:59"
     Examples:
@@ -164,12 +153,9 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_draft" with body:
-    """
-    {
-        "publishedAt": "<publishedAt>"
-    }
-    """
+    When I send a "PUT" request to the component "publishable_draft" with data:
+      | publishedAt   |
+      | <publishedAt> |
     Then the response status code should be 200
     And the response should include the key "publishedAt" with the value "<publishedAt>"
     And the response should be the component "publishable_published"

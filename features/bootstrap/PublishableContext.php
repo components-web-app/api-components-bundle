@@ -61,22 +61,6 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Transform now
-     */
-    public function castNowToDateTime(): \DateTime
-    {
-        return new \DateTime();
-    }
-
-    /**
-     * @Transform null
-     */
-    public function castStringToNull()
-    {
-        return null;
-    }
-
-    /**
      * @Given there are :number draft and published resources available
      */
     public function givenThereAreDraftAndPublishedResourcesAvailable($number): void
@@ -152,7 +136,7 @@ final class PublishableContext implements Context
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
 
         foreach ($items as $item) {
-            if ('is_draft' !== $item['reference'] && !\in_array($item['id'], $expectedPublishedResourceIds, true)) {
+            if ('is_draft' !== $item['reference'] && !\in_array($item['@id'], $expectedPublishedResourceIds, true)) {
                 throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
             }
         }
@@ -203,8 +187,8 @@ final class PublishableContext implements Context
     private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
     {
         $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
-        $reference = $isPublished ? 'is_published' : 'is_draft';
-        $resource = new PublishableComponent($reference);
+        $resource = new PublishableComponent();
+        $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
         $this->resources[] = $resource;
@@ -217,8 +201,8 @@ final class PublishableContext implements Context
 
     private function getResourceIds(array $resources): array
     {
-        return array_map(static function (PublishableComponent $component) {
-            return $component->getId();
+        return array_map(function (PublishableComponent $component) {
+            return $this->iriConverter->getIriFromItem($component);
         }, $resources);
     }
 }

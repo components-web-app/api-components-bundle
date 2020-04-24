@@ -382,6 +382,8 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PublishableHelper::class),
+            new Reference('doctrine'),
+            new Reference('api_platform.iri_converter'),
         ])->tag('serializer.normalizer');
 
     $services
