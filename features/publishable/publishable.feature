@@ -70,6 +70,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node published should be true
 
   @loginUser
+  @saveNow
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
     When I send a "POST" request to "/component/publishable_components" with data:
       | reference | publishedAt   |
@@ -77,7 +78,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 201
     And the JSON node publishedAt should exist
     And the JSON node published should be true
-    And the response should include the key "publishedAt" with the value "<publishedAt>"
+    And the response should include the key "publishedAt" with the value "now"
     Examples:
       | publishedAt               |
       | now                       |
@@ -109,6 +110,7 @@ Feature: Access to unpublished/draft resources should be configurable
     When I send a "GET" request to the component "publishable_draft" and the postfix "?published=true"
     Then the response status code should be 404
 
+  @loginUser
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
     Given there is a published resource with a draft set to publish at "2020-01-01 00:00:00"
     When I send a "GET" request to the component "publishable_published"
@@ -134,7 +136,7 @@ Feature: Access to unpublished/draft resources should be configurable
   # PUT
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource.
-    Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "publishable_published" with body:
     """
     {
@@ -142,8 +144,7 @@ Feature: Access to unpublished/draft resources should be configurable
     }
     """
     Then the response status code should be 200
-    And the response should be a draft resource
-    And the response should include the key "publishedAt" with the value "null"
+    And the JSON node publishedAt should be null
     And the response should include the key "reference" with the value "updated"
 
   @loginAdmin
@@ -248,6 +249,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the key "publishedResource" with the value "null"
 
   # DELETE
+  @loginUser
   Scenario: As any user, when I delete a published resource with a draft resource available, it should delete the published resource and keep the draft.
     Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
     When I send a "DELETE" request to the component "publishable_published"

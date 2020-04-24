@@ -163,18 +163,6 @@ final class PublishableContext implements Context
         }
     }
 
-    /**
-     * @Then the response should be a draft resource
-     */
-    public function theResponseShouldBeADraftResource(): void
-    {
-        $response = $this->jsonContext->getJsonAsArray();
-        $publishedAt = new \DateTime($response['publishedAt']);
-        if (null !== $publishedAt) {
-            Assert::assertGreaterThan(new \DateTime(), $publishedAt);
-        }
-    }
-
     private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
     {
         $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();

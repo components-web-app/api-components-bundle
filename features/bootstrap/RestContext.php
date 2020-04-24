@@ -49,6 +49,14 @@ class RestContext implements Context
     }
 
     /**
+     * @BeforeScenario @saveNow
+     */
+    public function saveNow(): void
+    {
+        $this->now = date('Y-m-d\TH:i:s+00:00');
+    }
+
+    /**
      * @Given I send a :method request to :url with data:
      */
     public function iSendARequestToWithData($method, $url, TableNode $tableNode)

@@ -54,20 +54,23 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        // Reset queryBuilder to prevent an invalid DQL
-        $queryBuilder->where('1 = 1');
         $alias = $queryBuilder->getRootAliases()[0];
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
-        foreach ($identifiers as $identityField => $identifier) {
-            $queryBuilder
-                ->andWhere(
-                    $queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identityField"),
-                        $queryBuilder->expr()->eq("$alias.$identityField", ":id_$identityField"),
-                    )
-                )
-                ->setParameter("id_$identityField", $identifier);
+        $criteriaReset = false;
+        foreach ($identifiers as $identifier => $value) {
+            $predicates = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
+                $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
+            );
+
+            // Reset queryBuilder to prevent an invalid DQL
+            if (!$criteriaReset) {
+                $queryBuilder->where($predicates);
+            } else {
+                $queryBuilder->andWhere($predicates);
+            }
+            $queryBuilder->setParameter("id_$identifier", $value);
         }
 
         $queryBuilder->expr()->asc($queryBuilder->expr()->isNull("$alias.$configuration->associationName"));

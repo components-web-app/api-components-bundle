@@ -70,17 +70,21 @@ final class PublishableEventListener
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        if (!$this->publishableHelper->isPublishable($data)) {
+        if (empty($data) || !$this->publishableHelper->isPublishable($data)) {
             return;
         }
 
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
-        if ($request->isMethod(Request::METHOD_POST)) {
-            $this->handlePOSTRequest($classMetadata, $configuration, $data);
-        } elseif ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
-            $this->handlePUTRequest($classMetadata, $configuration, $data, $request);
+        switch ($request->getMethod()) {
+            case Request::METHOD_POST:
+                $this->handlePOSTRequest($classMetadata, $configuration, $data);
+                break;
+            case Request::METHOD_PATCH:
+            case Request::METHOD_PUT:
+                $this->handlePUTRequest($classMetadata, $configuration, $data, $request);
+                break;
         }
     }
 
@@ -135,10 +139,8 @@ final class PublishableEventListener
             $configuration->associationName => $data,
         ]);
         if (!$draft) {
+            // Identifier(s) should be reset from AbstractComponent::__clone method
             $draft = clone $data;
-
-            // Reset draft identifier(s)
-            $classMetadata->setIdentifierValues($draft, array_combine($classMetadata->getIdentifierFieldNames(), array_fill(0, \count($classMetadata->getIdentifierFieldNames()), null)));
 
             // Add draft object to UnitOfWork
             $this->getEntityManager($draft)->persist($draft);
