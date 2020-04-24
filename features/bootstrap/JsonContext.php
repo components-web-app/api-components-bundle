@@ -134,7 +134,7 @@ class JsonContext implements Context
             $arrayValue = null;
         }
         if ('now' === $arrayValue) {
-            $arrayValue = date('Y-m-d H:i:s');
+            $arrayValue = $this->restContext->now;
         }
 
         $response = $this->getJsonAsArray();

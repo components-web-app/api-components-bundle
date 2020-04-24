@@ -13,9 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
@@ -23,45 +20,30 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 
 /**
- * Adds `isPublished` property on response, if not set.
+ * Adds `published` property on response, if not set.
  *
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class PublishableNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
 {
     use NormalizerAwareTrait;
-    use ClassMetadataTrait;
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
 
     private PublishableHelper $publishableHelper;
-    private ManagerRegistry $registry;
-    private IriConverterInterface $iriConverter;
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, IriConverterInterface $iriConverter)
+    public function __construct(PublishableHelper $publishableHelper)
     {
         $this->publishableHelper = $publishableHelper;
-        $this->registry = $registry;
-        $this->iriConverter = $iriConverter;
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
         $data = $this->normalizer->normalize($object, $format, $context);
-        $configuration = $this->publishableHelper->getConfiguration($object);
 
         if (!\array_key_exists('published', $data)) {
             $data['published'] = $this->publishableHelper->isPublished($object);
-        }
-
-        if (!\array_key_exists($configuration->fieldName, $data)) {
-            $data[$configuration->fieldName] = $this->getClassMetadata($object)->getFieldValue($object, $configuration->fieldName);
-        }
-
-        if (!\array_key_exists($configuration->associationName, $data)) {
-            $value = $this->getClassMetadata($object)->getFieldValue($object, $configuration->associationName);
-            $data[$configuration->fieldName] = $value ? $this->iriConverter->getIriFromItem($value) : null;
         }
 
         return $data;

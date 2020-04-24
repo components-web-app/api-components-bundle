@@ -164,15 +164,6 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @Then the response should be a published resource
-     */
-    public function theResponseShouldBeAPublishedResource(): void
-    {
-        $response = $this->jsonContext->getJsonAsArray();
-        Assert::assertLessThanOrEqual(new \DateTime(), new \DateTime($response['publishedAt']));
-    }
-
-    /**
      * @Then the response should be a draft resource
      */
     public function theResponseShouldBeADraftResource(): void

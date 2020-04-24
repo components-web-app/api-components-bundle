@@ -86,6 +86,7 @@ use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
@@ -384,8 +385,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PublishableHelper::class),
-            new Reference('doctrine'),
-            new Reference('api_platform.iri_converter'),
         ])->tag('serializer.normalizer');
 
     $services
@@ -394,6 +393,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableValidator::class . '.inner'),
             new Reference(PublishableHelper::class),
+        ]);
+
+    $services
+        ->set(PublishableLoader::class)
+        ->args([
+            new Reference('annotations.reader'),
         ]);
 
     $services

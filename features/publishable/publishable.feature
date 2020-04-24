@@ -38,6 +38,16 @@ Feature: Access to unpublished/draft resources should be configurable
 
   # POST
   @loginAdmin
+  Scenario: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt |
+      | test      | null        |
+    Then the response status code should be 201
+    # publishedAt does not exist because it's null
+    And the JSON node publishedAt should not exist
+    And the JSON node published should be false
+
+  @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
     When I send a "POST" request to "/component/publishable_components" with data:
       | reference | publishedAt   |
@@ -45,11 +55,19 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 201
     And the response should include the key "publishedAt" with the value "<publishedAt>"
     Examples:
-      | publishedAt         |
-      | null                |
-      | now                 |
-      | 1970-01-01 00:00:00 |
-      | 2999-12-31 23:59:59 |
+      | publishedAt               |
+      | now                       |
+      | 1970-01-01T00:00:00+00:00 |
+      | 2999-12-31T23:59:59+00:00 |
+
+  @loginUser
+  Scenario: As a user with no draft access, when I create a resource with publishedAt=null, I should have the published resource returned, and the publication date is automatically set.
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt |
+      | test      | null        |
+    Then the response status code should be 201
+    And the JSON node publishedAt should exist
+    And the JSON node published should be true
 
   @loginUser
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
@@ -57,13 +75,14 @@ Feature: Access to unpublished/draft resources should be configurable
       | reference | publishedAt   |
       | test      | <publishedAt> |
     Then the response status code should be 201
-    And the response should be a published resource
+    And the JSON node publishedAt should exist
+    And the JSON node published should be true
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
     Examples:
-      | publishedAt         |
-      | null                |
-      | now                 |
-      | 1970-01-01 00:00:00 |
-      | 2999-12-31 23:59:59 |
+      | publishedAt               |
+      | now                       |
+      | 1970-01-01T00:00:00+00:00 |
+      | 2999-12-31T23:59:59+00:00 |
 
   # GET item
   @loginAdmin
@@ -96,7 +115,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response should be the component "publishable_published"
     And the response status code should be 200
     And the header "expires" should not exist
-    And the response should include the key "publishedAt" with the value "2020-01-01 00:00:00"
+    And the response should include the key "publishedAt" with the value "2020-01-01T00:00:00+00:00"
     And the header "vary" should contain "Authorization"
 
   @loginUser
@@ -149,9 +168,9 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should include the key "publishedAt" with the value "1970-12-31 23:59:59"
     Examples:
-      | publishedAt         |
-      | 1970-01-01 00:00:00 |
-      | now                 |
+      | publishedAt               |
+      | 1970-01-01T00:00:00+00:00 |
+      | now                       |
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
@@ -164,9 +183,9 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
     Examples:
-      | publishedAt         |
-      | 1970-01-01 00:00:00 |
-      | now                 |
+      | publishedAt               |
+      | 1970-01-01T00:00:00+00:00 |
+      | now                       |
 
 #  NOTE: I thikn this test is redundant. A publication date in the future would signify it is a draft.
 #  @loginAdmin

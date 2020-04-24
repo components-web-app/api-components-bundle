@@ -49,6 +49,8 @@ final class PublishableEventListener
         if (!$this->publishableHelper->isPublishable($data)) {
             return;
         }
+        $response = $event->getResponse();
+        $response->setVary('Authorization');
 
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
@@ -60,9 +62,8 @@ final class PublishableEventListener
         if (!$publishedAt || $publishedAt <= new \DateTime()) {
             return;
         }
-        $response = $event->getResponse();
+
         $response->setExpires($publishedAt);
-        $response->setVary('Authorization');
     }
 
     public function onKernelView(ViewEvent $event): void
@@ -78,9 +79,7 @@ final class PublishableEventListener
 
         if ($request->isMethod(Request::METHOD_POST)) {
             $this->handlePOSTRequest($classMetadata, $configuration, $data);
-        }
-
-        if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
+        } elseif ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
             $this->handlePUTRequest($classMetadata, $configuration, $data, $request);
         }
     }
