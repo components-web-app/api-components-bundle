@@ -54,9 +54,9 @@
         "phpstan/phpstan-symfony": "^0.12.4",
         "phpunit/phpunit": "^8.5",
         "roave/security-advisories": "dev-master",
-        "symfony/debug": "^4.4",
-        "symfony/dotenv": "^4.4",
-        "symfony/http-client": "4.4.*",
+        "symfony/debug": "^4.4 || ^5.0",
+        "symfony/dotenv": "^4.4 || ^5.0",
+        "symfony/http-client": "^4.4 || ^5.0",
         "symfony/maker-bundle": "^1.0",
         "symfony/monolog-bundle": "^3.5",
         "symfony/phpunit-bridge": "^5.0.3 || dev-master",
@@ -85,7 +85,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "4.4.*",
+            "require": "5.0.*",
             "root-dir": "tests/app"
         }
     },
