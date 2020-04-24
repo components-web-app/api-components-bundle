@@ -100,11 +100,11 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     {
         /** @var EntityRepository $repository */
         $repository = $this->registry->getManagerForClass($resourceClass)->getRepository($resourceClass);
-        $queryBuilder = $repository->createQueryBuilder('o');
+        $queryBuilder = $repository->createQueryBuilder('o2');
 
         return $queryBuilder
-            ->select("o.$configuration->associationName")
-            ->where($queryBuilder->expr()->isNotNull("o.$configuration->associationName"))
+            ->select("IDENTITY(o2.$configuration->associationName)")
+            ->where($queryBuilder->expr()->isNotNull("o2.$configuration->associationName"))
             ->getDQL();
     }
 
