@@ -88,6 +88,9 @@ jobs:
       matrix:
         php:
           - '7.4'
+        symfony:
+          - '4.4.*'
+          - '5.0.*'
         include:
           - php: '7.4'
             coverage: true
@@ -147,10 +150,11 @@ jobs:
           restore-keys: |
             composer-php${{ matrix.php }}-
           continue-on-error: true
-      - name: Install Symfony Flex
+      - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
             symfony/flex
+          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: |
           mkdir -p /tmp/api-component/core/vendor
@@ -226,6 +230,9 @@ jobs:
       matrix:
         php:
           - '7.4'
+        symfony:
+          - '4.4.*'
+          - '5.0.*'
         include:
           - php: '7.4'
             coverage: true
@@ -284,10 +291,11 @@ jobs:
           restore-keys: |
             composer-php${{ matrix.php }}-
           continue-on-error: true
-      - name: Install Symfony Flex
+      - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
             symfony/flex
+          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: |
           mkdir -p /tmp/api-component/core/vendor
@@ -353,6 +361,9 @@ jobs:
       matrix:
         php:
           - '7.4'
+        symfony:
+          - '4.4.*'
+          - '5.0.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -390,10 +401,11 @@ jobs:
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
           continue-on-error: true
-      - name: Install Symfony Flex
+      - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
             symfony/flex
+          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: |
           mkdir -p /tmp/api-component/core/vendor
@@ -428,6 +440,9 @@ jobs:
       matrix:
         php:
           - '7.4'
+        symfony:
+          - '4.4.*'
+          - '5.0.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -465,10 +480,11 @@ jobs:
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
           continue-on-error: true
-      - name: Install Symfony Flex
+      - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
             symfony/flex
+          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: |
           mkdir -p /tmp/api-component/core/vendor
