@@ -77,7 +77,6 @@ use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
-use Silverback\ApiComponentBundle\Metadata\PublishableMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
@@ -94,6 +93,7 @@ use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -387,12 +387,11 @@ return static function (ContainerConfigurator $configurator) {
         ])->tag('serializer.normalizer');
 
     $services
-        ->set(PublishableMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(PublishableValidator::class)
+        ->decorate('api_platform.validator')
         ->args([
-            new Reference(PublishableMetadataFactory::class . '.inner'),
+            new Reference(PublishableValidator::class . '.inner'),
             new Reference(PublishableHelper::class),
-            new Reference('request_stack'),
         ]);
 
     $services

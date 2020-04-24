@@ -17,6 +17,8 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Mink\Exception\ExpectationException;
+use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
 
 /**
@@ -27,6 +29,7 @@ class RestContext implements Context
     private ?BaseRestContext $restContext;
 
     public array $components = [];
+    private ?MinkContext $minkContext;
 
     /**
      * @BeforeScenario
@@ -34,6 +37,7 @@ class RestContext implements Context
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
         $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
+        $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
     }
 
     /**
@@ -47,20 +51,20 @@ class RestContext implements Context
     /**
      * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with body:|)|)$/i
      */
-    public function iSendARequestToTheComponentWithBody(string $method, string $component, ?string $postfix, PyStringNode $body)
+    public function iSendARequestToTheComponentWithBody(string $method, string $component, ?string $postfix = null, ?PyStringNode $body = null)
     {
         if (!isset($this->components[$component])) {
-            throw new \Exception("The component with name $component has not been defined");
+            throw new ExpectationException("The component with name $component has not been defined", $this->minkContext->getSession()->getDriver());
         }
         $endpoint = $this->components[$component] . ($postfix ?: '');
 
-        return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body);
+        return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body ?? new PyStringNode([], 0));
     }
 
     /**
      * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)"|)? with data:$/i
      */
-    public function iSendARequestToTheComponentWithData(string $method, string $component, ?string $postfix, TableNode $tableNode)
+    public function iSendARequestToTheComponentWithData(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
     {
         return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($this->castTableNodeToArray($tableNode))], 0));
     }
