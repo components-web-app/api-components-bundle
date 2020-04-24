@@ -65,7 +65,10 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
             $this->publishableHelper->isPublishable($data);
     }
 
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    /**
+     * {@inheritdoc}
+     */
+    public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableHelper->getConfiguration($type);
@@ -143,7 +146,10 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return $this->denormalizer->denormalize($data, $type, $format, $context);
     }
 
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    /**
+     * {@inheritdoc}
+     */
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
         return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->isPublishable($type);
     }
