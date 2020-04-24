@@ -64,6 +64,15 @@ final class PublishableListener
                         'onDelete' => 'SET NULL',
                     ],
                 ],
+                'inversedBy' => $configuration->reverseAssociationName,
+            ]);
+        }
+
+        if (!$metadata->hasAssociation($configuration->reverseAssociationName)) {
+            $metadata->mapOneToOne([
+                'fieldName' => $configuration->reverseAssociationName,
+                'targetEntity' => $metadata->getName(),
+                'mappedBy' => $configuration->associationName,
             ]);
         }
     }

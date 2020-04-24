@@ -73,6 +73,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the header "vary" should contain "Authorization"
 
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
@@ -81,13 +82,13 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the header "vary" should contain "Authorization"
 
   @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
     Given there is a publishable resource set to publish at "2999-12-31 23:59:59"
-    When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
+    When I send a "GET" request to the component "publishable_draft" and the postfix "?published=true"
     Then the response status code should be 404
-    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
     Given there is a published resource with a draft set to publish at "2020-01-01 00:00:00"
@@ -96,6 +97,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response status code should be 200
     And the header "expires" should not exist
     And the response should include the key "publishedAt" with the value "2020-01-01 00:00:00"
+    And the header "vary" should contain "Authorization"
 
   @loginUser
   Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
@@ -104,6 +106,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the header "vary" should contain "Authorization"
     Examples:
       | querystring     |
       | null            |

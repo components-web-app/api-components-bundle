@@ -22,6 +22,8 @@ trait PublishableTrait
 
     private ?self $publishedResource = null;
 
+    private ?self $draftResource = null;
+
     /** @return static */
     public function setPublishedAt(?\DateTimeInterface $publishedAt)
     {
@@ -51,5 +53,10 @@ trait PublishableTrait
     public function getPublishedResource(): ?self
     {
         return $this->publishedResource;
+    }
+
+    public function getDraftResource(): ?self
+    {
+        return $this->draftResource;
     }
 }

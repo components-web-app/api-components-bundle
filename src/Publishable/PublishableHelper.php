@@ -86,6 +86,10 @@ final class PublishableHelper
      */
     public function getConfiguration($class): ?Publishable
     {
+        if (null === $class || (\is_string($class) && !class_exists($class))) {
+            return null;
+        }
+
         return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
     }
 }

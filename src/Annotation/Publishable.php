@@ -27,6 +27,8 @@ final class Publishable
 
     public string $associationName = 'publishedResource';
 
+    public string $reverseAssociationName = 'draftResource';
+
     /**
      * @var string[]
      */

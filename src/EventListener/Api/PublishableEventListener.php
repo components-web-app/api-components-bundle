@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Api;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,6 +44,7 @@ final class PublishableEventListener
     public function onKernelResponse(ResponseEvent $event): void
     {
         $request = $event->getRequest();
+        /** @var PublishableTrait $data */
         $data = $request->attributes->get('data');
         if (!$this->publishableHelper->isPublishable($data)) {
             return;
@@ -51,13 +53,16 @@ final class PublishableEventListener
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
+        $draftResource = $data->getDraftResource() ?? $data;
+
         /** @var \DateTime|null $publishedAt */
-        $publishedAt = $classMetadata->getFieldValue($data, $configuration->fieldName);
-        if (!$publishedAt) {
+        $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
+        if (!$publishedAt || $publishedAt <= new \DateTime()) {
             return;
         }
         $response = $event->getResponse();
         $response->setExpires($publishedAt);
+        $response->setVary('Authorization');
     }
 
     public function onKernelView(ViewEvent $event): void
