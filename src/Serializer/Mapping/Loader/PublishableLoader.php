@@ -45,18 +45,25 @@ final class PublishableLoader implements LoaderInterface
             return true;
         }
 
-        if ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->fieldName] ?? null)) {
+        if (
+            ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->fieldName] ?? null)) &&
+            !empty($attributeMetadata->getGroups())
+        ) {
             $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
             $attributeMetadata->addGroup(sprintf('%s:publishable:write', $reflectionClass->getShortName()));
         }
 
-        if ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->associationName] ?? null)) {
+        if (
+            ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->associationName] ?? null)) &&
+            !empty($attributeMetadata->getGroups())
+        ) {
             $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
         }
 
         if (
             is_a($classMetadata->getName(), PublishableInterface::class, true) &&
-            ($attributeMetadata = ($classMetadata->getAttributesMetadata()['published'] ?? null))
+            ($attributeMetadata = ($classMetadata->getAttributesMetadata()['published'] ?? null)) &&
+            !empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
         }

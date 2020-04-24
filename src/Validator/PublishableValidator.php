@@ -37,8 +37,8 @@ final class PublishableValidator implements ValidatorInterface
      */
     public function validate($data, array $context = [])
     {
-        if (is_object($data) && $this->publishableHelper->isPublishable($data) && $this->publishableHelper->hasPublicationDate($data)) {
-            $groups = [(new \ReflectionClass(get_class($data)))->getShortName().':published'];
+        if (\is_object($data) && $this->publishableHelper->isPublishable($data) && $this->publishableHelper->hasPublicationDate($data)) {
+            $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
             if (!empty($this->publishableHelper->getConfiguration($data)->validationGroups)) {
                 $groups = $this->publishableHelper->getConfiguration($data)->validationGroups;
             }

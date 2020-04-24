@@ -386,6 +386,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PublishableHelper::class),
+            new Reference('doctrine'),
         ])->tag('serializer.normalizer');
 
     $services

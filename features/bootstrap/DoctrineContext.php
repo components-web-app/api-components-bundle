@@ -17,6 +17,8 @@ use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Mink\Exception\ExpectationException;
+use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -34,6 +36,7 @@ final class DoctrineContext implements Context
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
     private ?BehatchRestContext $baseRestContext;
+    private ?MinkContext $minkContext;
     private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
     private ObjectManager $manager;
@@ -65,6 +68,7 @@ final class DoctrineContext implements Context
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
         $this->baseRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
+        $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
     }
 
     /**
@@ -195,7 +199,7 @@ final class DoctrineContext implements Context
         try {
             $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);
-            throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri));
+            throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
         } catch (ItemNotFoundException $exception) {
         }
     }
@@ -209,7 +213,7 @@ final class DoctrineContext implements Context
             $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri));
+            throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
     }
 }
