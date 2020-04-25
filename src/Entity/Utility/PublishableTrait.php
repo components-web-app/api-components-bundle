@@ -18,11 +18,12 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
  */
 trait PublishableTrait
 {
-    private ?\DateTimeInterface $publishedAt = null;
+    // Needs to be protected instead of published so reflection can read property when merging draft into published
+    protected ?\DateTimeInterface $publishedAt = null;
 
-    private ?self $publishedResource = null;
+    protected ?self $publishedResource = null;
 
-    private ?self $draftResource = null;
+    protected ?self $draftResource = null;
 
     /** @return static */
     public function setPublishedAt(?\DateTimeInterface $publishedAt)

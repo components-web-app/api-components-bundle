@@ -45,7 +45,7 @@ final class PublishableHelper
         return $this->authorizationChecker->isGranted(new Expression($this->permission));
     }
 
-    public function isPublished(object $object): bool
+    public function isActivePublishedAt(object $object): bool
     {
         if (!$this->isPublishable($object)) {
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));

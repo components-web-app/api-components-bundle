@@ -52,7 +52,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $data = $this->normalizer->normalize($object, $format, $context);
 
         if (!\array_key_exists('published', $data)) {
-            $data['published'] = $this->publishableHelper->isPublished($object);
+            $data['published'] = $this->publishableHelper->isActivePublishedAt($object);
         }
 
         return $data;
@@ -101,7 +101,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
             // User changed the publication date with an earlier one on a published resource: ignore it
             if (
-                $this->publishableHelper->isPublished($object) &&
+                $this->publishableHelper->isActivePublishedAt($object) &&
                 new \DateTimeImmutable() >= $publicationDate
             ) {
                 unset($data[$configuration->fieldName]);
@@ -120,15 +120,12 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $classMetadata = $em->getClassMetadata($type);
 
         // Resource is a draft: nothing to do here anymore
+        // or User doesn't have draft access: update the original object
         if (
             null !== $classMetadata->getFieldValue($object, $configuration->associationName) ||
-            !$this->publishableHelper->isPublished($object)
+            !$this->publishableHelper->isActivePublishedAt($object) ||
+            !$this->publishableHelper->isGranted()
         ) {
-            return $this->denormalizer->denormalize($data, $type, $format, $context);
-        }
-
-        // User doesn't have draft access: update the original object
-        if (!$this->publishableHelper->isGranted()) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 

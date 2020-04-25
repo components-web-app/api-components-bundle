@@ -94,7 +94,6 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the header "vary" should contain "Authorization"
     And the response should include the key "published" with the value "false"
 
   @loginUser
@@ -104,7 +103,6 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the header "vary" should contain "Authorization"
     And the response should include the key "published" with the value "true"
 
   @loginAdmin
@@ -118,12 +116,11 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
     Given there is a published resource with a draft set to publish at "2020-01-01T00:00:00+00:00"
     When I send a "GET" request to the component "publishable_published"
-    Then the response should be the component "publishable_published"
-    And the response status code should be 200
+    Then the response status code should be 200
+    And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
     And the response should include the key "publishedAt" with the value "2020-01-01T00:00:00+00:00"
     And the header "expires" should not exist
-    And the header "vary" should contain "Authorization"
 
   @loginUser
   Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
@@ -132,7 +129,6 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the header "vary" should contain "Authorization"
     Examples:
       | querystring     |
       | null            |
@@ -145,7 +141,6 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the header "vary" should contain "Authorization"
     And the response should include the key "published" with the value false
     And the response should include the key "customPublishedAt" with the value "2999-12-31T23:59:59+00:00"
     And the response should not include the key "customPublishedResource"
@@ -159,7 +154,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_published"
     And the response should include the key "reference" with the value is_draft
     And the header "expires" should not exist
-    And the header "vary" should contain "Authorization"
     And the response should include the key "published" with the value true
     And the component "publishable_draft" should not exist
     Examples:
@@ -209,19 +203,22 @@ Feature: Access to unpublished/draft resources should be configurable
       | now                       |
 
   @loginAdmin
-  Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
+  Scenario Outline: As a user with draft access, when I update a published/draft resource with a draft resource available, and set a publication date in the past (or now), it should update the draft resource, merge it with the public resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" with data:
-      | publishedAt   |
-      | <publishedAt> |
+    When I send a "PUT" request to the component "<component>" with data:
+      | publishedAt   | reference   |
+      | <publishedAt> | updated     |
     Then the response status code should be 200
-    And the response should include the key "publishedAt" with the value "<publishedAt>"
     And the response should be the component "publishable_published"
+    And the response should include the key "reference" with the value "updated"
+    And the response should include the key "published" with the value true
     And the component "publishable_draft" should not exist
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
+    And the header "expires" should not exist
     Examples:
-      | publishedAt               |
-      | 1970-01-01T00:00:00+00:00 |
-      | now                       |
+      | publishedAt               | component             |
+      | 1970-01-01T00:00:00+00:00 | publishable_published |
+      | now                       | publishable_draft     |
 
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the future, it should update and return the draft resource.
@@ -273,24 +270,6 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should include the key "reference" with the value "updated"
     And the JSON node publishedResource should not exist
-
-  @loginAdmin
-  Scenario: when I set now as publication date on a draft, it should directly merge it with the published resource
-    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with body:
-    """
-    {
-        "reference": "updated",
-        "publishedAt": "1970-01-01T00:00:00+00:00"
-    }
-    """
-    Then the response status code should be 200
-    And the response should be the component "publishable_published"
-    And the response should include the key "reference" with the value "updated"
-    And the header "expires" should not exist
-    And the header "vary" should contain "Authorization"
-    And the response should include the key "published" with the value true
-    And the component "publishable_draft" should not exist
 
   # DELETE
   @loginUser
