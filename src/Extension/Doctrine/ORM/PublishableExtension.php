@@ -44,7 +44,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     {
         $configuration = $this->getConfiguration($resourceClass);
 
-        if (!$configuration || !($request = $this->requestStack->getCurrentRequest())) {
+        if (!$configuration || !$this->requestStack->getCurrentRequest()) {
             return;
         }
 
@@ -85,7 +85,6 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        $configuration = $this->getConfiguration($resourceClass);
         if (!$this->isDraftRequest($context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);

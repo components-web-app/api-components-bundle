@@ -35,7 +35,7 @@ trait ClassMetadataTrait
 
     private function getEntityManager(object $data): EntityManagerInterface
     {
-        /** @var EntityManagerInterface $em */
+        /** @var EntityManagerInterface|null $em */
         $em = $this->registry->getManagerForClass($this->getObjectClass($data));
         if (!$em) {
             throw ORMInvalidArgumentException::invalidObject(__CLASS__ . '::' . __FUNCTION__, $data);
