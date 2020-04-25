@@ -51,9 +51,13 @@ class RestContext implements Context
     /**
      * @BeforeScenario @saveNow
      */
-    public function saveNow(): void
+    public function getNow(): string
     {
-        $this->now = date('Y-m-d\TH:i:s+00:00');
+        if ($this->now) {
+            return $this->now;
+        }
+
+        return $this->now = date('Y-m-d\TH:i:s+00:00');
     }
 
     /**
@@ -93,7 +97,7 @@ class RestContext implements Context
             }
 
             if ('now' === $value) {
-                $this->now = $value = date('Y-m-d\TH:i:s+00:00');
+                $value = $this->getNow();
             }
 
             return $value;
