@@ -43,6 +43,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
     {
         $configuration = $this->getConfiguration($resourceClass);
+
         if (!$configuration || !($request = $this->requestStack->getCurrentRequest())) {
             return;
         }
@@ -73,7 +74,8 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             $queryBuilder->setParameter("id_$identifier", $value);
         }
 
-        $queryBuilder->expr()->asc($queryBuilder->expr()->isNull("$alias.$configuration->associationName"));
+        $queryBuilder->addSelect("CASE WHEN $alias.$configuration->associationName IS NULL THEN 1 ELSE 0 END AS HIDDEN assocNameSort");
+        $queryBuilder->orderBy('assocNameSort', 'ASC');
         $queryBuilder->setMaxResults(1);
     }
 

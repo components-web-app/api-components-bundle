@@ -77,7 +77,7 @@ jobs:
           php-cs-fixer fix --dry-run --diff --cache-file=/var/cache/php-cs-fixer/.php_cs.cache --ansi
 
   phpunit:
-    name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
+    name: PHPUnit (PHP ${{ matrix.php }} :: Symfony ${{ matrix.symfony }})
     runs-on: ubuntu-latest
     container:
       image: php:${{ matrix.php }}-alpine
@@ -90,10 +90,10 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
         include:
           - php: '7.4'
-            symfony: '5.0.*'
+            symfony: '4.4.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -220,7 +220,7 @@ jobs:
           path: infection.log
 
   behat:
-    name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
+    name: Behat (PHP ${{ matrix.php }} :: Symfony ${{ matrix.symfony }})
     runs-on: ubuntu-latest
     container:
       image: php:${{ matrix.php }}-alpine
@@ -233,10 +233,10 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
         include:
           - php: '7.4'
-            symfony: '5.0.*'
+            symfony: '4.4.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -352,7 +352,7 @@ jobs:
 #        continue-on-error: true
 
   phpunit-lowest-deps:
-    name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
+    name: PHPUnit (PHP ${{ matrix.php }} :: Symfony ${{ matrix.symfony }}) (lowest dependencies)
     runs-on: ubuntu-latest
     container:
       image: php:${{ matrix.php }}-alpine
@@ -365,7 +365,7 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -431,7 +431,7 @@ jobs:
         continue-on-error: true
 
   behat-lowest-deps:
-    name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
+    name: Behat (PHP ${{ matrix.php }} :: Symfony ${{ matrix.symfony }}) (lowest dependencies)
     runs-on: ubuntu-latest
     container:
       image: php:${{ matrix.php }}-alpine
@@ -444,7 +444,7 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
