@@ -104,7 +104,7 @@ final class PublishableContext implements Context
     {
         $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
         $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
-        $draft = $this->thereIsAPublishableResource($publishAt, false);
+        $draft = $this->thereIsAPublishableResource($publishAt, false, true);
         $draft->setPublishedResource($publishedRecently);
         $this->manager->flush();
     }
@@ -112,9 +112,9 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true): PublishableComponent
+    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): PublishableComponent
     {
-        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null);
+        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft);
         $flush && $this->manager->flush();
 
         return $object;
@@ -201,10 +201,10 @@ final class PublishableContext implements Context
         }
     }
 
-    private function createPublishableComponent(?\DateTime $publishedAt, ?object $component = null): PublishableComponent
+    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false): PublishableComponent
     {
-        $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
-        $resource = $component ?? new PublishableComponent();
+        $isPublished = !$forceDraft && (null !== $publishedAt && $publishedAt <= new \DateTime());
+        $resource = new PublishableComponent();
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
