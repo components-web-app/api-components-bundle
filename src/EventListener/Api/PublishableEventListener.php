@@ -40,80 +40,6 @@ final class PublishableEventListener
         $this->registry = $registry;
     }
 
-    private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
-    {
-        $configuration = $this->publishableHelper->getConfiguration($data);
-        $classMetadata = $this->getClassMetadata($data);
-
-        $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
-        $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
-
-        // the request is for a resource with an active publish date
-        // either a draft, if so it may be a published version we need to replace with
-        // or a published resource which may have a draft that has an active publish date
-        if (
-            $this->publishableHelper->isActivePublishedAt($data) &&
-            (
-                $publishedResourceAssociation ||
-                ($draftResourceAssociation && $this->publishableHelper->isActivePublishedAt($draftResourceAssociation))
-            )
-        ) {
-            $entityManager = $this->getEntityManager($data);
-            $meta = $entityManager->getClassMetadata(\get_class($data));
-            $identifierFieldName = $meta->getSingleIdentifierFieldName();
-
-            if ($publishedResourceAssociation) {
-                // retrieving a draft that is now published
-                $draftResource = $data;
-                $publishedResource = $publishedResourceAssociation;
-
-                $publishedId = $classMetadata->getFieldValue($publishedResource, $identifierFieldName);
-                $request->attributes->set('id', $publishedId);
-                $request->attributes->set('data', $publishedResource);
-                $request->attributes->set('previous_data', clone $publishedResource);
-            } else {
-                // retrieving a published resource and draft should now replace it
-                $publishedResource = $data;
-                $draftResource = $draftResourceAssociation;
-            }
-            $classMetadata->setFieldValue($publishedResource, $configuration->reverseAssociationName, null);
-            $classMetadata->setFieldValue($draftResource, $configuration->associationName, null);
-
-            $this->mergeDraftIntoPublished($identifierFieldName, $draftResource, $publishedResource, $flushDatabase);
-
-            return $publishedResource;
-        }
-
-        return $data;
-    }
-
-    private function mergeDraftIntoPublished(string $identifierFieldName, object $draftResource, object $publishedResource, bool $flushDatabase): void
-    {
-        $draftReflection = new \ReflectionClass($draftResource);
-        $publishedReflection = new \ReflectionClass($publishedResource);
-        $properties = $publishedReflection->getProperties();
-
-        foreach ($properties as $property) {
-            $property->setAccessible(true);
-            $name = $property->getName();
-            if ($identifierFieldName === $name) {
-                continue;
-            }
-            $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
-            if ($draftProperty) {
-                $draftProperty->setAccessible(true);
-                $draftValue = $draftProperty->getValue($draftResource);
-                $property->setValue($publishedResource, $draftValue);
-            }
-        }
-
-        $entityManager = $this->getEntityManager($draftResource);
-        $entityManager->remove($draftResource);
-        if ($flushDatabase) {
-            $entityManager->flush();
-        }
-    }
-
     public function onPreWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
@@ -198,5 +124,80 @@ final class PublishableEventListener
     private function getValue(object $object, string $property)
     {
         return $this->getClassMetadata($object)->getFieldValue($object, $property);
+    }
+
+    private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
+    {
+        if (!$this->publishableHelper->isActivePublishedAt($data)) {
+            return $data;
+        }
+
+        $configuration = $this->publishableHelper->getConfiguration($data);
+        $classMetadata = $this->getClassMetadata($data);
+
+        $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
+        $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
+        if (
+            !$publishedResourceAssociation &&
+            (!$draftResourceAssociation || !$this->publishableHelper->isActivePublishedAt($draftResourceAssociation))
+        ) {
+            return $data;
+        }
+
+        // the request is for a resource with an active publish date
+        // either a draft, if so it may be a published version we need to replace with
+        // or a published resource which may have a draft that has an active publish date
+        $entityManager = $this->getEntityManager($data);
+        $meta = $entityManager->getClassMetadata(\get_class($data));
+        $identifierFieldName = $meta->getSingleIdentifierFieldName();
+
+        if ($publishedResourceAssociation) {
+            // retrieving a draft that is now published
+            $draftResource = $data;
+            $publishedResource = $publishedResourceAssociation;
+
+            $publishedId = $classMetadata->getFieldValue($publishedResource, $identifierFieldName);
+            $request->attributes->set('id', $publishedId);
+            $request->attributes->set('data', $publishedResource);
+            $request->attributes->set('previous_data', clone $publishedResource);
+        } else {
+            // retrieving a published resource and draft should now replace it
+            $publishedResource = $data;
+            $draftResource = $draftResourceAssociation;
+        }
+
+        $classMetadata->setFieldValue($publishedResource, $configuration->reverseAssociationName, null);
+        $classMetadata->setFieldValue($draftResource, $configuration->associationName, null);
+
+        $this->mergeDraftIntoPublished($identifierFieldName, $draftResource, $publishedResource, $flushDatabase);
+
+        return $publishedResource;
+    }
+
+    private function mergeDraftIntoPublished(string $identifierFieldName, object $draftResource, object $publishedResource, bool $flushDatabase): void
+    {
+        $draftReflection = new \ReflectionClass($draftResource);
+        $publishedReflection = new \ReflectionClass($publishedResource);
+        $properties = $publishedReflection->getProperties();
+
+        foreach ($properties as $property) {
+            $property->setAccessible(true);
+            $name = $property->getName();
+            if ($identifierFieldName === $name) {
+                continue;
+            }
+            $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
+            if ($draftProperty) {
+                $draftProperty->setAccessible(true);
+                $draftValue = $draftProperty->getValue($draftResource);
+                $property->setValue($publishedResource, $draftValue);
+            }
+        }
+
+        $entityManager = $this->getEntityManager($draftResource);
+        $entityManager->remove($draftResource);
+        if ($flushDatabase) {
+            $entityManager->flush();
+        }
     }
 }
