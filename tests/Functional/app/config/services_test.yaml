@@ -7,3 +7,6 @@ services:
     resource: '../../../../features/bootstrap/*'
     bind:
       $cacheDir: '%kernel.cache_dir%'
+
+  Silverback\ApiComponentBundle\Tests\Functional\TestBundle\DataProvider\UnpersistedComponentDataProvider:
+    tags: [ 'api_platform.item_data_provider' ]

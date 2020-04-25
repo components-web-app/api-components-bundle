@@ -20,9 +20,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a PATCH request to the form with a valid field
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -36,9 +36,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a PATCH request to the form with an invalid field
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -52,9 +52,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a PATCH request to the form with multiple valid fields
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -69,9 +69,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a PATCH request to the form with an invalid field within multiple fields
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -86,9 +86,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-
-  @createTestForm
   Scenario: I send a POST request to the form with all valid fields
+    Given there is a "test" form
     When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -103,8 +102,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a POST request to the form with an invalid field
+    Given there is a "test" form
     When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -119,8 +118,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createTestForm
   Scenario: I send a POST request to the form with an invalid root key
+    Given there is a "test" form
     When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -137,9 +136,9 @@ Feature: Form component that defines a form type created in the application
     }
     """
 
-  @createTestForm
   Scenario: I send a PATCH request to the form with no fields
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
@@ -151,9 +150,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can send a valid field for validation of one of the children in a CollectionType
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -172,9 +171,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can send null children in place of an empty object and validation will still pass only for the submitted fields
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -193,9 +192,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can send an invalid field for validation of one of the children in a CollectionType
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -214,9 +213,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can validate a valid field that is a collection type with a simple field
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -232,9 +231,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can validate a valid field that is a collection type with multiple simple field
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -251,9 +250,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: I can validate an invalid field that is a collection type with a simple field
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "nested" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -269,8 +268,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: Each text_children should have a minimum length of 1 - post invalid form
+    Given there is a "nested" form
     When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -291,8 +290,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: Children is required - post an invalid form
+    Given there is a "nested" form
     When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -309,8 +308,8 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createNestedForm
   Scenario: Post a valid form
+    Given there is a "nested" form
     When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
     """
     {
@@ -331,9 +330,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  @createTestRepeatedForm
   Scenario: Validate repeated field - valid
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test_repeated" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
     """
     {
@@ -350,9 +349,9 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  @createTestRepeatedForm
   Scenario: Validate repeated field - invalid
-    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    Given there is a "test_repeated" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
     """
     {
