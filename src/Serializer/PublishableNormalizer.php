@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -40,11 +41,13 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
     private PublishableHelper $publishableHelper;
     private ManagerRegistry $registry;
+    private RequestStack $requestStack;
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry)
+    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, RequestStack $requestStack)
     {
         $this->publishableHelper = $publishableHelper;
         $this->registry = $registry;
+        $this->requestStack = $requestStack;
     }
 
     public function normalize($object, $format = null, array $context = [])
@@ -84,6 +87,11 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         // User doesn't have draft access: cannot set or change the publication date
         if (!$this->publishableHelper->isGranted()) {
             unset($data[$configuration->fieldName]);
+        }
+
+        $request = $this->requestStack->getMasterRequest();
+        if ($request && true === $request->query->getBoolean('published', false)) {
+            return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
         // It's a new object

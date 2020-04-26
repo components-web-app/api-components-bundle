@@ -389,6 +389,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
+            new Reference(RequestStack::class),
         ])->tag('serializer.normalizer');
 
     $services
