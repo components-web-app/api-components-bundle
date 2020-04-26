@@ -8,13 +8,13 @@
         "@context",
         "@id",
         "@type",
-        "modified",
+        "modifiedAt",
         "username",
         "emailAddress",
         "roles",
         "enabled",
         "newEmailAddress",
-        "created",
+        "createdAt",
         "__PERSISTED__"
     ],
     "properties": {
@@ -48,10 +48,10 @@
                 "User"
             ]
         },
-        "modified": {
-            "$id": "#/properties/modified",
+        "modifiedAt": {
+            "$id": "#/properties/modifiedAt",
             "type": "string",
-            "title": "The Modified Schema",
+            "title": "The modifiedAt Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
@@ -115,10 +115,10 @@
                 "user@email.com"
             ]
         },
-        "created": {
-            "$id": "#/properties/created",
+        "createdAt": {
+            "$id": "#/properties/createdAt",
             "type": "string",
-            "title": "The Created Schema",
+            "title": "The createdAt Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [

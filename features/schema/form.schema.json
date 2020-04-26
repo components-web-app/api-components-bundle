@@ -11,9 +11,9 @@
         "formType",
         "formView",
         "componentLocations",
-        "modified",
+        "modifiedAt",
         "componentGroups",
-        "created",
+        "createdAt",
         "__PERSISTED__"
     ],
     "properties": {
@@ -706,10 +706,10 @@
             "description": "An explanation about the purpose of this instance.",
             "default": []
         },
-        "modified": {
-            "$id": "#/properties/modified",
+        "modifiedAt": {
+            "$id": "#/properties/modifiedAt",
             "type": "string",
-            "title": "The Modified Schema",
+            "title": "The modifiedAt Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
@@ -723,10 +723,10 @@
             "description": "An explanation about the purpose of this instance.",
             "default": []
         },
-        "created": {
-            "$id": "#/properties/created",
+        "createdAt": {
+            "$id": "#/properties/createdAt",
             "type": "string",
-            "title": "The Created Schema",
+            "title": "The createdAt Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [

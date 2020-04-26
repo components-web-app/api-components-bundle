@@ -11,21 +11,17 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Utility;
-
-use DateTime;
-use DateTimeImmutable;
+namespace Silverback\ApiComponentBundle\Annotation;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Annotation
+ * @Target("CLASS")
  */
-interface TimestampedInterface
+final class Timestamped
 {
-    public function setCreated(DateTimeImmutable $created);
+    public string $createdAtField = 'createdAt';
 
-    public function getCreated(): ?DateTimeImmutable;
-
-    public function setModified(DateTime $modified);
-
-    public function getModified(): ?DateTime;
+    public string $modifiedAtField = 'modifiedAt';
 }

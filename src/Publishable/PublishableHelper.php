@@ -17,6 +17,7 @@ use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -87,7 +88,7 @@ final class PublishableHelper
     public function getConfiguration($class): ?Publishable
     {
         if (null === $class || (\is_string($class) && !class_exists($class))) {
-            return null;
+            throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
         }
 
         return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);

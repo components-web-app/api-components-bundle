@@ -18,8 +18,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
@@ -31,10 +29,9 @@ use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
  *     @ORM\AssociationOverride(name="componentGroups", inversedBy="components")
  * })
  */
-abstract class AbstractComponent implements ComponentInterface, TimestampedInterface
+abstract class AbstractComponent implements ComponentInterface
 {
     use IdTrait;
-    use TimestampedTrait;
     use UiTrait;
     use ComponentGroupsTrait;
 

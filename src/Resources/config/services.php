@@ -40,7 +40,6 @@ use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
@@ -91,6 +90,7 @@ use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
+use Silverback\ApiComponentBundle\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -141,14 +141,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResourceClassResolverInterface::class),
         ])
         ->autoconfigure(false);
-
-    $services
-        ->set(ApiTimestampedListener::class)
-        ->args([
-            new Reference(EntityManagerInterface::class),
-            new Reference(TimestampedListener::class),
-        ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE]);
 
     $services
         ->set(AutoRoutePrefixMetadataFactory::class)
@@ -338,6 +330,66 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(NewEmailAddressListener::class)
+        ->args([new Reference(EntityManagerInterface::class)])
+        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+
+    $services
+        ->set(NewEmailAddressType::class)
+        ->args([new Reference(Security::class)])
+        ->tag('form.type');
+
+    $services
+        ->set(NewEmailAddressValidator::class)
+        ->args([
+            new Reference(UserRepository::class),
+        ])
+        ->tag('validator.constraint_validator');
+
+    $services
+        ->set(PageTemplateOutputDataTransformer::class)
+        ->tag('api_platform.data_transformer')
+        ->args([
+            new Reference(LayoutRepository::class),
+        ]);
+
+    $services
+        ->set(PasswordChangedEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
+
+    $services
+        ->set(PasswordManager::class)
+        ->args([
+            new Reference(UserMailer::class),
+            new Reference(EntityManagerInterface::class),
+            new Reference(ValidatorInterface::class),
+            new Reference(TokenGenerator::class),
+            new Reference(UserRepository::class),
+        ]);
+
+    $services
+        ->set(PasswordResetEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
+
+    $services
+        ->set(PasswordRequestAction::class)
+        ->args($passwordActionArgs = [
+            new Reference(SerializerInterface::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(ResponseFactory::class),
+            new Reference(PasswordManager::class),
+        ]);
+
+    $services
+        ->set(PasswordUpdateAction::class)
+        ->args($passwordActionArgs);
+
+    $services
+        ->set(PathResolver::class);
+
+    $services
         ->set(PublishableContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args([
@@ -407,66 +459,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(NewEmailAddressListener::class)
-        ->args([new Reference(EntityManagerInterface::class)])
-        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
-
-    $services
-        ->set(NewEmailAddressType::class)
-        ->args([new Reference(Security::class)])
-        ->tag('form.type');
-
-    $services
-        ->set(NewEmailAddressValidator::class)
-        ->args([
-            new Reference(UserRepository::class),
-        ])
-        ->tag('validator.constraint_validator');
-
-    $services
-        ->set(PageTemplateOutputDataTransformer::class)
-        ->tag('api_platform.data_transformer')
-        ->args([
-            new Reference(LayoutRepository::class),
-        ]);
-
-    $services
-        ->set(PasswordChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
-
-    $services
-        ->set(PasswordManager::class)
-        ->args([
-            new Reference(UserMailer::class),
-            new Reference(EntityManagerInterface::class),
-            new Reference(ValidatorInterface::class),
-            new Reference(TokenGenerator::class),
-            new Reference(UserRepository::class),
-        ]);
-
-    $services
-        ->set(PasswordResetEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
-
-    $services
-        ->set(PasswordRequestAction::class)
-        ->args($passwordActionArgs = [
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(ResponseFactory::class),
-            new Reference(PasswordManager::class),
-        ]);
-
-    $services
-        ->set(PasswordUpdateAction::class)
-        ->args($passwordActionArgs);
-
-    $services
-        ->set(PathResolver::class);
-
-    $services
         ->set(ResponseFactory::class)
         ->args([
             new Reference(SerializerInterface::class),
@@ -494,6 +486,13 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(TimestampedHelper::class)
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('doctrine'),
+        ]);
+
+    $services
         ->set(TablePrefixExtension::class)
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
@@ -505,6 +504,11 @@ return static function (ContainerConfigurator $configurator) {
     };
     $services
         ->set(TimestampedListener::class)
+        ->args([
+            new Reference(TimestampedHelper::class),
+            new Reference(ManagerRegistry::class),
+        ])
+        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'))
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('prePersist'))
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('preUpdate'));
 

@@ -13,34 +13,80 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
-use DateTime;
-use DateTimeImmutable;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
+use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
+use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class TimestampedListener
 {
-    public function prePersist(LifecycleEventArgs $args): void
+    use ClassMetadataTrait;
+
+    private TimestampedHelper $timestampedHelper;
+
+    public function __construct(TimestampedHelper $timestampedHelper, ManagerRegistry $managerRegistry)
     {
-        $timestamped = $args->getObject();
-        if (!$timestamped instanceof TimestampedInterface) {
+        $this->timestampedHelper = $timestampedHelper;
+        $this->initRegistry($managerRegistry);
+    }
+
+    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
+    {
+        /** @var ClassMetadataInfo $metadata */
+        $metadata = $eventArgs->getClassMetadata();
+        if (!$this->timestampedHelper->isTimestamped($metadata->getName())) {
             return;
         }
 
-        $timestamped->setCreated(new DateTimeImmutable());
-        $timestamped->setModified(new DateTime());
+        $configuration = $this->timestampedHelper->getConfiguration($metadata->getName());
+
+        if (!$metadata->hasField($configuration->createdAtField)) {
+            $metadata->mapField([
+                'fieldName' => $configuration->createdAtField,
+                'type' => 'datetime_immutable',
+                'nullable' => false,
+            ]);
+        }
+
+        if (!$metadata->hasField($configuration->modifiedAtField)) {
+            $metadata->mapField([
+                'fieldName' => $configuration->modifiedAtField,
+                'type' => 'datetime',
+                'nullable' => false,
+            ]);
+        }
+    }
+
+    public function prePersist(LifecycleEventArgs $args): void
+    {
+        $this->setFields($args->getObject(), true);
     }
 
     public function preUpdate(LifecycleEventArgs $args): void
     {
-        $timestamped = $args->getObject();
-        if (!$timestamped instanceof TimestampedInterface) {
+        $this->setFields($args->getObject(), false);
+    }
+
+    private function setFields(object $timestamped, bool $isNew): void
+    {
+        if (!$this->timestampedHelper->isTimestamped($timestamped)) {
             return;
         }
 
-        $timestamped->setModified(new DateTime());
+        $config = $this->timestampedHelper->getConfiguration($timestamped);
+        $classMetadata = $this->getClassMetadata($timestamped);
+        $classMetadata->setFieldValue(
+            $timestamped,
+            $config->createdAtField,
+            $isNew ?
+                new \DateTimeImmutable() :
+                $classMetadata->getFieldValue($timestamped, $config->createdAtField)
+        );
+        $classMetadata->setFieldValue($timestamped, $config->modifiedAtField, new \DateTime());
     }
 }
