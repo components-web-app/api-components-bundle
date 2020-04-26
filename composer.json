@@ -38,6 +38,7 @@
     "require-dev": {
         "behat/behat": "^3.6",
         "behatch/contexts": "^3.3",
+        "doctrine/common": "^2.12",
         "doctrine/doctrine-fixtures-bundle": "^3.3",
         "doctrine/orm": "^2.6.3",
         "friends-of-behat/mink": "^1.8",
@@ -58,7 +59,7 @@
         "symfony/http-client": "^4.4 || ^5.0",
         "symfony/maker-bundle": "^1.0",
         "symfony/monolog-bundle": "^3.5",
-        "symfony/phpunit-bridge": "^5.0.3 || dev-master",
+        "symfony/phpunit-bridge": "^4.4 || ^5.0.3 || dev-master",
         "symfony/profiler-pack": "^1.0",
         "symfony/test-pack": "^1"
     },
@@ -84,7 +85,8 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "root-dir": "tests/app"
+            "root-dir": "tests/app",
+            "require": "5.*"
         }
     },
     "scripts": {

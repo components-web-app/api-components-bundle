@@ -15,10 +15,12 @@ namespace Silverback\ApiComponentBundle\EventListener\Api;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -35,96 +37,169 @@ final class PublishableEventListener
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry)
     {
         $this->publishableHelper = $publishableHelper;
+        // not unused, used by the trait
         $this->registry = $registry;
     }
 
-    public function __invoke(ViewEvent $event): void
+    public function onPreWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        if (!$this->publishableHelper->isPublishable($data)) {
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data) ||
+            $request->isMethod(Request::METHOD_DELETE)
+        ) {
             return;
+        }
+
+        $publishable = $this->checkMergeDraftIntoPublished($request, $data);
+        $event->setControllerResult($publishable);
+    }
+
+    public function onPostRead(RequestEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data) ||
+            !$request->isMethod(Request::METHOD_GET)
+        ) {
+            return;
+        }
+
+        $this->checkMergeDraftIntoPublished($request, $data, true);
+    }
+
+    public function onPostDeserialize(RequestEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data) ||
+            !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
+        ) {
+            return;
+        }
+
+        $configuration = $this->publishableHelper->getConfiguration($data);
+
+        // User cannot change the publication date of the original resource
+        if (
+            true === $request->query->getBoolean('published', false) &&
+            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($data, $configuration->fieldName)
+        ) {
+            throw new BadRequestHttpException('You cannot change the publication date of a published resource.');
+        }
+    }
+
+    public function onPostRespond(ResponseEvent $event): void
+    {
+        $request = $event->getRequest();
+        /** @var PublishableTrait $data */
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->publishableHelper->isPublishable($data)
+        ) {
+            return;
+        }
+        $response = $event->getResponse();
+
+        $configuration = $this->publishableHelper->getConfiguration($data);
+        $classMetadata = $this->getClassMetadata($data);
+
+        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
+
+        /** @var \DateTime|null $publishedAt */
+        $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
+        if (!$publishedAt || $publishedAt <= new \DateTime()) {
+            return;
+        }
+
+        $response->setExpires($publishedAt);
+    }
+
+    private function getValue(object $object, string $property)
+    {
+        return $this->getClassMetadata($object)->getFieldValue($object, $property);
+    }
+
+    private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
+    {
+        if (!$this->publishableHelper->isActivePublishedAt($data)) {
+            return $data;
         }
 
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
-        if ($request->isMethod(Request::METHOD_POST)) {
-            $this->handlePOSTRequest($classMetadata, $configuration, $data);
+        $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
+        $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
+        if (
+            !$publishedResourceAssociation &&
+            (!$draftResourceAssociation || !$this->publishableHelper->isActivePublishedAt($draftResourceAssociation))
+        ) {
+            return $data;
         }
 
-        if ($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH)) {
-            $this->handlePUTRequest($classMetadata, $configuration, $data, $request);
+        // the request is for a resource with an active publish date
+        // either a draft, if so it may be a published version we need to replace with
+        // or a published resource which may have a draft that has an active publish date
+        $entityManager = $this->getEntityManager($data);
+        /** @var ClassMetadataInfo $meta */
+        $meta = $entityManager->getClassMetadata(\get_class($data));
+        $identifierFieldName = $meta->getSingleIdentifierFieldName();
+
+        if ($publishedResourceAssociation) {
+            // retrieving a draft that is now published
+            $draftResource = $data;
+            $publishedResource = $publishedResourceAssociation;
+
+            $publishedId = $classMetadata->getFieldValue($publishedResource, $identifierFieldName);
+            $request->attributes->set('id', $publishedId);
+            $request->attributes->set('data', $publishedResource);
+            $request->attributes->set('previous_data', clone $publishedResource);
+        } else {
+            // retrieving a published resource and draft should now replace it
+            $publishedResource = $data;
+            $draftResource = $draftResourceAssociation;
         }
+
+        $classMetadata->setFieldValue($publishedResource, $configuration->reverseAssociationName, null);
+        $classMetadata->setFieldValue($draftResource, $configuration->associationName, null);
+
+        $this->mergeDraftIntoPublished($identifierFieldName, $draftResource, $publishedResource, $flushDatabase);
+
+        return $publishedResource;
     }
 
-    private function handlePOSTRequest(ClassMetadataInfo $classMetadata, Publishable $configuration, object $data): void
+    private function mergeDraftIntoPublished(string $identifierFieldName, object $draftResource, object $publishedResource, bool $flushDatabase): void
     {
-        // It's not possible for a user to define a resource as draft from another
-        $classMetadata->setFieldValue($data, $configuration->associationName, null);
+        $draftReflection = new \ReflectionClass($draftResource);
+        $publishedReflection = new \ReflectionClass($publishedResource);
+        $properties = $publishedReflection->getProperties();
 
-        // User doesn't have draft access: force publication date
-        if (!$this->publishableHelper->isGranted()) {
-            $classMetadata->setFieldValue($data, $configuration->fieldName, new \DateTimeImmutable());
-        }
-    }
-
-    private function handlePUTRequest(ClassMetadataInfo $classMetadata, Publishable $configuration, object $data, Request $request): void
-    {
-        $changeSet = $this->getEntityManager($data)->getUnitOfWork()->getEntityChangeSet($data);
-
-        // It's not possible to change the publishedResource property
-        if (isset($changeSet[$configuration->associationName])) {
-            $classMetadata->setFieldValue($data, $configuration->associationName, $changeSet[$configuration->associationName][0]);
-        }
-
-        // User doesn't have draft access: cannot change the publication date
-        if (!$this->publishableHelper->isGranted()) {
-            if (isset($changeSet[$configuration->fieldName])) {
-                $classMetadata->setFieldValue($data, $configuration->fieldName, $changeSet[$configuration->fieldName][0]);
+        foreach ($properties as $property) {
+            $property->setAccessible(true);
+            $name = $property->getName();
+            if ($identifierFieldName === $name) {
+                continue;
             }
-
-            // Nothing to do here anymore for user without draft access
-            return;
-        }
-
-        // User requested for original object
-        if (true === $request->query->getBoolean('published', false)) {
-            // User cannot change the publication date of the original resource
-            if ($changeSet[$configuration->fieldName]) {
-                throw new BadRequestHttpException('You cannot change the publication date of a published resource.');
+            $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
+            if ($draftProperty) {
+                $draftProperty->setAccessible(true);
+                $draftValue = $draftProperty->getValue($draftResource);
+                $property->setValue($publishedResource, $draftValue);
             }
-
-            // User wants to update the original object: nothing to do here anymore
-            return;
         }
 
-        // Resource is a draft of another resource: nothing to do here anymore
-        if (null !== $classMetadata->getFieldValue($data, $configuration->associationName)) {
-            return;
+        $entityManager = $this->getEntityManager($draftResource);
+        $entityManager->remove($draftResource);
+        if ($flushDatabase) {
+            $entityManager->flush();
         }
-
-        // Any field has been modified: create or update draft
-        $draft = $this->getEntityManager($data)->getRepository($this->getObjectClass($data))->findOneBy([
-            $configuration->associationName => $data,
-        ]);
-        if (!$draft) {
-            $draft = clone $data;
-
-            // Reset draft identifier(s)
-            $classMetadata->setIdentifierValues($draft, array_combine($classMetadata->getIdentifierFieldNames(), array_fill(0, \count($classMetadata->getIdentifierFieldNames()), null)));
-
-            // Add draft object to UnitOfWork
-            $this->getEntityManager($draft)->persist($draft);
-
-            // Set publishedResource on draft
-            $classMetadata->setFieldValue($draft, $configuration->associationName, $data);
-        }
-
-        // Replace data by its draft
-        $request->attributes->set('data', $draft);
-
-        // Rollback modifications on original resource
-        $this->getEntityManager($data)->refresh($data);
     }
 }

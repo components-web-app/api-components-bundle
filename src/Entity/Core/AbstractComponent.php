@@ -51,4 +51,9 @@ abstract class AbstractComponent implements ComponentInterface, TimestampedInter
         $this->initComponentGroups();
         $this->componentLocations = new ArrayCollection();
     }
+
+    public function __clone()
+    {
+        $this->setId();
+    }
 }

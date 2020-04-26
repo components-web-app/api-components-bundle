@@ -8,231 +8,261 @@ Feature: Access to unpublished/draft resources should be configurable
     And I add "Content-Type" header equal to "application/ld+json"
 
   # GET collection
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, it should include the draft resources instead of the published ones.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then the response should include the draft resources instead of the published ones
+    Then the response status code should be 200
+    And the response should include the draft resources instead of the published ones
 
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=true"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
-  @createSchema
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
-  @createSchema
   @loginUser
+  @try
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
-    Given there are draft and published resources available
+    Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
-    Then the response should include the published resources only
+    Then the response status code should be 200
+    And the response should include the published resources only
 
   # POST
-  @createSchema
+  @loginAdmin
+  Scenario Outline: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
+    Then the response status code should be 201
+    # publishedAt does not exist because it's null
+    And the JSON node publishedAt should not exist
+    And the JSON node published should be false
+    Examples:
+      | publishedAt |
+      | null        |
+
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
-    When I send a "POST" request to "/component/publishable_components" with body:
-    """
-    {
-      "reference": "test",
-      "publishedAt": "<publishedAt>"
-    }
-    """
-    Then the response should include the key "publishedAt" with the value "<publishedAt>"
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
+    Then the response status code should be 201
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
+    And the JSON node published should be equal to "<isPublished>"
     Examples:
-      | publishedAt         |
-      | null                |
-      | now                 |
-      | 1970-01-01 00:00:00 |
-      | 2999-12-31 23:59:59 |
+      | publishedAt               | isPublished |
+      | now                       | true        |
+      | 1970-01-01T00:00:00+00:00 | true        |
+      | 2999-12-31T23:59:59+00:00 | false       |
 
-  @createSchema
+  @loginUser
+  Scenario: As a user with no draft access, when I create a resource with publishedAt=null, I should have the published resource returned, and the publication date is automatically set.
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt |
+      | test      | null        |
+    Then the response status code should be 201
+    And the JSON node publishedAt should exist
+    And the JSON node published should be true
+
   @loginUser
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
-    When I send a "POST" request to "/component/publishable_components" with body:
-    """
-    {
-      "reference": "test",
-      "publishedAt": "<publishedAt>"
-    }
-    """
-    Then the response should be a published resource
+    When I send a "POST" request to "/component/publishable_components" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
+    Then the response status code should be 201
+    And the JSON node publishedAt should exist
+    And the JSON node published should be true
+    And the response should include the key "publishedAt" with the value "now"
     Examples:
-      | publishedAt         |
-      | null                |
-      | now                 |
-      | 1970-01-01 00:00:00 |
-      | 2999-12-31 23:59:59 |
+      | publishedAt               |
+      | now                       |
+      | 1970-01-01T00:00:00+00:00 |
+      | 2999-12-31T23:59:59+00:00 |
 
   # GET item
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, I should have the draft resource returned.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "GET" request to the component "publishable_published"
-    Then the response should be the component "publishable_draft"
+    Then the response status code should be 200
+    And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the response should include the key "published" with the value "false"
 
-  @createSchema
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
-    Then the response should be the component "publishable_published"
+    Then the response status code should be 200
+    And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the response should include the key "published" with the value "true"
 
-  @createSchema
+  @loginAdmin
   @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
-    Given there is a publishable resource set to publish at "2999-12-31 23:59:59"
-    When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "GET" request to the component "publishable_draft" and the postfix "?published=true"
     Then the response status code should be 404
-    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
 
-  @createSchema
+  @loginUser
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
-    Given there is a published resource with a draft set to publish at "2020-01-01 00:00:00"
+    Given there is a published resource with a draft set to publish at "2020-01-01T00:00:00+00:00"
     When I send a "GET" request to the component "publishable_published"
-    Then the response should be the component "publishable_published"
+    Then the response status code should be 200
+    And the response should be the component "publishable_published"
+    And the component "publishable_draft" should not exist
+    And the response should include the key "publishedAt" with the value "2020-01-01T00:00:00+00:00"
     And the header "expires" should not exist
-    And the response should include the key "publishedAt" with the value "2020-01-01 00:00:00"
 
-  @createSchema
   @loginUser
   Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "GET" request to the component "publishable_published" and the postfix "?<querystring>"
-    Then the response should be the component "publishable_published"
+    Then the response status code should be 200
+    And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     Examples:
       | querystring     |
       | null            |
       | published=false |
 
-  # PUT
-  @createSchema
   @loginAdmin
-  Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource.
-    Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_published" with body:
-    """
-    {
-        "reference": "updated"
-    }
-    """
-    Then the response should be a draft resource
-    And the response should include the key "publishedAt" with the value "null"
-    And the response should include the key "reference" with the value "updated"
+  Scenario: I can use a publishable entity with customised fields
+    Given there is a custom publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "GET" request to the component "publishable_draft"
+    Then the response status code should be 200
+    And the response should be the component "publishable_draft"
+    And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
+    And the response should include the key "published" with the value false
+    And the response should include the key "customPublishedAt" with the value "2999-12-31T23:59:59+00:00"
+    And the response should not include the key "customPublishedResource"
+    And the response should not include the key "customDraftResource"
 
-  @createSchema
   @loginAdmin
-  Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_draft" with body:
-    """
-    {
-        "reference": "updated"
-    }
-    """
-    Then the response should include the key "publishedAt" with the value "2999-12-31 23:59:59"
-    And the response should include the key "reference" with the value "updated"
-
-  @createSchema
-  @loginAdmin
-  Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
-    Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_published" with body:
-    """
-    {
-        "publishedAt": "<publishedAt>"
-    }
-    """
-    Then the response should include the key "publishedAt" with the value "1970-12-31 23:59:59"
-    Examples:
-      | publishedAt         |
-      | 1970-01-01 00:00:00 |
-      | now                 |
-
-  @createSchema
-  @loginAdmin
-  Scenario Outline: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the past (or now), it should update and return the published resource, and remove the draft resource.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_draft" with body:
-    """
-    {
-        "publishedAt": "<publishedAt>"
-    }
-    """
-    Then the response should include the key "publishedAt" with the value "<publishedAt>"
+  Scenario Outline: when the publication date of a draft is reached, it should automatically merge with the published resource
+    Given there is a published resource with a draft set to publish at "1970-12-31T23:59:59+00:00"
+    When I send a "GET" request to the component "<requestComponent>"
+    Then the response status code should be 200
     And the response should be the component "publishable_published"
+    And the response should include the key "reference" with the value is_draft
+    And the header "expires" should not exist
+    And the response should include the key "published" with the value true
     And the component "publishable_draft" should not exist
     Examples:
-      | publishedAt         |
-      | 1970-01-01 00:00:00 |
-      | now                 |
+      | requestComponent      |
+      | publishable_draft     |
+      | publishable_published |
 
-#  NOTE: I thikn this test is redundant. A publication date in the future would signify it is a draft.
-#  @createSchema
-#  @loginAdmin
-#  Scenario: As a user with draft access, when I update a published resource with a publication date in the future, it should create and return a draft resource.
-
-  @createSchema
+  # PUT
   @loginAdmin
-  Scenario: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the future, it should update and return the draft resource.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
-    When I send a "PUT" request to the component "publishable_published" with body:
-    """
-    {
-        "publishedAt": "2991-11-11 23:59:59"
-    }
-    """
-    Then the response should include the key "publishedAt" with the value "2991-11-11 23:59:59"
-    And the response should be the component "publishable_published"
-
-  @createSchema
-  @loginUser
-  Scenario: As a user with no draft access, when I update a published resource, it should update and return the published resource.
-    Given there is a publishable resource set to publish at "1970-12-31 23:59:59"
+  Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource.
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "publishable_published" with body:
     """
     {
         "reference": "updated"
     }
     """
-    Then the response should include the key "reference" with the value "updated"
-    And the response should be the component "publishable_published"
+    Then the response status code should be 200
+    And the JSON node publishedAt should not exist
+    And the JSON node published should be false
+    And the response should include the key "reference" with the value "updated"
 
-  @createSchema
-  @loginUser
-  Scenario: As a user with no draft access, I cannot update a draft resource.
-    Given there is a publishable resource set to publish at "2999-12-31 23:59:59"
+  @loginAdmin
+  Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "publishable_draft" with body:
     """
     {
         "reference": "updated"
     }
     """
-    Then the response status code should be 403
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "2999-12-31T23:59:59+00:00"
+    And the response should include the key "reference" with the value "updated"
 
-# Same as line 151 :: Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
-#  @createSchema
-#  @loginUser
-#  Scenario: As a user with no draft access, when I update the publication date of a published resource, the publication date is not changed.
+  @loginAdmin
+  Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    When I send a "PUT" request to the component "publishable_published" with data:
+      | publishedAt   |
+      | <publishedAt> |
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "1970-12-31T23:59:59+00:00"
+    Examples:
+      | publishedAt               |
+      | 1970-01-01T00:00:00+00:00 |
+      | now                       |
 
-  #Security
-  @createSchema
+  @loginAdmin
+  Scenario Outline: As a user with draft access, when I update a published/draft resource with a draft resource available, and set a publication date in the past (or now), it should update the draft resource, merge it with the public resource, and remove the draft resource.
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "PUT" request to the component "<component>" with data:
+      | publishedAt   | reference   |
+      | <publishedAt> | updated     |
+    Then the response status code should be 200
+    And the response should be the component "publishable_published"
+    And the response should include the key "reference" with the value "updated"
+    And the response should include the key "published" with the value true
+    And the component "publishable_draft" should not exist
+    And the response should include the key "publishedAt" with the value "<publishedAt>"
+    And the header "expires" should not exist
+    Examples:
+      | publishedAt               | component             |
+      | 1970-01-01T00:00:00+00:00 | publishable_published |
+      | now                       | publishable_draft     |
+
+  @loginAdmin
+  Scenario: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the future, it should update and return the draft resource.
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "PUT" request to the component "publishable_published" with body:
+    """
+    {
+        "publishedAt": "2991-11-11T23:59:59+00:00"
+    }
+    """
+    Then the response status code should be 200
+    And the response should include the key "publishedAt" with the value "2991-11-11T23:59:59+00:00"
+    And the response should be the component "publishable_draft"
+
+  @loginUser
+  Scenario: As a user with no draft access, when I update a published resource, it should update and return the published resource.
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    When I send a "PUT" request to the component "publishable_published" with body:
+    """
+    {
+        "reference": "updated"
+    }
+    """
+    Then the response status code should be 200
+    And the response should include the key "reference" with the value "updated"
+    And the response should be the component "publishable_published"
+
+  @loginUser
+  Scenario: As a user with no draft access, I cannot update a draft resource.
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "PUT" request to the component "publishable_draft" with body:
+    """
+    {
+        "reference": "updated"
+    }
+    """
+    Then the response status code should be 404
+
   @loginAdmin
   Scenario: I cannot modify the publishedResource property via the API
-    Given there is a publishable resource set to publish at "2999-12-31 23:59:59"
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "publishable_draft" with body:
     """
     {
@@ -242,49 +272,45 @@ Feature: Access to unpublished/draft resources should be configurable
     """
     Then the response status code should be 200
     And the response should include the key "reference" with the value "updated"
-    And the response should include the key "publishedResource" with the value "null"
+    And the JSON node publishedResource should not exist
 
   # DELETE
-  @createSchema
+  @loginUser
   Scenario: As any user, when I delete a published resource with a draft resource available, it should delete the published resource and keep the draft.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_published"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
 
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, I can delete a draft resource.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_draft"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
 
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, if I delete a published resource, it will delete the draft instead
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_published"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
 
-  @createSchema
   @loginAdmin
   Scenario: As a user with draft access, if I delete a published resource, with the published=true querystring it will delete the published resource
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_published" and the postfix "?published=true"
-    Then the response status code should be 200
+    Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
 
-  @createSchema
   @loginUser
   Scenario: As a user with no draft access, I cannot delete a draft resource.
-    Given there is a published resource with a draft set to publish at "2999-12-31 23:59:59"
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "DELETE" request to the component "publishable_draft"
-    Then the response status code should be 403
+    Then the response status code should be 404
     And the component "publishable_draft" should exist
     And the component "publishable_published" should exist
