@@ -50,6 +50,7 @@ class RestContext implements Context
 
     /**
      * @Transform /^(now)$/
+     * @BeforeScenario @saveNow
      */
     public function getCachedNow(): string
     {
@@ -86,12 +87,14 @@ class RestContext implements Context
      */
     public function iSendARequestToTheComponentWithData(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
     {
-        return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($this->castTableNodeToArray($tableNode))], 0));
+        $data = $this->castTableNodeToArray($tableNode);
+
+        return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
     }
 
     private function castTableNodeToArray(TableNode $tableNode): array
     {
-        return array_map(function ($value) {
+        $data = array_map(function ($value) {
             if ('null' === $value) {
                 $value = null;
             }
@@ -100,7 +103,26 @@ class RestContext implements Context
                 $value = $this->getCachedNow();
             }
 
+            if ('invalid_draft' === $value) {
+                $value = ['name' => ''];
+            }
+
+            if ('valid_draft' === $value) {
+                $value = ['name' => 'John Doe'];
+            }
+
+            if ('valid_published' === $value) {
+                $value = ['name' => 'John Doe', 'description' => 'nobody'];
+            }
+
             return $value;
         }, array_combine($tableNode->getRow(0), $tableNode->getRow(1)));
+
+        if (isset($data['resourceData']) && \is_array($resourceData = $data['resourceData'])) {
+            unset($data['resourceData']);
+            $data = array_merge($data, $resourceData);
+        }
+
+        return $data;
     }
 }

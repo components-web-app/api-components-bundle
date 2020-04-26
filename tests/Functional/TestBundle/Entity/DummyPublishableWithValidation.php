@@ -16,9 +16,9 @@ namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -26,14 +26,27 @@ use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
  * @ApiResource
  * @ORM\Entity
  */
-class PublishableComponent extends AbstractComponent implements PublishableInterface
+class DummyPublishableWithValidation
 {
+    use IdTrait;
     use PublishableTrait;
 
+    public function __construct()
+    {
+        $this->setId();
+    }
+
     /**
-     * @var string a reference for this component
+     * This constraint will be applied on draft and published resources.
      *
-     * @ORM\Column
+     * @Assert\NotBlank
      */
-    public string $reference = '';
+    public string $name = '';
+
+    /**
+     * This constraint will be applied on published resources only.
+     *
+     * @Assert\NotBlank(groups={"DummyPublishableWithValidation:published"})
+     */
+    public string $description = '';
 }

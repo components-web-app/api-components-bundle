@@ -75,6 +75,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node published should be true
 
   @loginUser
+  @saveNow
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
     When I send a "POST" request to "/component/publishable_components" with data:
       | reference | publishedAt   |
@@ -98,6 +99,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     And the response should include the key "published" with the value "false"
+    And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
@@ -107,6 +109,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     And the response should include the key "published" with the value "true"
+    And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginAdmin
   @loginAdmin
@@ -123,6 +126,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
     And the response should include the key "publishedAt" with the value "2020-01-01T00:00:00+00:00"
+    And the JSON should be valid according to the schema file "publishable.schema.json"
     And the header "expires" should not exist
 
   @loginUser
@@ -131,6 +135,7 @@ Feature: Access to unpublished/draft resources should be configurable
     When I send a "GET" request to the component "publishable_published" and the postfix "?<querystring>"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
+    And the JSON should be valid according to the schema file "publishable.schema.json"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     Examples:
       | querystring     |
@@ -158,6 +163,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the key "reference" with the value is_draft
     And the header "expires" should not exist
     And the response should include the key "published" with the value true
+    And the JSON should be valid according to the schema file "publishable.schema.json"
     And the component "publishable_draft" should not exist
     Examples:
       | requestComponent      |

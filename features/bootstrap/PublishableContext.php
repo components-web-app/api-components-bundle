@@ -25,6 +25,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\CustomPublishableComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidation;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidationCustomGroup;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\PublishableComponent;
 
 /**
@@ -121,6 +123,28 @@ final class PublishableContext implements Context
     }
 
     /**
+     * @Given /^there is a DummyPublishableWithValidation resource(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsADummyPublishableWithValidation(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
+    {
+        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithValidation());
+        $flush && $this->manager->flush();
+
+        return $object;
+    }
+
+    /**
+     * @Given /^there is a DummyPublishableWithValidationCustomGroup resource(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsADummyPublishableWithValidationCustomGroup(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
+    {
+        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithValidationCustomGroup());
+        $flush && $this->manager->flush();
+
+        return $object;
+    }
+
+    /**
      * @Given /^there is a custom publishable resource(?: set to publish at "(.*)"|)$/
      */
     public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): CustomPublishableComponent
@@ -201,10 +225,13 @@ final class PublishableContext implements Context
         }
     }
 
-    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false): PublishableComponent
+    /**
+     * @return object|PublishableComponent|DummyPublishableWithValidation|DummyPublishableWithValidationCustomGroup
+     */
+    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false, object $resource = null)
     {
         $isPublished = !$forceDraft && (null !== $publishedAt && $publishedAt <= new \DateTime());
-        $resource = new PublishableComponent();
+        $resource = $resource ?: new PublishableComponent();
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
