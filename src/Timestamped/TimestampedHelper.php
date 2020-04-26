@@ -60,8 +60,14 @@ final class TimestampedHelper
             throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
         }
 
+        $reflection = new \ReflectionClass($class);
         /** @var Timestamped|null $timestamped */
-        $timestamped = $this->reader->getClassAnnotation(new \ReflectionClass($class), Timestamped::class);
+        while (
+            !($timestamped = $this->reader->getClassAnnotation($reflection, Timestamped::class)) &&
+            ($reflection = $reflection->getParentClass())
+        ) {
+            continue;
+        }
         if (!$timestamped) {
             throw new InvalidArgumentException(sprintf('%s does not have Publishable annotation', \is_object($class) ? \get_class($class) : $class));
         }
