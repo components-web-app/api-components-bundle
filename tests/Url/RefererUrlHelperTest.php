@@ -17,7 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\OutOfBoundsException;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
+use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 

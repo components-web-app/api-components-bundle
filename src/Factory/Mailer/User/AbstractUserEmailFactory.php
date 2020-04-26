@@ -20,7 +20,7 @@ use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
+use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;

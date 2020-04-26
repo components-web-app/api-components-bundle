@@ -11,12 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Publishable;
+namespace Silverback\ApiComponentBundle\Utility;
 
 use ApiPlatform\Core\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\ORMInvalidArgumentException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -26,6 +27,13 @@ use Doctrine\ORM\ORMInvalidArgumentException;
 trait ClassMetadataTrait
 {
     use ClassInfoTrait;
+
+    private ?ManagerRegistry $registry;
+
+    private function initRegistry(ManagerRegistry $registry): void
+    {
+        $this->registry = $registry;
+    }
 
     private function getClassMetadata(object $data): ClassMetadataInfo
     {

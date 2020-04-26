@@ -24,7 +24,7 @@ use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
 use Silverback\ApiComponentBundle\Tests\Functional\Factory\Mailer\User\DummyUserEmailFactory;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
+use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;

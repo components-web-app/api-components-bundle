@@ -16,8 +16,8 @@ namespace Silverback\ApiComponentBundle\EventListener\Api;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -32,13 +32,11 @@ final class PublishableEventListener
     use ClassMetadataTrait;
 
     private PublishableHelper $publishableHelper;
-    private ManagerRegistry $registry;
 
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry)
     {
         $this->publishableHelper = $publishableHelper;
-        // not unused, used by the trait
-        $this->registry = $registry;
+        $this->initRegistry($registry);
     }
 
     public function onPreWrite(ViewEvent $event): void

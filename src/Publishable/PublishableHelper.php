@@ -17,6 +17,7 @@ use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -28,16 +29,15 @@ final class PublishableHelper
     use ClassMetadataTrait;
 
     private Reader $reader;
-    private ManagerRegistry $registry;
     private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
     public function __construct(Reader $reader, ManagerRegistry $registry, AuthorizationCheckerInterface $authorizationChecker, string $permission)
     {
         $this->reader = $reader;
-        $this->registry = $registry;
         $this->authorizationChecker = $authorizationChecker;
         $this->permission = $permission;
+        $this->initRegistry($registry);
     }
 
     public function isGranted(): bool

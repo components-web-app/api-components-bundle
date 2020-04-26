@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Url;
+namespace Silverback\ApiComponentBundle\Utility;
 
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Exception\OutOfBoundsException;

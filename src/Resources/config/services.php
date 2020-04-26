@@ -91,7 +91,7 @@ use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
+use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;

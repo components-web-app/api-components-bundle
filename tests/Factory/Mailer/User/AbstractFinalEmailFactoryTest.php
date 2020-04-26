@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Tests\Factory\Mailer\User;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
+use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;

@@ -9,6 +9,7 @@ Feature: Soft validation on draft resources
 
   # GET
   @loginAdmin
+  @wip
   Scenario Outline: When I retrieve a draft resource, there should be a header to indicate whether validation is passing if I were to try and publish it
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" with data:
@@ -23,6 +24,7 @@ Feature: Soft validation on draft resources
       | valid_published     | true        | publishable.schema.json       |
 
   @loginAdmin
+  @wip
   Scenario Outline: I retrieve a draft resource which is invalid for publishing with a querystring "validate_published=true" I should receive validation errors
     Given there is a DummyPublishableWithValidation resource
     When I send a "GET" request to the component "publishable_draft" and the postfix "?<postfix>"
@@ -35,6 +37,7 @@ Feature: Soft validation on draft resources
 
   # PUT
   @loginAdmin
+  @wip
   Scenario Outline: I update a draft resource, validation configured for published resources should still result in a 200 response
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
@@ -49,6 +52,7 @@ Feature: Soft validation on draft resources
       | null        | valid_published | 200        | true           | validate_published=true  |
 
   @loginAdmin
+  @wip
   Scenario Outline: I update a draft resource, validation configured for published resources should still result in a 200 response
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
@@ -70,6 +74,7 @@ Feature: Soft validation on draft resources
       | now         | valid_published | 200        | validate_published=false | publishable.schema.json       |
 
   @loginAdmin
+  @wip
   Scenario: I update a published resource with the querystring "validate_published=false" and "published=true" should have no effect and published resource validation should still apply
     Given there is a DummyPublishableWithValidation resource set to publish at "1970-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "publishable_published" and the postfix "?validate_published=false&published=true" with body:
@@ -83,6 +88,7 @@ Feature: Soft validation on draft resources
 
   # Post
   @loginAdmin
+  @wip
   Scenario Outline: I create a valid draft resource
     When I send a "POST" request to "/_/dummy_publishable_with_validations" with data:
       | publishedAt   | resourceData |
@@ -96,6 +102,7 @@ Feature: Soft validation on draft resources
       | null        | valid_published | 201        | true           |
 
   @loginAdmin
+  @wip
   Scenario Outline: I create a resource that is a draft with invalid properties for a published state, should still create resource
     When I send a "POST" request to "/_/dummy_publishable_with_validations?<postfix>" with data:
       | publishedAt   | resourceData |
@@ -117,6 +124,7 @@ Feature: Soft validation on draft resources
 
   # POST - custom validation groups
   @loginAdmin
+  @wip
   Scenario Outline: I configure custom validation groups to create a draft resource
     When I send a "POST" request to "/_/dummy_publishable_with_validation_custom_groups" with data:
       | publishedAt   | resourceData |
@@ -130,6 +138,7 @@ Feature: Soft validation on draft resources
       | null        | valid_draft     | 201        | false          |
 
   @loginAdmin
+  @wip
   Scenario Outline: I configure custom validation groups to validate/create a published resource
     When I send a "POST" request to "/_/dummy_publishable_with_validation_custom_groups?<postfix>" with data:
       | publishedAt   | resourceData |
