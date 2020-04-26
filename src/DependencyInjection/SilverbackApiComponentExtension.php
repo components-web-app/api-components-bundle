@@ -15,9 +15,9 @@ namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Exception;
 use RuntimeException;
-use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;

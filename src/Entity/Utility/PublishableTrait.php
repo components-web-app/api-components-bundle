@@ -13,19 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
-use Symfony\Component\Validator\Constraints as Assert;
-
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 trait PublishableTrait
 {
-    /**
-     * @Assert\NotNull
-     */
-    private ?\DateTimeInterface $publishedAt = null;
+    // Needs to be protected instead of published so reflection can read property when merging draft into published
+    protected ?\DateTimeInterface $publishedAt = null;
 
-    private ?self $publishedResource = null;
+    protected ?self $publishedResource = null;
+
+    protected ?self $draftResource = null;
 
     /** @return static */
     public function setPublishedAt(?\DateTimeInterface $publishedAt)
@@ -56,5 +54,10 @@ trait PublishableTrait
     public function getPublishedResource(): ?self
     {
         return $this->publishedResource;
+    }
+
+    public function getDraftResource(): ?self
+    {
+        return $this->draftResource;
     }
 }

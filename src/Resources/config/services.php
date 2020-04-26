@@ -38,7 +38,6 @@ use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransforme
 use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
-use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\ApiTimestampedListener;
@@ -51,6 +50,7 @@ use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\PublishableExtension;
+use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
 use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
@@ -86,12 +86,15 @@ use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Url\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -99,6 +102,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
@@ -348,12 +353,16 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE]);
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead'])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE, 'method' => 'onPostDeserialize'])
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
 
     $services
         ->set(PublishableHelper::class)
         ->args([
             new Reference('annotations.reader'),
+            new Reference('doctrine'),
             new Reference('security.authorization_checker'),
             '', // $permission: set in SilverbackApiComponentExtension
         ]);
@@ -369,9 +378,32 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('request_stack'),
+            new Reference('doctrine'),
         ])
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
+        ->set(PublishableNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(PublishableHelper::class),
+            new Reference('doctrine'),
+        ])->tag('serializer.normalizer');
+
+    $services
+        ->set(PublishableValidator::class)
+        ->decorate('api_platform.validator')
+        ->args([
+            new Reference(PublishableValidator::class . '.inner'),
+            new Reference(PublishableHelper::class),
+        ]);
+
+    $services
+        ->set(PublishableLoader::class)
+        ->args([
+            new Reference('annotations.reader'),
+        ]);
 
     $services
         ->set(NewEmailAddressListener::class)

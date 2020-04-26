@@ -31,7 +31,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     private PublishableHelper $publishableHelper;
     private RequestStack $requestStack;
     private ManagerRegistry $registry;
-    private ?Publishable $configuration;
+    private ?Publishable $configuration = null;
 
     public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack, ManagerRegistry $registry)
     {
@@ -43,7 +43,8 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
     {
         $configuration = $this->getConfiguration($resourceClass);
-        if (!$configuration || !($request = $this->requestStack->getCurrentRequest())) {
+
+        if (!$configuration || !$this->requestStack->getCurrentRequest()) {
             return;
         }
 
@@ -54,21 +55,28 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        // Reset queryBuilder to prevent an invalid DQL
-        $queryBuilder->where('1 = 1');
         $alias = $queryBuilder->getRootAliases()[0];
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
-        foreach ($identifiers as $identifier) {
-            $queryBuilder->andWhere(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
-                    $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
-                )
-            )->setParameter("id_$identifier", $identifier);
+        $criteriaReset = false;
+        foreach ($identifiers as $identifier => $value) {
+            $predicates = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
+                $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
+            );
+
+            // Reset queryBuilder to prevent an invalid DQL
+            if (!$criteriaReset) {
+                $queryBuilder->where($predicates);
+                $criteriaReset = true;
+            } else {
+                $queryBuilder->andWhere($predicates);
+            }
+            $queryBuilder->setParameter("id_$identifier", $value);
         }
 
-        $queryBuilder->expr()->asc($queryBuilder->expr()->isNull("$alias.$configuration->associationName"));
+        $queryBuilder->addSelect("CASE WHEN $alias.$configuration->associationName IS NULL THEN 1 ELSE 0 END AS HIDDEN assocNameSort");
+        $queryBuilder->orderBy('assocNameSort', 'ASC');
         $queryBuilder->setMaxResults(1);
     }
 
@@ -78,7 +86,6 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        $configuration = $this->getConfiguration($resourceClass);
         if (!$this->isDraftRequest($context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
@@ -100,11 +107,11 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     {
         /** @var EntityRepository $repository */
         $repository = $this->registry->getManagerForClass($resourceClass)->getRepository($resourceClass);
-        $queryBuilder = $repository->createQueryBuilder('o');
+        $queryBuilder = $repository->createQueryBuilder('o2');
 
         return $queryBuilder
-            ->select("o.$configuration->associationName")
-            ->where($queryBuilder->expr()->isNotNull("o.$configuration->associationName"))
+            ->select("IDENTITY(o2.$configuration->associationName)")
+            ->where($queryBuilder->expr()->isNotNull("o2.$configuration->associationName"))
             ->getDQL();
     }
 

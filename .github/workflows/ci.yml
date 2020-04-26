@@ -90,9 +90,10 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
         include:
           - php: '7.4'
+            symfony: '4.4.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -232,9 +233,10 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
         include:
           - php: '7.4'
+            symfony: '4.4.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -313,9 +315,9 @@ jobs:
         run: |
           mkdir -p build/logs/behat
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default-coverage --no-interaction --colors
+            vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default-coverage --no-interaction --colors --tags='~@wip'
           else
-            vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors
+            vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
           fi
       - name: Merge code coverage reports
         if: matrix.coverage
@@ -363,7 +365,7 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -442,7 +444,7 @@ jobs:
           - '7.4'
         symfony:
           - '4.4.*'
-          - '5.0.*'
+          - '5.*'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -498,7 +500,7 @@ jobs:
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat
-          vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors
+          vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v1

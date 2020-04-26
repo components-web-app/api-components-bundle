@@ -24,6 +24,7 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\CustomPublishableComponent;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\PublishableComponent;
 
 /**
@@ -57,33 +58,33 @@ final class PublishableContext implements Context
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function resetResources()
+    {
+        $this->resources = [];
         $this->publishedResourcesWithoutDrafts = [];
     }
 
     /**
-     * @Transform now
+     * @Transform /^(false|true)$/
      */
-    public function castNowToDateTime(): \DateTime
+    public function castFalseToBoolean($string): bool
     {
-        return new \DateTime();
+        return 'true' === $string;
     }
 
     /**
-     * @Transform null
+     * @Given there are :number draft and published resources available
      */
-    public function castStringToNull()
+    public function givenThereAreDraftAndPublishedResourcesAvailable($number): void
     {
-        return null;
-    }
-
-    /**
-     * @Given there are draft and published resources available
-     */
-    public function givenThereAreDraftAndPublishedResourcesAvailable(): void
-    {
-        for ($i = 0; $i < 2; ++$i) {
+        for ($i = 0; $i < (int) $number; ++$i) {
             $publishedNow = $this->createPublishableComponent(new \DateTime());
-            $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('Y-m-d H:i:s'));
+            $draftUntilSoon = $this->thereIsAPublishableResource((new \DateTime())->modify('+10 seconds')->format('Y-m-d H:i:s'), false);
             $draftUntilSoon->setPublishedResource($publishedNow);
 
             $this->thereIsAPublicResourceWithADraftResourceAvailable();
@@ -91,8 +92,9 @@ final class PublishableContext implements Context
             $publishedNoDraft = $this->createPublishableComponent((new \DateTime())->modify('-1 year'));
             $this->publishedResourcesWithoutDrafts[] = $publishedNoDraft;
 
-            $this->thereIsAPublishableResource();
+            $this->thereIsAPublishableResource(null, false);
         }
+        $this->manager->flush();
     }
 
     /**
@@ -100,18 +102,43 @@ final class PublishableContext implements Context
      */
     public function thereIsAPublicResourceWithADraftResourceAvailable(?string $publishDate = null): void
     {
-        $publishAt = $publishDate ? new \DateTime($publishDate) : null;
+        $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
         $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
-        $draft = $this->thereIsAPublishableResource($publishAt);
+        $draft = $this->thereIsAPublishableResource($publishAt, false, true);
         $draft->setPublishedResource($publishedRecently);
+        $this->manager->flush();
     }
 
     /**
      * @Given /^there is a publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsAPublishableResource(?string $publishDate = null): PublishableComponent
+    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): PublishableComponent
     {
-        return $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null);
+        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft);
+        $flush && $this->manager->flush();
+
+        return $object;
+    }
+
+    /**
+     * @Given /^there is a custom publishable resource(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): CustomPublishableComponent
+    {
+        $publishedAt = $publishDate ? new \DateTime($publishDate) : null;
+        $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
+        $resource = new CustomPublishableComponent();
+        $resource->reference = $isPublished ? 'is_published' : 'is_draft';
+        $resource->setCustomPublishedAt($publishedAt);
+        $this->manager->persist($resource);
+        $this->resources[] = $resource;
+
+        $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
+        $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+
+        $flush && $this->manager->flush();
+
+        return $resource;
     }
 
     /**
@@ -133,20 +160,21 @@ final class PublishableContext implements Context
     public function theResponseShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
-
+        $items = $response['hydra:member'];
         $draftResources = array_filter($this->resources, static function (PublishableComponent $component) {
             return 'is_draft' === $component->reference;
         });
 
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
-        if ($expectedTotal !== ($receivedTotal = \count($response))) {
+
+        if ($expectedTotal !== ($receivedTotal = \count($items))) {
             throw new ExpectationException(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal), $this->minkContext->getSession()->getDriver());
         }
 
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
 
-        foreach ($response as $item) {
-            if ('is_draft' !== $item['reference'] && !\in_array($item['id'], $expectedPublishedResourceIds, true)) {
+        foreach ($items as $item) {
+            if ('is_draft' !== $item['reference'] && !\in_array($item['@id'], $expectedPublishedResourceIds, true)) {
                 throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
             }
         }
@@ -158,6 +186,7 @@ final class PublishableContext implements Context
     public function theResponseShouldIncludeThePublishedResourcesOnly(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
+        $items = $response['hydra:member'];
 
         $publishedResources = array_filter($this->resources, static function (PublishableComponent $component) {
             return 'is_published' === $component->reference;
@@ -165,39 +194,18 @@ final class PublishableContext implements Context
 
         $expectedTotal = \count($publishedResources);
 
-        Assert::assertEquals($expectedTotal, $receivedTotal = \count($response), sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+        Assert::assertEquals($expectedTotal, $receivedTotal = \count($items), sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
 
-        foreach ($response as $item) {
+        foreach ($items as $item) {
             Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
         }
     }
 
-    /**
-     * @Then the response should be a published resource
-     */
-    public function theResponseShouldBeAPublishedResource(): void
+    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false): PublishableComponent
     {
-        $response = $this->jsonContext->getJsonAsArray();
-        Assert::assertLessThanOrEqual(new \DateTime(), new \DateTime($response['publishedAt']));
-    }
-
-    /**
-     * @Then the response should be a draft resource
-     */
-    public function theResponseShouldBeADraftResource(): void
-    {
-        $response = $this->jsonContext->getJsonAsArray();
-        $publishedAt = new \DateTime($response['publishedAt']);
-        if (null !== $publishedAt) {
-            Assert::assertGreaterThan(new \DateTime(), $publishedAt);
-        }
-    }
-
-    private function createPublishableComponent(?\DateTime $publishedAt): PublishableComponent
-    {
-        $isPublished = $publishedAt <= new \DateTime();
-        $reference = $isPublished ? 'is_published' : 'is_draft';
-        $resource = new PublishableComponent($reference);
+        $isPublished = !$forceDraft && (null !== $publishedAt && $publishedAt <= new \DateTime());
+        $resource = new PublishableComponent();
+        $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
         $this->resources[] = $resource;
@@ -210,8 +218,8 @@ final class PublishableContext implements Context
 
     private function getResourceIds(array $resources): array
     {
-        return array_map(static function (PublishableComponent $component) {
-            return $component->getId();
+        return array_map(function (PublishableComponent $component) {
+            return $this->iriConverter->getIriFromItem($component);
         }, $resources);
     }
 }
