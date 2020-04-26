@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
@@ -117,6 +118,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         if (!$em) {
             throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
         }
+        /** @var ClassMetadataInfo $classMetadata */
         $classMetadata = $em->getClassMetadata($type);
 
         // Resource is a draft: nothing to do here anymore

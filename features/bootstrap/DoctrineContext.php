@@ -43,7 +43,6 @@ final class DoctrineContext implements Context
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
     private array $classes;
-    private string $cacheDir;
 
     /**
      * Initializes context.
@@ -60,7 +59,6 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
-        $this->cacheDir = $cacheDir;
     }
 
     /**

@@ -49,9 +49,9 @@ class RestContext implements Context
     }
 
     /**
-     * @BeforeScenario @saveNow
+     * @Transform /^(now)$/
      */
-    public function getNow(): string
+    public function getCachedNow(): string
     {
         if ($this->now) {
             return $this->now;
@@ -97,7 +97,7 @@ class RestContext implements Context
             }
 
             if ('now' === $value) {
-                $value = $this->getNow();
+                $value = $this->getCachedNow();
             }
 
             return $value;

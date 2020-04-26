@@ -39,14 +39,17 @@ Feature: Access to unpublished/draft resources should be configurable
 
   # POST
   @loginAdmin
-  Scenario: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
+  Scenario Outline: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
     When I send a "POST" request to "/component/publishable_components" with data:
-      | reference | publishedAt |
-      | test      | null        |
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
     Then the response status code should be 201
     # publishedAt does not exist because it's null
     And the JSON node publishedAt should not exist
     And the JSON node published should be false
+    Examples:
+      | publishedAt |
+      | null        |
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
@@ -55,11 +58,12 @@ Feature: Access to unpublished/draft resources should be configurable
       | test      | <publishedAt> |
     Then the response status code should be 201
     And the response should include the key "publishedAt" with the value "<publishedAt>"
+    And the JSON node published should be equal to "<isPublished>"
     Examples:
-      | publishedAt               |
-      | now                       |
-      | 1970-01-01T00:00:00+00:00 |
-      | 2999-12-31T23:59:59+00:00 |
+      | publishedAt               | isPublished |
+      | now                       | true        |
+      | 1970-01-01T00:00:00+00:00 | true        |
+      | 2999-12-31T23:59:59+00:00 | false       |
 
   @loginUser
   Scenario: As a user with no draft access, when I create a resource with publishedAt=null, I should have the published resource returned, and the publication date is automatically set.
@@ -71,7 +75,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node published should be true
 
   @loginUser
-  @saveNow
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
     When I send a "POST" request to "/component/publishable_components" with data:
       | reference | publishedAt   |

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Api;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentBundle\Publishable\ClassMetadataTrait;
@@ -148,6 +149,7 @@ final class PublishableEventListener
         // either a draft, if so it may be a published version we need to replace with
         // or a published resource which may have a draft that has an active publish date
         $entityManager = $this->getEntityManager($data);
+        /** @var ClassMetadataInfo $meta */
         $meta = $entityManager->getClassMetadata(\get_class($data));
         $identifierFieldName = $meta->getSingleIdentifierFieldName();
 

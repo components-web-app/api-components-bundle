@@ -68,6 +68,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             // Reset queryBuilder to prevent an invalid DQL
             if (!$criteriaReset) {
                 $queryBuilder->where($predicates);
+                $criteriaReset = true;
             } else {
                 $queryBuilder->andWhere($predicates);
             }
