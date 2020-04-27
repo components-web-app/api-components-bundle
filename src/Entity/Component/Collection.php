@@ -16,16 +16,22 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
  * @ORM\Entity
  */
 class Collection extends AbstractComponent
 {
+    use TimestampedTrait;
+
     /**
      * @ORM\Column(nullable=false)
      * @Assert\NotNull(message="The resource class for a collection component is required")

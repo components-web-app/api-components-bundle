@@ -18,16 +18,18 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
  * @ApiResource
  * @ORM\Entity
  */
-class ComponentGroup implements TimestampedInterface
+class ComponentGroup
 {
     use IdTrait;
     use TimestampedTrait;

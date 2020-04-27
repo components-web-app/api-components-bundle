@@ -14,17 +14,19 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Entity\Core;
 
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
  * @ORM\MappedSuperclass
  *
  * @internal
  */
-abstract class AbstractPage implements TimestampedInterface
+abstract class AbstractPage
 {
     use IdTrait;
     use TimestampedTrait;

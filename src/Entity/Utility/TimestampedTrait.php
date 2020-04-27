@@ -13,56 +13,43 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use DateTimeImmutable;
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 trait TimestampedTrait
 {
-    /**
-     * @ORM\Column(type="date_immutable")
-     * @ApiProperty(writable=false)
-     * @Assert\NotNull()
-     */
-    private ?DateTimeImmutable $created = null;
+    private ?DateTimeImmutable $createdAt = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     * @ApiProperty(writable=false)
-     * @Assert\NotNull()
-     */
-    public ?DateTime $modified = null;
+    public ?DateTime $modifiedAt = null;
 
     /** @return static */
-    public function setCreated(DateTimeImmutable $created)
+    public function setCreatedAt(DateTimeImmutable $createdAt)
     {
-        if (!$this->created) {
-            $this->created = $created;
+        if (!$this->createdAt) {
+            $this->createdAt = $createdAt;
         }
 
         return $this;
     }
 
-    public function getCreated(): ?DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
-        return $this->created;
+        return $this->createdAt;
     }
 
     /** @return static */
-    public function setModified(DateTime $modified)
+    public function setModifiedAt(DateTime $modifiedAt)
     {
-        $this->modified = $modified;
+        $this->modifiedAt = $modifiedAt;
 
         return $this;
     }
 
-    public function getModified(): ?DateTime
+    public function getModifiedAt(): ?DateTime
     {
-        return $this->modified;
+        return $this->modifiedAt;
     }
 }

@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type\User;
 
-use DateTime;
-use DateTimeImmutable;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Form\AbstractType;
@@ -79,9 +77,6 @@ class UserRegisterType extends AbstractType
          * @var AbstractUser
          */
         $user = new $this->userClass();
-        $user
-            ->setCreated(new DateTimeImmutable())
-            ->setModified(new DateTime());
 
         $resolver->setDefaults(
             [

@@ -17,21 +17,23 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
  * @ApiResource
  * @ORM\Entity
  * @ORM\AssociationOverrides({
  *     @ORM\AssociationOverride(name="componentGroups", inversedBy="layouts")
  * })
  */
-class Layout implements TimestampedInterface
+class Layout
 {
     use IdTrait;
     use TimestampedTrait;

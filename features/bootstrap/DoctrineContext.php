@@ -27,6 +27,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Component\Form;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
@@ -169,6 +170,18 @@ final class DoctrineContext implements Context
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->components['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given there is a DummyCustomTimestamped resource
+     */
+    public function thereIsADummyCustomTimestampedResource(): void
+    {
+        $component = new DummyCustomTimestamped();
+        $this->restContext->getCachedNow();
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
