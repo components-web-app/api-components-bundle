@@ -16,10 +16,10 @@ namespace Silverback\ApiComponentBundle\Publishable;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
@@ -52,10 +52,6 @@ final class PublishableHelper
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        if ($object instanceof PublishableInterface) {
-            return $object->isPublished();
-        }
-
         $value = $this->getClassMetadata($object)->getFieldValue($object, $this->getConfiguration($object)->fieldName);
 
         return null !== $value && new \DateTimeImmutable() >= $value;
@@ -67,10 +63,6 @@ final class PublishableHelper
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        if ($object instanceof PublishableInterface) {
-            return $object->isPublished();
-        }
-
         return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->getConfiguration($object)->fieldName);
     }
 
@@ -79,18 +71,35 @@ final class PublishableHelper
      */
     public function isPublishable($class): bool
     {
-        return null !== $this->getConfiguration($class);
+        try {
+            $this->getConfiguration($class);
+        } catch (InvalidArgumentException $exception) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * @param object|string $class
      */
-    public function getConfiguration($class): ?Publishable
+    public function getConfiguration($class): Publishable
     {
-        if (null === $class || (\is_string($class) && !class_exists($class))) {
-            throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
+        $configuration = null;
+        if (\is_string($class) || \is_object($class)) {
+            $configuration = $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
         }
 
-        return $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
+        if (!$configuration || !$configuration instanceof Publishable) {
+            $className = \is_string($class) ? $class : \get_class($class);
+            throw new InvalidArgumentException(sprintf('Could not get publishable configuration for %s', $className));
+        }
+
+        return $configuration;
+    }
+
+    public function isPublishedRequest(Request $request): bool
+    {
+        return $request->query->getBoolean('published', false);
     }
 }

@@ -17,7 +17,6 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 
 /**
@@ -26,7 +25,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
  * @ApiResource
  * @ORM\Entity
  */
-class PublishableComponent extends AbstractComponent implements PublishableInterface
+class PublishableComponent extends AbstractComponent
 {
     use PublishableTrait;
 

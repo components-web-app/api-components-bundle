@@ -6,38 +6,43 @@ nav_order: 1
 ---
 # Publishable
 
-To set an entity component as publishable, use the following annotation and interface:
+The easiest way to configure an entity resource as publishable, use the following annotation and trait:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable
  */
-class Foo implements PublishableInterface
+class Foo
 {
     use PublishableTrait;
 ```
 
-Default property is named `publishedAt` and association to original resource `publishedResource`. To customize those
-properties, update the annotation and your class:
+The default property name are:
+- `publishedAt` for the published time
+- `publishedResource` is the association to published resource.
+- `draftResource` is the reverse association to the draft resource
+
+To customize these properties, you can update the annotation and your class:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 
 /**
- * @Silverback\Publishable(fieldName="publicationDate", associationName="originalResource")
+ * @Silverback\Publishable(fieldName="publicationDate", associationName="originalResource", reverseAssociationName="newResource")
  */
-class Foo implements PublishableInterface
+class Foo
 {
     // If not set, the Doctrine mapping is automatically configured with type="date" nullable
     private $publicationDate;
 
     // If not set, the Doctrine mapping is automatically configured with OneToOne self-referenced association nullable
     private $originalResource;
+
+    // If not set, the Doctrine mapping is automatically configured with OneToOne self-referenced reverse association
+    private $newResource;
 
     public function getPublicationDate(): ?\DateTimeInterface
     {
@@ -58,12 +63,24 @@ class Foo implements PublishableInterface
 
     public function getOriginalResource(): ?self
     {
-        return $this->publicationDate;
+        return $this->originalResource;
     }
 
     public function setOriginalResource(?self $originalResource): self
     {
         $this->originalResource = $originalResource;
+
+        return $this;
+    }
+
+    public function getNewResource(): ?self
+    {
+        return $this->newResource;
+    }
+
+    public function setNewResource(?self $newResource): self
+    {
+        $this->newResource = $newResource;
 
         return $this;
     }
@@ -84,13 +101,15 @@ published resource, configure it as following:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable
  */
-class Foo implements PublishableInterface
+class Foo
 {
+    use PublishableTrait;
+
     /**
      * This constraint will be applied on draft and published resources.
      *
@@ -111,13 +130,15 @@ You can define a custom validation group for published resources:
 
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
+use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable(validationGroups={"custom_validation_group"})
  */
-class Foo implements PublishableInterface
+class Foo
 {
+    use PublishableTrait;
+
     /**
      * This constraint will be applied on draft and published resources.
      *
