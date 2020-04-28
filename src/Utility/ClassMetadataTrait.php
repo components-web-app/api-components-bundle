@@ -15,9 +15,10 @@ namespace Silverback\ApiComponentBundle\Utility;
 
 use ApiPlatform\Core\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMInvalidArgumentException;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -35,17 +36,19 @@ trait ClassMetadataTrait
         $this->registry = $registry;
     }
 
-    private function getClassMetadata(object $data): ClassMetadataInfo
+    private function getClassMetadata(object $data): ClassMetadata
     {
-        /* @var ClassMetadataInfo $classMetadata */
         return $this->getEntityManager($data)->getClassMetadata($this->getObjectClass($data));
     }
 
     private function getEntityManager(object $data): EntityManagerInterface
     {
-        /** @var EntityManagerInterface|null $em */
+        if (!$this->registry) {
+            throw new BadMethodCallException('initRegistry should be called first. Registry property does not exist');
+        }
+
         $em = $this->registry->getManagerForClass($this->getObjectClass($data));
-        if (!$em) {
+        if (!$em instanceof EntityManagerInterface) {
             throw ORMInvalidArgumentException::invalidObject(__CLASS__ . '::' . __FUNCTION__, $data);
         }
 

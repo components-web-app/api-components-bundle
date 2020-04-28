@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Exception;
-use RuntimeException;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
@@ -199,71 +198,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'JWT (use prefix `Bearer`)' => [
                             'name' => 'Authorization',
                             'type' => 'header',
-                        ],
-                    ],
-                ],
-            ]
-        );
-
-        $bundles = $container->getParameter('kernel.bundles');
-        if (isset($bundles['LiipImagineBundle'])) {
-            $this->prependLiipConfig($container);
-        }
-    }
-
-    private function prependLiipConfig(ContainerBuilder $container): void
-    {
-        $projectDir = $container->getParameter('kernel.project_dir');
-        $uploadsDir = $projectDir . '/var/uploads';
-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
-        }
-        $container->prependExtensionConfig(
-            'liip_imagine',
-            [
-                'loaders' => [
-                    'default' => [
-                        'filesystem' => [
-                            'data_root' => [
-                                'uploads' => $uploadsDir,
-                                'default' => $projectDir . '/public',
-                            ],
-                        ],
-                    ],
-                ],
-                'filter_sets' => [
-                    'placeholder_square' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [80, 80],
-                                'mode' => 'outbound',
-                            ],
-                        ],
-                    ],
-                    'placeholder' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [100, 100],
-                                'mode' => 'inset',
-                            ],
-                        ],
-                    ],
-                    'thumbnail' => [
-                        'jpeg_quality' => 100,
-                        'png_compression_level' => 0,
-                        'filters' => [
-                            'upscale' => [
-                                'min' => [636, 636],
-                            ],
-                            'thumbnail' => [
-                                'size' => [636, 636],
-                                'mode' => 'inset',
-                                'allow_upscale' => true,
-                            ],
                         ],
                     ],
                 ],

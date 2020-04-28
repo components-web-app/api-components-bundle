@@ -18,7 +18,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Timestamped;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,8 +27,6 @@ final class TimestampedHelper
     use ClassMetadataTrait;
 
     private Reader $reader;
-    private AuthorizationCheckerInterface $authorizationChecker;
-    private string $permission;
 
     public function __construct(Reader $reader, ManagerRegistry $registry)
     {

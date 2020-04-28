@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 
@@ -39,11 +39,12 @@ final class PublishableListener
         }
 
         $configuration = $this->publishableHelper->getConfiguration($metadata->getName());
-        /** @var NamingStrategy $namingStrategy */
-        $namingStrategy = $eventArgs
-            ->getEntityManager()
-            ->getConfiguration()
-            ->getNamingStrategy();
+
+        $em = $eventArgs->getObjectManager();
+        if (!$em instanceof EntityManagerInterface) {
+            return;
+        }
+        $namingStrategy = $em->getConfiguration()->getNamingStrategy();
 
         if (!$metadata->hasField($configuration->fieldName)) {
             $metadata->mapField([

@@ -92,25 +92,13 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
-        // No field has been updated: nothing to do here anymore
-        if (empty($data)) {
-            return $this->denormalizer->denormalize($data, $type, $format, $context);
-        }
-
         $object = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
         $data = $this->setPublishedAt($data, $configuration, $object);
 
-        $em = $this->registry->getManagerForClass($type);
-        if (!$em) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
-        }
-        /** @var ClassMetadataInfo $classMetadata */
-        $classMetadata = $em->getClassMetadata($type);
-
-        // Resource is a draft: nothing to do here anymore
+        // No field has been updated (after publishedAt verified and cleaned/unset if needed): nothing to do here anymore
         // or User doesn't have draft access: update the original object
         if (
-            null !== $classMetadata->getFieldValue($object, $configuration->associationName) ||
+            empty($data) ||
             !$this->publishableHelper->isActivePublishedAt($object) ||
             !$this->publishableHelper->isGranted()
         ) {
@@ -118,10 +106,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         }
 
         // Any field has been modified: create a draft
-        $draft = $this->createDraft($object, $configuration, $classMetadata);
-
-        // Add draft object to UnitOfWork
-        $em->persist($draft);
+        $draft = $this->createDraft($object, $configuration, $type);
 
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
 
@@ -158,8 +143,21 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return $data;
     }
 
-    private function createDraft(object $object, Publishable $configuration, ClassMetadataInfo $classMetadata)
+    private function createDraft(object $object, Publishable $configuration, string $type): object
     {
+        $em = $this->registry->getManagerForClass($type);
+        if (!$em) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+        }
+
+        /** @var ClassMetadataInfo $classMetadata */
+        $classMetadata = $em->getClassMetadata($type);
+
+        // Resource is a draft: nothing to do here anymore
+        if (null !== $classMetadata->getFieldValue($object, $configuration->associationName)) {
+            return $object;
+        }
+
         $draft = clone $object; // Identifier(s) should be reset from AbstractComponent::__clone method
 
         // Empty publishedDate on draft
@@ -170,6 +168,9 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
         // Set draftResource on data
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
+
+        // Add draft object to UnitOfWork
+        $em->persist($draft);
 
         return $draft;
     }

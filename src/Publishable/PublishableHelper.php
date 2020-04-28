@@ -89,8 +89,8 @@ final class PublishableHelper
         $configuration = null;
         if (\is_string($class) || \is_object($class)) {
             $reflection = new \ReflectionClass($class);
-            if ($reflection->implementsInterface(Proxy::class)) {
-                $reflection = $reflection->getParentClass();
+            if ($reflection->implementsInterface(Proxy::class) && $parent = $reflection->getParentClass()) {
+                $reflection = $parent;
             }
             $configuration = $this->reader->getClassAnnotation($reflection, Publishable::class);
         }
