@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentBundle\Serializer\Mapping\Loader;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableInterface;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
@@ -37,7 +36,7 @@ final class PublishableLoader implements LoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function loadClassMetadata(ClassMetadataInterface $classMetadata)
+    public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
         /** @var Publishable $configuration */
@@ -45,27 +44,24 @@ final class PublishableLoader implements LoaderInterface
             return true;
         }
 
+        $allAttributesMetadata = $classMetadata->getAttributesMetadata();
+        $shortClassName = $reflectionClass->getShortName();
+        $readGroup = sprintf('%s:publishable:read', $shortClassName);
+        $writeGroup = sprintf('%s:publishable:write', $shortClassName);
+
         if (
-            ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->fieldName] ?? null)) &&
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->fieldName] ?? null)) &&
             !empty($attributeMetadata->getGroups())
         ) {
-            $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
-            $attributeMetadata->addGroup(sprintf('%s:publishable:write', $reflectionClass->getShortName()));
+            $attributeMetadata->addGroup($readGroup);
+            $attributeMetadata->addGroup($writeGroup);
         }
 
         if (
-            ($attributeMetadata = ($classMetadata->getAttributesMetadata()[$configuration->associationName] ?? null)) &&
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->associationName] ?? null)) &&
             !empty($attributeMetadata->getGroups())
         ) {
-            $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
-        }
-
-        if (
-            is_a($classMetadata->getName(), PublishableInterface::class, true) &&
-            ($attributeMetadata = ($classMetadata->getAttributesMetadata()['published'] ?? null)) &&
-            !empty($attributeMetadata->getGroups())
-        ) {
-            $attributeMetadata->addGroup(sprintf('%s:publishable:read', $reflectionClass->getShortName()));
+            $attributeMetadata->addGroup($readGroup);
         }
 
         return true;

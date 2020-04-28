@@ -54,6 +54,10 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     {
         $context[self::ALREADY_CALLED] = true;
         $data = $this->normalizer->normalize($object, $format, $context);
+        $configuration = $this->publishableHelper->getConfiguration($object);
+        if (!$configuration) {
+            throw new InvalidArgumentException(sprintf('Could not get configuration for %s', \get_class($object)));
+        }
 
         if (!\array_key_exists('published', $data)) {
             $data['published'] = $this->publishableHelper->isActivePublishedAt($object);
@@ -90,7 +94,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         }
 
         $request = $this->requestStack->getMasterRequest();
-        if ($request && true === $request->query->getBoolean('published', false)) {
+        if ($request && true === $this->publishableHelper->isPublishedRequest($request)) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
