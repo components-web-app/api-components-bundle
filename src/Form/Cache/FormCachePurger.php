@@ -71,9 +71,9 @@ class FormCachePurger implements CacheClearerInterface
 
         $this->dispatcher->dispatch(new CommandLogEvent(sprintf('<info>Checking timestamp for %s</info>', $formClass)));
 
-        if (!$form->modified || $timestamp !== $form->modified->getTimestamp()) {
+        if (!$form->modifiedAt || $timestamp !== $form->modifiedAt->getTimestamp()) {
             $dateTime->setTimestamp($timestamp);
-            $form->modified = $dateTime;
+            $form->modifiedAt = $dateTime;
             $this->dispatcher->dispatch(new CommandLogEvent('<comment>Updated timestamp</comment>'));
         }
     }

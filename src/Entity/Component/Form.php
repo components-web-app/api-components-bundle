@@ -15,18 +15,24 @@ namespace Silverback\ApiComponentBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Dto\FormView;
 use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentBundle\Validator\Constraints as ACBAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
  * @ORM\Entity
  */
 class Form extends AbstractComponent
 {
+    use TimestampedTrait;
+
     /**
      * @ORM\Column(nullable=false)
      */

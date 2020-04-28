@@ -202,32 +202,12 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         );
 
         $bundles = $container->getParameter('kernel.bundles');
-        if (isset($bundles['DoctrineBundle'])) {
-            $this->prependDoctrineConfig($container);
-        }
         if (isset($bundles['LiipImagineBundle'])) {
             $this->prependLiipConfig($container);
         }
     }
 
-    private function prependDoctrineConfig(ContainerBuilder $container)
-    {
-        $container->prependExtensionConfig(
-            'doctrine',
-            [
-                //                'orm' => [
-                //                    'filters' => [
-                //                        'publishable' => [
-                //                            'class' => PublishableFilter::class,
-                //                            'enabled' => false
-                //                        ]
-                //                    ]
-                //                ]
-            ]
-        );
-    }
-
-    private function prependLiipConfig(ContainerBuilder $container)
+    private function prependLiipConfig(ContainerBuilder $container): void
     {
         $projectDir = $container->getParameter('kernel.project_dir');
         $uploadsDir = $projectDir . '/var/uploads';
