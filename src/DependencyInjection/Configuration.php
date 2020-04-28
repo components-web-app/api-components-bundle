@@ -30,6 +30,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('website_name')->isRequired()->end()
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
+                ->scalarNode('metadata_key')->defaultValue('_metadata')->end()
             ->end();
 
         $this->addPublishableNode($rootNode);

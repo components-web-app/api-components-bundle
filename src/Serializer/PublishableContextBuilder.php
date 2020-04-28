@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentBundle\Serializer;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -25,13 +24,11 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
 {
     private SerializerContextBuilderInterface $decorated;
     private PublishableHelper $publishableHelper;
-    private ClassMetadataFactoryInterface $classMetadataFactory;
 
-    public function __construct(SerializerContextBuilderInterface $decorated, PublishableHelper $publishableHelper, ClassMetadataFactoryInterface $classMetadataFactory)
+    public function __construct(SerializerContextBuilderInterface $decorated, PublishableHelper $publishableHelper)
     {
         $this->decorated = $decorated;
         $this->publishableHelper = $publishableHelper;
-        $this->classMetadataFactory = $classMetadataFactory;
     }
 
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array

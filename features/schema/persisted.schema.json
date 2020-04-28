@@ -10,12 +10,6 @@
         "@type",
         "_metadata"
     ],
-    "if": {
-        "properties": {
-            "published": { "const": true }
-        },
-        "required": ["publishedAt"]
-    },
     "properties": {
         "@context": {
             "$id": "#/@context",
@@ -47,16 +41,6 @@
                 "DraftComponent"
             ]
         },
-        "publishedAt": {
-            "$id": "#/publishedAt",
-            "type": "string",
-            "title": "The Modified Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:49+00:00"
-            ]
-        },
         "_metadata": {
             "$id": "#/_metadata",
             "type": "object",
@@ -65,17 +49,17 @@
             "default": "",
             "examples": [
                 {
-                    "published": true
+                    "persisted": true
                 }
             ],
             "required": [
-                "published"
+                "persisted"
             ],
             "properties": {
-                "published": {
+                "persisted": {
                     "$id": "#/_metadata",
                     "type": "boolean",
-                    "title": "The published Schema",
+                    "title": "The persisted Schema",
                     "description": "An explanation about the purpose of this instance.",
                     "default": "",
                     "examples": [

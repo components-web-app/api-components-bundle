@@ -126,22 +126,6 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then the response should include the key :arrayKey with the value :arrayValue
-     */
-    public function theResponseShouldIncludeTheKeyWithValue($arrayKey, $arrayValue): void
-    {
-        if ('null' === $arrayValue) {
-            $arrayValue = null;
-        }
-        if ('now' === $arrayValue) {
-            $arrayValue = $this->restContext->now;
-        }
-        $response = $this->getJsonAsArray();
-        Assert::assertArrayHasKey($arrayKey, $response);
-        Assert::assertEquals($arrayValue, $response[$arrayKey]);
-    }
-
-    /**
      * @Then the response should not include the key :arrayKey
      */
     public function theResponseShouldNotIncludeTheKeyWithValue($arrayKey): void

@@ -45,8 +45,9 @@ Feature: Access to unpublished/draft resources should be configurable
       | test      | <publishedAt> |
     Then the response status code should be 201
     # publishedAt does not exist because it's null
+    And the JSON should be valid according to the schema file "publishable.schema.json"
     And the JSON node publishedAt should not exist
-    And the JSON node published should be false
+    And the JSON node _metadata.published should be false
     Examples:
       | publishedAt |
       | null        |
@@ -57,8 +58,8 @@ Feature: Access to unpublished/draft resources should be configurable
       | reference | publishedAt   |
       | test      | <publishedAt> |
     Then the response status code should be 201
-    And the response should include the key "publishedAt" with the value "<publishedAt>"
-    And the JSON node published should be equal to "<isPublished>"
+    And the JSON node "publishedAt" should be equal to "<publishedAt>"
+    And the JSON node _metadata.published should be equal to "<isPublished>"
     Examples:
       | publishedAt               | isPublished |
       | now                       | true        |
@@ -72,7 +73,7 @@ Feature: Access to unpublished/draft resources should be configurable
       | test      | null        |
     Then the response status code should be 201
     And the JSON node publishedAt should exist
-    And the JSON node published should be true
+    And the JSON node _metadata.published should be true
 
   @loginUser
   @saveNow
@@ -82,8 +83,8 @@ Feature: Access to unpublished/draft resources should be configurable
       | test      | <publishedAt> |
     Then the response status code should be 201
     And the JSON node publishedAt should exist
-    And the JSON node published should be true
-    And the response should include the key "publishedAt" with the value "now"
+    And the JSON node _metadata.published should be true
+    And the JSON node "publishedAt" should be equal to "now"
     Examples:
       | publishedAt               |
       | now                       |
@@ -98,7 +99,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the response should include the key "published" with the value "false"
+    And the JSON node "_metadata.published" should be equal to "false"
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginUser
@@ -108,7 +109,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the response should include the key "published" with the value "true"
+    And the JSON node "_metadata.published" should be equal to "true"
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginAdmin
@@ -125,7 +126,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
-    And the response should include the key "publishedAt" with the value "2020-01-01T00:00:00+00:00"
+    And the JSON node "publishedAt" should be equal to "2020-01-01T00:00:00+00:00"
     And the JSON should be valid according to the schema file "publishable.schema.json"
     And the header "expires" should not exist
 
@@ -149,8 +150,8 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
-    And the response should include the key "published" with the value false
-    And the response should include the key "customPublishedAt" with the value "2999-12-31T23:59:59+00:00"
+    And the JSON node "_metadata.published" should be equal to false
+    And the JSON node "customPublishedAt" should be equal to "2999-12-31T23:59:59+00:00"
     And the response should not include the key "customPublishedResource"
     And the response should not include the key "customDraftResource"
 
@@ -160,9 +161,9 @@ Feature: Access to unpublished/draft resources should be configurable
     When I send a "GET" request to the component "<requestComponent>"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
-    And the response should include the key "reference" with the value is_draft
+    And the JSON node "reference" should be equal to is_draft
     And the header "expires" should not exist
-    And the response should include the key "published" with the value true
+    And the JSON node "_metadata.published" should be equal to true
     And the JSON should be valid according to the schema file "publishable.schema.json"
     And the component "publishable_draft" should not exist
     Examples:
@@ -182,8 +183,8 @@ Feature: Access to unpublished/draft resources should be configurable
     """
     Then the response status code should be 200
     And the JSON node publishedAt should not exist
-    And the JSON node published should be false
-    And the response should include the key "reference" with the value "updated"
+    And the JSON node _metadata.published should be false
+    And the JSON node "reference" should be equal to "updated"
 
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.
@@ -195,8 +196,8 @@ Feature: Access to unpublished/draft resources should be configurable
     }
     """
     Then the response status code should be 200
-    And the response should include the key "publishedAt" with the value "2999-12-31T23:59:59+00:00"
-    And the response should include the key "reference" with the value "updated"
+    And the JSON node "publishedAt" should be equal to "2999-12-31T23:59:59+00:00"
+    And the JSON node "reference" should be equal to "updated"
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
@@ -205,7 +206,7 @@ Feature: Access to unpublished/draft resources should be configurable
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
-    And the response should include the key "publishedAt" with the value "1970-12-31T23:59:59+00:00"
+    And the JSON node "publishedAt" should be equal to "1970-12-31T23:59:59+00:00"
     Examples:
       | publishedAt               |
       | 1970-01-01T00:00:00+00:00 |
@@ -219,10 +220,10 @@ Feature: Access to unpublished/draft resources should be configurable
       | <publishedAt> | updated     |
     Then the response status code should be 200
     And the response should be the component "publishable_published"
-    And the response should include the key "reference" with the value "updated"
-    And the response should include the key "published" with the value true
+    And the JSON node "reference" should be equal to "updated"
+    And the JSON node "_metadata.published" should be equal to true
+    And the JSON node "publishedAt" should be equal to "<publishedAt>"
     And the component "publishable_draft" should not exist
-    And the response should include the key "publishedAt" with the value "<publishedAt>"
     And the header "expires" should not exist
     Examples:
       | publishedAt               | component             |
@@ -239,7 +240,7 @@ Feature: Access to unpublished/draft resources should be configurable
     }
     """
     Then the response status code should be 200
-    And the response should include the key "publishedAt" with the value "2991-11-11T23:59:59+00:00"
+    And the JSON node "publishedAt" should be equal to "2991-11-11T23:59:59+00:00"
     And the response should be the component "publishable_draft"
 
   @loginUser
@@ -252,7 +253,7 @@ Feature: Access to unpublished/draft resources should be configurable
     }
     """
     Then the response status code should be 200
-    And the response should include the key "reference" with the value "updated"
+    And the JSON node "reference" should be equal to "updated"
     And the response should be the component "publishable_published"
 
   @loginUser
@@ -277,7 +278,7 @@ Feature: Access to unpublished/draft resources should be configurable
     }
     """
     Then the response status code should be 200
-    And the response should include the key "reference" with the value "updated"
+    And the JSON node "reference" should be equal to "updated"
     And the JSON node publishedResource should not exist
 
   # DELETE

@@ -13,8 +13,7 @@
         "componentLocations",
         "modifiedAt",
         "componentGroups",
-        "createdAt",
-        "__PERSISTED__"
+        "createdAt"
     ],
     "properties": {
         "@context": {
@@ -731,16 +730,6 @@
             "default": "",
             "examples": [
                 "2020-04-07T00:00:00+00:00"
-            ]
-        },
-        "__PERSISTED__": {
-            "$id": "#/properties/__PERSISTED__",
-            "type": "boolean",
-            "title": "The __persisted__ Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": false,
-            "examples": [
-                true
             ]
         }
     }

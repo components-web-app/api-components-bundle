@@ -25,13 +25,12 @@ use Traversable;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
+class PersistedNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
 {
     use NormalizerAwareTrait;
     use ClassInfoTrait;
 
-    private const ALREADY_CALLED = 'API_NORMALIZER_ALREADY_CALLED';
-    public const IS_PERSISTED_DATA_KEY = '__PERSISTED__';
+    private const ALREADY_CALLED = 'PERSISTED_NORMALIZER_ALREADY_CALLED';
 
     private EntityManagerInterface $entityManager;
     private ResourceClassResolverInterface $resourceClassResolver;
@@ -47,13 +46,9 @@ class ApiNormalizer implements ContextAwareNormalizerInterface, CacheableSupport
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
+        $context[MetadataNormalizer::METADATA_CONTEXT]['persisted'] = $this->entityManager->contains($object);
 
-        $data = $this->normalizer->normalize($object, $format, $context);
-        if (\is_array($data)) {
-            $data[self::IS_PERSISTED_DATA_KEY] = $this->entityManager->contains($object);
-        }
-
-        return $data;
+        return $this->normalizer->normalize($object, $format, $context);
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool

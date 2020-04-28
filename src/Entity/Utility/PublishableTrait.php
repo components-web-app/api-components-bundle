@@ -38,11 +38,6 @@ trait PublishableTrait
         return $this->publishedAt;
     }
 
-    public function isPublished(): bool
-    {
-        return null !== $this->publishedAt && new \DateTimeImmutable() >= $this->publishedAt;
-    }
-
     /** @return static */
     public function setPublishedResource($publishedResource)
     {

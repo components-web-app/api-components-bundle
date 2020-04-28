@@ -37,7 +37,9 @@ Feature: Register process via a form
         ],
         "enabled": true,
         "newEmailAddress": "user@email.com",
-        "__PERSISTED__": true
+        "_metadata": {
+          "persisted": true
+        }
     }
     """
     And the JSON should be valid according to the schema file "user.schema.json"
