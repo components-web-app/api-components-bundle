@@ -8,7 +8,7 @@
         "@context",
         "@id",
         "@type",
-        "published"
+        "_metadata"
     ],
     "if": {
         "properties": {
@@ -57,15 +57,33 @@
                 "2020-04-07T09:38:49+00:00"
             ]
         },
-        "published": {
-            "$id": "#/published",
-            "type": "boolean",
-            "title": "The published Schema",
+        "_metadata": {
+            "$id": "#/_metadata",
+            "type": "object",
+            "title": "The _metadata Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                true
-            ]
+                {
+                    "published": true
+                }
+            ],
+            "required": [
+                "published"
+            ],
+            "properties": {
+                "published": {
+                    "$id": "#/_metadata",
+                    "type": "boolean",
+                    "title": "The published Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        false,
+                        true
+                    ]
+                }
+            }
         }
     }
 }

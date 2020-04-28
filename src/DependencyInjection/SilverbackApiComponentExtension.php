@@ -35,6 +35,7 @@ use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
+use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -71,6 +72,9 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
 
         $definition = $container->getDefinition(PublishableHelper::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
+
+        $definition = $container->getDefinition(MetadataNormalizer::class);
+        $definition->setArgument('$metadataKey', $config['metadata_key']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);

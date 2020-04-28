@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Publishable;
 
 use Doctrine\Common\Annotations\Reader;
+use Doctrine\Common\Persistence\Proxy;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
@@ -87,7 +88,11 @@ final class PublishableHelper
     {
         $configuration = null;
         if (\is_string($class) || \is_object($class)) {
-            $configuration = $this->reader->getClassAnnotation(new \ReflectionClass($class), Publishable::class);
+            $reflection = new \ReflectionClass($class);
+            if ($reflection->implementsInterface(Proxy::class)) {
+                $reflection = $reflection->getParentClass();
+            }
+            $configuration = $this->reader->getClassAnnotation($reflection, Publishable::class);
         }
 
         if (!$configuration || !$configuration instanceof Publishable) {

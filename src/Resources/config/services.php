@@ -86,6 +86,7 @@ use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
+use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
@@ -113,7 +114,6 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -330,6 +330,14 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(MetadataNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            '', // set in dependency injection
+        ])
+        ->tag('serializer.normalizer', ['priority' => -500]);
+
+    $services
         ->set(NewEmailAddressListener::class)
         ->args([new Reference(EntityManagerInterface::class)])
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
@@ -395,7 +403,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableContextBuilder::class . '.inner'),
             new Reference(PublishableHelper::class),
-            new Reference(ClassMetadataFactoryInterface::class),
         ])
         ->autoconfigure(false);
 
@@ -442,7 +449,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
             new Reference(RequestStack::class),
-        ])->tag('serializer.normalizer');
+        ])->tag('serializer.normalizer', ['priority' => -400]);
 
     $services
         ->set(PublishableValidator::class)

@@ -53,17 +53,9 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
-        $data = $this->normalizer->normalize($object, $format, $context);
-        $configuration = $this->publishableHelper->getConfiguration($object);
-        if (!$configuration) {
-            throw new InvalidArgumentException(sprintf('Could not get configuration for %s', \get_class($object)));
-        }
+        $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableHelper->isActivePublishedAt($object);
 
-        if (!\array_key_exists('published', $data)) {
-            $data['published'] = $this->publishableHelper->isActivePublishedAt($object);
-        }
-
-        return $data;
+        return $this->normalizer->normalize($object, $format, $context);
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool
