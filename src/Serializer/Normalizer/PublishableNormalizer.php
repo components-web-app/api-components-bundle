@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -74,13 +75,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableHelper->getConfiguration($type);
 
-        // It's not possible to change the publishedResource and draftResource properties
-        unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
-
-        // User doesn't have draft access: cannot set or change the publication date
-        if (!$this->publishableHelper->isGranted()) {
-            unset($data[$configuration->fieldName]);
-        }
+        $data = $this->unsetRestrictedData($data, $configuration);
 
         $request = $this->requestStack->getMasterRequest();
         if ($request && true === $this->publishableHelper->isPublishedRequest($request)) {
@@ -97,23 +92,13 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
-        $object = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
-        if (isset($data[$configuration->fieldName])) {
-            $publicationDate = new \DateTimeImmutable($data[$configuration->fieldName]);
-
-            // User changed the publication date with an earlier one on a published resource: ignore it
-            if (
-                $this->publishableHelper->isActivePublishedAt($object) &&
-                new \DateTimeImmutable() >= $publicationDate
-            ) {
-                unset($data[$configuration->fieldName]);
-            }
-        }
-
         // No field has been updated: nothing to do here anymore
         if (empty($data)) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
+
+        $object = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
+        $data = $this->setPublishedAt($data, $configuration, $object);
 
         $em = $this->registry->getManagerForClass($type);
         if (!$em) {
@@ -133,10 +118,49 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         }
 
         // Any field has been modified: create a draft
-        $draft = clone $object; // Identifier(s) should be reset from AbstractComponent::__clone method
+        $draft = $this->createDraft($object, $configuration, $classMetadata);
 
         // Add draft object to UnitOfWork
         $em->persist($draft);
+
+        $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
+
+        return $this->denormalizer->denormalize($data, $type, $format, $context);
+    }
+
+    private function setPublishedAt(array $data, Publishable $configuration, object $object): array
+    {
+        if (isset($data[$configuration->fieldName])) {
+            $publicationDate = new \DateTimeImmutable($data[$configuration->fieldName]);
+
+            // User changed the publication date with an earlier one on a published resource: ignore it
+            if (
+                $this->publishableHelper->isActivePublishedAt($object) &&
+                new \DateTimeImmutable() >= $publicationDate
+            ) {
+                unset($data[$configuration->fieldName]);
+            }
+        }
+
+        return $data;
+    }
+
+    private function unsetRestrictedData(array $data, Publishable $configuration): array
+    {
+        // It's not possible to change the publishedResource and draftResource properties
+        unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
+
+        // User doesn't have draft access: cannot set or change the publication date
+        if (!$this->publishableHelper->isGranted()) {
+            unset($data[$configuration->fieldName]);
+        }
+
+        return $data;
+    }
+
+    private function createDraft(object $object, Publishable $configuration, ClassMetadataInfo $classMetadata)
+    {
+        $draft = clone $object; // Identifier(s) should be reset from AbstractComponent::__clone method
 
         // Empty publishedDate on draft
         $classMetadata->setFieldValue($draft, $configuration->fieldName, null);
@@ -147,9 +171,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         // Set draftResource on data
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
 
-        $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
-
-        return $this->denormalizer->denormalize($data, $type, $format, $context);
+        return $draft;
     }
 
     /**
