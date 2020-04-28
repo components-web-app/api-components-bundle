@@ -15,8 +15,6 @@ namespace Silverback\ApiComponentBundle\Metadata;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ReflectionClass;
-use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
 
 /**
  * This is to explicitly define the output class of any resource implementing FilterInterface
@@ -35,22 +33,15 @@ class ResourceDtoOutputClassMetadataFactory implements ResourceMetadataFactoryIn
 
     public function create(string $resourceClass): ResourceMetadata
     {
-        $resourceMetadata = $this->decorated->create($resourceClass);
-        $reflection = new ReflectionClass($resourceClass);
-        if (!$reflection->isSubclassOf(FileInterface::class)) {
-            return $resourceMetadata;
-        }
-
-        if (!$resourceMetadata->getAttribute('output')) {
-            $attributes = $resourceMetadata->getAttributes() ?: [];
-            $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
-                'output' => [
-                    'class' => $resourceClass,
-                    'name' => $reflection->getShortName(),
-                ],
-            ]));
-        }
-
-        return $resourceMetadata;
+        return $this->decorated->create($resourceClass);
+//        if (!$resourceMetadata->getAttribute('output')) {
+//            $attributes = $resourceMetadata->getAttributes() ?: [];
+//            $resourceMetadata = $resourceMetadata->withAttributes(array_merge($attributes, [
+//                'output' => [
+//                    'class' => $resourceClass,
+//                    'name' => $reflection->getShortName(),
+//                ],
+//            ]));
+//        }
     }
 }

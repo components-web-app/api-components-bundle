@@ -16,18 +16,14 @@ namespace Silverback\ApiComponentBundle\Resources\config;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
-use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
-use ApiPlatform\Core\Validator\ValidatorInterface as ApiValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
-use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Action\File\FileAction;
 use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
@@ -35,7 +31,6 @@ use Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
-use Silverback\ApiComponentBundle\DataTransformer\FileOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
@@ -50,8 +45,6 @@ use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\PublishableExtension;
 use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
-use Silverback\ApiComponentBundle\Factory\File\FileDataFactory;
-use Silverback\ApiComponentBundle\Factory\File\ImagineMetadataFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
@@ -63,8 +56,6 @@ use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactor
 use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentBundle\Factory\User\UserFactory;
-use Silverback\ApiComponentBundle\File\FileRequestHandler;
-use Silverback\ApiComponentBundle\File\FileUploader;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
@@ -108,7 +99,6 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -181,55 +171,12 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(FileAction::class)
-        ->args([
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(ResponseFactory::class),
-            new Reference(FileRequestHandler::class),
-        ]);
-
-    $services
-        ->set(FileDataFactory::class)
-        ->args([
-            new Reference(IriConverterInterface::class),
-            new Reference(RouterInterface::class),
-            new Reference(ImagineMetadataFactory::class),
-            new Reference(UrlHelper::class),
-        ]);
-
-    $services
         ->set(ResourceDtoOutputClassMetadataFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args([
             new Reference(ResourceDtoOutputClassMetadataFactory::class . '.inner'),
         ])
         ->autoconfigure(false);
-
-    $services
-        ->set(FileOutputDataTransformer::class)
-        ->tag('api_platform.data_transformer')
-        ->args([new Reference(FileDataFactory::class)]);
-
-    $services
-        ->set(FileRequestHandler::class)
-        ->args([
-            new Reference(UrlMatcherInterface::class),
-            new Reference(ItemDataProviderInterface::class),
-            new Reference(FileUploader::class),
-            new Reference(ResourceMetadataFactoryInterface::class),
-            new Reference(SerializerInterface::class),
-        ]);
-
-    $services
-        ->set(FileUploader::class)
-        ->args([
-            new Reference(EntityManagerInterface::class),
-            new Reference(ResourceMetadataFactoryInterface::class),
-            new Reference(ValidatorInterface::class),
-            new Reference(ApiValidator::class),
-            [],
-        ]);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -288,16 +235,6 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(FormViewFactory::class)
         ->args([new Reference(FormFactory::class)]);
-
-    $services
-        ->set(ImagineMetadataFactory::class)
-        ->args([
-            new Reference(CacheManager::class),
-            new Reference(PathResolver::class),
-            '%kernel.project_dir%',
-            new Reference(FilterService::class),
-            new Reference(UrlHelper::class),
-        ]);
 
     $services
         ->set(JwtCreatedEventListener::class)

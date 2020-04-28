@@ -19,8 +19,7 @@ use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
 /**
- * Adds {CLASS}:publishable serialization group on {CLASS}.publishedAt for Publishable entities.
- * Adds {CLASS}:publishable serialization group on {CLASS}.isPublished for Publishable entities with PublishableInterface.
+ * Adds {CLASS}:publishable serialization group on {CLASS}.publishedAt and {CLASS}.publishedResource for Publishable entities.
  *
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */

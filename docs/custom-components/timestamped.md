@@ -22,7 +22,6 @@ class Foo
 
 Default field for the created timestamp is`createdAt` and the modified timestamp `modifiedAt`. To customize these, update the annotation and your class:
 
-
 ```php
 use Silverback\ApiComponentBundle\Annotation as Silverback;
 

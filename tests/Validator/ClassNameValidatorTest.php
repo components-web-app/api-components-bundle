@@ -18,26 +18,26 @@ use ProxyManager\Configuration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\ProxyInterface;
 use ReflectionException;
-use Silverback\ApiComponentBundle\Entity\Utility\FileInterface;
+use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentBundle\Validator\ClassNameValidator;
 
 class ClassNameValidatorTest extends TestCase
 {
-    private FileComponent $class;
+    private DummyComponent $class;
 
     private ProxyInterface $proxy;
 
     protected function setUp(): void
     {
-        $this->class = new FileComponent();
+        $this->class = new DummyComponent();
         $factory = new LazyLoadingValueHolderFactory(new Configuration());
         $this->proxy = $factory->createProxy(
-            FileComponent::class,
+            DummyComponent::class,
             static function (&$wrappedObject) {
-                $wrappedObject = new FileComponent();
+                $wrappedObject = new DummyComponent();
             }
         );
     }
@@ -47,8 +47,8 @@ class ClassNameValidatorTest extends TestCase
      */
     public function test_validate(): void
     {
-        $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, $this->proxy]));
-        $this->assertTrue(ClassNameValidator::validate(FileInterface::class, [$this->class, 'NotAnObject']));
+        $this->assertTrue(ClassNameValidator::validate(ComponentInterface::class, [$this->class, $this->proxy]));
+        $this->assertTrue(ClassNameValidator::validate(ComponentInterface::class, [$this->class, 'NotAnObject']));
     }
 
     /**
@@ -57,9 +57,9 @@ class ClassNameValidatorTest extends TestCase
     public function test_class_same_validation_success(): void
     {
         $this->assertFalse(ClassNameValidator::isClassSame(User::class, $this->class));
-        $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->class));
-        $this->assertTrue(ClassNameValidator::isClassSame(FileComponent::class, $this->proxy));
-        $this->assertTrue(ClassNameValidator::isClassSame(FileInterface::class, $this->class));
+        $this->assertTrue(ClassNameValidator::isClassSame(DummyComponent::class, $this->class));
+        $this->assertTrue(ClassNameValidator::isClassSame(DummyComponent::class, $this->proxy));
+        $this->assertTrue(ClassNameValidator::isClassSame(ComponentInterface::class, $this->class));
     }
 
     /**
