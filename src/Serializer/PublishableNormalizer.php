@@ -59,8 +59,8 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
             throw new InvalidArgumentException(sprintf('Could not get configuration for %s', \get_class($object)));
         }
 
-        if (!\array_key_exists($configuration->publishedProperty, $data)) {
-            $data[$configuration->publishedProperty] = $this->publishableHelper->isActivePublishedAt($object);
+        if (!\array_key_exists('published', $data)) {
+            $data['published'] = $this->publishableHelper->isActivePublishedAt($object);
         }
 
         return $data;
