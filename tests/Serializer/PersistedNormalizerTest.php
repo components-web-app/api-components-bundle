@@ -22,7 +22,7 @@ use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileCompone
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
 
-class ApiNormalizerTest extends TestCase
+class PersistedNormalizerTest extends TestCase
 {
     private PersistedNormalizer $apiNormalizer;
     /**
@@ -59,7 +59,7 @@ class ApiNormalizerTest extends TestCase
             ->method('isResourceClass');
 
         $format = 'jsonld';
-        $this->assertFalse($this->apiNormalizer->supportsNormalization(new FileComponent(), $format, ['API_NORMALIZER_ALREADY_CALLED' => true]));
+        $this->assertFalse($this->apiNormalizer->supportsNormalization(new FileComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => true]));
         $this->assertFalse($this->apiNormalizer->supportsNormalization([], $format, []));
         $this->assertFalse($this->apiNormalizer->supportsNormalization('string', $format, []));
         $traversable = $this->createMock(Traversable::class);
@@ -98,21 +98,6 @@ class ApiNormalizerTest extends TestCase
         $this->assertFalse($this->apiNormalizer->hasCacheableSupportsMethod());
     }
 
-    public function test_normalization_result_not_an_array(): void
-    {
-        $dummyComponent = new FileComponent();
-        $format = 'jsonld';
-
-        $this->normalizerMock
-            ->expects($this->once())
-            ->method('normalize')
-            ->with($dummyComponent, $format, ['API_NORMALIZER_ALREADY_CALLED' => true])
-            ->willReturn('not an array');
-
-        $result = $this->apiNormalizer->normalize($dummyComponent, $format, []);
-        $this->assertEquals('not an array', $result);
-    }
-
     public function test_normalization_result_entity_is_persisted(): void
     {
         $dummyComponent = new FileComponent();
@@ -121,8 +106,12 @@ class ApiNormalizerTest extends TestCase
         $this->normalizerMock
             ->expects($this->once())
             ->method('normalize')
-            ->with($dummyComponent, $format, ['API_NORMALIZER_ALREADY_CALLED' => true, 'default_context_param' => 'default_value'])
-            ->willReturn(['property' => 'value']);
+            ->with($dummyComponent, $format, [
+                'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                'default_context_param' => 'default_value',
+                'silverback_api_component_bundle_metadata' => ['persisted' => true],
+            ])
+            ->willReturn('anything');
 
         $this->entityManagerMock
             ->expects($this->once())
@@ -130,8 +119,8 @@ class ApiNormalizerTest extends TestCase
             ->with($dummyComponent)
             ->willReturn(true);
 
-        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value']);
-        $this->assertEquals(['property' => 'value', $this->apiNormalizer::PERSISTED_DATA_KEY => true], $result);
+        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value', 'silverback_api_component_bundle_metadata' => ['persisted' => true]]);
+        $this->assertEquals('anything', $result);
     }
 
     public function test_normalization_result_entity_is_not_persisted(): void
@@ -142,8 +131,11 @@ class ApiNormalizerTest extends TestCase
         $this->normalizerMock
             ->expects($this->once())
             ->method('normalize')
-            ->with($dummyComponent, $format, ['API_NORMALIZER_ALREADY_CALLED' => true])
-            ->willReturn(['property' => 'value']);
+            ->with($dummyComponent, $format, [
+                'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                'silverback_api_component_bundle_metadata' => ['persisted' => false],
+            ])
+            ->willReturn('anything');
 
         $this->entityManagerMock
             ->expects($this->once())
@@ -151,7 +143,7 @@ class ApiNormalizerTest extends TestCase
             ->with($dummyComponent)
             ->willReturn(false);
 
-        $result = $this->apiNormalizer->normalize($dummyComponent, $format, []);
-        $this->assertEquals(['property' => 'value', $this->apiNormalizer::PERSISTED_DATA_KEY => false], $result);
+        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['silverback_api_component_bundle_metadata' => ['persisted' => false]]);
+        $this->assertEquals('anything', $result);
     }
 }
