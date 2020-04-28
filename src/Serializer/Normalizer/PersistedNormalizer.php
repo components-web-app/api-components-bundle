@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer;
+namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Util\ClassInfoTrait;

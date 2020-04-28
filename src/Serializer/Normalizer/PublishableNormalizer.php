@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer;
+namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
@@ -73,9 +73,6 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     {
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableHelper->getConfiguration($type);
-        if (!$configuration) {
-            throw new InvalidArgumentException(sprintf('Could not get configuration for %s', $type));
-        }
 
         // It's not possible to change the publishedResource and draftResource properties
         unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);

@@ -17,7 +17,7 @@ use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Serializer\PersistedNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;

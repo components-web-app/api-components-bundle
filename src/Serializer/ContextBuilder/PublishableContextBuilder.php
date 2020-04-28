@@ -11,10 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer;
+namespace Silverback\ApiComponentBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -40,9 +41,9 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
 
         $reflectionClass = new \ReflectionClass($resourceClass);
         if ($normalization) {
-            $context['groups'][] = sprintf('%s:publishable:read', $reflectionClass->getShortName());
+            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
         } elseif ($this->publishableHelper->isGranted()) {
-            $context['groups'][] = sprintf('%s:publishable:write', $reflectionClass->getShortName());
+            $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
         }
 
         return $context;

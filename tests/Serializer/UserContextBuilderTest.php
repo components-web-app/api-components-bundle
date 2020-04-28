@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\Tests\Serializer;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;

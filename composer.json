@@ -33,8 +33,7 @@
         "symfony/mailer": "^4.4 || ^5.0",
         "twig/cssinliner-extra": "^3.0.3",
         "twig/extra-bundle": "^3.0.3",
-        "twig/inky-extra": "^3.0.3",
-        "vich/uploader-bundle": "^1.13"
+        "twig/inky-extra": "^3.0.3"
     },
     "require-dev": {
         "behat/behat": "^3.6",

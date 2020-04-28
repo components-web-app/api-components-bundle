@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer;
+namespace Silverback\ApiComponentBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;

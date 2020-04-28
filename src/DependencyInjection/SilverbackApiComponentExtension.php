@@ -35,7 +35,7 @@ use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;

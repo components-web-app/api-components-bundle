@@ -75,13 +75,15 @@ use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
+use Silverback\ApiComponentBundle\Serializer\ContextBuilder\PublishableContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
+use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
-use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
-use Silverback\ApiComponentBundle\Serializer\PersistedNormalizer;
-use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
-use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\TimestampedLoader;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentBundle\Serializer\UserContextBuilder;
 use Silverback\ApiComponentBundle\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
@@ -430,10 +432,24 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(TimestampedContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            new Reference(TimestampedContextBuilder::class . '.inner'),
+        ])
+        ->autoconfigure(false);
+
+    $services
         ->set(TimestampedHelper::class)
         ->args([
             new Reference('annotations.reader'),
             new Reference('doctrine'),
+        ]);
+
+    $services
+        ->set(TimestampedLoader::class)
+        ->args([
+            new Reference('annotations.reader'),
         ]);
 
     $services

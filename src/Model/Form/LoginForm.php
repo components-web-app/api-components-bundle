@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Form;
+namespace Silverback\ApiComponentBundle\Model\Form;
 
 /**
  * @author Daniel West <daniel@silverback.is>

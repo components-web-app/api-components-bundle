@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Form\Type\User;
 
-use Silverback\ApiComponentBundle\Entity\Form\LoginForm;
 use Silverback\ApiComponentBundle\Form\AbstractType;
+use Silverback\ApiComponentBundle\Model\Form\LoginForm;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
