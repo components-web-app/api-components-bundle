@@ -1,0 +1,73 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The Root Schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "required": [
+        "@context",
+        "@id",
+        "@type",
+        "_metadata"
+    ],
+    "properties": {
+        "@context": {
+            "$id": "#/@context",
+            "type": "string",
+            "title": "The @context Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/contexts/DraftComponent"
+            ]
+        },
+        "@id": {
+            "$id": "#/@id",
+            "type": "string",
+            "title": "The @id Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
+            ]
+        },
+        "@type": {
+            "$id": "#/@type",
+            "type": "string",
+            "title": "The @type Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "DraftComponent"
+            ]
+        },
+        "_metadata": {
+            "$id": "#/_metadata",
+            "type": "object",
+            "title": "The _metadata Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                {
+                    "persisted": true
+                }
+            ],
+            "required": [
+                "persisted"
+            ],
+            "properties": {
+                "persisted": {
+                    "$id": "#/_metadata",
+                    "type": "boolean",
+                    "title": "The persisted Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        false,
+                        true
+                    ]
+                }
+            }
+        }
+    }
+}

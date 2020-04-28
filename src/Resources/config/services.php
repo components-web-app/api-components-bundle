@@ -84,9 +84,9 @@ use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
+use Silverback\ApiComponentBundle\Serializer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
@@ -132,15 +132,6 @@ return static function (ContainerConfigurator $configurator) {
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
         ]);
-
-    $services
-        ->set(ApiNormalizer::class)
-        ->tag('serializer.normalizer', ['priority' => -810])
-        ->args([
-            new Reference(EntityManagerInterface::class),
-            new Reference(ResourceClassResolverInterface::class),
-        ])
-        ->autoconfigure(false);
 
     $services
         ->set(AutoRoutePrefixMetadataFactory::class)
@@ -396,6 +387,15 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PathResolver::class);
+
+    $services
+        ->set(PersistedNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(ResourceClassResolverInterface::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(PublishableContextBuilder::class)

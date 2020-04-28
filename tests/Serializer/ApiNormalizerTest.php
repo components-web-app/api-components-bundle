@@ -17,14 +17,14 @@ use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Serializer\ApiNormalizer;
+use Silverback\ApiComponentBundle\Serializer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
 
 class ApiNormalizerTest extends TestCase
 {
-    private ApiNormalizer $apiNormalizer;
+    private PersistedNormalizer $apiNormalizer;
     /**
      * @var ResourceClassResolverInterface|MockObject
      */
@@ -43,7 +43,7 @@ class ApiNormalizerTest extends TestCase
         $this->entityManagerMock = $this->createMock(EntityManagerInterface::class);
         $this->resourceClassResolverMock = $this->createMock(ResourceClassResolverInterface::class);
         $this->normalizerMock = $this->createMock(NormalizerInterface::class);
-        $this->apiNormalizer = new ApiNormalizer($this->entityManagerMock, $this->resourceClassResolverMock);
+        $this->apiNormalizer = new PersistedNormalizer($this->entityManagerMock, $this->resourceClassResolverMock);
         $this->apiNormalizer->setNormalizer($this->normalizerMock);
     }
 
@@ -131,7 +131,7 @@ class ApiNormalizerTest extends TestCase
             ->willReturn(true);
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value']);
-        $this->assertEquals(['property' => 'value', $this->apiNormalizer::IS_PERSISTED_DATA_KEY => true], $result);
+        $this->assertEquals(['property' => 'value', $this->apiNormalizer::PERSISTED_DATA_KEY => true], $result);
     }
 
     public function test_normalization_result_entity_is_not_persisted(): void
@@ -152,6 +152,6 @@ class ApiNormalizerTest extends TestCase
             ->willReturn(false);
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, []);
-        $this->assertEquals(['property' => 'value', $this->apiNormalizer::IS_PERSISTED_DATA_KEY => false], $result);
+        $this->assertEquals(['property' => 'value', $this->apiNormalizer::PERSISTED_DATA_KEY => false], $result);
     }
 }
