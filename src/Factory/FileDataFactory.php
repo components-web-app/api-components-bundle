@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Factory;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use Liip\ImagineBundle\Binary\MimeTypeGuesserInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Imagine\Cache\Helper\PathHelper;
+use Liip\ImagineBundle\Imagine\Data\DataManager;
+use Liip\ImagineBundle\Model\Binary;
+use Liip\ImagineBundle\Model\FileBinary;
+use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Dto\File\FileData;
 use Silverback\ApiComponentBundle\Dto\File\ImageMetadata;
@@ -22,22 +28,23 @@ class FileDataFactory implements ServiceSubscriberInterface
     private $iriConverter;
     private $container;
     private $fileInterfaceSubscriber;
-    private $projectDir;
 
-    public function __construct(RouterInterface $router, IriConverterInterface $iriConverter, ContainerInterface $container, FileInterfaceSubscriber $fileInterfaceSubscriber, string $projectDir)
+    public function __construct(RouterInterface $router, IriConverterInterface $iriConverter, ContainerInterface $container, FileInterfaceSubscriber $fileInterfaceSubscriber)
     {
         $this->router = $router;
         $this->iriConverter = $iriConverter;
         $this->container = $container;
         $this->fileInterfaceSubscriber = $fileInterfaceSubscriber;
-        $this->projectDir = $projectDir;
     }
 
     public static function getSubscribedServices(): array
     {
         return [
             '?' . PathResolver::class,
-            '?' . CacheManager::class
+            '?' . DataManager::class,
+            '?' . CacheManager::class,
+            '?' . MimeTypeGuesserInterface::class,
+            FilterService::class
         ];
     }
 
@@ -56,6 +63,9 @@ class FileDataFactory implements ServiceSubscriberInterface
         $publicPath = $this->getPublicPath($file);
         $imageData = null;
         if ($this->fileIsImage($filePath)) {
+//            /** @var MimeTypeGuesserInterface $mimeTypeGuesser */
+//            $mimeTypeGuesser = $this->container->get(MimeTypeGuesserInterface::class);
+//            $mimeType = $mimeTypeGuesser->guess($filePath);
             $imageData = new ImageMetadata($filePath, $publicPath);
         }
 
@@ -93,20 +103,30 @@ class FileDataFactory implements ServiceSubscriberInterface
         $pathResolver = $this->container->get(PathResolver::class);
         /** @var CacheManager $cacheManager */
         $cacheManager = $this->container->get(CacheManager::class);
+        /** @var DataManager $dataManager */
+        $dataManager = $this->container->get(DataManager::class);
+        /** @var FilterService $filterService */
+        $filterService = $this->container->get(FilterService::class);
+
+
         foreach ($file::getImagineFilters() as $returnKey => $filter) {
             // Strip path root from beginning of string.
             // Whatever image roots are set in imagine will be looped and removed from the start of the string
             $resolvedPath = $pathResolver->resolve($filePath);
-            $imagineBrowserPath = $cacheManager->getBrowserPath($resolvedPath, $filter);
-            $imagineFilePath = urldecode(ltrim(
-                parse_url(
-                    $imagineBrowserPath,
-                    PHP_URL_PATH
-                ),
-                '/'
-            ));
-            $realPath = sprintf('%s/public/%s', $this->projectDir, $imagineFilePath);
-            $imagineData[$returnKey] = new ImageMetadata($realPath, $imagineFilePath, $filter);
+            $path = PathHelper::urlPathToFilePath($resolvedPath);
+            $imagineBrowserPath = $filterService->getUrlOfFilteredImage($resolvedPath, $filter);
+//            $imagineBrowserPath = $cacheManager->generateUrl($resolvedPath, $filter);
+
+//            $imagineFilePath = urldecode(ltrim(
+//                parse_url(
+//                    $imagineBrowserPath,
+//                    PHP_URL_PATH
+//                ),
+//                '/'
+//            ));
+
+
+            $imagineData[$returnKey] = new ImageMetadata($filePath, $imagineBrowserPath, $filter);
         }
         return $imagineData;
     }

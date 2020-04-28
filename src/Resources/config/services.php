@@ -11,6 +11,7 @@ use Cocur\Slugify\SlugifyInterface;
 use GuzzleHttp\Client;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
 use Liip\ImagineBundle\Binary\Loader\FileSystemLoader;
+use Liip\ImagineBundle\Binary\MimeTypeGuesserInterface;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentBundle\Doctrine\Extension\DiscriminatorMappingExtension;
 use Silverback\ApiComponentBundle\Doctrine\Extension\TablePrefixExtension;
@@ -44,7 +45,7 @@ return function (ContainerConfigurator $configurator) {
         ->autoconfigure()
         ->private()
         ->bind('$formHandlers', new TaggedIteratorArgument('silverback_api_component.form_handler'))
-        ->bind('$projectDir', '%kernel.project_dir%')
+        // ->bind('$projectDir', '%kernel.project_dir%')
         ->bind('$fromEmailAddress', '%env(FROM_EMAIL_ADDRESS)%');
 
     $services
@@ -161,8 +162,6 @@ return function (ContainerConfigurator $configurator) {
 
     $services->set(Client::class); // create guzzle client as a service
     $services->alias(SlugifyInterface::class, 'slugify');
-    $services->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default');
-    $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(JWTManager::class, 'lexik_jwt_authentication.jwt_manager');
 
@@ -171,4 +170,8 @@ return function (ContainerConfigurator $configurator) {
     $services->alias(Environment::class, 'twig');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
     $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
+
+    $services->alias(FileSystemLoader::class, 'liip_imagine.binary.loader.default');
+    $services->alias(FilterService::class, 'liip_imagine.service.filter');
+    $services->alias(MimeTypeGuesserInterface::class, 'liip_imagine.binary.mime_type_guesser');
 };

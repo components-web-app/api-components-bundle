@@ -169,8 +169,7 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                                 ],
                                 'thumbnail' => [
                                     'size' => [636, 636],
-                                    'mode' => 'inset',
-                                    'allow_upscale' => true
+                                    'mode' => 'inset'
                                 ]
                             ]
                         ]

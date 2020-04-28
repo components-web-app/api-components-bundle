@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Dto\File;
 
+use Liip\ImagineBundle\Binary\BinaryInterface;
 use Silverback\ApiComponentBundle\Exception\FileMissingException;
 use Silverback\ApiComponentBundle\Exception\FileNotImageException;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -48,21 +49,14 @@ class ImageMetadata
         $this->filePath = $filePath;
         $this->publicPath = $publicPath;
 
-        if (!file_exists($filePath)) {
-            throw new FileMissingException(sprintf('The file %s does not exist while constructing %s', $filePath, self::class));
-        }
-
-        if (mime_content_type($filePath) === 'image/svg+xml') {
+        if (pathinfo($filePath, PATHINFO_EXTENSION) === 'svg') {
             $xmlget = simplexml_load_string(file_get_contents($filePath));
             $xmlattributes = $xmlget->attributes();
             $this->width = (int) $xmlattributes->width;
             $this->height = (int) $xmlattributes->height;
         } else {
-            if (false === \exif_imagetype($filePath)) {
-                throw new FileNotImageException(sprintf('The file %s is not an image while constructing %s', $filePath, self::class));
-            }
-
-            [$this->width, $this->height] = getimagesize($filePath);
+            $isAbsolute = false !== strpos($publicPath, '://') || strpos($publicPath, '//') === 0;
+            [$this->width, $this->height] = getimagesize($isAbsolute ? $publicPath : $filePath);
             $this->imagineKey = $imagineKey;
         }
     }
