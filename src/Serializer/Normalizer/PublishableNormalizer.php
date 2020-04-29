@@ -17,7 +17,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -64,7 +64,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return !isset($context[self::ALREADY_CALLED]) &&
             \is_object($data) &&
             !$data instanceof \Traversable &&
-            $this->publishableHelper->isPublishable($data);
+            $this->publishableHelper->isConfigured($data);
     }
 
     /**
@@ -180,7 +180,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->isPublishable($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Extension\Doctrine\ORM;
+namespace Silverback\ApiComponentBundle\Doctrine\Extension\ORM;
 
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -131,7 +131,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->configuration && ($this->publishableHelper->isPublishable($resourceClass))) {
+        if (!$this->configuration && ($this->publishableHelper->isConfigured($resourceClass))) {
             $this->configuration = $this->publishableHelper->getConfiguration($resourceClass);
         }
 

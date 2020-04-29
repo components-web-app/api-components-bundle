@@ -11,13 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Uploadable;
+namespace Silverback\ApiComponentBundle\Entity\Utility;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentBundle\Model\Uploadable\FileData;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,12 +23,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @author Daniel West <daniel@silverback.is>
  *
- * @Silverback\MediaObject
  * @Silverback\Timestamped
  * @ApiResource
  * @ORM\Entity
  */
-class MediaObject
+trait MediaObjectTrait
 {
     use IdTrait;
     use TimestampedTrait;
@@ -46,8 +43,5 @@ class MediaObject
 
     public FileData $fileData;
 
-    public function __construct()
-    {
-        $this->setId();
-    }
+    public object $uploadable;
 }

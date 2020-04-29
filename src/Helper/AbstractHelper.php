@@ -11,33 +11,24 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Timestamped;
+namespace Silverback\ApiComponentBundle\Helper;
 
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Annotation\Timestamped;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
-/**
- * @author Daniel West <daniel@silverback.is>
- */
-final class TimestampedHelper
+abstract class AbstractHelper
 {
     use ClassMetadataTrait;
 
-    private Reader $reader;
+    protected Reader $reader;
 
-    public function __construct(Reader $reader, ManagerRegistry $registry)
-    {
-        $this->reader = $reader;
-        $this->initRegistry($registry);
-    }
+    abstract public function getConfiguration($class);
 
     /**
      * @param object|string $class
      */
-    public function isTimestamped($class): bool
+    public function isConfigured($class): bool
     {
         try {
             $this->getConfiguration($class);
@@ -49,26 +40,36 @@ final class TimestampedHelper
     }
 
     /**
-     * @param object|string $class
+     * @required
      */
-    public function getConfiguration($class): Timestamped
+    protected function initReader(Reader $reader): void
+    {
+        $this->reader = $reader;
+    }
+
+    /**
+     * @param object|string $class
+     *
+     * @throws \ReflectionException
+     */
+    protected function getAnnotationConfiguration($class, string $annotationClass)
     {
         if (null === $class || (\is_string($class) && !class_exists($class))) {
             throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
         }
 
         $reflection = new \ReflectionClass($class);
-        /** @var Timestamped|null $timestamped */
+        /** @var $annotationClass|null $annotation */
         while (
-            !($timestamped = $this->reader->getClassAnnotation($reflection, Timestamped::class)) &&
+            !($annotation = $this->reader->getClassAnnotation($reflection, $annotationClass)) &&
             ($reflection = $reflection->getParentClass())
         ) {
             continue;
         }
-        if (!$timestamped) {
-            throw new InvalidArgumentException(sprintf('%s does not have Publishable annotation', \is_object($class) ? \get_class($class) : $class));
+        if (!$annotation) {
+            throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
         }
 
-        return $timestamped;
+        return $annotation;
     }
 }

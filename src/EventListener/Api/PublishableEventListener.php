@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Api;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -44,7 +44,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isPublishable($data) ||
+            !$this->publishableHelper->isConfigured($data) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
@@ -60,7 +60,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isPublishable($data) ||
+            !$this->publishableHelper->isConfigured($data) ||
             !$request->isMethod(Request::METHOD_GET)
         ) {
             return;
@@ -75,7 +75,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isPublishable($data) ||
+            !$this->publishableHelper->isConfigured($data) ||
             !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
@@ -99,7 +99,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             null === $data ||
-            !$this->publishableHelper->isPublishable($data)
+            !$this->publishableHelper->isConfigured($data)
         ) {
             return;
         }

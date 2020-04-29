@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -34,7 +34,7 @@ final class PublishableListener
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        if (!$this->publishableHelper->isPublishable($metadata->getName())) {
+        if (!$this->publishableHelper->isConfigured($metadata->getName())) {
             return;
         }
 

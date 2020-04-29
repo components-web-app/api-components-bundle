@@ -33,9 +33,12 @@ use Silverback\ApiComponentBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
+use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\PublishableExtension;
+use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\MediaObjectListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
@@ -43,8 +46,6 @@ use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListene
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\PublishableExtension;
-use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
@@ -62,13 +63,16 @@ use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentBundle\Helper\MediaObjectHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
+use Silverback\ApiComponentBundle\Helper\UploadableHelper;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
 use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -84,7 +88,6 @@ use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentBundle\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -251,6 +254,21 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
         ])
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(MediaObjectHelper::class)
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('doctrine'),
+        ]);
+
+    $services
+        ->set(MediaObjectListener::class)
+        ->args([
+            new Reference(MediaObjectHelper::class),
+            new Reference(UploadableHelper::class),
+        ])
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services
         ->set(MessageEventListener::class)
@@ -481,6 +499,13 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TokenGenerator::class);
+
+    $services
+        ->set(UploadableHelper::class)
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('doctrine'),
+        ]);
 
     $services
         ->set(UserChecker::class);

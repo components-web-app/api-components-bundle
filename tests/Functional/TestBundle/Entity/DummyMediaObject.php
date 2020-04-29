@@ -13,21 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
+use Silverback\ApiComponentBundle\Entity\Utility\MediaObjectTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
- * @Silverback\Uploadable(DummyMediaObject::class)
- * @ORM\Entity
+ * @Silverback\MediaObject(DummyUploadable::class)
  */
-class DummyUploadable
+class DummyMediaObject
 {
-    use IdTrait;
-    use UploadableTrait;
+    use MediaObjectTrait;
 
     public function __construct()
     {

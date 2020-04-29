@@ -28,4 +28,16 @@ final class MediaObject
     public string $temporaryFieldName = 'temporary';
 
     public string $fileDataFieldName = 'fileData';
+
+    public string $uploadableFieldName = 'uploadable';
+
+    /** @required */
+    public ?string $uploadableEntityClass;
+
+    public function __construct(array $values)
+    {
+        if (isset($values['value'])) {
+            $this->uploadableEntityClass = $values['value'];
+        }
+    }
 }

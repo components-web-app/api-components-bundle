@@ -17,7 +17,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
 /**
@@ -39,7 +39,7 @@ class TimestampedListener
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        if (!$this->timestampedHelper->isTimestamped($metadata->getName())) {
+        if (!$this->timestampedHelper->isConfigured($metadata->getName())) {
             return;
         }
 
@@ -74,7 +74,7 @@ class TimestampedListener
 
     private function setFields(object $timestamped, bool $isNew): void
     {
-        if (!$this->timestampedHelper->isTimestamped($timestamped)) {
+        if (!$this->timestampedHelper->isConfigured($timestamped)) {
             return;
         }
 

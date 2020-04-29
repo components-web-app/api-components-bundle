@@ -31,12 +31,15 @@ trait ClassMetadataTrait
 
     private ?ManagerRegistry $registry;
 
-    private function initRegistry(ManagerRegistry $registry): void
+    /**
+     * @required
+     */
+    protected function initRegistry(ManagerRegistry $registry): void
     {
         $this->registry = $registry;
     }
 
-    private function getClassMetadata(object $data): ClassMetadata
+    protected function getClassMetadata(object $data): ClassMetadata
     {
         return $this->getEntityManager($data)->getClassMetadata($this->getObjectClass($data));
     }

@@ -11,14 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Publishable;
+namespace Silverback\ApiComponentBundle\Helper;
 
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\Persistence\Proxy;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -26,20 +23,17 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableHelper
+final class PublishableHelper extends AbstractHelper
 {
-    use ClassMetadataTrait;
-
-    private Reader $reader;
     private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
     public function __construct(Reader $reader, ManagerRegistry $registry, AuthorizationCheckerInterface $authorizationChecker, string $permission)
     {
-        $this->reader = $reader;
         $this->authorizationChecker = $authorizationChecker;
         $this->permission = $permission;
         $this->initRegistry($registry);
+        $this->initReader($reader);
     }
 
     public function isGranted(): bool
@@ -49,7 +43,7 @@ final class PublishableHelper
 
     public function isActivePublishedAt(object $object): bool
     {
-        if (!$this->isPublishable($object)) {
+        if (!$this->isConfigured($object)) {
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
@@ -60,7 +54,7 @@ final class PublishableHelper
 
     public function hasPublicationDate(object $object): bool
     {
-        if (!$this->isPublishable($object)) {
+        if (!$this->isConfigured($object)) {
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
@@ -70,37 +64,9 @@ final class PublishableHelper
     /**
      * @param object|string $class
      */
-    public function isPublishable($class): bool
-    {
-        try {
-            $this->getConfiguration($class);
-        } catch (InvalidArgumentException $exception) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param object|string $class
-     */
     public function getConfiguration($class): Publishable
     {
-        $configuration = null;
-        if (\is_string($class) || \is_object($class)) {
-            $reflection = new \ReflectionClass($class);
-            if ($reflection->implementsInterface(Proxy::class) && $parent = $reflection->getParentClass()) {
-                $reflection = $parent;
-            }
-            $configuration = $this->reader->getClassAnnotation($reflection, Publishable::class);
-        }
-
-        if (!$configuration || !$configuration instanceof Publishable) {
-            $className = \is_string($class) ? $class : \get_class($class);
-            throw new InvalidArgumentException(sprintf('Could not get publishable configuration for %s', $className));
-        }
-
-        return $configuration;
+        return $this->getAnnotationConfiguration($class, Publishable::class);
     }
 
     public function isPublishedRequest(Request $request): bool
