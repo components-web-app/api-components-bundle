@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Annotation;
 
+use League\Flysystem\Filesystem;
+use Silverback\ApiComponentBundle\Exception\UnsupportedAnnotationException;
+
 /**
  * @author Daniel West <daniel@silverback.is>
  *
@@ -34,6 +37,9 @@ final class File
 
     public function __construct(array $values)
     {
+        if (!class_exists(Filesystem::class)) {
+            throw new UnsupportedAnnotationException(sprintf('%s does not exist. Please install FlySystem v2 to use the @Silverback\Files annotation', Filesystem::class));
+        }
         if (isset($values['value'])) {
             $this->uploadsEntityClass = $values['value'];
         }

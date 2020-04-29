@@ -60,6 +60,7 @@ use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactor
 use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
 use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
@@ -157,6 +158,9 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
+        ->set(FilesystemProvider::class);
+
+    $services
         ->set(EmailAddressManager::class)
         ->args([
             new Reference(EntityManagerInterface::class),
@@ -178,6 +182,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('annotations.reader'),
             new Reference('doctrine'),
+            new Reference(FilesystemProvider::class),
         ]);
 
     $services

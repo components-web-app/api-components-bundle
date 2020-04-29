@@ -6,6 +6,32 @@ nav_order: 3
 ---
 # File Uploads
 
+## Requirements
+This bundle uses FlySystem v2. It does not use additional bundles to implement this and instead allows you to easily create adapters as services which are injected into our own `FilesystemProvider` using autoconfiguration.
+
+Configuration example in `services.php`
+```php
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
+
+$services
+        ->set(LocalFilesystemAdapter::class)
+        ->args([
+            '%kernel.project_dir%/var/storage/default'
+        ])
+        ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, [ 'alias' => 'local' ]);
+```
+
+Or Yaml:
+```yaml
+app.flysystem.adapter.local:
+    class: League\Flysystem\Local\LocalFilesystemAdapter
+    arguments: ['%kernel.project_dir%/var/storage/default']
+    tag:
+      - { name: 'silverback.api_component.filesystem_adapter', alias: 'local' }
+```
+
+## Usage
 The easiest way to configure an entity resource to contain uploads is to use the following annotation and trait:
 
 ```php

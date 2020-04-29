@@ -24,6 +24,7 @@ use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
@@ -40,6 +41,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -75,9 +77,27 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
         $definition = $container->getDefinition(MetadataNormalizer::class);
         $definition->setArgument('$metadataKey', $config['metadata_key']);
 
+        $this->injectFlysystemAdapters($container);
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
+    }
+
+    private function injectFlysystemAdapters(ContainerBuilder $container): void
+    {
+        $definition = $container->getDefinition(FilesystemProvider::class);
+        $taggedServices = $container->findTaggedServiceIds(FilesystemProvider::FILESYSTEM_ADAPTER_TAG);
+        foreach ($taggedServices as $serviceId => $tags) {
+            foreach ($tags as $attributes) {
+                $definition->addMethodCall(
+                    'addAdapter',
+                    [
+                        $attributes['alias'],
+                        new Reference($serviceId),
+                    ]
+                );
+            }
+        }
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig): void

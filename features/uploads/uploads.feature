@@ -17,7 +17,6 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 201
 
   @loginUser
-  @wip
   Scenario Outline: I can create a new dummy uploads component
     Given I add "Content-Type" header equal to "multipart/form-data"
     When I send a "POST" request to "/_/dummy_files" with parameters:

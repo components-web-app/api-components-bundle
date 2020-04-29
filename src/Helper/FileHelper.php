@@ -17,6 +17,7 @@ use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\File;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
 
@@ -27,9 +28,11 @@ final class FileHelper extends AbstractHelper
 {
     use ClassMetadataTrait;
 
-    public function __construct(Reader $reader, ManagerRegistry $registry)
+    private FilesystemProvider $filesystemProvider;
+
+    public function __construct(Reader $reader, ManagerRegistry $registry, FilesystemProvider $filesystemProvider)
     {
-        $this->reader = $reader;
+        $this->filesystemProvider = $filesystemProvider;
         $this->initRegistry($registry);
         $this->initReader($reader);
     }

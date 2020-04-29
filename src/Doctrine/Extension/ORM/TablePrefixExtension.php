@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
  */
 class TablePrefixExtension
 {
-    private $prefix;
+    private ?string $prefix;
 
     public function __construct(?string $prefix = '_acb_')
     {
