@@ -17,8 +17,8 @@ use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Serializer\PersistedNormalizer;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\FileComponent;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
 
@@ -59,7 +59,7 @@ class PersistedNormalizerTest extends TestCase
             ->method('isResourceClass');
 
         $format = 'jsonld';
-        $this->assertFalse($this->apiNormalizer->supportsNormalization(new FileComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => true]));
+        $this->assertFalse($this->apiNormalizer->supportsNormalization(new DummyComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => true]));
         $this->assertFalse($this->apiNormalizer->supportsNormalization([], $format, []));
         $this->assertFalse($this->apiNormalizer->supportsNormalization('string', $format, []));
         $traversable = $this->createMock(Traversable::class);
@@ -68,26 +68,26 @@ class PersistedNormalizerTest extends TestCase
 
     public function test_does_not_support_non_api_platform_resource_normalization(): void
     {
-        $dummyComponent = new FileComponent();
+        $dummyComponent = new DummyComponent();
         $format = 'jsonld';
 
         $this->resourceClassResolverMock
             ->expects($this->once())
             ->method('isResourceClass')
-            ->with(FileComponent::class)
+            ->with(DummyComponent::class)
             ->willReturn(false);
         $this->assertFalse($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
     }
 
     public function tests_supports_normalization(): void
     {
-        $dummyComponent = new FileComponent();
+        $dummyComponent = new DummyComponent();
         $format = 'jsonld';
 
         $this->resourceClassResolverMock
             ->expects($this->once())
             ->method('isResourceClass')
-            ->with(FileComponent::class)
+            ->with(DummyComponent::class)
             ->willReturn(true);
         $this->assertTrue($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
     }
@@ -100,7 +100,7 @@ class PersistedNormalizerTest extends TestCase
 
     public function test_normalization_result_entity_is_persisted(): void
     {
-        $dummyComponent = new FileComponent();
+        $dummyComponent = new DummyComponent();
         $format = 'jsonld';
 
         $this->normalizerMock
@@ -125,7 +125,7 @@ class PersistedNormalizerTest extends TestCase
 
     public function test_normalization_result_entity_is_not_persisted(): void
     {
-        $dummyComponent = new FileComponent();
+        $dummyComponent = new DummyComponent();
         $format = 'jsonld';
 
         $this->normalizerMock

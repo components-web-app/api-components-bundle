@@ -13,27 +13,26 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Action\File;
 
-use Silverback\ApiComponentBundle\Action\AbstractAction;
-use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentBundle\File\FileRequestHandler;
-use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentBundle\Helper\FileHelper;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class FileAction extends AbstractAction
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
+class FileAction
 {
-    private FileRequestHandler $fileRequestHandler;
-
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, FileRequestHandler $fileRequestHandler)
+    public function __invoke(Request $request, FileHelper $fileHelper)
     {
-        parent::__construct($serializer, $requestFormatResolver, $responseFactory);
-        $this->fileRequestHandler = $fileRequestHandler;
-    }
+        $resourceClass = $request->attributes->get('_api_resource_class');
+        $resource = new $resourceClass();
+        try {
+            $fileHelper->uploadFile($resource, $request->files);
+        } catch (InvalidArgumentException $exception) {
+            throw new BadRequestHttpException($exception->getMessage());
+        }
 
-    public function __invoke(Request $request, string $field, string $id)
-    {
-        $response = $this->fileRequestHandler->handle($request, $this->requestFormatResolver->getFormatFromRequest($request), $field, $id);
-
-        return $this->responseFactory->create($request, $response->getContent(), $response->getStatusCode());
+        return $resource;
     }
 }

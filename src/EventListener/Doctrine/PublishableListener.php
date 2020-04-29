@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -34,16 +34,17 @@ final class PublishableListener
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        if (!$this->publishableHelper->isPublishable($metadata->getName())) {
+        if (!$this->publishableHelper->isConfigured($metadata->getName())) {
             return;
         }
 
         $configuration = $this->publishableHelper->getConfiguration($metadata->getName());
-        /** @var NamingStrategy $namingStrategy */
-        $namingStrategy = $eventArgs
-            ->getEntityManager()
-            ->getConfiguration()
-            ->getNamingStrategy();
+
+        $em = $eventArgs->getObjectManager();
+        if (!$em instanceof EntityManagerInterface) {
+            return;
+        }
+        $namingStrategy = $em->getConfiguration()->getNamingStrategy();
 
         if (!$metadata->hasField($configuration->fieldName)) {
             $metadata->mapField([
@@ -62,6 +63,7 @@ final class PublishableListener
                         'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
                         'referencedColumnName' => $namingStrategy->referenceColumnName(),
                         'onDelete' => 'SET NULL',
+                        'nullable' => true,
                     ],
                 ],
                 'inversedBy' => $configuration->reverseAssociationName,

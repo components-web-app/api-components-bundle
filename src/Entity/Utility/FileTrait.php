@@ -13,27 +13,53 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Dto\File\FileData;
+use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentBundle\Model\File\MediaObject;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @Silverback\Timestamped
+ * @ApiResource
+ * @ORM\Entity
  */
 trait FileTrait
 {
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     * @ApiProperty(readable=false)
-     */
-    private ?string $filePath;
+    use TimestampedTrait;
 
     /**
-     * @ApiProperty(writable=false)
+     * @Assert\NotNull(groups={"File:write"})
      */
-    private ?FileData $fileData = null;
+    private ?File $file = null;
 
-    public function getFilePath(): ?string
+    private string $filePath;
+
+    private ?object $uploadsResource = null;
+
+    /** @var Collection|MediaObject[] */
+    private Collection $mediaObjects;
+
+    public function getFile(): ?File
+    {
+        return $this->file;
+    }
+
+    /**
+     * @return static
+     */
+    public function setFile(?File $file)
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    public function getFilePath(): string
     {
         return $this->filePath;
     }
@@ -41,39 +67,40 @@ trait FileTrait
     /**
      * @return static
      */
-    public function setFilePath(?string $filePath)
+    public function setFilePath(string $filePath)
     {
         $this->filePath = $filePath;
 
         return $this;
     }
 
+    public function getUploadsResource(): ?object
+    {
+        return $this->uploadsResource;
+    }
+
     /**
      * @return static
      */
-    public function setFileData(?FileData $fileData)
+    public function setUploadsResource(?object $uploadsResource)
     {
-        $this->fileData = $fileData;
+        $this->uploadsResource = $uploadsResource;
 
         return $this;
     }
 
-    public function getFileData(): ?FileData
+    public function getMediaObjects(): Collection
     {
-        return $this->fileData;
+        return $this->mediaObjects;
     }
 
-    public static function getImagineFilters(): array
+    /**
+     * @return static
+     */
+    public function setMediaObjects(Collection $mediaObjects)
     {
-        return [
-            'thumbnail' => 'thumbnail',
-            'placeholderSquare' => 'placeholder_square',
-            'placeholder' => 'placeholder',
-        ];
-    }
+        $this->mediaObjects = $mediaObjects;
 
-    public function getDirectory(): ?string
-    {
-        return null;
+        return $this;
     }
 }

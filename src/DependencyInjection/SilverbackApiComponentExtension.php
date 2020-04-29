@@ -14,10 +14,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\DependencyInjection;
 
 use Exception;
-use RuntimeException;
+use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
-use Silverback\ApiComponentBundle\Extension\Doctrine\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
@@ -29,13 +28,13 @@ use Silverback\ApiComponentBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\MetadataNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -199,71 +198,6 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
                         'JWT (use prefix `Bearer`)' => [
                             'name' => 'Authorization',
                             'type' => 'header',
-                        ],
-                    ],
-                ],
-            ]
-        );
-
-        $bundles = $container->getParameter('kernel.bundles');
-        if (isset($bundles['LiipImagineBundle'])) {
-            $this->prependLiipConfig($container);
-        }
-    }
-
-    private function prependLiipConfig(ContainerBuilder $container): void
-    {
-        $projectDir = $container->getParameter('kernel.project_dir');
-        $uploadsDir = $projectDir . '/var/uploads';
-        if (!@mkdir($uploadsDir) && !is_dir($uploadsDir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $uploadsDir));
-        }
-        $container->prependExtensionConfig(
-            'liip_imagine',
-            [
-                'loaders' => [
-                    'default' => [
-                        'filesystem' => [
-                            'data_root' => [
-                                'uploads' => $uploadsDir,
-                                'default' => $projectDir . '/public',
-                            ],
-                        ],
-                    ],
-                ],
-                'filter_sets' => [
-                    'placeholder_square' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [80, 80],
-                                'mode' => 'outbound',
-                            ],
-                        ],
-                    ],
-                    'placeholder' => [
-                        'jpeg_quality' => 10,
-                        'png_compression_level' => 9,
-                        'filters' => [
-                            'thumbnail' => [
-                                'size' => [100, 100],
-                                'mode' => 'inset',
-                            ],
-                        ],
-                    ],
-                    'thumbnail' => [
-                        'jpeg_quality' => 100,
-                        'png_compression_level' => 0,
-                        'filters' => [
-                            'upscale' => [
-                                'min' => [636, 636],
-                            ],
-                            'thumbnail' => [
-                                'size' => [636, 636],
-                                'mode' => 'inset',
-                                'allow_upscale' => true,
-                            ],
                         ],
                     ],
                 ],

@@ -1,0 +1,46 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Component Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Silverback\ApiComponentBundle\Serializer\ContextBuilder;
+
+use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
+use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
+final class MediaObjectContextBuilder implements SerializerContextBuilderInterface
+{
+    private SerializerContextBuilderInterface $decorated;
+
+    public function __construct(SerializerContextBuilderInterface $decorated)
+    {
+        $this->decorated = $decorated;
+    }
+
+    public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
+    {
+        $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
+        if (empty($resourceClass = $context['resource_class']) || empty($context['groups'])) {
+            return $context;
+        }
+
+        $reflectionClass = new \ReflectionClass($resourceClass);
+        if ($normalization) {
+            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), TimestampedLoader::GROUP_NAME);
+        }
+
+        return $context;
+    }
+}

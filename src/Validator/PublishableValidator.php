@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Validator;
 
 use ApiPlatform\Core\Validator\ValidatorInterface;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 
 /**
  * Builds and add validation group for published resources.
@@ -37,7 +37,7 @@ final class PublishableValidator implements ValidatorInterface
      */
     public function validate($data, array $context = [])
     {
-        if (\is_object($data) && $this->publishableHelper->isPublishable($data) && $this->publishableHelper->hasPublicationDate($data)) {
+        if (\is_object($data) && $this->publishableHelper->isConfigured($data) && $this->publishableHelper->hasPublicationDate($data)) {
             $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
             if (!empty($this->publishableHelper->getConfiguration($data)->validationGroups)) {
                 $groups = $this->publishableHelper->getConfiguration($data)->validationGroups;

@@ -99,11 +99,7 @@ class JsonContext implements Context
      */
     public function theJsonShouldBeValidAccordingToTheSchemaFile(string $file): void
     {
-        try {
-            $this->jsonContext->theJsonShouldBeValidAccordingToThisSchema(new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1));
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $this->getJson()->encode());
-        }
+        $this->jsonContext->theJsonShouldBeValidAccordingToTheSchema(__DIR__ . '/../assets/schema/' . $file);
     }
 
     /**
@@ -112,7 +108,7 @@ class JsonContext implements Context
     public function theJsonShouldBeAnArrayWithEachEntryValidAccordingToTheSchemaFile(string $file): void
     {
         $json = $this->getJson();
-        $schema = new PyStringNode([file_get_contents(__DIR__ . '/../schema/' . $file)], 1);
+        $schema = new PyStringNode([file_get_contents(__DIR__ . '/../assets/schema/' . $file)], 1);
         try {
             foreach ($json as $item) {
                 $this->inspector->validate(
