@@ -15,12 +15,12 @@ namespace Silverback\ApiComponentBundle\Helper;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Annotation\Uploadable;
+use Silverback\ApiComponentBundle\Annotation\Uploads;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class UploadableHelper extends AbstractHelper
+final class UploadsHelper extends AbstractHelper
 {
     public function __construct(Reader $reader, ManagerRegistry $registry)
     {
@@ -32,8 +32,8 @@ final class UploadableHelper extends AbstractHelper
     /**
      * @param object|string $class
      */
-    public function getConfiguration($class): Uploadable
+    public function getConfiguration($class): Uploads
     {
-        return $this->getAnnotationConfiguration($class, Uploadable::class);
+        return $this->getAnnotationConfiguration($class, Uploads::class);
     }
 }

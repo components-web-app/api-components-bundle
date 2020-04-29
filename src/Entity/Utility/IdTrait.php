@@ -19,8 +19,6 @@ use Ramsey\Uuid\Uuid;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @internal
  */
 trait IdTrait
 {

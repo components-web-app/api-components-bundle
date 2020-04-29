@@ -18,21 +18,21 @@ use Doctrine\Common\Collections\Collection;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-trait UploadableTrait
+trait UploadsTrait
 {
-    private Collection $media;
+    private Collection $files;
 
-    public function getMedia(): Collection
+    public function getFiles(): Collection
     {
-        return $this->media;
+        return $this->files;
     }
 
     /**
      * @return static
      */
-    public function setMedia(Collection $media)
+    public function setFiles(Collection $files)
     {
-        $this->media = $media;
+        $this->files = $files;
 
         return $this;
     }

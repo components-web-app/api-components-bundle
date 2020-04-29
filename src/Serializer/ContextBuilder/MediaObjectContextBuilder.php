@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class TimestampedContextBuilder implements SerializerContextBuilderInterface
+final class MediaObjectContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
 

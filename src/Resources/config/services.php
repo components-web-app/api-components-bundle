@@ -28,6 +28,8 @@ use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction;
+use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\FileResourceMetadataFactory;
+use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
@@ -38,7 +40,7 @@ use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\MediaObjectListener;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\FileListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
@@ -63,16 +65,14 @@ use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentBundle\Helper\MediaObjectHelper;
+use Silverback\ApiComponentBundle\Helper\FileHelper;
 use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
-use Silverback\ApiComponentBundle\Helper\UploadableHelper;
+use Silverback\ApiComponentBundle\Helper\UploadsHelper;
 use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Metadata\AutoRoutePrefixMetadataFactory;
-use Silverback\ApiComponentBundle\Metadata\ResourceDtoOutputClassMetadataFactory;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -82,8 +82,8 @@ use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
-use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
-use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\TimestampedLoader;
+use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
+use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
@@ -129,10 +129,10 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(AutoRoutePrefixMetadataFactory::class)
+        ->set(RoutingPrefixResourceMetadataFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args([
-            new Reference(AutoRoutePrefixMetadataFactory::class . '.inner'),
+            new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
         ]);
 
     $services
@@ -174,14 +174,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResponseFactory::class),
             new Reference(EmailAddressManager::class),
         ]);
-
-    $services
-        ->set(ResourceDtoOutputClassMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args([
-            new Reference(ResourceDtoOutputClassMetadataFactory::class . '.inner'),
-        ])
-        ->autoconfigure(false);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -256,19 +248,28 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
 
     $services
-        ->set(MediaObjectHelper::class)
+        ->set(FileHelper::class)
         ->args([
             new Reference('annotations.reader'),
             new Reference('doctrine'),
         ]);
 
     $services
-        ->set(MediaObjectListener::class)
+        ->set(FileListener::class)
         ->args([
-            new Reference(MediaObjectHelper::class),
-            new Reference(UploadableHelper::class),
+            new Reference(FileHelper::class),
+            new Reference(UploadsHelper::class),
         ])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
+        ->set(FileResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(FileResourceMetadataFactory::class . '.inner'),
+            new Reference(FileHelper::class),
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(MessageEventListener::class)
@@ -501,7 +502,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TokenGenerator::class);
 
     $services
-        ->set(UploadableHelper::class)
+        ->set(UploadsHelper::class)
         ->args([
             new Reference('annotations.reader'),
             new Reference('doctrine'),

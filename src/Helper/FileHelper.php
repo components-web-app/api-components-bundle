@@ -15,12 +15,12 @@ namespace Silverback\ApiComponentBundle\Helper;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Annotation\MediaObject;
+use Silverback\ApiComponentBundle\Annotation\File;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class MediaObjectHelper extends AbstractHelper
+final class FileHelper extends AbstractHelper
 {
     public function __construct(Reader $reader, ManagerRegistry $registry)
     {
@@ -32,8 +32,8 @@ final class MediaObjectHelper extends AbstractHelper
     /**
      * @param object|string $class
      */
-    public function getConfiguration($class): MediaObject
+    public function getConfiguration($class): File
     {
-        return $this->getAnnotationConfiguration($class, MediaObject::class);
+        return $this->getAnnotationConfiguration($class, File::class);
     }
 }

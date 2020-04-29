@@ -19,7 +19,7 @@ namespace Silverback\ApiComponentBundle\Annotation;
  * @Annotation
  * @Target("CLASS")
  */
-final class MediaObject
+final class File
 {
     public string $fileFieldName = 'file';
 
@@ -27,17 +27,19 @@ final class MediaObject
 
     public string $temporaryFieldName = 'temporary';
 
-    public string $fileDataFieldName = 'fileData';
+    public string $mediaObjectsProperty = 'mediaObjects';
 
-    public string $uploadableFieldName = 'uploadable';
+    public string $uploadsFieldName = 'uploads';
+
+    public bool $disableGetCollection = false;
 
     /** @required */
-    public ?string $uploadableEntityClass;
+    public ?string $uploadsEntityClass;
 
     public function __construct(array $values)
     {
         if (isset($values['value'])) {
-            $this->uploadableEntityClass = $values['value'];
+            $this->uploadsEntityClass = $values['value'];
         }
     }
 }

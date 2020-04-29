@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer\Mapping\Loader;
+namespace Silverback\ApiComponentBundle\Serializer\MappingLoader;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Silverback\ApiComponentBundle\Annotation\Timestamped;
+use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
 /**
- * Adds {CLASS}:timestamped serialization group on {CLASS}.createdAt and {CLASS}.updatedAt for Timestamped entities.
+ * Adds {CLASS}:publishable serialization group on {CLASS}.publishedAt and {CLASS}.publishedResource for Publishable entities.
  *
- * @author Daniel West <daniel@silverback.is>
+ * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class TimestampedLoader implements LoaderInterface
+final class PublishableLoader implements LoaderInterface
 {
-    public const GROUP_NAME = 'timestamped';
+    public const GROUP_NAME = 'published';
 
     private AnnotationReader $reader;
 
@@ -40,24 +40,26 @@ final class TimestampedLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        /** @var Timestamped $configuration */
-        if (!$configuration = $this->reader->getClassAnnotation($reflectionClass, Timestamped::class)) {
+        /** @var Publishable $configuration */
+        if (!$configuration = $this->reader->getClassAnnotation($reflectionClass, Publishable::class)) {
             return true;
         }
 
         $allAttributesMetadata = $classMetadata->getAttributesMetadata();
         $shortClassName = $reflectionClass->getShortName();
         $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
+        $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->createdAtField] ?? null)) &&
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->fieldName] ?? null)) &&
             !empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
+            $attributeMetadata->addGroup($writeGroup);
         }
 
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->modifiedAtField] ?? null)) &&
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->associationName] ?? null)) &&
             !empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);

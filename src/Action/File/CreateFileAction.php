@@ -11,12 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Model\Uploadable;
+namespace Silverback\ApiComponentBundle\Action\File;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class FileData
+class CreateFileAction
 {
-    public $filePath;
 }

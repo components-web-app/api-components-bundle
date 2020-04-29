@@ -19,7 +19,7 @@ namespace Silverback\ApiComponentBundle\Annotation;
  * @Annotation
  * @Target("CLASS")
  */
-final class Uploadable
+final class Uploads
 {
-    public string $fieldName = 'media';
+    public string $fieldName = 'files';
 }

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Metadata;
+namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
@@ -21,7 +21,7 @@ use Silverback\ApiComponentBundle\Entity\Core\AbstractPageData;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class AutoRoutePrefixMetadataFactory implements ResourceMetadataFactoryInterface
+class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
 

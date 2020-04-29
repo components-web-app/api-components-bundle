@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\PublishableLoader;
-use Silverback\ApiComponentBundle\Serializer\Mapping\Loader\TimestampedLoader;
+use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
+use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
