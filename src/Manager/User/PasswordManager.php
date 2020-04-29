@@ -32,7 +32,6 @@ class PasswordManager
     private UserMailer $userMailer;
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
-    private TokenGenerator $tokenGenerator;
     private UserRepository $userRepository;
     private int $tokenTtl;
 
@@ -40,14 +39,12 @@ class PasswordManager
         UserMailer $userMailer,
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
-        TokenGenerator $tokenGenerator,
         UserRepository $userRepository,
         int $tokenTtl = 8600
     ) {
         $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
-        $this->tokenGenerator = $tokenGenerator;
         $this->userRepository = $userRepository;
         $this->tokenTtl = $tokenTtl;
     }
@@ -67,7 +64,7 @@ class PasswordManager
         if (!$username) {
             throw new InvalidArgumentException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setNewPasswordConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+        $user->setNewPasswordConfirmationToken($confirmationToken = TokenGenerator::generateToken());
         $user->setPasswordRequestedAt(new DateTime());
         $this->userMailer->sendPasswordResetEmail($user);
         $this->entityManager->flush();

@@ -39,6 +39,8 @@ trait FileTrait
 
     private string $filePath;
 
+    private \DateTime $uploadedAt;
+
     private ?object $uploadsResource = null;
 
     /** @var Collection|MediaObject[] */
@@ -62,6 +64,16 @@ trait FileTrait
     public function getFilePath(): string
     {
         return $this->filePath;
+    }
+
+    public function getUploadedAt(): \DateTime
+    {
+        return $this->uploadedAt;
+    }
+
+    public function setUploadedAt(\DateTime $uploadedAt): void
+    {
+        $this->uploadedAt = $uploadedAt;
     }
 
     /**

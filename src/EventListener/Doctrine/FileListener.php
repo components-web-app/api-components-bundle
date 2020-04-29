@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Silverback\ApiComponentBundle\Exception\OutOfBoundsException;
@@ -27,47 +28,53 @@ use Silverback\ApiComponentBundle\Helper\UploadsHelper;
  */
 class FileListener
 {
-    private FileHelper $mediaObjectHelper;
+    private FileHelper $fileHelper;
     private UploadsHelper $uploadsHelper;
 
-    public function __construct(FileHelper $mediaObjectHelper, UploadsHelper $uploadsHelper)
+    public function __construct(FileHelper $fileHelper, UploadsHelper $uploadsHelper)
     {
-        $this->mediaObjectHelper = $mediaObjectHelper;
+        $this->fileHelper = $fileHelper;
         $this->uploadsHelper = $uploadsHelper;
     }
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadataInfo $mediaObjectClassMetadata */
-        $mediaObjectClassMetadata = $eventArgs->getClassMetadata();
-        if (!$this->mediaObjectHelper->isConfigured($mediaObjectClassMetadata->getName())) {
+        /** @var ClassMetadataInfo $fileClassMetadata */
+        $fileClassMetadata = $eventArgs->getClassMetadata();
+        if (!$this->fileHelper->isConfigured($fileClassMetadata->getName())) {
             return;
         }
 
-        $mediaObjectConfiguration = $this->mediaObjectHelper->getConfiguration($mediaObjectClassMetadata->getName());
-        if (!$this->uploadsHelper->isConfigured($mediaObjectConfiguration->uploadsEntityClass)) {
+        $fileConfiguration = $this->fileHelper->getConfiguration($fileClassMetadata->getName());
+        if (!$this->uploadsHelper->isConfigured($fileConfiguration->uploadsEntityClass)) {
             throw new OutOfBoundsException('The value of uploadsEntityClass on your MediaObject is not configured as an Uploads resource');
         }
 
-        $uploadsConfiguration = $this->uploadsHelper->getConfiguration($mediaObjectConfiguration->uploadsEntityClass);
+        $uploadsConfiguration = $this->uploadsHelper->getConfiguration($fileConfiguration->uploadsEntityClass);
 
         $em = $eventArgs->getObjectManager();
         if (!$em instanceof EntityManagerInterface) {
             return;
         }
-        /** @var ClassMetadataInfo $mediaObjectClassMetadata */
-        $uploadsClassMetadata = $em->getClassMetadata($mediaObjectConfiguration->uploadsEntityClass);
+        /** @var ClassMetadataInfo $uploadsClassMetadata */
+        $uploadsClassMetadata = $em->getClassMetadata($fileConfiguration->uploadsEntityClass);
         $namingStrategy = $em->getConfiguration()->getNamingStrategy();
 
-        if (!$mediaObjectClassMetadata->hasAssociation($mediaObjectConfiguration->uploadsEntityClass)) {
-            $mediaObjectClassMetadata->mapField([
-                'fieldName' => $mediaObjectConfiguration->filePathFieldName,
+        if (!$fileClassMetadata->hasAssociation($fileConfiguration->uploadsEntityClass)) {
+            $fileClassMetadata->mapField([
+                'fieldName' => $fileConfiguration->filePathFieldName,
                 'nullable' => false,
             ]);
 
-            $mediaObjectClassMetadata->mapManyToOne([
-                'fieldName' => $mediaObjectConfiguration->uploadsFieldName,
-                'targetEntity' => $mediaObjectConfiguration->uploadsEntityClass,
+            $fileClassMetadata->mapField([
+                'fieldName' => $fileConfiguration->uploadedAtFieldName,
+                'type' => 'datetime',
+                'nullable' => false,
+            ]);
+
+            $fileClassMetadata->mapManyToOne([
+                'fieldName' => $fileConfiguration->uploadsFieldName,
+                'targetEntity' => $fileConfiguration->uploadsEntityClass,
                 'joinColumns' => [
                     [
                         'name' => $namingStrategy->joinKeyColumnName($uploadsClassMetadata->getName()),
@@ -83,9 +90,30 @@ class FileListener
         if (!$uploadsClassMetadata->hasAssociation($uploadsConfiguration->fieldName)) {
             $uploadsClassMetadata->mapOneToMany([
                 'fieldName' => $uploadsConfiguration->fieldName,
-                'targetEntity' => $mediaObjectClassMetadata->getName(),
-                'mappedBy' => $mediaObjectConfiguration->uploadsEntityClass,
+                'targetEntity' => $fileClassMetadata->getName(),
+                'mappedBy' => $fileConfiguration->uploadsEntityClass,
             ]);
         }
+
+        $fileClassMetadata->addEntityListener('prePersist', __CLASS__, 'prePersist');
+        $fileClassMetadata->addEntityListener('preUpdate', __CLASS__, 'preUpdate');
+        $fileClassMetadata->addEntityListener('preRemove', __CLASS__, 'preRemove');
+    }
+
+    public function prePersist(object $object): void
+    {
+        $this->fileHelper->persistUploadedFile($object);
+    }
+
+    public function preUpdate(object $object, LifecycleEventArgs $args): void
+    {
+        $manager = $args->getEntityManager();
+        $uow = $manager->getUnitOfWork();
+        $this->fileHelper->persistUploadedFile($object, $uow->getEntityChangeSet($object));
+    }
+
+    public function preRemove(object $object): void
+    {
+        $this->fileHelper->removeFile($object);
     }
 }

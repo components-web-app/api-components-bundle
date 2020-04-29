@@ -28,7 +28,6 @@ class UserListener
 {
     private UserPasswordEncoderInterface $passwordEncoder;
     private UserMailer $userMailer;
-    private TokenGenerator $tokenGenerator;
     private bool $initialEmailVerifiedState;
     private bool $verifyEmailOnRegister;
     private bool $verifyEmailOnChange;
@@ -37,14 +36,12 @@ class UserListener
     public function __construct(
         UserPasswordEncoderInterface $passwordEncoder,
         UserMailer $userMailer,
-        TokenGenerator $tokenGenerator,
         bool $initialEmailVerifiedState,
         bool $verifyEmailOnRegister,
         bool $verifyEmailOnChange
     ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->userMailer = $userMailer;
-        $this->tokenGenerator = $tokenGenerator;
         $this->initialEmailVerifiedState = $initialEmailVerifiedState;
         $this->verifyEmailOnRegister = $verifyEmailOnRegister;
         $this->verifyEmailOnChange = $verifyEmailOnChange;
@@ -57,7 +54,7 @@ class UserListener
         if (!$this->initialEmailVerifiedState) {
             $user->setNewEmailAddress($user->getEmailAddress());
             if (!$this->verifyEmailOnRegister) {
-                $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
+                $user->setNewEmailVerificationToken($confirmationToken = TokenGenerator::generateToken());
             }
         }
     }
@@ -85,7 +82,7 @@ class UserListener
                 $user->setEmailAddress($user->getNewEmailAddress());
                 $user->setNewEmailAddress(null);
             } else {
-                $user->setNewEmailVerificationToken($confirmationToken = $this->tokenGenerator->generateToken());
+                $user->setNewEmailVerificationToken($confirmationToken = TokenGenerator::generateToken());
             }
             $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
             $this->changeSet = $uow->getEntityChangeSet($user);

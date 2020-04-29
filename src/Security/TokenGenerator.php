@@ -18,7 +18,7 @@ namespace Silverback\ApiComponentBundle\Security;
  */
 class TokenGenerator
 {
-    public function generateToken(int $length = 16): string
+    public static function generateToken(int $length = 16): string
     {
         return bin2hex(random_bytes($length));
     }

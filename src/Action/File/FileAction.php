@@ -28,7 +28,7 @@ class FileAction
         $resourceClass = $request->attributes->get('_api_resource_class');
         $resource = new $resourceClass();
         try {
-            $fileHelper->uploadFile($resource, $request->files);
+            $fileHelper->setUploadedFile($resource, $request->files);
         } catch (InvalidArgumentException $exception) {
             throw new BadRequestHttpException($exception->getMessage());
         }

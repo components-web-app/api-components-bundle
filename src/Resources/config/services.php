@@ -78,13 +78,13 @@ use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
-use Silverback\ApiComponentBundle\Security\TokenGenerator;
 use Silverback\ApiComponentBundle\Security\UserChecker;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\FileNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
@@ -191,7 +191,16 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FileHelper::class),
             new Reference(UploadsHelper::class),
         ])
-        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata'])
+        ->tag('doctrine.orm.entity_listener');
+
+    $services
+        ->set(FileNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(FileHelper::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(FileResourceMetadataFactory::class)
@@ -324,7 +333,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UserMailer::class),
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
-            new Reference(TokenGenerator::class),
             new Reference(UserRepository::class),
         ]);
 
@@ -510,9 +518,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(TokenGenerator::class);
-
-    $services
         ->set(UploadsHelper::class)
         ->args([
             new Reference('annotations.reader'),
@@ -568,7 +573,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
             new Reference(UserMailer::class),
-            new Reference(TokenGenerator::class),
         ]);
 
     $services

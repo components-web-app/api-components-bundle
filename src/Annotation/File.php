@@ -28,6 +28,8 @@ final class File
 
     public string $filePathFieldName = 'filePath';
 
+    public string $uploadedAtFieldName = 'uploadedAt';
+
     public string $mediaObjectsProperty = 'mediaObjects';
 
     public string $uploadsFieldName = 'uploadsResource';

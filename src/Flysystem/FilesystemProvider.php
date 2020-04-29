@@ -19,6 +19,7 @@ use Symfony\Component\Cache\Adapter\AbstractAdapter;
 class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_component.filesystem_adapter';
+
     /**
      * @var array|AbstractAdapter[]
      */
