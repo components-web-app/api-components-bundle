@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action\File;
+namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class CreateFileAction
+class UploadsContext
 {
 }

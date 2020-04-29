@@ -64,11 +64,6 @@ class FileListener
                 'fieldName' => $mediaObjectConfiguration->filePathFieldName,
                 'nullable' => false,
             ]);
-            $mediaObjectClassMetadata->mapField([
-                'fieldName' => $mediaObjectConfiguration->temporaryFieldName,
-                'type' => 'boolean',
-                'nullable' => false,
-            ]);
 
             $mediaObjectClassMetadata->mapManyToOne([
                 'fieldName' => $mediaObjectConfiguration->uploadsFieldName,
@@ -78,14 +73,15 @@ class FileListener
                         'name' => $namingStrategy->joinKeyColumnName($uploadsClassMetadata->getName()),
                         'referencedColumnName' => $namingStrategy->referenceColumnName(),
                         'onDelete' => 'SET NULL',
+                        'nullable' => true,
                     ],
                 ],
                 'inversedBy' => $uploadsConfiguration->fieldName,
             ]);
         }
 
-        if (!$mediaObjectClassMetadata->hasAssociation($uploadsConfiguration->fieldName)) {
-            $mediaObjectClassMetadata->mapOneToMany([
+        if (!$uploadsClassMetadata->hasAssociation($uploadsConfiguration->fieldName)) {
+            $uploadsClassMetadata->mapOneToMany([
                 'fieldName' => $uploadsConfiguration->fieldName,
                 'targetEntity' => $mediaObjectClassMetadata->getName(),
                 'mappedBy' => $mediaObjectConfiguration->uploadsEntityClass,

@@ -24,6 +24,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
+use Silverback\ApiComponentBundle\Action\File\FileAction;
 use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
@@ -69,7 +70,6 @@ use Silverback\ApiComponentBundle\Helper\FileHelper;
 use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
 use Silverback\ApiComponentBundle\Helper\UploadsHelper;
-use Silverback\ApiComponentBundle\Imagine\PathResolver;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
@@ -129,13 +129,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(RoutingPrefixResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args([
-            new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
-        ]);
-
-    $services
         ->set(ChangeEmailVerificationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
@@ -160,6 +153,10 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(FileAction::class)
+        ->tag('controller.service_arguments');
+
+    $services
         ->set(EmailAddressManager::class)
         ->args([
             new Reference(EntityManagerInterface::class),
@@ -173,7 +170,32 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializeFormatResolver::class),
             new Reference(ResponseFactory::class),
             new Reference(EmailAddressManager::class),
+        ])
+        ->tag('controller.service_arguments');
+
+    $services
+        ->set(FileHelper::class)
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('doctrine'),
         ]);
+
+    $services
+        ->set(FileListener::class)
+        ->args([
+            new Reference(FileHelper::class),
+            new Reference(UploadsHelper::class),
+        ])
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
+        ->set(FileResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(FileResourceMetadataFactory::class . '.inner'),
+            new Reference(FileHelper::class),
+        ])
+        ->autoconfigure(false);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -248,30 +270,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
 
     $services
-        ->set(FileHelper::class)
-        ->args([
-            new Reference('annotations.reader'),
-            new Reference('doctrine'),
-        ]);
-
-    $services
-        ->set(FileListener::class)
-        ->args([
-            new Reference(FileHelper::class),
-            new Reference(UploadsHelper::class),
-        ])
-        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
-
-    $services
-        ->set(FileResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args([
-            new Reference(FileResourceMetadataFactory::class . '.inner'),
-            new Reference(FileHelper::class),
-        ])
-        ->autoconfigure(false);
-
-    $services
         ->set(MessageEventListener::class)
         ->tag('kernel.event_listener', ['event' => MessageEvent::class])
         ->args([
@@ -337,14 +335,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializeFormatResolver::class),
             new Reference(ResponseFactory::class),
             new Reference(PasswordManager::class),
-        ]);
+        ])
+        ->tag('controller.service_arguments');
 
     $services
         ->set(PasswordUpdateAction::class)
-        ->args($passwordActionArgs);
-
-    $services
-        ->set(PathResolver::class);
+        ->args($passwordActionArgs)
+        ->tag('controller.service_arguments');
 
     $services
         ->set(PersistedNormalizer::class)
@@ -442,6 +439,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
         ])
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(RoutingPrefixResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+        ]);
 
     $services
         ->set(SerializeFormatResolver::class)

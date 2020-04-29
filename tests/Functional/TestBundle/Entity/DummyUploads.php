@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
@@ -23,6 +24,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\UploadsTrait;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Uploads
+ * @ApiResource
  * @ORM\Entity
  */
 class DummyUploads

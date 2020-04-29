@@ -25,13 +25,9 @@ final class File
 
     public string $filePathFieldName = 'filePath';
 
-    public string $temporaryFieldName = 'temporary';
-
     public string $mediaObjectsProperty = 'mediaObjects';
 
-    public string $uploadsFieldName = 'uploads';
-
-    public bool $disableGetCollection = false;
+    public string $uploadsFieldName = 'uploadsResource';
 
     /** @required */
     public ?string $uploadsEntityClass;

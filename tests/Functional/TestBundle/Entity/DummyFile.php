@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Utility\FileTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
@@ -22,6 +24,8 @@ use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\File(DummyUploads::class)
+ * @ApiResource
+ * @ORM\Entity
  */
 class DummyFile
 {

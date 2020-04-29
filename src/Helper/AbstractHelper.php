@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Helper;
 
 use Doctrine\Common\Annotations\Reader;
+use Silverback\ApiComponentBundle\Annotation\Timestamped;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
@@ -58,7 +59,7 @@ abstract class AbstractHelper
             throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
         }
 
-        $reflection = new \ReflectionClass($class);
+        $originalReflection = $reflection = new \ReflectionClass($class);
         /** @var $annotationClass|null $annotation */
         while (
             !($annotation = $this->reader->getClassAnnotation($reflection, $annotationClass)) &&
@@ -66,6 +67,16 @@ abstract class AbstractHelper
         ) {
             continue;
         }
+        if (!$annotation && Timestamped::class === $annotationClass) {
+            $traits = $originalReflection->getTraits();
+            foreach ($traits as $trait) {
+                $annotation = $this->reader->getClassAnnotation($trait, $annotationClass);
+                if ($annotation) {
+                    break;
+                }
+            }
+        }
+
         if (!$annotation) {
             throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
         }

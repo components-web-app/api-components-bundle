@@ -15,73 +15,83 @@ namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use Silverback\ApiComponentBundle\Action\File\CreateFileAction;
+use Silverback\ApiComponentBundle\Action\File\FileAction;
+use Silverback\ApiComponentBundle\Annotation\File;
 use Silverback\ApiComponentBundle\Helper\FileHelper;
 
 /**
- * Configures API Platform metadata for media object resources.
+ * Configures API Platform metadata for file resources.
  *
  * @author Daniel West <daniel@silverback.is>
  */
 class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
-    private FileHelper $mediaObjectHelper;
+    private FileHelper $fileHelper;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, FileHelper $mediaObjectHelper)
+    public function __construct(ResourceMetadataFactoryInterface $decorated, FileHelper $fileHelper)
     {
         $this->decorated = $decorated;
-        $this->mediaObjectHelper = $mediaObjectHelper;
+        $this->fileHelper = $fileHelper;
     }
 
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!$this->mediaObjectHelper->isConfigured($resourceClass)) {
+        if (!$this->fileHelper->isConfigured($resourceClass)) {
             return $resourceMetadata;
         }
-        $mediaConfiguration = $this->mediaObjectHelper->getConfiguration($resourceClass);
+        $fileConfiguration = $this->fileHelper->getConfiguration($resourceClass);
 
-        $attributes = $resourceMetadata->getAttributes() ?: [];
-        $collectionOperations = $resourceMetadata->getAttribute('collectionOperations') ?? [];
+        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $fileConfiguration);
 
+        return $this->getItemPutResourceMetadata($resourceMetadata, $fileConfiguration);
+    }
+
+    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
+    {
+        $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
         $collectionOperations['post'] = array_replace_recursive(
-            $collectionOperations['post'] ?? [],
-            [
-                'controller' => CreateFileAction::class,
-                'deserialize' => false,
-                'openapi_context' => [
-                    'requestBody' => [
-                        'content' => [
-                            'multipart/form-data' => [
-                                'schema' => [
-                                    'type' => 'object',
-                                    'properties' => [
-                                        $mediaConfiguration->fileFieldName => [
-                                            'type' => 'string',
-                                            'format' => 'binary',
-                                        ],
+            $this->getOperationConfiguration($fileConfiguration),
+            $collectionOperations['post'] ?? []
+        );
+
+        return $resourceMetadata->withCollectionOperations($collectionOperations);
+    }
+
+    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
+    {
+        $itemOperations = $resourceMetadata->getItemOperations() ?? [];
+        $itemOperations['put'] = array_replace_recursive(
+            $this->getOperationConfiguration($fileConfiguration),
+            $itemOperations['put'] ?? []
+        );
+
+        return $resourceMetadata->withItemOperations($itemOperations);
+    }
+
+    private function getOperationConfiguration(File $fileConfiguration): array
+    {
+        return [
+            'controller' => FileAction::class,
+            'deserialize' => false,
+            'openapi_context' => [
+                'requestBody' => [
+                    'content' => [
+                        'multipart/form-data' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    $fileConfiguration->fileFieldName => [
+                                        'type' => 'string',
+                                        'format' => 'binary',
                                     ],
                                 ],
                             ],
                         ],
                     ],
                 ],
-            ]
-        );
-
-        // Because we have defined a post operation, if we do not add this then we cannot get collections of media objects
-        // User can disable this functionality in their annotation
-        if (!$mediaConfiguration->disableGetCollection && !isset($collectionOperations['get'])) {
-            $collectionOperations['get'] = [];
-        }
-
-        $resourceMetadata->withAttributes(
-            array_merge($attributes, [
-                'collectionOperations' => $collectionOperations,
-            ])
-        );
-
-        return $resourceMetadata;
+            ],
+        ];
     }
 }

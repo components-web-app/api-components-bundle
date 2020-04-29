@@ -35,18 +35,16 @@ trait FileTrait
     /**
      * @Assert\NotNull(groups={"File:write"})
      */
-    private File $file;
+    private ?File $file = null;
 
     private string $filePath;
 
-    private bool $temporary = true;
-
-    private object $uploads;
+    private ?object $uploadsResource = null;
 
     /** @var Collection|MediaObject[] */
     private Collection $mediaObjects;
 
-    public function getFile(): File
+    public function getFile(): ?File
     {
         return $this->file;
     }
@@ -54,7 +52,7 @@ trait FileTrait
     /**
      * @return static
      */
-    public function setFile(File $file)
+    public function setFile(?File $file)
     {
         $this->file = $file;
 
@@ -76,32 +74,17 @@ trait FileTrait
         return $this;
     }
 
-    public function isTemporary(): bool
+    public function getUploadsResource(): ?object
     {
-        return $this->temporary;
+        return $this->uploadsResource;
     }
 
     /**
      * @return static
      */
-    public function setTemporary(bool $temporary)
+    public function setUploadsResource(?object $uploadsResource)
     {
-        $this->temporary = $temporary;
-
-        return $this;
-    }
-
-    public function getUploads(): object
-    {
-        return $this->uploads;
-    }
-
-    /**
-     * @return static
-     */
-    public function setUploads(object $uploads)
-    {
-        $this->uploads = $uploads;
+        $this->uploadsResource = $uploadsResource;
 
         return $this;
     }

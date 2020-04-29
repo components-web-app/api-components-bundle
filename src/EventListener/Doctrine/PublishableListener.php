@@ -63,6 +63,7 @@ final class PublishableListener
                         'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
                         'referencedColumnName' => $namingStrategy->referenceColumnName(),
                         'onDelete' => 'SET NULL',
+                        'nullable' => true,
                     ],
                 ],
                 'inversedBy' => $configuration->reverseAssociationName,
