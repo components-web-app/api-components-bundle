@@ -46,12 +46,12 @@ class FileNormalizer implements ContextAwareNormalizerInterface, CacheableSuppor
         return false;
     }
 
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = [])
+    public function supportsDenormalization($data, $type, $format = null, array $context = [])
     {
         return !isset($context[self::ALREADY_CALLED]) && $this->fileHelper->isConfigured($type);
     }
 
-    public function supportsNormalization($data, string $format = null, array $context = [])
+    public function supportsNormalization($data, $format = null, array $context = [])
     {
         return !isset($context[self::ALREADY_CALLED]) &&
             \is_object($data) &&
@@ -59,7 +59,7 @@ class FileNormalizer implements ContextAwareNormalizerInterface, CacheableSuppor
             $this->fileHelper->isConfigured($data);
     }
 
-    public function denormalize($data, string $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->fileHelper->getConfiguration($type);

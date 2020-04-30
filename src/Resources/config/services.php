@@ -92,6 +92,7 @@ use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadsLoader;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -522,6 +523,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('annotations.reader'),
             new Reference('doctrine'),
+        ]);
+
+    $services
+        ->set(UploadsLoader::class)
+        ->args([
+            new Reference(UploadsHelper::class),
         ]);
 
     $services

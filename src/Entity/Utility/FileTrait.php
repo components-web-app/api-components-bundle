@@ -13,25 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Entity\Utility;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Model\File\MediaObject;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource
- * @ORM\Entity
+ * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 trait FileTrait
 {
-    use TimestampedTrait;
-
     /**
      * @Assert\NotNull(groups={"File:write"})
      */
@@ -39,7 +31,7 @@ trait FileTrait
 
     private string $filePath;
 
-    private \DateTime $uploadedAt;
+    private ?\DateTimeInterface $uploadedAt;
 
     private ?object $uploadsResource = null;
 
@@ -66,12 +58,12 @@ trait FileTrait
         return $this->filePath;
     }
 
-    public function getUploadedAt(): \DateTime
+    public function getUploadedAt(): ?\DateTimeInterface
     {
         return $this->uploadedAt;
     }
 
-    public function setUploadedAt(\DateTime $uploadedAt): void
+    public function setUploadedAt(?\DateTimeInterface $uploadedAt): void
     {
         $this->uploadedAt = $uploadedAt;
     }

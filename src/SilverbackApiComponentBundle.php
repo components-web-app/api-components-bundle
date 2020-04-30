@@ -19,6 +19,7 @@ use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ApiPlatformCo
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\FlysystemCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
+use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use function class_exists;
@@ -36,6 +37,7 @@ class SilverbackApiComponentBundle extends Bundle
         }
         $container->addCompilerPass(new ApiPlatformCompilerPass());
         $container->addCompilerPass(new SerializerCompilerPass());
+        $container->addCompilerPass(new ValidatorCompilerPass());
         if (class_exists(Filesystem::class)) {
             $container->addCompilerPass(new FlysystemCompilerPass());
         }
