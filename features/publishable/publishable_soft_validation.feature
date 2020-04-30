@@ -43,12 +43,12 @@ Feature: Soft validation on draft resources
       | resourceData |
       | <data>       |
     Then the response status code should be 200
-    And the header "valid-to-publish" should be equal to "<headerValue>"
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | data            | headerValue | schema                  |
-      | valid_draft     | 0           | publishable.schema.json |
-      | valid_published | 1           | publishable.schema.json |
+      | data            | validToPublish | schema                  |
+      | valid_draft     | 0              | publishable.schema.json |
+      | valid_published | 1              | publishable.schema.json |
 
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is OK for a draft, but not for published
@@ -106,12 +106,12 @@ Feature: Soft validation on draft resources
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
-    And the header "valid-to-publish" should not exist
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | publishedAt | data            | httpStatus | postfix                  | schema                        |
-      | now         | valid_published | 200        | validate_published=true  | publishable.schema.json       |
-      | now         | valid_published | 200        | validate_published=false | publishable.schema.json       |
+      | publishedAt | data            | httpStatus | postfix                  | schema                        | validToPublish |
+      | now         | valid_published | 200        | validate_published=true  | publishable.schema.json       | 1              |
+      | now         | valid_published | 200        | validate_published=false | publishable.schema.json       | 1              |
 
   @loginAdmin
   Scenario: I update a published resource with the querystring "validate_published=false" and "published=true" should have no effect and published resource validation should still apply
@@ -145,19 +145,19 @@ Feature: Soft validation on draft resources
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
-    And the header "valid-to-publish" should not exist
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | publishedAt | data            | httpStatus | postfix                  | schema                        |
-      | null        | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json |
-      | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       |
-      | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       |
+      | publishedAt | data            | httpStatus | postfix                  | schema                        | validToPublish |
+      | null        | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       | 1              |
+      | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       | 1              |
 
   # POST - custom validation groups
   @loginAdmin
@@ -180,16 +180,16 @@ Feature: Soft validation on draft resources
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
-    And the header "valid-to-publish" should not exist
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | publishedAt | data            | httpStatus | postfix                  | schema                        |
-      | null        | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json |
-      | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       |
-      | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json |
-      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       |
+      | publishedAt | data            | httpStatus | postfix                  | schema                        | validToPublish |
+      | null        | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
+      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       | 1              |
+      | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json | 0              |
+      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       | 1              |
