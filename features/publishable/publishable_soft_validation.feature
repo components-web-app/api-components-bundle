@@ -35,7 +35,7 @@ Feature: Soft validation on draft resources
 
   # PUT
   @loginAdmin
-  Scenario Outline: I update a draft resource, validation configured for published resources should still result in a 200 response
+  Scenario Outline: I update a draft resource with data that is OK for a draft, but not for published
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
@@ -47,11 +47,24 @@ Feature: Soft validation on draft resources
     Examples:
       | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
       | null        | valid_draft     | 200        | 0              | validate_published=false | publishable.schema.json       |
+
+  @loginAdmin
+  Scenario Outline: I update a draft resource with data that is valid to make it published when ready
+    Given there is a DummyPublishableWithValidation resource
+    When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
+      | publishedAt   | resourceData |
+      | <publishedAt> | <data>       |
+    Then the response status code should be <httpStatus>
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
+    And the JSON should be valid according to the schema file "<schema>"
+    And the JSON node "_metadata.violation_list.violations[0]" should not exist
+    Examples:
+      | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
       | null        | valid_published | 200        | 1              | validate_published=false | publishable.schema.json       |
       | null        | valid_published | 200        | 1              | validate_published=true  | publishable.schema.json       |
 
   @loginAdmin
-  Scenario Outline: I update a draft resource, validation configured for published resources should still result in a 200 response
+  Scenario Outline: I update a draft resource and expect to see a hard fail with validation errors and no need to populate metadata as the output is the violations
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
@@ -63,15 +76,15 @@ Feature: Soft validation on draft resources
     Examples:
       | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
       | null        | invalid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
-      | null        | valid_draft     | 400        | 0              | validate_published=true  | validation_errors.schema.json |
       | null        | invalid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | null        | valid_draft     | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | now         | invalid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
       | now         | invalid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
       | now         | valid_draft     | 400        | 0              | validate_published=true  | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
       | now         | valid_draft     | 400        | 0              | validate_published=false | validation_errors.schema.json |
 
   @loginAdmin
-  Scenario Outline: I update a draft resource, validation configured for published resources should still result in a 200 response
+  Scenario Outline: Updating a resource to published. The querystring should make no difference and the response is published so no header should exist
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
@@ -140,7 +153,6 @@ Feature: Soft validation on draft resources
     And the response status code should be <httpStatus>
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
-    And the JSON node "_metadata.violation_list.violations[0]" should not exist
     Examples:
       | publishedAt | data            | httpStatus | validToPublish | schema                        |
       | null        | valid_published | 201        | 1              | publishable.schema.json       |
