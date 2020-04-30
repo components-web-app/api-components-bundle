@@ -125,7 +125,13 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if ($response->isClientError() || !$this->publishableHelper->isGranted()) {
+        if (!$this->publishableHelper->isGranted()) {
+            return;
+        }
+
+        if ($response->isClientError()) {
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+
             return;
         }
 
