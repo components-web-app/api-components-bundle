@@ -64,7 +64,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         try {
             $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
         } catch (ValidationException $exception) {
-            $context[MetadataNormalizer::METADATA_CONTEXT]['violations'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
+            $context[MetadataNormalizer::METADATA_CONTEXT]['violation_list'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
         }
 
         return $this->normalizer->normalize($object, $format, $context);
