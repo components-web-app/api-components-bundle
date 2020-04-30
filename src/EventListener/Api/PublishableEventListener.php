@@ -39,6 +39,7 @@ final class PublishableEventListener
 
     private PublishableHelper $publishableHelper;
     private ValidatorInterface $validator;
+    private PublishableAnnotationReader $publishableAnnotationReader;
 
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, ValidatorInterface $validator)
     {

@@ -38,7 +38,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         if (
             empty($resourceClass = $context['resource_class']) ||
             empty($context['groups']) ||
-            !$this->publishableHelper->isConfigured($resourceClass)
+            !$this->publishableHelper->getAnnotationReader()->isConfigured($resourceClass)
         ) {
             return $context;
         }

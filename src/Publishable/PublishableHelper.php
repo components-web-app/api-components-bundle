@@ -40,7 +40,7 @@ class PublishableHelper
      */
     public function isGranted($class): bool
     {
-        return $this->authorizationChecker->isGranted(new Expression($this->getConfiguration($class)->isGranted ?? $this->permission));
+        return $this->authorizationChecker->isGranted(new Expression($this->annotationReader->getConfiguration($class)->isGranted ?? $this->permission));
     }
 
     public function isActivePublishedAt(object $object): bool

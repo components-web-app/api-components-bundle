@@ -41,7 +41,7 @@ final class PublishableValidator implements ValidatorInterface
     {
         if (
             \is_object($data) &&
-            $this->publishableHelper->isConfigured($data) &&
+            $this->publishableHelper->getAnnotationReader()->isConfigured($data) &&
             ($this->publishableHelper->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
         ) {
             $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
