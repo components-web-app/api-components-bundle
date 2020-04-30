@@ -66,12 +66,6 @@ class FileListener
                 'nullable' => false,
             ]);
 
-            $fileClassMetadata->mapField([
-                'fieldName' => $fileConfiguration->uploadedAtFieldName,
-                'type' => 'datetime',
-                'nullable' => false,
-            ]);
-
             $fileClassMetadata->mapManyToOne([
                 'fieldName' => $fileConfiguration->uploadsFieldName,
                 'targetEntity' => $fileConfiguration->uploadsEntityClass,

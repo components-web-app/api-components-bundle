@@ -24,11 +24,14 @@ use Silverback\ApiComponentBundle\Exception\UnsupportedAnnotationException;
  */
 final class File
 {
+    /** @required */
+    public ?string $adapter;
+
+    public string $path = 'uploads';
+
     public string $fileFieldName = 'file';
 
     public string $filePathFieldName = 'filePath';
-
-    public string $uploadedAtFieldName = 'uploadedAt';
 
     public string $mediaObjectsProperty = 'mediaObjects';
 

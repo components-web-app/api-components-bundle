@@ -14,24 +14,25 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Flysystem;
 
 use League\Flysystem\FilesystemAdapter;
-use Symfony\Component\Cache\Adapter\AbstractAdapter;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_component.filesystem_adapter';
 
-    /**
-     * @var array|AbstractAdapter[]
-     */
-    private array $adapters = [];
+    private ServiceLocator $adapters;
 
-    public function addAdapter(string $name, FilesystemAdapter $adapter): void
+    public function __construct(ServiceLocator $adapters)
     {
-        $this->adapters[$name] = $adapter;
+        $this->adapters = $adapters;
     }
 
-    public function getAdapter(string $name): ?FilesystemAdapter
+    /**
+     * @throws RuntimeException
+     */
+    public function getAdapter(string $name): FilesystemAdapter
     {
-        return $this->adapters[$name] ?? null;
+        return $this->adapters->get($name);
     }
 }

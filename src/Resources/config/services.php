@@ -115,6 +115,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Twig\Environment;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
 /*
  * @author Daniel West <daniel@silverback.is>
@@ -159,7 +160,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
-        ->set(FilesystemProvider::class);
+        ->set(FilesystemProvider::class)
+        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
 
     $services
         ->set(EmailAddressManager::class)

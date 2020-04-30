@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentBundle\Helper;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\Annotation\File;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
@@ -58,11 +59,6 @@ final class FileHelper extends AbstractHelper
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $propertyAccessor->setValue($resource, $fileField, $uploadedFile);
 
-        $classMetadata = $this->getClassMetadata($resource);
-
-        // This is set now so that we will always trigger the doctrine lifecycle events to later persist this file to a filesystem
-        $classMetadata->setFieldValue($resource, $configuration->uploadedAtFieldName, new \DateTime());
-
         return $resource;
     }
 
@@ -79,12 +75,11 @@ final class FileHelper extends AbstractHelper
             return;
         }
 
-        $filesystem = $this->getFilesystem('local');
+        $filesystem = $this->getFilesystem($configuration->adapter);
 
         $stream = fopen($file->getRealPath(), 'r');
 
-        // Need to resolve the path
-        $path = 'test_file';
+        $path = Uuid::uuid4()->getHex()->toString();
 
         $filesystem->writeStream($path, $stream, [
             'mimetype' => $file->getMimeType(),
@@ -96,18 +91,11 @@ final class FileHelper extends AbstractHelper
 
     public function removeFile(object $resource): void
     {
-        $fs = $this->getFilesystem('local');
-
-        // Need to resolve the path
-        $path = 'test_file';
-
-        $fs->delete($path);
+        $this->getFilesystem($this->getConfiguration($resource)->adapter)->delete(Uuid::uuid4()->getHex()->toString());
     }
 
     private function getFilesystem($adapterName): Filesystem
     {
-        $flysystemAdapter = $this->filesystemProvider->getAdapter($adapterName);
-
-        return new Filesystem($flysystemAdapter);
+        return new Filesystem($this->filesystemProvider->getAdapter($adapterName));
     }
 }

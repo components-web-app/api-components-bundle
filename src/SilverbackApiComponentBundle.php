@@ -14,10 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use League\Flysystem\Filesystem;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\FlysystemCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -38,8 +36,5 @@ class SilverbackApiComponentBundle extends Bundle
         $container->addCompilerPass(new ApiPlatformCompilerPass());
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
-        if (class_exists(Filesystem::class)) {
-            $container->addCompilerPass(new FlysystemCompilerPass());
-        }
     }
 }
