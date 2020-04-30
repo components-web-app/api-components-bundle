@@ -54,7 +54,6 @@ final class UploadableEventListener
          * @var UploadableField[] $fieldConfiguration
          */
         foreach ($this->uploadableAnnotationReader->getConfiguredProperties($data, true, true) as $fileProperty => $fieldConfiguration) {
-            dump('uploadable event listener', $fileProperty, $fieldConfiguration);
             $file = $propertyAccessor->getValue($data, $fileProperty);
             $classMetadata->setFieldValue($data, $fieldConfiguration->property, '/new_filepath');
             // todo Upload file to adapter

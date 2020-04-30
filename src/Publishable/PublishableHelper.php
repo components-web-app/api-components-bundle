@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Publishable;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -24,12 +26,15 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  */
 class PublishableHelper
 {
+    use ClassMetadataTrait;
+
     private PublishableAnnotationReader $annotationReader;
     private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
-    public function __construct(PublishableAnnotationReader $annotationReader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
+    public function __construct(ManagerRegistry $registry, PublishableAnnotationReader $annotationReader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
     {
+        $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->authorizationChecker = $authorizationChecker;
         $this->permission = $permission;
@@ -49,7 +54,7 @@ class PublishableHelper
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        $value = $this->annotationReader->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
+        $value = $this->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
 
         return null !== $value && new \DateTimeImmutable() >= $value;
     }
@@ -60,7 +65,7 @@ class PublishableHelper
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        return null !== $this->annotationReader->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
+        return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
     }
 
     public function isPublishedRequest(Request $request): bool

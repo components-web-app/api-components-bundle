@@ -130,7 +130,7 @@ class RestContext implements Context
                 $value = ['name' => 'John Doe', 'description' => 'nobody'];
             }
 
-            if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+            if (\is_string($value) && preg_match('/^base64\((.*)\)$/', $value, $matches)) {
                 $value = $this->castBase64FileToString($matches[1]);
             }
 

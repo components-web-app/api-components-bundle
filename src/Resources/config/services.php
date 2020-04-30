@@ -371,6 +371,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PublishableHelper::class)
         ->args([
+            new Reference(ManagerRegistry::class),
             new Reference(PublishableAnnotationReader::class),
             new Reference(AuthorizationCheckerInterface::class),
             '', // injected with dependency injection
