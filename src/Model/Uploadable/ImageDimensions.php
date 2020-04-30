@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Model\File;
+namespace Silverback\ApiComponentBundle\Model\Uploadable;
 
 /**
  * @author Daniel West <daniel@silverback.is>

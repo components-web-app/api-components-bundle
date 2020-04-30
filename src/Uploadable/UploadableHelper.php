@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Exception;
+namespace Silverback\ApiComponentBundle\Uploadable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UnsupportedAnnotationException extends \LogicException
+class UploadableHelper
 {
 }

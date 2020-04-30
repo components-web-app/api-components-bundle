@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Api;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\Annotation\UploadableField;
 use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -25,11 +28,12 @@ final class UploadableEventListener
 {
     use ClassMetadataTrait;
 
-    private UploadableAnnotationReader $uploadableHelper;
+    private UploadableAnnotationReader $uploadableAnnotationReader;
 
-    public function __construct(UploadableAnnotationReader $uploadableHelper)
+    public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $uploadableAnnotationReader)
     {
-        $this->uploadableHelper = $uploadableHelper;
+        $this->initRegistry($registry);
+        $this->uploadableAnnotationReader = $uploadableAnnotationReader;
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -38,18 +42,24 @@ final class UploadableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->uploadableHelper->isConfigured($data) ||
+            !$this->uploadableAnnotationReader->isConfigured($data) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
         }
 
-        foreach ($this->uploadableHelper->getConfiguredProperties($data) as $field) {
-            if (null !== $field) {
-                // todo Upload file to adapter
-                // todo Set fileName on object
-                // todo Set $field value to null for security/performance reasons
-            }
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $classMetadata = $this->getClassMetadata($data);
+        /**
+         * @var UploadableField[] $fieldConfiguration
+         */
+        foreach ($this->uploadableAnnotationReader->getConfiguredProperties($data, true, true) as $fileProperty => $fieldConfiguration) {
+            dump('uploadable event listener', $fileProperty, $fieldConfiguration);
+            $file = $propertyAccessor->getValue($data, $fileProperty);
+            $classMetadata->setFieldValue($data, $fieldConfiguration->property, '/new_filepath');
+            // todo Upload file to adapter
+            // todo Set fileName on object
+            // todo Set $field value to null for security/performance reasons
         }
     }
 }

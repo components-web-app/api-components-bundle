@@ -19,6 +19,10 @@ use Silverback\ApiComponentBundle\Annotation\Timestamped;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
+/**
+ * @author Vincent Chalamon <vincent@les-tilleuls.coop>
+ * @author Daniel West <daniel@silverback.is>
+ */
 abstract class AbstractAnnotationReader
 {
     use ClassMetadataTrait;

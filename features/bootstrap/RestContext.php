@@ -21,6 +21,7 @@ use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
 use Behatch\Context\RestContext as BehatchRestContext;
+use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -70,8 +71,9 @@ class RestContext implements Context
     public function castBase64FileToString(string $value)
     {
         $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
+        $normalizer = new DataUriNormalizer();
 
-        return base64_encode(file_get_contents($filePath));
+        return $normalizer->normalize(new \SplFileObject($filePath));
     }
 
     /**

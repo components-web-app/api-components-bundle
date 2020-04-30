@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
-use Hshn\Base64EncodedFile\HttpFoundation\File\Base64EncodedFile;
 use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentBundle\Model\Uploadable\Base64EncodedFile;
+use Silverback\ApiComponentBundle\Model\Uploadable\UploadedBase64EncodedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
@@ -63,12 +65,10 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
                 continue;
             }
 
-            // Convert base64 string to UploadableFile.
             try {
-                $data[$fieldName] = new Base64EncodedFile($value);
+                $data[$fieldName] = new UploadedBase64EncodedFile(new Base64EncodedFile($value), 'uploaded_name');
             } catch (FileException $exception) {
-                // Invalid base64.
-                // todo Should throw a violation error?
+                throw new NotNormalizableValueException($exception->getMessage());
             }
         }
 

@@ -22,7 +22,6 @@ use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
-use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentBundle\Action\Uploadable\UploadableAction;
@@ -45,6 +44,7 @@ use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UploadableListener;
@@ -500,6 +500,14 @@ return static function (ContainerConfigurator $configurator) {
         ->parent(AbstractAnnotationReader::class);
 
     $services
+        ->set(UploadableEventListener::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(UploadableAnnotationReader::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+
+    $services
         ->set(UploadableListener::class)
         ->args([
             new Reference(UploadableAnnotationReader::class),
@@ -622,7 +630,6 @@ return static function (ContainerConfigurator $configurator) {
 
     $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
-    $services->alias(FilterService::class, 'liip_imagine.service.filter');
     $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
 };

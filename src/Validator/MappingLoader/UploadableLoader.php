@@ -33,7 +33,7 @@ final class UploadableLoader implements LoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function loadClassMetadata(ClassMetadata $metadata)
+    public function loadClassMetadata(ClassMetadata $metadata): bool
     {
         if (!$this->uploadsHelper->isConfigured($metadata->getClassName())) {
             return false;
@@ -42,7 +42,7 @@ final class UploadableLoader implements LoaderInterface
         $fields = $this->uploadsHelper->getConfiguredProperties($metadata->getClassName(), true, false);
 
         foreach ($fields as $fileField) {
-            $metadata->addPropertyConstraint($fileField, new Assert\NotNull());
+            $metadata->addPropertyConstraint($fileField, new Assert\NotNull(['groups' => sprintf('%s:create', $metadata->getClassName())]));
         }
 
         return true;

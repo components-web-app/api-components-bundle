@@ -67,7 +67,7 @@ final class UploadableAnnotationReader extends AbstractAnnotationReader
             try {
                 $config = $this->getPropertyConfiguration($reflectionProperty);
                 if ($returnConfigurations) {
-                    yield $config;
+                    yield $reflectionProperty->getName() => $config;
                 } else {
                     yield $reflectionProperty->getName();
                 }
