@@ -34,6 +34,6 @@ final class TimestampedHelper extends AbstractHelper
      */
     public function getConfiguration($class): Timestamped
     {
-        return $this->getAnnotationConfiguration($class, Timestamped::class);
+        return $this->getClassAnnotationConfiguration($class, Timestamped::class);
     }
 }

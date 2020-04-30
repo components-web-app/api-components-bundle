@@ -17,6 +17,10 @@ use League\Flysystem\FilesystemAdapter;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
+/**
+ * @author Daniel West <daniel@silverback.is>
+ * @author Vincent Chalamon <vincent@les-tilleuls.coop>
+ */
 class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_component.filesystem_adapter';

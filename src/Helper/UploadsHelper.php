@@ -34,6 +34,6 @@ final class UploadsHelper extends AbstractHelper
      */
     public function getConfiguration($class): Uploads
     {
-        return $this->getAnnotationConfiguration($class, Uploads::class);
+        return $this->getClassAnnotationConfiguration($class, Uploads::class);
     }
 }

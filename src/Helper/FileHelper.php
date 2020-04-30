@@ -45,7 +45,7 @@ final class FileHelper extends AbstractHelper
      */
     public function getConfiguration($class): File
     {
-        return $this->getAnnotationConfiguration($class, File::class);
+        return $this->getClassAnnotationConfiguration($class, File::class);
     }
 
     public function setUploadedFile(object $resource, FileBag $fileBag)

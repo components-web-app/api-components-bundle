@@ -29,7 +29,7 @@ trait ClassMetadataTrait
 {
     use ClassInfoTrait;
 
-    private ?ManagerRegistry $registry;
+    protected ?ManagerRegistry $registry;
 
     /**
      * @required
@@ -44,7 +44,7 @@ trait ClassMetadataTrait
         return $this->getEntityManager($data)->getClassMetadata($this->getObjectClass($data));
     }
 
-    private function getEntityManager(object $data): EntityManagerInterface
+    protected function getEntityManager(object $data): EntityManagerInterface
     {
         if (!$this->registry) {
             throw new BadMethodCallException('initRegistry should be called first. Registry property does not exist');

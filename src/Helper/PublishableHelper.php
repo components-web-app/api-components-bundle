@@ -69,7 +69,7 @@ final class PublishableHelper extends AbstractHelper
      */
     public function getConfiguration($class): Publishable
     {
-        return $this->getAnnotationConfiguration($class, Publishable::class);
+        return $this->getClassAnnotationConfiguration($class, Publishable::class);
     }
 
     public function isPublishedRequest(Request $request): bool
