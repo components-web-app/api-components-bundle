@@ -9,7 +9,35 @@ Feature: Soft validation on draft resources
 
   # GET
   @loginAdmin
-  Scenario Outline: When I retrieve a draft resource, there should be a header to indicate whether validation is passing if I were to try and publish it
+  Scenario Outline: I get a draft resource with draft access, so should also have headers and violations
+    Given there is a DummyPublishableWithValidation resource
+    When I send a "GET" request to the component "publishable_draft" and the postfix "?<postfix>"
+    Then the response status code should be <statusCode>
+    And the JSON should be valid according to the schema file "<schema>"
+    And the header "valid-to-publish" should be equal to "<validToPublish>"
+    And the JSON node "_metadata.violation_list.violations[0]" should exist
+    Examples:
+      | postfix                  | schema                        | statusCode | validToPublish |
+      |                          | publishable.schema.json       | 200        | 0              |
+      | validate_published=true  | publishable.schema.json       | 200        | 0              |
+      | validate_published=false | publishable.schema.json       | 200        | 0              |
+
+  Scenario Outline: A user without draft access gets a published resource which is no longer valid to be published. They should not see violations.
+    Given there is a DummyPublishableWithValidation resource set to publish at "1970-01-01 00:00:00"
+    When I send a "GET" request to the component "publishable_published" and the postfix "?<postfix>"
+    Then the response status code should be <statusCode>
+    And the JSON should be valid according to the schema file "<schema>"
+    And the header "valid-to-publish" should not exist
+    And the JSON node "_metadata.violation_list" should not exist
+    Examples:
+      | postfix                  | schema                        | statusCode |
+      |                          | publishable.schema.json       | 200        |
+      | validate_published=true  | publishable.schema.json       | 200        |
+      | validate_published=false | publishable.schema.json       | 200        |
+
+  # PUT
+  @loginAdmin
+  Scenario Outline: When I update a draft resource, there should be a header to indicate whether validation is passing if I were to try and publish it
     Given there is a DummyPublishableWithValidation resource
     When I send a "PUT" request to the component "publishable_draft" with data:
       | resourceData |
@@ -22,18 +50,6 @@ Feature: Soft validation on draft resources
       | valid_draft     | 0           | publishable.schema.json |
       | valid_published | 1           | publishable.schema.json |
 
-  @loginAdmin
-  Scenario Outline: I retrieve a draft resource which is invalid for publishing with a querystring "validate_published=true" I should receive validation errors
-    Given there is a DummyPublishableWithValidation resource
-    When I send a "GET" request to the component "publishable_draft" and the postfix "?<postfix>"
-    Then the response status code should be <statusCode>
-    And the JSON should be valid according to the schema file "<schema>"
-    Examples:
-      | postfix                  | schema                        | statusCode |
-      | validate_published=true  | validation_errors.schema.json | 400        |
-      | validate_published=false | publishable.schema.json       | 200        |
-
-  # PUT
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is OK for a draft, but not for published
     Given there is a DummyPublishableWithValidation resource
