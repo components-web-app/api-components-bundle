@@ -211,6 +211,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(FileResourceMetadataFactory::class . '.inner'),
             new Reference(FileHelper::class),
+            new Reference('api_platform.path_segment_name_generator'),
         ])
         ->autoconfigure(false);
 

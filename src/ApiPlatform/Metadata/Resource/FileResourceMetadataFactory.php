@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentBundle\Action\File\FileAction;
 use Silverback\ApiComponentBundle\Annotation\File;
 use Silverback\ApiComponentBundle\Helper\FileHelper;
@@ -28,11 +29,13 @@ class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
     private FileHelper $fileHelper;
+    private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, FileHelper $fileHelper)
+    public function __construct(ResourceMetadataFactoryInterface $decorated, FileHelper $fileHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
         $this->fileHelper = $fileHelper;
+        $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
     public function create(string $resourceClass): ResourceMetadata
@@ -41,6 +44,7 @@ class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
         if (!$this->fileHelper->isConfigured($resourceClass)) {
             return $resourceMetadata;
         }
+
         $fileConfiguration = $this->fileHelper->getConfiguration($resourceClass);
 
         $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $fileConfiguration);
@@ -50,9 +54,12 @@ class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
 
     private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
     {
+        $resourceShortName = $resourceMetadata->getShortName();
+        $path = sprintf('/%s/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
+
         $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
-        $collectionOperations['post'] = array_replace_recursive(
-            $this->getOperationConfiguration($fileConfiguration),
+        $collectionOperations['post_upload'] = array_replace_recursive(
+            $this->getOperationConfiguration($fileConfiguration, $path),
             $collectionOperations['post'] ?? []
         );
 
@@ -61,20 +68,24 @@ class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
 
     private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
     {
+        $resourceShortName = $resourceMetadata->getShortName();
+        $path = sprintf('/%s/{id}/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
+
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
-        $itemOperations['put'] = array_replace_recursive(
-            $this->getOperationConfiguration($fileConfiguration),
+        $itemOperations['put_upload'] = array_replace_recursive(
+            $this->getOperationConfiguration($fileConfiguration, $path),
             $itemOperations['put'] ?? []
         );
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
 
-    private function getOperationConfiguration(File $fileConfiguration): array
+    private function getOperationConfiguration(File $fileConfiguration, string $path): array
     {
         return [
             'controller' => FileAction::class,
             'deserialize' => false,
+            'path' => $path,
             'openapi_context' => [
                 'requestBody' => [
                     'content' => [

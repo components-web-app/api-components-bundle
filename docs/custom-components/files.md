@@ -1,10 +1,10 @@
 ---
 layout: default
-title: File Uploads
+title: Uploadable Files
 parent: Custom Components
 nav_order: 3
 ---
-# File Uploads
+# Uploadable Files
 
 ## Requirements
 This bundle uses FlySystem v2. It does not use additional bundles to implement this and instead allows you to easily create adapters as services which are injected into our own `FilesystemProvider` using autoconfiguration.
@@ -32,29 +32,7 @@ app.flysystem.adapter.local:
 ```
 
 ## Usage
-The easiest way to configure an entity resource to contain uploads is to use the following annotation and trait:
-
-```php
-use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\UploadsTrait;
-
-/**
- * @Silverback\Uploads
- */
-class UploadsResource
-{
-    use UploadsTrait;
-
-    public function __construct()
-    {
-        $this->files = new ArrayCollection();
-    }
-```
-
-> **The above will not do anything unless you then configure your File resources as described below. it simply defines the resource as a container for file resources. This gives flexibility to have multiple files associated with an API resource**
-
-This also requires a `File` resource as the media objects will accept `multipart/form-data` and will be an object not intended to receive or respond in JSON or whatever serialization type you have chosen.
+The easiest way to configure an entity resource be an uploadable file is to use the following annotation and trait:
 
 ```php
 use Doctrine\Common\Collections\ArrayCollection;
@@ -62,7 +40,7 @@ use Silverback\ApiComponentBundle\Annotation as Silverback;
 use Silverback\ApiComponentBundle\Entity\Utility\FileTrait;
 
 /**
- * @Silverback\File(UploadableResource::class)
+ * @Silverback\Uploadable()
  */
 class File
 {
@@ -88,7 +66,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\ImagineFiltersInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @Silverback\File(UploadableResource::class)
+ * @Silverback\Uploadable()
  */
 class File implements ImagineFiltersInterface
 {
