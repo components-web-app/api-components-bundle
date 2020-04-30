@@ -11,18 +11,25 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Helper;
+namespace Silverback\ApiComponentBundle\AnnotationReader;
 
 use Doctrine\Common\Annotations\Reader;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Timestamped;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 
-abstract class AbstractHelper
+abstract class AbstractAnnotationReader
 {
     use ClassMetadataTrait;
 
     protected Reader $reader;
+
+    public function __construct(Reader $reader, ManagerRegistry $managerRegistry)
+    {
+        $this->reader = $reader;
+        $this->initRegistry($managerRegistry);
+    }
 
     abstract public function getConfiguration($class);
 
@@ -38,14 +45,6 @@ abstract class AbstractHelper
         }
 
         return true;
-    }
-
-    /**
-     * @required
-     */
-    protected function initReader(Reader $reader): void
-    {
-        $this->reader = $reader;
     }
 
     /**

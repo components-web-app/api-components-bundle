@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Validator\MappingLoader;
 
-use Silverback\ApiComponentBundle\Annotation\Uploads;
-use Silverback\ApiComponentBundle\Helper\UploadsHelper;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
@@ -22,11 +21,11 @@ use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadsLoader implements LoaderInterface
+final class UploadableLoader implements LoaderInterface
 {
-    private UploadsHelper $uploadsHelper;
+    private UploadableAnnotationReader $uploadsHelper;
 
-    public function __construct(UploadsHelper $uploadsHelper)
+    public function __construct(UploadableAnnotationReader $uploadsHelper)
     {
         $this->uploadsHelper = $uploadsHelper;
     }
@@ -40,9 +39,11 @@ final class UploadsLoader implements LoaderInterface
             return false;
         }
 
-        /** @var Uploads $configuration */
-        $configuration = $this->uploadsHelper->getConfiguration($metadata->getClassName());
-        $metadata->addPropertyConstraint($configuration->fieldName, new Assert\NotNull());
+        $fields = $this->uploadsHelper->getConfiguredProperties($metadata->getClassName(), true, false);
+
+        foreach ($fields as $fileField) {
+            $metadata->addPropertyConstraint($fileField, new Assert\NotNull());
+        }
 
         return true;
     }

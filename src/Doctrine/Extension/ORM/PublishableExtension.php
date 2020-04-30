@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -131,8 +131,8 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->configuration && ($this->publishableHelper->isConfigured($resourceClass))) {
-            $this->configuration = $this->publishableHelper->getConfiguration($resourceClass);
+        if (!$this->configuration && ($this->publishableHelper->getAnnotationReader()->isConfigured($resourceClass))) {
+            $this->configuration = $this->publishableHelper->getAnnotationReader()->getConfiguration($resourceClass);
         }
 
         return $this->configuration;

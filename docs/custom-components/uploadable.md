@@ -1,13 +1,13 @@
 ---
 layout: default
-title: Uploadable Files
+title: Uploadable
 parent: Custom Components
 nav_order: 3
 ---
-# Uploadable Files
+# Uploadable
 
 ## Requirements
-This bundle uses FlySystem v2. It does not use additional bundles to implement this and instead allows you to easily create adapters as services which are injected into our own `FilesystemProvider` using autoconfiguration.
+This bundle uses FlySystem v2. It does not use additional bundles. Instead, you create your adapters as Symfony services with a specific tag, so that they are injected into the `FilesystemProvider`.
 
 Configuration example in `services.php`
 ```php
@@ -35,24 +35,21 @@ app.flysystem.adapter.local:
 The easiest way to configure an entity resource be an uploadable file is to use the following annotation and trait:
 
 ```php
-use Doctrine\Common\Collections\ArrayCollection;
+use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\FileTrait;
 
 /**
  * @Silverback\Uploadable()
  */
 class File
 {
-    use FileTrait;
+    use UploadableTrait;
 
-    public function __construct()
-    {
-        $this->mediaObjects = new ArrayCollection();
-    }
+    /** @Silverback\UploadableField(adapter="local") */
+    public ?File $file;
 ```
 
-You do not need to use the traits and can define your own custom fields. Take a look at the annotation classes for the available configuration parameters, and you can base your updated class on the traits.
+
 
 > **A file will have `MediaObject` resources appended to it with the IRI/Schema configured.**
 
@@ -61,7 +58,7 @@ You can configure your `File` object to use ImagineBundle filters. You will rece
 ```php
 use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\FileTrait;
+use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\ImagineFiltersInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -70,7 +67,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class File implements ImagineFiltersInterface
 {
-    use FileTrait;
+    use UploadableTrait;
 
     public function __construct()
     {

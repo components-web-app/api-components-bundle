@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadsLoader;
+use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadableLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -27,6 +27,6 @@ final class ValidatorCompilerPass implements CompilerPassInterface
     {
         $container
             ->getDefinition('validator.builder')
-            ->addMethodCall('addLoader', [new Reference(UploadsLoader::class)]);
+            ->addMethodCall('addLoader', [new Reference(UploadableLoader::class)]);
     }
 }

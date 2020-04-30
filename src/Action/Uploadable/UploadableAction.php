@@ -11,11 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action\File;
+namespace Silverback\ApiComponentBundle\Action\Uploadable;
 
-use ApiPlatform\Core\Api\FormatMatcher;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Helper\FileHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
@@ -23,32 +22,24 @@ use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class FileAction
+class UploadableAction
 {
-    public function __invoke(Request $request, FileHelper $fileHelper)
+    public function __invoke(Request $request, UploadableAnnotationReader $uploadableHelper)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
             throw new UnsupportedMediaTypeHttpException('The "Content-Type" header must exist.');
         }
 
-        $formats = ['form-data' => ['multipart/form-data']];
-        $formatMatcher = new FormatMatcher($formats);
-        $format = $formatMatcher->getFormat($contentType);
-        if (null === $format) {
-            $supportedMimeTypes = [];
-            foreach ($formats as $mimeTypes) {
-                foreach ($mimeTypes as $mimeType) {
-                    $supportedMimeTypes[] = $mimeType;
-                }
-            }
-            throw new UnsupportedMediaTypeHttpException(sprintf('The content-type "%s" is not supported. Supported MIME type is "%s".', $contentType, implode('", "', $supportedMimeTypes)));
+        $formats = ['multipart/form-data'];
+        if (\in_array(strtolower($contentType), $formats, true)) {
+            throw new UnsupportedMediaTypeHttpException(sprintf('The content-type "%s" is not supported. Supported MIME type is "%s".', $contentType, implode('", "', $formats)));
         }
 
         $resourceClass = $request->attributes->get('_api_resource_class');
         $resource = new $resourceClass();
         try {
-            $fileHelper->setUploadedFile($resource, $request->files);
+            $uploadableHelper->setUploadedFile($resource, $request->files);
         } catch (InvalidArgumentException $exception) {
             throw new BadRequestHttpException($exception->getMessage());
         }

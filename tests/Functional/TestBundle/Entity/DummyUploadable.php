@@ -14,27 +14,29 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\FileTrait;
 use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
- * @Silverback\File(DummyUploads::class)
+ * @Silverback\Uploadable
  * @ApiResource
  * @ORM\Entity
  */
-class DummyFile
+class DummyUploadable
 {
     use IdTrait;
-    use FileTrait;
+    use UploadableTrait;
+
+    /** @Silverback\UploadableField(adapter="local") */
+    public ?File $file;
 
     public function __construct()
     {
         $this->setId();
-        $this->mediaObjects = new ArrayCollection();
     }
 }

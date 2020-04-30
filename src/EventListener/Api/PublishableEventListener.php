@@ -16,8 +16,9 @@ namespace Silverback\ApiComponentBundle\EventListener\Api;
 use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,6 +42,7 @@ final class PublishableEventListener
 
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, ValidatorInterface $validator)
     {
+        $this->publishableAnnotationReader = $publishableHelper->getAnnotationReader();
         $this->publishableHelper = $publishableHelper;
         $this->initRegistry($registry);
         $this->validator = $validator;
@@ -52,7 +54,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
@@ -68,7 +70,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             !$request->isMethod(Request::METHOD_GET)
         ) {
             return;
@@ -83,13 +85,13 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
 
         // User cannot change the publication date of the original resource
         if (
@@ -107,13 +109,13 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             null === $data ||
-            !$this->publishableHelper->isConfigured($data)
+            !$this->publishableAnnotationReader->isConfigured($data)
         ) {
             return;
         }
         $response = $event->getResponse();
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
@@ -161,7 +163,7 @@ final class PublishableEventListener
             return $data;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
         $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);

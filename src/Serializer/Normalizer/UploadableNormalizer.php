@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
 use Hshn\Base64EncodedFile\HttpFoundation\File\Base64EncodedFile;
-use Silverback\ApiComponentBundle\Helper\UploadableHelper;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -30,9 +30,9 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
-    private UploadableHelper $uploadableHelper;
+    private UploadableAnnotationReader $uploadableHelper;
 
-    public function __construct(UploadableHelper $uploadableHelper)
+    public function __construct(UploadableAnnotationReader $uploadableHelper)
     {
         $this->uploadableHelper = $uploadableHelper;
     }

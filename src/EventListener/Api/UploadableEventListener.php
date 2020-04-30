@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Api;
 
-use Silverback\ApiComponentBundle\Helper\UploadableHelper;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -25,9 +25,9 @@ final class UploadableEventListener
 {
     use ClassMetadataTrait;
 
-    private UploadableHelper $uploadableHelper;
+    private UploadableAnnotationReader $uploadableHelper;
 
-    public function __construct(UploadableHelper $uploadableHelper)
+    public function __construct(UploadableAnnotationReader $uploadableHelper)
     {
         $this->uploadableHelper = $uploadableHelper;
     }
@@ -44,7 +44,7 @@ final class UploadableEventListener
             return;
         }
 
-        foreach ($this->uploadableHelper->getFields($data) as $field) {
+        foreach ($this->uploadableHelper->getConfiguredProperties($data) as $field) {
             if (null !== $field) {
                 // todo Upload file to adapter
                 // todo Set fileName on object

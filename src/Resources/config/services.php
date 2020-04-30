@@ -24,13 +24,17 @@ use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Action\File\FileAction;
 use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
+use Silverback\ApiComponentBundle\Action\Uploadable\UploadableAction;
 use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction;
-use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\FileResourceMetadataFactory;
+use Silverback\ApiComponentBundle\AnnotationReader\AbstractAnnotationReader;
+use Silverback\ApiComponentBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
+use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
@@ -41,9 +45,9 @@ use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\FileListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
@@ -67,13 +71,10 @@ use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentBundle\Helper\FileHelper;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
-use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
-use Silverback\ApiComponentBundle\Helper\UploadsHelper;
 use Silverback\ApiComponentBundle\Mailer\UserMailer;
 use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentBundle\Repository\User\UserRepository;
@@ -84,15 +85,15 @@ use Silverback\ApiComponentBundle\Serializer\ContextBuilder\TimestampedContextBu
 use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\FileNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
+use Silverback\ApiComponentBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
-use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadsLoader;
+use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -132,6 +133,14 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(AbstractAnnotationReader::class)
+        ->abstract()
+        ->args([
+            new Reference('annotations.reader'),
+            new Reference('doctrine'),
+        ]);
+
+    $services
         ->set(ChangeEmailVerificationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
@@ -156,7 +165,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(FileAction::class)
+        ->set(UploadableAction::class)
         ->tag('controller.service_arguments');
 
     $services
@@ -179,41 +188,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
-
-    $services
-        ->set(FileHelper::class)
-        ->args([
-            new Reference('annotations.reader'),
-            new Reference('doctrine'),
-            new Reference(FilesystemProvider::class),
-        ]);
-
-    $services
-        ->set(FileListener::class)
-        ->args([
-            new Reference(FileHelper::class),
-            new Reference(UploadsHelper::class),
-        ])
-        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata'])
-        ->tag('doctrine.orm.entity_listener');
-
-    $services
-        ->set(FileNormalizer::class)
-        ->autoconfigure(false)
-        ->args([
-            new Reference(FileHelper::class),
-        ])
-        ->tag('serializer.normalizer', ['priority' => -499]);
-
-    $services
-        ->set(FileResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args([
-            new Reference(FileResourceMetadataFactory::class . '.inner'),
-            new Reference(FileHelper::class),
-            new Reference('api_platform.path_segment_name_generator'),
-        ])
-        ->autoconfigure(false);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -370,6 +344,10 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
+        ->set(PublishableAnnotationReader::class)
+        ->parent(AbstractAnnotationReader::class);
+
+    $services
         ->set(PublishableContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args([
@@ -393,15 +371,14 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PublishableHelper::class)
         ->args([
-            new Reference('annotations.reader'),
-            new Reference('doctrine'),
-            new Reference('security.authorization_checker'),
-            '', // $permission: set in SilverbackApiComponentExtension
+            new Reference(PublishableAnnotationReader::class),
+            new Reference(AuthorizationCheckerInterface::class),
+            '', // injected with dependency injection
         ]);
 
     $services
         ->set(PublishableListener::class)
-        ->args([new Reference(PublishableHelper::class)])
+        ->args([new Reference(PublishableAnnotationReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     // High priority for item because of queryBuilder reset
@@ -474,19 +451,16 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(TimestampedAnnotationReader::class)
+        ->parent(AbstractAnnotationReader::class);
+
+    $services
         ->set(TimestampedContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args([
             new Reference(TimestampedContextBuilder::class . '.inner'),
         ])
         ->autoconfigure(false);
-
-    $services
-        ->set(TimestampedHelper::class)
-        ->args([
-            new Reference('annotations.reader'),
-            new Reference('doctrine'),
-        ]);
 
     $services
         ->set(TimestampedLoader::class)
@@ -507,7 +481,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(TimestampedListener::class)
         ->args([
-            new Reference(TimestampedHelper::class),
+            new Reference(TimestampedAnnotationReader::class),
             new Reference(ManagerRegistry::class),
         ])
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'))
@@ -522,16 +496,38 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UploadsHelper::class)
-        ->args([
-            new Reference('annotations.reader'),
-            new Reference('doctrine'),
-        ]);
+        ->set(UploadableAnnotationReader::class)
+        ->parent(AbstractAnnotationReader::class);
 
     $services
-        ->set(UploadsLoader::class)
+        ->set(UploadableListener::class)
         ->args([
-            new Reference(UploadsHelper::class),
+            new Reference(UploadableAnnotationReader::class),
+        ])
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
+        ->set(UploadableNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(UploadableAnnotationReader::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(UploadableResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args([
+            new Reference(UploadableResourceMetadataFactory::class . '.inner'),
+            new Reference(UploadableAnnotationReader::class),
+            new Reference('api_platform.path_segment_name_generator'),
+        ])
+        ->autoconfigure(false);
+
+    $services
+        ->set(UploadableLoader::class)
+        ->args([
+            new Reference(UploadableAnnotationReader::class),
         ]);
 
     $services

@@ -16,25 +16,26 @@ namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentBundle\Helper\UploadableHelper;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class UploadableListener
 {
-    private UploadableHelper $uploadableHelper;
+    private UploadableAnnotationReader $uploadableAnnotationReader;
 
-    public function __construct(UploadableHelper $uploadableHelper)
+    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader)
     {
-        $this->uploadableHelper = $uploadableHelper;
+        $this->uploadableAnnotationReader = $uploadableAnnotationReader;
     }
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        if (!$this->uploadableHelper->isConfigured($metadata->getName())) {
+        $className = $metadata->getName();
+        if (!$this->uploadableAnnotationReader->isConfigured($className)) {
             return;
         }
 
@@ -43,20 +44,16 @@ final class UploadableListener
             return;
         }
 
-        foreach ($metadata->getReflectionProperties() as $property) {
-            if (!$this->uploadableHelper->isFieldConfigured($property)) {
-                continue;
-            }
+        $propertyConfigurations = $this->uploadableAnnotationReader->getConfiguredProperties($className, true, true);
 
-            $fieldConfiguration = $this->uploadableHelper->getFieldConfiguration($property);
-            if (!$metadata->hasField($fieldConfiguration->property)) {
+        foreach ($propertyConfigurations as $propertyConfiguration) {
+            if (!$metadata->hasField($propertyConfiguration->property)) {
                 $metadata->mapField([
-                    'fieldName' => $fieldConfiguration->property,
+                    'fieldName' => $propertyConfiguration->property,
                     'type' => 'string',
                     'nullable' => true,
                 ]);
             }
         }
-        // todo Add security if no UploadableField has been configured on related entity
     }
 }

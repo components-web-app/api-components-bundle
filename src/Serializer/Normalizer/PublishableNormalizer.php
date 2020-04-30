@@ -77,7 +77,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return !isset($context[self::ALREADY_CALLED]) &&
             \is_object($data) &&
             !$data instanceof \Traversable &&
-            $this->publishableHelper->isConfigured($data);
+            $this->publishableHelper->getAnnotationReader()->isConfigured($data);
     }
 
     /**
@@ -86,7 +86,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
-        $configuration = $this->publishableHelper->getConfiguration($type);
+        $configuration = $this->publishableHelper->getAnnotationReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
@@ -193,7 +193,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->isConfigured($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->getAnnotationReader()->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

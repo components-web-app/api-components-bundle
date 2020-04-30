@@ -11,28 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Utility;
+namespace Silverback\ApiComponentBundle\AnnotationReader;
+
+use Silverback\ApiComponentBundle\Annotation\Publishable;
 
 /**
- * @author Daniel West <daniel@silverback.is>
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-trait UploadableTrait
+final class PublishableAnnotationReader extends AbstractAnnotationReader
 {
-    private string $filename;
-
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
-
     /**
-     * @return static
+     * @param object|string $class
      */
-    public function setFilename(string $filename)
+    public function getConfiguration($class): Publishable
     {
-        $this->filename = $filename;
-
-        return $this;
+        return $this->getClassAnnotationConfiguration($class, Publishable::class);
     }
 }

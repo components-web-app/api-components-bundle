@@ -16,74 +16,79 @@ namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
-use Silverback\ApiComponentBundle\Action\File\FileAction;
-use Silverback\ApiComponentBundle\Annotation\File;
-use Silverback\ApiComponentBundle\Helper\FileHelper;
+use Silverback\ApiComponentBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 
 /**
  * Configures API Platform metadata for file resources.
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
+class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
-    private FileHelper $fileHelper;
+    private UploadableAnnotationReader $uploadableHelper;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, FileHelper $fileHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
+    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReader $fileHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
-        $this->fileHelper = $fileHelper;
+        $this->uploadableHelper = $fileHelper;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!$this->fileHelper->isConfigured($resourceClass)) {
+        if (!$this->uploadableHelper->isConfigured($resourceClass)) {
             return $resourceMetadata;
         }
 
-        $fileConfiguration = $this->fileHelper->getConfiguration($resourceClass);
+        $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false, false);
+        $properties = [];
+        foreach ($fields as $field) {
+            $properties[$field] = [
+                'type' => 'string',
+                'format' => 'binary',
+            ];
+        }
+        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties);
 
-        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $fileConfiguration);
-
-        return $this->getItemPutResourceMetadata($resourceMetadata, $fileConfiguration);
+        return $this->getItemPutResourceMetadata($resourceMetadata, $properties);
     }
 
-    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
+    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties): ResourceMetadata
     {
         $resourceShortName = $resourceMetadata->getShortName();
         $path = sprintf('/%s/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
 
         $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
         $collectionOperations['post_upload'] = array_replace_recursive(
-            $this->getOperationConfiguration($fileConfiguration, $path),
+            $this->getOperationConfiguration($properties, $path),
             $collectionOperations['post'] ?? []
         );
 
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, File $fileConfiguration): ResourceMetadata
+    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties): ResourceMetadata
     {
         $resourceShortName = $resourceMetadata->getShortName();
         $path = sprintf('/%s/{id}/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
 
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
         $itemOperations['put_upload'] = array_replace_recursive(
-            $this->getOperationConfiguration($fileConfiguration, $path),
+            $this->getOperationConfiguration($properties, $path),
             $itemOperations['put'] ?? []
         );
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
 
-    private function getOperationConfiguration(File $fileConfiguration, string $path): array
+    private function getOperationConfiguration(array $properties, string $path): array
     {
         return [
-            'controller' => FileAction::class,
+            'controller' => UploadableAction::class,
             'deserialize' => false,
             'path' => $path,
             'openapi_context' => [
@@ -92,12 +97,7 @@ class FileResourceMetadataFactory implements ResourceMetadataFactoryInterface
                         'multipart/form-data' => [
                             'schema' => [
                                 'type' => 'object',
-                                'properties' => [
-                                    $fileConfiguration->fileFieldName => [
-                                        'type' => 'string',
-                                        'format' => 'binary',
-                                    ],
-                                ],
+                                'properties' => $properties,
                             ],
                         ],
                     ],

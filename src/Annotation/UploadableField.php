@@ -17,11 +17,11 @@ namespace Silverback\ApiComponentBundle\Annotation;
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  *
  * @Annotation
- * @Target("CLASS")
+ * @Target("PROPERTY")
  */
 final class UploadableField
 {
-    public string $property = 'fileName';
+    public string $property = 'filename';
 
     public ?string $prefix;
 

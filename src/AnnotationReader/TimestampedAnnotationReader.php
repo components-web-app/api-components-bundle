@@ -11,29 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Utility;
+namespace Silverback\ApiComponentBundle\AnnotationReader;
 
-use Doctrine\Common\Collections\Collection;
+use Silverback\ApiComponentBundle\Annotation\Timestamped;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-trait UploadsTrait
+final class TimestampedAnnotationReader extends AbstractAnnotationReader
 {
-    private Collection $files;
-
-    public function getFiles(): Collection
-    {
-        return $this->files;
-    }
-
     /**
-     * @return static
+     * @param object|string $class
      */
-    public function setFiles(Collection $files)
+    public function getConfiguration($class): Timestamped
     {
-        $this->files = $files;
-
-        return $this;
+        return $this->getClassAnnotationConfiguration($class, Timestamped::class);
     }
 }
