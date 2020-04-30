@@ -21,7 +21,6 @@ use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
