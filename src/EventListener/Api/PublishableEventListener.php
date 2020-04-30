@@ -124,7 +124,7 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if (!$this->publishableHelper->isGranted()) {
+        if (!$this->publishableHelper->isGranted($data)) {
             return;
         }
 

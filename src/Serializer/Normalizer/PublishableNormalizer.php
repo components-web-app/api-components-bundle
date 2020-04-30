@@ -61,7 +61,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableHelper->isActivePublishedAt($object);
 
-        if ($this->publishableHelper->isGranted()) {
+        if ($this->publishableHelper->isGranted($object)) {
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {
