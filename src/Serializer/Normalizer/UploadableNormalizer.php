@@ -13,10 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
+use ApiPlatform\Core\EventListener\DeserializeListener;
+use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
+use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Model\Uploadable\Base64EncodedFile;
 use Silverback\ApiComponentBundle\Model\Uploadable\UploadedBase64EncodedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -28,15 +33,18 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
  */
 final class UploadableNormalizer implements CacheableSupportsMethodInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface
 {
+    use ToggleableOperationAttributeTrait;
     use DenormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
     private UploadableAnnotationReader $uploadableHelper;
+    private RequestStack $requestStack;
 
-    public function __construct(UploadableAnnotationReader $uploadableHelper)
+    public function __construct(UploadableAnnotationReader $uploadableHelper, RequestStack $requestStack)
     {
         $this->uploadableHelper = $uploadableHelper;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -66,7 +74,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             }
 
             try {
-                $data[$fieldName] = new UploadedBase64EncodedFile(new Base64EncodedFile($value), 'uploaded_name');
+                $file = new Base64EncodedFile($value);
+                $data[$fieldName] = new UploadedBase64EncodedFile($file, Uuid::uuid4() . '.' . $file->getExtension());
             } catch (FileException $exception) {
                 throw new NotNormalizableValueException($exception->getMessage());
             }
@@ -80,7 +89,15 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->uploadableHelper->isConfigured($type);
+        $request = $this->requestStack->getMasterRequest();
+        if (!$request) {
+            $isDisabled = false;
+        } else {
+            $attributes = RequestAttributesExtractor::extractAttributes($request);
+            $isDisabled = $this->isOperationAttributeDisabled($attributes, DeserializeListener::OPERATION_ATTRIBUTE_KEY);
+        }
+
+        return !$isDisabled && !isset($context[self::ALREADY_CALLED]) && $this->uploadableHelper->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

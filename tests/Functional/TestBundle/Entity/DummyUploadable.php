@@ -33,7 +33,7 @@ class DummyUploadable
     use UploadableTrait;
 
     /** @Silverback\UploadableField(adapter="local") */
-    public ?File $file;
+    public ?File $file = null;
 
     public function __construct()
     {

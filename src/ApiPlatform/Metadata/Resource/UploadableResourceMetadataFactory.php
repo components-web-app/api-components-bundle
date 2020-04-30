@@ -63,10 +63,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $path = sprintf('/%s/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
 
         $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
-        $collectionOperations['post_upload'] = array_replace_recursive(
-            $this->getOperationConfiguration($properties, $path),
-            $collectionOperations['post'] ?? []
-        );
+        $collectionOperations['post_upload'] = array_merge(['method' => 'POST'], $this->getOperationConfiguration($properties, $path));
 
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
@@ -77,10 +74,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $path = sprintf('/%s/{id}/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
 
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
-        $itemOperations['put_upload'] = array_replace_recursive(
-            $this->getOperationConfiguration($properties, $path),
-            $itemOperations['put'] ?? []
-        );
+        $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $this->getOperationConfiguration($properties, $path));
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
@@ -89,8 +83,9 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
     {
         return [
             'controller' => UploadableAction::class,
-            'deserialize' => false,
             'path' => $path,
+            'deserialize' => false,
+            'read' => 'false',
             'openapi_context' => [
                 'requestBody' => [
                     'content' => [

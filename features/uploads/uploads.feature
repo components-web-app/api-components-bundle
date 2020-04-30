@@ -12,15 +12,15 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario Outline: I can create a new dummy files component with a json base64 data
     When I send a "POST" request to "/_/dummy_uploadables" with data:
-      | file          |
+      | file           |
       | base64(<file>) |
     Then the response status code should be 201
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file          | schema                    |
-      | image.svg     | file.schema.json          |
-      | text_file.txt | file.schema.json          |
+      | file           | schema                    |
+      | image.svg      | file.schema.json          |
+      | test_file.docx | file.schema.json          |
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with a "multipart/form-data" request
@@ -32,9 +32,9 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file          | schema                    |
-      | image.svg     | file.schema.json          |
-      | text_file.txt | file.schema.json          |
+      | file           | schema                    |
+      | image.svg      | file.schema.json          |
+      | test_file.docx | file.schema.json          |
 
   @loginUser
   Scenario: I get an error if I send a json request to the multipart/form-data endpoint

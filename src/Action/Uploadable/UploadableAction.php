@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Action\Uploadable;
 
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentBundle\Uploadable\UploadableHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
  */
 class UploadableAction
 {
-    public function __invoke(Request $request, UploadableAnnotationReader $uploadableHelper)
+    public function __invoke(Request $request, UploadableHelper $uploadableHelper)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
@@ -38,8 +38,9 @@ class UploadableAction
 
         $resourceClass = $request->attributes->get('_api_resource_class');
         $resource = new $resourceClass();
+
         try {
-            $uploadableHelper->setUploadedFile($resource, $request->files);
+            $uploadableHelper->setUploadedFilesFromFileBag($resource, $request->files);
         } catch (InvalidArgumentException $exception) {
             throw new BadRequestHttpException($exception->getMessage());
         }

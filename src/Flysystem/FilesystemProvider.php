@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Flysystem;
 
-use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\Filesystem;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
@@ -35,8 +35,8 @@ class FilesystemProvider
     /**
      * @throws RuntimeException
      */
-    public function getAdapter(string $name): FilesystemAdapter
+    public function getFilesystem(string $name): Filesystem
     {
-        return $this->adapters->get($name);
+        return new Filesystem($this->adapters->get($name));
     }
 }

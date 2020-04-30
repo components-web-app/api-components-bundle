@@ -19,9 +19,9 @@ namespace Silverback\ApiComponentBundle\Entity\Utility;
  */
 trait UploadableTrait
 {
-    private string $filename;
+    private ?string $filename = null;
 
-    public function getFilename(): string
+    public function getFilename(): ?string
     {
         return $this->filename;
     }

@@ -90,6 +90,7 @@ use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -503,10 +504,18 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(UploadableEventListener::class)
         ->args([
-            new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
+            new Reference(UploadableHelper::class),
         ])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+
+    $services
+        ->set(UploadableHelper::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(UploadableAnnotationReader::class),
+            new Reference(FilesystemProvider::class),
+        ]);
 
     $services
         ->set(UploadableListener::class)
@@ -520,6 +529,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(UploadableAnnotationReader::class),
+            new Reference(RequestStack::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
