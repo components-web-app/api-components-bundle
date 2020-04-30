@@ -125,7 +125,7 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if (!$response->isClientError()) {
+        if ($response->isClientError()) {
             return;
         }
 
