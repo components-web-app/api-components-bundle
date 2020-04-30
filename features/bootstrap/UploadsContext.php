@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentBundle\Features\Bootstrap;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
-use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyFile;
@@ -29,7 +28,6 @@ class UploadsContext implements Context
     private ?RestContext $restContext;
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
-    private ?BehatchRestContext $behatchRestContext;
 
     public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
     {
@@ -43,17 +41,6 @@ class UploadsContext implements Context
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
-    }
-
-    /**
-     * @Transform /^base64(.*)$/
-     */
-    public function castBase64FileToString(string $value)
-    {
-        $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . substr($value, 1);
-
-        return base64_encode($filePath);
     }
 
     /**

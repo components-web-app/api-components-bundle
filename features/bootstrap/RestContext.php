@@ -20,6 +20,7 @@ use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
+use Behatch\Context\RestContext as BehatchRestContext;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -30,6 +31,7 @@ class RestContext implements Context
     private ?MinkContext $minkContext;
     public array $components = [];
     public string $now = '';
+    private ?BehatchRestContext $behatchRestContext;
 
     /**
      * @BeforeScenario
@@ -38,6 +40,7 @@ class RestContext implements Context
     {
         $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
     }
 
     /**
@@ -59,6 +62,16 @@ class RestContext implements Context
         }
 
         return $this->now = date('Y-m-d\TH:i:s+00:00');
+    }
+
+    /**
+     * @Transform /^base64(.*)$/
+     */
+    public function castBase64FileToString(string $value)
+    {
+        $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
+
+        return base64_encode(file_get_contents($filePath));
     }
 
     /**
@@ -113,6 +126,10 @@ class RestContext implements Context
 
             if ('valid_published' === $value) {
                 $value = ['name' => 'John Doe', 'description' => 'nobody'];
+            }
+
+            if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+                $value = $this->castBase64FileToString($matches[1]);
             }
 
             return $value;
