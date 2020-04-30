@@ -93,7 +93,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 201
     And the JSON node publishedAt should exist
     And the JSON node _metadata.published should be true
-    And the JSON node "publishedAt" should be equal to "now"
+    And the JSON node "publishedAt" should be now
     Examples:
       | publishedAt               |
       | now                       |

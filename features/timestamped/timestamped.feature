@@ -35,5 +35,5 @@ Feature: Timestamped resources
     Given there is a DummyCustomTimestamped resource
     When I send a "GET" request to the component "dummy_custom_timestamped"
     Then the response status code should be 200
-    And the JSON node "customCreatedAt" should contain "now"
-    And the JSON node "customModifiedAt" should contain "now"
+    And the JSON node "customCreatedAt" should be now
+    And the JSON node "customModifiedAt" should be now
