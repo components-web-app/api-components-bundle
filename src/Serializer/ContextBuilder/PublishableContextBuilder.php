@@ -35,14 +35,18 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (empty($resourceClass = $context['resource_class']) || empty($context['groups'])) {
+        if (
+            empty($resourceClass = $context['resource_class']) ||
+            empty($context['groups']) ||
+            !$this->publishableHelper->isConfigured($resourceClass)
+        ) {
             return $context;
         }
 
         $reflectionClass = new \ReflectionClass($resourceClass);
         if ($normalization) {
             $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
-        } elseif ($this->publishableHelper->isGranted()) {
+        } elseif ($this->publishableHelper->isGranted($resourceClass)) {
             $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
         }
 

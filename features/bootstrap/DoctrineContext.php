@@ -189,6 +189,7 @@ final class DoctrineContext implements Context
      */
     public function theComponentShouldNotExist(string $name)
     {
+        $this->manager->clear();
         try {
             $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);
@@ -202,6 +203,7 @@ final class DoctrineContext implements Context
      */
     public function theComponentShouldExist(string $name)
     {
+        $this->manager->clear();
         try {
             $iri = $this->restContext->components[$name];
             $this->iriConverter->getItemFromIri($iri);

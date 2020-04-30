@@ -88,7 +88,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableHelper->getConfiguration($type);
 
-        $data = $this->unsetRestrictedData($data, $configuration);
+        $data = $this->unsetRestrictedData($type, $data, $configuration);
 
         $request = $this->requestStack->getMasterRequest();
         if ($request && true === $this->publishableHelper->isPublishedRequest($request)) {
@@ -98,7 +98,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         // It's a new object
         if (!isset($context[AbstractNormalizer::OBJECT_TO_POPULATE])) {
             // User doesn't have draft access: force publication date
-            if (!$this->publishableHelper->isGranted()) {
+            if (!$this->publishableHelper->isGranted($type)) {
                 $data[$configuration->fieldName] = date('Y-m-d H:i:s');
             }
 
@@ -113,7 +113,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         if (
             empty($data) ||
             !$this->publishableHelper->isActivePublishedAt($object) ||
-            !$this->publishableHelper->isGranted()
+            !$this->publishableHelper->isGranted($type)
         ) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
@@ -143,13 +143,13 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return $data;
     }
 
-    private function unsetRestrictedData(array $data, Publishable $configuration): array
+    private function unsetRestrictedData($type, array $data, Publishable $configuration): array
     {
         // It's not possible to change the publishedResource and draftResource properties
         unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
 
         // User doesn't have draft access: cannot set or change the publication date
-        if (!$this->publishableHelper->isGranted()) {
+        if (!$this->publishableHelper->isGranted($type)) {
             unset($data[$configuration->fieldName]);
         }
 

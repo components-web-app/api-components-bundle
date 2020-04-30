@@ -18,12 +18,12 @@ namespace Silverback\ApiComponentBundle\Annotation;
  *
  * @Annotation
  * @Target("CLASS")
- *
- * todo Add permission option to override global publishable permission (requires symfony/security)
  */
 final class Publishable
 {
     public string $fieldName = 'publishedAt';
+
+    public ?string $isGranted = null;
 
     public string $associationName = 'publishedResource';
 

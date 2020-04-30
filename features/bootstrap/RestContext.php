@@ -75,7 +75,7 @@ class RestContext implements Context
     public function iSendARequestToTheComponentWithBody(string $method, string $component, ?string $postfix = null, ?PyStringNode $body = null)
     {
         if (!isset($this->components[$component])) {
-            throw new ExpectationException("The component with name $component has not been defined", $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(sprintf("The component with name $component has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->components))), $this->minkContext->getSession()->getDriver());
         }
         $endpoint = $this->components[$component] . ($postfix ?: '');
 
