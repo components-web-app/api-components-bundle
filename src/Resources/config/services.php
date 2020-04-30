@@ -366,6 +366,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
+            new Reference('api_platform.validator'),
         ])
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead'])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
@@ -403,7 +404,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(PublishableHelper::class),
             new Reference('doctrine'),
-            new Reference(RequestStack::class),
+            new Reference('request_stack'),
+            new Reference('api_platform.validator'),
         ])->tag('serializer.normalizer', ['priority' => -400]);
 
     $services

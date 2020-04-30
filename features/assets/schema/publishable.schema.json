@@ -82,6 +82,116 @@
                         false,
                         true
                     ]
+                },
+                "violation_list": {
+                    "$schema": "http://json-schema.org/draft-07/schema",
+                    "$id": "http://example.com/example.json",
+                    "type": "object",
+                    "title": "The Root Schema",
+                    "description": "The root schema comprises the entire JSON document.",
+                    "default": {},
+                    "additionalProperties": true,
+                    "required": [
+                        "@context",
+                        "@type",
+                        "hydra:title",
+                        "hydra:description",
+                        "violations"
+                    ],
+                    "properties": {
+                        "@context": {
+                            "$id": "#/properties/@context",
+                            "type": "string",
+                            "title": "The @context Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "const": "/contexts/ConstraintViolationList"
+                        },
+                        "@type": {
+                            "$id": "#/properties/@type",
+                            "type": "string",
+                            "title": "The @type Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "const": "ConstraintViolationList"
+                        },
+                        "hydra:title": {
+                            "$id": "#/properties/hydra:title",
+                            "type": "string",
+                            "title": "The Hydra:title Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "An error occurred"
+                            ]
+                        },
+                        "hydra:description": {
+                            "$id": "#/properties/hydra:description",
+                            "type": "string",
+                            "title": "The Hydra:description Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "name: This value should not be blank."
+                            ]
+                        },
+                        "violations": {
+                            "$id": "#/properties/violations",
+                            "type": "array",
+                            "title": "The Violations Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": [],
+                            "examples": [
+                                [
+                                    {
+                                        "message": "This value should not be blank.",
+                                        "propertyPath": "name"
+                                    }
+                                ]
+                            ],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/violations/items",
+                                "type": "object",
+                                "title": "The Items Schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": {},
+                                "examples": [
+                                    {
+                                        "message": "This value should not be blank.",
+                                        "propertyPath": "name"
+                                    }
+                                ],
+                                "additionalProperties": true,
+                                "required": [
+                                    "propertyPath",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "propertyPath": {
+                                        "$id": "#/properties/violations/items/properties/propertyPath",
+                                        "type": "string",
+                                        "title": "The Propertypath Schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": "",
+                                        "examples": [
+                                            "name"
+                                        ]
+                                    },
+                                    "message": {
+                                        "$id": "#/properties/violations/items/properties/message",
+                                        "type": "string",
+                                        "title": "The Message Schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": "",
+                                        "examples": [
+                                            "This value should not be blank."
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

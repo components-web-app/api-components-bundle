@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\EventListener\Api;
 
+use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -30,12 +33,17 @@ final class PublishableEventListener
 {
     use ClassMetadataTrait;
 
-    private PublishableHelper $publishableHelper;
+    public const VALID_TO_PUBLISH_HEADER = 'valid-to-publish';
+    public const VALID_PUBLISHED_QUERY = 'validate_published';
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry)
+    private PublishableHelper $publishableHelper;
+    private ValidatorInterface $validator;
+
+    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, ValidatorInterface $validator)
     {
         $this->publishableHelper = $publishableHelper;
         $this->initRegistry($registry);
+        $this->validator = $validator;
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -107,16 +115,39 @@ final class PublishableEventListener
 
         $configuration = $this->publishableHelper->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
-
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
+        // Add Expires HTTP header
         /** @var \DateTime|null $publishedAt */
         $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
-        if (!$publishedAt || $publishedAt <= new \DateTime()) {
+        if ($publishedAt && $publishedAt > new \DateTime()) {
+            $response->setExpires($publishedAt);
+        }
+
+        if (!$this->publishableHelper->isGranted($data)) {
             return;
         }
 
-        $response->setExpires($publishedAt);
+        if ($response->isClientError()) {
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+
+            return;
+        }
+
+        // Force validation from querystring, and/or add validate-to-publish custom HTTP header
+        try {
+            $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 1);
+        } catch (ValidationException $exception) {
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+
+            if (
+                \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true) &&
+                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)
+            ) {
+                throw $exception;
+            }
+        }
     }
 
     private function getValue(object $object, string $property)

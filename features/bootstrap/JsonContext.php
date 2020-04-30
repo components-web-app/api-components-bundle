@@ -140,6 +140,21 @@ class JsonContext implements Context
         Assert::assertEquals($this->restContext->components[$name], $response['@id']);
     }
 
+    /**
+     * @Then the JSON node :node should be now
+     */
+    public function theJsonNodeShouldBeEqualTo($node)
+    {
+        $text = $this->restContext->getCachedNow();
+        $json = $this->getJson();
+
+        $actual = $this->inspector->evaluate($json, $node);
+        $diff = (new \DateTime($text))->getTimestamp() - (new \DateTime($actual))->getTimestamp();
+        if ($diff < 0 || $diff > 1) {
+            throw new \Exception(sprintf("The node value is '%s' which is a difference of %s seconds to the cached 'now' value", json_encode($actual), $diff));
+        }
+    }
+
     public function theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated(string $file): void
     {
         $this->theJsonShouldBeValidAccordingToTheSchemaFile($file);

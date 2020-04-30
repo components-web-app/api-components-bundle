@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
+use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentBundle\Annotation\Publishable;
 use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -43,18 +46,28 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     private PublishableHelper $publishableHelper;
     private ManagerRegistry $registry;
     private RequestStack $requestStack;
+    private ValidatorInterface $validator;
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, RequestStack $requestStack)
+    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, RequestStack $requestStack, ValidatorInterface $validator)
     {
         $this->publishableHelper = $publishableHelper;
         $this->registry = $registry;
         $this->requestStack = $requestStack;
+        $this->validator = $validator;
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableHelper->isActivePublishedAt($object);
+
+        if ($this->publishableHelper->isGranted($object)) {
+            try {
+                $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
+            } catch (ValidationException $exception) {
+                $context[MetadataNormalizer::METADATA_CONTEXT]['violation_list'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
+            }
+        }
 
         return $this->normalizer->normalize($object, $format, $context);
     }
