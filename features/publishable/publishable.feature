@@ -11,21 +11,21 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, it should include the draft resources instead of the published ones.
     Given there are 2 draft and published resources available
-    When I send a "GET" request to "/component/publishable_components"
+    When I send a "GET" request to "/component/dummy_publishable_components"
     Then the response status code should be 200
     And the response should include the draft resources instead of the published ones
 
   @loginAdmin
   Scenario: As a user with draft access, when I get a collection of published resources with draft resources available, and published=true query filter, it should include the published resources only.
     Given there are 2 draft and published resources available
-    When I send a "GET" request to "/component/publishable_components?published=true"
+    When I send a "GET" request to "/component/dummy_publishable_components?published=true"
     Then the response status code should be 200
     And the response should include the published resources only
 
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, it should include the published resources only.
     Given there are 2 draft and published resources available
-    When I send a "GET" request to "/component/publishable_components"
+    When I send a "GET" request to "/component/dummy_publishable_components"
     Then the response status code should be 200
     And the response should include the published resources only
 
@@ -33,14 +33,14 @@ Feature: Access to unpublished/draft resources should be configurable
   @try
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are 2 draft and published resources available
-    When I send a "GET" request to "/component/publishable_components?published=false"
+    When I send a "GET" request to "/component/dummy_publishable_components?published=false"
     Then the response status code should be 200
     And the response should include the published resources only
 
   # POST
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
-    When I send a "POST" request to "/component/publishable_components" with data:
+    When I send a "POST" request to "/component/dummy_publishable_components" with data:
       | reference | publishedAt   |
       | test      | <publishedAt> |
     Then the response status code should be 201
@@ -54,7 +54,7 @@ Feature: Access to unpublished/draft resources should be configurable
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
-    When I send a "POST" request to "/component/publishable_components" with data:
+    When I send a "POST" request to "/component/dummy_publishable_components" with data:
       | reference | publishedAt   |
       | test      | <publishedAt> |
     Then the response status code should be 201
@@ -68,7 +68,7 @@ Feature: Access to unpublished/draft resources should be configurable
 
   @loginUser
   Scenario: As a user with no draft access, when I create a resource with publishedAt=null, I should have the published resource returned, and the publication date is automatically set.
-    When I send a "POST" request to "/component/publishable_components" with data:
+    When I send a "POST" request to "/component/dummy_publishable_components" with data:
       | reference | publishedAt |
       | test      | null        |
     Then the response status code should be 201
@@ -76,9 +76,23 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node _metadata.published should be true
 
   @loginUser
+  Scenario Outline: As a user with draft access to a specific resource, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
+    When I send a "POST" request to "/component/dummy_publishable_with_security_groups" with data:
+      | reference | publishedAt   |
+      | test      | <publishedAt> |
+    Then the response status code should be 201
+    And the JSON node "publishedAt" should be equal to "<publishedAt>"
+    And the JSON node _metadata.published should be equal to "<isPublished>"
+    Examples:
+      | publishedAt               | isPublished |
+      | now                       | true        |
+      | 1970-01-01T00:00:00+00:00 | true        |
+      | 2999-12-31T23:59:59+00:00 | false       |
+
+  @loginUser
   @saveNow
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
-    When I send a "POST" request to "/component/publishable_components" with data:
+    When I send a "POST" request to "/component/dummy_publishable_components" with data:
       | reference | publishedAt   |
       | test      | <publishedAt> |
     Then the response status code should be 201
@@ -297,6 +311,13 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
+
+  @loginUser
+  Scenario: As a user which does not normally have draft access, I can delete a component where security groups are configured to allow it
+    Given there is a DummyPublishableWithSecurityGroups resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "DELETE" request to the component "publishable_draft"
+    Then the response status code should be 204
+    And the component "publishable_draft" should not exist
 
   @loginAdmin
   Scenario: As a user with draft access, if I delete a published resource, it will delete the draft instead

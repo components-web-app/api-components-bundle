@@ -48,7 +48,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        if (!$this->isDraftRequest($context)) {
+        if (!$this->isDraftRequest($resourceClass, $context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
@@ -86,7 +86,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             return;
         }
 
-        if (!$this->isDraftRequest($context)) {
+        if (!$this->isDraftRequest($resourceClass, $context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
 
@@ -115,9 +115,9 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             ->getDQL();
     }
 
-    private function isDraftRequest(array $context): bool
+    private function isDraftRequest(string $resourceClass, array $context): bool
     {
-        return $this->publishableHelper->isGranted() && false === ($context['filters']['published'] ?? false);
+        return $this->publishableHelper->isGranted($resourceClass) && false === ($context['filters']['published'] ?? false);
     }
 
     private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void

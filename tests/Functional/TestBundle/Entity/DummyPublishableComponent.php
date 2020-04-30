@@ -25,7 +25,7 @@ use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
  * @ApiResource
  * @ORM\Entity
  */
-class PublishableComponent extends AbstractComponent
+class DummyPublishableComponent extends AbstractComponent
 {
     use PublishableTrait;
 

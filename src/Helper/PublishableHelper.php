@@ -36,9 +36,12 @@ final class PublishableHelper extends AbstractHelper
         $this->initReader($reader);
     }
 
-    public function isGranted(): bool
+    /**
+     * @param object|string $class
+     */
+    public function isGranted($class): bool
     {
-        return $this->authorizationChecker->isGranted(new Expression($this->permission));
+        return $this->authorizationChecker->isGranted(new Expression($this->getConfiguration($class)->isGranted ?? $this->permission));
     }
 
     public function isActivePublishedAt(object $object): bool
