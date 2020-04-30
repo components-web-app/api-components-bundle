@@ -21,6 +21,7 @@ use Silverback\ApiComponentBundle\Helper\PublishableHelper;
 use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -117,30 +118,30 @@ final class PublishableEventListener
         $classMetadata = $this->getClassMetadata($data);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
-        // Adds Expires HTTP header
+        // Add Expires HTTP header
         /** @var \DateTime|null $publishedAt */
         $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
         if ($publishedAt && $publishedAt > new \DateTime()) {
             $response->setExpires($publishedAt);
         }
 
-        // Force validation from querystring, or adds validate-to-publish custom HTTP header
-        if (
-            !\in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT, Request::METHOD_GET], true) ||
-            ($request->isMethod(Request::METHOD_GET) && false === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false))
-        ) {
+        if (!$response->isClientError()) {
             return;
         }
 
+        // Force validation from querystring, and/or add validate-to-publish custom HTTP header
         try {
             $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 1);
         } catch (ValidationException $exception) {
-            if (true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)) {
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+
+            if (
+                \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true) &&
+                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)
+            ) {
                 throw $exception;
             }
-
-            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
         }
     }
 

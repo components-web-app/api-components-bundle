@@ -61,10 +61,12 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableHelper->isActivePublishedAt($object);
 
-        try {
-            $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
-        } catch (ValidationException $exception) {
-            $context[MetadataNormalizer::METADATA_CONTEXT]['violation_list'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
+        if ($this->publishableHelper->isGranted()) {
+            try {
+                $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
+            } catch (ValidationException $exception) {
+                $context[MetadataNormalizer::METADATA_CONTEXT]['violation_list'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
+            }
         }
 
         return $this->normalizer->normalize($object, $format, $context);
