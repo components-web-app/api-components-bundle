@@ -24,10 +24,11 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\CustomPublishableComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
+use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithSecurityGroups;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidation;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidationCustomGroup;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\PublishableComponent;
 
 /**
  * @author Pierre Rebeilleau <pierre@les-tilleuls.coop>
@@ -114,9 +115,20 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): PublishableComponent
+    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableComponent
     {
         $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft);
+        $flush && $this->manager->flush();
+
+        return $object;
+    }
+
+    /**
+     * @Given /^there is a DummyPublishableWithSecurityGroups resource(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsADummyPublishableWithSecurityGroupsResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithSecurityGroups
+    {
+        $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithSecurityGroups());
         $flush && $this->manager->flush();
 
         return $object;
@@ -147,11 +159,11 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a custom publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): CustomPublishableComponent
+    public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): DummyPublishableCustomComponent
     {
         $publishedAt = $publishDate ? new \DateTime($publishDate) : null;
         $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
-        $resource = new CustomPublishableComponent();
+        $resource = new DummyPublishableCustomComponent();
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setCustomPublishedAt($publishedAt);
         $this->manager->persist($resource);
@@ -185,7 +197,7 @@ final class PublishableContext implements Context
     {
         $response = $this->jsonContext->getJsonAsArray();
         $items = $response['hydra:member'];
-        $draftResources = array_filter($this->resources, static function (PublishableComponent $component) {
+        $draftResources = array_filter($this->resources, static function (DummyPublishableComponent $component) {
             return 'is_draft' === $component->reference;
         });
 
@@ -212,7 +224,7 @@ final class PublishableContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
         $items = $response['hydra:member'];
 
-        $publishedResources = array_filter($this->resources, static function (PublishableComponent $component) {
+        $publishedResources = array_filter($this->resources, static function (DummyPublishableComponent $component) {
             return 'is_published' === $component->reference;
         });
 
@@ -226,12 +238,12 @@ final class PublishableContext implements Context
     }
 
     /**
-     * @return object|PublishableComponent|DummyPublishableWithValidation|DummyPublishableWithValidationCustomGroup
+     * @return object|DummyPublishableComponent|DummyPublishableWithValidation|DummyPublishableWithValidationCustomGroup|DummyPublishableWithSecurityGroups
      */
     private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false, object $resource = null)
     {
         $isPublished = !$forceDraft && (null !== $publishedAt && $publishedAt <= new \DateTime());
-        $resource = $resource ?: new PublishableComponent();
+        $resource = $resource ?: new DummyPublishableComponent();
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setPublishedAt($publishedAt);
         $this->manager->persist($resource);
@@ -245,7 +257,7 @@ final class PublishableContext implements Context
 
     private function getResourceIds(array $resources): array
     {
-        return array_map(function (PublishableComponent $component) {
+        return array_map(function (DummyPublishableComponent $component) {
             return $this->iriConverter->getIriFromItem($component);
         }, $resources);
     }

@@ -25,7 +25,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ApiResource
  * @ORM\Entity
  */
-class CustomPublishableComponent extends AbstractComponent
+class DummyPublishableCustomComponent extends AbstractComponent
 {
     /**
      * @var string a reference for this component
