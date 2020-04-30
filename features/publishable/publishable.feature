@@ -30,7 +30,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should include the published resources only
 
   @loginUser
-  @try
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/publishable_components?published=false"
@@ -39,18 +38,15 @@ Feature: Access to unpublished/draft resources should be configurable
 
   # POST
   @loginAdmin
-  Scenario Outline: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
+  Scenario: As a user with draft access, when I create a resource with publishedAt=null, I should be able to set the publishedAt date to specify if it is draft/published
     When I send a "POST" request to "/component/publishable_components" with data:
-      | reference | publishedAt   |
-      | test      | <publishedAt> |
+      | reference | publishedAt |
+      | test      | null        |
     Then the response status code should be 201
     # publishedAt does not exist because it's null
     And the JSON should be valid according to the schema file "publishable.schema.json"
     And the JSON node publishedAt should not exist
     And the JSON node _metadata.published should be false
-    Examples:
-      | publishedAt |
-      | null        |
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
@@ -75,8 +71,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node publishedAt should exist
     And the JSON node _metadata.published should be true
 
-  @loginUser
-  @saveNow
+  @loginUser @saveNow
   Scenario Outline: As a user with no draft access, when I create a resource, I should have the published resource returned, and the publication date is automatically set.
     When I send a "POST" request to "/component/publishable_components" with data:
       | reference | publishedAt   |
@@ -112,7 +107,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node "_metadata.published" should be equal to "true"
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
-  @loginAdmin
   @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
@@ -216,8 +210,8 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario Outline: As a user with draft access, when I update a published/draft resource with a draft resource available, and set a publication date in the past (or now), it should update the draft resource, merge it with the public resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     When I send a "PUT" request to the component "<component>" with data:
-      | publishedAt   | reference   |
-      | <publishedAt> | updated     |
+      | publishedAt   | reference |
+      | <publishedAt> | updated   |
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the JSON node "reference" should be equal to "updated"

@@ -23,6 +23,8 @@ use Silverback\ApiComponentBundle\Helper\PublishableHelper;
  */
 final class PublishableValidator implements ValidatorInterface
 {
+    public const PUBLISHED_KEY = 'published';
+
     private ValidatorInterface $decorated;
     private PublishableHelper $publishableHelper;
 
@@ -37,7 +39,11 @@ final class PublishableValidator implements ValidatorInterface
      */
     public function validate($data, array $context = [])
     {
-        if (\is_object($data) && $this->publishableHelper->isConfigured($data) && $this->publishableHelper->hasPublicationDate($data)) {
+        if (
+            \is_object($data) &&
+            $this->publishableHelper->isConfigured($data) &&
+            ($this->publishableHelper->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
+        ) {
             $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
             if (!empty($this->publishableHelper->getConfiguration($data)->validationGroups)) {
                 $groups = $this->publishableHelper->getConfiguration($data)->validationGroups;
