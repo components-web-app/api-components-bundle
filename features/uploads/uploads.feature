@@ -20,6 +20,7 @@ Feature: API Resources which can have files uploaded
     Examples:
       | file           | schema                            |
       | image.svg      | uploadable_has_files.schema.json  |
+      | test_file.txt  | uploadable_has_files.schema.json  |
       | test_file.docx | uploadable_has_files.schema.json  |
 
   @loginUser
@@ -34,6 +35,7 @@ Feature: API Resources which can have files uploaded
     Examples:
       | file           | schema                            |
       | image.svg      | uploadable_has_files.schema.json  |
+      | test_file.txt  | uploadable_has_files.schema.json  |
       | test_file.docx | uploadable_has_files.schema.json  |
 
   @loginUser

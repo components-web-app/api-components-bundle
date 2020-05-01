@@ -21,7 +21,7 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -79,7 +79,7 @@ class UploadableHelper
             if ($currentFilepath) {
                 $this->removeFilepath($object, $fieldConfiguration);
             }
-            /** @var UploadedBase64EncodedFile|null $file */
+            /** @var UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
                 $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);

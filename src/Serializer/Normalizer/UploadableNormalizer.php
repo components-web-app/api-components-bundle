@@ -16,8 +16,8 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentsBundle\Model\Uploadable\Base64EncodedFile;
-use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -88,8 +88,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             }
 
             try {
-                $file = new Base64EncodedFile($value);
-                $data[$fieldName] = new UploadedBase64EncodedFile($file, Uuid::uuid4() . '.' . $file->getExtension());
+                $file = new DataUriFile($value);
+                $data[$fieldName] = new UploadedDataUriFile($file, Uuid::uuid4() . '.' . $file->getExtension());
             } catch (FileException $exception) {
                 throw new NotNormalizableValueException($exception->getMessage());
             }
