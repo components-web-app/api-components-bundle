@@ -11,13 +11,6 @@ services:
   Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider\UnpersistedComponentDataProvider:
     tags: [ 'api_platform.item_data_provider' ]
 
-  app.imagine.data.loader.local:
-    class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
-    arguments:
-      - "@api_components.filesystem.in_memory"
-    tags:
-      - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
-
   app.imagine.cache.resolver.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
     arguments:

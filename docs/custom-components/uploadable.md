@@ -39,23 +39,13 @@ If you are using the [LiipImagineBundle](https://github.com/liip/LiipImagineBund
 
 ### Define your Data Loader
 
-#### Service configuration
-
-```yaml
-services:
-    app.imagine.data.loader.local:
-        class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
-        arguments:
-          - "@api_components.filesystem.local"
-        tags:
-          - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
-```
-
 #### Imagine Bundle Configuration
+
+We use our own binary provider so that we can use the filesystem you have defined on your `UploadableField` annotation.
 
 ```yaml
 liip_imagine:
-    data_loader: custom_data_loader
+    data_loader: silverback.api_component.liip_imagine.binary.loader
 ```
 
 or on a specific filter set
@@ -64,15 +54,16 @@ or on a specific filter set
 liip_imagine:
     filter_sets:
         my_special_style:
-            data_loader: custom_data_loader
+            data_loader: silverback.api_component.liip_imagine.binary.loader
             filters:
                 # your filters
 ```
 
-### Define your Cache Resolver
+### Define Your Cache Resolver
 
-#### Service configuration
+You can choose to create your own cache resolvers and store the cached Imagine images wherever you like.
 
+#### Example Service Configuration
 
 ```yaml
 services:
@@ -124,7 +115,7 @@ class File
     public ?File $file;
 ```
 
-> **A file will have `MediaObject` resources appended to it with the IRI/Schema configured.**
+In order to save the information about files stored in the cache, there is also an array doctrine field defiend in the `UploadableTrait` and the field name can be configured in the annotation if you do not want to use the trait.
 
 You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives a `Request` object and can return different filters depending on the resource state. If the resource is not an image, this will be silently ignored.
 

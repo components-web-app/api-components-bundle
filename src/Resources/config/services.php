@@ -75,6 +75,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
@@ -195,6 +196,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
+
+    $services
+        ->set(FlysystemDataLoader::class)
+        ->args([
+            new Reference(FilesystemProvider::class),
+        ])
+        ->tag('liip_imagine.binary.loader', ['loader' => 'silverback.api_component.liip_imagine.binary.loader']);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -543,6 +551,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FilesystemProvider::class),
             new Reference(MediaObjectFactory::class),
             new Reference(RequestStack::class),
+            new Reference(FlysystemDataLoader::class),
             null, // Set in dependency injection if imagine cache manager exists
         ]);
 

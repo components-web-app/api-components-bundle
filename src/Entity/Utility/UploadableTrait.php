@@ -21,7 +21,7 @@ trait UploadableTrait
 {
     private ?string $filename = null;
 
-    private ?array $filesInfo;
+    private ?array $filesInfo = null;
 
     public function getFilename(): ?string
     {

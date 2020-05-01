@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Imagine;
 
-use League\Flysystem\Filesystem;
 use Liip\ImagineBundle\Binary\Loader\LoaderInterface;
 use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
 use Liip\ImagineBundle\Model\Binary;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Symfony\Component\Mime\MimeTypes;
 
 /**
@@ -24,11 +24,17 @@ use Symfony\Component\Mime\MimeTypes;
  */
 class FlysystemDataLoader implements LoaderInterface
 {
-    protected Filesystem $filesystem;
+    protected FilesystemProvider $filesystemProvider;
+    private ?string $adapter = null;
 
-    public function __construct(Filesystem $filesystem)
+    public function __construct(FilesystemProvider $filesystemProvider)
     {
-        $this->filesystem = $filesystem;
+        $this->filesystemProvider = $filesystemProvider;
+    }
+
+    public function setAdapter(?string $adapter): void
+    {
+        $this->adapter = $adapter;
     }
 
     /**
@@ -36,17 +42,19 @@ class FlysystemDataLoader implements LoaderInterface
      */
     public function find($path)
     {
+        $filesystem = $this->filesystemProvider->getFilesystem($this->adapter);
+
         // This should be finding the file that we have uploaded into a location already - source file locator
-        if (false === $this->filesystem->fileExists($path)) {
+        if (false === $filesystem->fileExists($path)) {
             throw new NotLoadableException(sprintf('Source image "%s" not found.', $path));
         }
 
-        $mimeType = $this->filesystem->mimeType($path);
+        $mimeType = $filesystem->mimeType($path);
 
         $extension = MimeTypes::getDefault()->getExtensions($mimeType)[0];
 
         return new Binary(
-            $this->filesystem->read($path),
+            $filesystem->read($path),
             $mimeType,
             $extension
         );

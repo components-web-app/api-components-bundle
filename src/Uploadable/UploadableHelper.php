@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -41,6 +42,7 @@ class UploadableHelper
     private MediaObjectFactory $mediaObjectFactory;
     private RequestStack $requestStack;
     private ?FilterService $filterService;
+    private FlysystemDataLoader $flysystemDataLoader;
 
     public function __construct(
         ManagerRegistry $registry,
@@ -48,6 +50,7 @@ class UploadableHelper
         FilesystemProvider $filesystemProvider,
         MediaObjectFactory $mediaObjectFactory,
         RequestStack $requestStack,
+        FlysystemDataLoader $flysystemDataLoader,
         ?FilterService $filterService = null
     ) {
         $this->initRegistry($registry);
@@ -55,6 +58,7 @@ class UploadableHelper
         $this->filesystemProvider = $filesystemProvider;
         $this->mediaObjectFactory = $mediaObjectFactory;
         $this->requestStack = $requestStack;
+        $this->flysystemDataLoader = $flysystemDataLoader;
         $this->filterService = $filterService;
     }
 
@@ -145,7 +149,7 @@ class UploadableHelper
             }
 
             if ($object instanceof ImagineFiltersInterface) {
-                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $filesystem, $filename));
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $filesystem, $filename, $fieldConfiguration->adapter));
             }
 
             $collection->set($fieldConfiguration->property, $propertyMediaObjects);
@@ -154,8 +158,10 @@ class UploadableHelper
         return $collection->count() ? $collection : null;
     }
 
-    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, Filesystem $filesystem, string $filename): array
+    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, Filesystem $filesystem, string $filename, string $adapter): array
     {
+        $this->flysystemDataLoader->setAdapter($adapter);
+
         $mediaObjects = [];
         if (!$this->filterService) {
             return $mediaObjects;
@@ -165,6 +171,7 @@ class UploadableHelper
         $filters = $object->getImagineFilters($request);
         foreach ($filters as $filter) {
             $resolvedPath = $this->filterService->getUrlOfFilteredImage($filename, $filter);
+            // dump($resolvedPath);
             $mediaObjects[] = $this->mediaObjectFactory->create($object, $filesystem, $filename, $filter);
         }
 

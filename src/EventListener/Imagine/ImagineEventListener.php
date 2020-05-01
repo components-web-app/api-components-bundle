@@ -31,11 +31,11 @@ class ImagineEventListener
 
     public function onStore(ImagineStoreEvent $event)
     {
-        dump('I have the store event!', $event);
+        // dump('I have the store event!');
     }
 
     public function onRemove(ImagineRemoveEvent $event)
     {
-        dump('I have the remove event!', $event);
+        // dump('I have the remove event!');
     }
 }
