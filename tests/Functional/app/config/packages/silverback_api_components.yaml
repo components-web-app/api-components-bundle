@@ -1,7 +1,7 @@
-silverback_api_component:
+silverback_api_components:
   website_name: New Website
   user:
-    class_name: Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User
+    class_name: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
     email_verification:
       default_value: false
       verify_on_register: true

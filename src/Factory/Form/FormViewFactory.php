@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Factory\Form;
+namespace Silverback\ApiComponentsBundle\Factory\Form;
 
-use Silverback\ApiComponentBundle\Dto\FormView;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Dto\FormView;
+use Silverback\ApiComponentsBundle\Entity\Component\Form;
 
 /**
  * @author Daniel West <daniel@silverback.is>

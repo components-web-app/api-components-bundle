@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\config;
+namespace Silverback\ApiComponentsBundle\Tests\config;
 
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Psr\Log\LoggerInterface;
-use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container) {
@@ -32,7 +32,7 @@ return static function (ContainerConfigurator $container) {
         ->public();
 
     $services
-        ->load('Silverback\\ApiComponentBundle\\Tests\\Functional\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
+        ->load('Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\DataFixtures\\', '../../TestBundle/DataFixtures')
         ->tag('doctrine.fixture.orm');
 
     $services

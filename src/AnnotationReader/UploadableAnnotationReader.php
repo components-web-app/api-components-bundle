@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
-use Silverback\ApiComponentBundle\Annotation\Uploadable;
-use Silverback\ApiComponentBundle\Annotation\UploadableField;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Exception\UnsupportedAnnotationException;
+use Silverback\ApiComponentsBundle\Annotation\Uploadable;
+use Silverback\ApiComponentsBundle\Annotation\UploadableField;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>

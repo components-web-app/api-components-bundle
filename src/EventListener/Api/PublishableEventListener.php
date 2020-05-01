@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\AnnotationReader\PublishableAnnotationReader;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
-use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
-use Silverback\ApiComponentBundle\Validator\PublishableValidator;
+use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;

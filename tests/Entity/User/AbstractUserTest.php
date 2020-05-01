@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 class AbstractUserTest extends TestCase
 {

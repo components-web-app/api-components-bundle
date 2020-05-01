@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Type\User;
+namespace Silverback\ApiComponentsBundle\Form\Type\User;
 
-use Silverback\ApiComponentBundle\Form\AbstractType;
-use Silverback\ApiComponentBundle\Model\Form\LoginForm;
+use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Model\Form\LoginForm;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -57,7 +57,7 @@ class UserLoginType extends AbstractType
             ])
             // js server will look for this to know where to send login request to
             ->add('_action', HiddenType::class, [
-                'data' => $this->router->generate('api_component_login_check'),
+                'data' => $this->router->generate('api_components_login_check'),
             ]);
     }
 

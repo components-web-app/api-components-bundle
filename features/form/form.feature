@@ -12,7 +12,7 @@ Feature: Form component that defines a form type created in the application
     When I send a "POST" request to "/component/forms" with body:
     """
     {
-      "formType": "Silverback\\ApiComponentBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
+      "formType": "Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
     }
     """
     Then the response status code should be 201

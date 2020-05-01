@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
+namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
-use Silverback\ApiComponentBundle\Action\Uploadable\UploadableAction;
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 
 /**
  * Configures API Platform metadata for file resources.

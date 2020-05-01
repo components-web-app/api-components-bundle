@@ -9,8 +9,8 @@ nav_order: 2
 To set an entity component as timestamped, use the following annotation and trait:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @Silverback\Timestamped
@@ -23,7 +23,7 @@ class Foo
 Default field for the created timestamp is`createdAt` and the modified timestamp `modifiedAt`. To customize these, update the annotation and your class:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
 /**
  * @Silverback\Timestamped(createdAtField="customCreatedAt", modifiedAtField="customModifiedAt")

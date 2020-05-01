@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Event\UserEmailMessageEvent;
-use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Exception\RfcComplianceException;
-use Silverback\ApiComponentBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
-use Silverback\ApiComponentBundle\Tests\Functional\Factory\Mailer\User\DummyUserEmailFactory;
-use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Event\UserEmailMessageEvent;
+use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
+use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Tests\Functional\Factory\Mailer\User\DummyUserEmailFactory;
+use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -155,7 +155,7 @@ class AbstractUserEmailFactoryTest extends TestCase
         $emailMessage = (new TemplatedEmail())
             ->to(Address::fromString('email@address.com'))
             ->subject('website name is my website')
-            ->htmlTemplate('@SilverbackApiComponent/emails/template.html.twig')
+            ->htmlTemplate('@SilverbackApiComponents/emails/template.html.twig')
             ->context(array_merge(self::VALID_CONTEXT, [
                 'user' => $user,
             ]));

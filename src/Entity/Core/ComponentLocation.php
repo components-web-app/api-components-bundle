@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,12 +33,12 @@ class ComponentLocation
     use IdTrait;
     use TimestampedTrait;
 
-    /** @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup", inversedBy="componentLocations") */
+    /** @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup", inversedBy="componentLocations") */
     public ComponentGroup $componentGroup;
 
     /**
      * @ApiProperty(writable=false)
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", inversedBy="componentLocations")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent", inversedBy="componentLocations")
      */
     public AbstractComponent $component;
 

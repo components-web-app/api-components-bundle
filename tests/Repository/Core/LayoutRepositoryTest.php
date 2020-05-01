@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Repository\Core;
+namespace Silverback\ApiComponentsBundle\Tests\Repository\Core;
 
-use Silverback\ApiComponentBundle\Entity\Core\Layout;
-use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
-use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
+use Silverback\ApiComponentsBundle\Tests\Repository\AbstractRepositoryTest;
 
 class LayoutRepositoryTest extends AbstractRepositoryTest
 {

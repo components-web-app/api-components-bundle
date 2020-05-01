@@ -51,7 +51,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "Silverback\\ApiComponentBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
+                "Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
             ]
         },
         "formView": {

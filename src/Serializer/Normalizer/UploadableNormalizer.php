@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
+namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentBundle\Model\Uploadable\Base64EncodedFile;
-use Silverback\ApiComponentBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Model\Uploadable\Base64EncodedFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;

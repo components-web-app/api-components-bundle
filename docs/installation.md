@@ -3,7 +3,7 @@ layout: default
 title: Installation
 nav_order: -1
 ---
-# Install API Component Bundle
+# Install API Components Bundle
 We encourage using as many of the packages as possible that are well maintained by large and active communities. Therefore, let's start with the most up to date API Platform files and then install this bundle on top.
 
 In the future, we will be creating a standard package you will be able to use for installing ACB instead of needing to follow these instructions. For now, we want to just focus on getting this bundle working well without the additional repository to maintain.

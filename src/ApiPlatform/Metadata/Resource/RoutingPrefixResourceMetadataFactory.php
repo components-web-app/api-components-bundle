@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource;
+namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractPageData;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -43,7 +43,7 @@ class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInt
         } else {
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
-            $acbNamespace = 'Silverback\ApiComponentBundle\\';
+            $acbNamespace = 'Silverback\ApiComponentsBundle\\';
 
             if (0 === strpos($namespace, $acbNamespace)) {
                 $routePrefixParts[] = '_';

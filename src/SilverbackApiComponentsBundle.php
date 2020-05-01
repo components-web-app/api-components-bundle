@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle;
+namespace Silverback\ApiComponentsBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
-use Silverback\ApiComponentBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use function class_exists;
@@ -25,7 +25,7 @@ use function class_exists;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class SilverbackApiComponentBundle extends Bundle
+class SilverbackApiComponentsBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {

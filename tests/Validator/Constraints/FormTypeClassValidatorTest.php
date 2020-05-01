@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Validator\Constraints;
+namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
-use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClass;
-use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClass;
+use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;

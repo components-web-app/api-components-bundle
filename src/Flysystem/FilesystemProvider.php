@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Flysystem;
+namespace Silverback\ApiComponentsBundle\Flysystem;
 
 use League\Flysystem\Filesystem;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  */
 class FilesystemProvider
 {
-    public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_component.filesystem_adapter';
+    public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_components.filesystem_adapter';
 
     private ServiceLocator $adapters;
 

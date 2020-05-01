@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
@@ -24,11 +24,11 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithSecurityGroups;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidation;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidationCustomGroup;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithSecurityGroups;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidation;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithValidationCustomGroup;
 
 /**
  * @author Pierre Rebeilleau <pierre@les-tilleuls.coop>

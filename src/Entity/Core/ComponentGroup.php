@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -38,14 +38,14 @@ class ComponentGroup
     public string $reference;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", mappedBy="componentGroups")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Layout", mappedBy="componentGroups")
      *
      * @var Collection|Layout[]
      */
     public $layouts;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="componentGroups")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate", mappedBy="componentGroups")
      *
      * @var Collection|PageTemplate[]
      */
@@ -53,14 +53,14 @@ class ComponentGroup
 
     /**
      * @ApiProperty(writable=false)
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractComponent", mappedBy="componentGroups")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent", mappedBy="componentGroups")
      *
      * @var Collection|AbstractComponent[]
      */
     public Collection $components;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")
      * @ORM\OrderBy({"sort" = "ASC"})
      *
      * @var Collection|ComponentLocation[]

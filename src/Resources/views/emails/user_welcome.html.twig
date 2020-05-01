@@ -1,4 +1,4 @@
-{% extends "@SilverbackApiComponent/emails/_template.html.twig" %}
+{% extends "@SilverbackApiComponents/emails/_template.html.twig" %}
 
 {% block content %}
   <h1 class="text-center">Welcome to {{ website_name }}</h1>
@@ -9,5 +9,5 @@
     <p>Please click the link below to verify your email address.</p>
     <button class="large expand" href="{{ redirect_url }}">Verify Email Address</button>
   {% endif %}
-  {% include "@SilverbackApiComponent/emails/_signature.html.twig" %}
+  {% include "@SilverbackApiComponents/emails/_signature.html.twig" %}
 {% endblock %}

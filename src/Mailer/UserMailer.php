@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Mailer;
+namespace Silverback\ApiComponentsBundle\Mailer;
 
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\MailerTransportException;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\RawMessage;

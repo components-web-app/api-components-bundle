@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
+namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 

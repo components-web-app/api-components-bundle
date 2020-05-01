@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Resources\config;
+namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
@@ -23,79 +23,79 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentBundle\Action\Form\FormPostPatchAction;
-use Silverback\ApiComponentBundle\Action\Uploadable\UploadableAction;
-use Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction;
-use Silverback\ApiComponentBundle\Action\User\PasswordRequestAction;
-use Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction;
-use Silverback\ApiComponentBundle\AnnotationReader\AbstractAnnotationReader;
-use Silverback\ApiComponentBundle\AnnotationReader\PublishableAnnotationReader;
-use Silverback\ApiComponentBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
-use Silverback\ApiComponentBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
-use Silverback\ApiComponentBundle\Command\FormCachePurgeCommand;
-use Silverback\ApiComponentBundle\Command\UserCreateCommand;
-use Silverback\ApiComponentBundle\DataTransformer\CollectionOutputDataTransformer;
-use Silverback\ApiComponentBundle\DataTransformer\FormOutputDataTransformer;
-use Silverback\ApiComponentBundle\DataTransformer\PageTemplateOutputDataTransformer;
-use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\PublishableExtension;
-use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentBundle\EventListener\Api\UploadableEventListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\PublishableListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\TimestampedListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\UploadableListener;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
-use Silverback\ApiComponentBundle\EventListener\Form\User\NewEmailAddressListener;
-use Silverback\ApiComponentBundle\EventListener\Form\User\UserRegisterListener;
-use Silverback\ApiComponentBundle\EventListener\Jwt\JwtCreatedEventListener;
-use Silverback\ApiComponentBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
-use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentBundle\Factory\User\UserFactory;
-use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
-use Silverback\ApiComponentBundle\Form\Handler\FormSubmitHandler;
-use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
-use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
-use Silverback\ApiComponentBundle\Form\Type\User\UserLoginType;
-use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentBundle\Mailer\UserMailer;
-use Silverback\ApiComponentBundle\Manager\User\EmailAddressManager;
-use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
-use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
-use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
-use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\ContextBuilder\PublishableContextBuilder;
-use Silverback\ApiComponentBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
-use Silverback\ApiComponentBundle\Serializer\ContextBuilder\UserContextBuilder;
-use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
-use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\PublishableNormalizer;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\UploadableNormalizer;
-use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentBundle\Uploadable\UploadableHelper;
-use Silverback\ApiComponentBundle\Utility\RefererUrlHelper;
-use Silverback\ApiComponentBundle\Validator\Constraints\FormTypeClassValidator;
-use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddressValidator;
-use Silverback\ApiComponentBundle\Validator\MappingLoader\UploadableLoader;
-use Silverback\ApiComponentBundle\Validator\PublishableValidator;
+use Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
+use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
+use Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction;
+use Silverback\ApiComponentsBundle\AnnotationReader\AbstractAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
+use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
+use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
+use Silverback\ApiComponentsBundle\DataTransformer\PageTemplateOutputDataTransformer;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
+use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
+use Silverback\ApiComponentsBundle\Factory\Form\FormFactory;
+use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
+use Silverback\ApiComponentsBundle\Form\Handler\FormSubmitHandler;
+use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
+use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Mailer\UserMailer;
+use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
+use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
+use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UserContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader;
+use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -240,7 +240,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('validator.constraint_validator')
         ->args(
             [
-                '$formTypes' => new TaggedIteratorArgument('silverback_api_component.form_type'),
+                '$formTypes' => new TaggedIteratorArgument('silverback_api_components.form_type'),
             ]
         );
 

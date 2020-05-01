@@ -12,7 +12,7 @@ This bundle uses FlySystem v2. It does not use additional bundles. Instead, you 
 Configuration example in `services.php`
 ```php
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 
 $services
         ->set(LocalFilesystemAdapter::class)
@@ -35,8 +35,8 @@ app.flysystem.adapter.local:
 The easiest way to configure an entity resource be an uploadable file is to use the following annotation and trait:
 
 ```php
-use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
 /**
  * @Silverback\Uploadable()
@@ -57,9 +57,9 @@ You can configure your `File` object to use ImagineBundle filters. You will rece
 
 ```php
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\UploadableTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\ImagineFiltersInterface;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**

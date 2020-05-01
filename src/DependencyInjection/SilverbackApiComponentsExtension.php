@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,30 +11,30 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DependencyInjection;
+namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
-use Silverback\ApiComponentBundle\Doctrine\Extension\ORM\TablePrefixExtension;
-use Silverback\ApiComponentBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentBundle\EventListener\Doctrine\UserListener;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\WelcomeEmailFactory;
-use Silverback\ApiComponentBundle\Factory\User\UserFactory;
-use Silverback\ApiComponentBundle\Form\FormTypeInterface;
-use Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType;
-use Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType;
-use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentBundle\Mailer\UserMailer;
-use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Publishable\PublishableHelper;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Security\TokenAuthenticator;
-use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
+use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
+use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Mailer\UserMailer;
+use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
+use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -44,7 +44,7 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class SilverbackApiComponentExtension extends Extension implements PrependExtensionInterface
+class SilverbackApiComponentsExtension extends Extension implements PrependExtensionInterface
 {
     /**
      * @throws Exception
@@ -148,10 +148,10 @@ class SilverbackApiComponentExtension extends Extension implements PrependExtens
     private function loadServiceConfig(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(FormTypeInterface::class)
-            ->addTag('silverback_api_component.form_type');
+            ->addTag('silverback_api_components.form_type');
 
         $container->registerForAutoconfiguration(ComponentInterface::class)
-            ->addTag('silverback_api_component.entity.component');
+            ->addTag('silverback_api_components.entity.component');
 
         $loader = new PhpFileLoader(
             $container,

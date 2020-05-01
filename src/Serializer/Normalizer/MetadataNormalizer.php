@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
+namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
@@ -25,7 +25,7 @@ class MetadataNormalizer implements ContextAwareNormalizerInterface, CacheableSu
 {
     use NormalizerAwareTrait;
 
-    public const METADATA_CONTEXT = 'silverback_api_component_bundle_metadata';
+    public const METADATA_CONTEXT = 'silverback_api_components_bundle_metadata';
     private const ALREADY_CALLED = 'METADATA_NORMALIZER_ALREADY_CALLED';
 
     private string $metadataKey;

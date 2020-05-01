@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Validator;
+namespace Silverback\ApiComponentsBundle\Validator;
 
 use ProxyManager\Proxy\LazyLoadingInterface;
 use ReflectionClass;
 use ReflectionException;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 
 /**
  * @author Daniel West <daniel@silverback.is>

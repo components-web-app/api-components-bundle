@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Functional\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\Factory\Mailer\User;
 
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
 use Symfony\Component\Mime\RawMessage;
 
 class DummyUserEmailFactory extends AbstractUserEmailFactory

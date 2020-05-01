@@ -2,14 +2,14 @@ default:
   suites:
     default:
       contexts:
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\DoctrineContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\PublishableContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\RestContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\PublishableContext'
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\UploadsContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext'
 
   extensions:
     'FriendsOfBehat\SymfonyExtension':
@@ -31,15 +31,15 @@ default-coverage:
   suites:
     default: &default-coverage-suite
       contexts:
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\CoverageContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\DoctrineContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\JsonContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CoverageContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\DoctrineContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\RestContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\PublishableContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\RestContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\PublishableContext'
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
-        - 'Silverback\ApiComponentBundle\Features\Bootstrap\UploadsContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext'
 
 default-legacy:
   suites:

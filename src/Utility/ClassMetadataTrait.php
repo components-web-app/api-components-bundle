@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Utility;
+namespace Silverback\ApiComponentsBundle\Utility;
 
 use ApiPlatform\Core\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMInvalidArgumentException;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
+use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>

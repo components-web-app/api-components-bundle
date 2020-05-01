@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Validator\MappingLoader;
+namespace Silverback\ApiComponentsBundle\Validator\MappingLoader;
 
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;

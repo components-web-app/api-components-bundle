@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,7 +36,7 @@ abstract class AbstractPageData extends AbstractPage implements PageDataInterfac
      */
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate")
      * @ORM\JoinColumn(nullable=false)
      */
     public PageTemplate $pageTemplate;

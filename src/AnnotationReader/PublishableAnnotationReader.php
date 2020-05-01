@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
-use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\Annotation\Publishable;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>

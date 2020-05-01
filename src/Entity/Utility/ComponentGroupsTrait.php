@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Utility;
+namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,7 +24,7 @@ use Silverback\ApiComponentBundle\Entity\Core\ComponentGroup;
 trait ComponentGroupsTrait
 {
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentGroup")
+     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup")
      *
      * @var Collection|ComponentGroup[]
      */

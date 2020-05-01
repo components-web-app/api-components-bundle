@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Uploadable;
+namespace Silverback\ApiComponentsBundle\Uploadable;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentBundle\Annotation\UploadableField;
-use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentBundle\Model\Uploadable\UploadedBase64EncodedFile;
-use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\Annotation\UploadableField;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 

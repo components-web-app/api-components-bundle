@@ -4,7 +4,7 @@ title: Home
 nav_order: -9999
 ---
 
-# API Component Bundle Documentation
+# API Components Bundle Documentation
 
 >__Creates a flexible API for a website's structure, reusable components and common functionality.__
 
