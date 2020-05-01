@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Validator;
+namespace Silverback\ApiComponentsBundle\Validator;
 
 use ApiPlatform\Core\Validator\ValidatorInterface;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
 
 /**
  * Builds and add validation group for published resources.
@@ -37,16 +37,16 @@ final class PublishableValidator implements ValidatorInterface
     /**
      * {@inheritdoc}
      */
-    public function validate($data, array $context = [])
+    public function validate($data, array $context = []): void
     {
         if (
             \is_object($data) &&
-            $this->publishableHelper->isConfigured($data) &&
+            $this->publishableHelper->getAnnotationReader()->isConfigured($data) &&
             ($this->publishableHelper->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
         ) {
             $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
-            if (!empty($this->publishableHelper->getConfiguration($data)->validationGroups)) {
-                $groups = $this->publishableHelper->getConfiguration($data)->validationGroups;
+            if (!empty($this->publishableHelper->getAnnotationReader()->getConfiguration($data)->validationGroups)) {
+                $groups = $this->publishableHelper->getAnnotationReader()->getConfiguration($data)->validationGroups;
             }
             $context['groups'] = array_merge($context['groups'] ?? ['Default'], $groups);
         }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
+namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Annotation\Publishable;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
-use Silverback\ApiComponentBundle\Validator\PublishableValidator;
+use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -77,7 +77,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return !isset($context[self::ALREADY_CALLED]) &&
             \is_object($data) &&
             !$data instanceof \Traversable &&
-            $this->publishableHelper->isConfigured($data);
+            $this->publishableHelper->getAnnotationReader()->isConfigured($data);
     }
 
     /**
@@ -86,7 +86,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
-        $configuration = $this->publishableHelper->getConfiguration($type);
+        $configuration = $this->publishableHelper->getAnnotationReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
@@ -193,7 +193,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->isConfigured($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->getAnnotationReader()->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

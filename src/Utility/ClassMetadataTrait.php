@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Utility;
+namespace Silverback\ApiComponentsBundle\Utility;
 
 use ApiPlatform\Core\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMInvalidArgumentException;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Exception\BadMethodCallException;
+use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -29,7 +29,7 @@ trait ClassMetadataTrait
 {
     use ClassInfoTrait;
 
-    private ?ManagerRegistry $registry;
+    protected ?ManagerRegistry $registry;
 
     /**
      * @required
@@ -39,22 +39,36 @@ trait ClassMetadataTrait
         $this->registry = $registry;
     }
 
-    protected function getClassMetadata(object $data): ClassMetadata
+    /**
+     * @param string|object $data
+     */
+    protected function getClassMetadata($data): ClassMetadata
     {
-        return $this->getEntityManager($data)->getClassMetadata($this->getObjectClass($data));
+        return $this->getEntityManager($data)->getClassMetadata($this->getObjectClassFromStringOrObject($data));
     }
 
-    private function getEntityManager(object $data): EntityManagerInterface
+    /**
+     * @param string|object $data
+     */
+    protected function getEntityManager($data): EntityManagerInterface
     {
         if (!$this->registry) {
             throw new BadMethodCallException('initRegistry should be called first. Registry property does not exist');
         }
 
-        $em = $this->registry->getManagerForClass($this->getObjectClass($data));
+        $em = $this->registry->getManagerForClass($this->getObjectClassFromStringOrObject($data));
         if (!$em instanceof EntityManagerInterface) {
             throw ORMInvalidArgumentException::invalidObject(__CLASS__ . '::' . __FUNCTION__, $data);
         }
 
         return $em;
+    }
+
+    /**
+     * @param string|object $object
+     */
+    private function getObjectClassFromStringOrObject($object): string
+    {
+        return \is_string($object) ? $object : $this->getObjectClass($object);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Security;
+namespace Silverback\ApiComponentsBundle\Tests\Security;
 
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Security\UserChecker;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\UnsupportedUser;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\UnsupportedUser;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Security\Core\Exception\DisabledException;
 
 class UserCheckerTest extends TestCase

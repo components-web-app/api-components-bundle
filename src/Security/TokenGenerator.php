@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Security;
+namespace Silverback\ApiComponentsBundle\Security;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class TokenGenerator
 {
-    public function generateToken(int $length = 16): string
+    public static function generateToken(int $length = 16): string
     {
         return bin2hex(random_bytes($length));
     }

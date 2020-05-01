@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Command;
+namespace Silverback\ApiComponentsBundle\Command;
 
-use Silverback\ApiComponentBundle\Event\CommandLogEvent;
-use Silverback\ApiComponentBundle\Form\Cache\FormCachePurger;
+use Silverback\ApiComponentsBundle\Event\CommandLogEvent;
+use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -45,7 +45,7 @@ class FormCachePurgeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('silverback:api-component:form-cache-purge')
+            ->setName('silverback:api-components:form-cache-purge')
             ->setDescription('Purges the varnish cache for forms. Sets the `modified` timestamp to the file last modified date');
     }
 

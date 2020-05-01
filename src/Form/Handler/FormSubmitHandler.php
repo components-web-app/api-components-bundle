@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Handler;
+namespace Silverback\ApiComponentsBundle\Form\Handler;
 
-use Silverback\ApiComponentBundle\Dto\FormView;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentBundle\Factory\Form\FormFactory;
+use Silverback\ApiComponentsBundle\Dto\FormView;
+use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\Factory\Form\FormFactory;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;

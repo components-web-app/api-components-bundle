@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,7 +33,7 @@ class PageTemplate extends AbstractPage
     use ComponentGroupsTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Layout", inversedBy="pageTemplates")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Layout", inversedBy="pageTemplates")
      * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
     public ?Layout $layout;

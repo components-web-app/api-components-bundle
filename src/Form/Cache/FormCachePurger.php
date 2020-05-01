@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Form\Cache;
+namespace Silverback\ApiComponentsBundle\Form\Cache;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Event\CommandLogEvent;
+use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Event\CommandLogEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\CacheClearer\CacheClearerInterface;
 

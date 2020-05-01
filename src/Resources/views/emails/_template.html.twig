@@ -1,4 +1,4 @@
-{% apply inky_to_html|inline_css(source('@SilverbackApiComponent/assets/css/foundation-emails.css'), source('@SilverbackApiComponent/assets/css/emails.css')) %}
+{% apply inky_to_html|inline_css(source('@SilverbackApiComponents/assets/css/foundation-emails.css'), source('@SilverbackApiComponents/assets/css/emails.css')) %}
   <container>
     <row class="header">
       <columns>
@@ -6,7 +6,7 @@
         <spacer size="16"></spacer>
 
         <center>
-          <img src="{{ email.image('@SilverbackApiComponent/assets/images/email_logo.png') }}" alt="Logo" class="logo">
+          <img src="{{ email.image('@SilverbackApiComponents/assets/images/email_logo.png') }}" alt="Logo" class="logo">
         </center>
       </columns>
     </row>

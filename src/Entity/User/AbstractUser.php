@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\User;
+namespace Silverback\ApiComponentsBundle\Entity\User;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
-use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
@@ -31,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentBundle\Repository\User\UserRepository")
+ * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentsBundle\Repository\User\UserRepository")
  * @ORM\Table(
  * indexes={@ORM\Index(name="username_idx", columns={"username"}), @ORM\Index(name="email_address_idx", columns={"email_address"})})
  *     uniqueConstraints={@ORM\UniqueConstraint(name="username_email_idx", columns={"username", "email_address"})})

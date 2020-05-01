@@ -4,17 +4,17 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <route id="api_component_login_check" path="/login" />
+    <route id="api_components_login_check" path="/login" />
 
-    <route id="api_component_reset_password" path="/password/reset/request/{username}"
-           controller="Silverback\ApiComponentBundle\Action\User\PasswordRequestAction"
+    <route id="api_components_reset_password" path="/password/reset/request/{username}"
+           controller="Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction"
            methods="GET" />
 
-    <route id="api_component_change_password" path="/password/update"
-           controller="Silverback\ApiComponentBundle\Action\User\PasswordUpdateAction"
+    <route id="api_components_change_password" path="/password/update"
+           controller="Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction"
            methods="POST" />
 
-    <route id="api_component_change_email_address" path="/email_address/update"
-           controller="Silverback\ApiComponentBundle\Action\User\EmailAddressVerifyAction"
+    <route id="api_components_change_email_address" path="/email_address/update"
+           controller="Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction"
            methods="POST" />
 </routes>

@@ -1,5 +1,5 @@
 {
-    "name": "silverbackis/api-component-bundle",
+    "name": "silverbackis/api-components-bundle",
     "type": "symfony-bundle",
     "license": "MIT",
     "require": {
@@ -39,6 +39,8 @@
         "friends-of-behat/mink-extension": "^2.4",
         "friends-of-behat/symfony-extension": "^2.1",
         "justinrainbow/json-schema": "^5.2",
+        "league/flysystem": "2.0.0-alpha.3@dev",
+        "league/flysystem-memory": "^2",
         "phpspec/prophecy": "^1.8",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^0.12.4",
@@ -64,13 +66,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Silverback\\ApiComponentBundle\\": "src/"
+            "Silverback\\ApiComponentsBundle\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Silverback\\ApiComponentBundle\\Features\\Bootstrap\\" : "features/bootstrap/",
-            "Silverback\\ApiComponentBundle\\Tests\\": "tests/"
+            "Silverback\\ApiComponentsBundle\\Features\\Bootstrap\\" : "features/bootstrap/",
+            "Silverback\\ApiComponentsBundle\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",
@@ -78,7 +80,8 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "root-dir": "tests/app"
+            "root-dir": "tests/app",
+            "require": "4.4.*"
         }
     },
     "scripts": {

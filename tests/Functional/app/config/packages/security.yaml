@@ -3,12 +3,12 @@ security:
         ROLE_ADMIN:       ROLE_USER
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
     encoders:
-        Silverback\ApiComponentBundle\Entity\User\AbstractUser:
+        Silverback\ApiComponentsBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
         user_provider:
             entity:
-                class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
+                class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -18,10 +18,10 @@ security:
             stateless: true
             # anonymous: true
             provider: user_provider
-            user_checker: Silverback\ApiComponentBundle\Security\UserChecker
+            user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
             guard:
                 authenticators:
-                    - Silverback\ApiComponentBundle\Security\TokenAuthenticator
+                    - Silverback\ApiComponentsBundle\Security\TokenAuthenticator
             json_login:
                 check_path: /login
                 success_handler: lexik_jwt_authentication.handler.authentication_success

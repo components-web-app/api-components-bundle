@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
@@ -24,14 +24,14 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\NestedType;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
+use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 
 final class DoctrineContext implements Context
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Serializer\MappingLoader;
+namespace Silverback\ApiComponentsBundle\Serializer\MappingLoader;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Silverback\ApiComponentBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 

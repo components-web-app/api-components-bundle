@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Security;
+namespace Silverback\ApiComponentsBundle\Security;
 
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Symfony\Component\Security\Core\Exception\DisabledException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;

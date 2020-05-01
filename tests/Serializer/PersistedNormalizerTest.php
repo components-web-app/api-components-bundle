@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Serializer;
+namespace Silverback\ApiComponentsBundle\Tests\Serializer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Serializer\Normalizer\PersistedNormalizer;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
 
@@ -109,7 +109,7 @@ class PersistedNormalizerTest extends TestCase
             ->with($dummyComponent, $format, [
                 'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
                 'default_context_param' => 'default_value',
-                'silverback_api_component_bundle_metadata' => ['persisted' => true],
+                'silverback_api_components_bundle_metadata' => ['persisted' => true],
             ])
             ->willReturn('anything');
 
@@ -119,7 +119,7 @@ class PersistedNormalizerTest extends TestCase
             ->with($dummyComponent)
             ->willReturn(true);
 
-        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value', 'silverback_api_component_bundle_metadata' => ['persisted' => true]]);
+        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value', 'silverback_api_components_bundle_metadata' => ['persisted' => true]]);
         $this->assertEquals('anything', $result);
     }
 
@@ -133,7 +133,7 @@ class PersistedNormalizerTest extends TestCase
             ->method('normalize')
             ->with($dummyComponent, $format, [
                 'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
-                'silverback_api_component_bundle_metadata' => ['persisted' => false],
+                'silverback_api_components_bundle_metadata' => ['persisted' => false],
             ])
             ->willReturn('anything');
 
@@ -143,7 +143,7 @@ class PersistedNormalizerTest extends TestCase
             ->with($dummyComponent)
             ->willReturn(false);
 
-        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['silverback_api_component_bundle_metadata' => ['persisted' => false]]);
+        $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['silverback_api_components_bundle_metadata' => ['persisted' => false]]);
         $this->assertEquals('anything', $result);
     }
 }

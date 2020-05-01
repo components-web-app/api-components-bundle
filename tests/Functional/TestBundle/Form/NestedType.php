@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Silverback\ApiComponentBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;

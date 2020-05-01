@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Entity\Utility\ComponentGroupsTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\UiTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -36,7 +36,7 @@ abstract class AbstractComponent implements ComponentInterface
     use ComponentGroupsTrait;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\ComponentLocation", mappedBy="component")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation", mappedBy="component")
      *
      * @var Collection|ComponentLocation[]
      */

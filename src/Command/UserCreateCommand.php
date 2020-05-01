@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Command;
+namespace Silverback\ApiComponentsBundle\Command;
 
 use Exception;
-use Silverback\ApiComponentBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,7 +27,7 @@ use Symfony\Component\Console\Question\Question;
  */
 class UserCreateCommand extends Command
 {
-    protected static $defaultName = 'silverback:api-component:user:create';
+    protected static $defaultName = 'silverback:api-components:user:create';
     private UserFactory $userFactory;
     private array $questions = [];
 
@@ -50,7 +50,7 @@ class UserCreateCommand extends Command
                 new InputOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite the user if they already exist'),
             ])
             ->setHelp(<<<EOT
-                The <info>silverback:api-component:user:create</info> command creates a user:
+                The <info>silverback:api-components:user:create</info> command creates a user:
                   <info>php %command.full_name% daniel</info>
                 This interactive shell will ask you for an email and then a password.
                 You can alternatively specify the email and password as the second and third arguments:

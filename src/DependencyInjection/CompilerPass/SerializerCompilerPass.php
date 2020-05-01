@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DependencyInjection\CompilerPass;
+namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentBundle\Serializer\MappingLoader\PublishableLoader;
-use Silverback\ApiComponentBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;

@@ -1,0 +1,18 @@
+{
+    "allOf": [
+        {
+            "$ref": "publishable.schema.json"
+        },
+        {
+            "properties": {
+                "_metadata": {
+                    "not": {
+                        "required": [
+                            "violation_list"
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

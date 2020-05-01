@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DataTransformer;
+namespace Silverback\ApiComponentsBundle\DataTransformer;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use Silverback\ApiComponentBundle\Entity\Component\Form;
-use Silverback\ApiComponentBundle\Factory\Form\FormViewFactory;
+use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 
 /**
  * @author Daniel West <daniel@silverback.is>

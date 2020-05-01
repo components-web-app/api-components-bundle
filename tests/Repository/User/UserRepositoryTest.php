@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Repository\User;
+namespace Silverback\ApiComponentsBundle\Tests\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\User;
-use Silverback\ApiComponentBundle\Tests\Repository\AbstractRepositoryTest;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Tests\Repository\AbstractRepositoryTest;
 use Symfony\Component\HttpFoundation\Request;
 
 class UserRepositoryTest extends AbstractRepositoryTest

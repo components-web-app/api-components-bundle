@@ -1,2 +1,2 @@
-silverback_api_component:
-  resource: "@SilverbackApiComponentBundle/Resources/config/routing/all.xml"
+silverback_api_components:
+  resource: "@SilverbackApiComponentsBundle/Resources/config/routing/all.xml"

@@ -11,7 +11,7 @@ __PHPUnit:__
 ---
 
 <p align="center">
-    <h1 align="center">API Component Bundle v2 [WIP]</h1>
+    <h1 align="center">API Components Bundle v2 [WIP]</h1>
     <p align="center">Creates a flexible API for a website's structure, reusable components and common functionality.</p>
     <p align="center"><strong><a href="https://silverbackis.github.io/ApiComponentBundle">Read the documentation</a></strong></p>
     <br><br><br>

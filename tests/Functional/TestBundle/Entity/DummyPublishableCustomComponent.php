@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**

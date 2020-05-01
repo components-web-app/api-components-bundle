@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -32,7 +32,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *         "post"
  *     }
  * )
- * @ORM\Entity(repositoryClass="Silverback\ApiComponentBundle\Repository\Core\RouteRepository")
+ * @ORM\Entity(repositoryClass="Silverback\ApiComponentsBundle\Repository\Core\RouteRepository")
  * @Assert\Expression(
  *     "!(this.pageTemplate == null & this.pageData == null) & !(this.pageTemplate != null & this.pageData != null)",
  *     message="Please specify either pageTemplate or pageData, not both."
@@ -56,24 +56,24 @@ class Route
     public string $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", inversedBy="redirectedFrom")
+     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", inversedBy="redirectedFrom")
      * @ORM\JoinColumn(name="redirect", referencedColumnName="id", onDelete="SET NULL")
      */
     public ?Route $redirect = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", mappedBy="redirect")
+     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", mappedBy="redirect")
      */
     public Collection $redirectedFrom;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\PageTemplate", mappedBy="route")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
     public ?PageTemplate $pageTemplate = null;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\AbstractPageData", mappedBy="route")
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData", mappedBy="route")
      * @ORM\JoinColumn(onDelete="SET NULL", nullable=true)
      */
     public ?AbstractPageData $pageData = null;

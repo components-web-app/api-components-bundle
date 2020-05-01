@@ -9,8 +9,8 @@ nav_order: 1
 The easiest way to configure an entity resource as publishable, use the following annotation and trait:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable
@@ -28,7 +28,7 @@ The default property name are:
 To customize these properties, you can update the annotation and your class:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
 /**
  * @Silverback\Publishable(fieldName="publicationDate", associationName="originalResource", reverseAssociationName="newResource")
@@ -100,8 +100,8 @@ By default, default validators are applied on save, even for draft objects. If y
 published resource, configure it as following:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable
@@ -129,8 +129,8 @@ class Foo
 You can define a custom validation group for published resources:
 
 ```php
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @Silverback\Publishable(validationGroups={"custom_validation_group"})

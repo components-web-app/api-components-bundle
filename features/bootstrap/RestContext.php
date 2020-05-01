@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Features\Bootstrap;
+namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
@@ -20,6 +20,8 @@ use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
+use Behatch\Context\RestContext as BehatchRestContext;
+use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -30,6 +32,7 @@ class RestContext implements Context
     private ?MinkContext $minkContext;
     public array $components = [];
     public string $now = '';
+    private ?BehatchRestContext $behatchRestContext;
 
     /**
      * @BeforeScenario
@@ -38,6 +41,7 @@ class RestContext implements Context
     {
         $this->restContext = $scope->getEnvironment()->getContext(BaseRestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
     }
 
     /**
@@ -59,6 +63,17 @@ class RestContext implements Context
         }
 
         return $this->now = date('Y-m-d\TH:i:s+00:00');
+    }
+
+    /**
+     * @Transform /^base64(.*)$/
+     */
+    public function castBase64FileToString(string $value)
+    {
+        $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
+        $normalizer = new DataUriNormalizer();
+
+        return $normalizer->normalize(new \SplFileObject($filePath));
     }
 
     /**
@@ -113,6 +128,10 @@ class RestContext implements Context
 
             if ('valid_published' === $value) {
                 $value = ['name' => 'John Doe', 'description' => 'nobody'];
+            }
+
+            if (\is_string($value) && preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+                $value = $this->castBase64FileToString($matches[1]);
             }
 
             return $value;

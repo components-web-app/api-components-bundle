@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentBundle\Annotation as Silverback;
-use Silverback\ApiComponentBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -32,7 +32,7 @@ abstract class AbstractPage
     use TimestampedTrait;
 
     /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", cascade={"persist"})
      */
     public ?Route $route;
 
@@ -40,7 +40,7 @@ abstract class AbstractPage
      * This will be se so that when auto-generating a route for a newly created
      * PageTemplate / PageData, we can prepend parent routes.
      *
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentBundle\Entity\Core\Route", cascade={"persist"})
+     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", cascade={"persist"})
      */
     public ?Route $parentRoute;
 

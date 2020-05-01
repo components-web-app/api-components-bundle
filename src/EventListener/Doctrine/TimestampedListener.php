@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
+namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Helper\TimestampedHelper;
-use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,9 +27,9 @@ class TimestampedListener
 {
     use ClassMetadataTrait;
 
-    private TimestampedHelper $timestampedHelper;
+    private TimestampedAnnotationReader $timestampedHelper;
 
-    public function __construct(TimestampedHelper $timestampedHelper, ManagerRegistry $managerRegistry)
+    public function __construct(TimestampedAnnotationReader $timestampedHelper, ManagerRegistry $managerRegistry)
     {
         $this->timestampedHelper = $timestampedHelper;
         $this->initRegistry($managerRegistry);

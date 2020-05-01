@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Manager\User;
+namespace Silverback\ApiComponentsBundle\Manager\User;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentBundle\Mailer\UserMailer;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentBundle\Security\TokenGenerator;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Mailer\UserMailer;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -32,7 +32,6 @@ class PasswordManager
     private UserMailer $userMailer;
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
-    private TokenGenerator $tokenGenerator;
     private UserRepository $userRepository;
     private int $tokenTtl;
 
@@ -40,14 +39,12 @@ class PasswordManager
         UserMailer $userMailer,
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
-        TokenGenerator $tokenGenerator,
         UserRepository $userRepository,
         int $tokenTtl = 8600
     ) {
         $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
-        $this->tokenGenerator = $tokenGenerator;
         $this->userRepository = $userRepository;
         $this->tokenTtl = $tokenTtl;
     }
@@ -67,7 +64,7 @@ class PasswordManager
         if (!$username) {
             throw new InvalidArgumentException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setNewPasswordConfirmationToken($confirmationToken = $this->tokenGenerator->generateToken());
+        $user->setNewPasswordConfirmationToken($confirmationToken = TokenGenerator::generateToken());
         $user->setPasswordRequestedAt(new DateTime());
         $this->userMailer->sendPasswordResetEmail($user);
         $this->entityManager->flush();

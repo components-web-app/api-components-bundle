@@ -1,9 +1,9 @@
-title: API Component Bundle
-description: Documentation for Silverback's API Component Bundle package
+title: API Components Bundle
+description: Documentation for Silverback's API Components Bundle package
 
 permalink: pretty
 
-exclude: ["*.gemspec", "*.gem", "Gemfile", "Gemfile.lock", "Api Component Bundle Work Overview.md"]
+exclude: ["*.gemspec", "*.gem", "Gemfile", "Gemfile.lock", "Api Components Bundle Work Overview.md"]
 
 remote_theme: pmarsceill/just-the-docs
 

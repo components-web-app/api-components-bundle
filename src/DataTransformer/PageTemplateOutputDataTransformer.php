@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DataTransformer;
+namespace Silverback\ApiComponentsBundle\DataTransformer;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use Silverback\ApiComponentBundle\Entity\Core\PageTemplate;
-use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
+use Silverback\ApiComponentsBundle\Entity\Core\PageTemplate;
+use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>

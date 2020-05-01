@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener\Doctrine;
+namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
+use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class PublishableListener
 {
-    private PublishableHelper $publishableHelper;
+    private PublishableAnnotationReader $publishableHelper;
 
-    public function __construct(PublishableHelper $publishableHelper)
+    public function __construct(PublishableAnnotationReader $publishableHelper)
     {
         $this->publishableHelper = $publishableHelper;
     }

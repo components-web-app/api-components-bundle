@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Manager\User;
+namespace Silverback\ApiComponentsBundle\Manager\User;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**

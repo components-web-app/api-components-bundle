@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Validator\Constraints;
+namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentBundle\Validator\Constraints\NewEmailAddress;
+use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddress;
 
 class NewEmailAddressTest extends TestCase
 {

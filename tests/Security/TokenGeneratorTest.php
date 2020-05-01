@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Security {
+namespace Silverback\ApiComponentsBundle\Security {
     function random_bytes(int $bytes = 0)
     {
         return (string) $bytes;
@@ -23,9 +23,9 @@ namespace Silverback\ApiComponentBundle\Security {
     }
 }
 
-namespace Silverback\ApiComponentBundle\Tests\Security {
+namespace Silverback\ApiComponentsBundle\Tests\Security {
     use PHPUnit\Framework\TestCase;
-    use Silverback\ApiComponentBundle\Security\TokenGenerator;
+    use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 
     class TokenGeneratorTest extends TestCase
     {

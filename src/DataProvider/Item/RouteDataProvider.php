@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DataProvider\Item;
+namespace Silverback\ApiComponentsBundle\DataProvider\Item;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
-use Silverback\ApiComponentBundle\Entity\Core\Route;
-use Silverback\ApiComponentBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>

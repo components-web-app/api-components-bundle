@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\DataProvider\Item;
+namespace Silverback\ApiComponentsBundle\DataProvider\Item;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
-use Silverback\ApiComponentBundle\Entity\Core\Layout;
-use Silverback\ApiComponentBundle\Repository\Core\LayoutRepository;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>

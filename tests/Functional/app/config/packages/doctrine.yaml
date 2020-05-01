@@ -12,5 +12,5 @@ doctrine:
                 is_bundle: false
                 type: annotation
                 dir: '%kernel.project_dir%/../TestBundle/Entity'
-                prefix: 'Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity'
+                prefix: 'Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity'
                 alias: TestBundle

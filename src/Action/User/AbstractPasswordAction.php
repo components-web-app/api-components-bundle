@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Action\User;
+namespace Silverback\ApiComponentsBundle\Action\User;
 
-use Silverback\ApiComponentBundle\Action\AbstractAction;
-use Silverback\ApiComponentBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Action\AbstractAction;
+use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**

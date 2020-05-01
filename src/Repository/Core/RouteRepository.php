@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Repository\Core;
+namespace Silverback\ApiComponentsBundle\Repository\Core;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
  * @author Daniel West <daniel@silverback.is>

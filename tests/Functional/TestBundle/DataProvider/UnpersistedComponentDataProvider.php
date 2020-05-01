@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\Tests\Functional\TestBundle\DataProvider;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
-use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Entity\DummyUnpersistedComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnpersistedComponent;
 
 class UnpersistedComponentDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {

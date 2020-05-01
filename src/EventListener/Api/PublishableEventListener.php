@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Silverback API Component Bundle Project
+ * This file is part of the Silverback API Components Bundle Project
  *
  * (c) Daniel West <daniel@silverback.is>
  *
@@ -11,15 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentBundle\Helper\PublishableHelper;
-use Silverback\ApiComponentBundle\Utility\ClassMetadataTrait;
-use Silverback\ApiComponentBundle\Validator\PublishableValidator;
+use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
+use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -38,9 +39,11 @@ final class PublishableEventListener
 
     private PublishableHelper $publishableHelper;
     private ValidatorInterface $validator;
+    private PublishableAnnotationReader $publishableAnnotationReader;
 
     public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, ValidatorInterface $validator)
     {
+        $this->publishableAnnotationReader = $publishableHelper->getAnnotationReader();
         $this->publishableHelper = $publishableHelper;
         $this->initRegistry($registry);
         $this->validator = $validator;
@@ -52,7 +55,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
@@ -68,7 +71,7 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             !$request->isMethod(Request::METHOD_GET)
         ) {
             return;
@@ -83,13 +86,13 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             empty($data) ||
-            !$this->publishableHelper->isConfigured($data) ||
+            !$this->publishableAnnotationReader->isConfigured($data) ||
             !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
 
         // User cannot change the publication date of the original resource
         if (
@@ -107,13 +110,13 @@ final class PublishableEventListener
         $data = $request->attributes->get('data');
         if (
             null === $data ||
-            !$this->publishableHelper->isConfigured($data)
+            !$this->publishableAnnotationReader->isConfigured($data)
         ) {
             return;
         }
         $response = $event->getResponse();
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
@@ -161,7 +164,7 @@ final class PublishableEventListener
             return $data;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
         $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
