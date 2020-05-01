@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Liip\ImagineBundle\LiipImagineBundle;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineFlysystemCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -36,5 +38,8 @@ class SilverbackApiComponentsBundle extends Bundle
         $container->addCompilerPass(new ApiPlatformCompilerPass());
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
+        if (class_exists(LiipImagineBundle::class)) {
+            $container->addCompilerPass(new ImagineFlysystemCompilerPass());
+        }
     }
 }

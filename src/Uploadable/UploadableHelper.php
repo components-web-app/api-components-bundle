@@ -19,11 +19,13 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToReadFile;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -36,17 +38,20 @@ class UploadableHelper
     private UploadableAnnotationReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
     private MediaObjectFactory $mediaObjectFactory;
+    private RequestStack $requestStack;
 
     public function __construct(
         ManagerRegistry $registry,
         UploadableAnnotationReader $annotationReader,
         FilesystemProvider $filesystemProvider,
-        MediaObjectFactory $mediaObjectFactory
+        MediaObjectFactory $mediaObjectFactory,
+        RequestStack $requestStack
     ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
         $this->mediaObjectFactory = $mediaObjectFactory;
+        $this->requestStack = $requestStack;
     }
 
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
@@ -132,12 +137,27 @@ class UploadableHelper
             } catch (UnableToReadFile $exception) {
             }
 
-            // Todo: populate media object for configured ImagineBundle filters
+            if ($object instanceof ImagineFiltersInterface) {
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $filesystem, $filename));
+            }
 
             $collection->set($fieldConfiguration->property, $propertyMediaObjects);
         }
 
         return $collection->count() ? $collection : null;
+    }
+
+    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, Filesystem $filesystem, string $filename): array
+    {
+        $request = $this->requestStack->getMasterRequest();
+        $filters = $object->getImagineFilters($request);
+
+        $mediaObjects = [];
+        foreach ($filters as $filter) {
+            $mediaObjects[] = $this->mediaObjectFactory->create($object, $filesystem, $filename, $filter);
+        }
+
+        return $mediaObjects;
     }
 
     private function getFilesystemFromFieldConfiguration(UploadableField $fieldConfiguration): Filesystem

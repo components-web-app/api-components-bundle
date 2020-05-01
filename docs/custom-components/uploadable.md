@@ -33,6 +33,72 @@ app.flysystem.adapter.local:
 
 Install the adapters you need from Flysystem and remember to use adapters supporting version 2 (e.g. `composer require league/flysystem-aws-s3-v3:^2`)
 
+## Integration with LiipImagineBundle (optional)
+
+If you are using the [LiipImagineBundle](https://github.com/liip/LiipImagineBundle), this bundle will automatically add a service for each filesystem configured so that you can use to wire into our `DataLoader` and `CacheResolver` classes. These are the services you will need to use with Imagine. The above filesystem will be available as `api_components.filesystem.local` where `local` is the alias you have chosen for the adapter.
+
+### Define your Data Loader
+
+#### Service configuration
+
+```yaml
+services:
+    imagine.data_loader.local:
+        class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
+        arguments:
+            - "@api_components.filesystem.local"
+        tags:
+            - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
+```
+
+#### Imagine Bundle Configuration
+
+```yaml
+liip_imagine:
+    data_loader: custom_data_loader
+```
+
+or on a specific filter set
+
+```yaml
+liip_imagine:
+    filter_sets:
+        my_special_style:
+            data_loader: custom_data_loader
+            filters:
+                # your filters
+```
+
+### Define your Cache Resolver
+
+#### Service configuration
+
+```yaml
+services:
+    imagine.cache_resolver.local:
+        class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
+        arguments:
+            - "@api_components.filesystem.local"
+        tags:
+            - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }
+```
+
+#### Imagine Bundle Configuration
+
+```yaml
+liip_imagine:
+    cache: custom_cache_resolver
+```
+
+or on a specific filter set
+
+```yaml
+liip_imagine:
+    filter_sets:
+        my_special_style:
+            cache: custom_cache_resolver
+```
+
 ## Usage
 
 The easiest way to configure an entity resource be an uploadable file is to use the following annotation and trait:
@@ -112,9 +178,9 @@ Your `Uploadable` resources will not return your configured file paths. These ar
                     },
                     "@id": "/_/media_objects/124274e17a264763a61758c31462a259",
                     "@type": "http://schema.org/MediaObject",
-                    "contentUrl": "https://www.website.com/path",
-                    "fileSize": 632,
-                    "mimeType": "octet/stream",
+                    "contentUrl": "https://www.website.com/path_to_resolve_file",
+                    "fileSize": "10MB",
+                    "mimeType": "image/png",
                     "width": 200,
                     "height": 100,
                     "imagineFilter": "filter_name",
@@ -125,7 +191,7 @@ Your `Uploadable` resources will not return your configured file paths. These ar
             ]
         }
     }
-    // More resource properties would appear here if you have set them. (e.g. description, type)
+    // ... More resource properties would appear here if you have set them. (e.g. description, type)
 }
 ```
 

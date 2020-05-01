@@ -520,6 +520,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
             new Reference(MediaObjectFactory::class),
+            new Reference(RequestStack::class),
         ]);
 
     $services
