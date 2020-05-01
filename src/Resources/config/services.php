@@ -131,6 +131,11 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '',
         ]);
 
     $services
@@ -148,7 +153,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ChangePasswordType::class)
-        ->args([new Reference(Security::class)])
+        ->args([
+            new Reference(Security::class),
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
@@ -288,7 +296,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(NewEmailAddressType::class)
-        ->args([new Reference(Security::class)])
+        ->args([
+            new Reference(Security::class),
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
@@ -317,6 +328,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -476,6 +488,9 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TablePrefixExtension::class)
+        ->args([
+            '', // injected in dependency injection
+        ])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $getTimestampedListenerTagArgs = static function ($event) {
@@ -499,6 +514,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(Security::class),
             new Reference(ResponseFactory::class),
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -558,7 +574,10 @@ return static function (ContainerConfigurator $configurator) {
 //        ]);
 
     $services
-        ->set(UserChecker::class);
+        ->set(UserChecker::class)
+        ->args([
+            '', // injected in dependency injection
+        ]);
 
     $services
         ->set(UserContextBuilder::class)
@@ -587,6 +606,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
+            '', // injected in dependency injection
         ]);
 
     $getUserListenerTagArgs = static function ($event) {
@@ -606,6 +626,9 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
             new Reference(UserMailer::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -618,6 +641,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(MailerInterface::class),
             new Reference(ContainerInterface::class),
+            '', // injected in dependency injection
         ])
         ->tag('container.service_subscriber');
 
@@ -633,12 +657,17 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserRegisterType::class)
+        ->args([
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
         ->set(UserRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
         ])
         ->tag('doctrine.repository_service');
 
