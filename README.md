@@ -4,15 +4,14 @@ __Overall:__
 [![Maintainability](https://api.codeclimate.com/v1/badges/34e3843d9f9ec9777b0e/maintainability)](https://codeclimate.com/github/silverbackis/ApiComponentBundle/maintainability)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=master)
 
-__PHPUnit:__ 
+__Unit:__ 
 [![Code Coverage](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/silverbackis/ApiComponentBundle/?branch=master)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fsilverbackis%2FApiComponentBundle%2Fmaster)](https://infection.github.io)
 
 ---
 
-<p align="center">
-    <h1 align="center">API Components Bundle v2 [WIP]</h1>
-    <p align="center">Creates a flexible API for a website's structure, reusable components and common functionality.</p>
-    <p align="center"><strong><a href="https://silverbackis.github.io/ApiComponentBundle">Read the documentation</a></strong></p>
-    <br><br><br>
-</p>
+# API Components Bundle [WIP]
+
+Creates a flexible API for a website's structure, reusable components and common functionality.
+
+#### **[Read the documentation](https://silverbackis.github.io/ApiComponentBundle)**
