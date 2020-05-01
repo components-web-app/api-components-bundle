@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use League\Flysystem\Filesystem;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -23,7 +24,7 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ImagineFlysystemCompilerPass implements CompilerPassInterface
+class ImagineCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
@@ -39,5 +40,8 @@ class ImagineFlysystemCompilerPass implements CompilerPassInterface
                 $container->setDefinition($serviceName, $definition);
             }
         }
+
+        $definition = $container->getDefinition('liip_imagine.cache.manager');
+        $definition->setClass(CacheManager::class);
     }
 }

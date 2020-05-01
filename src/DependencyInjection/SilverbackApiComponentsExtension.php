@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
+use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
@@ -35,11 +36,13 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -78,6 +81,11 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
+
+        if (class_exists(FilterService::class)) {
+            $definition = $container->getDefinition(UploadableHelper::class);
+            $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
+        }
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig): void

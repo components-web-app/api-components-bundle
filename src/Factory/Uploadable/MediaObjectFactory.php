@@ -44,6 +44,16 @@ class MediaObjectFactory
         return $mediaObject;
     }
 
+    public function createFromImagine(string $contentUrl, string $imagineFilter)
+    {
+        $mediaObject = new MediaObject();
+        $mediaObject->contentUrl = $contentUrl;
+        // $mediaObject->fileSize = $this->convertSizeToString($filesystem->fileSize($filename));
+        // $mediaObject->mimeType = $filesystem->mimeType($filename);
+        $mediaObject->imagineFilter = $imagineFilter;
+        // [ $mediaObject->width, $mediaObject->height ] = @getimagesize($file);
+    }
+
     private function convertSizeToString(int $bytes): string
     {
         if ($bytes >= 1073741824) {

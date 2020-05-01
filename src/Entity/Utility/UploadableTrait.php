@@ -21,6 +21,8 @@ trait UploadableTrait
 {
     private ?string $filename = null;
 
+    private ?array $filesInfo;
+
     public function getFilename(): ?string
     {
         return $this->filename;
@@ -32,6 +34,21 @@ trait UploadableTrait
     public function setFilename(string $filename)
     {
         $this->filename = $filename;
+
+        return $this;
+    }
+
+    public function getFilesInfo(): ?array
+    {
+        return $this->filesInfo;
+    }
+
+    /**
+     * @return static
+     */
+    public function setFilesInfo(?array $filesInfo)
+    {
+        $this->filesInfo = $filesInfo;
 
         return $this;
     }

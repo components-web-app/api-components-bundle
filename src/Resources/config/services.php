@@ -43,6 +43,8 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
+use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -51,6 +53,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
+use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormFactory;
@@ -250,6 +253,14 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(FormViewFactory::class)
         ->args([new Reference(FormFactory::class)]);
+
+    $services
+        ->set(ImagineEventListener::class)
+        ->args([
+            new Reference(UploadableHelper::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
+        ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
 
     $services
         ->set(JwtCreatedEventListener::class)
@@ -532,6 +543,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FilesystemProvider::class),
             new Reference(MediaObjectFactory::class),
             new Reference(RequestStack::class),
+            null, // Set in dependency injection if imagine cache manager exists
         ]);
 
     $services

@@ -17,6 +17,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToReadFile;
+use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
@@ -39,19 +40,22 @@ class UploadableHelper
     private FilesystemProvider $filesystemProvider;
     private MediaObjectFactory $mediaObjectFactory;
     private RequestStack $requestStack;
+    private ?FilterService $filterService;
 
     public function __construct(
         ManagerRegistry $registry,
         UploadableAnnotationReader $annotationReader,
         FilesystemProvider $filesystemProvider,
         MediaObjectFactory $mediaObjectFactory,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        ?FilterService $filterService = null
     ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
         $this->mediaObjectFactory = $mediaObjectFactory;
         $this->requestStack = $requestStack;
+        $this->filterService = $filterService;
     }
 
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
@@ -152,11 +156,15 @@ class UploadableHelper
 
     private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, Filesystem $filesystem, string $filename): array
     {
+        $mediaObjects = [];
+        if (!$this->filterService) {
+            return $mediaObjects;
+        }
+
         $request = $this->requestStack->getMasterRequest();
         $filters = $object->getImagineFilters($request);
-
-        $mediaObjects = [];
         foreach ($filters as $filter) {
+            $resolvedPath = $this->filterService->getUrlOfFilteredImage($filename, $filter);
             $mediaObjects[] = $this->mediaObjectFactory->create($object, $filesystem, $filename, $filter);
         }
 

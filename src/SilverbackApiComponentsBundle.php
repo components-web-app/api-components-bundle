@@ -17,7 +17,7 @@ use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappi
 use Liip\ImagineBundle\LiipImagineBundle;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
-use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineFlysystemCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -39,7 +39,7 @@ class SilverbackApiComponentsBundle extends Bundle
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
         if (class_exists(LiipImagineBundle::class)) {
-            $container->addCompilerPass(new ImagineFlysystemCompilerPass());
+            $container->addCompilerPass(new ImagineCompilerPass());
         }
     }
 }

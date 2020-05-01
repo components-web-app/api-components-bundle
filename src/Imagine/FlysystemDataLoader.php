@@ -36,6 +36,7 @@ class FlysystemDataLoader implements LoaderInterface
      */
     public function find($path)
     {
+        // This should be finding the file that we have uploaded into a location already - source file locator
         if (false === $this->filesystem->fileExists($path)) {
             throw new NotLoadableException(sprintf('Source image "%s" not found.', $path));
         }
