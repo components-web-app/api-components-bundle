@@ -1,0 +1,18 @@
+<resources xmlns="https://api-platform.com/schema/metadata"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://api-platform.com/schema/metadata
+           https://api-platform.com/schema/metadata/metadata-2.0.xsd">
+    <resource class="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject" iri="http://schema.org/MediaObject">
+        <attribute name="normalizationContext">
+            <attribute name="jsonld_embed_context">true</attribute>
+        </attribute>
+        <property name="id" identifier="true" />
+        <property name="contentUrl" iri="http://schema.org/contentUrl" />
+        <property name="fileSize" iri="http://schema.org/contentSize" />
+        <property name="mimeType" iri="http://schema.org/encodingFormat" />
+        <collectionOperations />
+        <itemOperations>
+            <itemOperation name="GET" />
+        </itemOperations>
+    </resource>
+</resources>

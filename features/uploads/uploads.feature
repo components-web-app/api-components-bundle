@@ -16,6 +16,10 @@ Feature: API Resources which can have files uploaded
       | base64(<file>) |
     Then the response status code should be 201
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
+    And the JSON should be equal to:
+    """
+    {}
+    """
     And the JSON node "filePath" should not exist
     Examples:
       | file           | schema                  |

@@ -94,7 +94,6 @@ use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
-use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -529,6 +528,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(UploadableAnnotationReader::class),
+            new Reference(ManagerRegistry::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -542,11 +542,12 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->autoconfigure(false);
 
-    $services
-        ->set(UploadableLoader::class)
-        ->args([
-            new Reference(UploadableAnnotationReader::class),
-        ]);
+//    COMPILER PASS REQUIRED AS WELL
+//    $services
+//        ->set(UploadableLoader::class)
+//        ->args([
+//            new Reference(UploadableAnnotationReader::class),
+//        ]);
 
     $services
         ->set(UserChecker::class);

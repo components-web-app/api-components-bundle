@@ -23,7 +23,10 @@ final class UploadableField
 {
     public string $property = 'filename';
 
-    public ?string $prefix;
+    public ?string $prefix = null;
+
+    // Nice to have - feature to configure the IRI in the output media objects for this field
+    // public string $iri = 'http://schema.org/MediaObject';
 
     /** @required */
     public ?string $adapter;

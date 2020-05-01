@@ -59,6 +59,7 @@
                 "media_objects": {
                     "$id": "#/properties/media_objects",
                     "type": "array",
+                    "minItems": 1,
                     "title": "The media_objects Schema",
                     "description": "An explanation about the purpose of this instance.",
                     "default": [],

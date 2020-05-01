@@ -13,28 +13,32 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Model\Uploadable;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource(
- *     iri="http://schema.org/MediaObject"
- * )
  */
-class MediaObject
+final class MediaObject
 {
-    /**
-     * @ApiProperty(iri="http://schema.org/contentUrl")
-     */
-    private string $contentUrl;
+    private string $id;
 
-    private int $fileSize;
+    public string $contentUrl;
 
-    private string $mimeType;
+    public int $fileSize;
 
-    private ?ImageDimensions $dimensions;
+    public string $mimeType;
 
-    private ?string $imagineFilter = null;
+    public ?ImageDimensions $dimensions;
+
+    public ?string $imagineFilter = null;
+
+    public function __construct()
+    {
+        $this->id = Uuid::uuid4()->getHex()->toString();
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
 }

@@ -19,6 +19,8 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
 
 /**
+ * NOT CURRENTLY IN USE - NO LONGER NEED FOR UPLOADABLE BUT A GOOD REFERENCE FOR TIMESTAMPED WORK.
+ *
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class UploadableLoader implements LoaderInterface

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Uploadable;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
@@ -83,7 +82,7 @@ class UploadableHelper
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
 
             $path = $fieldConfiguration->prefix ?? '';
-            $path .= Uuid::uuid4() . $file->getFilename();
+            $path .= $file->getFilename();
             $stream = fopen($file->getRealPath(), 'r');
             $filesystem->writeStream($path, $stream, [
                 'mimetype' => $file->getMimeType(),
