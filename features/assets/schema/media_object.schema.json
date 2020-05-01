@@ -1,0 +1,240 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The Root Schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "additionalProperties": true,
+    "required": [
+        "@context",
+        "@id",
+        "@type",
+        "contentUrl",
+        "fileSize",
+        "mimeType",
+        "_metadata"
+    ],
+    "properties": {
+        "@context": {
+            "$id": "#/properties/@context",
+            "type": "object",
+            "title": "The @context Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {
+                    "fileSize": "http://schema.org/contentSize",
+                    "contentUrl": "http://schema.org/contentUrl",
+                    "mimeType": "http://schema.org/encodingFormat",
+                    "@vocab": "http://example.com/docs.jsonld#",
+                    "imagineFilter": "MediaObject/imagineFilter",
+                    "width": "http://schema.org/width",
+                    "hydra": "http://www.w3.org/ns/hydra/core#",
+                    "height": "http://schema.org/height"
+                }
+            ],
+            "additionalProperties": true,
+            "required": [
+                "@vocab",
+                "hydra",
+                "contentUrl",
+                "fileSize",
+                "mimeType",
+                "width",
+                "height",
+                "imagineFilter"
+            ],
+            "properties": {
+                "@vocab": {
+                    "$id": "#/properties/@context/properties/@vocab",
+                    "type": "string",
+                    "title": "The @vocab Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://example.com/docs.jsonld#"
+                    ]
+                },
+                "hydra": {
+                    "$id": "#/properties/@context/properties/hydra",
+                    "type": "string",
+                    "title": "The Hydra Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://www.w3.org/ns/hydra/core#"
+                    ]
+                },
+                "contentUrl": {
+                    "$id": "#/properties/@context/properties/contentUrl",
+                    "type": "string",
+                    "title": "The Contenturl Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://schema.org/contentUrl"
+                    ]
+                },
+                "fileSize": {
+                    "$id": "#/properties/@context/properties/fileSize",
+                    "type": "string",
+                    "title": "The Filesize Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://schema.org/contentSize"
+                    ]
+                },
+                "mimeType": {
+                    "$id": "#/properties/@context/properties/mimeType",
+                    "type": "string",
+                    "title": "The Mimetype Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://schema.org/encodingFormat"
+                    ]
+                },
+                "width": {
+                    "$id": "#/properties/@context/properties/width",
+                    "type": "string",
+                    "title": "The Width Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://schema.org/width"
+                    ]
+                },
+                "height": {
+                    "$id": "#/properties/@context/properties/height",
+                    "type": "string",
+                    "title": "The Height Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "http://schema.org/height"
+                    ]
+                },
+                "imagineFilter": {
+                    "$id": "#/properties/@context/properties/imagineFilter",
+                    "type": "string",
+                    "title": "The Imaginefilter Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "MediaObject/imagineFilter"
+                    ]
+                }
+            }
+        },
+        "@id": {
+            "$id": "#/properties/@id",
+            "type": "string",
+            "title": "The @id Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/_/media_objects/3a6b855a68d54e68b4a499065bbdd89d"
+            ]
+        },
+        "@type": {
+            "$id": "#/properties/@type",
+            "type": "string",
+            "title": "The @type Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "http://schema.org/MediaObject"
+            ]
+        },
+        "contentUrl": {
+            "$id": "#/properties/contentUrl",
+            "type": "string",
+            "title": "The Contenturl Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "https://www.website.com/path"
+            ]
+        },
+        "fileSize": {
+            "$id": "#/properties/fileSize",
+            "type": "integer",
+            "title": "The Filesize Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 0,
+            "examples": [
+                632.0
+            ]
+        },
+        "mimeType": {
+            "$id": "#/properties/mimeType",
+            "type": "string",
+            "title": "The Mimetype Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "octet/stream"
+            ]
+        },
+        "width": {
+            "$id": "#/properties/width",
+            "type": "integer",
+            "title": "The Width Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 0,
+            "examples": [
+                200.0
+            ]
+        },
+        "height": {
+            "$id": "#/properties/height",
+            "type": "integer",
+            "title": "The Height Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 0,
+            "examples": [
+                100.0
+            ]
+        },
+        "imagineFilter": {
+            "$id": "#/properties/imagineFilter",
+            "type": "string",
+            "title": "The Imaginefilter Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "filter_name"
+            ]
+        },
+        "_metadata": {
+            "$id": "#/properties/_metadata",
+            "type": "object",
+            "title": "The _metadata Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {
+                    "persisted": false
+                }
+            ],
+            "additionalProperties": true,
+            "required": [
+                "persisted"
+            ],
+            "properties": {
+                "persisted": {
+                    "$id": "#/properties/_metadata/properties/persisted",
+                    "type": "boolean",
+                    "title": "The Persisted Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": false,
+                    "examples": [
+                        false
+                    ]
+                }
+            }
+        }
+    }
+}

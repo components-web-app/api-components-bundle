@@ -6,10 +6,12 @@
         <attribute name="normalizationContext">
             <attribute name="jsonld_embed_context">true</attribute>
         </attribute>
-        <property name="id" identifier="true" />
-        <property name="contentUrl" iri="http://schema.org/contentUrl" />
-        <property name="fileSize" iri="http://schema.org/contentSize" />
-        <property name="mimeType" iri="http://schema.org/encodingFormat" />
+        <property name="id" identifier="true" readable="false" writable="false" />
+        <property name="contentUrl" iri="http://schema.org/contentUrl" writable="false" />
+        <property name="fileSize" iri="http://schema.org/contentSize" writable="false" />
+        <property name="mimeType" iri="http://schema.org/encodingFormat" writable="false" />
+        <property name="width" iri="http://schema.org/width" writable="false" />
+        <property name="height" iri="http://schema.org/height" writable="false" />
         <collectionOperations />
         <itemOperations>
             <itemOperation name="GET" />

@@ -28,7 +28,9 @@ final class MediaObject
 
     public string $mimeType;
 
-    public ?ImageDimensions $dimensions;
+    public ?int $width;
+
+    public ?int $height;
 
     public ?string $imagineFilter = null;
 

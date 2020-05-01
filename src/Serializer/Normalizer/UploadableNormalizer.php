@@ -13,12 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\Base64EncodedFile;
-use Silverback\ApiComponentsBundle\Model\Uploadable\ImageDimensions;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
@@ -109,26 +107,25 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $dimensions = new ImageDimensions();
-        $dimensions->height = 100;
-        $dimensions->width = 200;
         $mediaObject = new MediaObject();
         $mediaObject->contentUrl = 'https://www.website.com/path';
-        $mediaObject->dimensions = $dimensions;
+        $mediaObject->height = 100;
+        $mediaObject->width = 200;
         $mediaObject->fileSize = 632;
         $mediaObject->imagineFilter = 'filter_name';
         $mediaObject->mimeType = 'octet/stream';
-        $mediaObjects = [
-            $mediaObject,
-        ];
-
-        $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $this->normalizer->normalize(new ArrayCollection($mediaObjects), $format, ['jsonld_embed_context' => true]);
 
         $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true, true);
         $classMetadata = $this->getClassMetadata($object);
         foreach ($fieldConfigurations as $fieldConfiguration) {
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+
+            $mediaObjects = [
+                $fieldConfiguration->property => [$mediaObject],
+            ];
         }
+
+        $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $this->normalizer->normalize($mediaObjects, $format, ['jsonld_embed_context' => true]);
 
         return $this->normalizer->normalize($object, $format, $context);
     }
