@@ -18,9 +18,9 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                    |
-      | image.svg      | file.schema.json          |
-      | test_file.docx | file.schema.json          |
+      | file           | schema                  |
+      | image.svg      | uploadable.schema.json  |
+      | test_file.docx | uploadable.schema.json  |
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with a "multipart/form-data" request
@@ -32,9 +32,9 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                    |
-      | image.svg      | file.schema.json          |
-      | test_file.docx | file.schema.json          |
+      | file           | schema                  |
+      | image.svg      | uploadable.schema.json  |
+      | test_file.docx | uploadable.schema.json  |
 
   @loginUser
   Scenario: I get an error if I send a json request to the multipart/form-data endpoint

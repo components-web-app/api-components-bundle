@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Tests\config;
 
-use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentBundle\Tests\Functional\TestBundle\Form\TestType;
@@ -39,9 +39,6 @@ return static function (ContainerConfigurator $container) {
         ->set(TestType::class);
 
     $services
-        ->set(LocalFilesystemAdapter::class)
-        ->args([
-            '%kernel.project_dir%/var/storage/default',
-        ])
+        ->set(InMemoryFilesystemAdapter::class)
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
 };

@@ -529,7 +529,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(UploadableAnnotationReader::class),
-            new Reference(RequestStack::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 

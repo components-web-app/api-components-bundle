@@ -1,6 +1,4 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "http://example.com/example.json",
     "type": "object",
     "title": "The Root Schema",
     "description": "The root schema comprises the entire JSON document.",
@@ -10,7 +8,7 @@
         "@context",
         "@id",
         "@type",
-        "mediaObjects"
+        "_metadata"
     ],
     "properties": {
         "@context": {
@@ -43,25 +41,42 @@
                 "DummyFile"
             ]
         },
-        "mediaObjects": {
-            "$id": "#/properties/mediaObjects",
-            "type": "array",
-            "title": "The Mediaobjects Schema",
+        "_metadata": {
+            "$id": "#/_metadata",
+            "type": "object",
+            "title": "The _metadata Schema",
             "description": "An explanation about the purpose of this instance.",
-            "default": [],
+            "default": "",
             "examples": [
-                []
+                {
+                    "persisted": true
+                }
             ],
-            "additionalItems": true,
-            "items": {
-                "$id": "#/properties/mediaObjects/items",
-                "type": "null",
-                "title": "The Items Schema",
-                "description": "An explanation about the purpose of this instance.",
-                "default": null,
-                "examples": [
-                    null
-                ]
+            "required": [
+                "media_objects"
+            ],
+            "properties": {
+                "media_objects": {
+                    "$id": "#/properties/media_objects",
+                    "type": "array",
+                    "title": "The media_objects Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": [],
+                    "examples": [
+                        []
+                    ],
+                    "additionalItems": true,
+                    "items": {
+                        "$id": "#/properties/media_objects/items",
+                        "type": "null",
+                        "title": "The Items Schema",
+                        "description": "An explanation about the purpose of this instance.",
+                        "default": null,
+                        "examples": [
+                            null
+                        ]
+                    }
+                }
             }
         }
     }

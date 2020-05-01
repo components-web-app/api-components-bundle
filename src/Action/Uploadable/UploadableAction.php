@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
  */
 class UploadableAction
 {
-    public function __invoke(Request $request, UploadableHelper $uploadableHelper)
+    public function __invoke(?object $data, Request $request, UploadableHelper $uploadableHelper)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
@@ -37,7 +37,7 @@ class UploadableAction
         }
 
         $resourceClass = $request->attributes->get('_api_resource_class');
-        $resource = new $resourceClass();
+        $resource = $data ?? new $resourceClass();
 
         try {
             $uploadableHelper->setUploadedFilesFromFileBag($resource, $request->files);

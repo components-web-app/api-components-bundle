@@ -17,10 +17,10 @@ Feature: Soft validation on draft resources
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON node "_metadata.violation_list.violations[0]" should exist
     Examples:
-      | postfix                  | schema                        | statusCode | validToPublish |
-      |                          | publishable.schema.json       | 200        | 0              |
-      | validate_published=true  | publishable.schema.json       | 200        | 0              |
-      | validate_published=false | publishable.schema.json       | 200        | 0              |
+      | postfix                  | schema                          | statusCode | validToPublish |
+      |                          | publishable_invalid.schema.json | 200        | 0              |
+      | validate_published=true  | publishable_invalid.schema.json | 200        | 0              |
+      | validate_published=false | publishable_invalid.schema.json | 200        | 0              |
 
   Scenario Outline: A user without draft access gets a published resource which is no longer valid to be published. They should not see violations.
     Given there is a DummyPublishableWithValidation resource set to publish at "1970-01-01 00:00:00"
@@ -31,9 +31,9 @@ Feature: Soft validation on draft resources
     And the JSON node "_metadata.violation_list" should not exist
     Examples:
       | postfix                  | schema                        | statusCode |
-      |                          | publishable.schema.json       | 200        |
-      | validate_published=true  | publishable.schema.json       | 200        |
-      | validate_published=false | publishable.schema.json       | 200        |
+      |                          | publishable_valid.schema.json | 200        |
+      | validate_published=true  | publishable_valid.schema.json | 200        |
+      | validate_published=false | publishable_valid.schema.json | 200        |
 
   # PUT
   @loginAdmin
@@ -46,9 +46,9 @@ Feature: Soft validation on draft resources
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | data            | validToPublish | schema                  |
-      | valid_draft     | 0              | publishable.schema.json |
-      | valid_published | 1              | publishable.schema.json |
+      | data            | validToPublish | schema                          |
+      | valid_draft     | 0              | publishable_invalid.schema.json |
+      | valid_published | 1              | publishable_valid.schema.json   |
 
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is OK for a draft, but not for published
@@ -59,10 +59,9 @@ Feature: Soft validation on draft resources
     Then the response status code should be <httpStatus>
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
-    And the JSON node "_metadata.violation_list.violations[0]" should exist
     Examples:
-      | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
-      | null        | valid_draft     | 200        | 0              | validate_published=false | publishable.schema.json       |
+      | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                          |
+      | null        | valid_draft     | 200        | 0              | validate_published=false | publishable_invalid.schema.json |
 
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is valid to make it published when ready
@@ -73,11 +72,10 @@ Feature: Soft validation on draft resources
     Then the response status code should be <httpStatus>
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
-    And the JSON node "_metadata.violation_list.violations[0]" should not exist
     Examples:
       | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
-      | null        | valid_published | 200        | 1              | validate_published=false | publishable.schema.json       |
-      | null        | valid_published | 200        | 1              | validate_published=true  | publishable.schema.json       |
+      | null        | valid_published | 200        | 1              | validate_published=false | publishable_valid.schema.json |
+      | null        | valid_published | 200        | 1              | validate_published=true  | publishable_valid.schema.json |
 
   @loginAdmin
   Scenario Outline: I update a draft resource and expect to see a hard fail with validation errors and no need to populate metadata as the output is the violations
@@ -110,8 +108,8 @@ Feature: Soft validation on draft resources
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
       | publishedAt | data            | httpStatus | postfix                  | schema                        | validToPublish |
-      | now         | valid_published | 200        | validate_published=true  | publishable.schema.json       | 1              |
-      | now         | valid_published | 200        | validate_published=false | publishable.schema.json       | 1              |
+      | now         | valid_published | 200        | validate_published=true  | publishable_valid.schema.json | 1              |
+      | now         | valid_published | 200        | validate_published=false | publishable_valid.schema.json | 1              |
 
   @loginAdmin
   Scenario: I update a published resource with the querystring "validate_published=false" and "published=true" should have no effect and published resource validation should still apply
@@ -153,11 +151,11 @@ Feature: Soft validation on draft resources
       | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
       | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
       | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
-      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       | 1              |
+      | now         | valid_published | 201        | validate_published=true  | publishable_valid.schema.json | 1              |
       | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
       | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
       | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json | 0              |
-      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       | 1              |
+      | now         | valid_published | 201        | validate_published=false | publishable_valid.schema.json | 1              |
 
   # POST - custom validation groups
   @loginAdmin
@@ -170,9 +168,9 @@ Feature: Soft validation on draft resources
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | publishedAt | data            | httpStatus | validToPublish | schema                        |
-      | null        | valid_published | 201        | 1              | publishable.schema.json       |
-      | null        | valid_draft     | 201        | 0              | publishable.schema.json       |
+      | publishedAt | data            | httpStatus | validToPublish | schema                          |
+      | null        | valid_published | 201        | 1              | publishable_valid.schema.json   |
+      | null        | valid_draft     | 201        | 0              | publishable_invalid.schema.json |
 
   @loginAdmin
   Scenario Outline: I configure custom validation groups to validate/create a published resource
@@ -188,8 +186,8 @@ Feature: Soft validation on draft resources
       | null        | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
       | now         | invalid_draft   | 400        | validate_published=true  | validation_errors.schema.json | 0              |
       | now         | valid_draft     | 400        | validate_published=true  | validation_errors.schema.json | 0              |
-      | now         | valid_published | 201        | validate_published=true  | publishable.schema.json       | 1              |
+      | now         | valid_published | 201        | validate_published=true  | publishable_valid.schema.json | 1              |
       | null        | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
       | now         | invalid_draft   | 400        | validate_published=false | validation_errors.schema.json | 0              |
       | now         | valid_draft     | 400        | validate_published=false | validation_errors.schema.json | 0              |
-      | now         | valid_published | 201        | validate_published=false | publishable.schema.json       | 1              |
+      | now         | valid_published | 201        | validate_published=false | publishable_valid.schema.json | 1              |

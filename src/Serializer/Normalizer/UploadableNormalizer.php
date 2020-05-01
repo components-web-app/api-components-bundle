@@ -13,38 +13,43 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentBundle\Serializer\Normalizer;
 
-use ApiPlatform\Core\EventListener\DeserializeListener;
-use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
-use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentBundle\Model\Uploadable\Base64EncodedFile;
 use Silverback\ApiComponentBundle\Model\Uploadable\UploadedBase64EncodedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadableNormalizer implements CacheableSupportsMethodInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface
+final class UploadableNormalizer implements CacheableSupportsMethodInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface, ContextAwareNormalizerInterface, NormalizerAwareInterface
 {
-    use ToggleableOperationAttributeTrait;
     use DenormalizerAwareTrait;
+    use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
-    private UploadableAnnotationReader $uploadableHelper;
-    private RequestStack $requestStack;
+    private UploadableAnnotationReader $annotationReader;
 
-    public function __construct(UploadableAnnotationReader $uploadableHelper, RequestStack $requestStack)
+    public function __construct(UploadableAnnotationReader $annotationReader)
     {
-        $this->uploadableHelper = $uploadableHelper;
-        $this->requestStack = $requestStack;
+        $this->annotationReader = $annotationReader;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
+    {
+        return !isset($context[self::ALREADY_CALLED]) && $this->annotationReader->isConfigured($type);
     }
 
     /**
@@ -63,7 +68,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             }
 
             // Property is not an UploadableField: just ignore it.
-            if (!$this->uploadableHelper->isFieldConfigured($reflectionProperty)) {
+            if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
                 continue;
             }
 
@@ -84,20 +89,22 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
         return $this->denormalizer->denormalize($data, $type, $format, $context);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        $request = $this->requestStack->getMasterRequest();
-        if (!$request) {
-            $isDisabled = false;
-        } else {
-            $attributes = RequestAttributesExtractor::extractAttributes($request);
-            $isDisabled = $this->isOperationAttributeDisabled($attributes, DeserializeListener::OPERATION_ATTRIBUTE_KEY);
-        }
+        return !isset($context[self::ALREADY_CALLED]) &&
+            \is_object($data) &&
+            !$data instanceof \Traversable &&
+            $this->annotationReader->isConfigured($data);
+    }
 
-        return !$isDisabled && !isset($context[self::ALREADY_CALLED]) && $this->uploadableHelper->isConfigured($type);
+    public function normalize($object, $format = null, array $context = [])
+    {
+        $context[self::ALREADY_CALLED] = true;
+
+        $mediaObjects = [];
+        $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
+
+        return $this->normalizer->normalize($object, $format, $context);
     }
 
     public function hasCacheableSupportsMethod(): bool
