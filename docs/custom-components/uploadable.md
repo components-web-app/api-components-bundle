@@ -43,12 +43,12 @@ If you are using the [LiipImagineBundle](https://github.com/liip/LiipImagineBund
 
 ```yaml
 services:
-    imagine.data_loader.local:
+    app.imagine.data.loader.local:
         class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
         arguments:
-            - "@api_components.filesystem.local"
+          - "@api_components.filesystem.local"
         tags:
-            - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
+          - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
 ```
 
 #### Imagine Bundle Configuration
@@ -73,15 +73,21 @@ liip_imagine:
 
 #### Service configuration
 
+
 ```yaml
 services:
-    imagine.cache_resolver.local:
+    app.imagine.cache.resolver.local:
         class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
         arguments:
-            - "@api_components.filesystem.local"
+            $filesystem: "@api_components.filesystem.local" # required
+            $rootUrl: 'http://images.example.com' # required
+            $cachePrefix: 'media/cache' # optional, this is default value
+            $visibility: 'public'  # optional, this is default value
         tags:
-            - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }
+          - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }
 ```
+
+> This is the equivalent way to configure what is outlined in the documentation [here](https://symfony.com/doc/2.0/bundles/LiipImagineBundle/cache-resolver/flysystem.html)
 
 #### Imagine Bundle Configuration
 

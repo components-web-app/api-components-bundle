@@ -15,6 +15,9 @@ namespace Silverback\ApiComponentsBundle\Imagine;
 
 use League\Flysystem\Filesystem;
 use Liip\ImagineBundle\Binary\Loader\LoaderInterface;
+use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
+use Liip\ImagineBundle\Model\Binary;
+use Symfony\Component\Mime\MimeTypes;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,31 +36,18 @@ class FlysystemDataLoader implements LoaderInterface
      */
     public function find($path)
     {
-        if (false === $this->filesystem->has($path)) {
+        if (false === $this->filesystem->fileExists($path)) {
             throw new NotLoadableException(sprintf('Source image "%s" not found.', $path));
         }
 
-        $mimeType = $this->filesystem->getMimetype($path);
+        $mimeType = $this->filesystem->mimeType($path);
 
-        $extension = $this->getExtension($mimeType);
+        $extension = MimeTypes::getDefault()->getExtensions($mimeType)[0];
 
         return new Binary(
             $this->filesystem->read($path),
             $mimeType,
             $extension
         );
-    }
-
-    private function getExtension(?string $mimeType): ?string
-    {
-        if ($this->extensionGuesser instanceof DeprecatedExtensionGuesserInterface) {
-            return $this->extensionGuesser->guess($mimeType);
-        }
-
-        if (null === $mimeType) {
-            return null;
-        }
-
-        return $this->extensionGuesser->getExtensions($mimeType)[0] ?? null;
     }
 }

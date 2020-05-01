@@ -11,16 +11,19 @@ services:
   Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider\UnpersistedComponentDataProvider:
     tags: [ 'api_platform.item_data_provider' ]
 
-  imagine.data_loader.local:
+  app.imagine.data.loader.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
     arguments:
       - "@api_components.filesystem.local"
     tags:
       - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
 
-  imagine.cache_resolver.local:
+  app.imagine.cache.resolver.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
     arguments:
       - "@api_components.filesystem.local"
+      - 'http://images.example.com'
+      - 'media/cache'
+      - 'public'
     tags:
       - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }

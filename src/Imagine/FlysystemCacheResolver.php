@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Imagine;
 
 use League\Flysystem\Filesystem;
+use League\Flysystem\Visibility;
 use Liip\ImagineBundle\Binary\BinaryInterface;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 
@@ -22,30 +23,82 @@ use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
  */
 class FlysystemCacheResolver implements ResolverInterface
 {
-    protected Filesystem $filesystem;
+    private Filesystem $filesystem;
+    private string $webRoot;
+    private string $cachePrefix;
+    private string $cacheRoot;
+    private string $visibility;
 
-    public function __construct(Filesystem $filesystem)
-    {
+    public function __construct(
+        Filesystem $filesystem,
+        string $rootUrl,
+        $cachePrefix = 'media/cache',
+        $visibility = Visibility::PUBLIC
+    ) {
         $this->filesystem = $filesystem;
+        $this->webRoot = rtrim($rootUrl, '/');
+        $this->cachePrefix = ltrim(str_replace('//', '/', $cachePrefix), '/');
+        $this->cacheRoot = $this->cachePrefix;
+        $this->visibility = $visibility;
     }
 
-    public function isStored($path, $filter)
+    public function isStored($path, $filter): bool
     {
-        // TODO: Implement isStored() method.
+        return $this->filesystem->fileExists($this->getFilePath($path, $filter));
     }
 
-    public function resolve($path, $filter)
+    public function resolve($path, $filter): string
     {
-        // TODO: Implement resolve() method.
+        return sprintf(
+            '%s/%s',
+            rtrim($this->webRoot, '/'),
+            ltrim($this->getFileUrl($path, $filter), '/')
+        );
     }
 
-    public function store(BinaryInterface $binary, $path, $filter)
+    public function store(BinaryInterface $binary, $path, $filter): void
     {
-        // TODO: Implement store() method.
+        $this->filesystem->write(
+            $this->getFilePath($path, $filter),
+            $binary->getContent(),
+            ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()]
+        );
     }
 
-    public function remove(array $paths, array $filters)
+    public function remove(array $paths, array $filters): void
     {
-        // TODO: Implement remove() method.
+        if (empty($paths) && empty($filters)) {
+            return;
+        }
+
+        if (empty($paths)) {
+            foreach ($filters as $filter) {
+                $filterCacheDir = $this->cacheRoot . '/' . $filter;
+                $this->filesystem->deleteDirectory($filterCacheDir);
+            }
+
+            return;
+        }
+
+        foreach ($paths as $path) {
+            foreach ($filters as $filter) {
+                if ($this->filesystem->fileExists($this->getFilePath($path, $filter))) {
+                    $this->filesystem->delete($this->getFilePath($path, $filter));
+                }
+            }
+        }
+    }
+
+    protected function getFilePath($path, $filter): string
+    {
+        return $this->getFileUrl($path, $filter);
+    }
+
+    protected function getFileUrl($path, $filter): string
+    {
+        // crude way of sanitizing URL scheme ("protocol") part
+        $path = str_replace('://', '---', $path);
+
+        return $this->cachePrefix . '/' . $filter . '/' . ltrim($path, '/');
     }
 }
