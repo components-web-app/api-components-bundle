@@ -77,6 +77,16 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^base64string(.*)$/
+     */
+    public function castBase64FileToSimpleString(string $value)
+    {
+        $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
+
+        return base64_encode(file_get_contents($filePath));
+    }
+
+    /**
      * @Given I send a :method request to :url with data:
      */
     public function iSendARequestToWithData($method, $url, TableNode $tableNode)
@@ -132,6 +142,10 @@ class RestContext implements Context
 
             if (\is_string($value) && preg_match('/^base64\((.*)\)$/', $value, $matches)) {
                 $value = $this->castBase64FileToString($matches[1]);
+            }
+
+            if (\is_string($value) && preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
+                $value = $this->castBase64FileToSimpleString($matches[1]);
             }
 
             return $value;

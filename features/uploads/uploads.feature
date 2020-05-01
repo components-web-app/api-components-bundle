@@ -10,7 +10,7 @@ Feature: API Resources which can have files uploaded
   # POST
 
   @loginUser
-  Scenario Outline: I can create a new dummy files component with a json base64 data
+  Scenario Outline: I can create a new dummy files component with a json base64 data (and dataURI as that is how symfony serializes text files)
     When I send a "POST" request to "/_/dummy_uploadables" with data:
       | file           |
       | base64(<file>) |
@@ -22,6 +22,18 @@ Feature: API Resources which can have files uploaded
       | image.svg      | uploadable_has_files.schema.json  |
       | test_file.txt  | uploadable_has_files.schema.json  |
       | test_file.docx | uploadable_has_files.schema.json  |
+
+  @loginUser
+  Scenario Outline: I can create a new dummy files component with base64 data that is just a string (no data:)
+    When I send a "POST" request to "/_/dummy_uploadables" with data:
+      | file                 |
+      | base64string(<file>) |
+    Then the response status code should be 201
+    And the JSON should be valid according to the schema "features/assets/schema/<schema>"
+    And the JSON node "filePath" should not exist
+    Examples:
+      | file           | schema                            |
+      | image.svg      | uploadable_has_files.schema.json  |
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with a "multipart/form-data" request
