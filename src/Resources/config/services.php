@@ -131,11 +131,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '$container' => new Reference(ContainerInterface::class),
             '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
-            '', // injected in dependency injection
-            '', // injected in dependency injection
-            '', // injected in dependency injection
-            '', // injected in dependency injection
-            '',
         ]);
 
     $services

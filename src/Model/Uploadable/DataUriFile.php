@@ -64,7 +64,7 @@ class DataUriFile extends File
             return $path;
         }
 
-        if (false === $path = tempnam($directory = sys_get_temp_dir(), 'Base64EncodedFile')) {
+        if (false === $path = tempnam($directory = sys_get_temp_dir(), 'DataUriFile')) {
             throw new FileException(sprintf('Unable to create a file into the "%s" directory', $path));
         }
         if (null !== $extension = (MimeTypes::getDefault()->getExtensions($mimeType)[0] ?? null)) {

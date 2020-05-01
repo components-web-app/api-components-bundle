@@ -19,6 +19,7 @@ Feature: API Resources which can have files uploaded
     And the JSON node "filePath" should not exist
     Examples:
       | file           | schema                            |
+      | image.png      | uploadable_has_files.schema.json  |
       | image.svg      | uploadable_has_files.schema.json  |
       | test_file.txt  | uploadable_has_files.schema.json  |
       | test_file.docx | uploadable_has_files.schema.json  |
@@ -46,6 +47,7 @@ Feature: API Resources which can have files uploaded
     And the JSON node "filePath" should not exist
     Examples:
       | file           | schema                            |
+      | image.png      | uploadable_has_files.schema.json  |
       | image.svg      | uploadable_has_files.schema.json  |
       | test_file.txt  | uploadable_has_files.schema.json  |
       | test_file.docx | uploadable_has_files.schema.json  |
@@ -61,8 +63,14 @@ Feature: API Resources which can have files uploaded
   # GET
 
   @loginUser
-  @wip
-  Scenario: I can get an image media resource with and without imagine filters configured
+  Scenario: I can get an image media resource with imagine filters configured
+    Given there is a DummyUploadableWithImagineFilters
+    When I send a "GET" request to the component "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
+    And the JSON node "_metadata.media_objects.filename[0].imagineFilter" should not exist
+    And the JSON node "_metadata.media_objects.filename[1].imagineFilter" should contain "thumbnail"
+    And the JSON node "_metadata.media_objects.filename[2].imagineFilter" should contain "square_thumbnail"
 
   # PUT
 

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\config;
 
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
@@ -40,5 +41,12 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->set(InMemoryFilesystemAdapter::class)
+        ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'in_memory']);
+
+    $services
+        ->set(LocalFilesystemAdapter::class)
+        ->args([
+            '%kernel.cache_dir%/uploads',
+        ])
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
 };

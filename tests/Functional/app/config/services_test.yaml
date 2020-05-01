@@ -14,14 +14,14 @@ services:
   app.imagine.data.loader.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader
     arguments:
-      - "@api_components.filesystem.local"
+      - "@api_components.filesystem.in_memory"
     tags:
       - { name: "liip_imagine.binary.loader", loader: custom_data_loader }
 
   app.imagine.cache.resolver.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
     arguments:
-      - "@api_components.filesystem.local"
+      - "@api_components.filesystem.in_memory"
       - 'http://images.example.com'
       - 'media/cache'
       - 'public'

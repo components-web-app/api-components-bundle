@@ -130,6 +130,9 @@ class UploadableHelper
             if (!$filename) {
                 continue;
             }
+            if (!$filesystem->fileExists($filename)) {
+                continue;
+            }
 
             // Populate the primary MediaObject
             try {
