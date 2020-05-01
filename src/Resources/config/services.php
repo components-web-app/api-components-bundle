@@ -63,6 +63,7 @@ use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
@@ -260,6 +261,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
         ])
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(MediaObjectFactory::class)
+        ->args([]);
 
     $services
         ->set(MessageEventListener::class)
@@ -514,6 +519,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
+            new Reference(MediaObjectFactory::class),
         ]);
 
     $services
@@ -527,6 +533,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableNormalizer::class)
         ->autoconfigure(false)
         ->args([
+            new Reference(UploadableHelper::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(ManagerRegistry::class),
         ])

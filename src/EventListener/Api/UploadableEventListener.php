@@ -39,8 +39,13 @@ final class UploadableEventListener
         if (
             empty($data) ||
             !$this->uploadableAnnotationReader->isConfigured($data) ||
-            $request->isMethod(Request::METHOD_DELETE)
+            $request->isMethod(Request::METHOD_GET)
         ) {
+            return;
+        }
+        if ($request->isMethod(Request::METHOD_DELETE)) {
+            $this->uploadableHelper->deleteFiles($data);
+
             return;
         }
         $this->uploadableHelper->persistFiles($data);

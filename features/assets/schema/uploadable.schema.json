@@ -52,9 +52,6 @@
                     "persisted": true
                 }
             ],
-            "required": [
-                "media_objects"
-            ],
             "properties": {
                 "media_objects": {
                     "$id": "#/properties/media_objects",

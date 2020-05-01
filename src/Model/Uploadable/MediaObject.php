@@ -24,13 +24,13 @@ final class MediaObject
 
     public string $contentUrl;
 
-    public int $fileSize;
+    public string $fileSize;
 
     public string $mimeType;
 
-    public ?int $width;
+    public ?int $width = null;
 
-    public ?int $height;
+    public ?int $height = null;
 
     public ?string $imagineFilter = null;
 

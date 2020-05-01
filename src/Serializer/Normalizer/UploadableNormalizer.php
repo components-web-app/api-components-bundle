@@ -17,10 +17,11 @@ use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\Base64EncodedFile;
-use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -42,10 +43,12 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
+    private UploadableHelper $uploadableHelper;
     private UploadableAnnotationReader $annotationReader;
 
-    public function __construct(UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
+    public function __construct(UploadableHelper $uploadableHelper, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
     {
+        $this->uploadableHelper = $uploadableHelper;
         $this->annotationReader = $annotationReader;
         $this->initRegistry($registry);
     }
@@ -107,25 +110,26 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $mediaObject = new MediaObject();
-        $mediaObject->contentUrl = 'https://www.website.com/path';
-        $mediaObject->height = 100;
-        $mediaObject->width = 200;
-        $mediaObject->fileSize = 632;
-        $mediaObject->imagineFilter = 'filter_name';
-        $mediaObject->mimeType = 'octet/stream';
+        $mediaObjects = $this->uploadableHelper->getMediaObjects($object);
+        if ($mediaObjects) {
+            $mediaObjects = $this->normalizer->normalize(
+                $mediaObjects,
+                $format,
+                [
+                    'jsonld_embed_context' => true,
+                    'skip_null_values' => $context['skip_null_values'] ?? false,
+                ]
+            );
+            $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
+        }
 
         $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true, true);
         $classMetadata = $this->getClassMetadata($object);
-        foreach ($fieldConfigurations as $fieldConfiguration) {
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        foreach ($fieldConfigurations as $fileField => $fieldConfiguration) {
+            $propertyAccessor->setValue($object, $fileField, null);
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
-
-            $mediaObjects = [
-                $fieldConfiguration->property => [$mediaObject],
-            ];
         }
-
-        $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $this->normalizer->normalize($mediaObjects, $format, ['jsonld_embed_context' => true]);
 
         return $this->normalizer->normalize($object, $format, $context);
     }

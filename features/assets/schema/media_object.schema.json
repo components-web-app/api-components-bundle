@@ -160,12 +160,12 @@
         },
         "fileSize": {
             "$id": "#/properties/fileSize",
-            "type": "integer",
+            "type": "string",
             "title": "The Filesize Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": 0,
             "examples": [
-                632.0
+                "10MB"
             ]
         },
         "mimeType": {

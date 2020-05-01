@@ -1,0 +1,16 @@
+{
+    "allOf": [
+        {
+            "$ref": "uploadable.schema.json"
+        },
+        {
+            "properties": {
+                "_metadata": {
+                    "required": [
+                        "media_objects"
+                    ]
+                }
+            }
+        }
+    ]
+}

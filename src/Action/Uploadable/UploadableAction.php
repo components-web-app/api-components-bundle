@@ -45,6 +45,8 @@ class UploadableAction
             throw new BadRequestHttpException($exception->getMessage());
         }
 
+        $request->attributes->set('data', $resource);
+
         return $resource;
     }
 }
