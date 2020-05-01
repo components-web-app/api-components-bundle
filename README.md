@@ -14,4 +14,4 @@ __Unit:__
 
 Creates a flexible API for a website's structure, reusable components and common functionality.
 
-#### **[Read the documentation](https://silverbackis.github.io/ApiComponentBundle)**
+#### **[Read the documentation](https://docs.acb.silverback.is)**

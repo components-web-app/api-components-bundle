@@ -44,7 +44,7 @@ gesdinet_jwt_refresh_token:
 ```
 The above configurations are a bit different to those that will be added by Symfony Flex for the package. The `user_provider` must use the database for us to retain the user's roles. For our purposes, the route does not need the `/api` prefix.
 
-Configure your security/firewall:
+Configure your security/firewall. Below is a recommended configuration, **but please check it and ensure it meets your needs**:
 ```yaml
 # /config/packages/security.yaml
 security:
@@ -96,6 +96,7 @@ security:
         - { path: ^/login, roles: ROLE_TOKEN_USER }
         - { path: ^/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/password/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
         - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
 ```

@@ -8,6 +8,7 @@ We encourage using as many of the packages as possible that are well maintained 
 
 In the future, we will be creating a standard package you will be able to use for installing ACB instead of needing to follow these instructions. For now, we want to just focus on getting this bundle working well without the additional repository to maintain.
 
+## Setup
 - Download [API Platform files from GitHub](https://github.com/api-platform/api-platform) as described in their ['Getting Started'](https://api-platform.com/docs/core/getting-started/) instructions
 - Delete the folders `/client` and `/admin` - we do not need these
 - Remove the client and admin configurations from the `/docker-compose.yaml` file
@@ -23,6 +24,8 @@ In the future, we will be creating a standard package you will be able to use fo
     - Add or modify to include gd `docker-php-ext-install gd`
 - Start up the containers
 - run `docker-compose exec php sh` to bash into the php container
-- run `composer require silverbackis/api-component-bundle:2.x-dev`
+
+## Install Api Components Bundle
+- run `composer require silverbackis/api-components-bundle:dev-master`
 
 > __Be sure to run the [recipe for this bundle](https://github.com/api-platform/api-platform) or take a look at all the files and configurations in the repository that would normally have been executed if the recipe had been executed.__

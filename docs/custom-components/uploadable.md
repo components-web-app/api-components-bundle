@@ -31,6 +31,8 @@ app.flysystem.adapter.local:
       - { name: 'silverback.api_component.filesystem_adapter', alias: 'local' }
 ```
 
+Install the adapters you need from Flysystem and remember to use adapters supporting version 2 (e.g. `composer require league/flysystem-aws-s3-v3:^2`)
+
 ## Usage
 The easiest way to configure an entity resource be an uploadable file is to use the following annotation and trait:
 
@@ -48,8 +50,6 @@ class File
     /** @Silverback\UploadableField(adapter="local") */
     public ?File $file;
 ```
-
-
 
 > **A file will have `MediaObject` resources appended to it with the IRI/Schema configured.**
 
