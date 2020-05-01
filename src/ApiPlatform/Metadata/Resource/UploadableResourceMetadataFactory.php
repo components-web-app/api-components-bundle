@@ -74,7 +74,9 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $path = sprintf('/%s/{id}/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
 
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
-        $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $this->getOperationConfiguration($properties, $path));
+        $putProperties = $this->getOperationConfiguration($properties, $path);
+        $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $putProperties);
+        $itemOperations['patch_upload'] = array_merge(['method' => 'PATCH'], $putProperties);
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
