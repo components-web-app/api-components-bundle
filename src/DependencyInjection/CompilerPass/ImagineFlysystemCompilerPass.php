@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -32,7 +33,7 @@ class ImagineFlysystemCompilerPass implements CompilerPassInterface
                 $definition = new Definition();
                 $definition
                     ->setClass(Filesystem::class)
-                    ->setFactory(FilesystemProvider::class . '::getFilesystem')
+                    ->setFactory([new Reference(FilesystemProvider::class), 'getFilesystem'])
                     ->addArgument($attributes['alias']);
                 $serviceName = sprintf('api_components.filesystem.%s', $attributes['alias']);
                 $container->setDefinition($serviceName, $definition);

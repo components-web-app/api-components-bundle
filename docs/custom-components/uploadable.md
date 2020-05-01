@@ -191,7 +191,6 @@ Your `Uploadable` resources will not return your configured file paths. These ar
             ]
         }
     }
-    // ... More resource properties would appear here if you have set them. (e.g. description, type)
 }
 ```
 

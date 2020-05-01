@@ -15,8 +15,6 @@ namespace Silverback\ApiComponentsBundle\Imagine;
 
 use League\Flysystem\Filesystem;
 use Liip\ImagineBundle\Binary\Loader\LoaderInterface;
-use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
-use Symfony\Component\Mime\MimeTypesInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -25,12 +23,9 @@ class FlysystemDataLoader implements LoaderInterface
 {
     protected Filesystem $filesystem;
 
-    protected MimeTypesInterface $extensionGuesser;
-
-    public function __construct(MimeTypesInterface $extensionGuesser, FilesystemProvider $filesystemProvider, string $adapterAlias)
+    public function __construct(Filesystem $filesystem)
     {
-        $this->extensionGuesser = $extensionGuesser;
-        $this->filesystem = $filesystemProvider->getFilesystem($adapterAlias);
+        $this->filesystem = $filesystem;
     }
 
     /**

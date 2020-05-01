@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Imagine;
 
+use League\Flysystem\Filesystem;
 use Liip\ImagineBundle\Binary\BinaryInterface;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 
@@ -21,6 +22,13 @@ use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
  */
 class FlysystemCacheResolver implements ResolverInterface
 {
+    protected Filesystem $filesystem;
+
+    public function __construct(Filesystem $filesystem)
+    {
+        $this->filesystem = $filesystem;
+    }
+
     public function isStored($path, $filter)
     {
         // TODO: Implement isStored() method.
