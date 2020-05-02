@@ -2,7 +2,5 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="Silverback\ApiComponentsBundle\Entity\Component\Form" table="form">
     <field name="formType" type="string" column="form_type" precision="0" scale="0" nullable="false"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
   </entity>
 </doctrine-mapping>

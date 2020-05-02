@@ -4,8 +4,6 @@
     <id name="id" type="string" column="id" length="36"/>
     <field name="route" type="string" column="route" precision="0" scale="0" unique="true" nullable="false"/>
     <field name="name" type="string" column="name" precision="0" scale="0" unique="true" nullable="false"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
     <one-to-one field="pageTemplate" target-entity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate" mapped-by="route" fetch="LAZY">
       <join-columns>
         <join-column name="page_template_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>

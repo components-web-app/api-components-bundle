@@ -17,7 +17,5 @@
     <field name="newEmailAddress" column="new_email_address" length="255" nullable="true"/>
     <field name="newEmailVerificationToken" column="new_email_verification_token" nullable="true"/>
     <field name="emailAddressVerified" column="email_address_verified" type="boolean"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at"/>
-    <field name="modifiedAt" type="datetime" column="modified_at"/>
   </mapped-superclass>
 </doctrine-mapping>

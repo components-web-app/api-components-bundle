@@ -3,8 +3,6 @@
   <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup" table="component_group">
     <id name="id" type="string" column="id" length="36"/>
     <field name="reference" type="string" column="reference" precision="0" scale="0" unique="true" nullable="false"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
     <one-to-many field="componentLocations" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation" mapped-by="componentGroup" fetch="LAZY">
       <order-by>
         <order-by-field name="sort" direction="ASC"/>

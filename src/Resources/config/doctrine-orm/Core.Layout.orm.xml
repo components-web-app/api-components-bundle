@@ -5,8 +5,6 @@
     <field name="default" type="boolean" column="is_default" precision="0" scale="0" nullable="false"/>
     <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
     <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
     <one-to-many field="pageTemplates" target-entity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate" mapped-by="layout" fetch="LAZY"/>
     <many-to-many field="componentGroups" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup" inversed-by="layouts" fetch="LAZY">
       <join-table name="layout_component_group">

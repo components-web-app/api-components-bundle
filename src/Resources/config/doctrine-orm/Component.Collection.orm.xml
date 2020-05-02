@@ -4,7 +4,5 @@
     <field name="resourceClass" type="string" column="resource_class" precision="0" scale="0" nullable="false"/>
     <field name="perPage" type="integer" column="per_page" precision="0" scale="0" nullable="true"/>
     <field name="defaultQueryParameters" type="json" column="default_query_parameters" precision="0" scale="0" nullable="true"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
   </entity>
 </doctrine-mapping>
