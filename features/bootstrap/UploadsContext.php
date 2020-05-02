@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Doctrine\Persistence\ManagerRegistry;
@@ -53,7 +54,11 @@ class UploadsContext implements Context
     public function removeFile(): void
     {
         if (isset($this->restContext->components['dummy_uploadable'])) {
-            $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+            try {
+                $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+            } catch (ItemNotFoundException $e) {
+                // we may heva just deleted this resource 'dummy_uploadable'
+            }
         }
     }
 

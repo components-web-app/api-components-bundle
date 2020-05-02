@@ -94,5 +94,7 @@ Feature: API Resources which can have files uploaded
   # DELETE
 
   @loginUser
-  @wip
-  Scenario: I can update a media resource
+  Scenario: I can delete a media resource
+    Given there is a DummyUploadableWithImagineFilters
+    When I send a "DELETE" request to the component "dummy_uploadable"
+    Then the response status code should be 204
