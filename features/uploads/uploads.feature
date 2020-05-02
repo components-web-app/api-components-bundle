@@ -68,6 +68,12 @@ Feature: API Resources which can have files uploaded
     When I send a "GET" request to the component "dummy_uploadable"
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
+    And the JSON node "_metadata.media_objects.filename[0].@type" should be equal to the string "http://schema.org/MediaObject"
+    And the JSON node "_metadata.media_objects.filename[0].@context.formattedFileSize" should be equal to the string "http://schema.org/contentSize"
+    And the JSON node "_metadata.media_objects.filename[0].@context.contentUrl" should be equal to the string "http://schema.org/contentUrl"
+    And the JSON node "_metadata.media_objects.filename[0].@context.mimeType" should be equal to the string "http://schema.org/encodingFormat"
+    And the JSON node "_metadata.media_objects.filename[0].@context.width" should be equal to the string "http://schema.org/width"
+    And the JSON node "_metadata.media_objects.filename[0].@context.height" should be equal to the string "http://schema.org/height"
     And the JSON node "_metadata.media_objects.filename[0].imagineFilter" should not exist
     And the JSON node "_metadata.media_objects.filename[1].imagineFilter" should be equal to the string "thumbnail"
     And the JSON node "_metadata.media_objects.filename[1].width" should be equal to the number "350"

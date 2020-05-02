@@ -91,7 +91,7 @@ class DataUriFile extends File
                 throw new FileException('Unable to decode strings as base64');
             }
 
-            if (false === @stream_copy_to_stream($source, $target)) {
+            if (false === stream_copy_to_stream($source, $target)) {
                 throw new FileException(sprintf('Unable to write the file "%s"', $path));
             }
 

@@ -35,21 +35,21 @@ final class MediaObject
     public ?string $imagineFilter = null;
 
     // defined otherwise the IRI mapping in API Platform does not work with just the getter method
-    private string $formattedFileSize = '';
+    private ?string $formattedFileSize = null;
 
     public function __construct()
     {
         $this->id = Uuid::uuid4()->getHex()->toString();
     }
 
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
     public function getFormattedFileSize(): string
     {
-        return $this->fileSize < 0 ? '' : $this->convertSizeToString($this->fileSize);
+        return $this->formattedFileSize ?? $this->fileSize < 0 ? '' : $this->convertSizeToString($this->fileSize);
     }
 
     private function convertSizeToString(int $bytes): string
