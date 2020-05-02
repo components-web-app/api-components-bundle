@@ -18,6 +18,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 
 /**
+ * Reusable trait by application developer so keep annotations as we cannot map with XML.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 trait IdTrait

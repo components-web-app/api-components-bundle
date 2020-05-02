@@ -19,6 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 
 /**
+ * Reusable trait by application developer so keep annotations as we cannot map with XML.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 trait ComponentGroupsTrait

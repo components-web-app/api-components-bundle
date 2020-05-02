@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Entity\User;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
-use Doctrine\ORM\Mapping as ORM;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -31,11 +30,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ORM\MappedSuperclass(repositoryClass="Silverback\ApiComponentsBundle\Repository\User\UserRepository")
- * @ORM\Table(
- * indexes={@ORM\Index(name="username_idx", columns={"username"}), @ORM\Index(name="email_address_idx", columns={"email_address"})})
- *     uniqueConstraints={@ORM\UniqueConstraint(name="username_email_idx", columns={"username", "email_address"})})
- * )
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
  * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
@@ -46,14 +40,12 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     use TimestampedTrait;
 
     /**
-     * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(groups={"Default"})
      * @Groups({"User:super_admin", "User:output"})
      */
     protected ?string $username;
 
     /**
-     * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
      * @Groups({"User:super_admin", "User:output"})
@@ -61,19 +53,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $emailAddress;
 
     /**
-     * @ORM\Column(type="array")
      * @Groups({"User:super_admin"})
      */
     protected array $roles;
 
     /**
-     * @ORM\Column(type="boolean")
      * @Groups({"User:super_admin"})
      */
     protected bool $enabled;
 
     /**
-     * @ORM\Column(type="string", length=255)
      * @ApiProperty(readable=false, writable=false)
      */
     protected string $password;
@@ -89,13 +78,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * Random string sent to the user email address in order to verify it.
      *
-     * @ORM\Column(nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?string $newPasswordConfirmationToken = null;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?DateTime $passwordRequestedAt = null;
@@ -109,12 +96,10 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @ApiProperty(readable=false, writable=false)
-     * @ORM\Column(type="datetime", nullable=true)
      */
     protected ?DateTime $passwordLastUpdated = null;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(groups={"new_email_address"})
      * @Groups({"User:input", "User:output", "new_email_address"})
      */
@@ -123,13 +108,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * Random string sent to the user's new email address in order to verify it.
      *
-     * @ORM\Column(nullable=true)
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?string $newEmailVerificationToken = null;
 
     /**
-     * @ORM\Column(type="boolean", nullable=false)
      * @ApiProperty(readable=false, writable=false)
      */
     protected bool $emailAddressVerified = false;

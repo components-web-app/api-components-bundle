@@ -6,7 +6,18 @@
       <index name="email_address_idx" columns="email_address"/>
     </indexes>
     <id name="id" type="string" column="id" length="36"/>
-    <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-    <field name="modifiedAt" type="datetime" column="modified_at" nullable="false"/>
+    <field name="username" length="255" column="username"/>
+    <field name="emailAddress" length="255" column="email_address"/>
+    <field name="roles" column="roles" type="array"/>
+    <field name="enabled" column="enabled" type="boolean"/>
+    <field name="password" column="password" length="255"/>
+    <field name="newPasswordConfirmationToken" column="new_password_confirmation_token" nullable="true"/>
+    <field name="passwordRequestedAt" column="password_requested_at" type="datetime" nullable="true"/>
+    <field name="passwordLastUpdated" column="password_last_updated" type="datetime" nullable="true"/>
+    <field name="newEmailAddress" column="new_email_address" length="255" nullable="true"/>
+    <field name="newEmailVerificationToken" column="new_email_verification_token" nullable="true"/>
+    <field name="emailAddressVerified" column="email_address_verified" type="boolean"/>
+    <field name="createdAt" type="datetime_immutable" column="created_at"/>
+    <field name="modifiedAt" type="datetime" column="modified_at"/>
   </mapped-superclass>
 </doctrine-mapping>

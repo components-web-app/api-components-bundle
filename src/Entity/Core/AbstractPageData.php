@@ -13,17 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ORM\Entity
- * @ORM\Table(name="page_data")
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="dtype", type="string")
- * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="route", inversedBy="pageData")
- * })
  */
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
@@ -35,9 +26,5 @@ abstract class AbstractPageData extends AbstractPage implements PageDataInterfac
      * within entities with interpolation, or add new components on the fly depending on what you have defined here.
      */
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate")
-     * @ORM\JoinColumn(nullable=false)
-     */
     public PageTemplate $pageTemplate;
 }

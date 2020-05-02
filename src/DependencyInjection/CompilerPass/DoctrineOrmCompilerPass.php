@@ -25,8 +25,9 @@ class DoctrineOrmCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         $bundleRoot = $container->getParameter('kernel.bundles_metadata')['SilverbackApiComponentsBundle']['path'];
-        $modelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm');
         $namespace = 'Silverback\ApiComponentsBundle\Entity';
+
+        $modelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm');
         $mappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver(
             [
                 $modelDir => $namespace,

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -22,7 +21,6 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ORM\MappedSuperclass
  *
  * @internal
  */
@@ -31,16 +29,11 @@ abstract class AbstractPage
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", cascade={"persist"})
-     */
     public ?Route $route;
 
     /**
      * This will be se so that when auto-generating a route for a newly created
      * PageTemplate / PageData, we can prepend parent routes.
-     *
-     * @ORM\OneToOne(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Route", cascade={"persist"})
      */
     public ?Route $parentRoute;
 
@@ -51,19 +44,11 @@ abstract class AbstractPage
      * the parent page(s) up to the point where a parent is defined as not nested or
      * does not have a parent route
      * E.g. the parent route's page may just be a Hero and some Tab navigation.
-     *
-     * @ORM\Column(type="boolean")
      */
     public bool $isNested = true;
 
-    /**
-     * @ORM\Column()
-     */
     public string $title = 'Unnamed Page';
 
-    /**
-     * @ORM\Column(nullable=true)
-     */
     public ?string $metaDescription;
 
     public function __construct()

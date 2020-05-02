@@ -17,7 +17,6 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -27,42 +26,32 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
  *
  * @Silverback\Timestamped
  * @ApiResource
- * @ORM\Entity
  */
 class ComponentGroup
 {
     use IdTrait;
     use TimestampedTrait;
 
-    /** @ORM\Column(unique=true) */
     public string $reference;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\Layout", mappedBy="componentGroups")
-     *
      * @var Collection|Layout[]
      */
     public $layouts;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate", mappedBy="componentGroups")
-     *
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
 
     /**
      * @ApiProperty(writable=false)
-     * @ORM\ManyToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent", mappedBy="componentGroups")
      *
      * @var Collection|AbstractComponent[]
      */
     public Collection $components;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation", mappedBy="componentGroup")
-     * @ORM\OrderBy({"sort" = "ASC"})
-     *
      * @var Collection|ComponentLocation[]
      */
     public Collection $componentLocations;

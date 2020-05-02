@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -28,10 +27,6 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
  *
  * @Silverback\Timestamped
  * @ApiResource
- * @ORM\Entity
- * @ORM\AssociationOverrides({
- *     @ORM\AssociationOverride(name="componentGroups", inversedBy="layouts")
- * })
  */
 class Layout
 {
@@ -41,15 +36,10 @@ class Layout
     use ComponentGroupsTrait;
 
     /**
-     * @ORM\OneToMany(targetEntity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate", mappedBy="layout")
-     *
      * @var Collection|PageTemplate[]
      */
     public Collection $pageTemplates;
 
-    /**
-     * @ORM\Column(name="`default`", type="boolean", nullable=false)
-     */
     public bool $default;
 
     public function __construct()
