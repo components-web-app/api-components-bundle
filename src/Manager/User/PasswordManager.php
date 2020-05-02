@@ -64,7 +64,7 @@ class PasswordManager
         if (!$username) {
             throw new InvalidArgumentException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setNewPasswordConfirmationToken($confirmationToken = TokenGenerator::generateToken());
+        $user->setNewPasswordConfirmationToken(TokenGenerator::generateToken());
         $user->setPasswordRequestedAt(new DateTime());
         $this->userMailer->sendPasswordResetEmail($user);
         $this->entityManager->flush();

@@ -104,7 +104,6 @@ class UploadableHelper
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $classMetadata = $this->getClassMetadata($object);
 
-        // $configuration = $this->annotationReader->getConfiguration($object);
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
         /**
          * @var UploadableField[] $configuredProperties

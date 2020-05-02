@@ -80,9 +80,4 @@ class MediaObjectFactory
 
         return $mediaObject;
     }
-
-    private function fileIsImage($filePath): bool
-    {
-        return exif_imagetype($filePath) || 'image/svg+xml' === mime_content_type($filePath);
-    }
 }

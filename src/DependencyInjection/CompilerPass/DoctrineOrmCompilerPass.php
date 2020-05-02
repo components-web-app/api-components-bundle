@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use Silverback\ApiComponentsBundle\Entity;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -25,20 +24,20 @@ class DoctrineOrmCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        $modelDir = realpath(\dirname(__DIR__, 2) . '/Resources/config/doctrine-orm');
+        $bundleRoot = $container->getParameter('kernel.bundles_metadata')['SilverbackApiComponentsBundle']['path'];
+        $modelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm');
         $namespace = 'Silverback\ApiComponentsBundle\Entity';
         $mappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver(
             [
                 $modelDir => $namespace,
             ],
             ['api_components.orm.manager_name.default'],
-            $enabledParameter = false,
+            false,
             ['ApiComponentsBundle' => $namespace]
         );
         $mappingPass->process($container);
 
-        // Todo: We should be mapping this in with a separate entity manager, or isolate it's UOW
-        $imagineModelDir = realpath(\dirname(__DIR__, 2) . '/Resources/config/doctrine-orm-imagine');
+        $imagineModelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm-imagine');
         $imagineMappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver(
             [
                 $imagineModelDir => 'Silverback\ApiComponentsBundle\Imagine\Entity',
