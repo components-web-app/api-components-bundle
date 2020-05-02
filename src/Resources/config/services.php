@@ -265,7 +265,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ImagineEventListener::class)
         ->args([
-            new Reference(UploadableHelper::class),
+            new Reference(EntityManagerInterface::class),
         ])
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);

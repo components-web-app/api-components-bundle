@@ -22,4 +22,10 @@ class ImagineRemoveEvent extends Event
 {
     public ?array $paths;
     public ?array $filters;
+
+    public function __construct(?array $paths, ?array $filters)
+    {
+        $this->paths = $paths;
+        $this->filters = $filters;
+    }
 }

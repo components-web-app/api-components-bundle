@@ -26,17 +26,14 @@ final class CacheManager extends ImagineCacheManager
 {
     public function store(BinaryInterface $binary, $path, $filter, $resolver = null): void
     {
-        $event = new ImagineStoreEvent();
-        $event->binary = $binary;
+        $event = new ImagineStoreEvent($binary, $path, $filter);
         $this->dispatch($event, ImagineStoreEvent::class);
         parent::store($binary, $path, $filter, $resolver);
     }
 
     public function remove($paths = null, $filters = null): void
     {
-        $event = new ImagineRemoveEvent();
-        $event->paths = $paths;
-        $event->filters = $filters;
+        $event = new ImagineRemoveEvent($paths, $filters);
         $this->dispatch($event, ImagineRemoveEvent::class);
         parent::remove($paths, $filters);
     }

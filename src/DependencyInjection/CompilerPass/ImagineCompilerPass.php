@@ -13,13 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use League\Flysystem\Filesystem;
-use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,19 +24,6 @@ class ImagineCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        $adapters = $container->findTaggedServiceIds(FilesystemProvider::FILESYSTEM_ADAPTER_TAG);
-        foreach ($adapters as $adaperId => $tags) {
-            foreach ($tags as $attributes) {
-                $definition = new Definition();
-                $definition
-                    ->setClass(Filesystem::class)
-                    ->setFactory([new Reference(FilesystemProvider::class), 'getFilesystem'])
-                    ->addArgument($attributes['alias']);
-                $serviceName = sprintf('api_components.filesystem.%s', $attributes['alias']);
-                $container->setDefinition($serviceName, $definition);
-            }
-        }
-
         $definition = $container->getDefinition('liip_imagine.cache.manager');
         $definition->setClass(CacheManager::class);
     }

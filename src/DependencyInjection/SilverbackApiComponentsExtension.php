@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
-use Liip\ImagineBundle\Service\FilterService;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
@@ -82,7 +82,11 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
 
-        if (class_exists(FilterService::class)) {
+        $imagineEnabled = $container->getParameter('api_component.imagine_enabled');
+        $definition = $container->getDefinition(UploadableAnnotationReader::class);
+        $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
+
+        if ($imagineEnabled) {
             $definition = $container->getDefinition(UploadableHelper::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
         }

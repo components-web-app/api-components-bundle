@@ -22,4 +22,13 @@ use Symfony\Contracts\EventDispatcher\Event;
 class ImagineStoreEvent extends Event
 {
     public BinaryInterface $binary;
+    public string $path;
+    public string $filter;
+
+    public function __construct(BinaryInterface $binary, string $path, string $filter)
+    {
+        $this->binary = $binary;
+        $this->path = $path;
+        $this->filter = $filter;
+    }
 }

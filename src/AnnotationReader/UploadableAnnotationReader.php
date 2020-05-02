@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
-use Liip\ImagineBundle\LiipImagineBundle;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
@@ -28,21 +27,21 @@ use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
  */
 final class UploadableAnnotationReader extends AbstractAnnotationReader
 {
-    private bool $imagineClassExists;
+    private bool $imagineBundleEnabled;
 
-    public function __construct(Reader $reader, ManagerRegistry $managerRegistry)
+    public function __construct(Reader $reader, ManagerRegistry $managerRegistry, bool $imagineBundleEnabled)
     {
-        $this->imagineClassExists = class_exists(LiipImagineBundle::class);
+        $this->imagineBundleEnabled = $imagineBundleEnabled;
         parent::__construct($reader, $managerRegistry);
     }
 
     public function isConfigured($class): bool
     {
         $isConfigured = parent::isConfigured($class);
-        if (!$isConfigured || $this->imagineClassExists || !is_a($class, ImagineFiltersInterface::class)) {
+        if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
             return $isConfigured;
         }
-        throw new BadMethodCallException(sprintf('Could not find the bundle %s - please make sure you have installed it in order to use the Imagine functionality.', LiipImagineBundle::class));
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not implement %s', ImagineFiltersInterface::class));
     }
 
     /**

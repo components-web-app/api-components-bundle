@@ -44,15 +44,6 @@ final class UploadableListener
             return;
         }
 
-        $configuration = $this->uploadableAnnotationReader->getConfiguration($className);
-        if (!$metadata->hasField($configuration->filesInfoField)) {
-            $metadata->mapField([
-                'fieldName' => $configuration->filesInfoField,
-                'type' => 'array',
-                'nullable' => true,
-            ]);
-        }
-
         $propertyConfigurations = $this->uploadableAnnotationReader->getConfiguredProperties($className, true, true);
 
         foreach ($propertyConfigurations as $propertyConfiguration) {

@@ -37,6 +37,8 @@ Install the adapters you need from Flysystem and remember to use adapters suppor
 
 If you are using the [LiipImagineBundle](https://github.com/liip/LiipImagineBundle), this bundle will automatically add a service for each filesystem configured so that you can use to wire into our `DataLoader` and `CacheResolver` classes. These are the services you will need to use with Imagine. The above filesystem will be available as `api_components.filesystem.local` where `local` is the alias you have chosen for the adapter.
 
+This will also create a mapping table in your database to store file information as it is being saved or removed from the cache.
+
 ### Define your Data Loader
 
 #### Imagine Bundle Configuration
@@ -114,8 +116,6 @@ class File
     /** @Silverback\UploadableField(adapter="local") */
     public ?File $file;
 ```
-
-In order to save the information about files stored in the cache, there is also an array doctrine field defiend in the `UploadableTrait` and the field name can be configured in the annotation if you do not want to use the trait.
 
 You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives a `Request` object and can return different filters depending on the resource state. If the resource is not an image, this will be silently ignored.
 

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
-use Liip\ImagineBundle\LiipImagineBundle;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
-use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineOrmCompilerPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\FlysystemCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
@@ -32,13 +32,20 @@ class SilverbackApiComponentsBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
-        if (class_exists(DoctrineOrmMappingsPass::class)) {
-            $container->addCompilerPass(new DoctrineCompilerPass());
-        }
+
         $container->addCompilerPass(new ApiPlatformCompilerPass());
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
-        if (class_exists(LiipImagineBundle::class)) {
+        $container->addCompilerPass(new FlysystemCompilerPass());
+
+        if (class_exists(DoctrineOrmMappingsPass::class)) {
+            $container->addCompilerPass(new DoctrineOrmCompilerPass());
+        }
+
+        $bundles = $container->getParameter('kernel.bundles');
+        $imagineEnabled = isset($bundles['LiipImagineBundle']);
+        $container->setParameter('api_component.imagine_enabled', $imagineEnabled);
+        if ($imagineEnabled) {
             $container->addCompilerPass(new ImagineCompilerPass());
         }
     }

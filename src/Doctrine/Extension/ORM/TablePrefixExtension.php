@@ -36,7 +36,12 @@ class TablePrefixExtension
             return false;
         }
 
-        if (0 !== strpos($classMetadata->getReflectionClass()->getNamespaceName(), 'Silverback\ApiComponentsBundle\\')) {
+        // Fix: doctrine console command - may not have a class
+        if (!$reflectionClass = $classMetadata->getReflectionClass()) {
+            return false;
+        }
+
+        if (0 !== strpos($reflectionClass->getNamespaceName(), 'Silverback\ApiComponentsBundle\\')) {
             return false;
         }
 
