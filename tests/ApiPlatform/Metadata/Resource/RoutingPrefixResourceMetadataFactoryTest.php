@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixRe
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 class RoutingPrefixResourceMetadataFactoryTest extends TestCase
@@ -30,25 +31,29 @@ class RoutingPrefixResourceMetadataFactoryTest extends TestCase
      */
     private $decoratedMock;
 
-    protected function setUp(): void
+    private function getDecoratedMock(?ResourceMetadata $resourceMetadata = null)
     {
-        $this->decoratedMock = $this->createMock(ResourceMetadataFactoryInterface::class);
-        $this->decoratedMock
+        $mock = $this->createMock(ResourceMetadataFactoryInterface::class);
+        $mock
             ->expects($this->once())
             ->method('create')
-            ->willReturn(new ResourceMetadata());
+            ->willReturn($resourceMetadata ?? new ResourceMetadata());
+
+        return $mock;
     }
 
     public function test_component_prefix(): void
     {
-        $factory = new RoutingPrefixResourceMetadataFactory($this->decoratedMock);
+        $decoratedMock = $this->getDecoratedMock();
+        $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);
         $result = $factory->create(Form::class);
         $this->assertEquals('/component', $result->getAttribute('route_prefix'));
     }
 
     public function test_page_data_prefix(): void
     {
-        $factory = new RoutingPrefixResourceMetadataFactory($this->decoratedMock);
+        $decoratedMock = $this->getDecoratedMock();
+        $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);
         $pageDataClass = new class() extends AbstractPageData {
         };
         $result = $factory->create(\get_class($pageDataClass));
@@ -57,14 +62,25 @@ class RoutingPrefixResourceMetadataFactoryTest extends TestCase
 
     public function test_api_component_bundle_prefix(): void
     {
-        $factory = new RoutingPrefixResourceMetadataFactory($this->decoratedMock);
+        $decoratedMock = $this->getDecoratedMock();
+        $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);
         $result = $factory->create(Route::class);
         $this->assertEquals('/_', $result->getAttribute('route_prefix'));
     }
 
+    public function test_append_prefix_to_user_defined(): void
+    {
+        $resourceMetadata = new ResourceMetadata(null, null, null, null, null, ['route_prefix' => '/custom_prefix/']);
+        $decoratedMock = $this->getDecoratedMock($resourceMetadata);
+        $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);
+        $result = $factory->create(DummyComponent::class);
+        $this->assertEquals('/component/custom_prefix', $result->getAttribute('route_prefix'));
+    }
+
     public function test_no_prefix(): void
     {
-        $factory = new RoutingPrefixResourceMetadataFactory($this->decoratedMock);
+        $decoratedMock = $this->getDecoratedMock();
+        $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);
         $result = $factory->create(User::class);
         $this->assertNull($result->getAttribute('route_prefix'));
     }
