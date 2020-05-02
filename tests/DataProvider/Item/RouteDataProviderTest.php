@@ -29,7 +29,7 @@ class RouteDataProviderTest extends TestCase
         $this->assertFalse($provider->supports(__CLASS__));
     }
 
-    public function test_calls_repository_method()
+    public function test_calls_repository_method(): void
     {
         $repository = $this->createMock(RouteRepository::class);
         $repository

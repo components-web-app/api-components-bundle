@@ -89,7 +89,7 @@ class UploadableHelper
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if ($object instanceof ImagineFiltersInterface && $this->filterService) {
-                $filters = $object->getImagineFilters(null);
+                $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
                     // This will trigger the cached file to be store
                     // When cached files are store we save the file info
@@ -170,7 +170,7 @@ class UploadableHelper
             }
 
             if ($object instanceof ImagineFiltersInterface) {
-                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration->adapter));
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration->adapter, $fileProperty));
             }
 
             $collection->set($fieldConfiguration->property, $propertyMediaObjects);
@@ -182,7 +182,7 @@ class UploadableHelper
     /**
      * @return MediaObject[]
      */
-    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, string $path, string $adapter): array
+    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, string $path, string $adapter, string $fileProperty): array
     {
         // Let the data loader which should be configured for imagine to know which adapter to use
         $this->flysystemDataLoader->setAdapter($adapter);
@@ -193,7 +193,7 @@ class UploadableHelper
         }
 
         $request = $this->requestStack->getMasterRequest();
-        $filters = $object->getImagineFilters($request);
+        $filters = $object->getImagineFilters($fileProperty, $request);
         foreach ($filters as $filter) {
             $resolvedUrl = $this->filterService->getUrlOfFilteredImage($path, $filter);
             $mediaObjects[] = $this->mediaObjectFactory->createFromImagine($resolvedUrl, $path, $filter);
