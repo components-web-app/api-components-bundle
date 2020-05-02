@@ -69,8 +69,11 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
     And the JSON node "_metadata.media_objects.filename[0].imagineFilter" should not exist
-    And the JSON node "_metadata.media_objects.filename[1].imagineFilter" should contain "thumbnail"
-    And the JSON node "_metadata.media_objects.filename[2].imagineFilter" should contain "square_thumbnail"
+    And the JSON node "_metadata.media_objects.filename[1].imagineFilter" should be equal to the string "thumbnail"
+    And the JSON node "_metadata.media_objects.filename[1].width" should be equal to the number "350"
+    And the JSON node "_metadata.media_objects.filename[1].height" should be equal to the number "500"
+    And the JSON node "_metadata.media_objects.filename[1].mimeType" should be equal to the string "image/png"
+    And the JSON node "_metadata.media_objects.filename[2].imagineFilter" should be equal to the string "square_thumbnail"
 
   # PUT
 

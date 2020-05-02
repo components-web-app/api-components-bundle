@@ -286,7 +286,9 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(MediaObjectFactory::class)
-        ->args([]);
+        ->args([
+            new Reference(EntityManagerInterface::class),
+        ]);
 
     $services
         ->set(MessageEventListener::class)
@@ -541,7 +543,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UploadableAnnotationReader::class),
             new Reference(UploadableHelper::class),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
 
     $services
         ->set(UploadableHelper::class)

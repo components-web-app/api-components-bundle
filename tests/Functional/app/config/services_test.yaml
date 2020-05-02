@@ -14,9 +14,9 @@ services:
   app.imagine.cache.resolver.local:
     class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
     arguments:
-      - "@api_components.filesystem.in_memory"
-      - 'http://images.example.com'
-      - 'media/cache'
-      - 'public'
+      $filesystem: "@api_components.filesystem.in_memory"
+      $rootUrl: ''
+      $cachePrefix: 'media/cache'
+      $visibility: 'private'
     tags:
       - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }

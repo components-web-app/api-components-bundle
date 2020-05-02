@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -73,6 +74,27 @@ class UploadableHelper
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             if ($file = $fileBag->get($fileProperty, null)) {
                 $propertyAccessor->setValue($object, $fileProperty, $file);
+            }
+        }
+    }
+
+    public function storeFilesMetadata(object $object): void
+    {
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $classMetadata = $this->getClassMetadata($object);
+
+        foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
+            // Let the data loader which should be configured for imagine to know which adapter to use
+            $this->flysystemDataLoader->setAdapter($fieldConfiguration->adapter);
+
+            $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+            if ($object instanceof ImagineFiltersInterface && $this->filterService) {
+                $filters = $object->getImagineFilters(null);
+                foreach ($filters as $filter) {
+                    // This will trigger the cached file to be store
+                    // When cached files are store we save the file info
+                    $this->filterService->getUrlOfFilteredImage($filename, $filter);
+                }
             }
         }
     }
@@ -134,22 +156,22 @@ class UploadableHelper
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
             $filesystem = $this->getFilesystemFromFieldConfiguration($fieldConfiguration);
-            $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if (!$filename) {
+            $path = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+            if (!$path) {
                 continue;
             }
-            if (!$filesystem->fileExists($filename)) {
+            if (!$filesystem->fileExists($path)) {
                 continue;
             }
 
             // Populate the primary MediaObject
             try {
-                $propertyMediaObjects[] = $this->mediaObjectFactory->create($object, $filesystem, $filename);
+                $propertyMediaObjects[] = $this->mediaObjectFactory->create($filesystem, $path);
             } catch (UnableToReadFile $exception) {
             }
 
             if ($object instanceof ImagineFiltersInterface) {
-                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $filesystem, $filename, $fieldConfiguration->adapter));
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration->adapter));
             }
 
             $collection->set($fieldConfiguration->property, $propertyMediaObjects);
@@ -158,8 +180,12 @@ class UploadableHelper
         return $collection->count() ? $collection : null;
     }
 
-    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, Filesystem $filesystem, string $filename, string $adapter): array
+    /**
+     * @return MediaObject[]
+     */
+    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, string $path, string $adapter): array
     {
+        // Let the data loader which should be configured for imagine to know which adapter to use
         $this->flysystemDataLoader->setAdapter($adapter);
 
         $mediaObjects = [];
@@ -170,9 +196,8 @@ class UploadableHelper
         $request = $this->requestStack->getMasterRequest();
         $filters = $object->getImagineFilters($request);
         foreach ($filters as $filter) {
-            $resolvedPath = $this->filterService->getUrlOfFilteredImage($filename, $filter);
-            // dump($resolvedPath);
-            $mediaObjects[] = $this->mediaObjectFactory->create($object, $filesystem, $filename, $filter);
+            $resolvedUrl = $this->filterService->getUrlOfFilteredImage($path, $filter);
+            $mediaObjects[] = $this->mediaObjectFactory->createFromImagine($resolvedUrl, $path, $filter);
         }
 
         return $mediaObjects;

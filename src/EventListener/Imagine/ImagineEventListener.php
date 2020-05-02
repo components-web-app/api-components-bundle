@@ -41,9 +41,9 @@ class ImagineEventListener
     {
         $content = $event->binary->getContent();
         [ $width, $height ] = getimagesizefromstring($content);
-        $filesize = \strlen($content);
+        $fileSize = \strlen($content);
 
-        $metadata = new ImagineCachedFileMetadata($event->filter, $event->path, $event->binary->getMimeType(), $width, $height, $filesize);
+        $metadata = new ImagineCachedFileMetadata($event->filter, $event->path, $event->binary->getMimeType(), $width, $height, $fileSize);
         $this->entityManager->persist($metadata);
         $this->entityManager->flush();
     }

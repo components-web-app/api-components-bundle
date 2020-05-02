@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ObjectRepository;
 use League\Flysystem\Filesystem;
+use Silverback\ApiComponentsBundle\Imagine\Entity\ImagineCachedFileMetadata;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 
 /**
@@ -21,11 +24,18 @@ use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
  */
 class MediaObjectFactory
 {
-    public function create(object $object, Filesystem $filesystem, string $filename, string $imagineFilter = null): MediaObject
+    private ObjectRepository $respository;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->respository = $entityManager->getRepository(ImagineCachedFileMetadata::class);
+    }
+
+    public function create(Filesystem $filesystem, string $filename, string $imagineFilter = null): MediaObject
     {
         $mediaObject = new MediaObject();
         $mediaObject->contentUrl = 'https://www.website.com/path';
-        $mediaObject->fileSize = $this->convertSizeToString($filesystem->fileSize($filename));
+        $mediaObject->fileSize = $filesystem->fileSize($filename);
         $mediaObject->mimeType = $filesystem->mimeType($filename);
         $mediaObject->imagineFilter = $imagineFilter;
 
@@ -44,31 +54,31 @@ class MediaObjectFactory
         return $mediaObject;
     }
 
-    public function createFromImagine(string $contentUrl, string $imagineFilter)
+    public function createFromImagine(string $contentUrl, string $path, string $imagineFilter): MediaObject
     {
         $mediaObject = new MediaObject();
         $mediaObject->contentUrl = $contentUrl;
-        // $mediaObject->fileSize = $this->convertSizeToString($filesystem->fileSize($filename));
-        // $mediaObject->mimeType = $filesystem->mimeType($filename);
         $mediaObject->imagineFilter = $imagineFilter;
-        // [ $mediaObject->width, $mediaObject->height ] = @getimagesize($file);
-    }
 
-    private function convertSizeToString(int $bytes): string
-    {
-        if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . 'GB';
+        /** @var ImagineCachedFileMetadata|null $cachedFileMetadata */
+        $cachedFileMetadata = $this->respository
+            ->findOneBy(
+                [
+                    'filter' => $imagineFilter,
+                    'path' => $path,
+                ]
+            );
+        if ($cachedFileMetadata) {
+            $mediaObject->fileSize = $cachedFileMetadata->fileSize;
+            $mediaObject->mimeType = $cachedFileMetadata->mimeType;
+            $mediaObject->width = $cachedFileMetadata->width;
+            $mediaObject->height = $cachedFileMetadata->height;
+        } else {
+            $mediaObject->width = $mediaObject->height = $mediaObject->fileSize = -1;
+            $mediaObject->mimeType = '';
         }
 
-        if ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . 'MB';
-        }
-
-        if ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . 'KB';
-        }
-
-        return $bytes . 'B';
+        return $mediaObject;
     }
 
     private function fileIsImage($filePath): bool

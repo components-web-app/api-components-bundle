@@ -119,6 +119,8 @@ class File
 
 You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives a `Request` object and can return different filters depending on the resource state. If the resource is not an image, this will be silently ignored.
 
+> **Due to the way LiipImagineBundle works, we save the image metadata **
+
 ```php
 use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;

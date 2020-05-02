@@ -50,4 +50,20 @@ final class UploadableEventListener
         }
         $this->uploadableHelper->persistFiles($data);
     }
+
+    public function onPostWrite(ViewEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->uploadableAnnotationReader->isConfigured($data) ||
+            $request->isMethod(Request::METHOD_GET) ||
+            $request->isMethod(Request::METHOD_DELETE)
+        ) {
+            return;
+        }
+
+        $this->uploadableHelper->storeFilesMetadata($data);
+    }
 }

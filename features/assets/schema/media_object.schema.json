@@ -12,6 +12,7 @@
         "@type",
         "contentUrl",
         "fileSize",
+        "formattedFileSize",
         "mimeType",
         "_metadata"
     ],
@@ -24,7 +25,8 @@
             "default": {},
             "examples": [
                 {
-                    "fileSize": "http://schema.org/contentSize",
+                    "fileSize": "MediaObject/fileSize",
+                    "formattedFileSize": "http://schema.org/contentSize",
                     "contentUrl": "http://schema.org/contentUrl",
                     "mimeType": "http://schema.org/encodingFormat",
                     "@vocab": "http://example.com/docs.jsonld#",
@@ -40,6 +42,7 @@
                 "hydra",
                 "contentUrl",
                 "fileSize",
+                "formattedFileSize",
                 "mimeType",
                 "width",
                 "height",
@@ -79,7 +82,17 @@
                 "fileSize": {
                     "$id": "#/properties/@context/properties/fileSize",
                     "type": "string",
-                    "title": "The Filesize Schema",
+                    "title": "The FileSize Schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "MediaObject/fileSize"
+                    ]
+                },
+                "formattedFileSize": {
+                    "$id": "#/properties/@context/properties/fileSize",
+                    "type": "string",
+                    "title": "The formattedFileSize Schema",
                     "description": "An explanation about the purpose of this instance.",
                     "default": "",
                     "examples": [
@@ -158,14 +171,24 @@
                 "https://www.website.com/path"
             ]
         },
-        "fileSize": {
-            "$id": "#/properties/fileSize",
+        "formattedFileSize": {
+            "$id": "#/properties/formattedFileSize",
             "type": "string",
-            "title": "The Filesize Schema",
+            "title": "The formattedFileSize Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": 0,
             "examples": [
                 "10MB"
+            ]
+        },
+        "fileSize": {
+            "$id": "#/properties/fileSize",
+            "type": "integer",
+            "title": "The Filesize Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 0,
+            "examples": [
+                32434
             ]
         },
         "mimeType": {
