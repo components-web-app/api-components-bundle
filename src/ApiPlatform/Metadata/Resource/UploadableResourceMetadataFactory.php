@@ -17,7 +17,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
 
 /**
  * Configures API Platform metadata for file resources.
@@ -27,13 +27,13 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
-    private UploadableAnnotationReader $uploadableHelper;
+    private UploadableAnnotationReaderInterface $uploadableHelper;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReader $fileHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
+    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReaderInterface $uploadableHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
-        $this->uploadableHelper = $fileHelper;
+        $this->uploadableHelper = $uploadableHelper;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
@@ -52,15 +52,16 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
                 'format' => 'binary',
             ];
         }
-        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties);
+        $resourceShortName = $resourceMetadata->getShortName();
+        $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
+        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
 
-        return $this->getItemPutResourceMetadata($resourceMetadata, $properties);
+        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
     }
 
-    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties): ResourceMetadata
+    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
     {
-        $resourceShortName = $resourceMetadata->getShortName();
-        $path = sprintf('/%s/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
+        $path = sprintf('/%s/upload', $pathSegmentName);
 
         $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
         $collectionOperations['post_upload'] = array_merge(['method' => 'POST'], $this->getOperationConfiguration($properties, $path));
@@ -68,10 +69,9 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties): ResourceMetadata
+    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
     {
-        $resourceShortName = $resourceMetadata->getShortName();
-        $path = sprintf('/%s/{id}/upload', $this->pathSegmentNameGenerator->getSegmentName($resourceShortName));
+        $path = sprintf('/%s/{id}/upload', $pathSegmentName);
 
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
         $putProperties = $this->getOperationConfiguration($properties, $path);
@@ -87,7 +87,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
             'controller' => UploadableAction::class,
             'path' => $path,
             'deserialize' => false,
-            'read' => 'false',
+            'read' => false,
             'openapi_context' => [
                 'requestBody' => [
                     'content' => [

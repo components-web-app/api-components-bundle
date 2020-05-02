@@ -25,7 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadableAnnotationReader extends AbstractAnnotationReader
+final class UploadableAnnotationReader extends AnnotationReader implements UploadableAnnotationReaderInterface
 {
     private bool $imagineBundleEnabled;
 

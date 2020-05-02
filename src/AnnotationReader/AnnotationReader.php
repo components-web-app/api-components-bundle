@@ -23,7 +23,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AbstractAnnotationReader
+abstract class AnnotationReader implements AnnotationReaderInterface
 {
     use ClassMetadataTrait;
 

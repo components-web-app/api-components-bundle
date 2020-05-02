@@ -28,7 +28,7 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\AbstractAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
@@ -138,7 +138,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(AbstractAnnotationReader::class)
+        ->set(AnnotationReader::class)
         ->abstract()
         ->args([
             new Reference('annotations.reader'),
@@ -378,7 +378,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(PublishableContextBuilder::class)
@@ -486,7 +486,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TimestampedAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(TimestampedContextBuilder::class)
@@ -535,7 +535,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UploadableAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(UploadableEventListener::class)

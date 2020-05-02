@@ -13,18 +13,16 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
-use Silverback\ApiComponentsBundle\Annotation\Publishable;
-
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
+ * @author Daniel West <daniel@silverback.is>
  */
-final class PublishableAnnotationReader extends AnnotationReader
+interface AnnotationReaderInterface
 {
+    public function getConfiguration($class);
+
     /**
      * @param object|string $class
      */
-    public function getConfiguration($class): Publishable
-    {
-        return $this->getClassAnnotationConfiguration($class, Publishable::class);
-    }
+    public function isConfigured($class): bool;
 }
