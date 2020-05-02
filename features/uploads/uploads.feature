@@ -11,7 +11,7 @@ Feature: API Resources which can have files uploaded
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with a json base64 data (and dataURI as that is how symfony serializes text files)
-    When I send a "POST" request to "/_/dummy_uploadables" with data:
+    When I send a "POST" request to "/dummy_uploadables" with data:
       | file           |
       | base64(<file>) |
     Then the response status code should be 201
@@ -26,7 +26,7 @@ Feature: API Resources which can have files uploaded
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with base64 data that is just a string (no data:)
-    When I send a "POST" request to "/_/dummy_uploadables" with data:
+    When I send a "POST" request to "/dummy_uploadables" with data:
       | file                 |
       | base64string(<file>) |
     Then the response status code should be 201
@@ -39,7 +39,7 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario Outline: I can create a new dummy files component with a "multipart/form-data" request
     Given I add "Content-Type" header equal to "multipart/form-data"
-    When I send a "POST" request to "/_/dummy_uploadables/upload" with parameters:
+    When I send a "POST" request to "/dummy_uploadables/upload" with parameters:
       | key    | value     |
       | file   | @<file>   |
     Then the response status code should be 201
@@ -54,7 +54,7 @@ Feature: API Resources which can have files uploaded
 
   @loginUser
   Scenario: I get an error if I send a json request to the multipart/form-data endpoint
-    When I send a "POST" request to "/_/dummy_uploadables/upload" with body:
+    When I send a "POST" request to "/dummy_uploadables/upload" with body:
     """
     {}
     """

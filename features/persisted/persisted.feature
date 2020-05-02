@@ -15,7 +15,7 @@ Feature: A user should know whether the data is a persisted object in the databa
     And the JSON node "_metadata.persisted" should contain "true"
 
   Scenario: An object has not been persisted to the database
-    When I send a "GET" request to "/_/dummy_unpersisted_components/123"
+    When I send a "GET" request to "/dummy_unpersisted_components/123"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "persisted.schema.json"
     And the JSON node "_metadata.persisted" should contain "false"
