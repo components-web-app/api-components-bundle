@@ -2,3 +2,20 @@
 liip_imagine:
     # valid drivers options include "gd" or "gmagick" or "imagick"
     driver: "gd"
+    data_loader: silverback.api_component.liip_imagine.binary.loader
+    cache: custom_cache_resolver
+    filter_sets:
+        thumbnail:
+            jpeg_quality: 100
+            png_compression_level: 0
+            filters:
+                thumbnail:
+                    size: [500, 500]
+                    mode: inset
+        square_thumbnail:
+            jpeg_quality: 10
+            png_compression_level: 9
+            filters:
+                thumbnail:
+                    size: [80, 80]
+                    mode: outbound

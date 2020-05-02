@@ -54,7 +54,7 @@ class UserListener
         if (!$this->initialEmailVerifiedState) {
             $user->setNewEmailAddress($user->getEmailAddress());
             if (!$this->verifyEmailOnRegister) {
-                $user->setNewEmailVerificationToken($confirmationToken = TokenGenerator::generateToken());
+                $user->setNewEmailVerificationToken(TokenGenerator::generateToken());
             }
         }
     }
@@ -82,7 +82,7 @@ class UserListener
                 $user->setEmailAddress($user->getNewEmailAddress());
                 $user->setNewEmailAddress(null);
             } else {
-                $user->setNewEmailVerificationToken($confirmationToken = TokenGenerator::generateToken());
+                $user->setNewEmailVerificationToken(TokenGenerator::generateToken());
             }
             $this->recomputeUserChangeSet($uow, $userClassMetadata, $user);
             $this->changeSet = $uow->getEntityChangeSet($user);

@@ -18,7 +18,9 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyFile;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
+use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,11 +30,13 @@ class UploadsContext implements Context
     private ?RestContext $restContext;
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
+    private UploadableHelper $uploadableHelper;
 
-    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter)
+    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableHelper $uploadableHelper)
     {
         $this->manager = $doctrine->getManager();
         $this->iriConverter = $iriConverter;
+        $this->uploadableHelper = $uploadableHelper;
     }
 
     /**
@@ -44,13 +48,25 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Given there is a DummyFile
+     * @AfterScenario
      */
-    public function thereIsADummyFile(): void
+    public function removeFile(): void
     {
-        $object = new DummyFile();
+        if (isset($this->restContext->components['dummy_uploadable'])) {
+            $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+        }
+    }
+
+    /**
+     * @Given there is a DummyUploadableWithImagineFilters
+     */
+    public function thereIsADummyUploadableWithImagineFilters(): void
+    {
+        $object = new DummyUploadableWithImagineFilters();
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->components['dummy_file'] = $this->iriConverter->getIriFromItem($resource);
+        $this->restContext->components['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
     }
 }

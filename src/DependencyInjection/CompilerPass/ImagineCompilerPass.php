@@ -13,17 +13,18 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class DoctrineCompilerPass implements CompilerPassInterface
+class ImagineCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
-        DoctrineOrmMappingsPass::createAnnotationMappingDriver([__NAMESPACE__ . '\\Entity'], [__DIR__ . '/Entity']);
+        $definition = $container->getDefinition('liip_imagine.cache.manager');
+        $definition->setClass(CacheManager::class);
     }
 }

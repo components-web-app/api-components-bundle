@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentsBundle\Model\Uploadable\Base64EncodedFile;
-use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedBase64EncodedFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
+use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -32,16 +36,21 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
  */
 final class UploadableNormalizer implements CacheableSupportsMethodInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface, ContextAwareNormalizerInterface, NormalizerAwareInterface
 {
+    use ClassMetadataTrait;
+
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
+    private UploadableHelper $uploadableHelper;
     private UploadableAnnotationReader $annotationReader;
 
-    public function __construct(UploadableAnnotationReader $annotationReader)
+    public function __construct(UploadableHelper $uploadableHelper, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
     {
+        $this->uploadableHelper = $uploadableHelper;
         $this->annotationReader = $annotationReader;
+        $this->initRegistry($registry);
     }
 
     /**
@@ -79,8 +88,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             }
 
             try {
-                $file = new Base64EncodedFile($value);
-                $data[$fieldName] = new UploadedBase64EncodedFile($file, Uuid::uuid4() . '.' . $file->getExtension());
+                $file = new DataUriFile($value);
+                $data[$fieldName] = new UploadedDataUriFile($file, Uuid::uuid4() . '.' . $file->getExtension());
             } catch (FileException $exception) {
                 throw new NotNormalizableValueException($exception->getMessage());
             }
@@ -101,8 +110,26 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $mediaObjects = [];
-        $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
+        $mediaObjects = $this->uploadableHelper->getMediaObjects($object);
+        if ($mediaObjects) {
+            $mediaObjects = $this->normalizer->normalize(
+                $mediaObjects,
+                $format,
+                [
+                    'jsonld_embed_context' => true,
+                    'skip_null_values' => $context['skip_null_values'] ?? false,
+                ]
+            );
+            $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
+        }
+
+        $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $classMetadata = $this->getClassMetadata($object);
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        foreach ($fieldConfigurations as $fileField => $fieldConfiguration) {
+            $propertyAccessor->setValue($object, $fileField, null);
+            $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+        }
 
         return $this->normalizer->normalize($object, $format, $context);
     }

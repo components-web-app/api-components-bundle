@@ -11,13 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Model\Uploadable;
+namespace Silverback\ApiComponentsBundle\Event;
+
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ImageDimensions
+class ImagineRemoveEvent extends Event
 {
-    public int $width;
-    public int $height;
+    public ?array $paths;
+    public ?array $filters;
+
+    public function __construct(?array $paths, ?array $filters)
+    {
+        $this->paths = $paths;
+        $this->filters = $filters;
+    }
 }

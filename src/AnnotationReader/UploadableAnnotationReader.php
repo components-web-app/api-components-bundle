@@ -13,8 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
+use Doctrine\Common\Annotations\Reader;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
+use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
 
@@ -23,6 +27,23 @@ use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
  */
 final class UploadableAnnotationReader extends AbstractAnnotationReader
 {
+    private bool $imagineBundleEnabled;
+
+    public function __construct(Reader $reader, ManagerRegistry $managerRegistry, bool $imagineBundleEnabled)
+    {
+        $this->imagineBundleEnabled = $imagineBundleEnabled;
+        parent::__construct($reader, $managerRegistry);
+    }
+
+    public function isConfigured($class): bool
+    {
+        $isConfigured = parent::isConfigured($class);
+        if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
+            return $isConfigured;
+        }
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not implement %s', ImagineFiltersInterface::class));
+    }
+
     /**
      * @param object|string $class
      */

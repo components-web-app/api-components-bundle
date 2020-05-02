@@ -20,5 +20,5 @@ use Symfony\Component\HttpFoundation\Request;
  */
 interface ImagineFiltersInterface
 {
-    public function getImagineFilters(Request $request): array;
+    public function getImagineFilters(?Request $request): array;
 }

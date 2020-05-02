@@ -10,3 +10,13 @@ services:
 
   Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider\UnpersistedComponentDataProvider:
     tags: [ 'api_platform.item_data_provider' ]
+
+  app.imagine.cache.resolver.local:
+    class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
+    arguments:
+      $filesystem: "@api_components.filesystem.in_memory"
+      $rootUrl: ''
+      $cachePrefix: 'media/cache'
+      $visibility: 'private'
+    tags:
+      - { name: "liip_imagine.cache.resolver", resolver: custom_cache_resolver }

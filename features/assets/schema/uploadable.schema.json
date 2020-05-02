@@ -52,30 +52,25 @@
                     "persisted": true
                 }
             ],
-            "required": [
-                "media_objects"
-            ],
             "properties": {
                 "media_objects": {
                     "$id": "#/properties/media_objects",
-                    "type": "array",
-                    "title": "The media_objects Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": [],
-                    "examples": [
-                        []
+                    "type": "object",
+                    "required": [
+                        "filename"
                     ],
-                    "additionalItems": true,
-                    "items": {
-                        "$id": "#/properties/media_objects/items",
-                        "type": "null",
-                        "title": "The Items Schema",
-                        "description": "An explanation about the purpose of this instance.",
-                        "default": null,
-                        "examples": [
-                            null
-                        ]
-                    }
+                    "patternProperties": {
+                        "^.*": {
+                            "$id": "#/properties/media_objects/filename",
+                            "type": "array",
+                            "minItems": 1,
+                            "title": "The media_objects Schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": [],
+                            "items": { "$ref": "media_object.schema.json" }
+                        }
+                    },
+                    "additionalProperties": true
                 }
             }
         }

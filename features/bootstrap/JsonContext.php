@@ -150,7 +150,7 @@ class JsonContext implements Context
 
         $actual = $this->inspector->evaluate($json, $node);
         $diff = (new \DateTime($text))->getTimestamp() - (new \DateTime($actual))->getTimestamp();
-        if ($diff < 0 || $diff > 1) {
+        if ($diff < -1 || $diff > 1) {
             throw new \Exception(sprintf("The node value is '%s' which is a difference of %s seconds to the cached 'now' value", json_encode($actual), $diff));
         }
     }

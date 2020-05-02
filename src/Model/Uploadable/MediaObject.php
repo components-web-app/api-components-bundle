@@ -13,28 +13,59 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Model\Uploadable;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource(
- *     iri="http://schema.org/MediaObject"
- * )
  */
-class MediaObject
+final class MediaObject
 {
-    /**
-     * @ApiProperty(iri="http://schema.org/contentUrl")
-     */
-    private string $contentUrl;
+    private string $id;
 
-    private int $fileSize;
+    public string $contentUrl;
 
-    private string $mimeType;
+    public int $fileSize;
 
-    private ?ImageDimensions $dimensions;
+    public string $mimeType;
 
-    private ?string $imagineFilter = null;
+    public ?int $width = null;
+
+    public ?int $height = null;
+
+    public ?string $imagineFilter = null;
+
+    // defined otherwise the IRI mapping in API Platform does not work with just the getter method
+    private ?string $formattedFileSize = null;
+
+    public function __construct()
+    {
+        $this->id = Uuid::uuid4()->getHex()->toString();
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getFormattedFileSize(): string
+    {
+        return $this->formattedFileSize ?? $this->fileSize < 0 ? '' : $this->convertSizeToString($this->fileSize);
+    }
+
+    private function convertSizeToString(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 1) . 'GB';
+        }
+
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 1) . 'MB';
+        }
+
+        if ($bytes >= 1024) {
+            return number_format($bytes / 1024, 1) . 'KB';
+        }
+
+        return $bytes . 'B';
+    }
 }

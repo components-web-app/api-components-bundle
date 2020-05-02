@@ -43,6 +43,8 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
+use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -51,6 +53,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
+use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormFactory;
@@ -63,6 +66,7 @@ use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
@@ -71,6 +75,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
@@ -94,7 +99,6 @@ use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
-use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -148,7 +152,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ChangePasswordType::class)
-        ->args([new Reference(Security::class)])
+        ->args([
+            new Reference(Security::class),
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
@@ -189,6 +196,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
+
+    $services
+        ->set(FlysystemDataLoader::class)
+        ->args([
+            new Reference(FilesystemProvider::class),
+        ])
+        ->tag('liip_imagine.binary.loader', ['loader' => 'silverback.api_component.liip_imagine.binary.loader']);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -249,6 +263,14 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(FormFactory::class)]);
 
     $services
+        ->set(ImagineEventListener::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
+        ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
+
+    $services
         ->set(JwtCreatedEventListener::class)
         ->args([
             new Reference(RoleHierarchy::class),
@@ -261,6 +283,12 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
         ])
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(MediaObjectFactory::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+        ]);
 
     $services
         ->set(MessageEventListener::class)
@@ -284,7 +312,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(NewEmailAddressType::class)
-        ->args([new Reference(Security::class)])
+        ->args([
+            new Reference(Security::class),
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
@@ -313,6 +344,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -472,6 +504,9 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TablePrefixExtension::class)
+        ->args([
+            '', // injected in dependency injection
+        ])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $getTimestampedListenerTagArgs = static function ($event) {
@@ -495,6 +530,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(Security::class),
             new Reference(ResponseFactory::class),
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -507,7 +543,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UploadableAnnotationReader::class),
             new Reference(UploadableHelper::class),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
 
     $services
         ->set(UploadableHelper::class)
@@ -515,6 +552,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
+            new Reference(MediaObjectFactory::class),
+            new Reference(RequestStack::class),
+            new Reference(FlysystemDataLoader::class),
+            null, // Set in dependency injection if imagine cache manager exists
         ]);
 
     $services
@@ -528,7 +569,9 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableNormalizer::class)
         ->autoconfigure(false)
         ->args([
+            new Reference(UploadableHelper::class),
             new Reference(UploadableAnnotationReader::class),
+            new Reference(ManagerRegistry::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -542,14 +585,18 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->autoconfigure(false);
 
-    $services
-        ->set(UploadableLoader::class)
-        ->args([
-            new Reference(UploadableAnnotationReader::class),
-        ]);
+//    COMPILER PASS REQUIRED AS WELL
+//    $services
+//        ->set(UploadableLoader::class)
+//        ->args([
+//            new Reference(UploadableAnnotationReader::class),
+//        ]);
 
     $services
-        ->set(UserChecker::class);
+        ->set(UserChecker::class)
+        ->args([
+            '', // injected in dependency injection
+        ]);
 
     $services
         ->set(UserContextBuilder::class)
@@ -578,6 +625,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
+            '', // injected in dependency injection
         ]);
 
     $getUserListenerTagArgs = static function ($event) {
@@ -597,6 +645,9 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
             new Reference(UserMailer::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '', // injected in dependency injection
         ]);
 
     $services
@@ -609,6 +660,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(MailerInterface::class),
             new Reference(ContainerInterface::class),
+            '', // injected in dependency injection
         ])
         ->tag('container.service_subscriber');
 
@@ -624,12 +676,17 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserRegisterType::class)
+        ->args([
+            '', // injected in dependency injection
+        ])
         ->tag('form.type');
 
     $services
         ->set(UserRepository::class)
         ->args([
             new Reference(ManagerRegistry::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
         ])
         ->tag('doctrine.repository_service');
 

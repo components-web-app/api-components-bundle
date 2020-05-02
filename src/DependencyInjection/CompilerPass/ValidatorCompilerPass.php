@@ -25,8 +25,8 @@ final class ValidatorCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        $container
-            ->getDefinition('validator.builder')
-            ->addMethodCall('addLoader', [new Reference(UploadableLoader::class)]);
+//        $container
+//            ->getDefinition('validator.builder')
+//            ->addMethodCall('addLoader', [new Reference(UploadableLoader::class)]);
     }
 }

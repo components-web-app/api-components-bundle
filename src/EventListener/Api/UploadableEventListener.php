@@ -39,10 +39,31 @@ final class UploadableEventListener
         if (
             empty($data) ||
             !$this->uploadableAnnotationReader->isConfigured($data) ||
+            $request->isMethod(Request::METHOD_GET)
+        ) {
+            return;
+        }
+        if ($request->isMethod(Request::METHOD_DELETE)) {
+            $this->uploadableHelper->deleteFiles($data);
+
+            return;
+        }
+        $this->uploadableHelper->persistFiles($data);
+    }
+
+    public function onPostWrite(ViewEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$this->uploadableAnnotationReader->isConfigured($data) ||
+            $request->isMethod(Request::METHOD_GET) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
         }
-        $this->uploadableHelper->persistFiles($data);
+
+        $this->uploadableHelper->storeFilesMetadata($data);
     }
 }
