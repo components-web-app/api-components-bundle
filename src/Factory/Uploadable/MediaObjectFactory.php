@@ -20,6 +20,7 @@ use League\Flysystem\UnableToReadFile;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
@@ -118,14 +119,19 @@ class MediaObjectFactory
         return $mediaObjects;
     }
 
-    private function create(Filesystem $filesystem, string $filename, string $imagineFilter = null): MediaObject
+    private function create(Filesystem $filesystem, string $filename): MediaObject
     {
         $mediaObject = new MediaObject();
         $mediaObject->contentUrl = 'https://www.website.com/path';
+        $mediaObject->imagineFilter = null;
+
+        $fileInfo = $this->fileInfoCacheHelper->resolveCache($filename);
+        if ($fileInfo) {
+            return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
+        }
+
         $mediaObject->fileSize = $filesystem->fileSize($filename);
         $mediaObject->mimeType = $filesystem->mimeType($filename);
-        $mediaObject->imagineFilter = $imagineFilter;
-
         if (false !== strpos($mediaObject->mimeType, 'image/')) {
             $file = $filesystem->read($filename);
             if ('image/svg+xml' === $mediaObject->mimeType) {
@@ -138,6 +144,9 @@ class MediaObjectFactory
             }
         }
 
+        $fileInfo = new FileInfo($filename, $mediaObject->mimeType, $mediaObject->width, $mediaObject->height, $mediaObject->fileSize);
+        $this->fileInfoCacheHelper->saveCache($fileInfo);
+
         return $mediaObject;
     }
 
@@ -147,16 +156,22 @@ class MediaObjectFactory
         $mediaObject->contentUrl = $contentUrl;
         $mediaObject->imagineFilter = $imagineFilter;
 
-        $cachedFileMetadata = $this->fileInfoCacheHelper->resolveCache($path, $imagineFilter);
-        if ($cachedFileMetadata) {
-            $mediaObject->fileSize = $cachedFileMetadata->fileSize;
-            $mediaObject->mimeType = $cachedFileMetadata->mimeType;
-            $mediaObject->width = $cachedFileMetadata->width;
-            $mediaObject->height = $cachedFileMetadata->height;
-        } else {
-            $mediaObject->width = $mediaObject->height = $mediaObject->fileSize = -1;
-            $mediaObject->mimeType = '';
+        $fileInfo = $this->fileInfoCacheHelper->resolveCache($path, $imagineFilter);
+        if ($fileInfo) {
+            return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }
+        $mediaObject->width = $mediaObject->height = $mediaObject->fileSize = -1;
+        $mediaObject->mimeType = '';
+
+        return $mediaObject;
+    }
+
+    private function populateMediaObjectFromCache(MediaObject $mediaObject, FileInfo $fileInfo): MediaObject
+    {
+        $mediaObject->fileSize = $fileInfo->fileSize;
+        $mediaObject->mimeType = $fileInfo->mimeType;
+        $mediaObject->width = $fileInfo->width;
+        $mediaObject->height = $fileInfo->height;
 
         return $mediaObject;
     }
