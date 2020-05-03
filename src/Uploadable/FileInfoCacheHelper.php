@@ -45,6 +45,6 @@ class FileInfoCacheHelper
 
     public function resolveCache(string $path, ?string $filter = null): ?FileInfo
     {
-        return $this->repository->findByPathAndFilter($path, $filter);
+        return $this->repository->findOneByPathAndFilter($path, $filter);
     }
 }

@@ -35,13 +35,17 @@ class FileInfoRepository extends ServiceEntityRepository
     /**
      * @return FileInfo[]
      */
-    public function findByPathsAndFilters(array $paths, array $filters)
+    public function findByPathsAndFilters(array $paths, array $filters): array
     {
         $queryBuilder = $this->createQueryBuilder('f');
         $expr = $queryBuilder->expr();
 
         $filterQueries = [];
         foreach ($filters as $filterIndex => $filter) {
+            if (!$filter) {
+                $filterQueries[] = $expr->isNull('f.filter');
+                continue;
+            }
             $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
             $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
         }
@@ -51,7 +55,7 @@ class FileInfoRepository extends ServiceEntityRepository
                 ->orWhere(
                     $expr->andX(
                         $expr->eq('f.path', ':path_' . $pathIndex),
-                        $expr->orX($filterQueries)
+                        $expr->orX(...$filterQueries)
                     )
                 );
             $queryBuilder->setParameter(':path_' . $pathIndex, $path);
@@ -60,7 +64,7 @@ class FileInfoRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findByPathAndFilter(string $path, ?string $filter): ?FileInfo
+    public function findOneByPathAndFilter(string $path, ?string $filter): ?FileInfo
     {
         return $this->findOneBy([
             'path' => $path,
