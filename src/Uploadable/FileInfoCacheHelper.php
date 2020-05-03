@@ -14,18 +14,18 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Uploadable;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 
 class FileInfoCacheHelper
 {
     private EntityManagerInterface $entityManager;
-    private ObjectRepository $repository;
+    private FileInfoRepository $repository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, FileInfoRepository $fileInfoRepository)
     {
         $this->entityManager = $entityManager;
-        $this->repository = $this->entityManager->getRepository(FileInfo::class);
+        $this->repository = $fileInfoRepository;
     }
 
     public function saveCache(FileInfo $fileInfo): void
@@ -36,28 +36,15 @@ class FileInfoCacheHelper
 
     public function deleteCaches(array $paths, array $filters): void
     {
-        foreach ($paths as $path) {
-            foreach ($filters as $filter) {
-                $metadata = $this->repository->findOneBy([
-                    'path' => $path,
-                    'filter' => $filter,
-                ]);
-                if ($metadata) {
-                    $this->entityManager->remove($metadata);
-                }
-            }
+        $results = $this->repository->findByPathsAndFilters($paths, $filters);
+        foreach ($results as $result) {
+            $this->entityManager->remove($result);
         }
         $this->entityManager->flush();
     }
 
     public function resolveCache(string $path, ?string $filter = null): ?FileInfo
     {
-        return $this->repository
-            ->findOneBy(
-                [
-                    'path' => $path,
-                    'filter' => $filter,
-                ]
-            );
+        return $this->repository->findByPathAndFilter($path, $filter);
     }
 }

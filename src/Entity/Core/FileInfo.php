@@ -26,12 +26,12 @@ class FileInfo
 
     public string $path;
     public string $mimeType;
-    public int $width;
-    public int $height;
     public int $fileSize;
+    public ?int $width;
+    public ?int $height;
     public ?string $filter;
 
-    public function __construct(string $path, string $mimeType, int $width, int $height, int $fileSize, ?string $filter = null)
+    public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, ?string $filter = null)
     {
         $this->setId();
         $this->path = $path;

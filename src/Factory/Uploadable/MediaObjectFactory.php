@@ -144,7 +144,7 @@ class MediaObjectFactory
             }
         }
 
-        $fileInfo = new FileInfo($filename, $mediaObject->mimeType, $mediaObject->width, $mediaObject->height, $mediaObject->fileSize);
+        $fileInfo = new FileInfo($filename, $mediaObject->mimeType, $mediaObject->fileSize, $mediaObject->width, $mediaObject->height);
         $this->fileInfoCacheHelper->saveCache($fileInfo);
 
         return $mediaObject;

@@ -42,7 +42,7 @@ class ImagineEventListener
         [ $width, $height ] = getimagesizefromstring($content);
         $fileSize = \strlen($content);
 
-        $fileInfo = new FileInfo($event->path, $event->binary->getMimeType(), $width, $height, $fileSize, $event->filter);
+        $fileInfo = new FileInfo($event->path, $event->binary->getMimeType(), $fileSize, $width, $height, $event->filter);
         $this->fileInfoCacheHelper->saveCache($fileInfo);
     }
 

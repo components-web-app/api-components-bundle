@@ -80,6 +80,7 @@ use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
@@ -174,14 +175,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UploadableAction::class)
-        ->tag('controller.service_arguments');
-
-    $services
-        ->set(FilesystemProvider::class)
-        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
-
-    $services
         ->set(EmailAddressManager::class)
         ->args([
             new Reference(EntityManagerInterface::class),
@@ -202,7 +195,19 @@ return static function (ContainerConfigurator $configurator) {
         ->set(FileInfoCacheHelper::class)
         ->args([
             new Reference(EntityManagerInterface::class),
+            new Reference(FileInfoRepository::class),
         ]);
+
+    $services
+        ->set(FileInfoRepository::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+        ])
+        ->tag('doctrine.repository_service');
+
+    $services
+        ->set(FilesystemProvider::class)
+        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
 
     $services
         ->set(FlysystemDataLoader::class)
@@ -545,6 +550,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResponseFactory::class),
             '', // injected in dependency injection
         ]);
+
+    $services
+        ->set(UploadableAction::class)
+        ->tag('controller.service_arguments');
 
     $services
         ->set(UploadableAnnotationReader::class)
