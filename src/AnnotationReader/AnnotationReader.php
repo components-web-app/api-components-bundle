@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\AnnotationReader;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\Annotation\Timestamped;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
@@ -28,6 +27,8 @@ abstract class AnnotationReader implements AnnotationReaderInterface
     use ClassMetadataTrait;
 
     protected Reader $reader;
+
+    private array $configurationCache = [];
 
     public function __construct(Reader $reader, ManagerRegistry $managerRegistry)
     {
@@ -56,32 +57,70 @@ abstract class AnnotationReader implements AnnotationReaderInterface
      *
      * @throws \ReflectionException
      */
-    protected function getClassAnnotationConfiguration($class, string $annotationClass)
+    protected function getClassAnnotationConfiguration($class, string $annotationClass): ?object
     {
         if (null === $class || (\is_string($class) && !class_exists($class))) {
             throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
         }
 
-        $originalReflection = $reflection = new \ReflectionClass($class);
-        /** @var $annotationClass|null $annotation */
-        while (
-            !($annotation = $this->reader->getClassAnnotation($reflection, $annotationClass)) &&
-            ($reflection = $reflection->getParentClass())
-        ) {
-            continue;
+        $className = \is_object($class) ? \get_class($class) : $class;
+        if (\array_key_exists($className, $this->configurationCache)) {
+            return $this->configurationCache[$className];
         }
-        if (!$annotation && Timestamped::class === $annotationClass) {
-            $traits = $originalReflection->getTraits();
-            foreach ($traits as $trait) {
-                $annotation = $this->reader->getClassAnnotation($trait, $annotationClass);
-                if ($annotation) {
-                    break;
+
+        $annotation = $this->findAnnotationConfiguration($class, $annotationClass);
+
+        $this->configurationCache[$className] = $annotation;
+
+        return $annotation;
+    }
+
+    /**
+     * @param string|object $class
+     *
+     * @throws \ReflectionException
+     */
+    private function findAnnotationConfiguration($class, string $annotationClass): ?object
+    {
+        $reflection = new \ReflectionClass($class);
+        $annotation = $this->reader->getClassAnnotation($reflection, $annotationClass);
+        if (!$annotation) {
+            $annotation = $this->getConfigurationFromParentClasses($reflection, $annotationClass);
+            if (!$annotation) {
+                $annotation = $this->getConfigurationFromTraits($reflection, $annotationClass);
+                if (!$annotation) {
+                    throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
                 }
             }
         }
 
-        if (!$annotation) {
-            throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
+        return $annotation;
+    }
+
+    private function getConfigurationFromParentClasses(\ReflectionClass $reflection, string $annotationClass): ?object
+    {
+        $annotation = null;
+
+        $parentReflection = $reflection->getParentClass();
+        while (
+            $parentReflection &&
+            !$annotation = $this->reader->getClassAnnotation($parentReflection, $annotationClass)
+        ) {
+            $parentReflection = $parentReflection->getParentClass();
+        }
+
+        return $annotation;
+    }
+
+    private function getConfigurationFromTraits(\ReflectionClass $reflection, string $annotationClass): ?object
+    {
+        $annotation = null;
+        $traits = $reflection->getTraits();
+        foreach ($traits as $trait) {
+            $annotation = $this->reader->getClassAnnotation($trait, $annotationClass);
+            if ($annotation) {
+                break;
+            }
         }
 
         return $annotation;
