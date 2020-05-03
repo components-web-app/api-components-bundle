@@ -119,6 +119,32 @@ class File
 
 ### Resolving Imagine Filters
 
+### Annotation
+
+You can configure static imagine filters to resolve in the UploadableField annotation.
+
+```php
+use Doctrine\Common\Collections\ArrayCollection;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+
+/**
+ * @Silverback\Uploadable()
+ */
+class File
+{
+    use UploadableTrait;
+    
+    /** @Silverback\UploadableField(adapter="local", imagineFilters={"thumbnail", "thumbnail_square"}) */
+    public ?File $file;
+
+    public function __construct()
+    {
+        $this->mediaObjects = new ArrayCollection();
+    }
+```
+
+### ImagineFiltersInterface
 You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives the configured `@UploadedField` property name (in the example below this would be `file`), and a `Request` object or `null`. If the resource is not a file supported by Imagine or no files are uploaded, the filters will be ignored.
 
 ```php

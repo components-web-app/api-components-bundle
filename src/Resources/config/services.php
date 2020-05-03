@@ -95,6 +95,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
 use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
@@ -198,6 +199,12 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
+        ->set(FileInfoCacheHelper::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+        ]);
+
+    $services
         ->set(FlysystemDataLoader::class)
         ->args([
             new Reference(FilesystemProvider::class),
@@ -265,7 +272,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ImagineEventListener::class)
         ->args([
-            new Reference(EntityManagerInterface::class),
+            new Reference(FileInfoCacheHelper::class),
         ])
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
@@ -287,7 +294,13 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(MediaObjectFactory::class)
         ->args([
-            new Reference(EntityManagerInterface::class),
+            new Reference(ManagerRegistry::class),
+            new Reference(FileInfoCacheHelper::class),
+            new Reference(UploadableAnnotationReader::class),
+            new Reference(FilesystemProvider::class),
+            new Reference(FlysystemDataLoader::class),
+            new Reference(RequestStack::class),
+            null, // populated in dependency injection
         ]);
 
     $services
@@ -552,8 +565,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
-            new Reference(MediaObjectFactory::class),
-            new Reference(RequestStack::class),
             new Reference(FlysystemDataLoader::class),
             null, // Set in dependency injection if imagine cache manager exists
         ]);
@@ -569,7 +580,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableNormalizer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference(UploadableHelper::class),
+            new Reference(MediaObjectFactory::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(ManagerRegistry::class),
         ])

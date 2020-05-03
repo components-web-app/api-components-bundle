@@ -16,9 +16,9 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
-use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -43,12 +43,15 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
 
-    private UploadableHelper $uploadableHelper;
+    private MediaObjectFactory $mediaObjectFactory;
     private UploadableAnnotationReader $annotationReader;
 
-    public function __construct(UploadableHelper $uploadableHelper, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
-    {
-        $this->uploadableHelper = $uploadableHelper;
+    public function __construct(
+        MediaObjectFactory $mediaObjectFactory,
+        UploadableAnnotationReader $annotationReader,
+        ManagerRegistry $registry
+    ) {
+        $this->mediaObjectFactory = $mediaObjectFactory;
         $this->annotationReader = $annotationReader;
         $this->initRegistry($registry);
     }
@@ -110,7 +113,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $mediaObjects = $this->uploadableHelper->getMediaObjects($object);
+        $mediaObjects = $this->mediaObjectFactory->createMediaObjects($object);
         if ($mediaObjects) {
             $mediaObjects = $this->normalizer->normalize(
                 $mediaObjects,

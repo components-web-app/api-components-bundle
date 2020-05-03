@@ -41,7 +41,7 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
         if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
             return $isConfigured;
         }
-        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not implement %s', ImagineFiltersInterface::class));
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', $class));
     }
 
     /**
@@ -68,6 +68,10 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
         /** @var UploadableField|null $annotation */
         if (!$annotation = $this->reader->getPropertyAnnotation($property, UploadableField::class)) {
             throw new InvalidArgumentException(sprintf('%s::%s does not have %s annotation', $property->getDeclaringClass()->getName(), $property->getName(), UploadableField::class));
+        }
+
+        if (\count($annotation->imagineFilters) && !$this->imagineBundleEnabled) {
+            throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s::$%s', $property->class, $property->getName()));
         }
 
         return $annotation;

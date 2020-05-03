@@ -108,7 +108,7 @@ class DataUriFile extends File
     private function getTempFileBasePath(): string
     {
         if (false === $path = tempnam($directory = sys_get_temp_dir(), 'DataUriFile')) {
-            throw new FileException(sprintf('Unable to create a file into the "%s" directory', $path));
+            throw new FileException(sprintf('Unable to create a file into the "%s" directory: %s', $directory, $path));
         }
 
         return $path;
