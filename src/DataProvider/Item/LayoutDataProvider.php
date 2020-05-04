@@ -40,7 +40,7 @@ final class LayoutDataProvider implements ItemDataProviderInterface, RestrictedD
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): ?Layout
     {
         if ('default' !== $id) {
-            throw new ResourceClassNotSupportedException('LayoutDataProvider only supports the id `default`');
+            throw new ResourceClassNotSupportedException(sprintf('%s only supports the id `default`', __CLASS__));
         }
 
         return $this->repository->findOneBy(['default' => true]);

@@ -25,6 +25,8 @@ final class UploadableField
 
     public ?string $prefix = null;
 
+    public ?array $imagineFilters = [];
+
     // Nice to have - feature to configure the IRI in the output media objects for this field
     // public string $iri = 'http://schema.org/MediaObject';
 

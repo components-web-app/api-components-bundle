@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <entity name="Silverback\ApiComponentsBundle\Imagine\Entity\ImagineCachedFileMetadata" table="imagine_cached_file_metadata">
+    <entity name="Silverback\ApiComponentsBundle\Entity\Core\FileInfo" table="imagine_cached_file_metadata">
+        <unique-constraints>
+            <unique-constraint name="unique_cache_item" columns="path,filter" />
+        </unique-constraints>
         <id name="id" type="string" column="id" length="36"/>
-        <field name="filter" column="filter" />
         <field name="path" column="path" />
         <field name="mimeType" column="mime_type" />
-        <field name="width" column="width" type="integer" />
-        <field name="height" column="height" type="integer" />
         <field name="fileSize" column="file_size" type="integer" />
+        <field name="width" column="width" type="integer" nullable="true" />
+        <field name="height" column="height" type="integer" nullable="true" />
+        <field name="filter" column="filter" nullable="true" />
     </entity>
 </doctrine-mapping>

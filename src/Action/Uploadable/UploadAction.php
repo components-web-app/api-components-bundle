@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UploadableAction
+class UploadAction
 {
     public function __invoke(?object $data, Request $request, UploadableHelper $uploadableHelper)
     {

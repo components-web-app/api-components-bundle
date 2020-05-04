@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Imagine;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
-use Silverback\ApiComponentsBundle\Imagine\Entity\ImagineCachedFileMetadata;
+use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
 
 /**
  * This will listen to cache events in imagine bundle and persist the metadata to the database
@@ -29,12 +29,11 @@ use Silverback\ApiComponentsBundle\Imagine\Entity\ImagineCachedFileMetadata;
  */
 class ImagineEventListener
 {
-    private EntityManagerInterface $entityManager;
+    private FileInfoCacheHelper $fileInfoCacheHelper;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(FileInfoCacheHelper $fileInfoCacheHelper)
     {
-        $this->entityManager = $entityManager;
-        $entityManager->getUnitOfWork();
+        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
     }
 
     public function onStore(ImagineStoreEvent $event): void
@@ -43,25 +42,12 @@ class ImagineEventListener
         [ $width, $height ] = getimagesizefromstring($content);
         $fileSize = \strlen($content);
 
-        $metadata = new ImagineCachedFileMetadata($event->filter, $event->path, $event->binary->getMimeType(), $width, $height, $fileSize);
-        $this->entityManager->persist($metadata);
-        $this->entityManager->flush();
+        $fileInfo = new FileInfo($event->path, $event->binary->getMimeType(), $fileSize, $width, $height, $event->filter);
+        $this->fileInfoCacheHelper->saveCache($fileInfo);
     }
 
     public function onRemove(ImagineRemoveEvent $event): void
     {
-        $repository = $this->entityManager->getRepository(ImagineCachedFileMetadata::class);
-        foreach ($event->filters as $filter) {
-            foreach ($event->paths as $path) {
-                $metadata = $repository->findOneBy([
-                    'filter' => $filter,
-                    'path' => $path,
-                ]);
-                if ($metadata) {
-                    $this->entityManager->remove($metadata);
-                }
-            }
-        }
-        $this->entityManager->flush();
+        $this->fileInfoCacheHelper->deleteCaches($event->paths, $event->filters);
     }
 }

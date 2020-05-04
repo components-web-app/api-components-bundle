@@ -27,7 +27,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "/_/dummy_timestampeds/125345"
+                "/dummy_timestampeds/125345"
             ]
         },
         "@type": {

@@ -13,22 +13,21 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Uploadable;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
-use League\Flysystem\Filesystem;
-use League\Flysystem\UnableToReadFile;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
-use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
-use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -40,33 +39,33 @@ class UploadableHelper
 
     private UploadableAnnotationReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
-    private MediaObjectFactory $mediaObjectFactory;
-    private RequestStack $requestStack;
-    private ?FilterService $filterService;
     private FlysystemDataLoader $flysystemDataLoader;
+    private FileInfoCacheHelper $fileInfoCacheHelper;
+    private ?CacheManager $imagineCacheManager;
+    private ?FilterService $filterService;
 
     public function __construct(
         ManagerRegistry $registry,
         UploadableAnnotationReader $annotationReader,
         FilesystemProvider $filesystemProvider,
-        MediaObjectFactory $mediaObjectFactory,
-        RequestStack $requestStack,
         FlysystemDataLoader $flysystemDataLoader,
+        FileInfoCacheHelper $fileInfoCacheHelper,
+        ?CacheManager $imagineCacheManager,
         ?FilterService $filterService = null
     ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
-        $this->mediaObjectFactory = $mediaObjectFactory;
-        $this->requestStack = $requestStack;
         $this->flysystemDataLoader = $flysystemDataLoader;
+        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
+        $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
     }
 
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
     {
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, false, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, false);
 
         /**
          * @var UploadableField[] $configuredProperties
@@ -80,7 +79,7 @@ class UploadableHelper
 
     public function storeFilesMetadata(object $object): void
     {
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         $classMetadata = $this->getClassMetadata($object);
 
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
@@ -88,8 +87,9 @@ class UploadableHelper
             $this->flysystemDataLoader->setAdapter($fieldConfiguration->adapter);
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+
             if ($object instanceof ImagineFiltersInterface && $this->filterService) {
-                $filters = $object->getImagineFilters(null);
+                $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
                     // This will trigger the cached file to be store
                     // When cached files are store we save the file info
@@ -104,7 +104,7 @@ class UploadableHelper
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         /**
          * @var UploadableField[] $configuredProperties
          */
@@ -120,7 +120,7 @@ class UploadableHelper
                 continue;
             }
 
-            $filesystem = $this->getFilesystemFromFieldConfiguration($fieldConfiguration);
+            $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
 
             $path = $fieldConfiguration->prefix ?? '';
             $path .= $file->getFilename();
@@ -137,7 +137,7 @@ class UploadableHelper
     {
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if ($currentFilepath) {
@@ -146,65 +146,42 @@ class UploadableHelper
         }
     }
 
-    public function getMediaObjects(object $object): ?ArrayCollection
+    public function getFileResponse(object $object, string $property, bool $forceDownload = false): Response
     {
-        $collection = new ArrayCollection();
+        try {
+            $reflectionProperty = new \ReflectionProperty($object, $property);
+        } catch (\ReflectionException $exception) {
+            throw new NotFoundHttpException($exception->getMessage());
+        }
+        if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
+            throw new NotFoundHttpException(sprintf('field configuration not found for %s', $property));
+        }
+
+        $propertyConfiguration = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
+
+        $filesystem = $this->filesystemProvider->getFilesystem($propertyConfiguration->adapter);
+
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
-        foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            $propertyMediaObjects = [];
-            $filesystem = $this->getFilesystemFromFieldConfiguration($fieldConfiguration);
-            $path = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if (!$path) {
-                continue;
+        $filePath = $classMetadata->getFieldValue($object, $propertyConfiguration->property);
+
+        $response = new StreamedResponse();
+        $response->setCallback(
+            static function () use ($filesystem, $filePath) {
+                $outputStream = fopen('php://output', 'w');
+                $fileStream = $filesystem->readStream($filePath);
+                stream_copy_to_stream($fileStream, $outputStream);
             }
-            if (!$filesystem->fileExists($path)) {
-                continue;
-            }
+        );
+        $response->headers->set('Content-Type', $filesystem->mimeType($filePath));
 
-            // Populate the primary MediaObject
-            try {
-                $propertyMediaObjects[] = $this->mediaObjectFactory->create($filesystem, $path);
-            } catch (UnableToReadFile $exception) {
-            }
+        $disposition = HeaderUtils::makeDisposition(
+            $forceDownload ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE,
+            $filePath
+        );
+        $response->headers->set('Content-Disposition', $disposition);
 
-            if ($object instanceof ImagineFiltersInterface) {
-                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration->adapter));
-            }
-
-            $collection->set($fieldConfiguration->property, $propertyMediaObjects);
-        }
-
-        return $collection->count() ? $collection : null;
-    }
-
-    /**
-     * @return MediaObject[]
-     */
-    private function getMediaObjectsForImagineFilters(ImagineFiltersInterface $object, string $path, string $adapter): array
-    {
-        // Let the data loader which should be configured for imagine to know which adapter to use
-        $this->flysystemDataLoader->setAdapter($adapter);
-
-        $mediaObjects = [];
-        if (!$this->filterService) {
-            return $mediaObjects;
-        }
-
-        $request = $this->requestStack->getMasterRequest();
-        $filters = $object->getImagineFilters($request);
-        foreach ($filters as $filter) {
-            $resolvedUrl = $this->filterService->getUrlOfFilteredImage($path, $filter);
-            $mediaObjects[] = $this->mediaObjectFactory->createFromImagine($resolvedUrl, $path, $filter);
-        }
-
-        return $mediaObjects;
-    }
-
-    private function getFilesystemFromFieldConfiguration(UploadableField $fieldConfiguration): Filesystem
-    {
-        return $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
+        return $response;
     }
 
     private function removeFilepath(object $object, UploadableField $fieldConfiguration): void
@@ -213,6 +190,10 @@ class UploadableHelper
 
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        $this->fileInfoCacheHelper->deleteCaches([$currentFilepath], [null]);
+        if ($this->imagineCacheManager) {
+            $this->imagineCacheManager->remove([$currentFilepath], null);
+        }
         if ($filesystem->fileExists($currentFilepath)) {
             $filesystem->delete($currentFilepath);
         }

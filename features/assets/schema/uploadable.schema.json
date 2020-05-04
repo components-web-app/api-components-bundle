@@ -28,7 +28,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "/_/dummy_files/d031392b4f154350829a6b7f42b68a20"
+                "/dummy_files/d031392b4f154350829a6b7f42b68a20"
             ]
         },
         "@type": {

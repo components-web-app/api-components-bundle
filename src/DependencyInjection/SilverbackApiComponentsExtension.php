@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
@@ -88,6 +89,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         if ($imagineEnabled) {
             $definition = $container->getDefinition(UploadableHelper::class);
+            $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
+
+            $definition = $container->getDefinition(MediaObjectFactory::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
         }
     }

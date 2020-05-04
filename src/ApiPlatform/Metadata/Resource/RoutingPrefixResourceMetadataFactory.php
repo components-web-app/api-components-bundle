@@ -43,7 +43,7 @@ class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInt
         } else {
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
-            $acbNamespace = 'Silverback\ApiComponentsBundle\\';
+            $acbNamespace = 'Silverback\ApiComponentsBundle\Entity\\';
 
             if (0 === strpos($namespace, $acbNamespace)) {
                 $routePrefixParts[] = '_';

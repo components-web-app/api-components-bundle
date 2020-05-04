@@ -117,6 +117,9 @@ class RestContext implements Context
         return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
     }
 
+    /**
+     * @Then the file :file should exist
+     */
     private function castTableNodeToArray(TableNode $tableNode): array
     {
         $data = array_map(function ($value) {

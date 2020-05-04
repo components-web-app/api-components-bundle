@@ -25,7 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadableAnnotationReader extends AbstractAnnotationReader
+final class UploadableAnnotationReader extends AnnotationReader implements UploadableAnnotationReaderInterface
 {
     private bool $imagineBundleEnabled;
 
@@ -41,7 +41,7 @@ final class UploadableAnnotationReader extends AbstractAnnotationReader
         if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
             return $isConfigured;
         }
-        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not implement %s', ImagineFiltersInterface::class));
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', $class));
     }
 
     /**
@@ -70,13 +70,17 @@ final class UploadableAnnotationReader extends AbstractAnnotationReader
             throw new InvalidArgumentException(sprintf('%s::%s does not have %s annotation', $property->getDeclaringClass()->getName(), $property->getName(), UploadableField::class));
         }
 
+        if (\count($annotation->imagineFilters) && !$this->imagineBundleEnabled) {
+            throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s::$%s', $property->class, $property->getName()));
+        }
+
         return $annotation;
     }
 
     /**
      * @param object|string $data
      */
-    public function getConfiguredProperties($data, bool $skipUploadableCheck = false, bool $returnConfigurations = true): iterable
+    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable
     {
         if (!$skipUploadableCheck && !$this->isConfigured($data)) {
             throw new UnsupportedAnnotationException(sprintf('Cannot get field configuration for %s: is it not configured as Uploadable', \is_string($data) ? $data : \get_class($data)));
@@ -87,11 +91,7 @@ final class UploadableAnnotationReader extends AbstractAnnotationReader
         foreach ($reflectionProperties as $reflectionProperty) {
             try {
                 $config = $this->getPropertyConfiguration($reflectionProperty);
-                if ($returnConfigurations) {
-                    yield $reflectionProperty->getName() => $config;
-                } else {
-                    yield $reflectionProperty->getName();
-                }
+                yield $reflectionProperty->getName() => $config;
                 $found = true;
             } catch (InvalidArgumentException $e) {
             }

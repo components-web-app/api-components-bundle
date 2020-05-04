@@ -24,11 +24,12 @@ use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\AbstractAnnotationReader;
+use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
@@ -80,6 +81,7 @@ use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
@@ -95,6 +97,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
 use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
@@ -138,7 +141,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(AbstractAnnotationReader::class)
+        ->set(AnnotationReader::class)
         ->abstract()
         ->args([
             new Reference('annotations.reader'),
@@ -173,12 +176,8 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UploadableAction::class)
+        ->set(DownloadAction::class)
         ->tag('controller.service_arguments');
-
-    $services
-        ->set(FilesystemProvider::class)
-        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
 
     $services
         ->set(EmailAddressManager::class)
@@ -196,6 +195,24 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
+
+    $services
+        ->set(FileInfoCacheHelper::class)
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(FileInfoRepository::class),
+        ]);
+
+    $services
+        ->set(FileInfoRepository::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+        ])
+        ->tag('doctrine.repository_service');
+
+    $services
+        ->set(FilesystemProvider::class)
+        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
 
     $services
         ->set(FlysystemDataLoader::class)
@@ -265,7 +282,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ImagineEventListener::class)
         ->args([
-            new Reference(EntityManagerInterface::class),
+            new Reference(FileInfoCacheHelper::class),
         ])
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
@@ -287,7 +304,15 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(MediaObjectFactory::class)
         ->args([
-            new Reference(EntityManagerInterface::class),
+            new Reference(ManagerRegistry::class),
+            new Reference(FileInfoCacheHelper::class),
+            new Reference(UploadableAnnotationReader::class),
+            new Reference(FilesystemProvider::class),
+            new Reference(FlysystemDataLoader::class),
+            new Reference(RequestStack::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(UrlHelper::class),
+            null, // populated in dependency injection
         ]);
 
     $services
@@ -378,7 +403,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(PublishableContextBuilder::class)
@@ -486,7 +511,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TimestampedAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(TimestampedContextBuilder::class)
@@ -534,8 +559,12 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(UploadAction::class)
+        ->tag('controller.service_arguments');
+
+    $services
         ->set(UploadableAnnotationReader::class)
-        ->parent(AbstractAnnotationReader::class);
+        ->parent(AnnotationReader::class);
 
     $services
         ->set(UploadableEventListener::class)
@@ -552,9 +581,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
-            new Reference(MediaObjectFactory::class),
-            new Reference(RequestStack::class),
             new Reference(FlysystemDataLoader::class),
+            new Reference(FileInfoCacheHelper::class),
+            new Reference('liip_imagine.cache.manager'),
             null, // Set in dependency injection if imagine cache manager exists
         ]);
 
@@ -569,9 +598,10 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableNormalizer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference(UploadableHelper::class),
+            new Reference(MediaObjectFactory::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(ManagerRegistry::class),
+            new Reference(RequestStack::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 

@@ -37,16 +37,5 @@ class DoctrineOrmCompilerPass implements CompilerPassInterface
             ['ApiComponentsBundle' => $namespace]
         );
         $mappingPass->process($container);
-
-        $imagineModelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm-imagine');
-        $imagineMappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver(
-            [
-                $imagineModelDir => 'Silverback\ApiComponentsBundle\Imagine\Entity',
-            ],
-            ['api_components.orm.manager_name.imagine'],
-            'api_component.imagine_enabled',
-            []
-        );
-        $imagineMappingPass->process($container);
     }
 }

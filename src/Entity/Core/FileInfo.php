@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Imagine\Entity;
+namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 
@@ -20,25 +20,25 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class ImagineCachedFileMetadata
+class FileInfo
 {
     use IdTrait;
 
-    public string $filter;
     public string $path;
     public string $mimeType;
-    public int $width;
-    public int $height;
     public int $fileSize;
+    public ?int $width;
+    public ?int $height;
+    public ?string $filter;
 
-    public function __construct(string $filter, string $path, string $mimeType, int $width, int $height, int $fileSize)
+    public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, ?string $filter = null)
     {
         $this->setId();
-        $this->filter = $filter;
         $this->path = $path;
         $this->mimeType = $mimeType;
         $this->width = $width;
         $this->height = $height;
         $this->fileSize = $fileSize;
+        $this->filter = $filter;
     }
 }

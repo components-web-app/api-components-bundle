@@ -9,7 +9,7 @@ Feature: Timestamped resources
 
   @loginUser
   Scenario: I should be able to create a new timestamped resource
-    When I send a "POST" request to "/_/dummy_timestampeds" with body:
+    When I send a "POST" request to "/dummy_timestampeds" with body:
     """
     {}
     """
@@ -18,7 +18,7 @@ Feature: Timestamped resources
 
   @loginUser
   Scenario: I should not be able to write to the timestamped fields
-    When I send a "POST" request to "/_/dummy_timestampeds" with body:
+    When I send a "POST" request to "/dummy_timestampeds" with body:
     """
     {
       "createdAt": "1970-01-01 00:00:00",

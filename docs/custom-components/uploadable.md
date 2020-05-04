@@ -117,9 +117,35 @@ class File
     public ?File $file;
 ```
 
-You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives a `Request` object and can return different filters depending on the resource state. If the resource is not an image, this will be silently ignored.
+### Resolving Imagine Filters
 
-> **Due to the way LiipImagineBundle works, we save the image metadata **
+### Annotation
+
+You can configure static imagine filters to resolve in the UploadableField annotation.
+
+```php
+use Doctrine\Common\Collections\ArrayCollection;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+
+/**
+ * @Silverback\Uploadable()
+ */
+class File
+{
+    use UploadableTrait;
+    
+    /** @Silverback\UploadableField(adapter="local", imagineFilters={"thumbnail", "thumbnail_square"}) */
+    public ?File $file;
+
+    public function __construct()
+    {
+        $this->mediaObjects = new ArrayCollection();
+    }
+```
+
+### ImagineFiltersInterface
+You can configure your `File` object to use ImagineBundle filters. You will receive an additional `MediaObject` for every filter configured. The method `getImagineFilters` receives the configured `@UploadedField` property name (in the example below this would be `file`), and a `Request` object or `null`. If the resource is not a file supported by Imagine or no files are uploaded, the filters will be ignored.
 
 ```php
 use Doctrine\Common\Collections\ArrayCollection;
@@ -134,17 +160,22 @@ use Symfony\Component\HttpFoundation\Request;
 class File implements ImagineFiltersInterface
 {
     use UploadableTrait;
+    
+    /** @Silverback\UploadableField(adapter="local") */
+    public ?File $file;
 
     public function __construct()
     {
         $this->mediaObjects = new ArrayCollection();
     }
 
-    public function getImagineFilters(Request $request): array
+    public function getImagineFilters(string $property, ?Request $request): array
     {
         return ['thumbnail', 'square_placeholder'];
     }
 ```
+
+Due to the way LiipImagineBundle works, we save the image metadata when the cached file is saved to your storage. We keep this data in another database table. This means we will call your `getImagineFilters` method when you upload your file with a `null` argument for `$request`. If a file has not been saved into the cache at the time it is requested, it will be generated at runtime so the first request will take longer. You could also resolve the cache in the background. To do this you would return no filters if there is a `null` request parameter and listen for the API Platform event lifecycle event for your resource(s). See https://symfony.com/doc/2.0/bundles/LiipImagineBundle/resolve-cache-images-in-background.html for configuring the background process.
 
 ## Updating your resource
 

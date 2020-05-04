@@ -42,7 +42,7 @@ class DummyUploadableWithImagineFilters implements ImagineFiltersInterface
         $this->setId();
     }
 
-    public function getImagineFilters(?Request $request): array
+    public function getImagineFilters(string $property, ?Request $request): array
     {
         return ['thumbnail', 'square_thumbnail'];
     }

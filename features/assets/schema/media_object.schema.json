@@ -148,7 +148,7 @@
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
-                "/_/media_objects/3a6b855a68d54e68b4a499065bbdd89d"
+                "/media_objects/3a6b855a68d54e68b4a499065bbdd89d"
             ]
         },
         "@type": {

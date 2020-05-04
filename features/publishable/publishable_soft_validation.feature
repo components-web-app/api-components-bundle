@@ -126,7 +126,7 @@ Feature: Soft validation on draft resources
   # POST
   @loginAdmin
   Scenario Outline: I create a valid draft resource
-    When I send a "POST" request to "/_/dummy_publishable_with_validations" with data:
+    When I send a "POST" request to "/dummy_publishable_with_validations" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -139,7 +139,7 @@ Feature: Soft validation on draft resources
 
   @loginAdmin
   Scenario Outline: I create a resource that is a draft with invalid properties for a published state, should still create resource
-    When I send a "POST" request to "/_/dummy_publishable_with_validations?<postfix>" with data:
+    When I send a "POST" request to "/dummy_publishable_with_validations?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -160,7 +160,7 @@ Feature: Soft validation on draft resources
   # POST - custom validation groups
   @loginAdmin
   Scenario Outline: I configure custom validation groups to create a draft resource
-    When I send a "POST" request to "/_/dummy_publishable_with_validation_custom_groups" with data:
+    When I send a "POST" request to "/dummy_publishable_with_validation_custom_groups" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the JSON should be valid according to the schema file "publishable.schema.json"
@@ -174,7 +174,7 @@ Feature: Soft validation on draft resources
 
   @loginAdmin
   Scenario Outline: I configure custom validation groups to validate/create a published resource
-    When I send a "POST" request to "/_/dummy_publishable_with_validation_custom_groups?<postfix>" with data:
+    When I send a "POST" request to "/dummy_publishable_with_validation_custom_groups?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>

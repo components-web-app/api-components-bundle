@@ -14,8 +14,11 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behatch\Context\JsonContext as BehatchJsonContext;
+use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
@@ -28,6 +31,8 @@ use Symfony\Component\HttpFoundation\File\File;
 class UploadsContext implements Context
 {
     private ?RestContext $restContext;
+    private ?BehatchJsonContext $behatchJsonContext;
+    private ?BehatchRestContext $behatchRestContext;
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
     private UploadableHelper $uploadableHelper;
@@ -44,7 +49,9 @@ class UploadsContext implements Context
      */
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
+        $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->behatchJsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
     }
 
     /**
@@ -53,7 +60,11 @@ class UploadsContext implements Context
     public function removeFile(): void
     {
         if (isset($this->restContext->components['dummy_uploadable'])) {
-            $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+            try {
+                $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+            } catch (ItemNotFoundException $e) {
+                // we may heva just deleted this resource 'dummy_uploadable'
+            }
         }
     }
 
@@ -68,5 +79,27 @@ class UploadsContext implements Context
         $this->manager->persist($object);
         $this->manager->flush();
         $this->restContext->components['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+    }
+
+    /**
+     * @When /^I request the download endpoint(?: with the postfix "(.+)")?$/
+     */
+    public function iRequestTheDownloadEndpoint(?string $postfix = null)
+    {
+        $endpoint = $this->restContext->components['dummy_uploadable'] . '/download/file';
+        if ($postfix) {
+            $endpoint .= $postfix;
+        }
+
+        return $this->behatchRestContext->iSendARequestTo('GET', $endpoint);
+    }
+
+    /**
+     * @Then the JSON node :node should be a valid download link for the component :component
+     */
+    public function thenTheJsonNodeShoudBeAValidDownloadLinkForTheComponent($node, $component)
+    {
+        $endpoint = 'http://example.com' . $this->restContext->components['dummy_uploadable'] . '/download/file';
+        $this->behatchJsonContext->theJsonNodeShouldBeEqualToTheString($node, $endpoint);
     }
 }

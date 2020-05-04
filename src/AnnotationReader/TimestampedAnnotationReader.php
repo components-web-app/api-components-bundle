@@ -18,7 +18,7 @@ use Silverback\ApiComponentsBundle\Annotation\Timestamped;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class TimestampedAnnotationReader extends AbstractAnnotationReader
+final class TimestampedAnnotationReader extends AnnotationReader
 {
     /**
      * @param object|string $class
