@@ -58,6 +58,8 @@ class FileInfoRepositoryTest extends AbstractRepositoryTest
         }
         $this->entityManager->flush();
 
+        $this->assertCount(0, $this->repository->findByPathsAndFilters([], null));
+        $this->assertCount(6, $this->repository->findByPathsAndFilters(['path_1', 'path_2'], null));
         $this->assertCount(6, $this->repository->findByPathsAndFilters(['path_1', 'path_2'], [null, 'filter_1', 'filter_2']));
         $this->assertCount(3, $this->repository->findByPathsAndFilters(['path_1'], [null, 'filter_1', 'filter_2']));
         $this->assertCount(4, $this->repository->findByPathsAndFilters(['path_1', 'path_2'], ['filter_1', 'filter_2']));

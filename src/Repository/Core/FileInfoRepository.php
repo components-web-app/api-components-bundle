@@ -35,29 +35,43 @@ class FileInfoRepository extends ServiceEntityRepository
     /**
      * @return FileInfo[]
      */
-    public function findByPathsAndFilters(array $paths, array $filters): array
+    public function findByPathsAndFilters(array $paths, ?array $filters): array
     {
+        if (!\count($paths)) {
+            return [];
+        }
+
         $queryBuilder = $this->createQueryBuilder('f');
         $expr = $queryBuilder->expr();
 
         $filterQueries = [];
-        foreach ($filters as $filterIndex => $filter) {
-            if (!$filter) {
-                $filterQueries[] = $expr->isNull('f.filter');
-                continue;
+        if ($filters) {
+            foreach ($filters as $filterIndex => $filter) {
+                if (!$filter) {
+                    $filterQueries[] = $expr->isNull('f.filter');
+                    continue;
+                }
+                $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
+                $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
             }
-            $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
-            $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
         }
 
         foreach ($paths as $pathIndex => $path) {
-            $queryBuilder
-                ->orWhere(
-                    $expr->andX(
-                        $expr->eq('f.path', ':path_' . $pathIndex),
-                        $expr->orX(...$filterQueries)
-                    )
-                );
+            if ($filterQueries) {
+                $queryBuilder
+                    ->orWhere(
+                        $expr->andX(
+                            $expr->eq('f.path', ':path_' . $pathIndex),
+                            $expr->orX(...$filterQueries)
+                        )
+                    );
+            } else {
+                $queryBuilder
+                    ->orWhere(
+                        $expr->eq('f.path', ':path_' . $pathIndex)
+                    );
+            }
+
             $queryBuilder->setParameter(':path_' . $pathIndex, $path);
         }
 
