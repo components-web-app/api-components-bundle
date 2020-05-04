@@ -92,12 +92,17 @@ Feature: API Resources which can have files uploaded
   # PUT
 
   @loginUser
-  @wip
-  Scenario: I can update a media resource
-
-  @loginUser
-  @wip
-  Scenario: I can assign a media resource to a component
+  Scenario Outline: I can update a media resource
+    Given there is a DummyUploadableWithImagineFilters
+    When I send a "PUT" request to the component "dummy_uploadable" with data:
+      | file           |
+      | base64(<file>) |
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema "features/assets/schema/<schema>"
+    And the JSON node "filePath" should not exist
+    Examples:
+      | file           | schema                            |
+      | image.png      | uploadable_has_files.schema.json  |
 
   # DELETE
 
