@@ -305,6 +305,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FilesystemProvider::class),
             new Reference(FlysystemDataLoader::class),
             new Reference(RequestStack::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(UrlHelper::class),
             null, // populated in dependency injection
         ]);
 
@@ -594,6 +596,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MediaObjectFactory::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(ManagerRegistry::class),
+            new Reference(RequestStack::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 

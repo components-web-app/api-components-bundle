@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
@@ -28,6 +29,8 @@ use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UrlHelper;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -41,6 +44,8 @@ class MediaObjectFactory
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
     private RequestStack $requestStack;
+    private IriConverterInterface $iriConverter;
+    private UrlHelper $urlHelper;
     private ?FilterService $filterService;
 
     public function __construct(
@@ -50,6 +55,8 @@ class MediaObjectFactory
         FilesystemProvider $filesystemProvider,
         FlysystemDataLoader $flysystemDataLoader,
         RequestStack $requestStack,
+        IriConverterInterface $iriConverter,
+        UrlHelper $urlHelper,
         ?FilterService $filterService = null
     ) {
         $this->initRegistry($managerRegistry);
@@ -58,6 +65,8 @@ class MediaObjectFactory
         $this->filesystemProvider = $filesystemProvider;
         $this->flysystemDataLoader = $flysystemDataLoader;
         $this->requestStack = $requestStack;
+        $this->iriConverter = $iriConverter;
+        $this->urlHelper = $urlHelper;
         $this->filterService = $filterService;
     }
 
@@ -67,6 +76,8 @@ class MediaObjectFactory
         $classMetadata = $this->getClassMetadata($object);
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
+
+        $resourceId = $this->iriConverter->getIriFromItem($object);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
@@ -78,9 +89,12 @@ class MediaObjectFactory
                 continue;
             }
 
+            $converter = new CamelCaseToSnakeCaseNameConverter();
+            $contentUrl = sprintf('%s/download/%s', $resourceId, $converter->normalize($fileProperty));
+
             // Populate the primary MediaObject
             try {
-                $propertyMediaObjects[] = $this->create($filesystem, $path);
+                $propertyMediaObjects[] = $this->create($filesystem, $path, $contentUrl);
             } catch (UnableToReadFile $exception) {
             }
 
@@ -119,10 +133,11 @@ class MediaObjectFactory
         return $mediaObjects;
     }
 
-    private function create(Filesystem $filesystem, string $filename): MediaObject
+    private function create(Filesystem $filesystem, string $filename, string $contentUrl): MediaObject
     {
         $mediaObject = new MediaObject();
-        $mediaObject->contentUrl = 'https://www.website.com/path';
+
+        $mediaObject->contentUrl = $this->urlHelper->getAbsoluteUrl($contentUrl);
         $mediaObject->imagineFilter = null;
 
         $fileInfo = $this->fileInfoCacheHelper->resolveCache($filename);

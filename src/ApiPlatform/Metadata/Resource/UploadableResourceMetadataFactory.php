@@ -19,7 +19,6 @@ use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
-use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * Configures API Platform metadata for file resources.
@@ -48,20 +47,17 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
 
         $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false);
         $properties = [];
-        $fieldsAsSnakeCase = [];
-        $camelCaseToSnakeCaseConverter = new CamelCaseToSnakeCaseNameConverter();
         foreach ($fields as $field => $configuration) {
             $properties[$field] = [
                 'type' => 'string',
                 'format' => 'binary',
             ];
-            $fieldsAsSnakeCase[] = $camelCaseToSnakeCaseConverter->normalize($field);
         }
         $resourceShortName = $resourceMetadata->getShortName();
         $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
         $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
 
-        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName, $fieldsAsSnakeCase);
+        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
     }
 
     private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
@@ -74,7 +70,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName, array $fieldsAsSnakeCase): ResourceMetadata
+    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
     {
         $uploadPath = sprintf('/%s/{id}/upload', $pathSegmentName);
 
