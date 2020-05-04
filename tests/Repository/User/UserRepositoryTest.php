@@ -56,6 +56,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertNull($this->repository->findOneByEmail('email@address.com'));
 
         $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $user->setUsername('username')->setEmailAddress('email@address.com');
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -74,6 +75,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $requestedAt = $requestedAt->modify(sprintf('-%d seconds', $this->passwordResetTimeoutSeconds - 4));
 
         $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $user
             ->setUsername($username)
             ->setNewPasswordConfirmationToken($token)
@@ -93,6 +95,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $requestedAt = new \DateTime();
         $requestedAt = $requestedAt->modify(sprintf('-%d seconds', $this->passwordResetTimeoutSeconds));
         $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $user
             ->setUsername($username)
             ->setNewPasswordConfirmationToken($token)
@@ -111,6 +114,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertNull($this->repository->findOneByEmailVerificationToken($username, $email, $token));
 
         $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $user
             ->setUsername($username)
             ->setEmailAddress($email)
@@ -129,6 +133,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->assertNull($this->repository->loadUserByUsername('does_not_exist'));
 
         $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $user
             ->setUsername($username)
             ->setEmailAddress($email);

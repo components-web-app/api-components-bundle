@@ -49,12 +49,12 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
         return false;
     }
 
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
         return !isset($context[self::ALREADY_CALLED]) && $this->annotationReader->isConfigured($type);
     }
 
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
 
