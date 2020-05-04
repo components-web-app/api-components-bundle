@@ -51,14 +51,14 @@ final class TimestampedLoader implements LoaderInterface
 
         if (
             ($attributeMetadata = ($allAttributesMetadata[$configuration->createdAtField] ?? null)) &&
-            !empty($attributeMetadata->getGroups())
+            empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
         }
 
         if (
             ($attributeMetadata = ($allAttributesMetadata[$configuration->modifiedAtField] ?? null)) &&
-            !empty($attributeMetadata->getGroups())
+            empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
         }

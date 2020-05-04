@@ -28,6 +28,7 @@ use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
@@ -178,6 +179,18 @@ final class DoctrineContext implements Context
     public function thereIsADummyCustomTimestampedResource(): void
     {
         $component = new DummyCustomTimestamped();
+        $this->restContext->getCachedNow();
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given there is a DummyTimestampedWithSerializationGroups resource
+     */
+    public function thereIsADummyTimestampedWithSerializationGroupsResource(): void
+    {
+        $component = new DummyTimestampedWithSerializationGroups();
         $this->restContext->getCachedNow();
         $this->manager->persist($component);
         $this->manager->flush();
