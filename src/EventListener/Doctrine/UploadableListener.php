@@ -44,7 +44,7 @@ final class UploadableListener
             return;
         }
 
-        $propertyConfigurations = $this->uploadableAnnotationReader->getConfiguredProperties($className, true, true);
+        $propertyConfigurations = $this->uploadableAnnotationReader->getConfiguredProperties($className, true);
 
         foreach ($propertyConfigurations as $propertyConfiguration) {
             if (!$metadata->hasField($propertyConfiguration->property)) {

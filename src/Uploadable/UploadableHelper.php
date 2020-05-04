@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Uploadable;
 
+use _HumbugBox3ad74b9da04b\Nette\InvalidArgumentException;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -61,7 +62,7 @@ class UploadableHelper
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
     {
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, false, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, false);
 
         /**
          * @var UploadableField[] $configuredProperties
@@ -75,7 +76,7 @@ class UploadableHelper
 
     public function storeFilesMetadata(object $object): void
     {
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         $classMetadata = $this->getClassMetadata($object);
 
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
@@ -100,7 +101,7 @@ class UploadableHelper
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         /**
          * @var UploadableField[] $configuredProperties
          */
@@ -133,13 +134,29 @@ class UploadableHelper
     {
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if ($currentFilepath) {
                 $this->removeFilepath($object, $fieldConfiguration);
             }
         }
+    }
+
+    public function getFile(object $object, string $property)
+    {
+        $reflectionProperty = new \ReflectionProperty($object, $property);
+        if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
+            throw new InvalidArgumentException(sprintf('field configuration not found for %s', $property));
+        }
+
+        $propertyConfiguration = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
+
+        $filesystem = $this->filesystemProvider->getFilesystem($propertyConfiguration->adapter);
+
+        $classMetadata = $this->getClassMetadata($object);
+
+        return $filesystem->readStream($classMetadata->getFieldValue($object, $propertyConfiguration->property));
     }
 
     private function removeFilepath(object $object, UploadableField $fieldConfiguration): void

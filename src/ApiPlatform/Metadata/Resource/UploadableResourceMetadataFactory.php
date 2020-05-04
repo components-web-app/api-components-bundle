@@ -16,7 +16,8 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableUploadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -31,10 +32,10 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
     private UploadableAnnotationReaderInterface $uploadableHelper;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReaderInterface $uploadableHelper, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
+    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReaderInterface $annotationReader, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
-        $this->uploadableHelper = $uploadableHelper;
+        $this->uploadableHelper = $annotationReader;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
@@ -45,11 +46,11 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
             return $resourceMetadata;
         }
 
-        $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false, false);
+        $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false);
         $properties = [];
         $fieldsAsSnakeCase = [];
         $camelCaseToSnakeCaseConverter = new CamelCaseToSnakeCaseNameConverter();
-        foreach ($fields as $field) {
+        foreach ($fields as $field => $configuration) {
             $properties[$field] = [
                 'type' => 'string',
                 'format' => 'binary',
@@ -82,11 +83,8 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $putProperties);
         $itemOperations['patch_upload'] = array_merge(['method' => 'PATCH'], $putProperties);
 
-        $downloadPath = sprintf('/%s/{id}/download/', $pathSegmentName);
-        foreach ($fieldsAsSnakeCase as $fieldName) {
-            $propertyDownloadPath = $downloadPath . $fieldName;
-            $itemOperations['download_' . $fieldName] = array_merge(['method' => 'GET'], $this->getDownloadOperationConfiguration($propertyDownloadPath));
-        }
+        $downloadPath = sprintf('/%s/{id}/download/{property}', $pathSegmentName);
+        $itemOperations['download'] = $this->getDownloadOperationConfiguration($downloadPath);
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
@@ -94,15 +92,17 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
     private function getDownloadOperationConfiguration(string $path): array
     {
         return [
-            'controller' => UploadableUploadAction::class,
+            'method' => 'GET',
+            'controller' => DownloadAction::class,
             'path' => $path,
+            'serialize' => false,
         ];
     }
 
     private function getUploadOperationConfiguration(array $properties, string $path): array
     {
         return [
-            'controller' => UploadableUploadAction::class,
+            'controller' => UploadAction::class,
             'path' => $path,
             'deserialize' => false,
             'openapi_context' => [

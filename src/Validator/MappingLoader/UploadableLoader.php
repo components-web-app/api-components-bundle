@@ -41,9 +41,9 @@ final class UploadableLoader implements LoaderInterface
             return false;
         }
 
-        $fields = $this->uploadsHelper->getConfiguredProperties($metadata->getClassName(), true, false);
+        $fields = $this->uploadsHelper->getConfiguredProperties($metadata->getClassName(), true);
 
-        foreach ($fields as $fileField) {
+        foreach ($fields as $fileField => $configuration) {
             $metadata->addPropertyConstraint($fileField, new Assert\NotNull(['groups' => sprintf('%s:create', $metadata->getClassName())]));
         }
 

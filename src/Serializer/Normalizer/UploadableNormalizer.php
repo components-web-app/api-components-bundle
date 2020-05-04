@@ -126,7 +126,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
         }
 
-        $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true);
         $classMetadata = $this->getClassMetadata($object);
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         foreach ($fieldConfigurations as $fileField => $fieldConfiguration) {

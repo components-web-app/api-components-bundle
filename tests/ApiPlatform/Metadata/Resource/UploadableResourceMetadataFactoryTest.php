@@ -20,7 +20,8 @@ use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableUploadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
@@ -100,7 +101,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
         $this->uploadableHelper
             ->expects($this->once())
             ->method('getConfiguredProperties')
-            ->willReturn(['resourceDocument']);
+            ->willReturn(['resourceDocument' => []]);
 
         $this->pathSegmentNameGenerator
             ->expects($this->once())
@@ -130,7 +131,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
         ];
         $this->assertEquals([
             'method' => 'POST',
-            'controller' => UploadableUploadAction::class,
+            'controller' => UploadAction::class,
             'path' => '/my_name/upload',
             'deserialize' => false,
             'openapi_context' => $commonOpenApiContext,
@@ -140,7 +141,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
 
         $this->assertEquals([
             'method' => 'PUT',
-            'controller' => UploadableUploadAction::class,
+            'controller' => UploadAction::class,
             'path' => '/my_name/{id}/upload',
             'deserialize' => false,
             'openapi_context' => $commonOpenApiContext,
@@ -148,7 +149,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
 
         $this->assertEquals([
             'method' => 'PATCH',
-            'controller' => UploadableUploadAction::class,
+            'controller' => UploadAction::class,
             'path' => '/my_name/{id}/upload',
             'deserialize' => false,
             'openapi_context' => $commonOpenApiContext,
@@ -156,8 +157,9 @@ class UploadableResourceMetadataFactoryTest extends TestCase
 
         $this->assertEquals([
             'method' => 'GET',
-            'controller' => UploadableUploadAction::class,
-            'path' => '/my_name/{id}/download/resource_document',
-        ], $itemOperations['download_resource_document']);
+            'controller' => DownloadAction::class,
+            'path' => '/my_name/{id}/download/{property}',
+            'serialize' => false,
+        ], $itemOperations['download']);
     }
 }

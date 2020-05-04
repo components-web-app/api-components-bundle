@@ -24,7 +24,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableUploadAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction;
@@ -552,7 +552,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(UploadableUploadAction::class)
+        ->set(UploadAction::class)
         ->tag('controller.service_arguments');
 
     $services

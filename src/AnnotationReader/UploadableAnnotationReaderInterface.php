@@ -27,5 +27,5 @@ interface UploadableAnnotationReaderInterface extends AnnotationReaderInterface
 
     public function getPropertyConfiguration(\ReflectionProperty $property): UploadableField;
 
-    public function getConfiguredProperties($data, bool $skipUploadableCheck = false, bool $returnConfigurations = true): iterable;
+    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable;
 }

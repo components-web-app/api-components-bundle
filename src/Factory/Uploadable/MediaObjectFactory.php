@@ -66,7 +66,7 @@ class MediaObjectFactory
         $collection = new ArrayCollection();
         $classMetadata = $this->getClassMetadata($object);
 
-        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true, true);
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);

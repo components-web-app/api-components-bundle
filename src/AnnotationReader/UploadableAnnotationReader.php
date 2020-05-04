@@ -80,7 +80,7 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
     /**
      * @param object|string $data
      */
-    public function getConfiguredProperties($data, bool $skipUploadableCheck = false, bool $returnConfigurations = true): iterable
+    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable
     {
         if (!$skipUploadableCheck && !$this->isConfigured($data)) {
             throw new UnsupportedAnnotationException(sprintf('Cannot get field configuration for %s: is it not configured as Uploadable', \is_string($data) ? $data : \get_class($data)));
@@ -91,11 +91,7 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
         foreach ($reflectionProperties as $reflectionProperty) {
             try {
                 $config = $this->getPropertyConfiguration($reflectionProperty);
-                if ($returnConfigurations) {
-                    yield $reflectionProperty->getName() => $config;
-                } else {
-                    yield $reflectionProperty->getName();
-                }
+                yield $reflectionProperty->getName() => $config;
                 $found = true;
             } catch (InvalidArgumentException $e) {
             }
