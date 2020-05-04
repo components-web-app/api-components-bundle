@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,10 +25,12 @@ use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 class UserRegisterListener
 {
     private EntityManagerInterface $entityManager;
+    private TimestampedHelper $timestampedHelper;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, TimestampedHelper $timestampedHelper)
     {
         $this->entityManager = $entityManager;
+        $this->timestampedHelper = $timestampedHelper;
     }
 
     public function __invoke(FormSuccessEvent $event)
@@ -38,7 +41,7 @@ class UserRegisterListener
         ) {
             return;
         }
-
+        $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
         $event->response = $user;

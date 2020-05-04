@@ -715,7 +715,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserRegisterListener::class)
-        ->args([new Reference(EntityManagerInterface::class)])
+        ->args([
+            new Reference(EntityManagerInterface::class),
+            new Reference(TimestampedHelper::class),
+        ])
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services

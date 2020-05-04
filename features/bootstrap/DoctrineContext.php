@@ -145,6 +145,7 @@ final class DoctrineContext implements Context
             case 'test_repeated':
                 $form->formType = TestRepeatedType::class;
         }
+        $this->timestampedHelper->persistTimestampedFields($form, true);
         $this->manager->persist($form);
         $this->manager->flush();
         $this->restContext->components[$type . '_form'] = $this->iriConverter->getIriFromItem($form);
