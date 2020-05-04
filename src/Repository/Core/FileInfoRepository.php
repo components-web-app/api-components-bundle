@@ -62,19 +62,12 @@ class FileInfoRepository extends ServiceEntityRepository
 
             if (!$filterQueryCount) {
                 $queryBuilder
-                    ->orWhere(
-                        $expr->eq('f.path', ':path_' . $pathIndex)
-                    );
+                    ->orWhere($expr->eq('f.path', ':path_' . $pathIndex));
                 continue;
             }
 
             $queryBuilder
-                ->orWhere(
-                    $expr->andX(
-                        $expr->eq('f.path', ':path_' . $pathIndex),
-                        $expr->orX(...$filterQueries)
-                    )
-                );
+                ->orWhere($expr->andX($expr->eq('f.path', ':path_' . $pathIndex), $expr->orX(...$filterQueries)));
         }
 
         return $queryBuilder->getQuery()->getResult();

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator;
 
 use ApiPlatform\Core\Validator\ValidatorInterface;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 
 /**
  * Builds and add validation group for published resources.

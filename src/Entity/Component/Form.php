@@ -43,12 +43,9 @@ class Form extends AbstractComponent
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        $metadata->addPropertyConstraints(
-            'formType',
-            [
-                new Assert\NotBlank(),
-                new ACBAssert\FormTypeClass(),
-            ]
-        );
+        $metadata->addPropertyConstraints('formType', [
+            new Assert\NotBlank(),
+            new ACBAssert\FormTypeClass(),
+        ]);
     }
 }

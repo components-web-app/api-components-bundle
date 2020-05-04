@@ -34,6 +34,7 @@ class RouteRepositoryTest extends AbstractRepositoryTest
     public function test_get_default_layout(): void
     {
         $route = new Route();
+        $route->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $route->route = '/path';
         $route->name = 'new_route';
         $this->entityManager->persist($route);

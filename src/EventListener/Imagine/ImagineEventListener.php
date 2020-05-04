@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Imagine;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
-use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
 
 /**
  * This will listen to cache events in imagine bundle and persist the metadata to the database

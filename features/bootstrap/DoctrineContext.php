@@ -26,8 +26,10 @@ use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
@@ -41,6 +43,7 @@ final class DoctrineContext implements Context
     private ?MinkContext $minkContext;
     private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
+    private TimestampedHelper $timestampedHelper;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
     private array $classes;
@@ -52,11 +55,12 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, string $cacheDir)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedHelper $timestampedHelper)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
         $this->iriConverter = $iriConverter;
+        $this->timestampedHelper = $timestampedHelper;
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
@@ -89,6 +93,7 @@ final class DoctrineContext implements Context
             ->setRoles($roles)
             ->setUsername('admin@admin.com')
             ->setPassword('admin');
+        $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
         $this->manager->clear();
@@ -140,6 +145,7 @@ final class DoctrineContext implements Context
             case 'test_repeated':
                 $form->formType = TestRepeatedType::class;
         }
+        $this->timestampedHelper->persistTimestampedFields($form, true);
         $this->manager->persist($form);
         $this->manager->flush();
         $this->restContext->components[$type . '_form'] = $this->iriConverter->getIriFromItem($form);
@@ -156,6 +162,7 @@ final class DoctrineContext implements Context
             ->setEmailAddress('test.user@example.com')
             ->setPassword($password)
             ->setRoles([$role]);
+        $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
@@ -179,6 +186,20 @@ final class DoctrineContext implements Context
     {
         $component = new DummyCustomTimestamped();
         $this->restContext->getCachedNow();
+        $this->timestampedHelper->persistTimestampedFields($component, true);
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given there is a DummyTimestampedWithSerializationGroups resource
+     */
+    public function thereIsADummyTimestampedWithSerializationGroupsResource(): void
+    {
+        $component = new DummyTimestampedWithSerializationGroups();
+        $this->restContext->getCachedNow();
+        $this->timestampedHelper->persistTimestampedFields($component, true);
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);

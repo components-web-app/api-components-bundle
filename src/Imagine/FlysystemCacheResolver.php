@@ -29,12 +29,8 @@ class FlysystemCacheResolver implements ResolverInterface
     private string $cacheRoot;
     private string $visibility;
 
-    public function __construct(
-        Filesystem $filesystem,
-        string $rootUrl,
-        $cachePrefix = 'media/cache',
-        $visibility = Visibility::PUBLIC
-    ) {
+    public function __construct(Filesystem $filesystem, string $rootUrl, $cachePrefix = 'media/cache', $visibility = Visibility::PUBLIC)
+    {
         $this->filesystem = $filesystem;
         $this->webRoot = rtrim($rootUrl, '/');
         $this->cachePrefix = ltrim(str_replace('//', '/', $cachePrefix), '/');
@@ -49,20 +45,12 @@ class FlysystemCacheResolver implements ResolverInterface
 
     public function resolve($path, $filter): string
     {
-        return sprintf(
-            '%s/%s',
-            rtrim($this->webRoot, '/'),
-            ltrim($this->getFileUrl($path, $filter), '/')
-        );
+        return sprintf('%s/%s', rtrim($this->webRoot, '/'), ltrim($this->getFileUrl($path, $filter), '/'));
     }
 
     public function store(BinaryInterface $binary, $path, $filter): void
     {
-        $this->filesystem->write(
-            $this->getFilePath($path, $filter),
-            $binary->getContent(),
-            ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()]
-        );
+        $this->filesystem->write($this->getFilePath($path, $filter), $binary->getContent(), ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()]);
     }
 
     public function remove(array $paths, array $filters): void

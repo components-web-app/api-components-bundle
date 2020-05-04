@@ -39,10 +39,12 @@ class LayoutRepositoryTest extends AbstractRepositoryTest
     public function test_get_default_layout(): void
     {
         $layout = new Layout();
+        $layout->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $layout->default = false;
         $this->entityManager->persist($layout);
 
         $defaultLayout = new Layout();
+        $defaultLayout->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $defaultLayout->default = true;
         $this->entityManager->persist($defaultLayout);
 

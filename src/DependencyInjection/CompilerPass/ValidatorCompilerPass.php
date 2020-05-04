@@ -13,10 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>

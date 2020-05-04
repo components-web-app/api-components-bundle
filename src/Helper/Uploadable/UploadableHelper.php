@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Uploadable;
+namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
@@ -44,15 +44,8 @@ class UploadableHelper
     private ?CacheManager $imagineCacheManager;
     private ?FilterService $filterService;
 
-    public function __construct(
-        ManagerRegistry $registry,
-        UploadableAnnotationReader $annotationReader,
-        FilesystemProvider $filesystemProvider,
-        FlysystemDataLoader $flysystemDataLoader,
-        FileInfoCacheHelper $fileInfoCacheHelper,
-        ?CacheManager $imagineCacheManager,
-        ?FilterService $filterService = null
-    ) {
+    public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheHelper $fileInfoCacheHelper, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
+    {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
@@ -166,19 +159,14 @@ class UploadableHelper
         $filePath = $classMetadata->getFieldValue($object, $propertyConfiguration->property);
 
         $response = new StreamedResponse();
-        $response->setCallback(
-            static function () use ($filesystem, $filePath) {
-                $outputStream = fopen('php://output', 'w');
-                $fileStream = $filesystem->readStream($filePath);
-                stream_copy_to_stream($fileStream, $outputStream);
-            }
-        );
+        $response->setCallback(static function () use ($filesystem, $filePath) {
+            $outputStream = fopen('php://output', 'w');
+            $fileStream = $filesystem->readStream($filePath);
+            stream_copy_to_stream($fileStream, $outputStream);
+        });
         $response->headers->set('Content-Type', $filesystem->mimeType($filePath));
 
-        $disposition = HeaderUtils::makeDisposition(
-            $forceDownload ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE,
-            $filePath
-        );
+        $disposition = HeaderUtils::makeDisposition($forceDownload ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE, $filePath);
         $response->headers->set('Content-Disposition', $disposition);
 
         return $response;

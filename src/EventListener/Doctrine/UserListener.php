@@ -33,13 +33,8 @@ class UserListener
     private bool $verifyEmailOnChange;
     private array $changeSet = [];
 
-    public function __construct(
-        UserPasswordEncoderInterface $passwordEncoder,
-        UserMailer $userMailer,
-        bool $initialEmailVerifiedState,
-        bool $verifyEmailOnRegister,
-        bool $verifyEmailOnChange
-    ) {
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder, UserMailer $userMailer, bool $initialEmailVerifiedState, bool $verifyEmailOnRegister, bool $verifyEmailOnChange)
+    {
         $this->passwordEncoder = $passwordEncoder;
         $this->userMailer = $userMailer;
         $this->initialEmailVerifiedState = $initialEmailVerifiedState;
@@ -118,10 +113,7 @@ class UserListener
         if (!$entity->getPlainPassword()) {
             return false;
         }
-        $encoded = $this->passwordEncoder->encodePassword(
-            $entity,
-            $entity->getPlainPassword()
-        );
+        $encoded = $this->passwordEncoder->encodePassword($entity, $entity->getPlainPassword());
         $entity->setPassword($encoded);
         $entity->eraseCredentials();
 

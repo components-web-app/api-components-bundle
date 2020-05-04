@@ -30,14 +30,14 @@ use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
-use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -169,10 +169,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $container->registerForAutoconfiguration(ComponentInterface::class)
             ->addTag('silverback_api_components.entity.component');
 
-        $loader = new PhpFileLoader(
-            $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
-        );
+        $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
     }
 
@@ -191,34 +188,31 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             }
         }
         $websiteName = $config['website_name'];
-        $container->prependExtensionConfig(
-            'api_platform',
-            [
-                'title' => $websiteName,
-                'description' => sprintf('API for %s', $websiteName),
-                'collection' => [
-                    'pagination' => [
-                        'client_items_per_page' => true,
-                        'items_per_page_parameter_name' => 'perPage',
-                        'maximum_items_per_page' => 100,
+        $container->prependExtensionConfig('api_platform', [
+            'title' => $websiteName,
+            'description' => sprintf('API for %s', $websiteName),
+            'collection' => [
+                'pagination' => [
+                    'client_items_per_page' => true,
+                    'items_per_page_parameter_name' => 'perPage',
+                    'maximum_items_per_page' => 100,
+                ],
+            ],
+            'mapping' => [
+                'paths' => $mappingPaths,
+            ],
+            'swagger' => [
+                'api_keys' => [
+                    'API Token' => [
+                        'name' => 'X-AUTH-TOKEN',
+                        'type' => 'header',
+                    ],
+                    'JWT (use prefix `Bearer`)' => [
+                        'name' => 'Authorization',
+                        'type' => 'header',
                     ],
                 ],
-                'mapping' => [
-                    'paths' => $mappingPaths,
-                ],
-                'swagger' => [
-                    'api_keys' => [
-                        'API Token' => [
-                            'name' => 'X-AUTH-TOKEN',
-                            'type' => 'header',
-                        ],
-                        'JWT (use prefix `Bearer`)' => [
-                            'name' => 'Authorization',
-                            'type' => 'header',
-                        ],
-                    ],
-                ],
-            ]
-        );
+            ],
+        ]);
     }
 }

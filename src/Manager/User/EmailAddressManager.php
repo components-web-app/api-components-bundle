@@ -33,11 +33,7 @@ class EmailAddressManager
 
     public function verifyNewEmailAddress(string $username, string $email, string $token): void
     {
-        $user = $this->userRepository->findOneByEmailVerificationToken(
-            $username,
-            $email,
-            $token
-        );
+        $user = $this->userRepository->findOneByEmailVerificationToken($username, $email, $token);
         if (!$user) {
             throw new NotFoundHttpException();
         }

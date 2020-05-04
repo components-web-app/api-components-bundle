@@ -21,8 +21,8 @@ use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
-use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Symfony\Component\HttpFoundation\File\File;
 
 /**

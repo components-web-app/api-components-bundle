@@ -59,8 +59,8 @@ abstract class AnnotationReader implements AnnotationReaderInterface
      */
     protected function getClassAnnotationConfiguration($class, string $annotationClass): ?object
     {
-        if (null === $class || (\is_string($class) && !class_exists($class))) {
-            throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object', __CLASS__));
+        if (null === $class || (!\is_object($class) && !\is_string($class)) || (\is_string($class) && !class_exists($class))) {
+            throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object.', __CLASS__));
         }
 
         $className = \is_object($class) ? \get_class($class) : $class;

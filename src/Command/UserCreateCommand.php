@@ -61,8 +61,7 @@ class UserCreateCommand extends Command
                   <info>php %command.full_name% disabled_user --inactive</info>
                 You can overwrite a user if they already exist:
                   <info>php %command.full_name% existing_username --overwrite</info>
-                EOT
-            );
+                EOT);
     }
 
     /**

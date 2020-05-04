@@ -45,15 +45,8 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     protected ?RawMessage $message;
     private AbstractUser $user;
 
-    public function __construct(
-        ContainerInterface $container,
-        EventDispatcherInterface $eventDispatcher,
-        string $subject,
-        bool $enabled = true,
-        ?string $defaultRedirectPath = null,
-        ?string $redirectPathQueryKey = null,
-        array $emailContext = []
-    ) {
+    public function __construct(ContainerInterface $container, EventDispatcherInterface $eventDispatcher, string $subject, bool $enabled = true, ?string $defaultRedirectPath = null, ?string $redirectPathQueryKey = null, array $emailContext = [])
+    {
         $this->container = $container;
         $this->eventDispatcher = $eventDispatcher;
         $this->subject = $subject;

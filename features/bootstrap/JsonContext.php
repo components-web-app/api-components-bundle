@@ -57,11 +57,7 @@ class JsonContext implements Context
         $actual = new Json(json_encode($this->sortArrays($actual->getContent())));
         $expected = new Json(json_encode($this->sortArrays($expected->getContent())));
 
-        $this->jsonContext->assertSame(
-            $expected->getContent(),
-            $actual->getContent(),
-            "The json is equal to:\n" . $actual->encode()
-        );
+        $this->jsonContext->assertSame($expected->getContent(), $actual->getContent(), "The json is equal to:\n" . $actual->encode());
     }
 
     /**
@@ -111,10 +107,7 @@ class JsonContext implements Context
         $schema = new PyStringNode([file_get_contents(__DIR__ . '/../assets/schema/' . $file)], 1);
         try {
             foreach ($json as $item) {
-                $this->inspector->validate(
-                    $item,
-                    new JsonSchema($schema)
-                );
+                $this->inspector->validate($item, new JsonSchema($schema));
             }
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage() . "\n\nThe json is equal to:\n" . $this->getJson()->encode());

@@ -23,12 +23,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new ChangeEmailVerificationEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            false
-        );
+        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -41,11 +36,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new ChangeEmailVerificationEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject'
-        );
+        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A `new email verification token` must be set to send the verification email');
@@ -62,13 +53,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setEmailAddress('email@address.com')
             ->setNewEmailVerificationToken('token');
 
-        $factory = new ChangeEmailVerificationEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/default-path'
-        );
+        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 

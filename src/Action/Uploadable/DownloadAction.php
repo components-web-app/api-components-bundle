@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Action\Uploadable;
 
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -23,13 +23,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class DownloadAction
 {
-    public function __invoke(
-        object $data,
-        string $property,
-        Request $request,
-        UploadableAnnotationReader $annotationReader,
-        UploadableHelper $uploadableHelper
-    ) {
+    public function __invoke(object $data, string $property, Request $request, UploadableAnnotationReader $annotationReader, UploadableHelper $uploadableHelper)
+    {
         if (!$annotationReader->isConfigured($data)) {
             throw new InvalidArgumentException(sprintf('%s is not an uploadable resource. It should not be configured to use %s.', \get_class($data), __CLASS__));
         }

@@ -53,10 +53,6 @@ class FlysystemDataLoader implements LoaderInterface
 
         $extension = MimeTypes::getDefault()->getExtensions($mimeType)[0];
 
-        return new Binary(
-            $filesystem->read($path),
-            $mimeType,
-            $extension
-        );
+        return new Binary($filesystem->read($path), $mimeType, $extension);
     }
 }

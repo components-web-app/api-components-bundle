@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -60,10 +60,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
         $criteriaReset = false;
         foreach ($identifiers as $identifier => $value) {
-            $predicates = $queryBuilder->expr()->orX(
-                $queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"),
-                $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"),
-            );
+            $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"), $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"), );
 
             // Reset queryBuilder to prevent an invalid DQL
             if (!$criteriaReset) {

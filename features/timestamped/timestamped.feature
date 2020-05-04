@@ -27,8 +27,8 @@ Feature: Timestamped resources
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "timestamped.schema.json"
-    And the JSON node "createdAt" should not contain "1970-01-01T00:00:00+00:00"
-    And the JSON node "modifiedAt" should not contain "1970-01-01T00:00:00+00:00"
+    And the JSON node "createdAt" should be now
+    And the JSON node "modifiedAt" should be now
 
   @loginUser
   Scenario: Use custom timestamped fields
@@ -37,3 +37,11 @@ Feature: Timestamped resources
     Then the response status code should be 200
     And the JSON node "customCreatedAt" should be now
     And the JSON node "customModifiedAt" should be now
+
+  @loginUser
+  Scenario: Use custom timestamped fields
+    Given there is a DummyTimestampedWithSerializationGroups resource
+    When I send a "GET" request to the component "dummy_custom_timestamped"
+    Then the response status code should be 200
+    And the JSON node "createdAt" should be now
+    And the JSON node "modifiedAt" should be now

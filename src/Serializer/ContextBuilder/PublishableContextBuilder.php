@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Symfony\Component\HttpFoundation\Request;
 

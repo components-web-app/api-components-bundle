@@ -23,9 +23,8 @@ class FormViewFactory
 {
     private FormFactory $formFactory;
 
-    public function __construct(
-        FormFactory $formFactory
-    ) {
+    public function __construct(FormFactory $formFactory)
+    {
         $this->formFactory = $formFactory;
     }
 
