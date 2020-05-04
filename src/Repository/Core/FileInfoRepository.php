@@ -57,22 +57,22 @@ class FileInfoRepository extends ServiceEntityRepository
         }
 
         foreach ($paths as $pathIndex => $path) {
-            if ($filterQueries) {
-                $queryBuilder
-                    ->orWhere(
-                        $expr->andX(
-                            $expr->eq('f.path', ':path_' . $pathIndex),
-                            $expr->orX(...$filterQueries)
-                        )
-                    );
-            } else {
+            $queryBuilder->setParameter(':path_' . $pathIndex, $path);
+            if (!\count($filterQueries)) {
                 $queryBuilder
                     ->orWhere(
                         $expr->eq('f.path', ':path_' . $pathIndex)
                     );
+                continue;
             }
 
-            $queryBuilder->setParameter(':path_' . $pathIndex, $path);
+            $queryBuilder
+                ->orWhere(
+                    $expr->andX(
+                        $expr->eq('f.path', ':path_' . $pathIndex),
+                        $expr->orX(...$filterQueries)
+                    )
+                );
         }
 
         return $queryBuilder->getQuery()->getResult();
