@@ -194,26 +194,25 @@ Your `Uploadable` resources will not return your configured file paths. These ar
     "_metadata": {
         "persisted": true,
         "media_objects": {
-            "filename": [
+            "file": [
                 {
                     "@context": {
                         "@vocab": "http://example.com/docs.jsonld#",
                         "hydra": "http://www.w3.org/ns/hydra/core#",
                         "contentUrl": "http://schema.org/contentUrl",
-                        "fileSize": "http://schema.org/contentSize",
+                        "fileSize": "MediaObject/fileSize",
                         "mimeType": "http://schema.org/encodingFormat",
                         "width": "http://schema.org/width",
                         "height": "http://schema.org/height",
-                        "imagineFilter": "MediaObject/imagineFilter"
+                        "imagineFilter": "MediaObject/imagineFilter",
+                        "formattedFileSize": "http://schema.org/contentSize"
                     },
-                    "@id": "/_/media_objects/124274e17a264763a61758c31462a259",
+                    "@id": "/media_objects/6da1e63232d64fcea6b204c119a5d67f",
                     "@type": "http://schema.org/MediaObject",
-                    "contentUrl": "https://www.website.com/path_to_resolve_file",
-                    "fileSize": "10MB",
+                    "contentUrl": "http://example.com/dummy_uploadables/16c14fffc1854ee7860a8cef912922b5/download/file",
+                    "fileSize": 3467,
                     "mimeType": "image/png",
-                    "width": 200,
-                    "height": 100,
-                    "imagineFilter": "filter_name",
+                    "formattedFileSize": "3.4KB",
                     "_metadata": {
                         "persisted": false
                     }

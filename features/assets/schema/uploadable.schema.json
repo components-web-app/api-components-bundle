@@ -57,7 +57,7 @@
                     "$id": "#/properties/media_objects",
                     "type": "object",
                     "required": [
-                        "filename"
+                        "file"
                     ],
                     "patternProperties": {
                         "^.*": {

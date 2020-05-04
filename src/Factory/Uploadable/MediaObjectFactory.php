@@ -100,7 +100,7 @@ class MediaObjectFactory
 
             array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
 
-            $collection->set($fieldConfiguration->property, $propertyMediaObjects);
+            $collection->set($fileProperty, $propertyMediaObjects);
         }
 
         return $collection->count() ? $collection : null;
