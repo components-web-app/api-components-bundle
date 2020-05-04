@@ -16,8 +16,9 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableUploadAction;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * Configures API Platform metadata for file resources.
@@ -46,17 +47,20 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
 
         $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false, false);
         $properties = [];
+        $fieldsAsSnakeCase = [];
+        $camelCaseToSnakeCaseConverter = new CamelCaseToSnakeCaseNameConverter();
         foreach ($fields as $field) {
             $properties[$field] = [
                 'type' => 'string',
                 'format' => 'binary',
             ];
+            $fieldsAsSnakeCase[] = $camelCaseToSnakeCaseConverter->normalize($field);
         }
         $resourceShortName = $resourceMetadata->getShortName();
         $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
         $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
 
-        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
+        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName, $fieldsAsSnakeCase);
     }
 
     private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
@@ -64,30 +68,43 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $path = sprintf('/%s/upload', $pathSegmentName);
 
         $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
-        $collectionOperations['post_upload'] = array_merge(['method' => 'POST'], $this->getOperationConfiguration($properties, $path));
+        $collectionOperations['post_upload'] = array_merge(['method' => 'POST'], $this->getUploadOperationConfiguration($properties, $path));
 
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
+    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName, array $fieldsAsSnakeCase): ResourceMetadata
     {
-        $path = sprintf('/%s/{id}/upload', $pathSegmentName);
+        $uploadPath = sprintf('/%s/{id}/upload', $pathSegmentName);
 
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
-        $putProperties = $this->getOperationConfiguration($properties, $path);
+        $putProperties = $this->getUploadOperationConfiguration($properties, $uploadPath);
         $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $putProperties);
         $itemOperations['patch_upload'] = array_merge(['method' => 'PATCH'], $putProperties);
+
+        $downloadPath = sprintf('/%s/{id}/download/', $pathSegmentName);
+        foreach ($fieldsAsSnakeCase as $fieldName) {
+            $propertyDownloadPath = $downloadPath . $fieldName;
+            $itemOperations['download_' . $fieldName] = array_merge(['method' => 'GET'], $this->getDownloadOperationConfiguration($propertyDownloadPath));
+        }
 
         return $resourceMetadata->withItemOperations($itemOperations);
     }
 
-    private function getOperationConfiguration(array $properties, string $path): array
+    private function getDownloadOperationConfiguration(string $path): array
     {
         return [
-            'controller' => UploadableAction::class,
+            'controller' => UploadableUploadAction::class,
+            'path' => $path,
+        ];
+    }
+
+    private function getUploadOperationConfiguration(array $properties, string $path): array
+    {
+        return [
+            'controller' => UploadableUploadAction::class,
             'path' => $path,
             'deserialize' => false,
-            'read' => false,
             'openapi_context' => [
                 'requestBody' => [
                     'content' => [

@@ -20,7 +20,7 @@ use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\UploadableUploadAction;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
@@ -97,6 +97,11 @@ class UploadableResourceMetadataFactoryTest extends TestCase
             ->method('isConfigured')
             ->willReturn(true);
 
+        $this->uploadableHelper
+            ->expects($this->once())
+            ->method('getConfiguredProperties')
+            ->willReturn(['resourceDocument']);
+
         $this->pathSegmentNameGenerator
             ->expects($this->once())
             ->method('getSegmentName')
@@ -113,7 +118,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
                         'schema' => [
                             'type' => 'object',
                             'properties' => [
-                                '' => [
+                                'resourceDocument' => [
                                     'type' => 'string',
                                     'format' => 'binary',
                                 ],
@@ -125,29 +130,34 @@ class UploadableResourceMetadataFactoryTest extends TestCase
         ];
         $this->assertEquals([
             'method' => 'POST',
-            'controller' => UploadableAction::class,
+            'controller' => UploadableUploadAction::class,
             'path' => '/my_name/upload',
             'deserialize' => false,
-            'read' => false,
             'openapi_context' => $commonOpenApiContext,
         ], $collectionOperations['post_upload']);
 
         $this->assertIsArray($itemOperations = $output->getItemOperations());
+
         $this->assertEquals([
             'method' => 'PUT',
-            'controller' => UploadableAction::class,
+            'controller' => UploadableUploadAction::class,
             'path' => '/my_name/{id}/upload',
             'deserialize' => false,
-            'read' => false,
             'openapi_context' => $commonOpenApiContext,
         ], $itemOperations['put_upload']);
+
         $this->assertEquals([
             'method' => 'PATCH',
-            'controller' => UploadableAction::class,
+            'controller' => UploadableUploadAction::class,
             'path' => '/my_name/{id}/upload',
             'deserialize' => false,
-            'read' => false,
             'openapi_context' => $commonOpenApiContext,
         ], $itemOperations['patch_upload']);
+
+        $this->assertEquals([
+            'method' => 'GET',
+            'controller' => UploadableUploadAction::class,
+            'path' => '/my_name/{id}/download/resource_document',
+        ], $itemOperations['download_resource_document']);
     }
 }
