@@ -117,14 +117,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      */
     protected bool $emailAddressVerified = false;
 
-    public function __construct(
-        string $username = '',
-        string $emailAddress = '',
-        bool $emailAddressVerified = false,
-        array $roles = ['ROLE_USER'],
-        string $password = '',
-        bool $enabled = true
-    ) {
+    public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
+    {
         $this->username = $username;
         $this->emailAddress = $emailAddress;
         $this->emailAddressVerified = $emailAddressVerified;

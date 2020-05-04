@@ -76,11 +76,14 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
@@ -95,10 +98,9 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
-use Silverback\ApiComponentsBundle\Uploadable\UploadableHelper;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -269,11 +271,9 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(FormTypeClassValidator::class)
         ->tag('validator.constraint_validator')
-        ->args(
-            [
-                '$formTypes' => new TaggedIteratorArgument('silverback_api_components.form_type'),
-            ]
-        );
+        ->args([
+            '$formTypes' => new TaggedIteratorArgument('silverback_api_components.form_type'),
+        ]);
 
     $services
         ->set(FormViewFactory::class)
@@ -510,6 +510,13 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(TablePrefixExtension::class)
+        ->args([
+            '', // injected in dependency injection
+        ])
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
         ->set(TimestampedAnnotationReader::class)
         ->parent(AnnotationReader::class);
 
@@ -522,17 +529,11 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false);
 
     $services
-        ->set(TimestampedLoader::class)
+        ->set(TimestampedHelper::class)
         ->args([
-            new Reference('annotations.reader'),
+            new Reference(ManagerRegistry::class),
+            new Reference(TimestampedAnnotationReader::class),
         ]);
-
-    $services
-        ->set(TablePrefixExtension::class)
-        ->args([
-            '', // injected in dependency injection
-        ])
-        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $getTimestampedListenerTagArgs = static function ($event) {
         return [
@@ -544,11 +545,24 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TimestampedListener::class)
         ->args([
             new Reference(TimestampedAnnotationReader::class),
-            new Reference(ManagerRegistry::class),
         ])
-        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'))
-        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('prePersist'))
-        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('preUpdate'));
+        ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'));
+
+    $services
+        ->set(TimestampedLoader::class)
+        ->args([
+            new Reference('annotations.reader'),
+        ]);
+
+    $services
+        ->set(TimestampedNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(TimestampedAnnotationReader::class),
+            new Reference(TimestampedHelper::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(TokenAuthenticator::class)

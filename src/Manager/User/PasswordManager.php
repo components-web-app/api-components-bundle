@@ -35,13 +35,8 @@ class PasswordManager
     private UserRepository $userRepository;
     private int $tokenTtl;
 
-    public function __construct(
-        UserMailer $userMailer,
-        EntityManagerInterface $entityManager,
-        ValidatorInterface $validator,
-        UserRepository $userRepository,
-        int $tokenTtl = 8600
-    ) {
+    public function __construct(UserMailer $userMailer, EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository, int $tokenTtl = 8600)
+    {
         $this->userMailer = $userMailer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
@@ -72,10 +67,7 @@ class PasswordManager
 
     public function passwordReset(string $username, string $token, string $newPassword): void
     {
-        $user = $this->userRepository->findOneByPasswordResetToken(
-            $username,
-            $token
-        );
+        $user = $this->userRepository->findOneByPasswordResetToken($username, $token);
         if (!$user) {
             throw new NotFoundHttpException();
         }

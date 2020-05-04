@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Publishable;
+namespace Silverback\ApiComponentsBundle\Helper\Publishable;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;

@@ -160,12 +160,8 @@ class FormSubmitHandler
         return true;
     }
 
-    private function getResponse(
-        $data,
-        string $_format,
-        bool $valid,
-        array $context = []
-    ): Response {
+    private function getResponse($data, string $_format, bool $valid, array $context = []): Response
+    {
         $response = new Response();
         $response->setStatusCode($valid ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
         $response->setContent($this->serializer->serialize($data, $_format, $context));

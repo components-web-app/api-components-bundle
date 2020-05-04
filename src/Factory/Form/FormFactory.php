@@ -26,10 +26,8 @@ class FormFactory
     private FormFactoryInterface $formFactory;
     private RouterInterface $router;
 
-    public function __construct(
-        FormFactoryInterface $formFactory,
-        RouterInterface $router
-    ) {
+    public function __construct(FormFactoryInterface $formFactory, RouterInterface $router)
+    {
         $this->formFactory = $formFactory;
         $this->router = $router;
     }
@@ -39,12 +37,9 @@ class FormFactory
         $builder = $this->formFactory->createBuilder($component->formType);
         if (!($currentAction = $builder->getAction()) || '' === $currentAction) {
             // Should we not be looking for the POST endpoint for the resource from API Platform instead of assuming this will be the name?
-            $action = $this->router->generate(
-                'api_forms_post_item',
-                [
-                    'id' => $component->getId(),
-                ]
-            );
+            $action = $this->router->generate('api_forms_post_item', [
+                'id' => $component->getId(),
+            ]);
             $builder->setAction($action);
         }
 

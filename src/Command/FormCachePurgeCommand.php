@@ -29,11 +29,8 @@ class FormCachePurgeCommand extends Command
     private FormCachePurger $formCachePurger;
     private EventDispatcherInterface $dispatcher;
 
-    public function __construct(
-        FormCachePurger $formCachePurger,
-        EventDispatcherInterface $dispatcher,
-        ?string $name = null
-    ) {
+    public function __construct(FormCachePurger $formCachePurger, EventDispatcherInterface $dispatcher, ?string $name = null)
+    {
         $this->formCachePurger = $formCachePurger;
         $this->dispatcher = $dispatcher;
         parent::__construct($name);
@@ -54,12 +51,9 @@ class FormCachePurgeCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dispatcher->addListener(
-            CommandLogEvent::class,
-            static function (CommandLogEvent $event) use ($output) {
-                $output->writeln($event->getSubject());
-            }
-        );
+        $this->dispatcher->addListener(CommandLogEvent::class, static function (CommandLogEvent $event) use ($output) {
+            $output->writeln($event->getSubject());
+        });
         $this->formCachePurger->clear();
     }
 }

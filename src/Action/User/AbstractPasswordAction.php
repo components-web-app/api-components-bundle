@@ -26,12 +26,8 @@ abstract class AbstractPasswordAction extends AbstractAction
 {
     protected PasswordManager $passwordManager;
 
-    public function __construct(
-        SerializerInterface $serializer,
-        SerializeFormatResolver $requestFormatResolver,
-        ResponseFactory $responseFactory,
-        PasswordManager $passwordManager
-    ) {
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, PasswordManager $passwordManager)
+    {
         parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->passwordManager = $passwordManager;
     }

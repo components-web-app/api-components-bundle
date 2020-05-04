@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Uploadable;
+namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;

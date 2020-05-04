@@ -23,45 +23,31 @@ class TestType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(
-            [
-                'csrf_protection' => false,
-                'attr' => [
-                    'novalidate' => 'novalidate',
-                ],
-                'post_app_proxy' => '/proxy',
-            ]
-        );
+        $resolver->setDefaults([
+            'csrf_protection' => false,
+            'attr' => [
+                'novalidate' => 'novalidate',
+            ],
+            'post_app_proxy' => '/proxy',
+        ]);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add(
-                'name',
-                TextType::class,
-                [
-                    'constraints' => [
-                        new NotBlank(
-                            [
-                                'message' => 'Please provide your name',
-                            ]
-                        ),
-                    ],
-                ]
-            )
-            ->add(
-                'company',
-                TextType::class,
-                [
-                    'constraints' => [
-                        new NotBlank(
-                            [
-                                'message' => 'Please provide your company',
-                            ]
-                        ),
-                    ],
-                ]
-            );
+            ->add('name', TextType::class, [
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Please provide your name',
+                    ]),
+                ],
+            ])
+            ->add('company', TextType::class, [
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Please provide your company',
+                    ]),
+                ],
+            ]);
     }
 }

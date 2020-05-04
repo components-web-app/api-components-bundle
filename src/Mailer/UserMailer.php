@@ -36,11 +36,8 @@ class UserMailer implements ServiceSubscriberInterface
     private ContainerInterface $container;
     private array $context;
 
-    public function __construct(
-        MailerInterface $mailer,
-        ContainerInterface $container,
-        array $context = []
-    ) {
+    public function __construct(MailerInterface $mailer, ContainerInterface $container, array $context = [])
+    {
         $this->mailer = $mailer;
         $this->container = $container;
         $this->context = $context;

@@ -44,10 +44,6 @@ class ResponseFactory
             $response = $this->serializer->serialize($response, $format, []);
         }
 
-        return new Response(
-            $response,
-            $status ?? Response::HTTP_OK,
-            $headers
-        );
+        return new Response($response, $status ?? Response::HTTP_OK, $headers);
     }
 }

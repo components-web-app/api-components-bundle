@@ -103,11 +103,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
          */
         $resourceCollection = $this->dataProvider->getCollection($resourceClass, Request::METHOD_GET, $dataProviderContext);
 
-        $normalizedCollection = $this->itemNormalizer->normalize(
-            $resourceCollection,
-            $format,
-            $normalizerContext
-        );
+        $normalizedCollection = $this->itemNormalizer->normalize($resourceCollection, $format, $normalizerContext);
         // IS THIS CHECK NEEDED??
         if (\is_array($normalizedCollection)) {
             $collection->setCollection($normalizedCollection);
@@ -170,11 +166,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                 if (!\array_key_exists($method, $collectionOperations)) {
                     continue;
                 }
-                $path = $this->operationPathResolver->resolveOperationPath(
-                        $shortName,
-                        $collectionOperations[$method],
-                        OperationType::COLLECTION
-                    );
+                $path = $this->operationPathResolver->resolveOperationPath($shortName, $collectionOperations[$method], OperationType::COLLECTION);
                 $finalPath = preg_replace('/{_format}$/', $format, $path);
                 $absoluteUrl = $this->urlHelper->getAbsoluteUrl($baseRoute . $finalPath);
                 $collection->addEndpoint($method, $absoluteUrl);

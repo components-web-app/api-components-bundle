@@ -23,12 +23,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new PasswordResetEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            false
-        );
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -41,11 +36,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new PasswordResetEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject'
-        );
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A new password confirmation token must be set to send the `password reset` email');
@@ -62,13 +53,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->setEmailAddress('email@address.com')
             ->setNewPasswordConfirmationToken('token');
 
-        $factory = new PasswordResetEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/default-path'
-        );
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 

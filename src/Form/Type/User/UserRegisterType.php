@@ -78,15 +78,13 @@ class UserRegisterType extends AbstractType
          */
         $user = new $this->userClass();
 
-        $resolver->setDefaults(
-            [
-                'csrf_protection' => false,
-                'attr' => [
-                    'novalidate' => 'novalidate',
-                ],
-                'data_class' => $this->userClass,
-                'empty_data' => $user,
-            ]
-        );
+        $resolver->setDefaults([
+            'csrf_protection' => false,
+            'attr' => [
+                'novalidate' => 'novalidate',
+            ],
+            'data_class' => $this->userClass,
+            'empty_data' => $user,
+        ]);
     }
 }

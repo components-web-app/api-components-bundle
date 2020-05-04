@@ -18,7 +18,7 @@ use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentsBundle\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
@@ -145,8 +145,8 @@ final class PublishableEventListener
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
 
             if (
-                \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true) &&
-                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)
+                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false) &&
+                \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true)
             ) {
                 throw $exception;
             }

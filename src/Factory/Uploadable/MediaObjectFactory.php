@@ -24,9 +24,9 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
-use Silverback\ApiComponentsBundle\Uploadable\FileInfoCacheHelper;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
@@ -48,17 +48,8 @@ class MediaObjectFactory
     private UrlHelper $urlHelper;
     private ?FilterService $filterService;
 
-    public function __construct(
-        ManagerRegistry $managerRegistry,
-        FileInfoCacheHelper $fileInfoCacheHelper,
-        UploadableAnnotationReader $annotationReader,
-        FilesystemProvider $filesystemProvider,
-        FlysystemDataLoader $flysystemDataLoader,
-        RequestStack $requestStack,
-        IriConverterInterface $iriConverter,
-        UrlHelper $urlHelper,
-        ?FilterService $filterService = null
-    ) {
+    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheHelper $fileInfoCacheHelper, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
+    {
         $this->initRegistry($managerRegistry);
         $this->fileInfoCacheHelper = $fileInfoCacheHelper;
         $this->annotationReader = $annotationReader;

@@ -28,14 +28,9 @@ class DoctrineOrmCompilerPass implements CompilerPassInterface
         $namespace = 'Silverback\ApiComponentsBundle\Entity';
 
         $modelDir = realpath($bundleRoot . '/Resources/config/doctrine-orm');
-        $mappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver(
-            [
-                $modelDir => $namespace,
-            ],
-            ['api_components.orm.manager_name.default'],
-            false,
-            ['ApiComponentsBundle' => $namespace]
-        );
+        $mappingPass = DoctrineOrmMappingsPass::createXmlMappingDriver([
+            $modelDir => $namespace,
+        ], ['api_components.orm.manager_name.default'], false, ['ApiComponentsBundle' => $namespace]);
         $mappingPass->process($container);
     }
 }

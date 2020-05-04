@@ -50,9 +50,7 @@ class FormCachePurger implements CacheClearerInterface
             return;
         }
         if (!\count($forms)) {
-            $this->dispatcher->dispatch(
-                new CommandLogEvent('<info>Skipping form component cache clear / timestamp updates - No forms components found</info>')
-            );
+            $this->dispatcher->dispatch(new CommandLogEvent('<info>Skipping form component cache clear / timestamp updates - No forms components found</info>'));
 
             return;
         }

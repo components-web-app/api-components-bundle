@@ -27,14 +27,11 @@ class FormTypeClass extends Constraint
 
     public function __construct($options = null)
     {
-        $conditionsStr = vsprintf(
-            'It should extend %s, implement %s or tagged %s',
-            [
-                AbstractType::class,
-                FormTypeInterface::class,
-                'silverback_api_components.form_type',
-            ]
-        );
+        $conditionsStr = vsprintf('It should extend %s, implement %s or tagged %s', [
+            AbstractType::class,
+            FormTypeInterface::class,
+            'silverback_api_components.form_type',
+        ]);
         $this->message = 'The string "{{ string }}" does not refer to a class configured correctly as a form type. ' . $conditionsStr;
 
         parent::__construct($options);

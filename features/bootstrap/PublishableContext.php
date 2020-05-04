@@ -182,12 +182,9 @@ final class PublishableContext implements Context
      */
     public function iCreateAResource(): void
     {
-        $this->behatchRestContext->iSendARequestTo('POST', '/publishable_components', new PyStringNode(
-            ['{
+        $this->behatchRestContext->iSendARequestTo('POST', '/publishable_components', new PyStringNode(['{
                 "name": "John Doe"
-            }'],
-            1
-        ), );
+            }'], 1), );
     }
 
     /**

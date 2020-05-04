@@ -26,9 +26,8 @@ class FormTypeClassValidator extends ConstraintValidator
 {
     private iterable $formTypes;
 
-    public function __construct(
-        iterable $formTypes
-    ) {
+    public function __construct(iterable $formTypes)
+    {
         $this->formTypes = $formTypes;
     }
 

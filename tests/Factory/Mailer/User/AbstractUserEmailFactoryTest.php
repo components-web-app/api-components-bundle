@@ -134,11 +134,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_create_email_message(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'website name is {{ website_name }}'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'website name is {{ website_name }}');
         $user = new class() extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
@@ -172,12 +168,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_do_not_create_email_message_if_not_enabled(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            false
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $user = new class() extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
@@ -196,11 +187,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_dummy_get_token_url_throws_exception_if_no_paths(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The `defaultRedirectPath` or `redirectPathQueryKey` must be set');
         $userEmailFactory->dummyGetTokenUrl(new class() extends AbstractUser {
@@ -209,14 +196,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_dummy_get_token_url_throws_exception_if_no_default_path_and_no_query_in_current_request(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            null,
-            'queryKey'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, null, 'queryKey');
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
@@ -238,14 +218,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_dummy_get_token_url_can_get_path_from_querystring_over_default_path(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/a-default-path',
-            'queryKey'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/a-default-path', 'queryKey');
 
         $request = new Request();
         $request->query->set('queryKey', '/query-path');
@@ -281,14 +254,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_dummy_get_token_url_can_get_path_from_default_path(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/a-default-path',
-            'queryKey'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/a-default-path', 'queryKey');
 
         $request = new Request();
 
@@ -323,13 +289,7 @@ class AbstractUserEmailFactoryTest extends TestCase
 
     public function test_token_path_variable_populate(): void
     {
-        $userEmailFactory = new DummyUserEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/path/{{username}}/{{ token }}'
-        );
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/path/{{username}}/{{ token }}');
 
         $request = new Request();
 

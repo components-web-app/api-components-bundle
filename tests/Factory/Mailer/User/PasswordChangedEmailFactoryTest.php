@@ -22,12 +22,7 @@ class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new PasswordChangedEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            false
-        );
+        $factory = new PasswordChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -40,13 +35,7 @@ class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new PasswordChangedEmailFactory(
-            $this->containerInterfaceMock,
-            $this->eventDispatcherMock,
-            'subject',
-            true,
-            '/default-path'
-        );
+        $factory = new PasswordChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled();
 
