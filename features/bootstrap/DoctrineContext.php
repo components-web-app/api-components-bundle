@@ -161,6 +161,7 @@ final class DoctrineContext implements Context
             ->setEmailAddress('test.user@example.com')
             ->setPassword($password)
             ->setRoles([$role]);
+        $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);

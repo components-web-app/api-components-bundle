@@ -9,9 +9,7 @@
         "formType",
         "formView",
         "componentLocations",
-        "modifiedAt",
-        "componentGroups",
-        "createdAt"
+        "componentGroups"
     ],
     "properties": {
         "@context": {
@@ -722,7 +720,7 @@
         },
         "createdAt": {
             "$id": "#/properties/createdAt",
-            "type": "string",
+            "type": ["string", "null"],
             "title": "The createdAt Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": "",
