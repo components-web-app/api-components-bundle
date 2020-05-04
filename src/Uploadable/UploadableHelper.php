@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Uploadable;
 
-use _HumbugBox3ad74b9da04b\Nette\InvalidArgumentException;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -25,6 +24,10 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -143,11 +146,11 @@ class UploadableHelper
         }
     }
 
-    public function getFile(object $object, string $property)
+    public function getFileResponse(object $object, string $property, bool $forceDownload = false): Response
     {
         $reflectionProperty = new \ReflectionProperty($object, $property);
         if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
-            throw new InvalidArgumentException(sprintf('field configuration not found for %s', $property));
+            throw new NotFoundHttpException(sprintf('field configuration not found for %s', $property));
         }
 
         $propertyConfiguration = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
@@ -156,7 +159,27 @@ class UploadableHelper
 
         $classMetadata = $this->getClassMetadata($object);
 
-        return $filesystem->readStream($classMetadata->getFieldValue($object, $propertyConfiguration->property));
+        $filePath = $classMetadata->getFieldValue($object, $propertyConfiguration->property);
+
+        $response = new StreamedResponse();
+        $response->setCallback(
+            static function () use ($filesystem, $filePath) {
+                $outputStream = fopen('php://output', 'w');
+                $fileStream = $filesystem->readStream($filePath);
+                stream_copy_to_stream($fileStream, $outputStream);
+            }
+        );
+        $response->headers->set('Content-Type', $filesystem->mimeType($filePath));
+
+        if ($forceDownload) {
+            $disposition = HeaderUtils::makeDisposition(
+                HeaderUtils::DISPOSITION_ATTACHMENT,
+                $filePath
+            );
+            $response->headers->set('Content-Disposition', $disposition);
+        }
+
+        return $response;
     }
 
     private function removeFilepath(object $object, UploadableField $fieldConfiguration): void

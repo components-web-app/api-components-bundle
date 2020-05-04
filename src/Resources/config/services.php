@@ -24,6 +24,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction;
+use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
@@ -173,6 +174,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializeFormatResolver::class),
             new Reference(UrlHelper::class),
         ]);
+
+    $services
+        ->set(DownloadAction::class)
+        ->tag('controller.service_arguments');
 
     $services
         ->set(EmailAddressManager::class)
