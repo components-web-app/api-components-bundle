@@ -34,7 +34,7 @@ class FileInfoCacheHelper
         $this->entityManager->flush();
     }
 
-    public function deleteCaches(array $paths, array $filters): void
+    public function deleteCaches(array $paths, ?array $filters): void
     {
         $results = $this->repository->findByPathsAndFilters($paths, $filters);
         foreach ($results as $result) {

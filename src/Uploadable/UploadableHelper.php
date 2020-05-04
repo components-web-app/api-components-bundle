@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
@@ -34,20 +35,26 @@ class UploadableHelper
 
     private UploadableAnnotationReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
-    private ?FilterService $filterService;
     private FlysystemDataLoader $flysystemDataLoader;
+    private FileInfoCacheHelper $fileInfoCacheHelper;
+    private ?CacheManager $imagineCacheManager;
+    private ?FilterService $filterService;
 
     public function __construct(
         ManagerRegistry $registry,
         UploadableAnnotationReader $annotationReader,
         FilesystemProvider $filesystemProvider,
         FlysystemDataLoader $flysystemDataLoader,
+        FileInfoCacheHelper $fileInfoCacheHelper,
+        ?CacheManager $imagineCacheManager,
         ?FilterService $filterService = null
     ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
         $this->flysystemDataLoader = $flysystemDataLoader;
+        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
+        $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
     }
 
@@ -141,6 +148,10 @@ class UploadableHelper
 
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        $this->fileInfoCacheHelper->deleteCaches([$currentFilepath], [null]);
+        if ($this->imagineCacheManager) {
+            $this->imagineCacheManager->remove([$currentFilepath], null);
+        }
         if ($filesystem->fileExists($currentFilepath)) {
             $filesystem->delete($currentFilepath);
         }

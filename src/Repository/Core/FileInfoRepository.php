@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Repository\Core;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 
@@ -32,6 +34,14 @@ class FileInfoRepository extends ServiceEntityRepository
         parent::__construct($registry, FileInfo::class);
     }
 
+    public function findOneByPathAndFilter(string $path, ?string $filter): ?FileInfo
+    {
+        return $this->findOneBy([
+            'path' => $path,
+            'filter' => $filter,
+        ]);
+    }
+
     /**
      * @return FileInfo[]
      */
@@ -44,21 +54,13 @@ class FileInfoRepository extends ServiceEntityRepository
         $queryBuilder = $this->createQueryBuilder('f');
         $expr = $queryBuilder->expr();
 
-        $filterQueries = [];
-        if ($filters) {
-            foreach ($filters as $filterIndex => $filter) {
-                if (!$filter) {
-                    $filterQueries[] = $expr->isNull('f.filter');
-                    continue;
-                }
-                $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
-                $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
-            }
-        }
+        $filterQueries = $this->getFilterQueries($filters, $expr, $queryBuilder);
+        $filterQueryCount = (bool) \count($filterQueries);
 
         foreach ($paths as $pathIndex => $path) {
             $queryBuilder->setParameter(':path_' . $pathIndex, $path);
-            if (!\count($filterQueries)) {
+
+            if (!$filterQueryCount) {
                 $queryBuilder
                     ->orWhere(
                         $expr->eq('f.path', ':path_' . $pathIndex)
@@ -78,11 +80,20 @@ class FileInfoRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findOneByPathAndFilter(string $path, ?string $filter): ?FileInfo
+    private function getFilterQueries(?array $filters, Expr $expr, QueryBuilder $queryBuilder): array
     {
-        return $this->findOneBy([
-            'path' => $path,
-            'filter' => $filter,
-        ]);
+        $filterQueries = [];
+        if (null !== $filters) {
+            foreach ($filters as $filterIndex => $filter) {
+                if (!$filter) {
+                    $filterQueries[] = $expr->isNull('f.filter');
+                    continue;
+                }
+                $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
+                $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
+            }
+        }
+
+        return $filterQueries;
     }
 }

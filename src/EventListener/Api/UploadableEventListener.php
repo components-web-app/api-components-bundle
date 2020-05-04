@@ -26,8 +26,10 @@ final class UploadableEventListener
     private UploadableAnnotationReader $uploadableAnnotationReader;
     private UploadableHelper $uploadableHelper;
 
-    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader, UploadableHelper $uploadableHelper)
-    {
+    public function __construct(
+        UploadableAnnotationReader $uploadableAnnotationReader,
+        UploadableHelper $uploadableHelper
+    ) {
         $this->uploadableAnnotationReader = $uploadableAnnotationReader;
         $this->uploadableHelper = $uploadableHelper;
     }
