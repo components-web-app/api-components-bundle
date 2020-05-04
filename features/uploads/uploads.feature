@@ -88,6 +88,15 @@ Feature: API Resources which can have files uploaded
     When I request the download endpoint
     Then the response status code should be 200
     And the header "content-type" should be equal to "image/png"
+    And the header "content-disposition" should be equal to "inline; filename=image.png"
+
+  @loginUser
+  Scenario: I get get the endpoint of the default media object
+    Given there is a DummyUploadableWithImagineFilters
+    When I request the download endpoint with the postfix "?download=true"
+    Then the response status code should be 200
+    And the header "content-type" should be equal to "image/png"
+    And the header "content-disposition" should be equal to "attachment; filename=image.png"
 
   # PUT
 

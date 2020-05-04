@@ -148,7 +148,11 @@ class UploadableHelper
 
     public function getFileResponse(object $object, string $property, bool $forceDownload = false): Response
     {
-        $reflectionProperty = new \ReflectionProperty($object, $property);
+        try {
+            $reflectionProperty = new \ReflectionProperty($object, $property);
+        } catch (\ReflectionException $exception) {
+            throw new NotFoundHttpException($exception->getMessage());
+        }
         if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
             throw new NotFoundHttpException(sprintf('field configuration not found for %s', $property));
         }
@@ -171,13 +175,11 @@ class UploadableHelper
         );
         $response->headers->set('Content-Type', $filesystem->mimeType($filePath));
 
-        if ($forceDownload) {
-            $disposition = HeaderUtils::makeDisposition(
-                HeaderUtils::DISPOSITION_ATTACHMENT,
-                $filePath
-            );
-            $response->headers->set('Content-Disposition', $disposition);
-        }
+        $disposition = HeaderUtils::makeDisposition(
+            $forceDownload ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE,
+            $filePath
+        );
+        $response->headers->set('Content-Disposition', $disposition);
 
         return $response;
     }
