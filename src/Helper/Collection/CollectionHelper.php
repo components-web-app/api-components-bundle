@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\ApiPlatform;
+namespace Silverback\ApiComponentsBundle\Helper\Collection;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingExceptionInterface;

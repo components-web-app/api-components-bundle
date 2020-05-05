@@ -20,6 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyResourceWithPagination;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -57,12 +58,24 @@ class CollectionContext implements Context
     }
 
     /**
-     * @Given there is a Collection resource
+     * @Given there are :number DummyResourceWithPagination resources
      */
-    public function thereIsACollectionResource()
+    public function thereAreDummyResourceWithPaginationResources(int $number)
+    {
+        for ($i = 0; $i < $number; ++$i) {
+            $component = new DummyResourceWithPagination();
+            $this->manager->persist($component);
+        }
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given /^there is a Collection resource(?: with the resource IRI "(.*)")?$/
+     */
+    public function thereIsACollectionResource(string $iri = '/component/dummy_components')
     {
         $component = new Collection();
-        $component->setResourceIri('/component/dummy_components');
+        $component->setResourceIri($iri);
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->components['collection'] = $this->iriConverter->getIriFromItem($component);

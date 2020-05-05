@@ -31,7 +31,7 @@ class Collection extends AbstractComponent
      * @Assert\NotNull(message="The resource iri for a collection component is required")
      * @AcbAssert\ResourceIri()
      */
-    private string $resourceIri;
+    private ?string $resourceIri;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -46,14 +46,14 @@ class Collection extends AbstractComponent
     /**
      * @ApiProperty(writable=false)
      */
-    private ?\Traversable $collection = null;
+    private ?array $collection = null;
 
-    public function getResourceIri(): string
+    public function getResourceIri(): ?string
     {
         return $this->resourceIri;
     }
 
-    public function setResourceIri(string $resourceIri): self
+    public function setResourceIri(?string $resourceIri): self
     {
         $this->resourceIri = $resourceIri;
 
@@ -84,12 +84,12 @@ class Collection extends AbstractComponent
         return $this;
     }
 
-    public function getCollection(): ?\Traversable
+    public function getCollection(): ?array
     {
         return $this->collection;
     }
 
-    public function setCollection(?\Traversable $collection): self
+    public function setCollection(?array $collection): self
     {
         $this->collection = $collection;
 

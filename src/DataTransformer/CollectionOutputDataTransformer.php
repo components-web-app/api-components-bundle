@@ -19,10 +19,13 @@ use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\AttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
-use Silverback\ApiComponentsBundle\ApiPlatform\CollectionHelper;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
+use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,13 +36,21 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private CollectionDataProviderInterface $collectionDataProvider;
     private RequestStack $requestStack;
     private SerializerContextBuilderInterface $serializerContextBuilder;
+    private NormalizerInterface $itemNormalizer;
+    private SerializeFormatResolver $serializeFormatResolver;
+    private string $itemsPerPageParameterName;
+    private string $paginationEnabledParameterName;
 
-    public function __construct(CollectionHelper $iriConverter, CollectionDataProviderInterface $collectionDataProvider, RequestStack $requestStack, SerializerContextBuilderInterface $serializerContextBuilder)
+    public function __construct(CollectionHelper $iriConverter, CollectionDataProviderInterface $collectionDataProvider, RequestStack $requestStack, SerializerContextBuilderInterface $serializerContextBuilder, NormalizerInterface $itemNormalizer, SerializeFormatResolver $serializeFormatResolver, string $itemsPerPageParameterName, string $paginationEnabledParameterName)
     {
         $this->iriConverter = $iriConverter;
         $this->collectionDataProvider = $collectionDataProvider;
         $this->requestStack = $requestStack;
         $this->serializerContextBuilder = $serializerContextBuilder;
+        $this->itemNormalizer = $itemNormalizer;
+        $this->serializeFormatResolver = $serializeFormatResolver;
+        $this->itemsPerPageParameterName = $itemsPerPageParameterName;
+        $this->paginationEnabledParameterName = $paginationEnabledParameterName;
     }
 
     public function supportsTransformation($data, string $to, array $context = []): bool
@@ -55,34 +66,70 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $parameters = $this->iriConverter->getRouterParametersFromIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
         $request = $this->requestStack->getMasterRequest();
-        if (!$request) {
-            $filters = null;
-        } else {
-            $queryString = RequestParser::getQueryString($request);
-            $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
-        }
 
-        if ($this->collectionDataProvider instanceof ContextAwareCollectionDataProviderInterface) {
-            $collectionContext = null === $filters ? [] : ['filters' => $filters];
-
-            // Comment copied from ApiPlatform\Core\EventListener\ReadListener
-            // Builtin data providers are able to use the serialization context to automatically add join clauses
-            $collectionContext += $normalizationContext = $this->serializerContextBuilder->createFromRequest(
-                $request,
-                true,
-                $attributes
-            );
-            $request->attributes->set('_api_normalization_context', $normalizationContext);
-
-            $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name'], $collectionContext);
-        } else {
+        if (!$this->collectionDataProvider instanceof ContextAwareCollectionDataProviderInterface) {
             $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name']);
+        } else {
+            $filters = [];
+            if ($perPage = $object->getPerPage()) {
+                $filters[$this->itemsPerPageParameterName] = $perPage;
+            }
+            if ($requestFilters = $this->getFilters($request)) {
+                $filters = array_merge($filters, $requestFilters);
+            }
+            if (isset($filters[$this->itemsPerPageParameterName]) && $filters[$this->itemsPerPageParameterName] <= 0) {
+                $filters[$this->paginationEnabledParameterName] = false;
+            }
+
+            $collectionContext = ['filters' => $filters];
+            $restoreNormalizationContext = null;
+            if ($request) {
+                // Comment copied from ApiPlatform\Core\EventListener\ReadListener
+                // Builtin data providers are able to use the serialization context to automatically add join clauses
+                $normalizationContext = $this->serializerContextBuilder->createFromRequest(
+                    $request,
+                    true,
+                    $attributes
+                );
+                $collectionContext += $normalizationContext;
+            }
+
+            $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], Request::METHOD_GET, $collectionContext);
         }
-        if (!$collectionData instanceof \Traversable) {
-            throw new OutOfBoundsException('$collectionData should be Traversable');
+
+        // Pagination disabled
+        if (\is_array($collectionData)) {
+            $collection = $collectionData;
+        } else {
+            if (!$collectionData instanceof \Traversable) {
+                dump('data', $collectionData);
+                throw new OutOfBoundsException('$collectionData should be Traversable');
+            }
+            $collection = iterator_count($collectionData) ? $collectionData : null;
         }
-        $object->setCollection(iterator_count($collectionData) ? $collectionData : null);
+
+        $format = $request ? $this->serializeFormatResolver->getFormatFromRequest($request) : null;
+        $normalizerContext = [
+            'resource_class' => $attributes['resource_class'],
+            'request_uri' => $object->getResourceIri(),
+            'jsonld_has_context' => false,
+            'api_sub_level' => null,
+            'subresource_operation_name' => Request::METHOD_GET,
+        ];
+        $normalizedCollection = $this->itemNormalizer->normalize($collection, $format, $normalizerContext);
+
+        $object->setCollection($normalizedCollection);
 
         return $object;
+    }
+
+    private function getFilters(?Request $request)
+    {
+        if (!$request) {
+            return null;
+        }
+        $queryString = RequestParser::getQueryString($request);
+
+        return $queryString ? RequestParser::parseRequestParams($queryString) : null;
     }
 }

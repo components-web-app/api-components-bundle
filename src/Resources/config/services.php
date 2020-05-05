@@ -15,10 +15,7 @@ namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -34,7 +31,6 @@ use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentsBundle\ApiPlatform\CollectionHelper;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
@@ -80,6 +76,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
@@ -125,8 +122,8 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Twig\Environment;
@@ -181,6 +178,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.collection_data_provider'),
             new Reference(RequestStack::class),
             new Reference(SerializerContextBuilderInterface::class),
+            new Reference(NormalizerInterface::class),
+            new Reference(SerializeFormatResolver::class),
         ])
         ->tag('api_platform.data_transformer');
 
@@ -190,7 +189,7 @@ return static function (ContainerConfigurator $configurator) {
 //        ->args([
 //            new Reference(RequestStack::class),
 //            new Reference(ResourceMetadataFactoryInterface::class),
-//            new Reference(OperationPathResolverInterface::class),
+//            new Reference('api_platform.operation_path_resolver.router'),
 //            new Reference(ContextAwareCollectionDataProviderInterface::class),
 //            new Reference(IriConverterInterface::class),
 //            new Reference(NormalizerInterface::class),
@@ -311,7 +310,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(JwtCreatedEventListener::class)
         ->args([
-            new Reference(RoleHierarchy::class),
+            new Reference('security.role_hierarchy'),
         ])
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles']);
 
@@ -787,6 +786,4 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('container.service_subscriber');
 
     $services->alias(Environment::class, 'twig');
-    $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
-    $services->alias(RoleHierarchy::class, 'security.role_hierarchy');
 };
