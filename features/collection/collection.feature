@@ -61,11 +61,11 @@ Feature: A Collection component resource
     """
     {
         "resourceIri": "/component/dummy_components",
-        "perPage": 10
+        "perPage": 3
     }
     """
     Then the response status code should be 201
-    And the JSON node "collection.hydra:member" should have "10" elements
+    And the JSON node "collection.hydra:member" should have "3" elements
 
   @loginUser
   Scenario Outline: I can configure component pagination
@@ -90,8 +90,10 @@ Feature: A Collection component resource
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "<total>" elements
     Examples:
-      | total    | postfix                |
-      | 17       |                        |
-      | 40       | ?reference=            |
-      | 20       | ?perPage=20&reference= |
-      | 1        | ?reference=10          |
+      | total    | postfix                      |
+      | 17       |                              |
+      | 17       | ?pagination=false            |
+      | 40       | ?reference=                  |
+      | 80       | ?pagination=false&reference= |
+      | 20       | ?perPage=20&reference=       |
+      | 1        | ?reference=10                |
