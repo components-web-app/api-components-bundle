@@ -74,15 +74,17 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             if ($perPage = $object->getPerPage()) {
                 $filters[$this->itemsPerPageParameterName] = $perPage;
             }
-            if ($requestFilters = $this->getFilters($request)) {
-                $filters = array_merge($filters, $requestFilters);
+            if ($request) {
+                if ($requestFilters = $this->getFilters($object, $request)) {
+                    $filters = array_merge($filters, $requestFilters);
+                }
             }
+
             if (isset($filters[$this->itemsPerPageParameterName]) && $filters[$this->itemsPerPageParameterName] <= 0) {
                 $filters[$this->paginationEnabledParameterName] = false;
             }
 
             $collectionContext = ['filters' => $filters];
-            $restoreNormalizationContext = null;
             if ($request) {
                 // Comment copied from ApiPlatform\Core\EventListener\ReadListener
                 // Builtin data providers are able to use the serialization context to automatically add join clauses
@@ -102,7 +104,6 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             $collection = $collectionData;
         } else {
             if (!$collectionData instanceof \Traversable) {
-                dump('data', $collectionData);
                 throw new OutOfBoundsException('$collectionData should be Traversable');
             }
             $collection = iterator_count($collectionData) ? $collectionData : null;
@@ -123,11 +124,19 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $object;
     }
 
-    private function getFilters(?Request $request)
+    private function getFilters(Collection $object, Request $request)
     {
-        if (!$request) {
-            return null;
+        if ($queryParams = $object->getDefaultQueryParameters()) {
+            $request = clone $request;
+            foreach ($queryParams as $defaultKey => $defaultValue) {
+                if ($request->query->has($defaultKey)) {
+                    continue;
+                }
+                $request->query->set($defaultKey, $defaultValue);
+            }
+            $request->server->set('QUERY_STRING', http_build_query($request->query->all()));
         }
+
         $queryString = RequestParser::getQueryString($request);
 
         return $queryString ? RequestParser::parseRequestParams($queryString) : null;

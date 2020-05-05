@@ -20,6 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyResourceWithFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyResourceWithPagination;
 
 /**
@@ -70,11 +71,40 @@ class CollectionContext implements Context
     }
 
     /**
+     * @Given there are :number DummyResourceWithFilters resources
+     */
+    public function thereAreDummyResourceWithFiltersResources(int $number)
+    {
+        for ($i = 0; $i < $number; ++$i) {
+            $component = new DummyResourceWithFilters();
+            $component->reference = 'reference ' . $i;
+            $this->manager->persist($component);
+        }
+        $this->manager->flush();
+    }
+
+    /**
      * @Given /^there is a Collection resource(?: with the resource IRI "(.*)")?$/
      */
     public function thereIsACollectionResource(string $iri = '/component/dummy_components')
     {
         $component = new Collection();
+        $component->setResourceIri($iri);
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->components['collection'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given /^there is a Collection resource(?: with the resource IRI "(.*)")? and default query string parameters$/
+     */
+    public function thereIsACollectionResourceWithDefaultQueryStringParameters(string $iri = '/component/dummy_components')
+    {
+        $component = new Collection();
+        $component->setDefaultQueryParameters([
+            'perPage' => 40,
+            'reference' => '1',
+        ]);
         $component->setResourceIri($iri);
         $this->manager->persist($component);
         $this->manager->flush();

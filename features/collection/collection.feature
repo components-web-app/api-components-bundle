@@ -81,3 +81,17 @@ Feature: A Collection component resource
       | 40       | ?perPage=90          |
       | 50       | ?pagination=false    |
       | 50       | ?perPage=0           |
+
+  @loginUser
+  Scenario Outline: I can have default querystring parameters and filters
+    Given there are 80 DummyResourceWithFilters resources
+    And there is a Collection resource with the resource IRI "/dummy_resource_with_filters" and default query string parameters
+    When I send a "GET" request to the component "collection" and the postfix "<postfix>"
+    Then the response status code should be 200
+    And the JSON node "collection.hydra:member" should have "<total>" elements
+    Examples:
+      | total    | postfix                |
+      | 17       |                        |
+      | 40       | ?reference=            |
+      | 20       | ?perPage=20&reference= |
+      | 1        | ?reference=10          |
