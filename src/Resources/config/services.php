@@ -104,6 +104,7 @@ use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -163,19 +164,19 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('form.type');
 
-    $services
-        ->set(CollectionOutputDataTransformer::class)
-        ->tag('api_platform.data_transformer')
-        ->args([
-            new Reference(RequestStack::class),
-            new Reference(ResourceMetadataFactoryInterface::class),
-            new Reference(OperationPathResolverInterface::class),
-            new Reference(ContextAwareCollectionDataProviderInterface::class),
-            new Reference(IriConverterInterface::class),
-            new Reference(NormalizerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(UrlHelper::class),
-        ]);
+//    $services
+//        ->set(CollectionOutputDataTransformer::class)
+//        ->tag('api_platform.data_transformer')
+//        ->args([
+//            new Reference(RequestStack::class),
+//            new Reference(ResourceMetadataFactoryInterface::class),
+//            new Reference(OperationPathResolverInterface::class),
+//            new Reference(ContextAwareCollectionDataProviderInterface::class),
+//            new Reference(IriConverterInterface::class),
+//            new Reference(NormalizerInterface::class),
+//            new Reference(SerializeFormatResolver::class),
+//            new Reference(UrlHelper::class),
+//        ]);
 
     $services
         ->set(DownloadAction::class)
@@ -474,6 +475,13 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('annotations.reader'),
         ]);
+
+    $services
+        ->set(ResourceIriValidator::class)
+        ->args([
+            new Reference(RouterInterface::class),
+        ])
+        ->tag('validator.constraint_validator');
 
     $services
         ->set(ResponseFactory::class)

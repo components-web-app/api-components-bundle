@@ -26,6 +26,6 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
     {
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
 
-        $container->getDefinition(CollectionOutputDataTransformer::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
+        // $container->getDefinition(CollectionOutputDataTransformer::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
     }
 }

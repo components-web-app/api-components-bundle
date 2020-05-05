@@ -19,7 +19,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
-use Silverback\ApiComponentsBundle\Validator\Constraints as APIAssert;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
@@ -32,7 +32,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Silverback\Timestamped
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
- * @APIAssert\NewEmailAddress(groups={"new_email_address", "Default"})
+ * @AcbAssert\NewEmailAddress(groups={"new_email_address", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 {

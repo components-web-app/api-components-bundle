@@ -19,7 +19,7 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Dto\FormView;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
-use Silverback\ApiComponentsBundle\Validator\Constraints as ACBAssert;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
@@ -45,7 +45,7 @@ class Form extends AbstractComponent
     {
         $metadata->addPropertyConstraints('formType', [
             new Assert\NotBlank(),
-            new ACBAssert\FormTypeClass(),
+            new AcbAssert\FormTypeClass(),
         ]);
     }
 }

@@ -16,27 +16,24 @@ namespace Silverback\ApiComponentsBundle\Entity\Component;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
- * @Silverback\Timestamped
  * @ORM\Entity
  */
 class Collection extends AbstractComponent
 {
-    use TimestampedTrait;
-
     /**
      * @ORM\Column(nullable=false)
-     * @Assert\NotNull(message="The resource class for a collection component is required")
+     * @Assert\NotNull(message="The resource iri for a collection component is required")
+     * @AcbAssert\ResourceIri()
      */
-    private string $resourceClass;
+    private string $resourceIri;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -58,14 +55,14 @@ class Collection extends AbstractComponent
      */
     private ?ArrayCollection $endpoints = null;
 
-    public function getResourceClass(): string
+    public function getResourceIri(): string
     {
-        return $this->resourceClass;
+        return $this->resourceIri;
     }
 
-    public function setResourceClass(string $resourceClass): self
+    public function setResourceIri(string $resourceIri): self
     {
-        $this->resourceClass = $resourceClass;
+        $this->resourceIri = $resourceIri;
 
         return $this;
     }

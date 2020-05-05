@@ -8,8 +8,34 @@ Feature: A Collection component resource
     And I add "Content-Type" header equal to "application/ld+json"
 
   @loginUser
-  @wip
   Scenario: I can create a collection component
+    When I send a "POST" request to "/component/collections" with body:
+    """
+    {
+        "resourceIri": "/component/dummy_components"
+    }
+    """
+    Then the response status code should be 201
+    And the JSON should be equal to:
+    """
+    {}
+    """
+
+  @loginUser
+  Scenario Outline: I cannot create a collection component with an invalid Resource IRI
+    When I send a "POST" request to "/component/collections" with body:
+    """
+    {
+        "resourceIri": "<resourceIri>"
+    }
+    """
+    Then the response status code should be 400
+    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+    Examples:
+      | resourceIri |
+      | null        |
+      | /invalid    |
+      | /           |
 
   @loginUser
   @wip
