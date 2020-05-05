@@ -10,6 +10,7 @@ default:
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext'
 
   extensions:
     'FriendsOfBehat\SymfonyExtension':
@@ -40,6 +41,7 @@ default-coverage:
         - 'Behatch\Context\JsonContext'
         - 'Behatch\Context\RestContext'
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext'
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext'
 
 default-legacy:
   suites:

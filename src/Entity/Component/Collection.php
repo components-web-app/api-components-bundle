@@ -36,17 +36,17 @@ class Collection extends AbstractComponent
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private ?int $perPage;
+    private ?int $perPage = null;
 
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private ?array $defaultQueryParameters;
+    private ?array $defaultQueryParameters = null;
 
     /**
      * @ApiProperty(writable=false)
      */
-    private ?iterable $collection = null;
+    private ?\Traversable $collection = null;
 
     public function getResourceIri(): string
     {
@@ -84,12 +84,12 @@ class Collection extends AbstractComponent
         return $this;
     }
 
-    public function getCollection()
+    public function getCollection(): ?\Traversable
     {
         return $this->collection;
     }
 
-    public function setCollection(iterable $collection): self
+    public function setCollection(?\Traversable $collection): self
     {
         $this->collection = $collection;
 

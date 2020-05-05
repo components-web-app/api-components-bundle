@@ -12,7 +12,12 @@ Feature: A Collection component resource
     When I send a "POST" request to "/component/collections" with body:
     """
     {
-        "resourceIri": "/component/dummy_components"
+        "resourceIri": "/component/dummy_components",
+        "perPage": 20,
+        "defaultQueryParameters": {
+          "search": "something",
+          "orderBy": "anotherThing"
+        }
     }
     """
     Then the response status code should be 201
@@ -35,16 +40,11 @@ Feature: A Collection component resource
       | /           |
 
   @loginUser
-  @wip
-  Scenario: I can read a collection component
-
-  @loginUser
-  @wip
-  Scenario: I can update a collection component
-
-  @loginUser
-  @wip
   Scenario: I can delete a collection component
+    Given there is a Collection resource
+    When I send a "DELETE" request to the component "collection"
+    Then the response status code should be 204
+
 
   @loginUser
   @wip

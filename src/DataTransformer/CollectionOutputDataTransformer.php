@@ -21,6 +21,7 @@ use ApiPlatform\Core\Util\AttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
 use Silverback\ApiComponentsBundle\ApiPlatform\CollectionHelper;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
+use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -77,7 +78,10 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         } else {
             $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name']);
         }
-        $object->setCollection($collectionData);
+        if (!$collectionData instanceof \Traversable) {
+            throw new OutOfBoundsException('$collectionData should be Traversable');
+        }
+        $object->setCollection(iterator_count($collectionData) ? $collectionData : null);
 
         return $object;
     }

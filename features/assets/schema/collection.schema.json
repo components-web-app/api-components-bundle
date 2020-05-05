@@ -45,7 +45,7 @@
                     "nullable": true
                 },
                 "defaultQueryParameters": {
-                    "type": "array",
+                    "type": "object",
                     "items": {
                         "type": "string"
                     },
@@ -53,7 +53,7 @@
                 },
                 "collection": {
                     "readOnly": true,
-                    "type": "array"
+                    "type": "object"
                 }
             },
             "required": [
