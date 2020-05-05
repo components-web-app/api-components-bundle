@@ -16,10 +16,7 @@ Feature: A Collection component resource
     }
     """
     Then the response status code should be 201
-    And the JSON should be equal to:
-    """
-    {}
-    """
+    And the JSON should be valid according to the schema file "collection.schema.json"
 
   @loginUser
   Scenario Outline: I cannot create a collection component with an invalid Resource IRI
