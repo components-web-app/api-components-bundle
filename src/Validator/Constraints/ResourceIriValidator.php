@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
-use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingExceptionInterface;
-use Symfony\Component\Routing\RouterInterface;
+use Silverback\ApiComponentsBundle\ApiPlatform\CollectionHelper;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
@@ -23,11 +23,11 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class ResourceIriValidator extends ConstraintValidator
 {
-    private RouterInterface $router;
+    private CollectionHelper $converter;
 
-    public function __construct(RouterInterface $router)
+    public function __construct(CollectionHelper $converter)
     {
-        $this->router = $router;
+        $this->converter = $converter;
     }
 
     /**
@@ -36,13 +36,8 @@ class ResourceIriValidator extends ConstraintValidator
     public function validate($iri, Constraint $constraint): void
     {
         try {
-            $parameters = $this->router->match($iri);
-            if (!isset($parameters['_api_resource_class'])) {
-                $this->context->buildViolation($constraint->message)
-                    ->setParameter('{{ value }}', $iri)
-                    ->addViolation();
-            }
-        } catch (RoutingExceptionInterface $e) {
+            $this->converter->getRouterParametersFromIri($iri);
+        } catch (InvalidArgumentException $e) {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $iri)
                 ->addViolation();

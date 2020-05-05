@@ -19,6 +19,7 @@ use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
+use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
@@ -33,10 +34,13 @@ use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\ApiPlatform\CollectionHelper;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
+use Silverback\ApiComponentsBundle\DataProvider\Item\LayoutDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\PageTemplateOutputDataTransformer;
@@ -123,7 +127,6 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Twig\Environment;
@@ -163,6 +166,23 @@ return static function (ContainerConfigurator $configurator) {
             '', // injected in dependency injection
         ])
         ->tag('form.type');
+
+    $services
+        ->set(CollectionHelper::class)
+        ->args([
+            new Reference(RouterInterface::class),
+        ]);
+
+    $services
+        ->set(CollectionOutputDataTransformer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(CollectionHelper::class),
+            new Reference('api_platform.collection_data_provider'),
+            new Reference(RequestStack::class),
+            new Reference(SerializerContextBuilderInterface::class),
+        ])
+        ->tag('api_platform.data_transformer');
 
 //    $services
 //        ->set(CollectionOutputDataTransformer::class)
@@ -294,6 +314,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(RoleHierarchy::class),
         ])
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles']);
+
+    $services
+        ->set(LayoutDataProvider::class)
+        ->args([
+            new Reference(LayoutRepository::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.collection_data_provider', ['priority' => 1]);
 
     $services
         ->set(LayoutRepository::class)
@@ -479,7 +507,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ResourceIriValidator::class)
         ->args([
-            new Reference(RouterInterface::class),
+            new Reference(CollectionHelper::class),
         ])
         ->tag('validator.constraint_validator');
 
@@ -495,6 +523,14 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(RequestStack::class),
         ]);
+
+    $services
+        ->set(RouteDataProvider::class)
+        ->args([
+            new Reference(RouteRepository::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.collection_data_provider', ['priority' => 1]);
 
     $services
         ->set(RouteRepository::class)
@@ -750,7 +786,6 @@ return static function (ContainerConfigurator $configurator) {
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
 
-    $services->alias(ContextAwareCollectionDataProviderInterface::class, 'api_platform.collection_data_provider');
     $services->alias(Environment::class, 'twig');
     $services->alias(OperationPathResolverInterface::class, 'api_platform.operation_path_resolver.router');
     $services->alias(RoleHierarchy::class, 'security.role_hierarchy');

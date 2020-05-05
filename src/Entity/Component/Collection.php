@@ -14,12 +14,10 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Entity\Component;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Validator\Constraints as Assert;
-use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -48,12 +46,7 @@ class Collection extends AbstractComponent
     /**
      * @ApiProperty(writable=false)
      */
-    private array $collection = [];
-
-    /**
-     * @ApiProperty(writable=false)
-     */
-    private ?ArrayCollection $endpoints = null;
+    private ?iterable $collection = null;
 
     public function getResourceIri(): string
     {
@@ -96,34 +89,9 @@ class Collection extends AbstractComponent
         return $this->collection;
     }
 
-    public function setCollection($collection): self
+    public function setCollection(iterable $collection): self
     {
-        if (!$collection instanceof Traversable && !\is_array($collection)) {
-            return $this;
-        }
         $this->collection = $collection;
-
-        return $this;
-    }
-
-    public function getEndpoints(): ?ArrayCollection
-    {
-        return $this->endpoints;
-    }
-
-    public function setEndpoints(ArrayCollection $endpoints): self
-    {
-        $this->endpoints = $endpoints;
-
-        return $this;
-    }
-
-    public function addEndpoint(string $method, string $route): self
-    {
-        if (!$this->endpoints) {
-            $this->endpoints = new ArrayCollection();
-        }
-        $this->endpoints->set($method, $route);
 
         return $this;
     }
