@@ -21,7 +21,7 @@ use DateTimeImmutable;
  */
 trait TimestampedTrait
 {
-    private ?DateTimeImmutable $createdAt = null;
+    public ?DateTimeImmutable $createdAt = null;
 
     public ?DateTime $modifiedAt = null;
 

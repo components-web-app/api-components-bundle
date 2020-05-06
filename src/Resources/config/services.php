@@ -52,6 +52,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
@@ -105,6 +106,7 @@ use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
+use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -203,6 +205,15 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
+
+    $services
+        ->set(EntityPersistFormListener::class)
+        ->abstract()
+        ->call('init', [
+            new Reference(ManagerRegistry::class),
+            new Reference(TimestampedAnnotationReader::class),
+            new Reference(TimestampedHelper::class),
+        ]);
 
     $services
         ->set(FileInfoCacheHelper::class)
@@ -345,7 +356,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(NewEmailAddressListener::class)
-        ->args([new Reference(EntityManagerInterface::class)])
+        ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
@@ -583,6 +594,12 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
+        ->set(TimestampedValidatorMappingLoader::class)
+        ->args([
+            new Reference(TimestampedAnnotationReader::class),
+        ]);
+
+    $services
         ->set(TimestampedNormalizer::class)
         ->autoconfigure(false)
         ->args([
@@ -751,10 +768,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserRegisterListener::class)
-        ->args([
-            new Reference(EntityManagerInterface::class),
-            new Reference(TimestampedHelper::class),
-        ])
+        ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services

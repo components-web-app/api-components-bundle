@@ -14,12 +14,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class NewEmailAddressListener
+class NewEmailAddressListener extends EntityPersistFormListener
 {
     public function __construct()
     {

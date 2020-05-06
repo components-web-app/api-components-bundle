@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Dto;
+namespace Silverback\ApiComponentsBundle\Model\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
@@ -55,7 +55,6 @@ class FormView
         'submitted',
         'unique_block_prefix',
         'valid',
-        'value',
     ];
 
     /**
@@ -82,18 +81,19 @@ class FormView
 
     public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)
     {
+        $isRoot = !$formView;
         if (!$formView) {
             $formView = $form->createView();
         }
-        $this->init($formView, $form, $children);
+        $this->init($formView, $form, $children, $isRoot);
     }
 
-    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true): void
+    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true, bool $isRoot = false): void
     {
         $this->form = $form;
         $this->rendered = $formView->isRendered();
         $this->methodRendered = $formView->isMethodRendered();
-        $this->processViewVars($formView);
+        $this->processViewVars($formView, $isRoot);
         if ($children) {
             $this->children = new ArrayCollection();
             foreach ($formView->getIterator() as $view) {
@@ -105,9 +105,12 @@ class FormView
         }
     }
 
-    private function processViewVars(SymfonyFormView $formView): void
+    private function processViewVars(SymfonyFormView $formView, $isRoot): void
     {
         $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
+        if (!$isRoot) {
+            $outputVars[] = 'value';
+        }
         foreach ($outputVars as $var) {
             if (isset($formView->vars[$var])) {
                 $this->vars[$var] = $formView->vars[$var];

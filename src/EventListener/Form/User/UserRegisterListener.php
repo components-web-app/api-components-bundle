@@ -13,20 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 
-use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UserRegisterListener extends EntityPersistFormListener
 {
-    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $timestampedAnnotationReader, TimestampedHelper $timestampedHelper)
+    public function __construct()
     {
-        parent::__construct($registry, $timestampedAnnotationReader, $timestampedHelper, UserRegisterType::class, AbstractUser::class);
+        parent::__construct(UserRegisterType::class, AbstractUser::class);
     }
 }

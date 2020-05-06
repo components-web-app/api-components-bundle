@@ -18,7 +18,9 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListenerInterface;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
@@ -87,6 +89,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $imagineEnabled = $container->getParameter('api_component.imagine_enabled');
         $definition = $container->getDefinition(UploadableAnnotationReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
+
+//        $container
+//            ->registerForAutoconfiguration(EntityPersistFormListenerInterface::class)
+//            ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
         if ($imagineEnabled) {
             $definition = $container->getDefinition(UploadableHelper::class);

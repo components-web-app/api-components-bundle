@@ -23,7 +23,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class EntityPersistFormListener
+abstract class EntityPersistFormListener implements EntityPersistFormListenerInterface
 {
     use ClassMetadataTrait;
 
@@ -32,18 +32,20 @@ abstract class EntityPersistFormListener
     private string $formType;
     private string $dataClass;
 
-    public function __construct(
+    public function __construct(string $formType, string $dataClass)
+    {
+        $this->formType = $formType;
+        $this->dataClass = $dataClass;
+    }
+
+    public function init(
         ManagerRegistry $registry,
         TimestampedAnnotationReader $timestampedAnnotationReader,
-        TimestampedHelper $timestampedHelper,
-        string $formType,
-        string $dataClass
-    ) {
+        TimestampedHelper $timestampedHelper
+    ): void {
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
         $this->timestampedHelper = $timestampedHelper;
-        $this->formType = $formType;
-        $this->dataClass = $dataClass;
     }
 
     public function __invoke(FormSuccessEvent $event)

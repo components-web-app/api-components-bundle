@@ -3,6 +3,13 @@ layout: default
 nav_order: 4
 ---
 # Form Component
+{: .no_toc }
+
+## Table of contents
+{: .no_toc .text-delta }
+
+* TOC
+{:toc}
 
 ## Overview
 
@@ -294,3 +301,52 @@ On a successful submission, an event is fired `Silverback\ApiComponentsBundle\Ev
 You have 2 useful methods to use the form data: `FormSuccessEvent::getForm()` which returns the form resource and `FormSuccessEvent::getFormData()` which is a shortcut to `FormSuccessEvent::getForm()->formView->getForm()->getData()` and will return the submitted form data.
 
 If you set `FormSuccessEvent->result`, then whatever you set will be serialized and returned to your API user.
+
+#### Reusable EntityPersistFormListener
+
+You can re-use a listener if you simply want to persist the data in your submitted form to the database.
+
+Create your class, for example:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\EventListener\Form\User;
+
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
+use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+
+class NewEmailAddressListener extends EntityPersistFormListener
+{
+    public function __construct()
+    {
+        parent::__construct($supportedFormType = NewEmailAddressType::class, $supportedDataClass = AbstractUser::class);
+    }
+}
+
+```
+
+Register the service like this:
+
+```php
+use App\EventListener\Form\User\NewEmailAddressListener;
+use  Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
+use  Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+
+$services
+    ->set(NewEmailAddressListener::class)
+    ->parent(EntityPersistFormListener::class)
+    ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+```
+
+or
+
+```yaml
+App\EventListener\Form\User\NewEmailAddressListener:
+    parent: Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener
+    tags:
+        - { name: 'kernel.event_listener', event: 'Silverback\ApiComponentsBundle\Event\FormSuccessEvent' }
+```

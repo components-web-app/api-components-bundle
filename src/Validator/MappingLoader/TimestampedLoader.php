@@ -40,12 +40,14 @@ final class TimestampedLoader implements LoaderInterface
         }
 
         $configuration = $this->annotationReader->getConfiguration($metadata->getClassName());
+        $shortName = (new \ReflectionClass($metadata->getClassName()))->getShortName();
 
         $metadata->addPropertyConstraint(
             $configuration->createdAtField,
             new Assert\NotNull(
                 [
-                    'groups' => ['Default', sprintf('%s:timestamped', $metadata->getClassName())],
+                    'groups' => [sprintf('%s:timestamped', $shortName)],
+                    'message' => sprintf('%s should not be null', $configuration->createdAtField),
                 ]
             )
         );
@@ -54,7 +56,8 @@ final class TimestampedLoader implements LoaderInterface
             $configuration->modifiedAtField,
             new Assert\NotNull(
                 [
-                    'groups' => ['Default', sprintf('%s:timestamped', $metadata->getClassName())],
+                    'groups' => [sprintf('%s:timestamped', $shortName)],
+                    'message' => sprintf('%s should not be null', $configuration->modifiedAtField),
                 ]
             )
         );

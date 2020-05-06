@@ -48,13 +48,6 @@ class UserRegisterType extends AbstractType
                 ],
                 'label' => 'Username',
             ])
-//            ->add('emailAddress', EmailType::class, [
-//                'attr' => [
-//                    'placeholder' => '',
-//                    'autocomplete' => 'email',
-//                ],
-//                'label' => 'Email Address',
-//            ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'invalid_message' => 'The password fields must match.',
