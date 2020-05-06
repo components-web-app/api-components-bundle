@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Event;
 
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
@@ -22,26 +21,22 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class FormSuccessEvent extends Event
 {
-    private Form $formResource;
-    private FormInterface $form;
-    /** @var mixed */
-    public $response;
-    public array $serializerContext = [];
+    private Form $form;
 
-    public function __construct(Form $formResource, FormInterface $form, $response = null)
+    public $result = null;
+
+    public function __construct(Form $form)
     {
-        $this->formResource = $formResource;
         $this->form = $form;
-        $this->response = $response;
     }
 
-    public function getFormResource(): Form
-    {
-        return $this->formResource;
-    }
-
-    public function getForm(): FormInterface
+    public function getForm(): Form
     {
         return $this->form;
+    }
+
+    public function getFormData()
+    {
+        return $this->form->formView->getForm()->getData();
     }
 }

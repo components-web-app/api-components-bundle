@@ -26,6 +26,8 @@ use Ramsey\Uuid\UuidInterface;
 trait IdTrait
 {
     /**
+     * Must allow return `null` for lowest dependencies.
+     *
      * @ORM\Id
      * @ORM\Column(type="uuid_binary_ordered_time", unique=true)
      * @ORM\GeneratedValue(strategy="CUSTOM")

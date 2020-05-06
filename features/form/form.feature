@@ -8,7 +8,7 @@ Feature: Form component that defines a form type created in the application
     And I add "Content-Type" header equal to "application/ld+json"
 
   @loginAdmin
-  Scenario: Create a form component resource
+  Scenario: Create a form component and receive serialized form views
     When I send a "POST" request to "/component/forms" with body:
     """
     {
@@ -20,81 +20,58 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  Scenario: I send a PATCH request to the form with a valid field
+  Scenario Outline: I can validate a single form field
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
+     """
+     {
+       "test": {
+         "name": "<name>"
+       }
+     }
+     """
+    Then the response status code should be <status>
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+    Examples:
+      | name       | status |
+      | John Smith | 200    |
+      |            | 400    |
+
+
+  # PATCH
+
+  Scenario Outline: I send a PATCH request to the form with multiple fields
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
+     """
+     {
+       "test": {
+         "name": "<name>",
+         "company": "<company>"
+       }
+     }
+     """
+    Then the response status code should be <status>
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+    Examples:
+      | name       | company   | status |
+      | John Smith | company   | 200    |
+      |            | company   | 400    |
+      |            |           | 400    |
+
+  Scenario: I send a PATCH request to the form with no fields
     Given there is a "test" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
     """
     {
-      "test": {
-        "name": "John Smith"
-      }
-    }
-    """
-    Then the response status code should be 200
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
-
-  Scenario: I send a PATCH request to the form with an invalid field
-    Given there is a "test" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {
-        "name": ""
-      }
-    }
-    """
-    Then the response status code should be 400
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
-
-  Scenario: I send a PATCH request to the form with multiple valid fields
-    Given there is a "test" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {
-        "name": "John Smith",
-        "company": "IT"
-      }
-    }
-    """
-    Then the response status code should be 200
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
-
-  Scenario: I send a PATCH request to the form with an invalid field within multiple fields
-    Given there is a "test" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {
-        "name": "",
-        "company": "IT"
-      }
-    }
-    """
-    Then the response status code should be 400
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
-
-  Scenario: I send a POST request to the form with all valid fields
-    Given there is a "test" form
-    When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {
-        "name": "John Smith",
-        "company": "IT"
-      }
+      "test": {}
     }
     """
     Then the response status code should be 200
@@ -102,21 +79,28 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  Scenario: I send a POST request to the form with an invalid field
+  # PUT
+
+  Scenario Outline: I send a POST request to the form with fields
     Given there is a "test" form
     When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {
-        "name": "",
-        "company": "IT"
-      }
-    }
-    """
-    Then the response status code should be 400
+     """
+     {
+       "test": {
+         "name": "<name>",
+         "company": "<company>"
+       }
+     }
+     """
+    Then the response status code should be <status>
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
+    Examples:
+      | name       | company   | status |
+      | John Smith | company   | 201    |
+      |            | company   | 400    |
+      |            |           | 400    |
 
   Scenario: I send a POST request to the form with an invalid root key
     Given there is a "test" form
@@ -136,19 +120,7 @@ Feature: Form component that defines a form type created in the application
     }
     """
 
-  Scenario: I send a PATCH request to the form with no fields
-    Given there is a "test" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
-    """
-    {
-      "test": {}
-    }
-    """
-    Then the response status code should be 200
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be valid according to the schema file "form.schema.json"
+  # PATCH NESTED
 
   Scenario: I can send a valid field for validation of one of the children in a CollectionType
     Given there is a "nested" form
@@ -191,6 +163,8 @@ Feature: Form component that defines a form type created in the application
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  # PATCH COLLLECTION TYPE SUPPORT
 
   Scenario: I can send an invalid field for validation of one of the children in a CollectionType
     Given there is a "nested" form
@@ -268,6 +242,48 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
+  # PATCH REPEATED FIELD TYPE
+
+  Scenario: Validate repeated field - valid
+    Given there is a "test_repeated" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    """
+    {
+      "test_repeated": {
+        "repeat": {
+          "first": "something",
+          "second": "something"
+        }
+      }
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  Scenario: Validate repeated field - invalid
+    Given there is a "test_repeated" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    """
+    {
+      "test_repeated": {
+        "repeat": {
+          "first": "something",
+          "second": "no_same"
+        }
+      }
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
+
+  # POST minimum collection length/required validation
+
   Scenario: Each text_children should have a minimum length of 1 - post invalid form
     Given there is a "nested" form
     When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
@@ -325,45 +341,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 200
+    Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
-
-  Scenario: Validate repeated field - valid
-    Given there is a "test_repeated" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
-    """
-    {
-      "test_repeated": {
-        "repeat": {
-          "first": "something",
-          "second": "something"
-        }
-      }
-    }
-    """
-    Then the response status code should be 200
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
-
-  Scenario: Validate repeated field - invalid
-    Given there is a "test_repeated" form
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
-    """
-    {
-      "test_repeated": {
-        "repeat": {
-          "first": "something",
-          "second": "no_same"
-        }
-      }
-    }
-    """
-    Then the response status code should be 400
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be an array with each entry valid according to the schema file "form.schema.json"

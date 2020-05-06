@@ -21,7 +21,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
@@ -46,6 +45,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -57,7 +57,6 @@ use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentsBundle\Factory\Form\FormFactory;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
@@ -70,13 +69,13 @@ use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
-use Silverback\ApiComponentsBundle\Form\Handler\FormSubmitHandler;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
+use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
@@ -183,20 +182,6 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('api_platform.data_transformer');
 
-//    $services
-//        ->set(CollectionOutputDataTransformer::class)
-//        ->tag('api_platform.data_transformer')
-//        ->args([
-//            new Reference(RequestStack::class),
-//            new Reference(ResourceMetadataFactoryInterface::class),
-//            new Reference('api_platform.operation_path_resolver.router'),
-//            new Reference(ContextAwareCollectionDataProviderInterface::class),
-//            new Reference(IriConverterInterface::class),
-//            new Reference(NormalizerInterface::class),
-//            new Reference(SerializeFormatResolver::class),
-//            new Reference(UrlHelper::class),
-//        ]);
-
     $services
         ->set(DownloadAction::class)
         ->tag('controller.service_arguments');
@@ -259,34 +244,29 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(FormFactory::class)
+        ->set(FormSubmitEventListener::class)
+        ->args([
+            new Reference(FormSubmitHelper::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(SerializerInterface::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+
+    $services
+        ->set(FormSubmitHelper::class)
         ->args([
             new Reference(FormFactoryInterface::class),
-            new Reference(RouterInterface::class),
+            new Reference(EventDispatcherInterface::class),
         ]);
 
     $services
         ->set(FormOutputDataTransformer::class)
-        ->tag('api_platform.data_transformer')
-        ->args([new Reference(FormViewFactory::class)]);
-
-    $services
-        ->set(FormPostPatchAction::class)
+        ->autoconfigure(false)
         ->args([
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(ResponseFactory::class),
-            new Reference(FormSubmitHandler::class),
+            new Reference(FormViewFactory::class),
         ])
-        ->tag('controller.service_arguments');
-
-    $services
-        ->set(FormSubmitHandler::class)
-        ->args([
-            new Reference(FormFactory::class),
-            new Reference(EventDispatcherInterface::class),
-            new Reference(SerializerInterface::class),
-        ]);
+        ->tag('api_platform.data_transformer');
 
     $services
         ->set(FormTypeClassValidator::class)
@@ -297,7 +277,11 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(FormViewFactory::class)
-        ->args([new Reference(FormFactory::class)]);
+        ->args([
+            new Reference(FormFactoryInterface::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(UrlHelper::class),
+        ]);
 
     $services
         ->set(ImagineEventListener::class)

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Command;
 
 use Silverback\ApiComponentsBundle\Event\CommandLogEvent;
-use Silverback\ApiComponentsBundle\Form\Cache\FormCachePurger;
+use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;

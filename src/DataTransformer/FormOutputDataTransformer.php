@@ -41,6 +41,6 @@ class FormOutputDataTransformer implements DataTransformerInterface
 
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
-        return $data instanceof Form && Form::class === $to;
+        return $data instanceof Form && Form::class === $to && !$data->formView;
     }
 }

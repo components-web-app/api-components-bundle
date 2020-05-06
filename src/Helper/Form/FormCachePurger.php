@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Form\Cache;
+namespace Silverback\ApiComponentsBundle\Helper\Form;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

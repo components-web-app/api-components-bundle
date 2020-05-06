@@ -36,14 +36,14 @@ class UserRegisterListener
     public function __invoke(FormSuccessEvent $event)
     {
         if (
-            UserRegisterType::class !== $event->getFormResource()->formType ||
-            !($user = $event->getForm()->getData()) instanceof AbstractUser
+            UserRegisterType::class !== $event->getForm()->formType ||
+            !($user = $event->getFormData()) instanceof AbstractUser
         ) {
             return;
         }
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        $event->response = $user;
+        $event->result = $user;
     }
 }
