@@ -12,25 +12,31 @@
             <itemOperation name="get" />
             <itemOperation name="delete" />
             <itemOperation name="put" />
-            <itemOperation name="patch">
+            <itemOperation name="patch" />
+            <itemOperation name="submit_patch">
                 <attribute name="method">PATCH</attribute>
                 <attribute name="path">/forms/{id}/submit.{_format}</attribute>
                 <attribute name="requirements">
                     <attribute name="id">[^/]+</attribute>
                 </attribute>
-                <attribute name="controller">Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction</attribute>
+                <attribute name="read">true</attribute>
                 <attribute name="deserialize">false</attribute>
+                <attribute name="validate">false</attribute>
                 <attribute name="write">false</attribute>
+                <attribute name="serialize">true</attribute>
             </itemOperation>
-            <itemOperation name="post">
+            <itemOperation name="submit_put">
                 <attribute name="method">POST</attribute>
+                <attribute name="controller">api_platform.action.put_item</attribute>
                 <attribute name="path">/forms/{id}/submit.{_format}</attribute>
                 <attribute name="requirements">
                     <attribute name="id">[^/]+</attribute>
                 </attribute>
-                <attribute name="controller">Silverback\ApiComponentsBundle\Action\Form\FormPostPatchAction</attribute>
+                <attribute name="read">true</attribute>
                 <attribute name="deserialize">false</attribute>
+                <attribute name="validate">false</attribute>
                 <attribute name="write">false</attribute>
+                <attribute name="serialize">true</attribute>
             </itemOperation>
         </itemOperations>
     </resource>

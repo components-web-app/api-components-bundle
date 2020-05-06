@@ -13,25 +13,41 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Form;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Dto\FormView;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\HttpFoundation\UrlHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class FormViewFactory
 {
-    private FormFactory $formFactory;
+    private FormFactoryInterface $formFactory;
+    private IriConverterInterface $iriConverter;
+    private UrlHelper $urlHelper;
 
-    public function __construct(FormFactory $formFactory)
+    public function __construct(FormFactoryInterface $formFactory, IriConverterInterface $iriConverter, UrlHelper $urlHelper)
     {
         $this->formFactory = $formFactory;
+        $this->iriConverter = $iriConverter;
+        $this->urlHelper = $urlHelper;
     }
 
-    public function create(Form $component): FormView
+    public function create(Form $form): FormView
     {
-        $form = $this->formFactory->create($component)->getForm();
+        $builder = $this->formFactory->createBuilder($form->formType);
 
-        return new FormView($form, $form->createView());
+        if (!($currentAction = $builder->getAction()) || '' === $currentAction) {
+            $builder->setAction($this->getFormAction($form));
+        }
+
+        return new FormView($builder->getForm());
+    }
+
+    private function getFormAction(Form $form): string
+    {
+        return $this->urlHelper->getAbsoluteUrl($this->iriConverter->getIriFromItem($form) . '/submit');
     }
 }

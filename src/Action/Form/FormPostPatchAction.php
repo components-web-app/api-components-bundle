@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Action\Form;
 use Silverback\ApiComponentsBundle\Action\AbstractAction;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentsBundle\Form\Handler\FormSubmitHandler;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -26,9 +26,9 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class FormPostPatchAction extends AbstractAction
 {
-    private FormSubmitHandler $formSubmitHandler;
+    private FormSubmitHelper $formSubmitHandler;
 
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, FormSubmitHandler $formSubmitHandler)
+    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, FormSubmitHelper $formSubmitHandler)
     {
         parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->formSubmitHandler = $formSubmitHandler;
@@ -38,7 +38,7 @@ class FormPostPatchAction extends AbstractAction
     {
         $decodedContent = $this->serializer->decode($request->getContent(), $this->requestFormatResolver->getFormatFromRequest($request), []);
         $isPatchRequest = Request::METHOD_PATCH === $request->getMethod();
-        $response = $this->formSubmitHandler->handle($decodedContent, $isPatchRequest, $data, $this->requestFormatResolver->getFormatFromRequest($request));
+        $response = $this->formSubmitHandler->process($decodedContent, $isPatchRequest, $data, $this->requestFormatResolver->getFormatFromRequest($request));
 
         return $this->responseFactory->create($request, $response->getContent(), $response->getStatusCode());
     }
