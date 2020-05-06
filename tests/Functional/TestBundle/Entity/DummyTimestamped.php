@@ -30,9 +30,4 @@ class DummyTimestamped
 {
     use IdTrait;
     use TimestampedTrait;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

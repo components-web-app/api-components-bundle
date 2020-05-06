@@ -37,9 +37,4 @@ class DummyResourceWithFilters
      * @ORM\Column()
      */
     public string $reference;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

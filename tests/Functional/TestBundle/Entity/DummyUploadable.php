@@ -34,9 +34,4 @@ class DummyUploadable
 
     /** @Silverback\UploadableField(adapter="local") */
     public ?File $file = null;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

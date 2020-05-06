@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\Core;
+namespace Silverback\ApiComponentsBundle\Tests\Entity\Core;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
@@ -28,10 +28,9 @@ class AbstractComponentTest extends TestCase
         };
     }
 
-    public function test_construct()
+    public function test_construct(): void
     {
         $this->assertInstanceOf(ArrayCollection::class, $this->anonymousClassFromAbstract->componentGroups);
         $this->assertCount(0, $this->anonymousClassFromAbstract->componentGroups);
-        $this->assertIsString($this->anonymousClassFromAbstract->getId());
     }
 }

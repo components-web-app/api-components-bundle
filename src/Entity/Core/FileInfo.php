@@ -33,7 +33,6 @@ class FileInfo
 
     public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, ?string $filter = null)
     {
-        $this->setId();
         $this->path = $path;
         $this->mimeType = $mimeType;
         $this->width = $width;

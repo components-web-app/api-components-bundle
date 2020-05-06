@@ -31,11 +31,6 @@ class DummyPublishableWithValidationCustomGroup
     use IdTrait;
     use PublishableTrait;
 
-    public function __construct()
-    {
-        $this->setId();
-    }
-
     /**
      * This constraint will be applied on draft and published resources.
      *

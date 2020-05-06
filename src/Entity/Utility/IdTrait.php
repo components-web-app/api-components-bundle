@@ -15,7 +15,8 @@ namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * Reusable trait by application developer so keep annotations as we cannot map with XML.
@@ -25,20 +26,15 @@ use Ramsey\Uuid\Uuid;
 trait IdTrait
 {
     /**
-     * @ORM\Id()
-     * @ORM\Column(type="string", length=36)
-     */
-    private string $id;
-
-    private function setId(): void
-    {
-        $this->id = Uuid::uuid4()->getHex()->toString();
-    }
-
-    /**
+     * @ORM\Id
+     * @ORM\Column(type="uuid_binary_ordered_time", unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class=UuidOrderedTimeGenerator::class)
      * @ApiProperty(readable=false)
      */
-    public function getId(): string
+    protected ?UuidInterface $id;
+
+    public function getId(): ?UuidInterface
     {
         return $this->id;
     }

@@ -35,11 +35,6 @@ class DummyCustomTimestamped
 
     public ?DateTime $customModifiedAt = null;
 
-    public function __construct()
-    {
-        $this->setId();
-    }
-
     public function setCustomCreatedAt(DateTimeImmutable $customCreatedAt): self
     {
         if (!$this->customCreatedAt) {

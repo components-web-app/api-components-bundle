@@ -44,7 +44,6 @@ class Layout
 
     public function __construct()
     {
-        $this->setId();
         $this->initComponentGroups();
         $this->pageTemplates = new ArrayCollection();
     }

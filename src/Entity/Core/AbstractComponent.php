@@ -35,13 +35,7 @@ abstract class AbstractComponent implements ComponentInterface
 
     public function __construct()
     {
-        $this->setId();
         $this->initComponentGroups();
         $this->componentLocations = new ArrayCollection();
-    }
-
-    public function __clone()
-    {
-        $this->setId();
     }
 }

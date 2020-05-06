@@ -30,9 +30,4 @@ class DummyTimestampedWithSerializationGroups
 {
     use IdTrait;
     use TimestampedTrait;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

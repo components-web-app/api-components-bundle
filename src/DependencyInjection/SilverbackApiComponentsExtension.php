@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
@@ -178,8 +179,29 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $configs = $container->getExtensionConfig($this->getAlias());
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
+        $this->prependApiAPlatformConfig($container, $config);
+        $this->prependDoctrineConfiguration($container);
+    }
+
+    private function prependDoctrineConfiguration(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('doctrine', [
+            'dbal' => [
+                'types' => [
+                    'uuid_binary_ordered_time' => UuidBinaryOrderedTimeType::class,
+                ],
+                'mapping_types' => [
+                    'uuid_binary_ordered_time' => 'binary',
+                ],
+            ],
+        ]);
+    }
+
+    private function prependApiAPlatformConfig(ContainerBuilder $container, array $config): void
+    {
         $srcBase = __DIR__ . '/..';
         $configBasePath = $srcBase . '/Resources/config/api_platform';
+
         $mappingPaths = [$srcBase . '/Entity/Core'];
         $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'uploadable');
         foreach ($config['enabled_components'] as $key => $enabled_component) {
@@ -187,7 +209,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, $key);
             }
         }
+
         $websiteName = $config['website_name'];
+
         $container->prependExtensionConfig('api_platform', [
             'title' => $websiteName,
             'description' => sprintf('API for %s', $websiteName),

@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+namespace Silverback\ApiComponentsBundle\Tests\Entity\User;
 
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
@@ -23,7 +24,6 @@ class AbstractUserTest extends TestCase
     {
         $user = new class('username', 'email@address.com', true, ['ROLE_ADMIN'], 'password', false) extends AbstractUser {
         };
-        $this->assertIsString($user->getId());
         $this->assertEquals('username', $user->getUsername());
         $this->assertEquals('email@address.com', $user->getEmailAddress());
         $this->assertTrue($user->isEmailAddressVerified());
@@ -114,7 +114,7 @@ class AbstractUserTest extends TestCase
         };
         $user->setPassword('password_encoded');
         $original = [
-            $user->getId(),
+            '253e0f90-8842-4731-91dd-0191816e6a28',
             'username',
             'email@address',
             'password_encoded',
@@ -122,11 +122,11 @@ class AbstractUserTest extends TestCase
             ['ROLE_USER'],
         ];
         $serialized = serialize($original);
-        $this->assertEquals($serialized, $user->serialize());
         $this->assertEquals($user, $user->unserialize($serialized));
+        $this->assertEquals($serialized, $user->serialize());
 
         $user->unserialize(serialize([
-            'another_id',
+            $newId = '253e0f90-8842-4731-91dd-0191816e6a28',
             'new_user',
             'new@email',
             'new_pass',
@@ -134,7 +134,7 @@ class AbstractUserTest extends TestCase
             ['ROLE_ADMIN'],
         ]));
 
-        $this->assertEquals('another_id', $user->getId());
+        $this->assertEquals(Uuid::fromString($newId), $user->getId());
         $this->assertEquals('new_user', $user->getUsername());
         $this->assertEquals('new@email', $user->getEmailAddress());
         $this->assertEquals('new_pass', $user->getPassword());
@@ -147,7 +147,7 @@ class AbstractUserTest extends TestCase
         $user = new class() extends AbstractUser {
         };
         $original = [
-            'another_id',
+            '253e0f90-8842-4731-91dd-0191816e6a28',
             'new_user',
             'new@email',
             'new_pass',
@@ -157,12 +157,7 @@ class AbstractUserTest extends TestCase
         $serialized = serialize($original);
         $this->assertEquals($user, $user->unserialize($serialized));
         $this->assertInstanceOf(\__PHP_Incomplete_Class::class, $user->getRoles()[0]);
-    }
 
-    public function test_class_to_string(): void
-    {
-        $user = new class() extends AbstractUser {
-        };
         $this->assertEquals($user->getId(), (string) $user);
     }
 }

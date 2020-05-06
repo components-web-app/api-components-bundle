@@ -22,7 +22,6 @@ use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCo
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use function class_exists;
 
 /**
  * @author Daniel West <daniel@silverback.is>

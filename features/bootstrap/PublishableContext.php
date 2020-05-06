@@ -167,12 +167,11 @@ final class PublishableContext implements Context
         $resource->reference = $isPublished ? 'is_published' : 'is_draft';
         $resource->setCustomPublishedAt($publishedAt);
         $this->manager->persist($resource);
-        $this->resources[] = $resource;
+        $flush && $this->manager->flush();
 
+        $this->resources[] = $resource;
         $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
         $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
-
-        $flush && $this->manager->flush();
 
         return $resource;
     }

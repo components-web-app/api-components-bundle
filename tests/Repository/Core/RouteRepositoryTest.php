@@ -44,7 +44,7 @@ class RouteRepositoryTest extends AbstractRepositoryTest
         $routeByRoute = $this->repository->findOneByIdOrRoute('/path');
         $this->assertInstanceOf(Route::class, $routeByRoute);
 
-        $routeById = $this->repository->findOneByIdOrRoute($routeByRoute->getId());
+        $routeById = $this->repository->findOneByIdOrRoute((string) $routeByRoute->getId());
         $this->assertInstanceOf(Route::class, $routeById);
     }
 }

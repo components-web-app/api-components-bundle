@@ -50,9 +50,4 @@ abstract class AbstractPage
     public string $title = 'Unnamed Page';
 
     public ?string $metaDescription;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

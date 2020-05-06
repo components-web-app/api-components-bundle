@@ -61,7 +61,6 @@ class Route
 
     public function __construct()
     {
-        $this->setId();
         $this->redirectedFrom = new ArrayCollection();
     }
 }

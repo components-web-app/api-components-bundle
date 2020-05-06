@@ -11,7 +11,10 @@
       <discriminator-mapping value="collection" class="Silverback\ApiComponentsBundle\Entity\Component\Collection"/>
       <discriminator-mapping value="form" class="Silverback\ApiComponentsBundle\Entity\Component\Form"/>
     </discriminator-map>
-    <id name="id" type="string" column="id" length="36"/>
+    <id name="id" column="id" type="uuid_binary_ordered_time">
+      <generator strategy="CUSTOM"/>
+      <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+    </id>
     <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
     <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
     <one-to-many field="componentLocations" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation" mapped-by="component" fetch="LAZY"/>

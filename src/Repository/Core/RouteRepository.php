@@ -15,6 +15,8 @@ namespace Silverback\ApiComponentsBundle\Repository\Core;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Exception\InvalidUuidStringException;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
@@ -41,6 +43,12 @@ class RouteRepository extends ServiceEntityRepository
             return $route;
         }
 
-        return $this->find($idOrRoute);
+        try {
+            $uuid = Uuid::fromString($idOrRoute);
+        } catch (InvalidUuidStringException $e) {
+            return null;
+        }
+
+        return $this->find($uuid);
     }
 }

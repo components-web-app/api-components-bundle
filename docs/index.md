@@ -16,7 +16,7 @@ We build this bundle 'on the shoulders of giants' with large and active communit
 - [Doctrine](https://www.doctrine-project.org/) (Database ORM/ODM)
 - [API Platform](https://api-platform.com/) (REST/GraphQL API Framework)
 
-And for authentication [LexikJwtBundle](https://github.com/lexik/LexikJWTAuthenticationBundle) and [JWTRefreshTokenBundle](https://github.com/markitosgv/JWTRefreshTokenBundle) - although these bundles have less support than the main frameworks, the security they provide plays a big part in this bundle.
+There are of course more bundles used throughout for certain features.
 
 The teams behind these packages are fantastic, be sure to __buy them a beer__ if you ever bump into anyone involved! :beer:
 

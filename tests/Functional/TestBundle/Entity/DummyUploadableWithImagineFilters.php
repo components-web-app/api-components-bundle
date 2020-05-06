@@ -37,11 +37,6 @@ class DummyUploadableWithImagineFilters implements ImagineFiltersInterface
     /** @Silverback\UploadableField(adapter="local") */
     public ?File $file = null;
 
-    public function __construct()
-    {
-        $this->setId();
-    }
-
     public function getImagineFilters(string $property, ?Request $request): array
     {
         return ['thumbnail', 'square_thumbnail'];

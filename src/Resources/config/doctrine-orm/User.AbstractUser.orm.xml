@@ -5,7 +5,6 @@
       <index name="username_idx" columns="username"/>
       <index name="email_address_idx" columns="email_address"/>
     </indexes>
-    <id name="id" type="string" column="id" length="36"/>
     <field name="username" length="255" column="username"/>
     <field name="emailAddress" length="255" column="email_address"/>
     <field name="roles" column="roles" type="array"/>

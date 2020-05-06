@@ -40,11 +40,6 @@ class ComponentLocation
 
     public ?int $sort = 0;
 
-    public function __construct()
-    {
-        $this->setId();
-    }
-
     /**
      * @return Collection|AbstractComponent[]|null
      */

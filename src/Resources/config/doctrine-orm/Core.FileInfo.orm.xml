@@ -4,7 +4,10 @@
         <unique-constraints>
             <unique-constraint name="unique_cache_item" columns="path,filter" />
         </unique-constraints>
-        <id name="id" type="string" column="id" length="36"/>
+        <id name="id" column="id" type="uuid_binary_ordered_time">
+            <generator strategy="CUSTOM"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+        </id>
         <field name="path" column="path" />
         <field name="mimeType" column="mime_type" />
         <field name="fileSize" column="file_size" type="integer" />

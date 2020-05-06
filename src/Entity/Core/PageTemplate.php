@@ -28,12 +28,6 @@ class PageTemplate extends AbstractPage
 
     public function __construct()
     {
-        parent::__construct();
         $this->initComponentGroups();
-    }
-
-    public function __clone()
-    {
-        parent::__construct();
     }
 }

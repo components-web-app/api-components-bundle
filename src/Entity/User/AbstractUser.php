@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Entity\User;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use DateTime;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -125,7 +126,6 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         $this->roles = $roles;
         $this->password = $password;
         $this->enabled = $enabled;
-        $this->setId();
     }
 
     public function getUsername(): ?string
@@ -288,7 +288,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     public function serialize(): string
     {
         return serialize([
-            $this->id,
+            (string) $this->id,
             $this->username,
             $this->emailAddress,
             $this->password,
@@ -302,14 +302,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      */
     public function unserialize(string $serialized): self
     {
+        $id = null;
         [
-            $this->id,
+            $id,
             $this->username,
             $this->emailAddress,
             $this->password,
             $this->enabled,
             $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);
+        $this->id = Uuid::fromString($id);
 
         return $this;
     }
@@ -333,7 +335,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     public function __toString()
     {
-        return $this->id;
+        return (string) $this->id;
     }
 
     public static function createFromPayload($username, array $payload)

@@ -31,9 +31,4 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 class DummyResourceWithPagination
 {
     use IdTrait;
-
-    public function __construct()
-    {
-        $this->setId();
-    }
 }

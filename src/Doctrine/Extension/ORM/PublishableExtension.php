@@ -56,6 +56,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         }
 
         $alias = $queryBuilder->getRootAliases()[0];
+        $classMetadata = $this->registry->getManagerForClass($resourceClass)->getClassMetadata($resourceClass);
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
         $criteriaReset = false;
@@ -69,7 +70,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             } else {
                 $queryBuilder->andWhere($predicates);
             }
-            $queryBuilder->setParameter("id_$identifier", $value);
+            $queryBuilder->setParameter("id_$identifier", $value, $classMetadata->getTypeOfField($identifier));
         }
 
         $queryBuilder->addSelect("CASE WHEN $alias.$configuration->associationName IS NULL THEN 1 ELSE 0 END AS HIDDEN assocNameSort");

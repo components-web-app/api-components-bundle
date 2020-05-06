@@ -58,7 +58,6 @@ class ComponentGroup
 
     public function __construct()
     {
-        $this->setId();
         $this->componentLocations = new ArrayCollection();
     }
 }
