@@ -250,7 +250,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializeFormatResolver::class),
             new Reference(SerializerInterface::class),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_RESPOND, 'method' => 'onPreRespond'])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
 
     $services

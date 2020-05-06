@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Helper\Form;
 
 use Silverback\ApiComponentsBundle\Dto\FormView;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
@@ -45,6 +46,14 @@ class FormSubmitHelper
         $form->formView = new FormView($symfonyForm);
 
         return $form;
+    }
+
+    public function handleSuccess(Form $form)
+    {
+        $event = new FormSuccessEvent($form);
+        $this->eventDispatcher->dispatch($event);
+
+        return $event->result;
     }
 
     private function getRootData(FormInterface $form, $content): array

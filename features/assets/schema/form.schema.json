@@ -58,69 +58,7 @@
             "title": "The Formview Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": {},
-            "examples": [
-                {
-                    "children": [
-                        {
-                            "rendered": false,
-                            "methodRendered": false,
-                            "vars": {
-                                "name": "name",
-                                "submitted": false,
-                                "unique_block_prefix": "_test_name",
-                                "label_attr": [],
-                                "full_name": "test[name]",
-                                "required": true,
-                                "action": "",
-                                "attr": [],
-                                "disabled": false,
-                                "errors": [],
-                                "value": "",
-                                "valid": true,
-                                "id": "test_name",
-                                "block_prefixes": [
-                                    "form",
-                                    "text",
-                                    "_test_name"
-                                ]
-                            },
-                            "form": {
-                                "name": []
-                            },
-                            "children": []
-                        }
-                    ],
-                    "rendered": false,
-                    "methodRendered": false,
-                    "vars": {
-                        "api_request": true,
-                        "full_name": "test",
-                        "required": true,
-                        "action": "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit",
-                        "attr": {
-                            "novalidate": "novalidate"
-                        },
-                        "disabled": false,
-                        "errors": [],
-                        "valid": true,
-                        "id": "test",
-                        "post_app_proxy": "/proxy",
-                        "block_prefixes": [
-                            "form",
-                            "test",
-                            "_test"
-                        ],
-                        "name": "test",
-                        "submitted": false,
-                        "unique_block_prefix": "_test",
-                        "label_attr": [],
-                        "realtime_validate": true
-                    },
-                    "form": {
-                        "name": []
-                    }
-                }
-            ],
+            "examples": [],
             "required": [
                 "vars",
                 "children",
@@ -135,32 +73,7 @@
                     "title": "The Vars Schema",
                     "description": "An explanation about the purpose of this instance.",
                     "default": {},
-                    "examples": [
-                        {
-                            "valid": true,
-                            "id": "test",
-                            "post_app_proxy": "/proxy",
-                            "block_prefixes": [
-                                "form",
-                                "test",
-                                "_test"
-                            ],
-                            "submitted": false,
-                            "name": "test",
-                            "label_attr": [],
-                            "unique_block_prefix": "_test",
-                            "realtime_validate": true,
-                            "api_request": true,
-                            "full_name": "test",
-                            "required": true,
-                            "action": "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit",
-                            "attr": {
-                                "novalidate": "novalidate"
-                            },
-                            "disabled": false,
-                            "errors": []
-                        }
-                    ],
+                    "examples": [],
                     "required": [
                         "errors",
                         "action",
@@ -374,36 +287,7 @@
                         "title": "The Items Schema",
                         "description": "An explanation about the purpose of this instance.",
                         "default": {},
-                        "examples": [
-                            {
-                                "rendered": false,
-                                "methodRendered": false,
-                                "vars": {
-                                    "required": true,
-                                    "action": "",
-                                    "attr": [],
-                                    "disabled": false,
-                                    "errors": [],
-                                    "value": "",
-                                    "valid": true,
-                                    "id": "test_name",
-                                    "block_prefixes": [
-                                        "form",
-                                        "text",
-                                        "_test_name"
-                                    ],
-                                    "name": "name",
-                                    "submitted": false,
-                                    "unique_block_prefix": "_test_name",
-                                    "label_attr": [],
-                                    "full_name": "test[name]"
-                                },
-                                "form": {
-                                    "name": []
-                                },
-                                "children": []
-                            }
-                        ],
+                        "examples": [],
                         "required": [
                             "vars",
                             "children",
@@ -418,28 +302,6 @@
                                 "title": "The Vars Schema",
                                 "description": "An explanation about the purpose of this instance.",
                                 "default": {},
-                                "examples": [
-                                    {
-                                        "full_name": "test[name]",
-                                        "required": true,
-                                        "action": "",
-                                        "attr": [],
-                                        "disabled": false,
-                                        "errors": [],
-                                        "value": "",
-                                        "valid": true,
-                                        "id": "test_name",
-                                        "block_prefixes": [
-                                            "form",
-                                            "text",
-                                            "_test_name"
-                                        ],
-                                        "name": "name",
-                                        "submitted": false,
-                                        "unique_block_prefix": "_test_name",
-                                        "label_attr": []
-                                    }
-                                ],
                                 "required": [
                                     "errors",
                                     "action",
@@ -588,13 +450,10 @@
                                     },
                                     "value": {
                                         "$id": "#/properties/formView/properties/children/items/properties/vars/properties/value",
-                                        "type": "string",
+                                        "type": ["string", "array"],
                                         "title": "The Value Schema",
                                         "description": "An explanation about the purpose of this instance.",
-                                        "default": "",
-                                        "examples": [
-                                            ""
-                                        ]
+                                        "default": ""
                                     }
                                 }
                             },

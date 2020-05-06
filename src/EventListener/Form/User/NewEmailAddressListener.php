@@ -33,8 +33,8 @@ class NewEmailAddressListener
     public function __invoke(FormSuccessEvent $event)
     {
         if (
-            NewEmailAddressType::class !== $event->getFormResource()->formType ||
-            !($user = $event->getForm()->getData()) instanceof AbstractUser
+            NewEmailAddressType::class !== $event->getForm()->formType ||
+            !($user = $event->getFormData()) instanceof AbstractUser
         ) {
             return;
         }

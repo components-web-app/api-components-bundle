@@ -41,7 +41,7 @@ class FormSubmitEventListener
         $this->serializer = $serializer;
     }
 
-    public function onPreRespond(ViewEvent $event): void
+    public function onPreSerialize(ViewEvent $event): void
     {
         $request = $event->getRequest();
         if (!$data = $this->getData($request)) {
@@ -51,8 +51,17 @@ class FormSubmitEventListener
         // Handle post/patch requests
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
         $requestContent = $this->serializer->decode($request->getContent(), $format, []);
-        $form = $this->formSubmitHelper->process($data, $requestContent, Request::METHOD_PUT !== $request->getMethod());
-        $request->attributes->set('data', $form);
+        $data = $this->formSubmitHelper->process($data, $requestContent, Request::METHOD_PUT !== $request->getMethod());
+
+        if ($data->formView->getForm()->isValid()) {
+            $result = $this->formSubmitHelper->handleSuccess($data);
+            if ($result) {
+                $data = $result;
+            }
+        }
+
+        $event->setControllerResult($data);
+        $request->attributes->set('data', $data);
     }
 
     public function onPostRespond(ResponseEvent $event): void
@@ -62,9 +71,12 @@ class FormSubmitEventListener
             return;
         }
 
-        $form = $data->formView->getForm();
-        if ($form->isSubmitted() && !$form->isValid()) {
-            $event->getResponse()->setStatusCode(Response::HTTP_BAD_REQUEST);
+        if ($formView = $data->formView) {
+            $form = $formView->getForm();
+            $response = $event->getResponse();
+            if (!$form->isValid()) {
+                $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+            }
         }
     }
 
