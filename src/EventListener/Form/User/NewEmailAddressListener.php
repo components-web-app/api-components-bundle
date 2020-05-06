@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 
 /**
@@ -23,23 +21,8 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
  */
 class NewEmailAddressListener
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct()
     {
-        $this->entityManager = $entityManager;
-    }
-
-    public function __invoke(FormSuccessEvent $event)
-    {
-        if (
-            NewEmailAddressType::class !== $event->getForm()->formType ||
-            !($user = $event->getFormData()) instanceof AbstractUser
-        ) {
-            return;
-        }
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        parent::__construct(NewEmailAddressType::class, AbstractUser::class);
     }
 }

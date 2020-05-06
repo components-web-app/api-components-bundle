@@ -106,6 +106,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
+use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -590,6 +591,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(TimestampedHelper::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(TimestampedValidator::class)
+        ->decorate('api_platform.validator')
+        ->args([
+            new Reference(TimestampedValidator::class . '.inner'),
+            new Reference(TimestampedAnnotationReader::class),
+        ]);
 
     $services
         ->set(TokenAuthenticator::class)

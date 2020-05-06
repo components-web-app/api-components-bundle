@@ -13,37 +13,20 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserRegisterListener
+class UserRegisterListener extends EntityPersistFormListener
 {
-    private EntityManagerInterface $entityManager;
-    private TimestampedHelper $timestampedHelper;
-
-    public function __construct(EntityManagerInterface $entityManager, TimestampedHelper $timestampedHelper)
+    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $timestampedAnnotationReader, TimestampedHelper $timestampedHelper)
     {
-        $this->entityManager = $entityManager;
-        $this->timestampedHelper = $timestampedHelper;
-    }
-
-    public function __invoke(FormSuccessEvent $event)
-    {
-        if (
-            UserRegisterType::class !== $event->getForm()->formType ||
-            !($user = $event->getFormData()) instanceof AbstractUser
-        ) {
-            return;
-        }
-        $this->timestampedHelper->persistTimestampedFields($user, true);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-        $event->result = $user;
+        parent::__construct($registry, $timestampedAnnotationReader, $timestampedHelper, UserRegisterType::class, AbstractUser::class);
     }
 }

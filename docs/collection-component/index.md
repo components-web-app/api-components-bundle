@@ -21,6 +21,7 @@ The Collection resource is designed to be a proxy which will output another reso
 ### Input
 
 Endpoint `/component/collection`. Example `POST`
+
 ```json
 {
     "resourceIri": "/component/dummy_components",
