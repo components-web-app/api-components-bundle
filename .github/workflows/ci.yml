@@ -95,7 +95,7 @@ jobs:
           - '5.*'
         include:
           - php: '7.4'
-            symfony: '4.4.*'
+            symfony: '5.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -238,7 +238,7 @@ jobs:
           - '5.*'
         include:
           - php: '7.4'
-            symfony: '4.4.*'
+            symfony: '5.*'
             coverage: true
       fail-fast: false
     timeout-minutes: 20
@@ -510,3 +510,203 @@ jobs:
           name: behat-logs-php${{ matrix.php }}-lowest-deps
           path: build/logs/behat
         continue-on-error: true
+
+
+  phpunit-symfony-next:
+    name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    container:
+      image: php:${{ matrix.php }}-alpine
+      options: >-
+        --tmpfs /tmp:exec
+        --tmpfs /var/tmp:exec
+    strategy:
+      matrix:
+        php:
+          - '7.4'
+        symfony:
+          - '5.1'
+      fail-fast: false
+    timeout-minutes: 20
+    steps:
+      -   name: Checkout
+          uses: actions/checkout@v1
+      -   name: Install system packages
+          run: |
+            apk add \
+                jq \
+                moreutils \
+                bash \
+                unzip \
+                libxslt-dev \
+                libpng-dev \
+                libjpeg-turbo-dev \
+                freetype-dev \
+                gnupg \
+                git
+      -   name: Install exif PHP extension
+          run: |
+            docker-php-ext-install exif xsl
+      -   name: Install php image extensions
+          run: |
+            docker-php-ext-configure gd --with-freetype --with-jpeg
+            docker-php-ext-install gd
+      -   name: Disable PHP memory limit
+          run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
+      -   name: Install Composer
+          run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
+      -   name: Get Composer Cache Directory
+          id: composer-cache
+          run: |
+            echo "::set-output name=dir::$(composer config cache-files-dir)"
+      -   name: Restore composer cache
+          uses: actions/cache@v1
+          with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+            restore-keys: |
+              composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
+              composer-php${{ matrix.php }}-
+              composer-
+            continue-on-error: true
+      -   name: Install Symfony Flex
+          run: |
+            composer global require --prefer-dist --no-progress --no-suggest --ansi \
+              symfony/flex
+      -   name: Allow unstable project dependencies
+          run: |
+            jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
+      -   name: Update project dependencies
+          run: |
+            mkdir -p /tmp/api-platform/core/vendor
+            ln -s /tmp/api-platform/core/vendor vendor
+            composer update --no-progress --no-suggest --ansi
+      -   name: Flag held back Symfony packages
+          env:
+            symfony_version: ${{ matrix.symfony }}
+          run: |
+            version_pattern=$symfony_version.x-dev
+            if [ "${symfony_version%.4}" != "$symfony_version" ]; then
+              current_major=${symfony_version%.4}
+              next_major=$((current_major + 1))
+              version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
+            fi
+            version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
+            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure')
+            ! echo "$symfony_packages" | grep -vE "$version_pattern"
+          continue-on-error: true
+      -   name: Clear test app cache
+          run: |
+            mkdir -p /tmp/api-platform/core/var
+            ln -s /tmp/api-platform/core/var tests/Functional/app/var
+            tests/Functional/app/console cache:clear --ansi
+      -   name: Run PHPUnit tests
+          run: |
+            mkdir -p build/logs/phpunit
+            vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+      -   name: Upload test artifacts
+          if: always()
+          uses: actions/upload-artifact@v1
+          with:
+            name: phpunit-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
+            path: build/logs/phpunit
+          continue-on-error: true
+
+  behat-symfony-next:
+    name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    container:
+      image: php:${{ matrix.php }}-alpine
+      options: >-
+        --tmpfs /tmp:exec
+        --tmpfs /var/tmp:exec
+    strategy:
+      matrix:
+        php:
+          - '7.4'
+        symfony:
+          - '5.1'
+      fail-fast: false
+    timeout-minutes: 20
+    steps:
+      -   name: Checkout
+          uses: actions/checkout@v1
+      -   name: Install system packages
+          run: |
+            apk add \
+                jq \
+                moreutils \
+                bash \
+                unzip \
+                libxslt-dev \
+                libpng-dev \
+                libjpeg-turbo-dev \
+                freetype-dev \
+                git
+      -   name: Install exif PHP extension
+          run: |
+            docker-php-ext-install exif xsl
+      -   name: Install php image extensions
+          run: |
+            docker-php-ext-configure gd --with-freetype --with-jpeg
+            docker-php-ext-install gd
+      -   name: Disable PHP memory limit
+          run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
+      -   name: Install Composer
+          run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
+      -   name: Get Composer Cache Directory
+          id: composer-cache
+          run: |
+            echo "::set-output name=dir::$(composer config cache-files-dir)"
+      -   name: Restore composer cache
+          uses: actions/cache@v1
+          with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-${{ github.sha }}
+            restore-keys: |
+              composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
+              composer-php${{ matrix.php }}-
+              composer-
+            continue-on-error: true
+      -   name: Install Symfony Flex
+          run: |
+            composer global require --prefer-dist --no-progress --no-suggest --ansi \
+              symfony/flex
+      -   name: Allow unstable project dependencies
+          run: |
+            jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
+      -   name: Update project dependencies
+          run: |
+            mkdir -p /tmp/api-platform/core/vendor
+            ln -s /tmp/api-platform/core/vendor vendor
+            composer update --no-progress --no-suggest --ansi
+      -   name: Flag held back Symfony packages
+          env:
+            symfony_version: ${{ matrix.symfony }}
+          run: |
+            version_pattern=$symfony_version.x-dev
+            if [ "${symfony_version%.4}" != "$symfony_version" ]; then
+              current_major=${symfony_version%.4}
+              next_major=$((current_major + 1))
+              version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
+            fi
+            version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
+            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure')
+            ! echo "$symfony_packages" | grep -vE "$version_pattern"
+          continue-on-error: true
+      -   name: Clear test app cache
+          run: |
+            mkdir -p /tmp/api-platform/core/var
+            ln -s /tmp/api-platform/core/var tests/Functional/app/var
+            tests/Functional/app/console cache:clear --ansi
+      -   name: Run Behat tests
+          run: |
+            mkdir -p build/logs/behat
+            vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors
+      -   name: Upload test artifacts
+          if: always()
+          uses: actions/upload-artifact@v1
+          with:
+            name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
+            path: build/logs/behat
+          continue-on-error: true
