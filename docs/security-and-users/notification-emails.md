@@ -34,6 +34,7 @@ The `redirect_url` variable is generated using either the configured `default_re
 ## Emails
 
 ### Password Reset
+
 Template: `@SilverbackApiComponent/emails/user_password_reset.html.twig`
 
 ```yaml
@@ -42,11 +43,44 @@ silverback_api_component:
     password_reset:
       email:
         redirect_path_query: ~
-        default_redirect_path: ~ # Required
+        default_redirect_path: /reset-password/{{ username }}/{{ token }} # Required
         subject: 'Your password has been reset'
       repeat_ttl_seconds: 8600
       request_timeout_seconds: 3600
 ```
+
+#### Forgot password procedure
+
+Make a `GET` request to `/password/reset/request/my_username`. You will receive a `200` http status code on success (or if it is another request within the TTL time) or `404` if the user is not found. The API will send a password reset email. 
+> *n.b. You can also set the `redirect_path_query` parameter in the bundle configuration to configure the front-end redirect path dynamically. E.g. `redirect_path_query: redirect_path` and then `/password/reset/request/my_username?redirect_pat=/front-end-page/{{ username }}/{{ token }}`.*
+
+Once redirected back to your application you will need to send a `POST` request to `/password/update`. Here is an example JSON request:
+
+```json
+{
+  "username": "username",
+  "token": "abc123",
+  "password": "mynewpassword"
+}
+```
+
+You will receive a `200` status code on a successful password change or `404` on not found. If the password does not pass validation you will receive a `400` response and here is an example JSON response:
+
+```json
+ {
+    "@context": "/contexts/ConstraintViolationList",
+    "@type": "ConstraintViolationList",
+    "hydra:title": "An error occurred",
+    "hydra:description": "plainPassword: Your password must be more than 6 characters long.",
+    "violations": [
+        {
+            "propertyPath": "plainPassword",
+            "message": "Your password must be more than 6 characters long."
+        }
+    ]
+} 
+```
+
 
 ### Email Address Verification
 
@@ -59,7 +93,7 @@ silverback_api_component:
       enabled: true
       email:
         redirect_path_query: ~
-        default_redirect_path: ~ # Required
+        default_redirect_path: /verify-new-email/{{ username }}/{{ token }} # Required
         subject:       'Please verify your email'
       default_value:    ~ # Required
       verify_on_change:   ~ # Required
