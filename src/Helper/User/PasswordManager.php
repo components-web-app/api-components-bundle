@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Helper\User;
 
+use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -20,8 +21,6 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -69,15 +68,15 @@ class PasswordManager
     {
         $user = $this->userRepository->findOneByPasswordResetToken($username, $token);
         if (!$user) {
-            throw new NotFoundHttpException();
+            throw new UnexpectedValueException('Username not found');
         }
 
         $user->setPlainPassword($newPassword);
         $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
-        $errors = $this->validator->validate($user, null, ['password_reset']);
+        $errors = $this->validator->validate($user, null, ['User:password:create']);
         if (\count($errors)) {
-            throw new AuthenticationException('The password entered is not valid');
+            throw new ValidationException($errors);
         }
         $this->persistPlainPassword($user);
     }

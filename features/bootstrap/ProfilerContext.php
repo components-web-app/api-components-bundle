@@ -78,6 +78,9 @@ class ProfilerContext implements Context
         Assert::assertEquals('test@website.com', $headers->get('from')->getBodyAsString());
 
         switch ($emailType) {
+            case 'custom_change_email_verification':
+                $this->validateChangeEmailVerification($context, $headers, true);
+                break;
             case 'change_email_verification':
                 $this->validateChangeEmailVerification($context, $headers);
                 break;
@@ -90,17 +93,21 @@ class ProfilerContext implements Context
             case 'password_reset':
                 $this->validatePasswordReset($context, $headers);
                 break;
+            case 'custom_password_reset':
+                $this->validatePasswordReset($context, $headers, true);
+                break;
             default:
                 throw new \InvalidArgumentException(sprintf('The email type %s is not configured to test', $emailType));
         }
     }
 
-    private function validateChangeEmailVerification(array $context, Headers $headers): void
+    private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false): void
     {
+        $pathInsert = $customPath ? 'another-path' : 'verify-new-email';
         Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertIsString($context['user']->getNewEmailVerificationToken());
-        Assert::assertRegExp('/^http:\/\/www.website.com\/verify-new-email\/user%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
+        Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function validateChangePasswordNotification(Headers $headers): void
@@ -115,10 +122,11 @@ class ProfilerContext implements Context
         Assert::assertStringStartsWith(WelcomeEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 
-    private function validatePasswordReset(array $context, Headers $headers): void
+    private function validatePasswordReset(array $context, Headers $headers, bool $customPath = false): void
     {
+        $pathInsert = $customPath ? 'another-path' : 'reset-password';
         Assert::assertEquals('Your password has been reset', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(PasswordResetEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
-        Assert::assertRegExp('/^http:\/\/www.website.com\/reset-password\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
+        Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 }

@@ -71,7 +71,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * @ApiProperty(readable=false)
      * @Assert\NotBlank(message="Please enter your desired password.", groups={"User:password:create"})
-     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long.", groups={"Default", "password_reset", "User:password:create"})
+     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long.", groups={"User:password:create"})
      * @Groups({"User:input"})
      */
     protected ?string $plainPassword = null;

@@ -95,7 +95,7 @@ security:
     access_control:
         - { path: ^/login, roles: ROLE_TOKEN_USER }
         - { path: ^/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/password/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/password/(reset|update), roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
         # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
         - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

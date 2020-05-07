@@ -126,6 +126,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -409,14 +410,18 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PasswordRequestAction::class)
-        ->args($passwordActionArgs = [
+        ->args([
             new Reference(PasswordManager::class),
         ])
         ->tag('controller.service_arguments');
 
     $services
         ->set(PasswordUpdateAction::class)
-        ->args($passwordActionArgs)
+        ->args([
+            new Reference(PasswordManager::class),
+            new Reference(SerializeFormatResolver::class),
+            new Reference(DecoderInterface::class),
+        ])
         ->tag('controller.service_arguments');
 
     $services

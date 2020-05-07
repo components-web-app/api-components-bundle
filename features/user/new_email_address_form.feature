@@ -12,7 +12,7 @@ Feature: Register process via a form
   Scenario Outline: Submit a successful change email request
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the component "new_email_form" and the postfix "<postfix>" with body:
     """
     {
       "new_email_address": {
@@ -25,11 +25,12 @@ Feature: Register process via a form
     And the JSON node "newEmailAddress" should be equal to "new@example.com"
     And the JSON node "emailAddress" should be equal to "user@example.com"
     And the JSON node "newEmailVerificationToken" should not exist
-    And I should get a "change_email_verification" email sent to the email address "new@example.com"
+    And I should get a "<expectedEmail>" email sent to the email address "new@example.com"
     Examples:
-      | headerName | headerValue             |
-      | origin     | http://www.website.com  |
-      | referer    | http://www.website.com  |
+      | headerName | headerValue             | postfix                                                          | expectedEmail                    |
+      | origin     | http://www.website.com  | /submit                                                          | change_email_verification        |
+      | referer    | http://www.website.com  | /submit                                                          | change_email_verification        |
+      | referer    | http://www.website.com  | /submit?email_redirect=/another-path/{{ username }}/{{ token }}  | custom_change_email_verification |
 
   @loginUser
   @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks

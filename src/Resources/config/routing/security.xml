@@ -10,9 +10,11 @@
            controller="Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction"
            methods="GET" />
 
-    <route id="api_components_change_password" path="/password/update"
+    <route id="api_components_change_password" path="/password/update.{_format}"
            controller="Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction"
-           methods="POST" />
+           methods="POST">
+        <default key="_format">jsonld</default>
+    </route>
 
     <route id="api_components_change_email_address" path="/email_address/update"
            controller="Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction"

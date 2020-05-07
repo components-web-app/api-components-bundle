@@ -167,7 +167,7 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a user with the username :username password :password and role :role
      */
-    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role)
+    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role): void
     {
         $user = new User();
         $user
@@ -179,6 +179,17 @@ final class DoctrineContext implements Context
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @Given the user has the newPasswordConfirmationToken :token requested at :dateTime
+     */
+    public function theUserHasTheNewPasswordConfirmationToken(string $token, string $dateTime): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setNewPasswordConfirmationToken($token)->setPasswordRequestedAt(new \DateTime($dateTime));
+        $this->manager->flush();
     }
 
     /**
