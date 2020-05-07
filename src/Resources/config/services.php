@@ -74,13 +74,14 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
+use Silverback\ApiComponentsBundle\Helper\Collection\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
@@ -102,7 +103,6 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
@@ -167,7 +167,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('form.type');
 
     $services
-        ->set(CollectionHelper::class)
+        ->set(ApiResourceRouteFinder::class)
         ->args([
             new Reference(RouterInterface::class),
         ]);
@@ -176,7 +176,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(CollectionOutputDataTransformer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference(CollectionHelper::class),
+            new Reference(ApiResourceRouteFinder::class),
             new Reference('api_platform.collection_data_provider'),
             new Reference(RequestStack::class),
             new Reference(SerializerContextBuilderInterface::class),
@@ -212,11 +212,11 @@ return static function (ContainerConfigurator $configurator) {
         ->call('init', [
             new Reference(ManagerRegistry::class),
             new Reference(TimestampedAnnotationReader::class),
-            new Reference(TimestampedHelper::class),
+            new Reference(TimestampedDataPersister::class),
         ]);
 
     $services
-        ->set(FileInfoCacheHelper::class)
+        ->set(FileInfoCacheManager::class)
         ->args([
             new Reference(EntityManagerInterface::class),
             new Reference(FileInfoRepository::class),
@@ -298,7 +298,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ImagineEventListener::class)
         ->args([
-            new Reference(FileInfoCacheHelper::class),
+            new Reference(FileInfoCacheManager::class),
         ])
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
@@ -329,7 +329,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(MediaObjectFactory::class)
         ->args([
             new Reference(ManagerRegistry::class),
-            new Reference(FileInfoCacheHelper::class),
+            new Reference(FileInfoCacheManager::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
             new Reference(FlysystemDataLoader::class),
@@ -434,14 +434,14 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.serializer.context_builder')
         ->args([
             new Reference(PublishableContextBuilder::class . '.inner'),
-            new Reference(PublishableHelper::class),
+            new Reference(PublishableStatusChecker::class),
         ])
         ->autoconfigure(false);
 
     $services
         ->set(PublishableEventListener::class)
         ->args([
-            new Reference(PublishableHelper::class),
+            new Reference(PublishableStatusChecker::class),
             new Reference('doctrine'),
             new Reference('api_platform.validator'),
         ])
@@ -451,7 +451,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
 
     $services
-        ->set(PublishableHelper::class)
+        ->set(PublishableStatusChecker::class)
         ->args([
             new Reference(ManagerRegistry::class),
             new Reference(PublishableAnnotationReader::class),
@@ -468,7 +468,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PublishableExtension::class)
         ->args([
-            new Reference(PublishableHelper::class),
+            new Reference(PublishableStatusChecker::class),
             new Reference('request_stack'),
             new Reference('doctrine'),
         ])
@@ -479,7 +479,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PublishableNormalizer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference(PublishableHelper::class),
+            new Reference(PublishableStatusChecker::class),
             new Reference('doctrine'),
             new Reference('request_stack'),
             new Reference('api_platform.validator'),
@@ -490,7 +490,7 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.validator')
         ->args([
             new Reference(PublishableValidator::class . '.inner'),
-            new Reference(PublishableHelper::class),
+            new Reference(PublishableStatusChecker::class),
         ]);
 
     $services
@@ -502,7 +502,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ResourceIriValidator::class)
         ->args([
-            new Reference(CollectionHelper::class),
+            new Reference(ApiResourceRouteFinder::class),
         ])
         ->tag('validator.constraint_validator');
 
@@ -514,7 +514,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(RefererUrlHelper::class)
+        ->set(RefererUrlResolver::class)
         ->args([
             new Reference(RequestStack::class),
         ]);
@@ -568,7 +568,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false);
 
     $services
-        ->set(TimestampedHelper::class)
+        ->set(TimestampedDataPersister::class)
         ->args([
             new Reference(ManagerRegistry::class),
             new Reference(TimestampedAnnotationReader::class),
@@ -605,7 +605,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(ManagerRegistry::class),
             new Reference(TimestampedAnnotationReader::class),
-            new Reference(TimestampedHelper::class),
+            new Reference(TimestampedDataPersister::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -637,19 +637,19 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableEventListener::class)
         ->args([
             new Reference(UploadableAnnotationReader::class),
-            new Reference(UploadableHelper::class),
+            new Reference(UploadableFileManager::class),
         ])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
 
     $services
-        ->set(UploadableHelper::class)
+        ->set(UploadableFileManager::class)
         ->args([
             new Reference(ManagerRegistry::class),
             new Reference(UploadableAnnotationReader::class),
             new Reference(FilesystemProvider::class),
             new Reference(FlysystemDataLoader::class),
-            new Reference(FileInfoCacheHelper::class),
+            new Reference(FileInfoCacheManager::class),
             new Reference('liip_imagine.cache.manager'),
             null, // Set in dependency injection if imagine cache manager exists
         ]);

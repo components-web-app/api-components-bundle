@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -60,7 +60,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     {
         return [
             RequestStack::class,
-            RefererUrlHelper::class,
+            RefererUrlResolver::class,
             Environment::class,
         ];
     }
@@ -131,9 +131,9 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
             'username' => $username,
         ]);
 
-        $refererUrlHelper = $this->container->get(RefererUrlHelper::class);
+        $refererUrlResolver = $this->container->get(RefererUrlResolver::class);
 
-        return $refererUrlHelper->getAbsoluteUrl($path);
+        return $refererUrlResolver->getAbsoluteUrl($path);
     }
 
     private function getTokenPath(): string

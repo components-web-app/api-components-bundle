@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TimestampedHelper
+class TimestampedDataPersister
 {
     use ClassMetadataTrait;
 

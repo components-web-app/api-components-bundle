@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -24,12 +24,12 @@ use Symfony\Component\HttpFoundation\Request;
 final class PublishableContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
-    private PublishableHelper $publishableHelper;
+    private PublishableStatusChecker $publishableStatusChecker;
 
-    public function __construct(SerializerContextBuilderInterface $decorated, PublishableHelper $publishableHelper)
+    public function __construct(SerializerContextBuilderInterface $decorated, PublishableStatusChecker $publishableStatusChecker)
     {
         $this->decorated = $decorated;
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableStatusChecker = $publishableStatusChecker;
     }
 
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
@@ -38,7 +38,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         if (
             empty($resourceClass = $context['resource_class']) ||
             empty($context['groups']) ||
-            !$this->publishableHelper->getAnnotationReader()->isConfigured($resourceClass)
+            !$this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass)
         ) {
             return $context;
         }
@@ -46,7 +46,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         $reflectionClass = new \ReflectionClass($resourceClass);
         if ($normalization) {
             $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
-        } elseif ($this->publishableHelper->isGranted($resourceClass)) {
+        } elseif ($this->publishableStatusChecker->isGranted($resourceClass)) {
             $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
         }
 

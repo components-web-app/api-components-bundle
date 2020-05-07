@@ -26,7 +26,7 @@ use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
@@ -43,7 +43,7 @@ final class DoctrineContext implements Context
     private ?MinkContext $minkContext;
     private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
-    private TimestampedHelper $timestampedHelper;
+    private TimestampedDataPersister $timestampedHelper;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
     private array $classes;
@@ -55,7 +55,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedHelper $timestampedHelper)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;

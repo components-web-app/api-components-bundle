@@ -33,8 +33,8 @@ use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
@@ -76,7 +76,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
 
-        $definition = $container->getDefinition(PublishableHelper::class);
+        $definition = $container->getDefinition(PublishableStatusChecker::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
 
         $definition = $container->getDefinition(MetadataNormalizer::class);
@@ -95,7 +95,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 //            ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
         if ($imagineEnabled) {
-            $definition = $container->getDefinition(UploadableHelper::class);
+            $definition = $container->getDefinition(UploadableFileManager::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
 
             $definition = $container->getDefinition(MediaObjectFactory::class);

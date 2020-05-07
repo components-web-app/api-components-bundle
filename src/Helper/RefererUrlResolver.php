@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Utility;
+namespace Silverback\ApiComponentsBundle\Helper;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RefererUrlHelper
+class RefererUrlResolver
 {
     private RequestStack $requestStack;
 

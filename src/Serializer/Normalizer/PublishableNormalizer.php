@@ -19,7 +19,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -43,14 +43,14 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
 
-    private PublishableHelper $publishableHelper;
+    private PublishableStatusChecker $publishableStatusChecker;
     private ManagerRegistry $registry;
     private RequestStack $requestStack;
     private ValidatorInterface $validator;
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, RequestStack $requestStack, ValidatorInterface $validator)
+    public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, RequestStack $requestStack, ValidatorInterface $validator)
     {
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableStatusChecker = $publishableStatusChecker;
         $this->registry = $registry;
         $this->requestStack = $requestStack;
         $this->validator = $validator;
@@ -59,9 +59,9 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
-        $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableHelper->isActivePublishedAt($object);
+        $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
-        if ($this->publishableHelper->isGranted($object)) {
+        if ($this->publishableStatusChecker->isGranted($object)) {
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {
@@ -77,7 +77,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return !isset($context[self::ALREADY_CALLED]) &&
             \is_object($data) &&
             !$data instanceof \Traversable &&
-            $this->publishableHelper->getAnnotationReader()->isConfigured($data);
+            $this->publishableStatusChecker->getAnnotationReader()->isConfigured($data);
     }
 
     /**
@@ -86,19 +86,19 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
-        $configuration = $this->publishableHelper->getAnnotationReader()->getConfiguration($type);
+        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
         $request = $this->requestStack->getMasterRequest();
-        if ($request && true === $this->publishableHelper->isPublishedRequest($request)) {
+        if ($request && true === $this->publishableStatusChecker->isPublishedRequest($request)) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
         // It's a new object
         if (!isset($context[AbstractNormalizer::OBJECT_TO_POPULATE])) {
             // User doesn't have draft access: force publication date
-            if (!$this->publishableHelper->isGranted($type)) {
+            if (!$this->publishableStatusChecker->isGranted($type)) {
                 $data[$configuration->fieldName] = date('Y-m-d H:i:s');
             }
 
@@ -112,8 +112,8 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         // or User doesn't have draft access: update the original object
         if (
             empty($data) ||
-            !$this->publishableHelper->isActivePublishedAt($object) ||
-            !$this->publishableHelper->isGranted($type)
+            !$this->publishableStatusChecker->isActivePublishedAt($object) ||
+            !$this->publishableStatusChecker->isGranted($type)
         ) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
@@ -133,7 +133,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
             // User changed the publication date with an earlier one on a published resource: ignore it
             if (
-                $this->publishableHelper->isActivePublishedAt($object) &&
+                $this->publishableStatusChecker->isActivePublishedAt($object) &&
                 new \DateTimeImmutable() >= $publicationDate
             ) {
                 unset($data[$configuration->fieldName]);
@@ -149,7 +149,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
 
         // User doesn't have draft access: cannot set or change the publication date
-        if (!$this->publishableHelper->isGranted($type)) {
+        if (!$this->publishableStatusChecker->isGranted($type)) {
             unset($data[$configuration->fieldName]);
         }
 
@@ -193,7 +193,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableHelper->getAnnotationReader()->isConfigured($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAnnotationReader()->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

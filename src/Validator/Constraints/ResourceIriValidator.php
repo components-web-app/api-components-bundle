@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
+use Silverback\ApiComponentsBundle\Helper\Collection\ApiResourceRouteFinder;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
@@ -23,11 +23,11 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class ResourceIriValidator extends ConstraintValidator
 {
-    private CollectionHelper $converter;
+    private ApiResourceRouteFinder $resourceRouteFinder;
 
-    public function __construct(CollectionHelper $converter)
+    public function __construct(ApiResourceRouteFinder $resourceRouteFinder)
     {
-        $this->converter = $converter;
+        $this->resourceRouteFinder = $resourceRouteFinder;
     }
 
     /**
@@ -36,7 +36,7 @@ class ResourceIriValidator extends ConstraintValidator
     public function validate($iri, Constraint $constraint): void
     {
         try {
-            $this->converter->getRouterParametersFromIri((string) $iri);
+            $this->resourceRouteFinder->findByIri((string) $iri);
         } catch (InvalidArgumentException $e) {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $iri ?? 'null')

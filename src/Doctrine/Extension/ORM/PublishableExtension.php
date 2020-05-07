@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -28,14 +28,14 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 final class PublishableExtension implements QueryItemExtensionInterface, ContextAwareQueryCollectionExtensionInterface
 {
-    private PublishableHelper $publishableHelper;
+    private PublishableStatusChecker $publishableStatusChecker;
     private RequestStack $requestStack;
     private ManagerRegistry $registry;
     private ?Publishable $configuration = null;
 
-    public function __construct(PublishableHelper $publishableHelper, RequestStack $requestStack, ManagerRegistry $registry)
+    public function __construct(PublishableStatusChecker $publishableStatusChecker, RequestStack $requestStack, ManagerRegistry $registry)
     {
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableStatusChecker = $publishableStatusChecker;
         $this->requestStack = $requestStack;
         $this->registry = $registry;
     }
@@ -115,7 +115,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function isDraftRequest(string $resourceClass, array $context): bool
     {
-        return $this->publishableHelper->isGranted($resourceClass) && false === ($context['filters']['published'] ?? false);
+        return $this->publishableStatusChecker->isGranted($resourceClass) && false === ($context['filters']['published'] ?? false);
     }
 
     private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void
@@ -129,8 +129,8 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->configuration && ($this->publishableHelper->getAnnotationReader()->isConfigured($resourceClass))) {
-            $this->configuration = $this->publishableHelper->getAnnotationReader()->getConfiguration($resourceClass);
+        if (!$this->configuration && ($this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass))) {
+            $this->configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($resourceClass);
         }
 
         return $this->configuration;

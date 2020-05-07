@@ -17,7 +17,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
 /**
@@ -28,7 +28,7 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
     use ClassMetadataTrait;
 
     private TimestampedAnnotationReader $timestampedAnnotationReader;
-    private TimestampedHelper $timestampedHelper;
+    private TimestampedDataPersister $timestampedDataPersister;
     private string $formType;
     private string $dataClass;
 
@@ -41,11 +41,11 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
     public function init(
         ManagerRegistry $registry,
         TimestampedAnnotationReader $timestampedAnnotationReader,
-        TimestampedHelper $timestampedHelper
+        TimestampedDataPersister $timestampedDataPersister
     ): void {
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
-        $this->timestampedHelper = $timestampedHelper;
+        $this->timestampedDataPersister = $timestampedDataPersister;
     }
 
     public function __invoke(FormSuccessEvent $event)
@@ -62,7 +62,7 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
         }
 
         if ($this->timestampedAnnotationReader->isConfigured($data)) {
-            $this->timestampedHelper->persistTimestampedFields($data, true);
+            $this->timestampedDataPersister->persistTimestampedFields($data, true);
         }
 
         $entityManager->persist($data);

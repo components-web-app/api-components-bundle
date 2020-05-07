@@ -23,22 +23,22 @@ use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
  */
 final class PublishableListener
 {
-    private PublishableAnnotationReader $publishableHelper;
+    private PublishableAnnotationReader $publishableStatusChecker;
 
-    public function __construct(PublishableAnnotationReader $publishableHelper)
+    public function __construct(PublishableAnnotationReader $publishableStatusChecker)
     {
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableStatusChecker = $publishableStatusChecker;
     }
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
         /** @var ClassMetadataInfo $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        if (!$this->publishableHelper->isConfigured($metadata->getName())) {
+        if (!$this->publishableStatusChecker->isConfigured($metadata->getName())) {
             return;
         }
 
-        $configuration = $this->publishableHelper->getConfiguration($metadata->getName());
+        $configuration = $this->publishableStatusChecker->getConfiguration($metadata->getName());
 
         $em = $eventArgs->getObjectManager();
         if (!$em instanceof EntityManagerInterface) {

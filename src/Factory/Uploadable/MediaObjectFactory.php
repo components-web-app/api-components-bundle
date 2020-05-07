@@ -24,7 +24,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
@@ -39,7 +39,7 @@ class MediaObjectFactory
 {
     use ClassMetadataTrait;
 
-    private FileInfoCacheHelper $fileInfoCacheHelper;
+    private FileInfoCacheManager $fileInfoCacheManager;
     private UploadableAnnotationReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
@@ -48,10 +48,10 @@ class MediaObjectFactory
     private UrlHelper $urlHelper;
     private ?FilterService $filterService;
 
-    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheHelper $fileInfoCacheHelper, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
+    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheManager $fileInfoCacheManager, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
     {
         $this->initRegistry($managerRegistry);
-        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
+        $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
         $this->flysystemDataLoader = $flysystemDataLoader;
@@ -131,7 +131,7 @@ class MediaObjectFactory
         $mediaObject->contentUrl = $this->urlHelper->getAbsoluteUrl($contentUrl);
         $mediaObject->imagineFilter = null;
 
-        $fileInfo = $this->fileInfoCacheHelper->resolveCache($filename);
+        $fileInfo = $this->fileInfoCacheManager->resolveCache($filename);
         if ($fileInfo) {
             return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }
@@ -151,7 +151,7 @@ class MediaObjectFactory
         }
 
         $fileInfo = new FileInfo($filename, $mediaObject->mimeType, $mediaObject->fileSize, $mediaObject->width, $mediaObject->height);
-        $this->fileInfoCacheHelper->saveCache($fileInfo);
+        $this->fileInfoCacheManager->saveCache($fileInfo);
 
         return $mediaObject;
     }
@@ -162,7 +162,7 @@ class MediaObjectFactory
         $mediaObject->contentUrl = $contentUrl;
         $mediaObject->imagineFilter = $imagineFilter;
 
-        $fileInfo = $this->fileInfoCacheHelper->resolveCache($path, $imagineFilter);
+        $fileInfo = $this->fileInfoCacheManager->resolveCache($path, $imagineFilter);
         if ($fileInfo) {
             return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }

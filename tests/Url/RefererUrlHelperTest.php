@@ -17,7 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -27,12 +27,12 @@ class RefererUrlHelperTest extends TestCase
      * @var MockObject|RequestStack
      */
     private MockObject $requestStackMock;
-    private RefererUrlHelper $refererUrlHelper;
+    private RefererUrlResolver $refererUrlHelper;
 
     protected function setUp(): void
     {
         $this->requestStackMock = $this->createMock(RequestStack::class);
-        $this->refererUrlHelper = new RefererUrlHelper($this->requestStackMock);
+        $this->refererUrlHelper = new RefererUrlResolver($this->requestStackMock);
     }
 
     public function test_do_not_change_absolute_paths(): void

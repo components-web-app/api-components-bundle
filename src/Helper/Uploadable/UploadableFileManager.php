@@ -33,24 +33,24 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UploadableHelper
+class UploadableFileManager
 {
     use ClassMetadataTrait;
 
     private UploadableAnnotationReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
-    private FileInfoCacheHelper $fileInfoCacheHelper;
+    private FileInfoCacheManager $fileInfoCacheManager;
     private ?CacheManager $imagineCacheManager;
     private ?FilterService $filterService;
 
-    public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheHelper $fileInfoCacheHelper, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
+    public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;
         $this->flysystemDataLoader = $flysystemDataLoader;
-        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
+        $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
     }
@@ -178,7 +178,7 @@ class UploadableHelper
 
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-        $this->fileInfoCacheHelper->deleteCaches([$currentFilepath], [null]);
+        $this->fileInfoCacheManager->deleteCaches([$currentFilepath], [null]);
         if ($this->imagineCacheManager) {
             $this->imagineCacheManager->remove([$currentFilepath], null);
         }

@@ -15,12 +15,12 @@ namespace Silverback\ApiComponentsBundle\EventListener\Form;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 interface EntityPersistFormListenerInterface
 {
-    public function init(ManagerRegistry $registry, TimestampedAnnotationReader $timestampedAnnotationReader, TimestampedHelper $timestampedHelper): void;
+    public function init(ManagerRegistry $registry, TimestampedAnnotationReader $timestampedAnnotationReader, TimestampedDataPersister $timestampedDataPersister): void;
 }

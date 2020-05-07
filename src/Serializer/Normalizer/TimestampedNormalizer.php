@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -35,13 +35,13 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
     private const ALREADY_CALLED = 'TIMESTAMPED_NORMALIZER_ALREADY_CALLED';
 
     private TimestampedAnnotationReader $annotationReader;
-    private TimestampedHelper $timestampedHelper;
+    private TimestampedDataPersister $timestampedDataPersister;
 
-    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $annotationReader, TimestampedHelper $timestampedHelper)
+    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $annotationReader, TimestampedDataPersister $timestampedDataPersister)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
-        $this->timestampedHelper = $timestampedHelper;
+        $this->timestampedDataPersister = $timestampedDataPersister;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -61,7 +61,7 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
         $isNew = !isset($context[AbstractNormalizer::OBJECT_TO_POPULATE]);
 
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
-        $this->timestampedHelper->persistTimestampedFields($object, $isNew);
+        $this->timestampedDataPersister->persistTimestampedFields($object, $isNew);
 
         return $object;
     }

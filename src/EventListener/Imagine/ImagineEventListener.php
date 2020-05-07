@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Imagine;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 
 /**
  * This will listen to cache events in imagine bundle and persist the metadata to the database
@@ -29,11 +29,11 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheHelper;
  */
 class ImagineEventListener
 {
-    private FileInfoCacheHelper $fileInfoCacheHelper;
+    private FileInfoCacheManager $fileInfoCacheManager;
 
-    public function __construct(FileInfoCacheHelper $fileInfoCacheHelper)
+    public function __construct(FileInfoCacheManager $fileInfoCacheManager)
     {
-        $this->fileInfoCacheHelper = $fileInfoCacheHelper;
+        $this->fileInfoCacheManager = $fileInfoCacheManager;
     }
 
     public function onStore(ImagineStoreEvent $event): void
@@ -43,11 +43,11 @@ class ImagineEventListener
         $fileSize = \strlen($content);
 
         $fileInfo = new FileInfo($event->path, $event->binary->getMimeType(), $fileSize, $width, $height, $event->filter);
-        $this->fileInfoCacheHelper->saveCache($fileInfo);
+        $this->fileInfoCacheManager->saveCache($fileInfo);
     }
 
     public function onRemove(ImagineRemoveEvent $event): void
     {
-        $this->fileInfoCacheHelper->deleteCaches($event->paths, $event->filters);
+        $this->fileInfoCacheManager->deleteCaches($event->paths, $event->filters);
     }
 }
