@@ -43,3 +43,19 @@ Feature: Register process via a form
     }
     """
     And the JSON should be valid according to the schema file "user.schema.json"
+
+  Scenario: Submit an invalid user registration form
+    Given there is a "register" form
+    And there is a user with the username "user" password "password" and role "ROLE_USER"
+    When I send a "POST" request to the component "register_form" and the postfix "/submit" with body:
+    """
+    {
+      "user_register": {
+        "username": ""
+      }
+    }
+    """
+    And the response status code should be 400
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be valid according to the schema file "form.schema.json"
