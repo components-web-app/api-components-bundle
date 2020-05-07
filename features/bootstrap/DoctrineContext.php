@@ -92,8 +92,8 @@ final class DoctrineContext implements Context
         $user = new User();
         $user
             ->setRoles($roles)
-            ->setUsername('admin@admin.com')
-            ->setPassword('admin');
+            ->setUsername('user@example.com')
+            ->setPassword('password');
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();

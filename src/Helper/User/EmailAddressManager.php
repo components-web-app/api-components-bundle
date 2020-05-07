@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Manager\User;
+namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;

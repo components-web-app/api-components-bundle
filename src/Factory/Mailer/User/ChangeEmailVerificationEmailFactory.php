@@ -22,6 +22,8 @@ use Symfony\Component\Mime\RawMessage;
  */
 final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 {
+    public const MESSAGE_ID_PREFIX = 'cev';
+
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
         if (!$this->enabled) {

@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Url;
+namespace Silverback\ApiComponentsBundle\Tests\Helper;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-class RefererUrlHelperTest extends TestCase
+class RefererUrlResolverTest extends TestCase
 {
     /**
      * @var MockObject|RequestStack
@@ -54,7 +54,7 @@ class RefererUrlHelperTest extends TestCase
 
     public function test_error_thrown_when_no_accepted_headers(): void
     {
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('To generate an absolute URL to the referrer, the request must have a `origin` or `referer` header present');
         $this->requestStackMock
             ->expects($this->once())
@@ -88,12 +88,40 @@ class RefererUrlHelperTest extends TestCase
         $this->assertEquals('https://www.example.com/path-to-convert', $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert'));
     }
 
+    public function test_error_thrown_when_invalid_scheme_in_origin_header(): void
+    {
+        $request = new Request();
+        $request->headers->set('origin', 'invalid-scheme.com:90/path');
+
+        $this->expectException(UnparseableRequestHeaderException::class);
+        $this->expectExceptionMessage('Could not extract `scheme` while parsing the `origin` header');
+        $this->requestStackMock
+            ->expects($this->once())
+            ->method('getMasterRequest')
+            ->willReturn($request);
+        $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
+    }
+
+    public function test_error_thrown_when_invalid_host_in_origin_header(): void
+    {
+        $request = new Request();
+        $request->headers->set('origin', 'http:///path');
+
+        $this->expectException(UnparseableRequestHeaderException::class);
+        $this->expectExceptionMessage('Could not extract `host` while parsing the `origin` header');
+        $this->requestStackMock
+            ->expects($this->once())
+            ->method('getMasterRequest')
+            ->willReturn($request);
+        $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
+    }
+
     public function test_error_thrown_when_invalid_scheme_in_referer_header(): void
     {
         $request = new Request();
         $request->headers->set('referer', 'invalid-scheme.com:90/path');
 
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `scheme` while parsing the `referer` header');
         $this->requestStackMock
             ->expects($this->once())
@@ -107,7 +135,7 @@ class RefererUrlHelperTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'http:///path');
 
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `host` while parsing the `referer` header');
         $this->requestStackMock
             ->expects($this->once())
@@ -121,7 +149,7 @@ class RefererUrlHelperTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', '');
 
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `host` while parsing the `referer` header');
         $this->requestStackMock
             ->expects($this->once())
@@ -135,7 +163,7 @@ class RefererUrlHelperTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'https://:90/abc');
 
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(UnparseableRequestHeaderException::class);
         $this->requestStackMock
             ->expects($this->once())
             ->method('getMasterRequest')

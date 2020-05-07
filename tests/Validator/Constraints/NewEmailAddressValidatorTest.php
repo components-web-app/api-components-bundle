@@ -114,7 +114,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->repositoryMock
             ->expects($this->once())
             ->method('findOneBy')
-            ->with(['email_address' => 'new@email.com'])
+            ->with(['emailAddress' => 'new@email.com'])
             ->willReturn($dummyUser);
 
         $constraint = new NewEmailAddress();
@@ -145,7 +145,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->repositoryMock
             ->expects($this->once())
             ->method('findOneBy')
-            ->with(['email_address' => 'new@email.com'])
+            ->with(['emailAddress' => 'new@email.com'])
             ->willReturn(null);
 
         $constraint = new NewEmailAddress();

@@ -21,6 +21,8 @@ use Symfony\Component\Mime\RawMessage;
  */
 final class UserEnabledEmailFactory extends AbstractUserEmailFactory
 {
+    public const MESSAGE_ID_PREFIX = 'uee';
+
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
         if (!$this->enabled) {

@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Silverback\ApiComponentsBundle\Action\AbstractAction;
 use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Serializer\SerializerInterface;
 

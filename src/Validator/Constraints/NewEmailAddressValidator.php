@@ -48,7 +48,7 @@ class NewEmailAddressValidator extends ConstraintValidator
             return;
         }
 
-        if ($this->userRepository->findOneBy(['email_address' => $user->getNewEmailAddress()])) {
+        if ($this->userRepository->findOneBy(['emailAddress' => $user->getNewEmailAddress()])) {
             $this->context->buildViolation($constraint->uniqueMessage)
                 ->addViolation();
 

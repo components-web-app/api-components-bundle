@@ -65,7 +65,7 @@ class NewEmailAddressType extends AbstractType
                 'novalidate' => 'novalidate',
             ],
             'data_class' => $this->userClass,
-            'validation_groups' => ['new_email_address'],
+            'validation_groups' => ['User:emailAddress'],
             'empty_data' => $this->security->getUser(),
         ]);
     }

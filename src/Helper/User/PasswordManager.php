@@ -11,13 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Manager\User;
+namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Mailer\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;

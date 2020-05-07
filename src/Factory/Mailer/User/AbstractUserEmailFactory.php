@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -35,6 +36,8 @@ use Twig\Environment;
  */
 abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
+    protected const MESSAGE_ID_PREFIX = 'no-id';
+
     protected ContainerInterface $container;
     private EventDispatcherInterface $eventDispatcher;
     protected string $subject;
@@ -120,6 +123,8 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
         $event = new UserEmailMessageEvent(static::class, $email);
         $this->eventDispatcher->dispatch($event);
+
+        $email->getHeaders()->addTextHeader('X-Message-ID', sprintf('%s-%s', static::MESSAGE_ID_PREFIX, TokenGenerator::generateToken()));
 
         return $event->getEmail();
     }

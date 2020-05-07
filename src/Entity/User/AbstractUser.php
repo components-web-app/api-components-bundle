@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Silverback\Timestamped
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
- * @AcbAssert\NewEmailAddress(groups={"new_email_address", "Default"})
+ * @AcbAssert\NewEmailAddress(groups={"User:emailAddress", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 {
@@ -101,8 +101,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?DateTime $passwordLastUpdated = null;
 
     /**
-     * @Assert\NotBlank(groups={"new_email_address"})
-     * @Groups({"User:input", "User:output", "new_email_address"})
+     * @Assert\NotBlank(groups={"User:emailAddress"})
+     * @Groups({"User:input", "User:output", "User:emailAddress"})
      */
     protected ?string $newEmailAddress = null;
 

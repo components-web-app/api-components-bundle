@@ -18,9 +18,8 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
-use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListenerInterface;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
@@ -35,8 +34,8 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
-use Silverback\ApiComponentsBundle\Mailer\UserMailer;
-use Silverback\ApiComponentsBundle\Manager\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
@@ -242,6 +241,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                         'type' => 'header',
                     ],
                 ],
+            ],
+            'exception_to_status' => [
+                UnparseableRequestHeaderException::class => 400,
             ],
         ]);
     }

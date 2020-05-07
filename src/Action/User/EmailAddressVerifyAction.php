@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Silverback\ApiComponentsBundle\Action\AbstractAction;
 use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
+use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
