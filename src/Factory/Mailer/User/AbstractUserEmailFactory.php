@@ -89,7 +89,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $this->user = $user;
     }
 
-    protected function createEmailMessage(array $context = []): ?TemplatedEmail
+    protected function createEmailMessage(array $context = [], ?string $toEmail = null): ?TemplatedEmail
     {
         if (!$this->enabled) {
             return null;
@@ -100,7 +100,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         }
 
         try {
-            $toEmailAddress = Address::fromString((string) $this->user->getEmailAddress());
+            $toEmailAddress = Address::fromString($toEmail ?? (string) $this->user->getEmailAddress());
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;

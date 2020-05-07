@@ -13,7 +13,7 @@ Feature: Register process via a form
     """
     {
       "user_register": {
-        "username": "user@email.com",
+        "username": "user@example.com",
         "plainPassword": {
           "first": "password",
           "second": "password"
@@ -29,19 +29,20 @@ Feature: Register process via a form
     {
         "@context": "/contexts/User",
         "@type": "User",
-        "username": "user@email.com",
-        "emailAddress": "user@email.com",
+        "username": "user@example.com",
+        "emailAddress": "user@example.com",
         "roles": [
             "ROLE_USER"
         ],
         "enabled": true,
-        "newEmailAddress": "user@email.com",
+        "newEmailAddress": "user@example.com",
         "_metadata": {
           "persisted": true
         }
     }
     """
     And the JSON should be valid according to the schema file "user.schema.json"
+    And I should get a "user_welcome" email sent
 
   Scenario: Submit a duplicate user registration form
     Given there is a "register" form

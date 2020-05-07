@@ -17,6 +17,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -47,7 +48,7 @@ class PasswordManager
     {
         $user = $this->userRepository->findOneBy(['username' => $usernameQuery]);
         if (!$user) {
-            throw new NotFoundHttpException();
+            throw new UnexpectedValueException('Username not found');
         }
 
         if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {

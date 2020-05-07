@@ -410,9 +410,6 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PasswordRequestAction::class)
         ->args($passwordActionArgs = [
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(ResponseFactory::class),
             new Reference(PasswordManager::class),
         ])
         ->tag('controller.service_arguments');

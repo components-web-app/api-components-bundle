@@ -25,7 +25,7 @@ Feature: Register process via a form
     And the JSON node "newEmailAddress" should be equal to "new@example.com"
     And the JSON node "emailAddress" should be equal to "user@example.com"
     And the JSON node "newEmailVerificationToken" should not exist
-    And I should get a change_email_verification email sent
+    And I should get a "change_email_verification" email sent to the email address "new@example.com"
     Examples:
       | headerName | headerValue             |
       | origin     | http://www.website.com  |

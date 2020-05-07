@@ -39,7 +39,7 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
         $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
 
-        return $this->createEmailMessage($context);
+        return $this->createEmailMessage($context, $user->getNewEmailAddress());
     }
 
     protected static function getContextKeys(): ?array

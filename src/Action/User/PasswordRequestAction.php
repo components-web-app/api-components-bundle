@@ -13,23 +13,31 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Action\User;
 
+use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
+use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PasswordRequestAction extends AbstractPasswordAction
+class PasswordRequestAction
 {
-    public function __invoke(Request $request, string $username): Response
+    private PasswordManager $passwordManager;
+
+    public function __construct(PasswordManager $passwordManager)
+    {
+        $this->passwordManager = $passwordManager;
+    }
+
+    public function __invoke(Request $request, string $username)
     {
         try {
             $this->passwordManager->requestResetEmail($username);
-        } catch (NotFoundHttpException $exception) {
-            return $this->responseFactory->create($request, null, Response::HTTP_NOT_FOUND);
-        }
 
-        return $this->responseFactory->create($request);
+            return new Response(null, Response::HTTP_OK);
+        } catch (UnexpectedValueException $e) {
+            return new Response(null, Response::HTTP_NOT_FOUND);
+        }
     }
 }
