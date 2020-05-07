@@ -18,6 +18,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\BrowserKit\AbstractBrowser;
@@ -70,9 +71,29 @@ class ProfilerContext implements Context
 
         /** @var Headers $headers */
         $headers = $email->getHeaders();
+
         Assert::assertEquals('user@example.com', $headers->get('to')->getBodyAsString());
         Assert::assertEquals('test@website.com', $headers->get('from')->getBodyAsString());
+
+        switch ($emailType) {
+            case 'change_email_verification':
+                $this->validateChangeEmailVerification($headers);
+                break;
+            case 'change_password_notification':
+                $this->validateChangePasswordNotification($headers);
+                break;
+        }
+    }
+
+    private function validateChangeEmailVerification(Headers $headers): void
+    {
         Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+    }
+
+    private function validateChangePasswordNotification(Headers $headers): void
+    {
+        Assert::assertEquals('Your password has been changed', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(PasswordChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 }

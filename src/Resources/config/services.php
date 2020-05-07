@@ -53,6 +53,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\User\ChangePasswordListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
@@ -171,6 +172,11 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(RouterInterface::class),
         ]);
+
+    $services
+        ->set(ChangePasswordListener::class)
+        ->parent(EntityPersistFormListener::class)
+        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
         ->set(CollectionOutputDataTransformer::class)

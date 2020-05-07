@@ -24,7 +24,9 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
@@ -36,6 +38,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 final class DoctrineContext implements Context
 {
@@ -48,6 +51,7 @@ final class DoctrineContext implements Context
     private TimestampedDataPersister $timestampedHelper;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
+    private UserPasswordEncoderInterface $passwordEncoder;
     private array $classes;
 
     /**
@@ -57,7 +61,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -66,6 +70,7 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -216,7 +221,7 @@ final class DoctrineContext implements Context
     /**
      * @Then the component :name should not exist
      */
-    public function theComponentShouldNotExist(string $name)
+    public function theComponentShouldNotExist(string $name): void
     {
         $this->manager->clear();
         try {
@@ -230,7 +235,7 @@ final class DoctrineContext implements Context
     /**
      * @Then the component :name should exist
      */
-    public function theComponentShouldExist(string $name)
+    public function theComponentShouldExist(string $name): void
     {
         $this->manager->clear();
         try {
@@ -239,5 +244,18 @@ final class DoctrineContext implements Context
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
+    }
+
+    /**
+     * @Then the password should be :password for username :username
+     */
+    public function thePasswordShouldBeEqualTo(string $password, string $username): void
+    {
+        $repository = $this->manager->getRepository(User::class);
+        /** @var AbstractUser $user */
+        $user = $repository->findOneBy([
+            'username' => $username,
+        ]);
+        Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
     }
 }
