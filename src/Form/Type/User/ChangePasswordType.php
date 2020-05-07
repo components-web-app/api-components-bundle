@@ -58,7 +58,7 @@ class ChangePasswordType extends AbstractType
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'invalid_message' => 'The passwords you entered are not the same',
+                'invalid_message' => 'The passwords you entered are not the same.',
                 'first_options' => [
                     'label' => 'Password',
                     'attr' => ['autocomplete' => 'new-password'],
@@ -78,7 +78,7 @@ class ChangePasswordType extends AbstractType
                 'novalidate' => 'novalidate',
             ],
             'data_class' => $this->userClass,
-            'validation_groups' => ['User:password'],
+            'validation_groups' => ['User:password:create', 'User:password:change'],
             'empty_data' => $this->security->getUser(),
         ]);
     }
