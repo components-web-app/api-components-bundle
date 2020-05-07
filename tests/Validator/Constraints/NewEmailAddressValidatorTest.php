@@ -93,6 +93,12 @@ class NewEmailAddressValidatorTest extends TestCase
 
         $this->constraintViolationBuilderMock
             ->expects($this->once())
+            ->method('atPath')
+            ->with('newEmailAddress')
+            ->willReturn($this->constraintViolationBuilderMock);
+
+        $this->constraintViolationBuilderMock
+            ->expects($this->once())
             ->method('addViolation')
             ->willReturn(null);
 
@@ -123,6 +129,12 @@ class NewEmailAddressValidatorTest extends TestCase
             ->expects($this->once())
             ->method('buildViolation')
             ->with($constraint->uniqueMessage)
+            ->willReturn($this->constraintViolationBuilderMock);
+
+        $this->constraintViolationBuilderMock
+            ->expects($this->once())
+            ->method('atPath')
+            ->with('newEmailAddress')
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock

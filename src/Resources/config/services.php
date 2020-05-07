@@ -370,7 +370,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(NewEmailAddressValidator::class)
         ->args([
-            new Reference(ManagerRegistry::class),
+            new Reference(UserRepository::class),
         ])
         ->tag('validator.constraint_validator');
 
