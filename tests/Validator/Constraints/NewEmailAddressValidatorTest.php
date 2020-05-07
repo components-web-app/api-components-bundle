@@ -88,7 +88,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->executionContextMock
             ->expects($this->once())
             ->method('buildViolation')
-            ->with($constraint->differentMessage)
+            ->with($constraint->message)
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock

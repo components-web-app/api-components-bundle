@@ -31,6 +31,9 @@ class NewEmailAddressValidator extends ConstraintValidator
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @param NewEmailAddress $constraint
+     */
     public function validate($user, Constraint $constraint): void
     {
         if (!$user instanceof AbstractUser) {
@@ -42,14 +45,16 @@ class NewEmailAddressValidator extends ConstraintValidator
         }
 
         if ($user->getNewEmailAddress() === $user->getEmailAddress()) {
-            $this->context->buildViolation($constraint->differentMessage)
+            $this->context->buildViolation($constraint->message)
+                ->atPath($constraint->errorPath)
                 ->addViolation();
 
             return;
         }
 
-        if ($this->userRepository->findOneBy(['emailAddress' => $user->getNewEmailAddress()])) {
+        if ($this->userRepository->findOneBy([$constraint->emailAddressField => $user->getNewEmailAddress()])) {
             $this->context->buildViolation($constraint->uniqueMessage)
+                ->atPath($constraint->errorPath)
                 ->addViolation();
 
             return;

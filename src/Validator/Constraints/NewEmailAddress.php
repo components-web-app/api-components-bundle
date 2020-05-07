@@ -20,8 +20,10 @@ use Symfony\Component\Validator\Constraint;
  */
 class NewEmailAddress extends Constraint
 {
-    public string $differentMessage = 'Your new username should be different';
-    public string $uniqueMessage = 'Someone else is already registered with that email address';
+    public string $emailAddressField = 'newEmailAddress';
+    public string $errorPath = 'newEmailAddress';
+    public string $message = 'Your new email address should be different.';
+    public string $uniqueMessage = 'Someone else is already registered with that email address.';
 
     public function getTargets()
     {
