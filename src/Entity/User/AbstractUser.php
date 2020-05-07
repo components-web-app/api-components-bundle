@@ -41,7 +41,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(groups={"Default"})
+     * @Assert\NotBlank(groups={"Default"}, message="Please enter a username.")
      * @Groups({"User:super_admin", "User:output"})
      */
     protected ?string $username;
@@ -70,8 +70,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @ApiProperty(readable=false)
-     * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
-     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
+     * @Assert\NotBlank(message="Please enter your desired password.", groups={"User:password"})
+     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long.", groups={"Default", "password_reset", "change_password"})
      * @Groups({"User:input"})
      */
     protected ?string $plainPassword = null;

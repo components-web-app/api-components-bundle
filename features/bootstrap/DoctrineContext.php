@@ -25,6 +25,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -133,6 +134,9 @@ final class DoctrineContext implements Context
     {
         $form = new Form();
         switch ($type) {
+            case 'new_email':
+                $form->formType = NewEmailAddressType::class;
+                break;
             case 'register':
                 $form->formType = UserRegisterType::class;
                 break;

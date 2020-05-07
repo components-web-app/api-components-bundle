@@ -78,7 +78,7 @@ class ChangePasswordType extends AbstractType
                 'novalidate' => 'novalidate',
             ],
             'data_class' => $this->userClass,
-            'validation_groups' => ['change_password'],
+            'validation_groups' => ['User:password'],
             'empty_data' => $this->security->getUser(),
         ]);
     }

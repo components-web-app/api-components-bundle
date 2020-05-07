@@ -7,8 +7,8 @@ Feature: Register process via a form
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
-  Scenario: Submit a user registration form
-    Given there is a "register" form
+  Scenario: Submit a successful change email request
+    Given there is a "new_email" form
     And there is a user with the username "user" password "password" and role "ROLE_USER"
     When I send a "POST" request to the component "register_form" and the postfix "/submit" with body:
     """
@@ -44,8 +44,8 @@ Feature: Register process via a form
     """
     And the JSON should be valid according to the schema file "user.schema.json"
 
-  Scenario: Submit an invalid user registration form
-    Given there is a "register" form
+  Scenario: Submit an invalid change email request
+    Given there is a "new_email" form
     And there is a user with the username "user" password "password" and role "ROLE_USER"
     When I send a "POST" request to the component "register_form" and the postfix "/submit" with body:
     """

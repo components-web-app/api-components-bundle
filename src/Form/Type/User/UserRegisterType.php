@@ -78,6 +78,7 @@ class UserRegisterType extends AbstractType
             ],
             'data_class' => $this->userClass,
             'empty_data' => $user,
+            'validation_groups' => ['Default', 'User:password'],
         ]);
     }
 }
