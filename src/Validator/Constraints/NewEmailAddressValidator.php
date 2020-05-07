@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -24,11 +25,11 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
  */
 class NewEmailAddressValidator extends ConstraintValidator
 {
-    private UserRepository $userRepository;
+    use ClassMetadataTrait;
 
-    public function __construct(UserRepository $userRepository)
+    public function __construct(ManagerRegistry $registry)
     {
-        $this->userRepository = $userRepository;
+        $this->initRegistry($registry);
     }
 
     /**
@@ -36,25 +37,29 @@ class NewEmailAddressValidator extends ConstraintValidator
      */
     public function validate($user, Constraint $constraint): void
     {
-        if (!$user instanceof AbstractUser) {
+        if (!$manager = $this->registry->getManagerForClass($userClass = \get_class($user))) {
             throw new UnexpectedTypeException($user, AbstractUser::class);
         }
 
-        if (!$user->getNewEmailAddress()) {
+        $classMetadata = $this->getClassMetadata($user);
+
+        if (!$newEmailAddress = $classMetadata->getFieldValue($user, $constraint->newEmailAddressField)) {
             return;
         }
 
-        if ($user->getNewEmailAddress() === $user->getEmailAddress()) {
+        if ($newEmailAddress === $classMetadata->getFieldValue($user, $constraint->emailAddressField)) {
             $this->context->buildViolation($constraint->message)
-                ->atPath($constraint->errorPath)
+                ->atPath($constraint->newEmailAddressField)
                 ->addViolation();
 
             return;
         }
 
-        if ($this->userRepository->findOneBy([$constraint->emailAddressField => $user->getNewEmailAddress()])) {
+        $userRepository = $manager->getRepository($userClass);
+
+        if ($userRepository->findOneBy([$constraint->emailAddressField => $newEmailAddress])) {
             $this->context->buildViolation($constraint->uniqueMessage)
-                ->atPath($constraint->errorPath)
+                ->atPath($constraint->newEmailAddressField)
                 ->addViolation();
 
             return;
