@@ -31,11 +31,13 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
     private TimestampedDataPersister $timestampedDataPersister;
     private string $formType;
     private string $dataClass;
+    private bool $returnFormDataOnSuccess;
 
-    public function __construct(string $formType, string $dataClass)
+    public function __construct(string $formType, string $dataClass, bool $returnFormDataOnSuccess = true)
     {
         $this->formType = $formType;
         $this->dataClass = $dataClass;
+        $this->returnFormDataOnSuccess = $returnFormDataOnSuccess;
     }
 
     public function init(
@@ -67,6 +69,9 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
 
         $entityManager->persist($data);
         $entityManager->flush();
-        $event->result = $data;
+
+        if ($this->returnFormDataOnSuccess) {
+            $event->result = $data;
+        }
     }
 }

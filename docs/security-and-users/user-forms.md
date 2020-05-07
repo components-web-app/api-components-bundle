@@ -12,14 +12,56 @@ To solve this we have pre-made Symfony forms that you can use in a [Form compone
 
 If you need additional fields, you can extend these forms to fit your requirements.
 
-#### Register form
+> **All forms will return the `User` object on successful submission.**
+
+### Register form
 
 Form Type: `Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType`
 
-#### New email address form
+#### Example expected POST:
+
+```json
+{
+  "user_register": {
+    "username": "user@email.com",
+    "plainPassword": {
+      "first": "password",
+      "second": "password"
+    }
+  }
+}
+```
+
+### New email address form
 
 Form Type: `Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType`
 
-#### Change password form
+#### Example expected POST:
+
+```json
+{
+  "new_email_address": {
+    "newEmailAddress": "new@example.com"
+  }
+}
+```
+
+### Change password form
 
 Form Type: `Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType`
+
+#### Example expected POST:
+
+```json
+{
+  "change_password": {
+    "oldPassword": "password",
+    "plainPassword": {
+      "first": "new_password",
+      "second": "new_password"
+    }
+  }
+}
+```
+
+> **The form also includes a read-only/disabled `username` field so you can display it in the form to your user. (alpha - this may be removed in future. It will not be if it is still present in beta.)**
