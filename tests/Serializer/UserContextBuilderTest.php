@@ -129,6 +129,6 @@ class UserContextBuilderTest extends TestCase
             ->with('ROLE_SUPER_ADMIN')
             ->willReturn(true);
 
-        $this->assertEquals(['groups' => ['User:input', 'User:super_admin'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
+        $this->assertEquals(['groups' => ['User:input', 'User:superAdmin'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
     }
 }

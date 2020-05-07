@@ -20,6 +20,8 @@ use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -78,6 +80,12 @@ class ProfilerContext implements Context
         Assert::assertEquals('test@website.com', $headers->get('from')->getBodyAsString());
 
         switch ($emailType) {
+            case 'username_changed_notification':
+                $this->usernameChangedNotification($headers);
+                break;
+            case 'enabled_notification':
+                $this->validateEnabledNotification($headers);
+                break;
             case 'custom_change_email_verification':
                 $this->validateChangeEmailVerification($context, $headers, true);
                 break;
@@ -99,6 +107,18 @@ class ProfilerContext implements Context
             default:
                 throw new \InvalidArgumentException(sprintf('The email type %s is not configured to test', $emailType));
         }
+    }
+
+    private function usernameChangedNotification(Headers $headers): void
+    {
+        Assert::assertEquals('Your username has been updated', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(UsernameChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+    }
+
+    private function validateEnabledNotification(Headers $headers): void
+    {
+        Assert::assertEquals('Your account has been enabled', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(UserEnabledEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 
     private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false): void

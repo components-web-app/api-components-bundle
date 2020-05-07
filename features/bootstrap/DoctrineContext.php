@@ -107,6 +107,15 @@ final class DoctrineContext implements Context
 
         $token = $this->jwtManager->create($user);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->restContext->components['login_user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @BeforeScenario @loginSuperAdmin
+     */
+    public function loginSuperAdmin(BeforeScenarioScope $scope): void
+    {
+        $this->login(['ROLE_SUPER_ADMIN']);
     }
 
     /**
@@ -174,7 +183,8 @@ final class DoctrineContext implements Context
             ->setUsername($username)
             ->setEmailAddress('test.user@example.com')
             ->setPassword($password)
-            ->setRoles([$role]);
+            ->setRoles([$role])
+            ->setEnabled(false);
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();

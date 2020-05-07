@@ -42,24 +42,24 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @Assert\NotBlank(groups={"Default"}, message="Please enter a username.")
-     * @Groups({"User:super_admin", "User:output"})
+     * @Groups({"User:superAdmin", "User:output"})
      */
     protected ?string $username;
 
     /**
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"User:super_admin", "User:output"})
+     * @Groups({"User:superAdmin", "User:output"})
      */
     protected ?string $emailAddress;
 
     /**
-     * @Groups({"User:super_admin"})
+     * @Groups({"User:superAdmin"})
      */
     protected array $roles;
 
     /**
-     * @Groups({"User:super_admin"})
+     * @Groups({"User:superAdmin"})
      */
     protected bool $enabled;
 

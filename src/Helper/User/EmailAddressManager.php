@@ -38,6 +38,8 @@ class EmailAddressManager
             throw new NotFoundHttpException();
         }
 
+        // Check if another user now exists with this new email address before persisting!
+
         $user
             ->setEmailAddress($user->getNewEmailAddress())
             ->setNewEmailAddress(null)

@@ -46,7 +46,7 @@ class NewEmailAddressValidator extends ConstraintValidator
             return;
         }
 
-        if ($user->getNewEmailAddress() === $user->getEmailAddress()) {
+        if ($user->isEmailAddressVerified() && $user->getNewEmailAddress() === $user->getEmailAddress()) {
             $this->context->buildViolation($constraint->message)
                 ->atPath('newEmailAddress')
                 ->addViolation();
@@ -54,7 +54,7 @@ class NewEmailAddressValidator extends ConstraintValidator
             return;
         }
 
-        if ($this->userRepository->findOneBy(['emailAddress' => $user->getNewEmailAddress()])) {
+        if ($this->userRepository->findExistingUserByNewEmail($user->getNewEmailAddress())) {
             $this->context->buildViolation($constraint->uniqueMessage)
                 ->atPath('newEmailAddress')
                 ->addViolation();
