@@ -48,7 +48,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
                 'user' => $user,
             ]);
 
-        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), WelcomeEmailFactory::MESSAGE_ID_PREFIX);
     }
 
     public function test_redirect_url_context_added_and_html_template_passed_with_token(): void
@@ -74,6 +74,6 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
                 'redirect_url' => '/transformed-path',
             ]);
 
-        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), WelcomeEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

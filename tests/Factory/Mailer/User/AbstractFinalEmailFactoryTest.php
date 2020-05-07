@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -22,7 +21,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
-abstract class AbstractFinalEmailFactoryTest extends TestCase
+abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
 {
     /**
      * @var MockObject|ContainerInterface

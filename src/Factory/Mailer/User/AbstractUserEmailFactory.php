@@ -36,7 +36,7 @@ use Twig\Environment;
  */
 abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
-    protected const MESSAGE_ID_PREFIX = 'no-id';
+    public const MESSAGE_ID_PREFIX = 'xx';
 
     protected ContainerInterface $container;
     private EventDispatcherInterface $eventDispatcher;
