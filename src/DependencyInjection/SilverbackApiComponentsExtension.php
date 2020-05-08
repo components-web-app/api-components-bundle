@@ -18,7 +18,6 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
@@ -35,6 +34,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
@@ -107,7 +107,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $emailVerificationConfig['deny_unverified_login']);
 
-        $definition = $container->getDefinition(UserListener::class);
+        $definition = $container->getDefinition(UserChangesProcessor::class);
         $definition->setArgument('$initialEmailVerifiedState', $emailVerificationConfig['default_value']);
         $definition->setArgument('$verifyEmailOnRegister', $emailVerificationConfig['verify_on_register']);
         $definition->setArgument('$verifyEmailOnChange', $emailVerificationConfig['verify_on_change']);

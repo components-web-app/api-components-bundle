@@ -6,6 +6,7 @@ Feature: Register process via a form
   Background:
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
+    And I add "referer" header equal to "http://www.website.com"
 
   Scenario: Submit a user registration form
     Given there is a "register" form

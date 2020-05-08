@@ -15,20 +15,29 @@ namespace Silverback\ApiComponentsBundle\EventListener\Form;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class EntityPersistFormListener implements EntityPersistFormListenerInterface
+abstract class EntityPersistFormListener
 {
     use ClassMetadataTrait;
 
-    private TimestampedAnnotationReader $timestampedAnnotationReader;
-    private TimestampedDataPersister $timestampedDataPersister;
+    private ?TimestampedAnnotationReader $timestampedAnnotationReader;
+    private ?TimestampedDataPersister $timestampedDataPersister;
+    private ?UserEventListener $userEventListener;
+    /** @var NormalizerInterface|DenormalizerInterface|null */
+    private ?NormalizerInterface $normalizer;
+    private ?UserChangesProcessor $userChangesProcessor;
     private string $formType;
     private string $dataClass;
     private bool $returnFormDataOnSuccess;
@@ -43,11 +52,20 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
     public function init(
         ManagerRegistry $registry,
         TimestampedAnnotationReader $timestampedAnnotationReader,
-        TimestampedDataPersister $timestampedDataPersister
+        TimestampedDataPersister $timestampedDataPersister,
+        UserEventListener $userEventListener,
+        NormalizerInterface $normalizer,
+        UserChangesProcessor $userChangesProcessor
     ): void {
+        if (!$normalizer instanceof DenormalizerInterface) {
+            throw new InvalidArgumentException(sprintf('$normalizer must also implement %s', DenormalizerInterface::class));
+        }
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
         $this->timestampedDataPersister = $timestampedDataPersister;
+        $this->userEventListener = $userEventListener;
+        $this->normalizer = $normalizer;
+        $this->userChangesProcessor = $userChangesProcessor;
     }
 
     public function __invoke(FormSuccessEvent $event)
@@ -65,6 +83,20 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
 
         if ($this->timestampedAnnotationReader->isConfigured($data)) {
             $this->timestampedDataPersister->persistTimestampedFields($data, true);
+        }
+
+        if ($data instanceof AbstractUser) {
+            $uow = $entityManager->getUnitOfWork();
+            $oldData = $uow->getOriginalEntityData($data);
+            $oldUser = null;
+            if ($isUpdate = \count($oldData)) {
+                $normalized = $this->normalizer->normalize($oldData);
+                /** @var AbstractUser $oldUser */
+                $oldUser = $this->normalizer->denormalize($normalized, \get_class($data));
+            }
+
+            $this->userChangesProcessor->processChanges($data, $oldUser);
+            $this->userEventListener->postWrite($data, $oldUser, !$isUpdate);
         }
 
         $entityManager->persist($data);

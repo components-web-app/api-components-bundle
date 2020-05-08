@@ -99,7 +99,9 @@ final class DoctrineContext implements Context
         $user
             ->setRoles($roles)
             ->setUsername('user@example.com')
-            ->setPlainPassword('password');
+            ->setPassword($this->passwordEncoder->encodePassword($user, 'password'))
+            ->setEnabled(true)
+            ->setEmailAddressVerified(true);
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
@@ -182,7 +184,7 @@ final class DoctrineContext implements Context
         $user
             ->setUsername($username)
             ->setEmailAddress('test.user@example.com')
-            ->setPassword($password)
+            ->setPassword($this->passwordEncoder->encodePassword($user, $password))
             ->setRoles([$role])
             ->setEnabled(false);
         $this->timestampedHelper->persistTimestampedFields($user, true);

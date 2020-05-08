@@ -106,6 +106,20 @@ class NewEmailAddressValidatorTest extends TestCase
 
         $dummyUser = new class() extends AbstractUser {
         };
+        // current email is verified
+        $dummyUser->setEmailAddressVerified(true);
+        $dummyUser
+            ->setEmailAddress('old@email.com')
+            ->setNewEmailAddress('old@email.com');
+        $this->newEmailAddressValidator->validate($dummyUser, $constraint);
+
+        $this->repositoryMock
+            ->expects($this->once())
+            ->method('findExistingUserByNewEmail')
+            ->with($dummyUser)
+            ->willReturn(null);
+
+        $dummyUser->setEmailAddressVerified(false);
         $dummyUser
             ->setEmailAddress('old@email.com')
             ->setNewEmailAddress('old@email.com');
@@ -119,8 +133,8 @@ class NewEmailAddressValidatorTest extends TestCase
 
         $this->repositoryMock
             ->expects($this->once())
-            ->method('findOneBy')
-            ->with(['emailAddress' => 'new@email.com'])
+            ->method('findExistingUserByNewEmail')
+            ->with($dummyUser)
             ->willReturn($dummyUser);
 
         $constraint = new NewEmailAddress();
@@ -156,8 +170,8 @@ class NewEmailAddressValidatorTest extends TestCase
 
         $this->repositoryMock
             ->expects($this->once())
-            ->method('findOneBy')
-            ->with(['emailAddress' => 'new@email.com'])
+            ->method('findExistingUserByNewEmail')
+            ->with($dummyUser)
             ->willReturn(null);
 
         $constraint = new NewEmailAddress();

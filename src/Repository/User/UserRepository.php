@@ -90,14 +90,15 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getOneOrNullResult();
     }
 
-    public function findExistingUserByNewEmail(string $newEmailAddress): ?AbstractUser
+    public function findExistingUserByNewEmail(AbstractUser $user): ?AbstractUser
     {
         $queryBuilder = $this->createQueryBuilder('u');
-
+        $expr = $queryBuilder->expr();
         $queryBuilder
-            ->andWhere('u.emailAddress = :email_address')
-            ->andWhere('u.emailAddress != u.newEmailAddress')
-            ->setParameter('email_address', $newEmailAddress);
+            ->andWhere($expr->eq('u.emailAddress', ':email_address'))
+            ->andWhere($expr->neq('u', ':user'))
+            ->setParameter('email_address', $user->getNewEmailAddress())
+            ->setParameter('user', $user, $this->getClassMetadata()->getTypeOfField('id'));
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }

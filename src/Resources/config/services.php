@@ -41,17 +41,16 @@ use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\PageTemplateOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
-use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\UserListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\ChangePasswordListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
@@ -85,6 +84,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
+use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
@@ -103,6 +103,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -220,6 +221,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference(TimestampedAnnotationReader::class),
             new Reference(TimestampedDataPersister::class),
+            new Reference(UserEventListener::class),
+            new Reference(NormalizerInterface::class),
+            new Reference(UserChangesProcessor::class),
         ]);
 
     $services
@@ -725,33 +729,18 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('container.service_subscriber');
 
     $services
+        ->set(UserEventListener::class)
+        ->args([
+            new Reference(UserMailer::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
+
+    $services
         ->set(UserFactory::class)
         ->args([
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
-            '', // injected in dependency injection
-        ]);
-
-    $getUserListenerTagArgs = static function ($event) {
-        return [
-            'event' => $event,
-            'method' => $event,
-            'entity' => AbstractUser::class,
-            'lazy' => true,
-        ];
-    };
-    $services
-        ->set(UserListener::class)
-        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('prePersist'))
-        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('postPersist'))
-        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('preUpdate'))
-        ->tag('doctrine.orm.entity_listener', $getUserListenerTagArgs('postUpdate'))
-        ->args([
-            new Reference(UserPasswordEncoderInterface::class),
-            new Reference(UserMailer::class),
-            '', // injected in dependency injection
-            '', // injected in dependency injection
             '', // injected in dependency injection
         ]);
 
@@ -773,6 +762,23 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UsernameChangedEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
+
+    $services
+        ->set(UserChangesProcessor::class)
+        ->args([
+            new Reference(UserPasswordEncoderInterface::class),
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+            '', // injected in dependency injection
+        ]);
+
+    $services
+        ->set(UserNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(UserChangesProcessor::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(UserRegisterListener::class)
