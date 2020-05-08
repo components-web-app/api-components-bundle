@@ -12,9 +12,12 @@
     <field name="password" column="password" length="255"/>
     <field name="newPasswordConfirmationToken" column="new_password_confirmation_token" nullable="true"/>
     <field name="passwordRequestedAt" column="password_requested_at" type="datetime" nullable="true"/>
-    <field name="passwordLastUpdated" column="password_last_updated" type="datetime" nullable="true"/>
+    <field name="passwordUpdatedAt" column="password_updated_at" type="datetime" nullable="true"/>
     <field name="newEmailAddress" column="new_email_address" length="255" nullable="true"/>
     <field name="newEmailVerificationToken" column="new_email_verification_token" nullable="true"/>
     <field name="emailAddressVerified" column="email_address_verified" type="boolean"/>
+    <field name="previousEmailAddress" column="previous_email_address" length="255" nullable="true"/>
+    <field name="restoreAccessToken" column="restore_access_token" length="255" nullable="true"/>
+    <field name="emailLastUpdatedAt" column="email_last_updated_at" type="datetime" nullable="true"/>
   </mapped-superclass>
 </doctrine-mapping>
