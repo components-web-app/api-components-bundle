@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Security;
 use Silverback\ApiComponentsBundle\Entity\User\TokenUser;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\TokenAuthenticationException;
-use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
@@ -31,10 +31,10 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
     private Security $security;
-    private SerializeFormatResolver $formatResolver;
+    private SerializeFormatResolverInterface $formatResolver;
     private array $tokens;
 
-    public function __construct(Security $security, SerializeFormatResolver $formatResolver, array $tokens = [])
+    public function __construct(Security $security, SerializeFormatResolverInterface $formatResolver, array $tokens = [])
     {
         $this->security = $security;
         $this->formatResolver = $formatResolver;
@@ -94,7 +94,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authException = null): void
     {
-        $this->throwApiPlatformAuthenticationException($request, $authException ? $authException->getMessage() : 'Token Authentication Required');
+        $this->throwApiPlatformAuthenticationException($request, $authException ? $authException->getMessage() : 'Token Authentication Required.');
     }
 
     public function supportsRememberMe(): bool
