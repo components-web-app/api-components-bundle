@@ -30,11 +30,11 @@ use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
-use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
-use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
@@ -68,9 +68,6 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition(TokenAuthenticator::class);
         $definition->setArgument('$tokens', $config['security']['tokens']);
 
-        $definition = $container->getDefinition(PasswordManager::class);
-        $definition->setArgument('$tokenTtl', $config['user']['password_reset']['repeat_ttl_seconds']);
-
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
@@ -81,17 +78,13 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition(MetadataNormalizer::class);
         $definition->setArgument('$metadataKey', $config['metadata_key']);
 
-        $this->setEmailVerificationArguments($container, $config['user']['email_verification']);
+        $this->setEmailVerificationArguments($container, $config['user']['email_verification'], $config['user']['password_reset']['repeat_ttl_seconds']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
 
         $imagineEnabled = $container->getParameter('api_component.imagine_enabled');
         $definition = $container->getDefinition(UploadableAnnotationReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
-
-//        $container
-//            ->registerForAutoconfiguration(EntityPersistFormListenerInterface::class)
-//            ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
         if ($imagineEnabled) {
             $definition = $container->getDefinition(UploadableFileManager::class);
@@ -102,15 +95,16 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         }
     }
 
-    private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig): void
+    private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void
     {
         $definition = $container->getDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $emailVerificationConfig['deny_unverified_login']);
 
-        $definition = $container->getDefinition(UserChangesProcessor::class);
+        $definition = $container->getDefinition(UserDataProcessor::class);
         $definition->setArgument('$initialEmailVerifiedState', $emailVerificationConfig['default_value']);
         $definition->setArgument('$verifyEmailOnRegister', $emailVerificationConfig['verify_on_register']);
         $definition->setArgument('$verifyEmailOnChange', $emailVerificationConfig['verify_on_change']);
+        $definition->setArgument('$tokenTtl', $passwordRepeatTtl);
     }
 
     private function setUserClassArguments(ContainerBuilder $container, string $userClass): void
@@ -125,6 +119,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$userClass', $userClass);
 
         $definition = $container->getDefinition(UserRegisterType::class);
+        $definition->setArgument('$userClass', $userClass);
+
+        $definition = $container->getDefinition(PasswordUpdateType::class);
         $definition->setArgument('$userClass', $userClass);
     }
 

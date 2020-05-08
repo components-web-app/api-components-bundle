@@ -61,7 +61,9 @@ class FormSubmitEventListener
         }
 
         $event->setControllerResult($data);
-        $request->attributes->set('data', $data);
+        if (!$data instanceof Response) {
+            $request->attributes->set('data', $data);
+        }
     }
 
     public function onPostRespond(ResponseEvent $event): void

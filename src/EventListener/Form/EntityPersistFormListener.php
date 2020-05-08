@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
-use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -37,7 +37,7 @@ abstract class EntityPersistFormListener
     private ?UserEventListener $userEventListener;
     /** @var NormalizerInterface|DenormalizerInterface|null */
     private ?NormalizerInterface $normalizer;
-    private ?UserChangesProcessor $userChangesProcessor;
+    private ?UserDataProcessor $userDataProcessor;
     private string $formType;
     private string $dataClass;
     private bool $returnFormDataOnSuccess;
@@ -55,7 +55,7 @@ abstract class EntityPersistFormListener
         TimestampedDataPersister $timestampedDataPersister,
         UserEventListener $userEventListener,
         NormalizerInterface $normalizer,
-        UserChangesProcessor $userChangesProcessor
+        UserDataProcessor $userDataProcessor
     ): void {
         if (!$normalizer instanceof DenormalizerInterface) {
             throw new InvalidArgumentException(sprintf('$normalizer must also implement %s', DenormalizerInterface::class));
@@ -65,7 +65,7 @@ abstract class EntityPersistFormListener
         $this->timestampedDataPersister = $timestampedDataPersister;
         $this->userEventListener = $userEventListener;
         $this->normalizer = $normalizer;
-        $this->userChangesProcessor = $userChangesProcessor;
+        $this->userDataProcessor = $userDataProcessor;
     }
 
     public function __invoke(FormSuccessEvent $event)
@@ -76,13 +76,14 @@ abstract class EntityPersistFormListener
         ) {
             return;
         }
-        $entityManager = $this->registry->getManagerForClass($this->dataClass);
-        if (!$entityManager) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $this->dataClass));
-        }
 
         if ($this->timestampedAnnotationReader->isConfigured($data)) {
             $this->timestampedDataPersister->persistTimestampedFields($data, true);
+        }
+
+        $entityManager = $this->registry->getManagerForClass($this->dataClass);
+        if (!$entityManager) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $this->dataClass));
         }
 
         if ($data instanceof AbstractUser) {
@@ -95,8 +96,8 @@ abstract class EntityPersistFormListener
                 $oldUser = $this->normalizer->denormalize($normalized, \get_class($data));
             }
 
-            $this->userChangesProcessor->processChanges($data, $oldUser);
-            $this->userEventListener->postWrite($data, $oldUser, !$isUpdate);
+            $this->userDataProcessor->processChanges($data, $oldUser);
+            $this->userEventListener->postWrite($data, $oldUser);
         }
 
         $entityManager->persist($data);

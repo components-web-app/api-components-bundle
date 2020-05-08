@@ -29,6 +29,7 @@ use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -151,6 +152,9 @@ final class DoctrineContext implements Context
     {
         $form = new Form();
         switch ($type) {
+            case 'password_update':
+                $form->formType = PasswordUpdateType::class;
+                break;
             case 'change_password':
                 $form->formType = ChangePasswordType::class;
                 break;

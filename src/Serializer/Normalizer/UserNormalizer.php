@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -34,11 +34,11 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
 
     private const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
 
-    private UserChangesProcessor $userChangesProcessor;
+    private UserDataProcessor $userDataProcessor;
 
-    public function __construct(UserChangesProcessor $userChangesProcessor)
+    public function __construct(UserDataProcessor $userDataProcessor)
     {
-        $this->userChangesProcessor = $userChangesProcessor;
+        $this->userDataProcessor = $userDataProcessor;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -55,13 +55,12 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $isNew = !isset($context[AbstractNormalizer::OBJECT_TO_POPULATE]);
         /** @var AbstractUser $object */
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
         /** @var AbstractUser $oldObject */
-        $oldObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
+        $oldObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
 
-        $this->userChangesProcessor->processChanges($object, $oldObject);
+        $this->userDataProcessor->processChanges($object, $oldObject);
 
         return $object;
     }

@@ -63,7 +63,7 @@ class UserLoginType extends AbstractType
 
     public function getBlockPrefix(): ?string
     {
-        return null;
+        return '';
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -45,18 +44,15 @@ class UserEventListener
             return;
         }
 
-        $this->postWrite($data, $previousData, $request->isMethod(Request::METHOD_POST));
+        $this->postWrite($data, !$request->isMethod(Request::METHOD_POST) ? $previousData : null);
     }
 
-    public function postWrite(AbstractUser $user, ?AbstractUser $previousUser, bool $isNew): void
+    public function postWrite(AbstractUser $user, ?AbstractUser $previousUser): void
     {
-        if ($isNew) {
+        if (!$previousUser) {
             $this->userMailer->sendWelcomeEmail($user);
 
             return;
-        }
-        if (!$previousUser) {
-            throw new InvalidArgumentException('$previousUser is required when the User is not new.');
         }
 
         if (!$previousUser->isEnabled() && $user->isEnabled()) {

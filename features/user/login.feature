@@ -8,4 +8,7 @@ Feature: Prevent disabled users from logging in
     And I add "Content-Type" header equal to "application/ld+json"
 
   @wip
+  Scenario: I can use a login form
+
+  @wip
   Scenario: A disabled user is not able to login

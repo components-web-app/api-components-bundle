@@ -104,6 +104,9 @@ class ProfilerContext implements Context
             case 'custom_password_reset':
                 $this->validatePasswordReset($context, $headers, true);
                 break;
+            case 'password_changed':
+                $this->validatePasswordChanged($headers);
+                break;
             default:
                 throw new \InvalidArgumentException(sprintf('The email type %s is not configured to test', $emailType));
         }
@@ -148,5 +151,11 @@ class ProfilerContext implements Context
         Assert::assertEquals('Your password has been reset', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(PasswordResetEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
+    }
+
+    private function validatePasswordChanged(Headers $headers): void
+    {
+        Assert::assertEquals('Your password has been changed', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(PasswordChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 }

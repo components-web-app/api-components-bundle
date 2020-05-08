@@ -25,7 +25,6 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
-use Silverback\ApiComponentsBundle\Action\User\PasswordUpdateAction;
 use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
@@ -54,6 +53,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\ChangePasswordListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListener;
+use Silverback\ApiComponentsBundle\EventListener\Form\User\PasswordUpdateListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
@@ -72,6 +72,7 @@ use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\ApiResourceRouteFinder;
@@ -83,8 +84,7 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
-use Silverback\ApiComponentsBundle\Helper\User\PasswordManager;
-use Silverback\ApiComponentsBundle\Helper\User\UserChangesProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
@@ -127,7 +127,6 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -223,7 +222,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(TimestampedDataPersister::class),
             new Reference(UserEventListener::class),
             new Reference(NormalizerInterface::class),
-            new Reference(UserChangesProcessor::class),
+            new Reference(UserDataProcessor::class),
         ]);
 
     $services
@@ -398,16 +397,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('container.service_subscriber');
 
     $services
-        ->set(PasswordManager::class)
-        ->args([
-            new Reference(UserMailer::class),
-            new Reference(EntityManagerInterface::class),
-            new Reference(ValidatorInterface::class),
-            new Reference(UserRepository::class),
-            '', // injected in dependency injection
-        ]);
-
-    $services
         ->set(PasswordResetEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
@@ -415,18 +404,27 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PasswordRequestAction::class)
         ->args([
-            new Reference(PasswordManager::class),
+            new Reference(UserDataProcessor::class),
+            new Reference(EntityManagerInterface::class),
+            new Reference(UserMailer::class),
         ])
         ->tag('controller.service_arguments');
 
     $services
-        ->set(PasswordUpdateAction::class)
+        ->set(PasswordUpdateType::class)
         ->args([
-            new Reference(PasswordManager::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(DecoderInterface::class),
+            new Reference(RequestStack::class),
+            '', // injected in dependency injection
         ])
-        ->tag('controller.service_arguments');
+        ->tag('form.type');
+
+    $services
+        ->set(PasswordUpdateListener::class)
+        ->args([
+            new Reference(UserDataProcessor::class),
+            new Reference(UserMailer::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
         ->set(PersistedNormalizer::class)
@@ -764,9 +762,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('container.service_subscriber');
 
     $services
-        ->set(UserChangesProcessor::class)
+        ->set(UserDataProcessor::class)
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
+            new Reference(UserRepository::class),
+            '', // injected in dependency injection
             '', // injected in dependency injection
             '', // injected in dependency injection
             '', // injected in dependency injection
@@ -776,7 +776,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UserNormalizer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference(UserChangesProcessor::class),
+            new Reference(UserDataProcessor::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
