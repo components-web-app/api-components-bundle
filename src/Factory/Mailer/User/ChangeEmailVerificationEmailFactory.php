@@ -37,7 +37,7 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
             throw new InvalidArgumentException('A `new email verification token` must be set to send the verification email');
         }
 
-        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
+        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername(), $user->getNewEmailAddress());
 
         return $this->createEmailMessage($context, $user->getNewEmailAddress());
     }

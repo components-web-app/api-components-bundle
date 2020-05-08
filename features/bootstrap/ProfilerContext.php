@@ -130,7 +130,7 @@ class ProfilerContext implements Context
         Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertIsString($context['user']->getNewEmailVerificationToken());
-        Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
+        Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function validateChangePasswordNotification(Headers $headers): void
