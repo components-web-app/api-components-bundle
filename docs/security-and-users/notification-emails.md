@@ -101,6 +101,8 @@ silverback_api_component:
       deny_unverified_login: ~ # Required
 ```
 
+Your front-end should then perform a `GET` request to `/email_address/verify/{username}/{emailAddress}/{token}`. You will receive a `200` status on success, `404` if the combination is not found or `401` if the email change is aborted because another user now exists, so you are no longer authorised to make the change.
+
 ### Welcome
 Template: `@SilverbackApiComponent/emails/user_welcome.html.twig`
 

@@ -129,11 +129,12 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         return $event->getEmail();
     }
 
-    protected function getTokenUrl(string $token, string $username): string
+    protected function getTokenUrl(string $token, string $username, ?string $newEmail = null): string
     {
         $path = $this->populatePathVariables($this->getTokenPath(), [
             'token' => $token,
             'username' => $username,
+            'new_email' => $newEmail,
         ]);
 
         $refererUrlResolver = $this->container->get(RefererUrlResolver::class);
@@ -165,7 +166,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     {
         preg_match_all('/{{[\s]*(\w+)[\s]*}}/', $path, $matches);
         foreach ($matches[0] as $matchIndex => $fullMatch) {
-            if (\array_key_exists($varKey = $matches[1][$matchIndex], $variables)) {
+            if (\array_key_exists($varKey = $matches[1][$matchIndex], $variables) && null !== $variables[$varKey]) {
                 $path = str_replace($fullMatch, rawurlencode($variables[$varKey]), $path);
             }
         }

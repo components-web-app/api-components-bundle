@@ -184,14 +184,14 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a user with the username :username password :password and role :role
+     * @Given /^there is a user with the username "([^"]*)" password "([^"]*)" and role "([^"]*)"(?: and the email address "([^"]*)"|)$/i
      */
-    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role): void
+    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role, string $emailAddress = 'test.user@example.com'): void
     {
         $user = new User();
         $user
             ->setUsername($username)
-            ->setEmailAddress('test.user@example.com')
+            ->setEmailAddress($emailAddress)
             ->setPassword($this->passwordEncoder->encodePassword($user, $password))
             ->setRoles([$role])
             ->setEnabled(true)
@@ -232,6 +232,17 @@ final class DoctrineContext implements Context
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
         $user->setEmailAddressVerified(false);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user has a new email address :emailAddress and verification token :token
+     */
+    public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setNewEmailAddress($emailAddress)->setNewEmailVerificationToken($verificationToken);
         $this->manager->flush();
     }
 
@@ -311,5 +322,21 @@ final class DoctrineContext implements Context
             'username' => $username,
         ]);
         Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
+    }
+
+    /**
+     * @Then the new email address should be :emailAddress for username :username
+     */
+    public function theEmailAddressShouldBe(string $emailAddress, string $username): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(User::class);
+        /** @var AbstractUser $user */
+        $user = $repository->findOneBy([
+            'username' => $username,
+        ]);
+        Assert::assertEquals($emailAddress, $user->getEmailAddress());
+        Assert::assertNull($user->getNewEmailAddress());
+        Assert::assertTrue($user->isEmailAddressVerified());
     }
 }
