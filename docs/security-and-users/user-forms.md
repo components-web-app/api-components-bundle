@@ -5,6 +5,15 @@ parent: Security &amp; Users
 nav_order: 2
 ---
 # User Forms
+{: .no_toc }
+
+## Table of contents
+{: .no_toc .text-delta }
+
+* TOC
+{:toc}
+
+## Overview
 
 In order to perform some user functionality, certain fields need to be set that cannot be accessed via the API directly for security reasons. We would not an anonymous user (one who has not logged on) to access fields that a logged in user can.
 
@@ -12,11 +21,12 @@ To solve this we have pre-made Symfony forms that you can use in a [Form compone
 
 If you need additional fields, you can extend these forms to fit your requirements.
 
-> **All forms will return the `User` object on successful submission.**
+## Forms
 
 ### Register form
 
-Form Type: `Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType`
+- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType`
+- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -34,7 +44,8 @@ Form Type: `Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType`
 
 ### New email address form
 
-Form Type: `Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType`
+- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType`
+- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -48,7 +59,8 @@ Form Type: `Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType`
 
 ### Change password form
 
-Form Type: `Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType`
+- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType`
+- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -65,3 +77,26 @@ Form Type: `Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType`
 ```
 
 > **The form also includes a read-only/disabled `username` field so you can display it in the form to your user. (alpha - this may be removed in future. It will not be if it is still present in beta.)**
+
+
+### Password update form
+
+- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\PasswordUpdateType`
+- Successful submission return object `null`
+
+#### Example expected POST
+```json
+{
+  "password_update": {
+    "username": "user",
+    "newPasswordConfirmationToken": "abc123",
+    "plainPassword": {
+      "first": "newpassword",
+      "second": "newpassword"
+    }
+  }
+}
+```
+
+When you request this form you should append querystring parameters `username` and `token` so that the hidden fields returned are pre-populated with these values. E.g. `/component/forms/{id}?username=user&token=abc123`. Then you can handle the form just like any other in your front-end application. You will receive a HTTP status `200` on successful submission of this form or `404` if the username/token was not found. `400` errors along with the form data are returned for invalid form submissions. See [Form Component](../components/form-component.md)
+
