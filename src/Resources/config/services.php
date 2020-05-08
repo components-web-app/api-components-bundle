@@ -66,7 +66,6 @@ use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
@@ -206,9 +205,6 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(EmailAddressVerifyAction::class)
         ->args([
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-            new Reference(ResponseFactory::class),
             new Reference(EmailAddressManager::class),
         ])
         ->tag('controller.service_arguments');
@@ -515,13 +511,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ApiResourceRouteFinder::class),
         ])
         ->tag('validator.constraint_validator');
-
-    $services
-        ->set(ResponseFactory::class)
-        ->args([
-            new Reference(SerializerInterface::class),
-            new Reference(SerializeFormatResolver::class),
-        ]);
 
     $services
         ->set(RefererUrlResolver::class)
