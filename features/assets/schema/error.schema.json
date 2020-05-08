@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "required": [
+        "@context",
+        "@type",
+        "hydra:title",
+        "hydra:description"
+    ],
+    "additionalProperties": true,
+    "properties": {
+        "@context": {
+            "$id": "#/properties/@context",
+            "type": "string",
+            "title": "The @context schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "const": "/contexts/Error"
+        },
+        "@type": {
+            "$id": "#/properties/@type",
+            "type": "string",
+            "title": "The @type schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "const": "hydra:Error"
+        },
+        "hydra:title": {
+            "$id": "#/properties/hydra:title",
+            "type": "string",
+            "title": "The hydra:title schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "const": "An error occurred"
+        },
+        "hydra:description": {
+            "$id": "#/properties/hydra:description",
+            "type": "string",
+            "title": "The hydra:description schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Token Authentication Required"
+            ]
+        },
+        "trace": {
+            "$id": "#/properties/trace",
+            "type": "array",
+            "title": "The trace schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "examples": [
+                []
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/trace/items"
+            }
+        }
+    }
+}

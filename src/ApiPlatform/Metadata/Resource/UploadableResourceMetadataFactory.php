@@ -28,24 +28,24 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderIn
 class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
     private ResourceMetadataFactoryInterface $decorated;
-    private UploadableAnnotationReaderInterface $uploadableHelper;
+    private UploadableAnnotationReaderInterface $uploadableFileManager;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
     public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReaderInterface $annotationReader, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
-        $this->uploadableHelper = $annotationReader;
+        $this->uploadableFileManager = $annotationReader;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
     public function create(string $resourceClass): ResourceMetadata
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
-        if (!$this->uploadableHelper->isConfigured($resourceClass)) {
+        if (!$this->uploadableFileManager->isConfigured($resourceClass)) {
             return $resourceMetadata;
         }
 
-        $fields = $this->uploadableHelper->getConfiguredProperties($resourceClass, false);
+        $fields = $this->uploadableFileManager->getConfiguredProperties($resourceClass, false);
         $properties = [];
         foreach ($fields as $field => $configuration) {
             $properties[$field] = [

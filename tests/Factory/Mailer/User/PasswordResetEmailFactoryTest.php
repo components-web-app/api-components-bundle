@@ -67,6 +67,6 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
                 'redirect_url' => '/transformed-path',
             ]);
 
-        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordResetEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

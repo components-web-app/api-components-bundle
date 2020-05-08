@@ -18,7 +18,7 @@ use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,14 +37,14 @@ final class PublishableEventListener
     public const VALID_TO_PUBLISH_HEADER = 'valid-to-publish';
     public const VALID_PUBLISHED_QUERY = 'validate_published';
 
-    private PublishableHelper $publishableHelper;
+    private PublishableStatusChecker $publishableStatusChecker;
     private ValidatorInterface $validator;
     private PublishableAnnotationReader $publishableAnnotationReader;
 
-    public function __construct(PublishableHelper $publishableHelper, ManagerRegistry $registry, ValidatorInterface $validator)
+    public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
     {
-        $this->publishableAnnotationReader = $publishableHelper->getAnnotationReader();
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableAnnotationReader = $publishableStatusChecker->getAnnotationReader();
+        $this->publishableStatusChecker = $publishableStatusChecker;
         $this->initRegistry($registry);
         $this->validator = $validator;
     }
@@ -96,7 +96,7 @@ final class PublishableEventListener
 
         // User cannot change the publication date of the original resource
         if (
-            true === $this->publishableHelper->isPublishedRequest($request) &&
+            true === $this->publishableStatusChecker->isPublishedRequest($request) &&
             $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($data, $configuration->fieldName)
         ) {
             throw new BadRequestHttpException('You cannot change the publication date of a published resource.');
@@ -127,7 +127,7 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if (!$this->publishableHelper->isGranted($data)) {
+        if (!$this->publishableStatusChecker->isGranted($data)) {
             return;
         }
 
@@ -160,7 +160,7 @@ final class PublishableEventListener
 
     private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
     {
-        if (!$this->publishableHelper->isActivePublishedAt($data)) {
+        if (!$this->publishableStatusChecker->isActivePublishedAt($data)) {
             return $data;
         }
 
@@ -171,7 +171,7 @@ final class PublishableEventListener
         $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
         if (
             !$publishedResourceAssociation &&
-            (!$draftResourceAssociation || !$this->publishableHelper->isActivePublishedAt($draftResourceAssociation))
+            (!$draftResourceAssociation || !$this->publishableStatusChecker->isActivePublishedAt($draftResourceAssociation))
         ) {
             return $data;
         }

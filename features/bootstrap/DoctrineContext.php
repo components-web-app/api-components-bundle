@@ -24,9 +24,15 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
+use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
+use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
@@ -34,6 +40,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 final class DoctrineContext implements Context
 {
@@ -43,9 +50,10 @@ final class DoctrineContext implements Context
     private ?MinkContext $minkContext;
     private JWTTokenManagerInterface $jwtManager;
     private IriConverterInterface $iriConverter;
-    private TimestampedHelper $timestampedHelper;
+    private TimestampedDataPersister $timestampedHelper;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
+    private UserPasswordEncoderInterface $passwordEncoder;
     private array $classes;
 
     /**
@@ -55,7 +63,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedHelper $timestampedHelper)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -64,6 +72,7 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -91,8 +100,10 @@ final class DoctrineContext implements Context
         $user = new User();
         $user
             ->setRoles($roles)
-            ->setUsername('admin@admin.com')
-            ->setPassword('admin');
+            ->setUsername('user@example.com')
+            ->setPassword($this->passwordEncoder->encodePassword($user, 'password'))
+            ->setEnabled(true)
+            ->setEmailAddressVerified(true);
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
@@ -100,6 +111,15 @@ final class DoctrineContext implements Context
 
         $token = $this->jwtManager->create($user);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->restContext->components['login_user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @BeforeScenario @loginSuperAdmin
+     */
+    public function loginSuperAdmin(BeforeScenarioScope $scope): void
+    {
+        $this->login(['ROLE_SUPER_ADMIN']);
     }
 
     /**
@@ -133,6 +153,18 @@ final class DoctrineContext implements Context
     {
         $form = new Form();
         switch ($type) {
+            case 'login':
+                $form->formType = UserLoginType::class;
+                break;
+            case 'password_update':
+                $form->formType = PasswordUpdateType::class;
+                break;
+            case 'change_password':
+                $form->formType = ChangePasswordType::class;
+                break;
+            case 'new_email':
+                $form->formType = NewEmailAddressType::class;
+                break;
             case 'register':
                 $form->formType = UserRegisterType::class;
                 break;
@@ -154,18 +186,53 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a user with the username :username password :password and role :role
      */
-    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role)
+    public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role): void
     {
         $user = new User();
         $user
             ->setUsername($username)
             ->setEmailAddress('test.user@example.com')
-            ->setPassword($password)
-            ->setRoles([$role]);
+            ->setPassword($this->passwordEncoder->encodePassword($user, $password))
+            ->setRoles([$role])
+            ->setEnabled(true)
+            ->setEmailAddressVerified(true);
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
         $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
+    }
+
+    /**
+     * @Given the user has the newPasswordConfirmationToken :token requested at :dateTime
+     */
+    public function theUserHasTheNewPasswordConfirmationToken(string $token, string $dateTime): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setNewPasswordConfirmationToken($token)->setPasswordRequestedAt(new \DateTime($dateTime));
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user is disabled
+     */
+    public function theUserIsDisabled(): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setEnabled(false);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user email is not verified
+     */
+    public function theUserEmailIsNotVerified(): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setEmailAddressVerified(false);
+        $this->manager->flush();
     }
 
     /**
@@ -208,7 +275,7 @@ final class DoctrineContext implements Context
     /**
      * @Then the component :name should not exist
      */
-    public function theComponentShouldNotExist(string $name)
+    public function theComponentShouldNotExist(string $name): void
     {
         $this->manager->clear();
         try {
@@ -222,7 +289,7 @@ final class DoctrineContext implements Context
     /**
      * @Then the component :name should exist
      */
-    public function theComponentShouldExist(string $name)
+    public function theComponentShouldExist(string $name): void
     {
         $this->manager->clear();
         try {
@@ -231,5 +298,18 @@ final class DoctrineContext implements Context
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
+    }
+
+    /**
+     * @Then the password should be :password for username :username
+     */
+    public function thePasswordShouldBeEqualTo(string $password, string $username): void
+    {
+        $repository = $this->manager->getRepository(User::class);
+        /** @var AbstractUser $user */
+        $user = $repository->findOneBy([
+            'username' => $username,
+        ]);
+        Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
     }
 }

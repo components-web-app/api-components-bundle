@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Mailer;
+namespace Silverback\ApiComponentsBundle\Tests\Helper\User;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +25,7 @@ use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
-use Silverback\ApiComponentsBundle\Mailer\UserMailer;
+use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;

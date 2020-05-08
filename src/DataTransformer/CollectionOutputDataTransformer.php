@@ -21,7 +21,7 @@ use ApiPlatform\Core\Util\AttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
-use Silverback\ApiComponentsBundle\Helper\Collection\CollectionHelper;
+use Silverback\ApiComponentsBundle\Helper\Collection\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -32,7 +32,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class CollectionOutputDataTransformer implements DataTransformerInterface
 {
-    private CollectionHelper $iriConverter;
+    private ApiResourceRouteFinder $resourceRouteFinder;
     private CollectionDataProviderInterface $collectionDataProvider;
     private RequestStack $requestStack;
     private SerializerContextBuilderInterface $serializerContextBuilder;
@@ -41,9 +41,9 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private string $itemsPerPageParameterName;
     private string $paginationEnabledParameterName;
 
-    public function __construct(CollectionHelper $iriConverter, CollectionDataProviderInterface $collectionDataProvider, RequestStack $requestStack, SerializerContextBuilderInterface $serializerContextBuilder, NormalizerInterface $itemNormalizer, SerializeFormatResolver $serializeFormatResolver, string $itemsPerPageParameterName, string $paginationEnabledParameterName)
+    public function __construct(ApiResourceRouteFinder $resourceRouteFinder, CollectionDataProviderInterface $collectionDataProvider, RequestStack $requestStack, SerializerContextBuilderInterface $serializerContextBuilder, NormalizerInterface $itemNormalizer, SerializeFormatResolver $serializeFormatResolver, string $itemsPerPageParameterName, string $paginationEnabledParameterName)
     {
-        $this->iriConverter = $iriConverter;
+        $this->resourceRouteFinder = $resourceRouteFinder;
         $this->collectionDataProvider = $collectionDataProvider;
         $this->requestStack = $requestStack;
         $this->serializerContextBuilder = $serializerContextBuilder;
@@ -63,7 +63,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
      */
     public function transform($object, string $to, array $context = [])
     {
-        $parameters = $this->iriConverter->getRouterParametersFromIri($object->getResourceIri());
+        $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
         $request = $this->requestStack->getMasterRequest();
 

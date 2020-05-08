@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Silverback\Timestamped
  * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
  * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
- * @AcbAssert\NewEmailAddress(groups={"new_email_address", "Default"})
+ * @AcbAssert\NewEmailAddress(groups={"User:emailAddress", "Default"})
  */
 abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 {
@@ -41,25 +41,25 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(groups={"Default"})
-     * @Groups({"User:super_admin", "User:output"})
+     * @Assert\NotBlank(groups={"Default"}, message="Please enter a username.")
+     * @Groups({"User:superAdmin", "User:output"})
      */
     protected ?string $username;
 
     /**
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"User:super_admin", "User:output"})
+     * @Groups({"User:superAdmin", "User:output"})
      */
     protected ?string $emailAddress;
 
     /**
-     * @Groups({"User:super_admin"})
+     * @Groups({"User:superAdmin"})
      */
     protected array $roles;
 
     /**
-     * @Groups({"User:super_admin"})
+     * @Groups({"User:superAdmin"})
      */
     protected bool $enabled;
 
@@ -70,8 +70,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @ApiProperty(readable=false)
-     * @Assert\NotBlank(message="Please enter your desired password", groups={"password_reset", "change_password"})
-     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long", groups={"Default", "password_reset", "change_password"})
+     * @Assert\NotBlank(message="Please enter your desired password.", groups={"User:password:create"})
+     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long.", groups={"User:password:create"})
      * @Groups({"User:input"})
      */
     protected ?string $plainPassword = null;
@@ -90,7 +90,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @ApiProperty(readable=false)
-     * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"change_password"})
+     * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"User:password:change"})
      * @Groups({"User:input"})
      */
     protected ?string $oldPassword = null;
@@ -101,8 +101,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?DateTime $passwordLastUpdated = null;
 
     /**
-     * @Assert\NotBlank(groups={"new_email_address"})
-     * @Groups({"User:input", "User:output", "new_email_address"})
+     * @Assert\NotBlank(groups={"User:emailAddress"})
+     * @Groups({"User:input", "User:output", "User:emailAddress"})
      */
     protected ?string $newEmailAddress = null;
 

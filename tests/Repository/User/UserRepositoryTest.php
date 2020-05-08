@@ -123,7 +123,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->findOneByEmailVerificationToken($username, $email, $token));
+        $this->assertEquals($user, $this->repository->findOneByEmailVerificationToken($username, 'new@email.com', $token));
     }
 
     public function test_load_user_by_username(): void
@@ -142,5 +142,40 @@ class UserRepositoryTest extends AbstractRepositoryTest
 
         $this->assertEquals($user, $this->repository->loadUserByUsername($username));
         $this->assertEquals($user, $this->repository->loadUserByUsername($email));
+    }
+
+    public function test_find_existing_user_by_new_email(): void
+    {
+        $username = 'username';
+
+        $userA = new User();
+        $userA->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $userA
+            ->setUsername($username)
+            ->setEmailAddress('usera@address.com')
+            ->setNewEmailAddress(null);
+        $this->entityManager->persist($userA);
+
+        $userB = new User();
+        $userB->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $userB
+            ->setUsername($username)
+            ->setEmailAddress('userb@address.com')
+            ->setNewEmailAddress('usera@address.com');
+        $this->entityManager->persist($userB);
+
+        $userC = new User();
+        $userC->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $userC
+            ->setUsername($username)
+            ->setEmailAddress('userc@address.com')
+            ->setNewEmailAddress('userc@address.com');
+        $this->entityManager->persist($userC);
+
+        $this->entityManager->flush();
+
+        $this->assertNull($this->repository->findExistingUserByNewEmail($userA));
+        $this->assertEquals($userA, $this->repository->findExistingUserByNewEmail($userB));
+        $this->assertNull($this->repository->findExistingUserByNewEmail($userC));
     }
 }

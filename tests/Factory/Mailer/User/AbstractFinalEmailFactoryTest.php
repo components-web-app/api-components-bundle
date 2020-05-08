@@ -14,15 +14,14 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
-abstract class AbstractFinalEmailFactoryTest extends TestCase
+abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
 {
     /**
      * @var MockObject|ContainerInterface
@@ -56,7 +55,7 @@ abstract class AbstractFinalEmailFactoryTest extends TestCase
                 ->willReturn($requestStackMock);
             ++$callIndex;
 
-            $refererUrlMock = $this->createMock(RefererUrlHelper::class);
+            $refererUrlMock = $this->createMock(RefererUrlResolver::class);
             $refererUrlMock
                 ->expects($this->once())
                 ->method('getAbsoluteUrl')
@@ -66,7 +65,7 @@ abstract class AbstractFinalEmailFactoryTest extends TestCase
             $this->containerInterfaceMock
                 ->expects($this->at($callIndex))
                 ->method('get')
-                ->with(RefererUrlHelper::class)
+                ->with(RefererUrlResolver::class)
                 ->willReturn($refererUrlMock);
             ++$callIndex;
         }

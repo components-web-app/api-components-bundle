@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 
@@ -24,12 +24,12 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 final class UploadableEventListener
 {
     private UploadableAnnotationReader $uploadableAnnotationReader;
-    private UploadableHelper $uploadableHelper;
+    private UploadableFileManager $uploadableFileManager;
 
-    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader, UploadableHelper $uploadableHelper)
+    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
     {
         $this->uploadableAnnotationReader = $uploadableAnnotationReader;
-        $this->uploadableHelper = $uploadableHelper;
+        $this->uploadableFileManager = $uploadableFileManager;
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -44,11 +44,11 @@ final class UploadableEventListener
             return;
         }
         if ($request->isMethod(Request::METHOD_DELETE)) {
-            $this->uploadableHelper->deleteFiles($data);
+            $this->uploadableFileManager->deleteFiles($data);
 
             return;
         }
-        $this->uploadableHelper->persistFiles($data);
+        $this->uploadableFileManager->persistFiles($data);
     }
 
     public function onPostWrite(ViewEvent $event): void
@@ -64,6 +64,6 @@ final class UploadableEventListener
             return;
         }
 
-        $this->uploadableHelper->storeFilesMetadata($data);
+        $this->uploadableFileManager->storeFilesMetadata($data);
     }
 }

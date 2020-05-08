@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\UserEmailMessageEvent;
@@ -23,8 +22,8 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Tests\Functional\Factory\Mailer\User\DummyUserEmailFactory;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,7 +33,7 @@ use Symfony\Component\Mime\RawMessage;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
-class AbstractUserEmailFactoryTest extends TestCase
+class AbstractUserEmailFactoryTest extends TestEmailCase
 {
     private const VALID_CONTEXT = ['website_name' => 'my website', 'test_key' => 'any value'];
     /**
@@ -56,7 +55,7 @@ class AbstractUserEmailFactoryTest extends TestCase
     {
         $this->assertEquals([
             RequestStack::class,
-            RefererUrlHelper::class,
+            RefererUrlResolver::class,
             Environment::class,
         ], AbstractUserEmailFactory::getSubscribedServices());
     }
@@ -163,7 +162,8 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->with($event);
 
         $returnedEmailMessage = $userEmailFactory->create($user, self::VALID_CONTEXT);
-        $this->assertEquals($emailMessage, $returnedEmailMessage);
+
+        $this->assertEmailEquals($emailMessage, $returnedEmailMessage, AbstractUserEmailFactory::MESSAGE_ID_PREFIX);
     }
 
     public function test_do_not_create_email_message_if_not_enabled(): void
@@ -235,11 +235,11 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->with(RequestStack::class)
             ->willReturn($requestStackMock);
 
-        $refererUrlMock = $this->createMock(RefererUrlHelper::class);
+        $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $this->containerInterfaceMock
             ->expects($this->at(1))
             ->method('get')
-            ->with(RefererUrlHelper::class)
+            ->with(RefererUrlResolver::class)
             ->willReturn($refererUrlMock);
 
         $refererUrlMock
@@ -270,11 +270,11 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->with(RequestStack::class)
             ->willReturn($requestStackMock);
 
-        $refererUrlMock = $this->createMock(RefererUrlHelper::class);
+        $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $this->containerInterfaceMock
             ->expects($this->at(1))
             ->method('get')
-            ->with(RefererUrlHelper::class)
+            ->with(RefererUrlResolver::class)
             ->willReturn($refererUrlMock);
 
         $refererUrlMock
@@ -305,11 +305,11 @@ class AbstractUserEmailFactoryTest extends TestCase
             ->with(RequestStack::class)
             ->willReturn($requestStackMock);
 
-        $refererUrlMock = $this->createMock(RefererUrlHelper::class);
+        $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $this->containerInterfaceMock
             ->expects($this->at(1))
             ->method('get')
-            ->with(RefererUrlHelper::class)
+            ->with(RefererUrlResolver::class)
             ->willReturn($refererUrlMock);
 
         $refererUrlMock

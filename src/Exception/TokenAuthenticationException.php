@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Exception;
 
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TokenAuthenticationException extends AuthenticationException
+class TokenAuthenticationException extends CustomUserMessageAuthenticationException
 {
 }

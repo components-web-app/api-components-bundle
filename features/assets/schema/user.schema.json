@@ -11,9 +11,13 @@
         "emailAddress",
         "roles",
         "enabled",
-        "newEmailAddress",
         "createdAt"
     ],
+    "not": {
+        "required": [
+            "plainPassword"
+        ]
+    },
     "properties": {
         "@context": {
             "$id": "#/properties/@context",

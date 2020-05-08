@@ -20,12 +20,14 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class FormSubmitHelper
 {
+    public const FORM_API_DISABLED = 'api_disabled';
     private FormFactoryInterface $formFactory;
     private EventDispatcherInterface $eventDispatcher;
 
@@ -41,6 +43,11 @@ class FormSubmitHelper
     {
         $builder = $this->formFactory->createBuilder($form->formType);
         $symfonyForm = $builder->getForm();
+        $config = $symfonyForm->getConfig();
+        if (true === $config->getOption(self::FORM_API_DISABLED, false)) {
+            throw new NotFoundHttpException();
+        }
+
         $formData = $this->getRootData($symfonyForm, $data);
         $symfonyForm->submit($formData, !$isPartialSubmit);
         $form->formView = new FormView($symfonyForm);

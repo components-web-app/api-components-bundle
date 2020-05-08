@@ -22,6 +22,8 @@ use Symfony\Component\Mime\RawMessage;
  */
 final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 {
+    public const MESSAGE_ID_PREFIX = 'cev';
+
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
         if (!$this->enabled) {
@@ -37,7 +39,7 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
         $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
 
-        return $this->createEmailMessage($context);
+        return $this->createEmailMessage($context, $user->getNewEmailAddress());
     }
 
     protected static function getContextKeys(): ?array

@@ -67,6 +67,6 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
                 'redirect_url' => '/transformed-path',
             ]);
 
-        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

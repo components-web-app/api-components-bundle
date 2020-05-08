@@ -308,6 +308,8 @@ You can re-use a listener if you simply want to persist the data in your submitt
 
 Create your class, for example:
 
+> **Using this listener will result in your object being serialised and returned to the API User upon successful submission by default. Set the 3rd parameter on the parent constructor to `false` to disable this.**
+
 ```php
 <?php
 
@@ -323,7 +325,7 @@ class NewEmailAddressListener extends EntityPersistFormListener
 {
     public function __construct()
     {
-        parent::__construct($supportedFormType = NewEmailAddressType::class, $supportedDataClass = AbstractUser::class);
+        parent::__construct($supportedFormType = NewEmailAddressType::class, $supportedDataClass = AbstractUser::class, $returnFormDataOnSuccess = true);
     }
 }
 

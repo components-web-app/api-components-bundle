@@ -21,6 +21,8 @@ use Symfony\Component\Mime\RawMessage;
  */
 final class PasswordChangedEmailFactory extends AbstractUserEmailFactory
 {
+    public const MESSAGE_ID_PREFIX = 'pce';
+
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
         if (!$this->enabled) {

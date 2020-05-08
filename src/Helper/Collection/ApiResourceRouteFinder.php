@@ -20,7 +20,7 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class CollectionHelper
+final class ApiResourceRouteFinder
 {
     private RouterInterface $router;
 
@@ -29,7 +29,7 @@ final class CollectionHelper
         $this->router = $router;
     }
 
-    public function getRouterParametersFromIri(string $iri): array
+    public function findByIri(string $iri): array
     {
         try {
             $parameters = $this->router->match($iri);

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Manager\User;
+namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
@@ -37,6 +37,8 @@ class EmailAddressManager
         if (!$user) {
             throw new NotFoundHttpException();
         }
+
+        // Check if another user now exists with this new email address before persisting!
 
         $user
             ->setEmailAddress($user->getNewEmailAddress())

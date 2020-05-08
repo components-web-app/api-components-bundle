@@ -20,7 +20,8 @@ use Silverback\ApiComponentsBundle\Exception\BadMethodCallException;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentsBundle\Utility\RefererUrlHelper;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -35,6 +36,8 @@ use Twig\Environment;
  */
 abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 {
+    public const MESSAGE_ID_PREFIX = 'xx';
+
     protected ContainerInterface $container;
     private EventDispatcherInterface $eventDispatcher;
     protected string $subject;
@@ -60,7 +63,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
     {
         return [
             RequestStack::class,
-            RefererUrlHelper::class,
+            RefererUrlResolver::class,
             Environment::class,
         ];
     }
@@ -86,7 +89,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $this->user = $user;
     }
 
-    protected function createEmailMessage(array $context = []): ?TemplatedEmail
+    protected function createEmailMessage(array $context = [], ?string $toEmail = null): ?TemplatedEmail
     {
         if (!$this->enabled) {
             return null;
@@ -97,7 +100,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         }
 
         try {
-            $toEmailAddress = Address::fromString((string) $this->user->getEmailAddress());
+            $toEmailAddress = Address::fromString($toEmail ?? (string) $this->user->getEmailAddress());
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;
@@ -121,6 +124,8 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $event = new UserEmailMessageEvent(static::class, $email);
         $this->eventDispatcher->dispatch($event);
 
+        $email->getHeaders()->addTextHeader('X-Message-ID', sprintf('%s-%s', static::MESSAGE_ID_PREFIX, TokenGenerator::generateToken()));
+
         return $event->getEmail();
     }
 
@@ -131,9 +136,9 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
             'username' => $username,
         ]);
 
-        $refererUrlHelper = $this->container->get(RefererUrlHelper::class);
+        $refererUrlResolver = $this->container->get(RefererUrlResolver::class);
 
-        return $refererUrlHelper->getAbsoluteUrl($path);
+        return $refererUrlResolver->getAbsoluteUrl($path);
     }
 
     private function getTokenPath(): string

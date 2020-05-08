@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -24,6 +25,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
  */
 class NewEmailAddressValidator extends ConstraintValidator
 {
+    use ClassMetadataTrait;
     private UserRepository $userRepository;
 
     public function __construct(UserRepository $userRepository)
@@ -31,6 +33,9 @@ class NewEmailAddressValidator extends ConstraintValidator
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @param NewEmailAddress $constraint
+     */
     public function validate($user, Constraint $constraint): void
     {
         if (!$user instanceof AbstractUser) {
@@ -41,15 +46,17 @@ class NewEmailAddressValidator extends ConstraintValidator
             return;
         }
 
-        if ($user->getNewEmailAddress() === $user->getEmailAddress()) {
-            $this->context->buildViolation($constraint->differentMessage)
+        if ($user->isEmailAddressVerified() && $user->getNewEmailAddress() === $user->getEmailAddress()) {
+            $this->context->buildViolation($constraint->message)
+                ->atPath('newEmailAddress')
                 ->addViolation();
 
             return;
         }
 
-        if ($this->userRepository->findOneBy(['email_address' => $user->getNewEmailAddress()])) {
+        if ($this->userRepository->findExistingUserByNewEmail($user)) {
             $this->context->buildViolation($constraint->uniqueMessage)
+                ->atPath('newEmailAddress')
                 ->addViolation();
 
             return;

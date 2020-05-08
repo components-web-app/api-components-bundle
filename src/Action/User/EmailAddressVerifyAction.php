@@ -13,32 +13,24 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Action\User;
 
-use Silverback\ApiComponentsBundle\Action\AbstractAction;
-use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
-use Silverback\ApiComponentsBundle\Manager\User\EmailAddressManager;
-use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
+use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class EmailAddressVerifyAction extends AbstractAction
+class EmailAddressVerifyAction
 {
     private EmailAddressManager $emailAddressManager;
 
-    public function __construct(SerializerInterface $serializer, SerializeFormatResolver $requestFormatResolver, ResponseFactory $responseFactory, EmailAddressManager $emailAddressManager)
+    public function __construct(EmailAddressManager $emailAddressManager)
     {
-        parent::__construct($serializer, $requestFormatResolver, $responseFactory);
         $this->emailAddressManager = $emailAddressManager;
     }
 
     public function __invoke(Request $request)
     {
-        $data = $this->serializer->decode($request->getContent(), $this->requestFormatResolver->getFormatFromRequest($request), []);
         $requiredKeys = ['username', 'email', 'token'];
         foreach ($requiredKeys as $requiredKey) {
             if (!isset($data[$requiredKey])) {
@@ -46,12 +38,6 @@ class EmailAddressVerifyAction extends AbstractAction
             }
         }
 
-        try {
-            $this->emailAddressManager->verifyNewEmailAddress($data['username'], $data['email'], $data['token']);
-
-            return $this->responseFactory->create($request);
-        } catch (NotFoundHttpException $exception) {
-            return $this->responseFactory->create($request, $exception->getMessage(), Response::HTTP_NOT_FOUND);
-        }
+        $this->emailAddressManager->verifyNewEmailAddress($data['username'], $data['email'], $data['token']);
     }
 }

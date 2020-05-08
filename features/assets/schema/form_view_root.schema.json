@@ -1,0 +1,17 @@
+{
+    "allOf": [
+        {
+            "$ref": "form_view.schema.json"
+        },
+        {
+            "properties": {
+                "vars": {
+                    "required": [
+                        "api_request",
+                        "realtime_validate"
+                    ]
+                }
+            }
+        }
+    ]
+}

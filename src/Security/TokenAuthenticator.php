@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Security;
 
 use Silverback\ApiComponentsBundle\Entity\User\TokenUser;
+use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\TokenAuthenticationException;
-use Silverback\ApiComponentsBundle\Factory\Response\ResponseFactory;
+use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Security;
@@ -31,13 +31,13 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
     private Security $security;
-    private ResponseFactory $responseFactory;
+    private SerializeFormatResolverInterface $formatResolver;
     private array $tokens;
 
-    public function __construct(Security $security, ResponseFactory $responseFactory, array $tokens = [])
+    public function __construct(Security $security, SerializeFormatResolverInterface $formatResolver, array $tokens = [])
     {
         $this->security = $security;
-        $this->responseFactory = $responseFactory;
+        $this->formatResolver = $formatResolver;
         $this->tokens = $tokens;
     }
 
@@ -48,11 +48,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request): bool
     {
-        if ($this->security->getUser()) {
-            return false;
-        }
-
-        return $request->headers->has('X-AUTH-TOKEN');
+        return !$this->security->getUser();
     }
 
     /**
@@ -69,7 +65,10 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider = null): ?TokenUser
     {
         $apiToken = $credentials['token'];
-        if (null === $apiToken || !\in_array($apiToken, $this->tokens, true)) {
+        if (null === $apiToken) {
+            throw new TokenAuthenticationException('Token Authentication Required');
+        }
+        if (!\in_array($apiToken, $this->tokens, true)) {
             throw new TokenAuthenticationException('The authentication token provided in the X-AUTH-TOKEN header is invalid');
         }
 
@@ -85,29 +84,28 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
     {
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
     {
-        $data = [
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
-        ];
-
-        return $this->responseFactory->create($request, $data, Response::HTTP_FORBIDDEN);
+        $this->throwApiPlatformAuthenticationException($request, strtr($exception->getMessageKey(), $exception->getMessageData()));
     }
 
     /**
      * Called when authentication is needed, but it's not sent.
      */
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    public function start(Request $request, AuthenticationException $authException = null): void
     {
-        $data = [
-            'message' => 'Token Authentication Required',
-        ];
-
-        return $this->responseFactory->create($request, $data, Response::HTTP_UNAUTHORIZED);
+        $this->throwApiPlatformAuthenticationException($request, $authException ? $authException->getMessage() : 'Token Authentication Required.');
     }
 
     public function supportsRememberMe(): bool
     {
         return false;
+    }
+
+    private function throwApiPlatformAuthenticationException(Request $request, string $message): void
+    {
+        $request->attributes->set('_api_respond', true);
+        $request->attributes->set('_format', $this->formatResolver->getFormatFromRequest($request));
+        throw new ApiPlatformAuthenticationException($message);
     }
 }

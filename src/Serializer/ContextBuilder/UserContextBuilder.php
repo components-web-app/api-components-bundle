@@ -45,7 +45,7 @@ class UserContextBuilder implements SerializerContextBuilderInterface
         $context['groups'][] = sprintf('User:%s', $postfix);
 
         if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
-            $context['groups'][] = 'User:super_admin';
+            $context['groups'][] = 'User:superAdmin';
         }
 
         return $context;

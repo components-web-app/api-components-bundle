@@ -15,10 +15,11 @@ namespace Silverback\ApiComponentsBundle\Tests\Security;
 
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
+use Silverback\ApiComponentsBundle\Exception\UserEmailAddressUnverified;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\UnsupportedUser;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
-use Symfony\Component\Security\Core\Exception\DisabledException;
 
 class UserCheckerTest extends TestCase
 {
@@ -42,7 +43,7 @@ class UserCheckerTest extends TestCase
         };
 
         $user->setEnabled(false)->setEmailAddressVerified(true);
-        $this->expectException(DisabledException::class);
+        $this->expectException(UserDisabledException::class);
         $userChecker->checkPreAuth($user);
     }
 
@@ -54,7 +55,7 @@ class UserCheckerTest extends TestCase
 
         $user->setEnabled(true);
         $user->setEmailAddressVerified(false);
-        $this->expectException(DisabledException::class);
+        $this->expectException(UserEmailAddressUnverified::class);
         $userChecker->checkPreAuth($user);
     }
 

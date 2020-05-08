@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator;
 
 use ApiPlatform\Core\Validator\ValidatorInterface;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 
 /**
  * Builds and add validation group for published resources.
@@ -26,12 +26,12 @@ final class PublishableValidator implements ValidatorInterface
     public const PUBLISHED_KEY = 'published';
 
     private ValidatorInterface $decorated;
-    private PublishableHelper $publishableHelper;
+    private PublishableStatusChecker $publishableStatusChecker;
 
-    public function __construct(ValidatorInterface $decorated, PublishableHelper $publishableHelper)
+    public function __construct(ValidatorInterface $decorated, PublishableStatusChecker $publishableStatusChecker)
     {
         $this->decorated = $decorated;
-        $this->publishableHelper = $publishableHelper;
+        $this->publishableStatusChecker = $publishableStatusChecker;
     }
 
     /**
@@ -41,12 +41,12 @@ final class PublishableValidator implements ValidatorInterface
     {
         if (
             \is_object($data) &&
-            $this->publishableHelper->getAnnotationReader()->isConfigured($data) &&
-            ($this->publishableHelper->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
+            $this->publishableStatusChecker->getAnnotationReader()->isConfigured($data) &&
+            ($this->publishableStatusChecker->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
         ) {
             $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
-            if (!empty($this->publishableHelper->getAnnotationReader()->getConfiguration($data)->validationGroups)) {
-                $groups = $this->publishableHelper->getAnnotationReader()->getConfiguration($data)->validationGroups;
+            if (!empty($this->publishableStatusChecker->getAnnotationReader()->getConfiguration($data)->validationGroups)) {
+                $groups = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($data)->validationGroups;
             }
             $context['groups'] = array_merge($context['groups'] ?? ['Default'], $groups);
         }

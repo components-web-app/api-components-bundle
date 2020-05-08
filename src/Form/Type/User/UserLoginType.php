@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Form\Type\User;
 
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Model\Form\LoginForm;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -63,7 +64,7 @@ class UserLoginType extends AbstractType
 
     public function getBlockPrefix(): ?string
     {
-        return null;
+        return '';
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -78,7 +79,7 @@ class UserLoginType extends AbstractType
             ],
             'action' => '/login',
             'realtime_validate' => false,
-            'api_request' => false,
+            FormSubmitHelper::FORM_API_DISABLED => true,
         ]);
     }
 }

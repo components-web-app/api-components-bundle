@@ -14,7 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Security;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Symfony\Component\Security\Core\Exception\DisabledException;
+use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
+use Silverback\ApiComponentsBundle\Exception\UserEmailAddressUnverified;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -34,11 +35,11 @@ class UserChecker implements UserCheckerInterface
         }
 
         if (!$user->isEnabled()) {
-            throw new DisabledException('This user is currently disabled');
+            throw new UserDisabledException('Your account is currently disabled.');
         }
 
         if ($this->denyUnverifiedLogin && !$user->isEmailAddressVerified()) {
-            throw new DisabledException('Please verify your email address before logging in. If you did not receive a confirmation email please try resetting your password using the forgot password feature.');
+            throw new UserEmailAddressUnverified('Please verify your email address before logging in. If you did not receive a confirmation email please try resetting your password using the forgot password feature.');
         }
     }
 

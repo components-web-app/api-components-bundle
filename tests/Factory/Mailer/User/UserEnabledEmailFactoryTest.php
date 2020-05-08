@@ -48,6 +48,6 @@ class UserEnabledEmailFactoryTest extends AbstractFinalEmailFactoryTest
                 'user' => $user,
             ]);
 
-        $this->assertEquals($email, $factory->create($user, ['website_name' => 'my website']));
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), UserEnabledEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

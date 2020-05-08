@@ -21,7 +21,7 @@ use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableHelper;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -35,9 +35,9 @@ class UploadsContext implements Context
     private ?BehatchRestContext $behatchRestContext;
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
-    private UploadableHelper $uploadableHelper;
+    private UploadableFileManager $uploadableHelper;
 
-    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableHelper $uploadableHelper)
+    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper)
     {
         $this->manager = $doctrine->getManager();
         $this->iriConverter = $iriConverter;

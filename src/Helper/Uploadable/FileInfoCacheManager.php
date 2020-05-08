@@ -17,7 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 
-class FileInfoCacheHelper
+class FileInfoCacheManager
 {
     private EntityManagerInterface $entityManager;
     private FileInfoRepository $repository;

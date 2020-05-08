@@ -24,7 +24,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  * @author Daniel West <daniel@silverback.is>
  */
-class PublishableHelper
+class PublishableStatusChecker
 {
     use ClassMetadataTrait;
 

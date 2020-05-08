@@ -21,6 +21,7 @@ use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
 use Behatch\Context\RestContext as BehatchRestContext;
+use Behatch\HttpCall\Request;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 
 /**
@@ -50,6 +51,15 @@ class RestContext implements Context
     public function resetNow(): void
     {
         $this->now = '';
+    }
+
+    /**
+     * @afterScenario
+     * @restartBrowser
+     */
+    public function restartBrowser(): void
+    {
+        $this->minkContext->getSession()->getDriver()->getClient()->restart();
     }
 
     /**

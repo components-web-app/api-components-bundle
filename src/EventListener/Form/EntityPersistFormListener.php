@@ -15,37 +15,57 @@ namespace Silverback\ApiComponentsBundle\EventListener\Form;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedHelper;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class EntityPersistFormListener implements EntityPersistFormListenerInterface
+abstract class EntityPersistFormListener
 {
     use ClassMetadataTrait;
 
-    private TimestampedAnnotationReader $timestampedAnnotationReader;
-    private TimestampedHelper $timestampedHelper;
+    private ?TimestampedAnnotationReader $timestampedAnnotationReader;
+    private ?TimestampedDataPersister $timestampedDataPersister;
+    private ?UserEventListener $userEventListener;
+    /** @var NormalizerInterface|DenormalizerInterface|null */
+    private ?NormalizerInterface $normalizer;
+    private ?UserDataProcessor $userDataProcessor;
     private string $formType;
     private string $dataClass;
+    private bool $returnFormDataOnSuccess;
 
-    public function __construct(string $formType, string $dataClass)
+    public function __construct(string $formType, string $dataClass, bool $returnFormDataOnSuccess = true)
     {
         $this->formType = $formType;
         $this->dataClass = $dataClass;
+        $this->returnFormDataOnSuccess = $returnFormDataOnSuccess;
     }
 
     public function init(
         ManagerRegistry $registry,
         TimestampedAnnotationReader $timestampedAnnotationReader,
-        TimestampedHelper $timestampedHelper
+        TimestampedDataPersister $timestampedDataPersister,
+        UserEventListener $userEventListener,
+        NormalizerInterface $normalizer,
+        UserDataProcessor $userDataProcessor
     ): void {
+        if (!$normalizer instanceof DenormalizerInterface) {
+            throw new InvalidArgumentException(sprintf('$normalizer must also implement %s', DenormalizerInterface::class));
+        }
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
-        $this->timestampedHelper = $timestampedHelper;
+        $this->timestampedDataPersister = $timestampedDataPersister;
+        $this->userEventListener = $userEventListener;
+        $this->normalizer = $normalizer;
+        $this->userDataProcessor = $userDataProcessor;
     }
 
     public function __invoke(FormSuccessEvent $event)
@@ -56,17 +76,35 @@ abstract class EntityPersistFormListener implements EntityPersistFormListenerInt
         ) {
             return;
         }
+
+        if ($this->timestampedAnnotationReader->isConfigured($data)) {
+            $this->timestampedDataPersister->persistTimestampedFields($data, true);
+        }
+
         $entityManager = $this->registry->getManagerForClass($this->dataClass);
         if (!$entityManager) {
             throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $this->dataClass));
         }
 
-        if ($this->timestampedAnnotationReader->isConfigured($data)) {
-            $this->timestampedHelper->persistTimestampedFields($data, true);
+        if ($data instanceof AbstractUser) {
+            $uow = $entityManager->getUnitOfWork();
+            $oldData = $uow->getOriginalEntityData($data);
+            $oldUser = null;
+            if (\count($oldData)) {
+                $normalized = $this->normalizer->normalize($oldData);
+                /** @var AbstractUser $oldUser */
+                $oldUser = $this->normalizer->denormalize($normalized, \get_class($data));
+            }
+
+            $this->userDataProcessor->processChanges($data, $oldUser);
+            $this->userEventListener->postWrite($data, $oldUser);
         }
 
         $entityManager->persist($data);
         $entityManager->flush();
-        $event->result = $data;
+
+        if ($this->returnFormDataOnSuccess) {
+            $event->result = $data;
+        }
     }
 }
