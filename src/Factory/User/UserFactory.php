@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Factory\User;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -26,13 +27,15 @@ class UserFactory
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
     private UserRepository $userRepository;
+    private TimestampedDataPersister $timestampedDataPersister;
     private string $userClass;
 
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository, string $userClass)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository, TimestampedDataPersister $timestampedDataPersister, string $userClass)
     {
         $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->userRepository = $userRepository;
+        $this->timestampedDataPersister = $timestampedDataPersister;
         $this->userClass = $userClass;
     }
 
@@ -59,6 +62,7 @@ class UserFactory
                 $superAdmin ? 'ROLE_SUPER_ADMIN' : 'ROLE_USER',
             ]);
 
+        $this->timestampedDataPersister->persistTimestampedFields($user, true);
         $this->validator->validate($user);
         $this->entityManager->persist($user);
         $this->entityManager->flush();

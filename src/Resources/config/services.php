@@ -631,7 +631,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TokenAuthenticator::class)
         ->args([
             new Reference(Security::class),
-            new Reference(ResponseFactory::class),
+            new Reference(SerializeFormatResolver::class),
             '', // injected in dependency injection
         ]);
 
@@ -739,6 +739,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(ValidatorInterface::class),
             new Reference(UserRepository::class),
+            new Reference(TimestampedDataPersister::class),
             '', // injected in dependency injection
         ]);
 

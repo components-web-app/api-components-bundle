@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Exception;
 
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\Exception\LockedException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TokenAuthenticationException extends CustomUserMessageAuthenticationException
+class UserEmailAddressUnverified extends LockedException
 {
+    public function getMessageKey(): string
+    {
+        return $this->getMessage();
+    }
 }

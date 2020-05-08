@@ -18,6 +18,6 @@ use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationExc
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TokenAuthenticationException extends CustomUserMessageAuthenticationException
+class ApiPlatformAuthenticationException extends CustomUserMessageAuthenticationException
 {
 }

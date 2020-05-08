@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
+use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -152,6 +153,9 @@ final class DoctrineContext implements Context
     {
         $form = new Form();
         switch ($type) {
+            case 'login':
+                $form->formType = UserLoginType::class;
+                break;
             case 'password_update':
                 $form->formType = PasswordUpdateType::class;
                 break;
@@ -190,7 +194,8 @@ final class DoctrineContext implements Context
             ->setEmailAddress('test.user@example.com')
             ->setPassword($this->passwordEncoder->encodePassword($user, $password))
             ->setRoles([$role])
-            ->setEnabled(false);
+            ->setEnabled(true)
+            ->setEmailAddressVerified(true);
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
@@ -205,6 +210,28 @@ final class DoctrineContext implements Context
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
         $user->setNewPasswordConfirmationToken($token)->setPasswordRequestedAt(new \DateTime($dateTime));
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user is disabled
+     */
+    public function theUserIsDisabled(): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setEnabled(false);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user email is not verified
+     */
+    public function theUserEmailIsNotVerified(): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user->setEmailAddressVerified(false);
         $this->manager->flush();
     }
 

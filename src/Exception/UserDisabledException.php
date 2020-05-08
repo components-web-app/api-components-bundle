@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Exception;
 
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\Exception\DisabledException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TokenAuthenticationException extends CustomUserMessageAuthenticationException
+class UserDisabledException extends DisabledException
 {
+    public function getMessageKey(): string
+    {
+        return $this->getMessage();
+    }
 }

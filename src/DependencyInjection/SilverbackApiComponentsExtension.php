@@ -18,7 +18,9 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
+use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
@@ -241,6 +243,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             ],
             'exception_to_status' => [
                 UnparseableRequestHeaderException::class => 400,
+                ApiPlatformAuthenticationException::class => 401,
+                UserDisabledException::class => 401,
             ],
         ]);
     }
