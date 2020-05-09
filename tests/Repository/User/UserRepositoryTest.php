@@ -68,7 +68,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     {
         $username = 'pw_reset@email.com';
         $token = 'pw_token';
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
 
         $requestedAt = new \DateTime();
         // persisting in this test can sometimes take more than 2 seconds hence we have checked with an extra delay
@@ -83,14 +83,14 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertEquals($user, $this->repository->findOneWithPasswordResetToken($username));
     }
 
     public function test_find_by_expired_password_reset_token(): void
     {
         $username = 'expired_pw_reset@email.com';
         $token = 'expired_pw_token';
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
 
         $requestedAt = new \DateTime();
         $requestedAt = $requestedAt->modify(sprintf('-%d seconds', $this->passwordResetTimeoutSeconds));
@@ -103,7 +103,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
     }
 
     public function test_find_by_email_verification_token(): void
@@ -111,7 +111,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $username = 'email_verification_username';
         $email = 'email_verification_username@email.com';
         $token = 'email_token';
-        $this->assertNull($this->repository->findOneByEmailVerificationToken($username, $email, $token));
+        $this->assertNull($this->repository->findOneByUsernameAndNewEmailAddress($username, $email));
 
         $user = new User();
         $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
@@ -123,7 +123,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->findOneByEmailVerificationToken($username, 'new@email.com', $token));
+        $this->assertEquals($user, $this->repository->findOneByUsernameAndNewEmailAddress($username, 'new@email.com'));
     }
 
     public function test_load_user_by_username(): void

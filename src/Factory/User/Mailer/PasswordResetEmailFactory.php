@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -20,9 +20,9 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
+final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 {
-    public const MESSAGE_ID_PREFIX = 'cev';
+    public const MESSAGE_ID_PREFIX = 'pre';
 
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
@@ -32,14 +32,15 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
         $this->initUser($user);
 
-        $token = $user->getNewEmailVerificationToken();
+        $token = $user->plainNewPasswordConfirmationToken;
+        $user->plainNewPasswordConfirmationToken = null;
         if (!$token) {
-            throw new InvalidArgumentException('A `new email verification token` must be set to send the verification email');
+            throw new InvalidArgumentException('A new password confirmation token must be set to send the `password reset` email');
         }
 
-        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername(), $user->getNewEmailAddress());
+        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
 
-        return $this->createEmailMessage($context, $user->getNewEmailAddress());
+        return $this->createEmailMessage($context);
     }
 
     protected static function getContextKeys(): ?array
@@ -51,6 +52,6 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_change_email_verification.html.twig';
+        return 'user_password_reset.html.twig';
     }
 }

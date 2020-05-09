@@ -92,7 +92,6 @@ class PasswordUpdateType extends AbstractType
             ],
             'action' => '/password/reset',
             'realtime_validate' => false,
-            'api_request' => true,
             'data_class' => $this->userClass,
             'data' => $user,
             'validation_groups' => ['User:password:create'],

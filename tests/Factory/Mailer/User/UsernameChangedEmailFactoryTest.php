@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 

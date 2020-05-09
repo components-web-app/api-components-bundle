@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 

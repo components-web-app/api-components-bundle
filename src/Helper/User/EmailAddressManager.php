@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -25,17 +26,23 @@ class EmailAddressManager
 {
     private EntityManagerInterface $entityManager;
     private UserRepository $userRepository;
+    private EncoderFactoryInterface $encoderFactory;
 
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
+    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository, EncoderFactoryInterface $encoderFactory)
     {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
+        $this->encoderFactory = $encoderFactory;
     }
 
     public function verifyNewEmailAddress(string $username, string $email, string $token): void
     {
-        $user = $this->userRepository->findOneByEmailVerificationToken($username, $email, $token);
+        $user = $this->userRepository->findOneByUsernameAndNewEmailAddress($username, $email);
         if (!$user) {
+            throw new InvalidArgumentException('User not found');
+        }
+        $encoder = $this->encoderFactory->getEncoder($user);
+        if (!$encoder->isPasswordValid($user->getNewEmailVerificationToken(), $token, $user->getSalt())) {
             throw new InvalidArgumentException('User not found');
         }
 

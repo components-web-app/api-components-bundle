@@ -209,7 +209,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
-        $user->setNewPasswordConfirmationToken($token)->setPasswordRequestedAt(new \DateTime($dateTime));
+        $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
         $this->manager->flush();
     }
 
@@ -242,7 +242,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
-        $user->setNewEmailAddress($emailAddress)->setNewEmailVerificationToken($verificationToken);
+        $user->setNewEmailAddress($emailAddress)->setNewEmailVerificationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
         $this->manager->flush();
     }
 

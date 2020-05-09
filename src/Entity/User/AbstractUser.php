@@ -84,6 +84,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newPasswordConfirmationToken = null;
 
     /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    public ?string $plainNewPasswordConfirmationToken = null;
+
+    /**
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?DateTime $passwordRequestedAt = null;
@@ -114,6 +119,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newEmailVerificationToken = null;
 
     /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    public ?string $plainNewEmailVerificationToken = null;
+
+    /**
      * @ApiProperty(readable=false, writable=false)
      */
     protected bool $emailAddressVerified = false;
@@ -129,6 +139,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?string $restoreAccessToken = null;
+
+    /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    protected ?string $plainRestoreAccessToken = null;
 
     /**
      * @ApiProperty(readable=false, writable=false)

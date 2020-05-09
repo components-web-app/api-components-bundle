@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;

@@ -49,33 +49,29 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getOneOrNullResult();
     }
 
-    public function findOneByPasswordResetToken(string $username, string $token): ?AbstractUser
+    public function findOneWithPasswordResetToken(string $username): ?AbstractUser
     {
         $minimumRequestDateTime = new \DateTime();
         $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
 
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
-            ->andWhere('u.newPasswordConfirmationToken = :token')
             ->andWhere('u.newPasswordConfirmationToken IS NOT NULL')
             ->andWhere('u.passwordRequestedAt > :passwordRequestedAt')
             ->setParameter('username', $username)
-            ->setParameter('token', $token)
             ->setParameter('passwordRequestedAt', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function findOneByEmailVerificationToken(string $username, string $email, string $token): ?AbstractUser
+    public function findOneByUsernameAndNewEmailAddress(string $username, string $email): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
             ->andWhere('u.newEmailAddress = :email')
-            ->andWhere('u.newEmailVerificationToken = :token')
             ->andWhere('u.newEmailVerificationToken IS NOT NULL')
             ->setParameter('username', $username)
             ->setParameter('email', $email)
-            ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();
     }
