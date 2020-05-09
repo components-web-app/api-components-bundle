@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -50,9 +50,8 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
         };
         $user
             ->setUsername('username')
-            ->setEmailAddress('email@address.com')
-            ->setNewPasswordConfirmationToken('token');
-
+            ->setEmailAddress('email@address.com');
+        $user->plainNewPasswordConfirmationToken = 'token';
         $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);

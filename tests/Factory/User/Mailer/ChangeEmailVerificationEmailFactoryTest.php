@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -48,11 +48,11 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
     {
         $user = new class() extends AbstractUser {
         };
+
         $user
             ->setUsername('username')
-            ->setEmailAddress('email@address.com')
-            ->setNewEmailVerificationToken('token');
-
+            ->setEmailAddress('email@address.com');
+        $user->plainNewEmailVerificationToken = 'token';
         $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
