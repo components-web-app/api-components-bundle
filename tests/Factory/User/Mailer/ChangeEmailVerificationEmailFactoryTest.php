@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
@@ -23,7 +23,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
+        $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -36,7 +36,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
+        $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A `new email verification token` must be set to send the verification email');
@@ -52,21 +52,21 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
         $user
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
-        $user->plainNewEmailVerificationToken = 'token';
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
+        $user->plainNewEmailConfirmationToken = 'token';
+        $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 
         $email = (new TemplatedEmail())
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
-            ->htmlTemplate('@SilverbackApiComponents/emails/user_change_email_verification.html.twig')
+            ->htmlTemplate('@SilverbackApiComponents/emails/user_change_email_confirmation.html.twig')
             ->context([
                 'website_name' => 'my website',
                 'user' => $user,
                 'redirect_url' => '/transformed-path',
             ]);
 
-        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX);
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

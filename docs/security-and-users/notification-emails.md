@@ -84,7 +84,7 @@ You will receive a `200` status code on a successful password change or `404` on
 
 ### Email Address Verification
 
-Template: `@SilverbackApiComponent/emails/user_change_email_verification.html.twig`
+Template: `@SilverbackApiComponent/emails/user_change_email_confirmation.html.twig`
 
 ```yaml
 silverback_api_component:

@@ -59,4 +59,3 @@ Feature: Receive notification emails on important user changes
     Then the response status code should be 200
     And I should get a "username_changed_notification" email sent to the email address "new@username.com"
 
-  # ADD FEATURE - EMAIL ADDRESS CHANGE, SEND EMAIL TO OLD EMAIL ADDRESS WITH A PASSWORD RESET LINK

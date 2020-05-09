@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class EmailAddressVerifyAction
+class VerifyEmailAddressAction
 {
     private EmailAddressManager $emailAddressManager;
 
@@ -33,7 +33,7 @@ class EmailAddressVerifyAction
     public function __invoke(string $username, string $emailAddress, string $token): Response
     {
         try {
-            $this->emailAddressManager->verifyNewEmailAddress($username, $emailAddress, $token);
+            $this->emailAddressManager->verifyEmailAddress($username, $token);
         } catch (InvalidArgumentException $exception) {
             return new Response(null, Response::HTTP_NOT_FOUND);
         } catch (UnexpectedValueException $exception) {

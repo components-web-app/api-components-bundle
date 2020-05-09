@@ -10,7 +10,11 @@
            controller="Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction"
            methods="GET" />
 
-    <route id="api_components_change_email_address" path="/email_address/verify/{username}/{emailAddress}/{token}"
-           controller="Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction"
+    <route id="api_components_change_email_address" path="/confirm-email/{username}/{emailAddress}/{token}"
+           controller="Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction"
+           methods="GET" />
+
+    <route id="api_components_change_email_address" path="/verify-email/{username}/{token}"
+           controller="Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction"
            methods="GET" />
 </routes>

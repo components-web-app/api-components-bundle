@@ -24,7 +24,7 @@ Feature: Register process via a form
     And the JSON should be valid according to the schema file "user.schema.json"
     And the JSON node "newEmailAddress" should be equal to "new@example.com"
     And the JSON node "emailAddress" should be equal to "user@example.com"
-    And the JSON node "newEmailVerificationToken" should not exist
+    And the JSON node "newEmailConfirmationToken" should not exist
     And I should get a "<expectedEmail>" email sent to the email address "new@example.com"
     Examples:
       | headerName | headerValue             | postfix                                                                          | expectedEmail                    |

@@ -1,0 +1,11 @@
+{% extends "@SilverbackApiComponents/emails/_template.html.twig" %}
+
+{% block content %}
+  <h1 class="text-center">Confirm Your New Email Address</h1>
+  <spacer size="16"></spacer>
+  <p>Hello {{ user.username }},</p>
+  <p>It looks like you have requested to change your email address to {{ user.newEmailAddress }}.</p>
+  <p>Click the link below to complete the request and change your email address.</p>
+  <button class="large expand" href="{{ redirect_url }}">Confirm Email Address Change</button>
+  {% include "@SilverbackApiComponents/emails/_signature.html.twig" %}
+{% endblock %}

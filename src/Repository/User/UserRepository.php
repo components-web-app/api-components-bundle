@@ -69,7 +69,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
             ->andWhere('u.newEmailAddress = :email')
-            ->andWhere('u.newEmailVerificationToken IS NOT NULL')
+            ->andWhere('u.newEmailConfirmationToken IS NOT NULL')
             ->setParameter('username', $username)
             ->setParameter('email', $email)
             ->getQuery()

@@ -96,23 +96,22 @@ class UserDataProcessor
     public function processChanges(AbstractUser $user, ?AbstractUser $previousUser): void
     {
         $this->encodePassword($user);
-        $user->setEmailAddressVerified($this->initialEmailVerifiedState);
-
-        if (!$previousUser && !$this->initialEmailVerifiedState) {
-            $user->setNewEmailAddress($user->getEmailAddress());
-            if ($this->verifyEmailOnRegister) {
-                $user->setNewEmailVerificationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
-                $user->plainNewEmailVerificationToken = $token;
+        if (!$previousUser) {
+            $user->setEmailAddressVerified($this->initialEmailVerifiedState);
+            if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
+                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->plainEmailAddressVerifyToken = $token;
             }
         }
 
-        if ($previousUser && $previousUser->getNewEmailAddress() !== ($newEmail = $user->getNewEmailAddress())) {
-            if ($this->verifyEmailOnChange) {
-                $user->setNewEmailVerificationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
-                $user->plainNewEmailVerificationToken = $token;
-            } else {
-                $user->setEmailAddress($newEmail);
-                $user->setNewEmailAddress(null);
+        if ($previousUser) {
+            if ($this->verifyEmailOnChange && $previousUser->getEmailAddress() !== $user->getEmailAddress()) {
+                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->plainEmailAddressVerifyToken = $token;
+            }
+            if ($previousUser->getNewEmailAddress() !== $user->getNewEmailAddress()) {
+                $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->plainNewEmailConfirmationToken = $token;
             }
         }
     }

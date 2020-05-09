@@ -67,8 +67,12 @@ class UserEventListener
             $this->userMailer->sendPasswordChangedEmail($user);
         }
 
-        if ($previousUser->getNewEmailAddress() !== $user->getNewEmailAddress()) {
-            $this->userMailer->sendChangeEmailVerificationEmail($user);
+        if ($previousUser->getEmailAddressVerifyToken() !== $user->getEmailAddressVerifyToken()) {
+            $this->userMailer->sendEmailVerifyEmail($user);
+        }
+
+        if ($previousUser->getNewEmailConfirmationToken() !== $user->getNewEmailConfirmationToken()) {
+            $this->userMailer->sendChangeEmailConfirmationEmail($user);
         }
     }
 }

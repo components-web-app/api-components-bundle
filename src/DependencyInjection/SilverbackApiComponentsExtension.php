@@ -22,11 +22,12 @@ use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
-use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
@@ -151,7 +152,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         }
 
         $mapping = [
-            ChangeEmailVerificationEmailFactory::class => 'email_verification',
+            VerifyEmailFactory::class => 'email_verification',
+            ChangeEmailConfirmationEmailFactory::class => 'new_email_confirmation',
             PasswordResetEmailFactory::class => 'password_reset',
         ];
         foreach ($mapping as $class => $key) {

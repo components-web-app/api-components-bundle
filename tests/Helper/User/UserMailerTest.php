@@ -19,7 +19,7 @@ use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -56,7 +56,7 @@ class UserMailerTest extends TestCase
     {
         $this->assertEquals([
             PasswordResetEmailFactory::class,
-            ChangeEmailVerificationEmailFactory::class,
+            ChangeEmailConfirmationEmailFactory::class,
             WelcomeEmailFactory::class,
             UserEnabledEmailFactory::class,
             UsernameChangedEmailFactory::class,
@@ -144,9 +144,9 @@ class UserMailerTest extends TestCase
             protected ?string $username = 'test_send_change_email_verification_email';
         };
 
-        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailVerificationEmailFactory::class, $user);
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user);
 
-        $this->userMailer->sendChangeEmailVerificationEmail($user);
+        $this->userMailer->sendChangeEmailConfirmationEmail($user);
     }
 
     public function test_send_welcome_email(): void

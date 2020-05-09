@@ -17,7 +17,7 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -128,8 +128,8 @@ class ProfilerContext implements Context
     {
         $pathInsert = $customPath ? 'another-path' : 'verify-new-email';
         Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
-        Assert::assertStringStartsWith(ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
-        Assert::assertIsString($context['user']->getNewEmailVerificationToken());
+        Assert::assertStringStartsWith(ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+        Assert::assertIsString($context['user']->getNewEmailConfirmationToken());
         Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 

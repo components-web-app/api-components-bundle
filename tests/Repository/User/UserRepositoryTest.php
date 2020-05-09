@@ -119,7 +119,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
             ->setUsername($username)
             ->setEmailAddress($email)
             ->setNewEmailAddress('new@email.com')
-            ->setNewEmailVerificationToken($token);
+            ->setNewEmailConfirmationToken($token);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 

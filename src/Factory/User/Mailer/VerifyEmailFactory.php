@@ -20,9 +20,9 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
+final class VerifyEmailFactory extends AbstractUserEmailFactory
 {
-    public const MESSAGE_ID_PREFIX = 'cev';
+    public const MESSAGE_ID_PREFIX = 'ver';
 
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
@@ -32,15 +32,15 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
         $this->initUser($user);
 
-        $token = $user->plainNewEmailVerificationToken;
-        $user->plainNewEmailVerificationToken = null;
+        $token = $user->plainEmailAddressVerifyToken;
+        $user->plainEmailAddressVerifyToken = null;
         if (!$token) {
-            throw new InvalidArgumentException('A `new email verification token` must be set to send the verification email');
+            throw new InvalidArgumentException('An `email verify token` must be set to send the verification email');
         }
 
-        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername(), $user->getNewEmailAddress());
+        $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
 
-        return $this->createEmailMessage($context, $user->getNewEmailAddress());
+        return $this->createEmailMessage($context);
     }
 
     protected static function getContextKeys(): ?array
@@ -52,6 +52,6 @@ final class ChangeEmailVerificationEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_change_email_verification.html.twig';
+        return 'user_verify_email.html.twig';
     }
 }

@@ -242,7 +242,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
-        $user->setNewEmailAddress($emailAddress)->setNewEmailVerificationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
+        $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
         $this->manager->flush();
     }
 
