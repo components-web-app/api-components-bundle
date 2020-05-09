@@ -53,6 +53,7 @@ class UserMailer implements ServiceSubscriberInterface
             UserEnabledEmailFactory::class,
             UsernameChangedEmailFactory::class,
             PasswordChangedEmailFactory::class,
+            VerifyEmailFactory::class,
         ];
     }
 

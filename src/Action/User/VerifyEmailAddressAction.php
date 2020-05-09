@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -36,8 +35,6 @@ class VerifyEmailAddressAction
             $this->emailAddressManager->verifyEmailAddress($username, $token);
         } catch (InvalidArgumentException $exception) {
             return new Response(null, Response::HTTP_NOT_FOUND);
-        } catch (UnexpectedValueException $exception) {
-            return new Response(null, Response::HTTP_UNAUTHORIZED);
         }
 
         return new Response(null, Response::HTTP_OK);

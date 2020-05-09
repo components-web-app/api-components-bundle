@@ -25,7 +25,7 @@ Feature: Register process via a form
     And the JSON node "newEmailAddress" should be equal to "new@example.com"
     And the JSON node "emailAddress" should be equal to "user@example.com"
     And the JSON node "newEmailConfirmationToken" should not exist
-    And I should get a "<expectedEmail>" email sent to the email address "new@example.com"
+    And I should get a "<expectedEmail>" email sent
     Examples:
       | headerName | headerValue             | postfix                                                                          | expectedEmail                    |
       | origin     | http://www.website.com  | /submit                                                                          | change_email_verification        |
@@ -110,15 +110,16 @@ Feature: Register process via a form
 
   Scenario: I can verify my new email address
     Given there is a user with the username "another_user" password "password" and role "ROLE_USER"
-    And the user has a new email address "new@email.com" and verification token abc123
-    When I send a "GET" request to "/email_address/verify/another_user/new@email.com/abc123"
+    And the user has a new email address "new@email.com" and confirmation token abc123
+    And I add "referer" header equal to "http://www.example.com"
+    When I send a "GET" request to "/confirm-email/another_user/new@email.com/abc123"
     Then the response status code should be 200
     And the new email address should be "new@email.com" for username "another_user"
 
   Scenario: Email verification reset if another user now has confirmed email same as the one this user is trying to confirm
     Given there is a user with the username "new@email.com" password "password" and role "ROLE_USER" and the email address "new@email.com"
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
-    And the user has a new email address "new@email.com" and verification token abc123
-    When I send a "GET" request to "/email_address/verify/another_user/new@email.com/abc123"
+    And the user has a new email address "new@email.com" and confirmation token abc123
+    When I send a "GET" request to "/confirm-email/another_user/new@email.com/abc123"
     Then the response status code should be 401
     And the new email address should be "test.user@example.com" for username "another_user"

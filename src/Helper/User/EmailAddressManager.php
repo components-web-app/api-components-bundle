@@ -65,7 +65,7 @@ class EmailAddressManager
                 ->setNewEmailConfirmationToken(null);
 
             $this->entityManager->flush();
-            throw new UnexpectedValueException('Another user no exists with that email. Verification aborted.');
+            throw new UnexpectedValueException('Another user now exists with that email. Verification aborted.');
         }
 
         $user

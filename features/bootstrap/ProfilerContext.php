@@ -126,8 +126,8 @@ class ProfilerContext implements Context
 
     private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false): void
     {
-        $pathInsert = $customPath ? 'another-path' : 'verify-new-email';
-        Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
+        $pathInsert = $customPath ? 'another-path' : 'confirm-new-email';
+        Assert::assertEquals('Please confirm your new email address', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertIsString($context['user']->getNewEmailConfirmationToken());
         Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);

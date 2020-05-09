@@ -236,7 +236,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given the user has a new email address :emailAddress and verification token :token
+     * @Given the user has a new email address :emailAddress and confirmation token :token
      */
     public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
     {
@@ -337,6 +337,5 @@ final class DoctrineContext implements Context
         ]);
         Assert::assertEquals($emailAddress, $user->getEmailAddress());
         Assert::assertNull($user->getNewEmailAddress());
-        Assert::assertTrue($user->isEmailAddressVerified());
     }
 }

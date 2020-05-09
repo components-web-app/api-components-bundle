@@ -204,6 +204,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(EntityManagerInterface::class),
             new Reference(UserRepository::class),
             new Reference(EncoderFactoryInterface::class),
+            new Reference(UserDataProcessor::class),
+            new Reference(UserEventListener::class),
         ]);
 
     $services
