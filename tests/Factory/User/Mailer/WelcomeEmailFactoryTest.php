@@ -58,7 +58,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
         $user
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
-        $user->plainNewEmailConfirmationToken = 'token';
+        $user->plainEmailAddressVerifyToken = 'token';
         $factory = new WelcomeEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);

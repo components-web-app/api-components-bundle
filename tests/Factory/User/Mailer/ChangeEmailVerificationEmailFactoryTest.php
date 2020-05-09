@@ -39,7 +39,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
         $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A `new email verification token` must be set to send the verification email');
+        $this->expectExceptionMessage('A `new email confirmation token` must be set to send the confirmation email');
 
         $factory->create($user);
     }
