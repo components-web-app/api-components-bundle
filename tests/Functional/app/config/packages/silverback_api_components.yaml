@@ -12,7 +12,7 @@ silverback_api_components:
         default_redirect_path: /verify-email/{{ username }}/{{ email }}/{{ token }}
     password_reset:
       email:
-        redirect_path_query: email_redirect
+        redirect_path_query: password_redirect
         default_redirect_path: /reset-password/{{ username }}/{{ token }}
     new_email_confirmation:
       email:

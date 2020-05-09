@@ -36,7 +36,6 @@ Feature: Register process via a form
             "ROLE_USER"
         ],
         "enabled": true,
-        "newEmailAddress": "user@example.com",
         "_metadata": {
           "persisted": true
         }
