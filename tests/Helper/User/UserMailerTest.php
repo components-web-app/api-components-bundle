@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -61,6 +62,7 @@ class UserMailerTest extends TestCase
             UserEnabledEmailFactory::class,
             UsernameChangedEmailFactory::class,
             PasswordChangedEmailFactory::class,
+            VerifyEmailFactory::class,
         ], UserMailer::getSubscribedServices());
     }
 
