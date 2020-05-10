@@ -26,7 +26,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
  * @Silverback\Timestamped
  * @ApiResource(attributes={"order"={"sort"="ASC"}})
  */
-class ComponentLocation
+class ComponentPosition
 {
     use IdTrait;
     use TimestampedTrait;
@@ -38,13 +38,13 @@ class ComponentLocation
      */
     public AbstractComponent $component;
 
-    public ?int $sort = 0;
+    public ?int $sortValue = 0;
 
     /**
      * @return Collection|AbstractComponent[]|null
      */
     public function getSortCollection(): ?Collection
     {
-        return $this->componentGroup->componentLocations;
+        return $this->componentGroup->componentPositions;
     }
 }

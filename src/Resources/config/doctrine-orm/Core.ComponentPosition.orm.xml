@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation" table="component_location">
+  <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" table="component_position">
     <id name="id" column="id" type="uuid_binary_ordered_time">
       <generator strategy="CUSTOM"/>
       <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
     </id>
-    <field name="sort" type="integer" column="sort" precision="0" scale="0" nullable="false"/>
-    <many-to-one field="componentGroup" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="componentLocations" fetch="LAZY">
+    <field name="sortValue" type="integer" column="sort_value" precision="0" scale="0" nullable="false"/>
+    <many-to-one field="componentGroup" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="componentPositions" fetch="LAZY">
       <join-columns>
         <join-column name="component_group_id" referenced-column-name="id"/>
       </join-columns>
     </many-to-one>
-    <many-to-one field="component" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" inversed-by="componentLocations" fetch="LAZY">
+    <many-to-one field="component" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" inversed-by="componentPositions" fetch="LAZY">
       <join-columns>
         <join-column name="component_id" referenced-column-name="id"/>
       </join-columns>

@@ -8,7 +8,7 @@
         "@type",
         "formType",
         "formView",
-        "componentLocations",
+        "componentPositions",
         "componentCollections"
     ],
     "properties": {
@@ -57,8 +57,8 @@
             "type": "object",
             "$ref": "form_view_root.schema.json"
         },
-        "componentLocations": {
-            "$id": "#/properties/componentLocations",
+        "componentPositions": {
+            "$id": "#/properties/componentPositions",
             "type": "array",
             "title": "The Componentlocations Schema",
             "description": "An explanation about the purpose of this instance.",

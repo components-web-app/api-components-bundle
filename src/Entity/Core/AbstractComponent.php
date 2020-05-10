@@ -27,13 +27,13 @@ abstract class AbstractComponent implements ComponentInterface
     use UiTrait;
 
     /**
-     * @var Collection|ComponentLocation[]
+     * @var Collection|ComponentPosition[]
      */
-    public Collection $componentLocations;
+    public Collection $componentPositions;
 
     public function __construct()
     {
         $this->initComponentCollections();
-        $this->componentLocations = new ArrayCollection();
+        $this->componentPositions = new ArrayCollection();
     }
 }

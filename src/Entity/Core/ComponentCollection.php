@@ -52,12 +52,12 @@ class ComponentCollection
     public Collection $components;
 
     /**
-     * @var Collection|ComponentLocation[]
+     * @var Collection|ComponentPosition[]
      */
-    public Collection $componentLocations;
+    public Collection $componentPositions;
 
     public function __construct()
     {
-        $this->componentLocations = new ArrayCollection();
+        $this->componentPositions = new ArrayCollection();
     }
 }
