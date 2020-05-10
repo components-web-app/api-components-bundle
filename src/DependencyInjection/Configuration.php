@@ -121,7 +121,7 @@ class Configuration implements ConfigurationInterface
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Please confirm your new email address')->end()
                                     ->end()
                                 ->end()
-                                ->integerNode('request_timeout_seconds')->defaultValue(3600)->end()
+                                ->integerNode('request_timeout_seconds')->defaultValue(86400)->end()
                             ->end()
                         ->end()
                         ->arrayNode('password_reset')

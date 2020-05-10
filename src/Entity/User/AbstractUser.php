@@ -106,7 +106,8 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?DateTime $passwordUpdatedAt = null;
 
     /**
-     * @Assert\NotBlank(groups={"User:emailAddress"})
+     * @Assert\NotBlank(groups={"User:emailAddress", "Default"}, allowNull=true)
+     * @Assert\Email()
      * @Groups({"User:input", "User:output", "User:emailAddress"})
      */
     protected ?string $newEmailAddress = null;

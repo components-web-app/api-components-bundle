@@ -116,11 +116,10 @@ silverback_api_component:
       email:
         redirect_path_query: null
         default_redirect_path: /confirm-new-email/{{ username }}/{{ new_email }}/{{ token }}
-      repeat_ttl_seconds: 8600
-      request_timeout_seconds: 3600
+      request_timeout_seconds: 86400
 ```
 
-The confirmation email is sent to the user's old email `newEmailAddress` field is updated. This provides a secure process for the user to confirm the change of email and prevent being locked out by a possible hacker.
+The confirmation email is sent to the user's old email `newEmailAddress` field is updated. This provides a secure process for the user to confirm the change of email and prevent being locked out by a possible hacker. The requests will timeout in 1 day by default, but you can configure this.
 
 > ** The user `emailAddrss` property is only editable by a super admin, whereas a user can update their own `newEmailAddress` property.**
 

@@ -47,6 +47,9 @@ class EmailAddressManager
 
     public function confirmNewEmailAddress(string $username, string $email, string $token): void
     {
+        if ('' === $email) {
+            throw new InvalidArgumentException('User not found');
+        }
         $user = $this->userRepository->findOneByUsernameAndNewEmailAddress($username, $email);
         if (!$user) {
             throw new InvalidArgumentException('User not found');

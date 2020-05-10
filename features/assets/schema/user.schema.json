@@ -6,12 +6,10 @@
         "@context",
         "@id",
         "@type",
-        "modifiedAt",
         "username",
         "emailAddress",
         "roles",
-        "enabled",
-        "createdAt"
+        "enabled"
     ],
     "not": {
         "required": [

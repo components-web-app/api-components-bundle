@@ -109,9 +109,14 @@ class UserDataProcessor
                 $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
                 $user->plainEmailAddressVerifyToken = $token;
             }
-            if (($newEmail = $user->getNewEmailAddress()) && $newEmail !== $previousUser->getNewEmailAddress()) {
-                $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
-                $user->plainNewEmailConfirmationToken = $token;
+            if (($newEmail = $user->getNewEmailAddress()) !== $previousUser->getNewEmailAddress()) {
+                if ($newEmail) {
+                    $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                    $user->plainNewEmailConfirmationToken = $token;
+                } else {
+                    // invalidate any existing requests
+                    $user->setNewEmailConfirmationToken(null);
+                }
             }
         }
     }

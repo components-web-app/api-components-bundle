@@ -91,8 +91,40 @@ Feature: Register process via a form
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Someone else is already registered with that email address."
     And the JSON should be valid according to the schema file "form.schema.json"
 
+  @loginSuperAdmin
+  Scenario: I can authenticate that I am not able to change my email address to a blank string
+    Given there is a "new_email" form
+    And there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "PUT" request to the component "user" with body:
+    """
+    {
+      "newEmailAddress": ""
+    }
+    """
+    Then the response status code should be 400
+    And the JSON node "violations[0].propertyPath" should be equal to "newEmailAddress"
+    And the JSON node "violations[0].message" should be equal to "This value should not be blank."
+    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+
+  @loginSuperAdmin
+  Scenario: I can authenticate that I am not able to change my email address to a blank string
+    Given there is a "new_email" form
+    And there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "PUT" request to the component "user" with body:
+    """
+    {
+      "newEmailAddress": null
+    }
+    """
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema file "user.schema.json"
+    And the JSON node "newEmailConfirmationToken" should not exist
+    And I should not receive any emails
+
   @loginUser
-  Scenario: I get an invalid response if I try to change my email address to one that already exists
+  Scenario: I can cancel an existing request to change email address
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
@@ -104,9 +136,27 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
-    And the JSON node "formView.children[0].vars.errors[0]" should be equal to "This value should not be blank."
-    And the JSON should be valid according to the schema file "form.schema.json"
+    Then the response status code should be 201
+    And the JSON should be valid according to the schema file "user.schema.json"
+    And the JSON node "newEmailConfirmationToken" should not exist
+    And I should not receive any emails
+
+  @loginUser
+  Scenario: I can cancel an existing request to change email address
+    Given there is a "new_email" form
+    And there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    """
+    {
+      "new_email_address": {
+        "newEmailAddress": null
+      }
+    }
+    """
+    Then the response status code should be 201
+    And the JSON node "newEmailConfirmationToken" should not exist
+    And I should not receive any emails
 
   Scenario: I can verify my new email address
     Given there is a user with the username "my_username" password "password" and role "ROLE_USER"
@@ -125,3 +175,5 @@ Feature: Register process via a form
     Then the response status code should be 401
     And the new email address should be "test.user@example.com" for username "another_user"
     And I should not receive any emails
+
+
