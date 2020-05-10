@@ -45,7 +45,3 @@ Feature: ComponentCollection resource
     And the JSON node "componentPositions[1]" should be equal to the IRI of the component "position_1"
     And the JSON node "componentPositions[2]" should be equal to the IRI of the component "position_2"
     And the JSON node "componentPositions[3]" should be equal to the IRI of the component "position_3"
-
-  @wip
-  Scenario: I can restrict which components are permitted to be inside a component collection
-

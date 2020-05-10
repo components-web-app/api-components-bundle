@@ -107,6 +107,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
+use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
@@ -203,6 +204,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializeFormatResolver::class),
         ])
         ->tag('api_platform.data_transformer');
+
+    $services
+        ->set(ComponentPositionValidator::class)
+        ->tag('validator.constraint_validator');
 
     $services
         ->set(DownloadAction::class)

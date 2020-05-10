@@ -18,6 +18,7 @@ use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -25,6 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @Silverback\Timestamped
  * @ApiResource(attributes={"order"={"sortValue"="ASC"}})
+ * @AcbAssert\ComponentPosition
  */
 class ComponentPosition
 {

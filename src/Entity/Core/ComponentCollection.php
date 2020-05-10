@@ -62,6 +62,8 @@ class ComponentCollection
      */
     public Collection $componentPositions;
 
+    public ?Collection $allowedComponents = null;
+
     public function __construct()
     {
         $this->componentPositions = new ArrayCollection();

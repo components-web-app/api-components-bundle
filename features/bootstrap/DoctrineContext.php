@@ -20,6 +20,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
@@ -38,6 +39,7 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
@@ -254,12 +256,23 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a DummyComponent
      */
-    public function thereIsADummyComponent()
+    public function thereIsADummyComponent(): void
     {
         $component = new DummyComponent();
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->components['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given there is a RestrictedComponent
+     */
+    public function thereIsARestrictedComponent(): void
+    {
+        $component = new RestrictedComponent();
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->components['restricted_component'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -313,6 +326,19 @@ final class DoctrineContext implements Context
         $this->manager->clear();
 
         $this->restContext->components['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
+    }
+
+    /**
+     * @Given the ComponentCollection has the allowedComponent :allowedComponent
+     */
+    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent)
+    {
+        /** @var ComponentCollection $collection */
+        $collection = $this->iriConverter->getItemFromIri($this->restContext->components['component_collection']);
+        $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+        $this->manager->persist($collection);
+        $this->manager->flush();
+        $this->manager->clear();
     }
 
     /**
