@@ -29,7 +29,7 @@ class VerifyEmailAddressAction
         $this->emailAddressManager = $emailAddressManager;
     }
 
-    public function __invoke(string $username, string $emailAddress, string $token): Response
+    public function __invoke(string $username, string $token): Response
     {
         try {
             $this->emailAddressManager->verifyEmailAddress($username, $token);

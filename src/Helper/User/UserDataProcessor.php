@@ -105,11 +105,11 @@ class UserDataProcessor
         }
 
         if ($previousUser) {
-            if ($this->verifyEmailOnChange && $previousUser->getEmailAddress() !== $user->getEmailAddress()) {
+            if ($this->verifyEmailOnChange && $user->getEmailAddress() !== $previousUser->getEmailAddress()) {
                 $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
                 $user->plainEmailAddressVerifyToken = $token;
             }
-            if ($previousUser->getNewEmailAddress() !== $user->getNewEmailAddress()) {
+            if (($newEmail = $user->getNewEmailAddress()) && $newEmail !== $previousUser->getNewEmailAddress()) {
                 $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
                 $user->plainNewEmailConfirmationToken = $token;
             }

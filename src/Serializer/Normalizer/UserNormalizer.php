@@ -48,17 +48,21 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $data instanceof AbstractUser;
+        return !isset($context[self::ALREADY_CALLED]) && is_subclass_of($type, AbstractUser::class);
     }
 
     public function denormalize($data, $type, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
 
-        /** @var AbstractUser $object */
-        $object = $this->denormalizer->denormalize($data, $type, $format, $context);
         /** @var AbstractUser $oldObject */
         $oldObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
+        if ($oldObject) {
+            $oldObject = clone $oldObject;
+        }
+
+        /** @var AbstractUser $object */
+        $object = $this->denormalizer->denormalize($data, $type, $format, $context);
 
         $this->userDataProcessor->processChanges($object, $oldObject);
 

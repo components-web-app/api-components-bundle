@@ -71,7 +71,8 @@ class EmailAddressManager
         $user
             ->setEmailAddress($user->getNewEmailAddress())
             ->setNewEmailAddress(null)
-            ->setEmailAddressVerified(false);
+            ->setEmailAddressVerified(false)
+            ->setNewEmailConfirmationToken(null);
 
         $this->userDataProcessor->processChanges($user, $previousUser);
         $this->entityManager->flush();
