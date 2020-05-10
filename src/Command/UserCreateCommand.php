@@ -67,7 +67,7 @@ class UserCreateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $username = (string) $input->getArgument('username');
         $email = (string) $input->getArgument('email');
@@ -78,7 +78,9 @@ class UserCreateCommand extends Command
 
         $this->userFactory->create($username, $password, $email, $inactive, $superadmin, $overwrite);
 
-        $output->writeln(sprintf('Created user <comment>%s</comment>', $username));
+        $output->writeln(sprintf('Created user: <comment>%s</comment>', $username));
+
+        return 0;
     }
 
     /**

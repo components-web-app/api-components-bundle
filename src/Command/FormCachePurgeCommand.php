@@ -49,11 +49,14 @@ class FormCachePurgeCommand extends Command
     /**
      * @return int|void|null
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->dispatcher->addListener(CommandLogEvent::class, static function (CommandLogEvent $event) use ($output) {
             $output->writeln($event->getSubject());
         });
         $this->formCachePurger->clear();
+        $output->writeln('Form cache purge complete');
+
+        return 0;
     }
 }
