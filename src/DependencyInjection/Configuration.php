@@ -121,7 +121,6 @@ class Configuration implements ConfigurationInterface
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Please confirm your new email address')->end()
                                     ->end()
                                 ->end()
-                                ->integerNode('repeat_ttl_seconds')->defaultValue(8600)->end()
                                 ->integerNode('request_timeout_seconds')->defaultValue(3600)->end()
                             ->end()
                         ->end()
