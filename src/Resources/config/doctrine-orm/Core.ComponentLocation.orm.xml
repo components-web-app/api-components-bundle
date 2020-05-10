@@ -6,7 +6,7 @@
       <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
     </id>
     <field name="sort" type="integer" column="sort" precision="0" scale="0" nullable="false"/>
-    <many-to-one field="componentGroup" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup" inversed-by="componentLocations" fetch="LAZY">
+    <many-to-one field="componentGroup" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="componentLocations" fetch="LAZY">
       <join-columns>
         <join-column name="component_group_id" referenced-column-name="id"/>
       </join-columns>

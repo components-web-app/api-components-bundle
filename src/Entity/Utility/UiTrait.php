@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,4 +30,16 @@ trait UiTrait
 
     /** @ORM\Column(type="json", nullable=true) */
     public ?array $uiClassNames = null;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="ComponentCollection")
+     *
+     * @var Collection|ComponentCollection[]
+     */
+    public Collection $componentCollections;
+
+    private function initComponentCollections(): void
+    {
+        $this->componentCollections = new ArrayCollection();
+    }
 }

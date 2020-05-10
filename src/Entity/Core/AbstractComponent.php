@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
@@ -26,7 +25,6 @@ abstract class AbstractComponent implements ComponentInterface
 {
     use IdTrait;
     use UiTrait;
-    use ComponentGroupsTrait;
 
     /**
      * @var Collection|ComponentLocation[]
@@ -35,7 +33,7 @@ abstract class AbstractComponent implements ComponentInterface
 
     public function __construct()
     {
-        $this->initComponentGroups();
+        $this->initComponentCollections();
         $this->componentLocations = new ArrayCollection();
     }
 }

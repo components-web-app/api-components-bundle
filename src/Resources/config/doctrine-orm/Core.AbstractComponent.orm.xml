@@ -18,7 +18,7 @@
     <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
     <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
     <one-to-many field="componentLocations" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentLocation" mapped-by="component" fetch="LAZY"/>
-    <many-to-many field="componentGroups" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup" inversed-by="components" fetch="LAZY">
+    <many-to-many field="componentCollections" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="components" fetch="LAZY">
       <join-table name="abstract_component_component_group">
         <join-columns>
           <join-column name="abstract_component_id" referenced-column-name="id" on-delete="CASCADE"/>

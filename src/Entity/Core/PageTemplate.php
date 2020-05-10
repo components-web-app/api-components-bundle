@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
 /**
@@ -22,12 +21,11 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 class PageTemplate extends AbstractPage
 {
     use UiTrait;
-    use ComponentGroupsTrait;
 
     public ?Layout $layout;
 
     public function __construct()
     {
-        $this->initComponentGroups();
+        $this->initComponentCollections();
     }
 }

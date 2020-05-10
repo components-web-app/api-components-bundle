@@ -27,7 +27,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
  * @Silverback\Timestamped
  * @ApiResource
  */
-class ComponentGroup
+class ComponentCollection
 {
     use IdTrait;
     use TimestampedTrait;

@@ -17,7 +17,6 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
-use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
@@ -33,7 +32,6 @@ class Layout
     use IdTrait;
     use TimestampedTrait;
     use UiTrait;
-    use ComponentGroupsTrait;
 
     /**
      * @var Collection|PageTemplate[]
@@ -44,7 +42,7 @@ class Layout
 
     public function __construct()
     {
-        $this->initComponentGroups();
+        $this->initComponentCollections();
         $this->pageTemplates = new ArrayCollection();
     }
 }

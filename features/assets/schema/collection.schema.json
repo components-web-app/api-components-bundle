@@ -30,7 +30,7 @@
                     "nullable": true
                 },
                 "uiClassNames": {},
-                "componentGroups": {
+                "componentCollections": {
                     "type": "array",
                     "items": {
                         "type": "string",

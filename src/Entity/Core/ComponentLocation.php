@@ -31,7 +31,7 @@ class ComponentLocation
     use IdTrait;
     use TimestampedTrait;
 
-    public ComponentGroup $componentGroup;
+    public ComponentCollection $componentGroup;
 
     /**
      * @ApiProperty(writable=false)
