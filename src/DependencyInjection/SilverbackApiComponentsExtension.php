@@ -72,8 +72,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$tokens', $config['security']['tokens']);
 
         $definition = $container->getDefinition(UserRepository::class);
-        $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
+        $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
+        $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);

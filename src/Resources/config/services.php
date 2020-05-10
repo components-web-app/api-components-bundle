@@ -795,6 +795,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             '', // injected in dependency injection
             '', // injected in dependency injection
+            '', // injected in dependency injection
         ])
         ->tag('doctrine.repository_service');
 

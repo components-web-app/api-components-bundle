@@ -120,6 +120,12 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newEmailConfirmationToken = null;
 
     /**
+     * @ApiProperty(readable=false, writable=false)
+     * @Groups({"User:output"})
+     */
+    protected ?DateTime $newEmailAddressChangeRequestedAt = null;
+
+    /**
      *  @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainNewEmailConfirmationToken = null;
@@ -279,6 +285,9 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     public function setNewEmailAddress(?string $newEmailAddress): self
     {
         $this->newEmailAddress = $newEmailAddress;
+        if ($newEmailAddress) {
+            $this->newEmailAddressChangeRequestedAt = new \DateTime();
+        }
 
         return $this;
     }
@@ -293,6 +302,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         $this->newEmailConfirmationToken = $newEmailConfirmationToken;
 
         return $this;
+    }
+
+    public function getNewEmailAddressChangeRequestedAt(): ?DateTime
+    {
+        return $this->newEmailAddressChangeRequestedAt;
     }
 
     public function isEmailAddressVerified(): bool
