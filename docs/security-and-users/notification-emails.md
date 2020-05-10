@@ -84,7 +84,7 @@ You will receive a `200` status code on a successful password change or `404` on
 
 ### Email Address Verification
 
-Template: `@SilverbackApiComponent/emails/user_change_email_confirmation.html.twig`
+Template: `@SilverbackApiComponent/emails/user_verify_email.html.twig`
 
 ```yaml
 silverback_api_component:
@@ -101,7 +101,30 @@ silverback_api_component:
       deny_unverified_login: ~ # Required
 ```
 
-Your front-end should then perform a `GET` request to `/email_address/verify/{username}/{emailAddress}/{token}`. You will receive a `200` status on success, `404` if the combination is not found or `401` if the email change is aborted because another user now exists, so you are no longer authorised to make the change.
+A user's email address has a verified state. You can customise this and the email sent to verify the user's email address.
+
+To complete the verification your front-end appication should send a `GET` request to `/verify-email/{username}/{token}`. You will receive `200` on success and `404` on failure.
+
+### Email Change Confirmation
+
+Template: `@SilverbackApiComponent/emails/user_change_email_confirmation.html.twig`
+
+```yaml
+silverback_api_component:
+  user:
+    new_email_confirmation:
+      email:
+        redirect_path_query: null
+        default_redirect_path: /confirm-new-email/{{ username }}/{{ new_email }}/{{ token }}
+      repeat_ttl_seconds: 8600
+      request_timeout_seconds: 3600
+```
+
+The confirmation email is sent to the user's old email `newEmailAddress` field is updated. This provides a secure process for the user to confirm the change of email and prevent being locked out by a possible hacker.
+
+> ** The user `emailAddrss` property is only editable by a super admin, whereas a user can update their own `newEmailAddress` property.**
+
+Your front-end should then perform a `GET` request to `/confirm-email/{username}/{emailAddress}/{token}`. You will receive a `200` status on success, `404` if the combination is not found or `401` if the email change is aborted because another user now exists, so you are no longer authorised to make the change.
 
 ### Welcome
 Template: `@SilverbackApiComponent/emails/user_welcome.html.twig`
