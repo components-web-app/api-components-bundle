@@ -18,7 +18,7 @@
                     "readOnly": true,
                     "type": "string"
                 },
-                "componentLocations": {
+                "componentPositions": {
                     "type": "array",
                     "items": {
                         "type": "string",
@@ -30,7 +30,7 @@
                     "nullable": true
                 },
                 "uiClassNames": {},
-                "componentGroups": {
+                "componentCollections": {
                     "type": "array",
                     "items": {
                         "type": "string",

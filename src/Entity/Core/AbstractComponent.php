@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Silverback\ApiComponentsBundle\Entity\Utility\ComponentGroupsTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
@@ -26,16 +25,20 @@ abstract class AbstractComponent implements ComponentInterface
 {
     use IdTrait;
     use UiTrait;
-    use ComponentGroupsTrait;
 
     /**
-     * @var Collection|ComponentLocation[]
+     * @var Collection|ComponentPosition[]
      */
-    public Collection $componentLocations;
+    public Collection $componentPositions;
 
     public function __construct()
     {
-        $this->initComponentGroups();
-        $this->componentLocations = new ArrayCollection();
+        $this->initComponentCollections();
+        $this->componentPositions = new ArrayCollection();
+    }
+
+    public function isPositionRestricted(): bool
+    {
+        return false;
     }
 }

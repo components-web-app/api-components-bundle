@@ -8,8 +8,8 @@
         "@type",
         "formType",
         "formView",
-        "componentLocations",
-        "componentGroups"
+        "componentPositions",
+        "componentCollections"
     ],
     "properties": {
         "@context": {
@@ -57,8 +57,8 @@
             "type": "object",
             "$ref": "form_view_root.schema.json"
         },
-        "componentLocations": {
-            "$id": "#/properties/componentLocations",
+        "componentPositions": {
+            "$id": "#/properties/componentPositions",
             "type": "array",
             "title": "The Componentlocations Schema",
             "description": "An explanation about the purpose of this instance.",
@@ -74,10 +74,10 @@
                 "2020-04-07T11:48:08+00:00"
             ]
         },
-        "componentGroups": {
-            "$id": "#/properties/componentGroups",
+        "componentCollections": {
+            "$id": "#/properties/componentCollections",
             "type": "array",
-            "title": "The Componentgroups Schema",
+            "title": "The componentCollections Schema",
             "description": "An explanation about the purpose of this instance.",
             "default": []
         },

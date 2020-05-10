@@ -54,12 +54,20 @@ class RestContext implements Context
     }
 
     /**
-     * @afterScenario
+     * @AfterScenario
      * @restartBrowser
      */
     public function restartBrowser(): void
     {
         $this->minkContext->getSession()->getDriver()->getClient()->restart();
+    }
+
+    /**
+     * @Transform /^component\[([^\[\]]+)\]$/
+     */
+    public function castComponentToIri(string $component): string
+    {
+        return $this->components[$component];
     }
 
     /**
@@ -76,9 +84,9 @@ class RestContext implements Context
     }
 
     /**
-     * @Transform /^base64(.*)$/
+     * @Transform /^base64\((.*)\)$/
      */
-    public function castBase64FileToString(string $value)
+    public function castBase64FileToString(string $value): string
     {
         $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
         $normalizer = new DataUriNormalizer();
@@ -87,9 +95,9 @@ class RestContext implements Context
     }
 
     /**
-     * @Transform /^base64string(.*)$/
+     * @Transform /^base64string\((.*)\)$/
      */
-    public function castBase64FileToSimpleString(string $value)
+    public function castBase64FileToSimpleString(string $value): string
     {
         $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
 
@@ -153,12 +161,18 @@ class RestContext implements Context
                 $value = ['name' => 'John Doe', 'description' => 'nobody'];
             }
 
-            if (\is_string($value) && preg_match('/^base64\((.*)\)$/', $value, $matches)) {
-                $value = $this->castBase64FileToString($matches[1]);
-            }
+            if (\is_string($value)) {
+                if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+                    $value = $this->castBase64FileToString($matches[1]);
+                }
 
-            if (\is_string($value) && preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
-                $value = $this->castBase64FileToSimpleString($matches[1]);
+                if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
+                    $value = $this->castBase64FileToSimpleString($matches[1]);
+                }
+
+                if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
+                    $value = $this->castComponentToIri($matches[1]);
+                }
             }
 
             return $value;
