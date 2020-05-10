@@ -26,6 +26,8 @@ use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -284,6 +286,51 @@ final class DoctrineContext implements Context
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+    }
+
+    /**
+     * @Given there is a ComponentCollection with :count components
+     */
+    public function thereIsAComponentCollectionWithComponents(int $count)
+    {
+        $componentCollection = new ComponentCollection();
+        $componentCollection->reference = 'collection';
+        $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->manager->persist($componentCollection);
+
+        for ($x = 0; $x < $count; ++$x) {
+            $component = new DummyComponent();
+            $this->manager->persist($component);
+            $position = new ComponentPosition();
+            $position->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+            $position->sortValue = $x;
+            $position->componentCollection = $componentCollection;
+            $position->component = $component;
+            $this->manager->persist($position);
+            $this->restContext->components['position_' . $x] = $this->iriConverter->getIriFromItem($position);
+        }
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $this->restContext->components['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
+    }
+
+    /**
+     * @Then there should be :count DummyComponent resources
+     */
+    public function thereShouldBeDummyComponentResources(int $count): void
+    {
+        $repo = $this->manager->getRepository(DummyComponent::class);
+        Assert::assertCount($count, $repo->findAll());
+    }
+
+    /**
+     * @Then there should be :count ComponentPosition resources
+     */
+    public function thereShouldBeComponentPositionResources(int $count): void
+    {
+        $repo = $this->manager->getRepository(ComponentPosition::class);
+        Assert::assertCount($count, $repo->findAll());
     }
 
     /**

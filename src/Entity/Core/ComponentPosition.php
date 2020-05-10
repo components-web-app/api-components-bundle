@@ -13,38 +13,44 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ApiResource(attributes={"order"={"sort"="ASC"}})
+ * @ApiResource(attributes={"order"={"sortValue"="ASC"}})
  */
 class ComponentPosition
 {
     use IdTrait;
     use TimestampedTrait;
 
-    public ComponentCollection $componentGroup;
+    /**
+     * @Assert\NotNull()
+     */
+    public ComponentCollection $componentCollection;
 
     /**
-     * @ApiProperty(writable=false)
+     * @Assert\NotNull()
      */
     public AbstractComponent $component;
 
-    public ?int $sortValue = 0;
+    /**
+     * @Assert\NotNull()
+     */
+    public int $sortValue = 0;
 
     /**
      * @return Collection|AbstractComponent[]|null
      */
     public function getSortCollection(): ?Collection
     {
-        return $this->componentGroup->componentPositions;
+        return $this->componentCollection->componentPositions;
     }
 }

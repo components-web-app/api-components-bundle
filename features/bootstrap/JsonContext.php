@@ -148,12 +148,12 @@ class JsonContext implements Context
         }
     }
 
-    public function theJsonShouldBeValidAccordingToTheSchemaFileAndTheDateIsCreated(string $file): void
+    /**
+     * @Then the JSON node :name should be equal to the IRI of the component :component
+     */
+    public function theJsonNodeShouldBeEqualToTheIriOfTheComponent(string $name, string $component)
     {
-        $this->theJsonShouldBeValidAccordingToTheSchemaFile($file);
-        if (null === $this->getJson()->publishedAt) {
-            throw new \Exception('The date is not created');
-        }
+        $this->jsonContext->theJsonNodeShouldBeEqualTo($name, $this->restContext->components[$component]);
     }
 
     private function getJson()

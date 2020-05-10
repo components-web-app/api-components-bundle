@@ -20,18 +20,24 @@ use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
  * @ApiResource
+ * @UniqueEntity(fields={"reference"}, message="There is already a ComponentCollection resource with that reference.")
  */
 class ComponentCollection
 {
     use IdTrait;
     use TimestampedTrait;
 
+    /**
+     * @Assert\NotBlank(message="A component collection must have a reference")
+     */
     public string $reference;
 
     /**

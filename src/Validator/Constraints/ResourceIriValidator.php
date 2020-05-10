@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\Collection\ApiResourceRouteFinder;
+use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 

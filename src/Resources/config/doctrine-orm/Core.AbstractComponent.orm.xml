@@ -2,29 +2,20 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" table="abstract_component" inheritance-type="SINGLE_TABLE">
     <discriminator-column name="dtype" type="string" length="255"/>
-    <discriminator-map>
-      <discriminator-mapping value="abstractcomponent" class="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent"/>
-      <discriminator-mapping value="dummycomponent" class="Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent"/>
-      <discriminator-mapping value="dummypublishablecomponent" class="Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent"/>
-      <discriminator-mapping value="dummypublishablewithsecuritygroups" class="Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithSecurityGroups"/>
-      <discriminator-mapping value="dummypublishablecustomcomponent" class="Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent"/>
-      <discriminator-mapping value="collection" class="Silverback\ApiComponentsBundle\Entity\Component\Collection"/>
-      <discriminator-mapping value="form" class="Silverback\ApiComponentsBundle\Entity\Component\Form"/>
-    </discriminator-map>
     <id name="id" column="id" type="uuid_binary_ordered_time">
       <generator strategy="CUSTOM"/>
       <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
     </id>
     <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
     <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
-    <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="component" fetch="LAZY"/>
+    <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="component" fetch="LAZY" orphan-removal="true"/>
     <many-to-many field="componentCollections" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="components" fetch="LAZY">
-      <join-table name="abstract_component_component_group">
+      <join-table name="abstract_component_component_collection">
         <join-columns>
           <join-column name="abstract_component_id" referenced-column-name="id" on-delete="CASCADE"/>
         </join-columns>
         <inverse-join-columns>
-          <join-column name="component_group_id" referenced-column-name="id" on-delete="CASCADE"/>
+          <join-column name="component_collection_id" referenced-column-name="id" on-delete="CASCADE"/>
         </inverse-join-columns>
       </join-table>
     </many-to-many>
