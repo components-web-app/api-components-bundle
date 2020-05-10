@@ -1,12 +1,10 @@
 ---
 layout: default
-title: Custom Components
+title: Component Annotations
 nav_order: 6
 has_children: true
 ---
-# Custom Components
-
-> __Incomplete Documentation__
+# Component Annotations
 
 ## Route prefixes
 
@@ -16,4 +14,4 @@ If your resource is configured with a prefix as well this will appear after `/co
 
 ## Getting started
 
-- Extending `AbstractComponent`
+When creating your UI components we have a few helpful annotations and traits that you can use to extend its functionality.

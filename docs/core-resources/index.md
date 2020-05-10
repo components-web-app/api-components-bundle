@@ -11,8 +11,8 @@ nav_order: 3
 - `Route` (docs coming soon)
 - `Layout` (docs coming soon)
 - `PageTemplate` (docs coming soon)
-- `ComponentGroup` (docs coming soon)
-- `ComponentLocation` (docs coming soon)
+- `ComponentCollection` (docs coming soon)
+- `ComponentPosition` (docs coming soon)
 
 ### Abstract core resources
 - `AbstractPageData` (docs coming soon)
