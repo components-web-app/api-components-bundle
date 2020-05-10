@@ -10,6 +10,7 @@ Feature: Register process via a form
 
   Scenario: Submit a user registration form
     Given there is a "register" form
+    And I add "referer" header equal to "http://www.website.com"
     When I send a "POST" request to the component "register_form" and the postfix "/submit" with body:
     """
     {

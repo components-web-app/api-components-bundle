@@ -49,13 +49,15 @@ Feature: Receive notification emails on important user changes
 
   @loginSuperAdmin
   Scenario: I receive an email when my username has been changed
-    And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "login_user" with body:
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    And I add "referer" header equal to "http://www.website.com"
+    And there is a user with the username "my_username" password "pass" and role "ROLE_USER"
+    When I send a "PATCH" request to the component "user" with body:
     """
     {
-      "username": "new@username.com"
+      "username": "test.user@example.com"
     }
     """
     Then the response status code should be 200
-    And I should get a "username_changed_notification" email sent to the email address "new@username.com"
+    And I should get a "username_changed_notification" email sent to the email address "test.user@example.com"
 

@@ -154,7 +154,7 @@ class ProfilerContext implements Context
     {
         Assert::assertEquals('Welcome to New Website', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(WelcomeEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
-        Assert::assertRegExp('/^http:\/\/www.website.com\/verify-email\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
+        Assert::assertRegExp('/^http:\/\/www.website.com\/verify-email\/user%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function validatePasswordReset(array $context, Headers $headers, bool $customPath = false): void
