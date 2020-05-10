@@ -17,12 +17,13 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\BrowserKit\AbstractBrowser;
@@ -80,23 +81,26 @@ class ProfilerContext implements Context
         Assert::assertEquals('test@website.com', $headers->get('from')->getBodyAsString());
 
         switch ($emailType) {
+            case 'verify_email':
+                $this->verifyEmail($context, $headers);
+                break;
             case 'username_changed_notification':
                 $this->usernameChangedNotification($headers);
                 break;
             case 'enabled_notification':
                 $this->validateEnabledNotification($headers);
                 break;
-            case 'custom_change_email_verification':
+            case 'custom_change_email_confirmation':
                 $this->validateChangeEmailVerification($context, $headers, true);
                 break;
-            case 'change_email_verification':
+            case 'change_email_confirmation':
                 $this->validateChangeEmailVerification($context, $headers);
                 break;
             case 'change_password_notification':
                 $this->validateChangePasswordNotification($headers);
                 break;
             case 'user_welcome':
-                $this->validateUserWelcomeEmail($headers);
+                $this->validateUserWelcomeEmail($context, $headers);
                 break;
             case 'password_reset':
                 $this->validatePasswordReset($context, $headers);
@@ -110,6 +114,13 @@ class ProfilerContext implements Context
             default:
                 throw new \InvalidArgumentException(sprintf('The email type %s is not configured to test', $emailType));
         }
+    }
+
+    private function verifyEmail(array $context, Headers $headers): void
+    {
+        Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(VerifyEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+        Assert::assertRegExp('/^http:\/\/www.website.com\/verify-email\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function usernameChangedNotification(Headers $headers): void
@@ -126,10 +137,10 @@ class ProfilerContext implements Context
 
     private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false): void
     {
-        $pathInsert = $customPath ? 'another-path' : 'verify-new-email';
-        Assert::assertEquals('Please verify your email', $headers->get('subject')->getBodyAsString());
-        Assert::assertStringStartsWith(ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
-        Assert::assertIsString($context['user']->getNewEmailVerificationToken());
+        $pathInsert = $customPath ? 'another-path' : 'confirm-new-email';
+        Assert::assertEquals('Please confirm your new email address', $headers->get('subject')->getBodyAsString());
+        Assert::assertStringStartsWith(ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+        Assert::assertIsString($context['user']->getNewEmailConfirmationToken());
         Assert::assertRegExp('/^http:\/\/www.website.com\/' . $pathInsert . '\/user%40example.com\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
@@ -139,10 +150,11 @@ class ProfilerContext implements Context
         Assert::assertStringStartsWith(PasswordChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 
-    private function validateUserWelcomeEmail(Headers $headers): void
+    private function validateUserWelcomeEmail(array $context, Headers $headers): void
     {
         Assert::assertEquals('Welcome to New Website', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(WelcomeEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+        Assert::assertRegExp('/^http:\/\/www.website.com\/verify-email\/user%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function validatePasswordReset(array $context, Headers $headers, bool $customPath = false): void

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;

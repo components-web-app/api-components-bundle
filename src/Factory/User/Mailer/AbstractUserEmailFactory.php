@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -89,7 +89,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $this->user = $user;
     }
 
-    protected function createEmailMessage(array $context = [], ?string $toEmail = null): ?TemplatedEmail
+    protected function createEmailMessage(array $context = []): ?TemplatedEmail
     {
         if (!$this->enabled) {
             return null;
@@ -100,7 +100,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         }
 
         try {
-            $toEmailAddress = Address::fromString($toEmail ?? (string) $this->user->getEmailAddress());
+            $toEmailAddress = Address::fromString((string) $this->user->getEmailAddress());
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;

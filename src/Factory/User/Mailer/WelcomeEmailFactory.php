@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Symfony\Component\Mime\RawMessage;
@@ -19,22 +19,29 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class UserEnabledEmailFactory extends AbstractUserEmailFactory
+final class WelcomeEmailFactory extends AbstractUserEmailFactory
 {
-    public const MESSAGE_ID_PREFIX = 'uee';
+    public const MESSAGE_ID_PREFIX = 'wef';
 
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
         if (!$this->enabled) {
             return null;
         }
+
         $this->initUser($user);
+
+        $token = $user->plainEmailAddressVerifyToken;
+        $user->plainEmailAddressVerifyToken = null;
+        if ($token) {
+            $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
+        }
 
         return $this->createEmailMessage($context);
     }
 
     protected function getTemplate(): string
     {
-        return 'user_enabled.html.twig';
+        return 'user_welcome.html.twig';
     }
 }

@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
@@ -57,9 +57,8 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
         };
         $user
             ->setUsername('username')
-            ->setEmailAddress('email@address.com')
-            ->setNewEmailVerificationToken('token');
-
+            ->setEmailAddress('email@address.com');
+        $user->plainEmailAddressVerifyToken = 'token';
         $factory = new WelcomeEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);

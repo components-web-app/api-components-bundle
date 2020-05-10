@@ -209,7 +209,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
-        $user->setNewPasswordConfirmationToken($token)->setPasswordRequestedAt(new \DateTime($dateTime));
+        $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
         $this->manager->flush();
     }
 
@@ -225,24 +225,27 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given the user email is not verified
+     * @Given /^the user email is not verified(?: with the token "([^"]+)"|)$/
      */
-    public function theUserEmailIsNotVerified(): void
+    public function theUserEmailIsNotVerified(?string $verificationToken = null): void
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
         $user->setEmailAddressVerified(false);
+        if ($verificationToken) {
+            $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $verificationToken));
+        }
         $this->manager->flush();
     }
 
     /**
-     * @Given the user has a new email address :emailAddress and verification token :token
+     * @Given the user has a new email address :emailAddress and confirmation token :token
      */
     public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
-        $user->setNewEmailAddress($emailAddress)->setNewEmailVerificationToken($verificationToken);
+        $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
         $this->manager->flush();
     }
 
@@ -337,6 +340,33 @@ final class DoctrineContext implements Context
         ]);
         Assert::assertEquals($emailAddress, $user->getEmailAddress());
         Assert::assertNull($user->getNewEmailAddress());
+    }
+
+    /**
+     * @Then the user :username should have a verified email address
+     */
+    public function theUserShouldHaveAVerifiedEmailAddress(string $username): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(User::class);
+        /** @var AbstractUser $user */
+        $user = $repository->findOneBy([
+            'username' => $username,
+        ]);
         Assert::assertTrue($user->isEmailAddressVerified());
+    }
+
+    /**
+     * @Then the user :username should have an unverified email address
+     */
+    public function theUserShouldHaveAnUnverifiedEmailAddress(string $username): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(User::class);
+        /** @var AbstractUser $user */
+        $user = $repository->findOneBy([
+            'username' => $username,
+        ]);
+        Assert::assertFalse($user->isEmailAddressVerified());
     }
 }

@@ -29,6 +29,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     private $managerRegistry;
 
     private int $passwordResetTimeoutSeconds = 10;
+    private int $changeEmailTimeoutSeconds = 10;
 
     protected function setUp(): void
     {
@@ -42,13 +43,13 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $request->headers->set('origin', 'http://test.com');
         $requestStack->push($request);
 
-        $this->repository = new UserRepository($this->managerRegistry, $this->passwordResetTimeoutSeconds, User::class);
+        $this->repository = new UserRepository($this->managerRegistry, User::class, $this->passwordResetTimeoutSeconds, $this->changeEmailTimeoutSeconds);
     }
 
     public function test_invalid_class(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new UserRepository($this->managerRegistry, 10, __CLASS__);
+        new UserRepository($this->managerRegistry, __CLASS__, $this->passwordResetTimeoutSeconds, $this->changeEmailTimeoutSeconds);
     }
 
     public function test_find_by_email(): void
@@ -68,7 +69,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     {
         $username = 'pw_reset@email.com';
         $token = 'pw_token';
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
 
         $requestedAt = new \DateTime();
         // persisting in this test can sometimes take more than 2 seconds hence we have checked with an extra delay
@@ -83,14 +84,14 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertEquals($user, $this->repository->findOneWithPasswordResetToken($username));
     }
 
     public function test_find_by_expired_password_reset_token(): void
     {
         $username = 'expired_pw_reset@email.com';
         $token = 'expired_pw_token';
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
 
         $requestedAt = new \DateTime();
         $requestedAt = $requestedAt->modify(sprintf('-%d seconds', $this->passwordResetTimeoutSeconds));
@@ -103,15 +104,15 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertNull($this->repository->findOneByPasswordResetToken($username, $token));
+        $this->assertNull($this->repository->findOneWithPasswordResetToken($username));
     }
 
-    public function test_find_by_email_verification_token(): void
+    public function test_find_by_email_confirmation_token(): void
     {
-        $username = 'email_verification_username';
-        $email = 'email_verification_username@email.com';
+        $username = 'email_confirmation_username';
+        $email = 'email_confirmation_username@email.com';
         $token = 'email_token';
-        $this->assertNull($this->repository->findOneByEmailVerificationToken($username, $email, $token));
+        $this->assertNull($this->repository->findOneByUsernameAndNewEmailAddress($username, $email));
 
         $user = new User();
         $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
@@ -119,11 +120,32 @@ class UserRepositoryTest extends AbstractRepositoryTest
             ->setUsername($username)
             ->setEmailAddress($email)
             ->setNewEmailAddress('new@email.com')
-            ->setNewEmailVerificationToken($token);
+            ->setNewEmailConfirmationToken($token);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->findOneByEmailVerificationToken($username, 'new@email.com', $token));
+        $this->assertEquals($user, $this->repository->findOneByUsernameAndNewEmailAddress($username, 'new@email.com'));
+    }
+
+    public function test_find_by_expired_email_confirmation_token(): void
+    {
+        $repository = new UserRepository($this->managerRegistry, User::class, $this->passwordResetTimeoutSeconds, 0);
+
+        $username = 'email_confirmation_username';
+        $email = 'email_confirmation_username@email.com';
+        $token = 'email_token';
+
+        $user = new User();
+        $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $user
+            ->setUsername($username)
+            ->setEmailAddress($email)
+            ->setNewEmailAddress('new@email.com')
+            ->setNewEmailConfirmationToken($token);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        $this->assertNull($repository->findOneByUsernameAndNewEmailAddress($username, 'new@email.com'));
     }
 
     public function test_load_user_by_username(): void

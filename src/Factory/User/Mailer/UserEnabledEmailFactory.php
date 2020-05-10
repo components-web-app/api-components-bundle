@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Symfony\Component\Mime\RawMessage;
@@ -19,9 +19,9 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class UsernameChangedEmailFactory extends AbstractUserEmailFactory
+final class UserEnabledEmailFactory extends AbstractUserEmailFactory
 {
-    public const MESSAGE_ID_PREFIX = 'uce';
+    public const MESSAGE_ID_PREFIX = 'uee';
 
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
@@ -35,6 +35,6 @@ final class UsernameChangedEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_username_changed.html.twig';
+        return 'user_enabled.html.twig';
     }
 }

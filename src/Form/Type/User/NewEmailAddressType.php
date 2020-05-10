@@ -52,7 +52,7 @@ class NewEmailAddressType extends AbstractType
             ->add('newEmailAddress', EmailType::class, [
                 'label' => 'Login Email',
                 'attr' => ['autocomplete' => 'username email'],
-                'data' => $data ? $data->getEmailAddress() : null,
+                'data' => $data ? $data->getEmailAddress() : '',
                 'help' => $help,
             ]);
     }

@@ -23,8 +23,9 @@ use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
-use Silverback\ApiComponentsBundle\Action\User\EmailAddressVerifyAction;
+use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
+use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
@@ -59,14 +60,15 @@ use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
@@ -124,6 +126,7 @@ use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -155,7 +158,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(ChangeEmailVerificationEmailFactory::class)
+        ->set(ChangeEmailConfirmationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
 
@@ -200,10 +203,13 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(EntityManagerInterface::class),
             new Reference(UserRepository::class),
+            new Reference(EncoderFactoryInterface::class),
+            new Reference(UserDataProcessor::class),
+            new Reference(UserEventListener::class),
         ]);
 
     $services
-        ->set(EmailAddressVerifyAction::class)
+        ->set(EmailAddressConfirmAction::class)
         ->args([
             new Reference(EmailAddressManager::class),
         ])
@@ -756,6 +762,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserPasswordEncoderInterface::class),
             new Reference(UserRepository::class),
+            new Reference(EncoderFactoryInterface::class),
             '', // injected in dependency injection
             '', // injected in dependency injection
             '', // injected in dependency injection
@@ -788,8 +795,21 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             '', // injected in dependency injection
             '', // injected in dependency injection
+            '', // injected in dependency injection
         ])
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(VerifyEmailAddressAction::class)
+        ->args([
+            new Reference(EmailAddressManager::class),
+        ])
+        ->tag('controller.service_arguments');
+
+    $services
+        ->set(VerifyEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('container.service_subscriber');
 
     $services
         ->set(WelcomeEmailFactory::class)

@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class UsernameChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new PasswordChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
+        $factory = new UsernameChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -35,19 +35,19 @@ class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new PasswordChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
+        $factory = new UsernameChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled();
 
         $email = (new TemplatedEmail())
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
-            ->htmlTemplate('@SilverbackApiComponents/emails/user_password_changed.html.twig')
+            ->htmlTemplate('@SilverbackApiComponents/emails/user_username_changed.html.twig')
             ->context([
                 'website_name' => 'my website',
                 'user' => $user,
             ]);
 
-        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordChangedEmailFactory::MESSAGE_ID_PREFIX);
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), UsernameChangedEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

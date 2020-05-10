@@ -84,6 +84,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newPasswordConfirmationToken = null;
 
     /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    public ?string $plainNewPasswordConfirmationToken = null;
+
+    /**
      * @ApiProperty(readable=false, writable=false)
      */
     protected ?DateTime $passwordRequestedAt = null;
@@ -98,10 +103,11 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * @ApiProperty(readable=false, writable=false)
      */
-    protected ?DateTime $passwordLastUpdated = null;
+    protected ?DateTime $passwordUpdatedAt = null;
 
     /**
-     * @Assert\NotBlank(groups={"User:emailAddress"})
+     * @Assert\NotBlank(groups={"User:emailAddress", "Default"}, allowNull=true)
+     * @Assert\Email()
      * @Groups({"User:input", "User:output", "User:emailAddress"})
      */
     protected ?string $newEmailAddress = null;
@@ -111,12 +117,40 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      *
      * @ApiProperty(readable=false, writable=false)
      */
-    protected ?string $newEmailVerificationToken = null;
+    protected ?string $newEmailConfirmationToken = null;
+
+    /**
+     * @ApiProperty(readable=false, writable=false)
+     * @Groups({"User:output"})
+     */
+    protected ?DateTime $newEmailAddressChangeRequestedAt = null;
+
+    /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    public ?string $plainNewEmailConfirmationToken = null;
 
     /**
      * @ApiProperty(readable=false, writable=false)
      */
     protected bool $emailAddressVerified = false;
+
+    /**
+     * Random string sent to previous email address when email is changed to permit email restore and password change.
+     *
+     * @ApiProperty(readable=false, writable=false)
+     */
+    protected ?string $emailAddressVerifyToken = null;
+
+    /**
+     *  @ApiProperty(readable=false, writable=false)
+     */
+    public ?string $plainEmailAddressVerifyToken = null;
+
+    /**
+     * @ApiProperty(readable=false, writable=false)
+     */
+    protected ?DateTime $emailLastUpdatedAt = null;
 
     public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
     {
@@ -148,6 +182,9 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     public function setEmailAddress(?string $emailAddress): self
     {
         $this->emailAddress = $emailAddress;
+        if ($emailAddress) {
+            $this->emailLastUpdatedAt = new \DateTime();
+        }
 
         return $this;
     }
@@ -157,7 +194,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         return $this->roles;
     }
 
-    public function setRoles(?array $roles): self
+    public function setRoles(array $roles): self
     {
         $this->roles = $roles;
 
@@ -198,7 +235,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         $this->plainPassword = $plainPassword;
         if ($plainPassword) {
             // Needs to update mapped field to trigger update event which will encode the plain password
-            $this->passwordLastUpdated = new \DateTime();
+            $this->passwordUpdatedAt = new \DateTime();
         }
 
         return $this;
@@ -248,20 +285,28 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     public function setNewEmailAddress(?string $newEmailAddress): self
     {
         $this->newEmailAddress = $newEmailAddress;
+        if ($newEmailAddress) {
+            $this->newEmailAddressChangeRequestedAt = new \DateTime();
+        }
 
         return $this;
     }
 
-    public function getNewEmailVerificationToken(): ?string
+    public function getNewEmailConfirmationToken(): ?string
     {
-        return $this->newEmailVerificationToken;
+        return $this->newEmailConfirmationToken;
     }
 
-    public function setNewEmailVerificationToken(?string $newEmailVerificationToken): self
+    public function setNewEmailConfirmationToken(?string $newEmailConfirmationToken): self
     {
-        $this->newEmailVerificationToken = $newEmailVerificationToken;
+        $this->newEmailConfirmationToken = $newEmailConfirmationToken;
 
         return $this;
+    }
+
+    public function getNewEmailAddressChangeRequestedAt(): ?DateTime
+    {
+        return $this->newEmailAddressChangeRequestedAt;
     }
 
     public function isEmailAddressVerified(): bool
@@ -274,6 +319,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         $this->emailAddressVerified = $emailAddressVerified;
 
         return $this;
+    }
+
+    public function getEmailAddressVerifyToken(): ?string
+    {
+        return $this->emailAddressVerifyToken;
+    }
+
+    public function setEmailAddressVerifyToken(?string $emailAddressVerifyToken): void
+    {
+        $this->emailAddressVerifyToken = $emailAddressVerifyToken;
     }
 
     public function isPasswordRequestLimitReached($ttl): bool

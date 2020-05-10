@@ -18,13 +18,14 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -56,11 +57,12 @@ class UserMailerTest extends TestCase
     {
         $this->assertEquals([
             PasswordResetEmailFactory::class,
-            ChangeEmailVerificationEmailFactory::class,
+            ChangeEmailConfirmationEmailFactory::class,
             WelcomeEmailFactory::class,
             UserEnabledEmailFactory::class,
             UsernameChangedEmailFactory::class,
             PasswordChangedEmailFactory::class,
+            VerifyEmailFactory::class,
         ], UserMailer::getSubscribedServices());
     }
 
@@ -144,9 +146,9 @@ class UserMailerTest extends TestCase
             protected ?string $username = 'test_send_change_email_verification_email';
         };
 
-        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailVerificationEmailFactory::class, $user);
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user);
 
-        $this->userMailer->sendChangeEmailVerificationEmail($user);
+        $this->userMailer->sendChangeEmailConfirmationEmail($user);
     }
 
     public function test_send_welcome_email(): void

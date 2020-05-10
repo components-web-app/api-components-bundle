@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -20,9 +20,9 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class PasswordResetEmailFactory extends AbstractUserEmailFactory
+final class VerifyEmailFactory extends AbstractUserEmailFactory
 {
-    public const MESSAGE_ID_PREFIX = 'pre';
+    public const MESSAGE_ID_PREFIX = 'ver';
 
     public function create(AbstractUser $user, array $context = []): ?RawMessage
     {
@@ -32,9 +32,10 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 
         $this->initUser($user);
 
-        $token = $user->getNewPasswordConfirmationToken();
+        $token = $user->plainEmailAddressVerifyToken;
+        $user->plainEmailAddressVerifyToken = null;
         if (!$token) {
-            throw new InvalidArgumentException('A new password confirmation token must be set to send the `password reset` email');
+            throw new InvalidArgumentException('An `email verify token` must be set to send the verification email');
         }
 
         $context['redirect_url'] = $this->getTokenUrl($token, $user->getUsername());
@@ -51,6 +52,6 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 
     protected function getTemplate(): string
     {
-        return 'user_password_reset.html.twig';
+        return 'user_verify_email.html.twig';
     }
 }

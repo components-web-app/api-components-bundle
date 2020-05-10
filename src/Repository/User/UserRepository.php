@@ -30,14 +30,16 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
     private int $passwordRequestTimeout;
+    private int $newEmailConfirmTimeout;
 
-    public function __construct(ManagerRegistry $registry, int $passwordRequestTimeout, string $entityClass)
+    public function __construct(ManagerRegistry $registry, string $entityClass, int $passwordRequestTimeout, int $newEmailConfirmTimeout)
     {
         if (!is_subclass_of($entityClass, AbstractUser::class)) {
             throw new InvalidArgumentException(sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractUser::class));
         }
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;
+        $this->newEmailConfirmTimeout = $newEmailConfirmTimeout;
     }
 
     public function findOneByEmail($value): ?AbstractUser
@@ -49,33 +51,34 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getOneOrNullResult();
     }
 
-    public function findOneByPasswordResetToken(string $username, string $token): ?AbstractUser
+    public function findOneWithPasswordResetToken(string $username): ?AbstractUser
     {
         $minimumRequestDateTime = new \DateTime();
         $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
 
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
-            ->andWhere('u.newPasswordConfirmationToken = :token')
             ->andWhere('u.newPasswordConfirmationToken IS NOT NULL')
-            ->andWhere('u.passwordRequestedAt > :passwordRequestedAt')
+            ->andWhere('u.passwordRequestedAt > :minimumDateTime')
             ->setParameter('username', $username)
-            ->setParameter('token', $token)
-            ->setParameter('passwordRequestedAt', $minimumRequestDateTime)
+            ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function findOneByEmailVerificationToken(string $username, string $email, string $token): ?AbstractUser
+    public function findOneByUsernameAndNewEmailAddress(string $username, string $email): ?AbstractUser
     {
+        $minimumRequestDateTime = new \DateTime();
+        $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->newEmailConfirmTimeout));
+
         return $this->createQueryBuilder('u')
             ->andWhere('u.username = :username')
             ->andWhere('u.newEmailAddress = :email')
-            ->andWhere('u.newEmailVerificationToken = :token')
-            ->andWhere('u.newEmailVerificationToken IS NOT NULL')
+            ->andWhere('u.newEmailConfirmationToken IS NOT NULL')
+            ->andWhere('u.newEmailAddressChangeRequestedAt > :minimumDateTime')
             ->setParameter('username', $username)
             ->setParameter('email', $email)
-            ->setParameter('token', $token)
+            ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
     }

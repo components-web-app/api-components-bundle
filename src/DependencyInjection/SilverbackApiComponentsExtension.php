@@ -21,13 +21,14 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
@@ -71,8 +72,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$tokens', $config['security']['tokens']);
 
         $definition = $container->getDefinition(UserRepository::class);
-        $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
+        $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
+        $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
@@ -151,7 +153,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         }
 
         $mapping = [
-            ChangeEmailVerificationEmailFactory::class => 'email_verification',
+            VerifyEmailFactory::class => 'email_verification',
+            ChangeEmailConfirmationEmailFactory::class => 'new_email_confirmation',
             PasswordResetEmailFactory::class => 'password_reset',
         ];
         foreach ($mapping as $class => $key) {

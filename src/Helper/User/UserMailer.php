@@ -16,12 +16,13 @@ namespace Silverback\ApiComponentsBundle\Helper\User;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\PasswordResetEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UserEnabledEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\UsernameChangedEmailFactory;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\RawMessage;
@@ -47,11 +48,12 @@ class UserMailer implements ServiceSubscriberInterface
     {
         return [
             PasswordResetEmailFactory::class,
-            ChangeEmailVerificationEmailFactory::class,
+            ChangeEmailConfirmationEmailFactory::class,
             WelcomeEmailFactory::class,
             UserEnabledEmailFactory::class,
             UsernameChangedEmailFactory::class,
             PasswordChangedEmailFactory::class,
+            VerifyEmailFactory::class,
         ];
     }
 
@@ -61,9 +63,15 @@ class UserMailer implements ServiceSubscriberInterface
         $this->send($email);
     }
 
-    public function sendChangeEmailVerificationEmail(AbstractUser $user): void
+    public function sendChangeEmailConfirmationEmail(AbstractUser $user): void
     {
-        $email = $this->container->get(ChangeEmailVerificationEmailFactory::class)->create($user, $this->context);
+        $email = $this->container->get(ChangeEmailConfirmationEmailFactory::class)->create($user, $this->context);
+        $this->send($email);
+    }
+
+    public function sendEmailVerifyEmail(AbstractUser $user): void
+    {
+        $email = $this->container->get(VerifyEmailFactory::class)->create($user, $this->context);
         $this->send($email);
     }
 

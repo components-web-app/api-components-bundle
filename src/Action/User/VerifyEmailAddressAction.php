@@ -14,14 +14,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class EmailAddressVerifyAction
+class VerifyEmailAddressAction
 {
     private EmailAddressManager $emailAddressManager;
 
@@ -30,14 +29,12 @@ class EmailAddressVerifyAction
         $this->emailAddressManager = $emailAddressManager;
     }
 
-    public function __invoke(string $username, string $emailAddress, string $token): Response
+    public function __invoke(string $username, string $token): Response
     {
         try {
-            $this->emailAddressManager->verifyNewEmailAddress($username, $emailAddress, $token);
+            $this->emailAddressManager->verifyEmailAddress($username, $token);
         } catch (InvalidArgumentException $exception) {
             return new Response(null, Response::HTTP_NOT_FOUND);
-        } catch (UnexpectedValueException $exception) {
-            return new Response(null, Response::HTTP_UNAUTHORIZED);
         }
 
         return new Response(null, Response::HTTP_OK);

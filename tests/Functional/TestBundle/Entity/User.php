@@ -37,12 +37,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  */
 class User extends AbstractUser
 {
-    public static function loadValidatorMetadata(ClassMetadata $metadata): void
-    {
-        $metadata->addPropertyConstraint('username', new Assert\Email([
-            'message' => 'Please enter a valid email address.',
-        ]));
-    }
+//    public static function loadValidatorMetadata(ClassMetadata $metadata): void
+//    {
+//        $metadata->addPropertyConstraint('username', new Assert\Email([
+//            'message' => 'Please enter a valid email address.',
+//        ]));
+//    }
 
     public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
     {

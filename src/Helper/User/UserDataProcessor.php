@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -27,6 +28,7 @@ class UserDataProcessor
 {
     private UserPasswordEncoderInterface $passwordEncoder;
     private UserRepository $userRepository;
+    private EncoderFactoryInterface $encoderFactory;
     private bool $initialEmailVerifiedState;
     private bool $verifyEmailOnRegister;
     private bool $verifyEmailOnChange;
@@ -35,6 +37,7 @@ class UserDataProcessor
     public function __construct(
         UserPasswordEncoderInterface $passwordEncoder,
         UserRepository $userRepository,
+        EncoderFactoryInterface $encoderFactory,
         bool $initialEmailVerifiedState,
         bool $verifyEmailOnRegister,
         bool $verifyEmailOnChange,
@@ -42,6 +45,7 @@ class UserDataProcessor
     ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->userRepository = $userRepository;
+        $this->encoderFactory = $encoderFactory;
         $this->initialEmailVerifiedState = $initialEmailVerifiedState;
         $this->verifyEmailOnRegister = $verifyEmailOnRegister;
         $this->verifyEmailOnChange = $verifyEmailOnChange;
@@ -63,7 +67,8 @@ class UserDataProcessor
         if (!$username) {
             throw new UnexpectedValueException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setNewPasswordConfirmationToken(TokenGenerator::generateToken());
+        $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+        $user->plainNewPasswordConfirmationToken = $token;
         $user->setPasswordRequestedAt(new \DateTime());
 
         return $user;
@@ -71,8 +76,12 @@ class UserDataProcessor
 
     public function passwordReset(string $username, string $token, string $newPassword): ?AbstractUser
     {
-        $user = $this->userRepository->findOneByPasswordResetToken($username, $token);
+        $user = $this->userRepository->findOneWithPasswordResetToken($username);
         if (!$user) {
+            return null;
+        }
+        $encoder = $this->encoderFactory->getEncoder($user);
+        if (!$encoder->isPasswordValid($user->getNewPasswordConfirmationToken(), $token, $user->getSalt())) {
             return null;
         }
 
@@ -87,21 +96,27 @@ class UserDataProcessor
     public function processChanges(AbstractUser $user, ?AbstractUser $previousUser): void
     {
         $this->encodePassword($user);
-        $user->setEmailAddressVerified($this->initialEmailVerifiedState);
-
-        if (!$previousUser && !$this->initialEmailVerifiedState) {
-            $user->setNewEmailAddress($user->getEmailAddress());
-            if ($this->verifyEmailOnRegister) {
-                $user->setNewEmailVerificationToken(TokenGenerator::generateToken());
+        if (!$previousUser) {
+            $user->setEmailAddressVerified($this->initialEmailVerifiedState);
+            if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
+                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->plainEmailAddressVerifyToken = $token;
             }
         }
 
-        if ($previousUser && $previousUser->getNewEmailAddress() !== ($newEmail = $user->getNewEmailAddress())) {
-            if ($this->verifyEmailOnChange) {
-                $user->setNewEmailVerificationToken(TokenGenerator::generateToken());
-            } else {
-                $user->setEmailAddress($newEmail);
-                $user->setNewEmailAddress(null);
+        if ($previousUser) {
+            if ($this->verifyEmailOnChange && $user->getEmailAddress() !== $previousUser->getEmailAddress()) {
+                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->plainEmailAddressVerifyToken = $token;
+            }
+            if (($newEmail = $user->getNewEmailAddress()) !== $previousUser->getNewEmailAddress()) {
+                if ($newEmail) {
+                    $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                    $user->plainNewEmailConfirmationToken = $token;
+                } else {
+                    // invalidate any existing requests
+                    $user->setNewEmailConfirmationToken(null);
+                }
             }
         }
     }

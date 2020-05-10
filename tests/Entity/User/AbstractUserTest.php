@@ -79,8 +79,8 @@ class AbstractUserTest extends TestCase
         $this->assertEquals($user, $user->setNewEmailAddress('new@email'));
         $this->assertEquals('new@email', $user->getNewEmailAddress());
 
-        $this->assertEquals($user, $user->setNewEmailVerificationToken('emtoken'));
-        $this->assertEquals('emtoken', $user->getNewEmailVerificationToken());
+        $this->assertEquals($user, $user->setNewEmailConfirmationToken('emtoken'));
+        $this->assertEquals('emtoken', $user->getNewEmailConfirmationToken());
 
         $this->assertEquals($user, $user->setEmailAddressVerified(true));
         $this->assertTrue($user->isEmailAddressVerified());

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Factory\Mailer\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\AbstractUserEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Symfony\Component\Mime\RawMessage;
 
 class DummyUserEmailFactory extends AbstractUserEmailFactory

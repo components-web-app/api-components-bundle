@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Tests\Factory\Mailer\User;
+namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Factory\Mailer\User\ChangeEmailVerificationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull($factory->create(new class() extends AbstractUser {
         }));
     }
@@ -36,10 +36,10 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A `new email verification token` must be set to send the verification email');
+        $this->expectExceptionMessage('A new password confirmation token must be set to send the `password reset` email');
 
         $factory->create($user);
     }
@@ -50,23 +50,22 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
         };
         $user
             ->setUsername('username')
-            ->setEmailAddress('email@address.com')
-            ->setNewEmailVerificationToken('token');
-
-        $factory = new ChangeEmailVerificationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
+            ->setEmailAddress('email@address.com');
+        $user->plainNewPasswordConfirmationToken = 'token';
+        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 
         $email = (new TemplatedEmail())
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
-            ->htmlTemplate('@SilverbackApiComponents/emails/user_change_email_verification.html.twig')
+            ->htmlTemplate('@SilverbackApiComponents/emails/user_password_reset.html.twig')
             ->context([
                 'website_name' => 'my website',
                 'user' => $user,
                 'redirect_url' => '/transformed-path',
             ]);
 
-        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), ChangeEmailVerificationEmailFactory::MESSAGE_ID_PREFIX);
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordResetEmailFactory::MESSAGE_ID_PREFIX);
     }
 }
