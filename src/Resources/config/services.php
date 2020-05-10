@@ -98,7 +98,7 @@ use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextB
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractComponentNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
@@ -143,7 +143,7 @@ return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
     $services
-        ->set(AbstractComponentNormalizer::class)
+        ->set(AbstractResourceNormalizer::class)
         ->autoconfigure(false)
         ->args([
             new Reference(ApiResourceRouteFinder::class),

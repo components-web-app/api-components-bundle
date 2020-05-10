@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -23,7 +22,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class AbstractComponentNormalizer implements ContextAwareDenormalizerInterface, CacheableSupportsMethodInterface, DenormalizerAwareInterface
+class AbstractResourceNormalizer implements ContextAwareDenormalizerInterface, CacheableSupportsMethodInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 
@@ -43,7 +42,11 @@ class AbstractComponentNormalizer implements ContextAwareDenormalizerInterface, 
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && AbstractComponent::class === $type;
+        try {
+            return !isset($context[self::ALREADY_CALLED]) && (new \ReflectionClass($type))->isAbstract();
+        } catch (\ReflectionException $exception) {
+            return false;
+        }
     }
 
     public function denormalize($data, $type, $format = null, array $context = [])
