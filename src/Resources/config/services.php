@@ -670,7 +670,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(FilesystemProvider::class),
             new Reference(FlysystemDataLoader::class),
             new Reference(FileInfoCacheManager::class),
-            new Reference('liip_imagine.cache.manager'),
+            null, // set in dependency injection if imagine exists
             null, // Set in dependency injection if imagine cache manager exists
         ]);
 

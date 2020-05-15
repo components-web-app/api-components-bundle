@@ -93,6 +93,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         if ($imagineEnabled) {
             $definition = $container->getDefinition(UploadableFileManager::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
+            $definition->setArgument('$imagineCacheManager', new Reference('liip_imagine.cache.manager'));
 
             $definition = $container->getDefinition(MediaObjectFactory::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
