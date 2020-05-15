@@ -1,5 +1,5 @@
 {
-    "name": "silverback/api-components-bundle",
+    "name": "silverbackis/api-components-bundle",
     "type": "symfony-bundle",
     "description": "Creates a flexible API for a website's structure, reusable components and common functionality.",
     "license": "MIT",
