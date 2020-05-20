@@ -40,7 +40,6 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
@@ -67,9 +66,6 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
-
-        $definition = $container->getDefinition(TokenAuthenticator::class);
-        $definition->setArgument('$tokens', $config['security']['tokens']);
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$entityClass', $config['user']['class_name']);

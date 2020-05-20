@@ -13,9 +13,6 @@ This bundle uses [LexikJWTAuthenticationBundle](https://github.com/lexik/LexikJW
 
 _(Source: https://auth0.com/learn/refresh-tokens/)_
 
-### API Tokens for Applications
-We also use a simple API Token Authenticator `Silverback\ApiComponentBundle\Security\TokenAuthenticator` so that endpoints which expose sensitive data can be secured. Primarily this is so that JWT Refresh tokens are not passed directly to users.
-
 ## Getting started
 
 ### Configure security and firewalls
@@ -72,12 +69,9 @@ security:
         login:
             pattern:  ^/login
             stateless: true
-            # anonymous: true
+            anonymous: true
             provider: user_provider
             user_checker: Silverback\ApiComponentBundle\Security\UserChecker
-            guard:
-                authenticators:
-                    - Silverback\ApiComponentBundle\Security\TokenAuthenticator
             json_login:
                 check_path: /login
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -93,21 +87,11 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
     access_control:
-        - { path: ^/login, roles: ROLE_TOKEN_USER }
         - { path: ^/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/password/(reset|update), roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
         # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
         - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
-```
-
-### Token Authentication
-As part of the Symfony Flex recipe, an environment variable `API_SECRET_TOKEN` will be generated and by default used in the bundle configuration:
-```yaml
-silverback_api_component:
-    security:
-        tokens:
-          - '%env(API_SECRET_TOKEN)%'
 ```
 
 ### JWT Authentication

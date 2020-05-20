@@ -34,7 +34,6 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         $this->addPublishableNode($rootNode);
-        $this->addSecurityNode($rootNode);
         $this->addEnabledComponentsNode($rootNode);
         $this->addUserNode($rootNode);
 
@@ -51,21 +50,6 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('permission')
                             ->cannotBeEmpty()
                             ->isRequired()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end();
-    }
-
-    private function addSecurityNode(ArrayNodeDefinition $rootNode): void
-    {
-        $rootNode
-            ->children()
-                ->arrayNode('security')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->arrayNode('tokens')
-                            ->prototype('scalar')->end()
                         ->end()
                     ->end()
                 ->end()

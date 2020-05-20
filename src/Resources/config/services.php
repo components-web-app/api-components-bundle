@@ -91,7 +91,6 @@ use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
@@ -635,14 +634,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(TimestampedValidator::class . '.inner'),
             new Reference(TimestampedAnnotationReader::class),
-        ]);
-
-    $services
-        ->set(TokenAuthenticator::class)
-        ->args([
-            new Reference(Security::class),
-            new Reference(SerializeFormatResolver::class),
-            '', // injected in dependency injection
         ]);
 
     $services
