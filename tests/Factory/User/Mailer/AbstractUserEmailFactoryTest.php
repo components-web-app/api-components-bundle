@@ -266,7 +266,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
                 new class() extends AbstractUser {
-            }
+                }
             )
         );
     }
@@ -306,7 +306,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
                 new class() extends AbstractUser {
-            }
+                }
             )
         );
     }

@@ -35,8 +35,7 @@ class RouteRepositoryTest extends AbstractRepositoryTest
     {
         $route = new Route();
         $route->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
-        $route->route = '/path';
-        $route->name = 'new_route';
+        $route->setPath('/path')->setName('new_route');
         $this->entityManager->persist($route);
         $this->entityManager->flush();
 

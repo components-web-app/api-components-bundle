@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -37,11 +38,13 @@ class RouteNormalizer implements ContextAwareNormalizerInterface, CacheableSuppo
         $context[self::ALREADY_CALLED] = true;
 
         $finalRoute = $object;
-        $max = 50;
-        $count = 0;
-        while (($nextRedirect = $finalRoute->getRedirect()) && $count <= $max) {
+        $redirectedRoutes = [$finalRoute->getId()];
+        while (($nextRedirect = $finalRoute->getRedirect())) {
+            if (\in_array($nextRedirect->getId(), $redirectedRoutes, true)) {
+                throw new CircularReferenceException(sprintf('The redirect routes result in a circular reference: %s', implode(' -> ', $redirectedRoutes)));
+            }
+            $redirectedRoutes[] = $nextRedirect->getId();
             $finalRoute = $nextRedirect;
-            ++$count;
         }
 
         $isRedirect = $finalRoute !== $object;

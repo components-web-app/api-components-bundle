@@ -34,7 +34,7 @@ class RouteDataProviderTest extends TestCase
         $repository = $this->createMock(RouteRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findOneByIdOrRoute')
+            ->method('findOneByIdOrPath')
             ->with('abcd')
             ->willReturn($route = new Route());
 
