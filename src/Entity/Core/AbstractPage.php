@@ -29,13 +29,13 @@ abstract class AbstractPage
     use IdTrait;
     use TimestampedTrait;
 
-    protected ?Route $route;
+    protected ?Route $route = null;
 
     /**
      * This will be se so that when auto-generating a route for a newly created
      * Page / PageData, we can prepend parent routes.
      */
-    protected ?Route $parentRoute;
+    protected ?Route $parentRoute = null;
 
     /**
      * If true, then the Page/PageData is nested within the parentRoute.
@@ -49,7 +49,7 @@ abstract class AbstractPage
 
     protected string $title = 'Unnamed Page';
 
-    protected ?string $metaDescription;
+    protected ?string $metaDescription = null;
 
     public function getRoute(): ?Route
     {
