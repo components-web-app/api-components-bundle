@@ -55,7 +55,7 @@ jobs:
           key: composer-cs-fixer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-cs-fixer-php${{ matrix.php }}-
-          continue-on-error: true
+        continue-on-error: true
       - name: Install Symfony Flex
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -152,7 +152,7 @@ jobs:
           key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-php${{ matrix.php }}-
-          continue-on-error: true
+        continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -294,7 +294,7 @@ jobs:
           key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-php${{ matrix.php }}-
-          continue-on-error: true
+        continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -404,7 +404,7 @@ jobs:
           key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
-          continue-on-error: true
+        continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -483,7 +483,7 @@ jobs:
           key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
-          continue-on-error: true
+        continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
           composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -568,7 +568,7 @@ jobs:
               composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
               composer-php${{ matrix.php }}-
               composer-
-            continue-on-error: true
+          continue-on-error: true
       -   name: Install Symfony Flex
           run: |
             composer global require --prefer-dist --no-progress --no-suggest --ansi \
@@ -667,7 +667,7 @@ jobs:
               composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
               composer-php${{ matrix.php }}-
               composer-
-            continue-on-error: true
+          continue-on-error: true
       -   name: Install Symfony Flex
           run: |
             composer global require --prefer-dist --no-progress --no-suggest --ansi \
