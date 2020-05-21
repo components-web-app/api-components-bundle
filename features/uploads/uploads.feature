@@ -18,11 +18,11 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                            |
-      | image.png      | uploadable_has_files.schema.json  |
-      | image.svg      | uploadable_has_files.schema.json  |
-      | test_file.txt  | uploadable_has_files.schema.json  |
-      | test_file.docx | uploadable_has_files.schema.json  |
+      | file           | schema                           |
+      | image.png      | uploadable_has_files.schema.json |
+      | image.svg      | uploadable_has_files.schema.json |
+      | test_file.txt  | uploadable_has_files.schema.json |
+      | test_file.docx | uploadable_has_files.schema.json |
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with base64 data that is just a string (no data:)
@@ -33,24 +33,24 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                            |
-      | image.svg      | uploadable_has_files.schema.json  |
+      | file      | schema                           |
+      | image.svg | uploadable_has_files.schema.json |
 
   @loginUser
   Scenario Outline: I can create a new dummy files component with a "multipart/form-data" request
     Given I add "Content-Type" header equal to "multipart/form-data"
     When I send a "POST" request to "/dummy_uploadables/upload" with parameters:
-      | key    | value     |
-      | file   | @<file>   |
+      | key  | value   |
+      | file | @<file> |
     Then the response status code should be 201
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                            |
-      | image.png      | uploadable_has_files.schema.json  |
-      | image.svg      | uploadable_has_files.schema.json  |
-      | test_file.txt  | uploadable_has_files.schema.json  |
-      | test_file.docx | uploadable_has_files.schema.json  |
+      | file           | schema                           |
+      | image.png      | uploadable_has_files.schema.json |
+      | image.svg      | uploadable_has_files.schema.json |
+      | test_file.txt  | uploadable_has_files.schema.json |
+      | test_file.docx | uploadable_has_files.schema.json |
 
   @loginUser
   Scenario: I get an error if I send a json request to the multipart/form-data endpoint
@@ -110,8 +110,8 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/<schema>"
     And the JSON node "filePath" should not exist
     Examples:
-      | file           | schema                            |
-      | image.png      | uploadable_has_files.schema.json  |
+      | file      | schema                           |
+      | image.png | uploadable_has_files.schema.json |
 
   # DELETE
 

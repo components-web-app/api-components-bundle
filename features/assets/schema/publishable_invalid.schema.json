@@ -1,16 +1,16 @@
 {
-    "allOf": [
-        {
-            "$ref": "publishable.schema.json"
-        },
-        {
-            "properties": {
-                "_metadata": {
-                    "required": [
-                        "violation_list"
-                    ]
-                }
-            }
+  "allOf": [
+    {
+      "$ref": "publishable.schema.json"
+    },
+    {
+      "properties": {
+        "_metadata": {
+          "required": [
+            "violation_list"
+          ]
         }
-    ]
+      }
+    }
+  ]
 }

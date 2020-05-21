@@ -1,128 +1,128 @@
 {
-    "type": "object",
-    "title": "The Root Schema",
-    "description": "The root schema comprises the entire JSON document.",
+  "type": "object",
+  "title": "The Root Schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "username",
+    "emailAddress",
+    "roles",
+    "enabled"
+  ],
+  "not": {
     "required": [
-        "@context",
-        "@id",
-        "@type",
-        "username",
-        "emailAddress",
-        "roles",
-        "enabled"
-    ],
-    "not": {
-        "required": [
-            "plainPassword"
-        ]
+      "plainPassword"
+    ]
+  },
+  "properties": {
+    "@context": {
+      "$id": "#/properties/@context",
+      "type": "string",
+      "title": "The @context Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/User"
+      ]
     },
-    "properties": {
-        "@context": {
-            "$id": "#/properties/@context",
-            "type": "string",
-            "title": "The @context Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/User"
-            ]
-        },
-        "@id": {
-            "$id": "#/properties/@id",
-            "type": "string",
-            "title": "The @id Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/users/09242f6f30b64754ab3fe57804411597"
-            ]
-        },
-        "@type": {
-            "$id": "#/properties/@type",
-            "type": "string",
-            "title": "The @type Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "User"
-            ]
-        },
-        "modifiedAt": {
-            "$id": "#/properties/modifiedAt",
-            "type": "string",
-            "title": "The modifiedAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:49+00:00"
-            ]
-        },
-        "username": {
-            "$id": "#/properties/username",
-            "type": "string",
-            "title": "The Username Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "user@email.com"
-            ]
-        },
-        "emailAddress": {
-            "$id": "#/properties/emailAddress",
-            "type": "string",
-            "title": "The Emailaddress Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "user@email.com"
-            ]
-        },
-        "roles": {
-            "$id": "#/properties/roles",
-            "type": "array",
-            "title": "The Roles Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "items": {
-                "$id": "#/properties/roles/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "description": "An explanation about the purpose of this instance.",
-                "default": "",
-                "examples": [
-                    "ROLE_USER"
-                ]
-            }
-        },
-        "enabled": {
-            "$id": "#/properties/enabled",
-            "type": "boolean",
-            "title": "The Enabled Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": false,
-            "examples": [
-                true
-            ]
-        },
-        "newEmailAddress": {
-            "$id": "#/properties/newEmailAddress",
-            "type": "string",
-            "title": "The Newemailaddress Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "user@email.com"
-            ]
-        },
-        "createdAt": {
-            "$id": "#/properties/createdAt",
-            "type": "string",
-            "title": "The createdAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:48+00:00"
-            ]
-        }
+    "@id": {
+      "$id": "#/properties/@id",
+      "type": "string",
+      "title": "The @id Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/users/09242f6f30b64754ab3fe57804411597"
+      ]
+    },
+    "@type": {
+      "$id": "#/properties/@type",
+      "type": "string",
+      "title": "The @type Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "User"
+      ]
+    },
+    "modifiedAt": {
+      "$id": "#/properties/modifiedAt",
+      "type": "string",
+      "title": "The modifiedAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T09:38:49+00:00"
+      ]
+    },
+    "username": {
+      "$id": "#/properties/username",
+      "type": "string",
+      "title": "The Username Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "user@email.com"
+      ]
+    },
+    "emailAddress": {
+      "$id": "#/properties/emailAddress",
+      "type": "string",
+      "title": "The Emailaddress Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "user@email.com"
+      ]
+    },
+    "roles": {
+      "$id": "#/properties/roles",
+      "type": "array",
+      "title": "The Roles Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "items": {
+        "$id": "#/properties/roles/items",
+        "type": "string",
+        "title": "The Items Schema",
+        "description": "An explanation about the purpose of this instance.",
+        "default": "",
+        "examples": [
+          "ROLE_USER"
+        ]
+      }
+    },
+    "enabled": {
+      "$id": "#/properties/enabled",
+      "type": "boolean",
+      "title": "The Enabled Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": false,
+      "examples": [
+        true
+      ]
+    },
+    "newEmailAddress": {
+      "$id": "#/properties/newEmailAddress",
+      "type": "string",
+      "title": "The Newemailaddress Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "user@email.com"
+      ]
+    },
+    "createdAt": {
+      "$id": "#/properties/createdAt",
+      "type": "string",
+      "title": "The createdAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T09:38:48+00:00"
+      ]
     }
+  }
 }

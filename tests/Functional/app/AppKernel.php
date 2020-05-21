@@ -25,6 +25,7 @@ use Symfony\Component\Routing\RouteCollectionBuilder;
 class AppKernel extends Kernel
 {
     use MicroKernelTrait;
+
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
 
     public function __construct(string $environment, bool $debug)

@@ -27,9 +27,15 @@ class SerializerCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $definition = $container->getDefinition('serializer.mapping.chain_loader');
-        $definition->replaceArgument(0, array_merge($definition->getArgument(0), [
-            new Reference(PublishableLoader::class),
-            new Reference(TimestampedLoader::class),
-        ]));
+        $definition->replaceArgument(
+            0,
+            array_merge(
+                $definition->getArgument(0),
+                [
+                    new Reference(PublishableLoader::class),
+                    new Reference(TimestampedLoader::class),
+                ]
+            )
+        );
     }
 }

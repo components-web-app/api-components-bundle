@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DataTransformer;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use Silverback\ApiComponentsBundle\Entity\Core\PageTemplate;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PageTemplateOutputDataTransformer implements DataTransformerInterface
+class PageOutputDataTransformer implements DataTransformerInterface
 {
     private LayoutRepository $layoutRepository;
 
@@ -30,7 +30,7 @@ class PageTemplateOutputDataTransformer implements DataTransformerInterface
     }
 
     /**
-     * @param PageTemplate $object
+     * @param Page $object
      */
     public function transform($object, string $to, array $context = [])
     {
@@ -41,6 +41,6 @@ class PageTemplateOutputDataTransformer implements DataTransformerInterface
 
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
-        return $data instanceof PageTemplate && !$data->layout;
+        return $data instanceof Page && !$data->layout;
     }
 }

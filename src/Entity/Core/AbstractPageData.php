@@ -26,5 +26,5 @@ abstract class AbstractPageData extends AbstractPage implements PageDataInterfac
      * within entities with interpolation, or add new components on the fly depending on what you have defined here.
      */
 
-    public PageTemplate $pageTemplate;
+    public Page $page;
 }

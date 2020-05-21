@@ -39,7 +39,7 @@ class ImagineEventListener
     public function onStore(ImagineStoreEvent $event): void
     {
         $content = $event->binary->getContent();
-        [ $width, $height ] = getimagesizefromstring($content);
+        [$width, $height] = getimagesizefromstring($content);
         $fileSize = \strlen($content);
 
         $fileInfo = new FileInfo($event->path, $event->binary->getMimeType(), $fileSize, $width, $height, $event->filter);

@@ -1,22 +1,22 @@
 {
-    "allOf": [
-        {
-            "$ref": "uploadable_has_files.schema.json"
-        },
-        {
-            "properties": {
-                "_metadata": {
-                    "properties": {
-                        "media_objects": {
-                            "properties": {
-                                "filename": {
-                                    "minItems": 3
-                                }
-                            }
-                        }
-                    }
+  "allOf": [
+    {
+      "$ref": "uploadable_has_files.schema.json"
+    },
+    {
+      "properties": {
+        "_metadata": {
+          "properties": {
+            "media_objects": {
+              "properties": {
+                "filename": {
+                  "minItems": 3
                 }
+              }
             }
+          }
         }
-    ]
+      }
+    }
+  ]
 }

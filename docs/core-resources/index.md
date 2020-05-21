@@ -10,7 +10,7 @@ nav_order: 3
 
 - `Route` (docs coming soon)
 - `Layout` (docs coming soon)
-- `PageTemplate` (docs coming soon)
+- `Page` (docs coming soon)
 - `ComponentCollection` (docs coming soon)
 - `ComponentPosition` (docs coming soon)
 

@@ -47,35 +47,41 @@ final class PublishableListener
         $namingStrategy = $em->getConfiguration()->getNamingStrategy();
 
         if (!$metadata->hasField($configuration->fieldName)) {
-            $metadata->mapField([
-                'fieldName' => $configuration->fieldName,
-                'type' => 'datetime',
-                'nullable' => true,
-            ]);
+            $metadata->mapField(
+                [
+                    'fieldName' => $configuration->fieldName,
+                    'type' => 'datetime',
+                    'nullable' => true,
+                ]
+            );
         }
 
         if (!$metadata->hasAssociation($configuration->associationName)) {
-            $metadata->mapOneToOne([
-                'fieldName' => $configuration->associationName,
-                'targetEntity' => $metadata->getName(),
-                'joinColumns' => [
-                    [
-                        'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
-                        'referencedColumnName' => $namingStrategy->referenceColumnName(),
-                        'onDelete' => 'SET NULL',
-                        'nullable' => true,
+            $metadata->mapOneToOne(
+                [
+                    'fieldName' => $configuration->associationName,
+                    'targetEntity' => $metadata->getName(),
+                    'joinColumns' => [
+                        [
+                            'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
+                            'referencedColumnName' => $namingStrategy->referenceColumnName(),
+                            'onDelete' => 'SET NULL',
+                            'nullable' => true,
+                        ],
                     ],
-                ],
-                'inversedBy' => $configuration->reverseAssociationName,
-            ]);
+                    'inversedBy' => $configuration->reverseAssociationName,
+                ]
+            );
         }
 
         if (!$metadata->hasAssociation($configuration->reverseAssociationName)) {
-            $metadata->mapOneToOne([
-                'fieldName' => $configuration->reverseAssociationName,
-                'targetEntity' => $metadata->getName(),
-                'mappedBy' => $configuration->associationName,
-            ]);
+            $metadata->mapOneToOne(
+                [
+                    'fieldName' => $configuration->reverseAssociationName,
+                    'targetEntity' => $metadata->getName(),
+                    'mappedBy' => $configuration->associationName,
+                ]
+            );
         }
     }
 }

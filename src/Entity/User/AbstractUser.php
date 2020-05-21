@@ -84,7 +84,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newPasswordConfirmationToken = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainNewPasswordConfirmationToken = null;
 
@@ -126,7 +126,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?DateTime $newEmailAddressChangeRequestedAt = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainNewEmailConfirmationToken = null;
 
@@ -143,7 +143,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $emailAddressVerifyToken = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainEmailAddressVerifyToken = null;
 
@@ -342,14 +342,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /** @see \Serializable::serialize() */
     public function serialize(): string
     {
-        return serialize([
-            (string) $this->id,
-            $this->username,
-            $this->emailAddress,
-            $this->password,
-            $this->enabled,
-            $this->roles,
-        ]);
+        return serialize(
+            [
+                (string) $this->id,
+                $this->username,
+                $this->emailAddress,
+                $this->password,
+                $this->enabled,
+                $this->roles,
+            ]
+        );
     }
 
     /**

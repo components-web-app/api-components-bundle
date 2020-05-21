@@ -41,27 +41,31 @@ class UserCreateCommand extends Command
     {
         $this
             ->setDescription('Create a user.')
-            ->setDefinition([
-                new InputArgument('username', InputArgument::REQUIRED, 'The username'),
-                new InputArgument('email', InputArgument::REQUIRED, 'The email'),
-                new InputArgument('password', InputArgument::REQUIRED, 'The password'),
-                new InputOption('super-admin', null, InputOption::VALUE_NONE, 'Set the user as super admin'),
-                new InputOption('inactive', null, InputOption::VALUE_NONE, 'Set the user as inactive'),
-                new InputOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite the user if they already exist'),
-            ])
-            ->setHelp(<<<EOT
-                The <info>silverback:api-components:user:create</info> command creates a user:
-                  <info>php %command.full_name% daniel</info>
-                This interactive shell will ask you for an email and then a password.
-                You can alternatively specify the email and password as the second and third arguments:
-                  <info>php %command.full_name% daniel daniel@example.com mypassword</info>
-                You can create a super admin via the super-admin flag:
-                  <info>php %command.full_name% admin --super-admin</info>
-                You can create an inactive user (will not be able to log in):
-                  <info>php %command.full_name% disabled_user --inactive</info>
-                You can overwrite a user if they already exist:
-                  <info>php %command.full_name% existing_username --overwrite</info>
-                EOT);
+            ->setDefinition(
+                [
+                    new InputArgument('username', InputArgument::REQUIRED, 'The username'),
+                    new InputArgument('email', InputArgument::REQUIRED, 'The email'),
+                    new InputArgument('password', InputArgument::REQUIRED, 'The password'),
+                    new InputOption('super-admin', null, InputOption::VALUE_NONE, 'Set the user as super admin'),
+                    new InputOption('inactive', null, InputOption::VALUE_NONE, 'Set the user as inactive'),
+                    new InputOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite the user if they already exist'),
+                ]
+            )
+            ->setHelp(
+                <<<EOT
+                    The <info>silverback:api-components:user:create</info> command creates a user:
+                      <info>php %command.full_name% daniel</info>
+                    This interactive shell will ask you for an email and then a password.
+                    You can alternatively specify the email and password as the second and third arguments:
+                      <info>php %command.full_name% daniel daniel@example.com mypassword</info>
+                    You can create a super admin via the super-admin flag:
+                      <info>php %command.full_name% admin --super-admin</info>
+                    You can create an inactive user (will not be able to log in):
+                      <info>php %command.full_name% disabled_user --inactive</info>
+                    You can overwrite a user if they already exist:
+                      <info>php %command.full_name% existing_username --overwrite</info>
+                    EOT
+            );
     }
 
     /**

@@ -5,14 +5,14 @@
     <resource class="Silverback\ApiComponentsBundle\Entity\Component\Form">
         <attribute name="output">Silverback\ApiComponentsBundle\Entity\Component\Form</attribute>
         <collectionOperations>
-            <collectionOperation name="get" />
-            <collectionOperation name="post" />
+            <collectionOperation name="get"/>
+            <collectionOperation name="post"/>
         </collectionOperations>
         <itemOperations>
-            <itemOperation name="get" />
-            <itemOperation name="delete" />
-            <itemOperation name="put" />
-            <itemOperation name="patch" />
+            <itemOperation name="get"/>
+            <itemOperation name="delete"/>
+            <itemOperation name="put"/>
+            <itemOperation name="patch"/>
             <itemOperation name="submit_patch">
                 <attribute name="method">PATCH</attribute>
                 <attribute name="path">/forms/{id}/submit.{_format}</attribute>

@@ -140,43 +140,46 @@ class RestContext implements Context
      */
     private function castTableNodeToArray(TableNode $tableNode): array
     {
-        $data = array_map(function ($value) {
-            if ('null' === $value) {
-                $value = null;
-            }
-
-            if ('now' === $value) {
-                $value = $this->getCachedNow();
-            }
-
-            if ('invalid_draft' === $value) {
-                $value = ['name' => ''];
-            }
-
-            if ('valid_draft' === $value) {
-                $value = ['name' => 'John Doe'];
-            }
-
-            if ('valid_published' === $value) {
-                $value = ['name' => 'John Doe', 'description' => 'nobody'];
-            }
-
-            if (\is_string($value)) {
-                if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
-                    $value = $this->castBase64FileToString($matches[1]);
+        $data = array_map(
+            function ($value) {
+                if ('null' === $value) {
+                    $value = null;
                 }
 
-                if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
-                    $value = $this->castBase64FileToSimpleString($matches[1]);
+                if ('now' === $value) {
+                    $value = $this->getCachedNow();
                 }
 
-                if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
-                    $value = $this->castComponentToIri($matches[1]);
+                if ('invalid_draft' === $value) {
+                    $value = ['name' => ''];
                 }
-            }
 
-            return $value;
-        }, array_combine($tableNode->getRow(0), $tableNode->getRow(1)));
+                if ('valid_draft' === $value) {
+                    $value = ['name' => 'John Doe'];
+                }
+
+                if ('valid_published' === $value) {
+                    $value = ['name' => 'John Doe', 'description' => 'nobody'];
+                }
+
+                if (\is_string($value)) {
+                    if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castBase64FileToString($matches[1]);
+                    }
+
+                    if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castBase64FileToSimpleString($matches[1]);
+                    }
+
+                    if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
+                        $value = $this->castComponentToIri($matches[1]);
+                    }
+                }
+
+                return $value;
+            },
+            array_combine($tableNode->getRow(0), $tableNode->getRow(1))
+        );
 
         if (isset($data['resourceData']) && \is_array($resourceData = $data['resourceData'])) {
             unset($data['resourceData']);

@@ -80,8 +80,11 @@ class FormTypeClassValidatorTest extends TestCase
     {
         $this->initializeValidatorForNoErrors();
         $this->expectException(InvalidArgumentException::class);
-        $this->formTypeClassValidator->validate(TestType::class, new class() extends Constraint {
-        });
+        $this->formTypeClassValidator->validate(
+            TestType::class,
+            new class() extends Constraint {
+            }
+        );
     }
 
     public function test_no_errors_if_valid_value(): void

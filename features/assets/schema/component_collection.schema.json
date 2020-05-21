@@ -1,195 +1,195 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "http://example.com/example.json",
-    "type": "object",
-    "title": "The root schema",
-    "description": "The root schema comprises the entire JSON document.",
-    "default": {},
-    "examples": [
-        {
-            "_metadata": {
-                "persisted": true
-            },
-            "createdAt": "2020-05-10T14:07:56+00:00",
-            "@context": "/contexts/ComponentCollection",
-            "@id": "/_/component_collections/a5d4682c-92c7-11ea-8abf-acde48001122",
-            "layouts": [],
-            "components": [],
-            "reference": "collection_reference",
-            "componentPositions": [],
-            "pageTemplates": [],
-            "@type": "ComponentCollection",
-            "modifiedAt": "2020-05-10T14:07:56+00:00"
-        }
-    ],
-    "required": [
-        "@context",
-        "@id",
-        "@type",
-        "reference",
-        "layouts",
-        "pageTemplates",
-        "components",
-        "componentPositions",
-        "createdAt",
-        "modifiedAt",
-        "_metadata"
-    ],
-    "additionalProperties": true,
-    "properties": {
-        "@context": {
-            "$id": "#/properties/@context",
-            "type": "string",
-            "title": "The @context schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/ComponentCollection"
-            ]
-        },
-        "@id": {
-            "$id": "#/properties/@id",
-            "type": "string",
-            "title": "The @id schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/_/component_collections/a5d4682c-92c7-11ea-8abf-acde48001122"
-            ]
-        },
-        "@type": {
-            "$id": "#/properties/@type",
-            "type": "string",
-            "title": "The @type schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "ComponentCollection"
-            ]
-        },
-        "reference": {
-            "$id": "#/properties/reference",
-            "type": "string",
-            "title": "The reference schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "collection_reference"
-            ]
-        },
-        "layouts": {
-            "$id": "#/properties/layouts",
-            "type": "array",
-            "title": "The layouts schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "examples": [
-                []
-            ],
-            "additionalItems": true,
-            "items": [
-                {
-                    "$id": "#/properties/layouts/items"
-                }
-            ]
-        },
-        "pageTemplates": {
-            "$id": "#/properties/pageTemplates",
-            "type": "array",
-            "title": "The pageTemplates schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "examples": [
-                []
-            ],
-            "additionalItems": true,
-            "items": [
-                {
-                    "$id": "#/properties/pageTemplates/items"
-                }
-            ]
-        },
-        "components": {
-            "$id": "#/properties/components",
-            "type": "array",
-            "title": "The components schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "examples": [
-                []
-            ],
-            "additionalItems": true,
-            "items": [
-                {
-                    "$id": "#/properties/components/items"
-                }
-            ]
-        },
-        "componentPositions": {
-            "$id": "#/properties/componentPositions",
-            "type": "array",
-            "title": "The componentPositions schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "examples": [
-                []
-            ],
-            "additionalItems": true,
-            "items": [
-                {
-                    "$id": "#/properties/componentPositions/items"
-                }
-            ]
-        },
-        "createdAt": {
-            "$id": "#/properties/createdAt",
-            "type": "string",
-            "title": "The createdAt schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-05-10T14:07:56+00:00"
-            ]
-        },
-        "modifiedAt": {
-            "$id": "#/properties/modifiedAt",
-            "type": "string",
-            "title": "The modifiedAt schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-05-10T14:07:56+00:00"
-            ]
-        },
-        "_metadata": {
-            "$id": "#/properties/_metadata",
-            "type": "object",
-            "title": "The _metadata schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": {},
-            "examples": [
-                {
-                    "persisted": true
-                }
-            ],
-            "required": [
-                "persisted"
-            ],
-            "additionalProperties": true,
-            "properties": {
-                "persisted": {
-                    "$id": "#/properties/_metadata/properties/persisted",
-                    "type": "boolean",
-                    "title": "The persisted schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        true
-                    ]
-                }
-            },
-            "additionalPropeties": true
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "The root schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "_metadata": {
+        "persisted": true
+      },
+      "createdAt": "2020-05-10T14:07:56+00:00",
+      "@context": "/contexts/ComponentCollection",
+      "@id": "/_/component_collections/a5d4682c-92c7-11ea-8abf-acde48001122",
+      "layouts": [],
+      "components": [],
+      "reference": "collection_reference",
+      "componentPositions": [],
+      "pages": [],
+      "@type": "ComponentCollection",
+      "modifiedAt": "2020-05-10T14:07:56+00:00"
+    }
+  ],
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "reference",
+    "layouts",
+    "pages",
+    "components",
+    "componentPositions",
+    "createdAt",
+    "modifiedAt",
+    "_metadata"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "@context": {
+      "$id": "#/properties/@context",
+      "type": "string",
+      "title": "The @context schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/ComponentCollection"
+      ]
     },
-    "additionalPropeties": true
+    "@id": {
+      "$id": "#/properties/@id",
+      "type": "string",
+      "title": "The @id schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/_/component_collections/a5d4682c-92c7-11ea-8abf-acde48001122"
+      ]
+    },
+    "@type": {
+      "$id": "#/properties/@type",
+      "type": "string",
+      "title": "The @type schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "ComponentCollection"
+      ]
+    },
+    "reference": {
+      "$id": "#/properties/reference",
+      "type": "string",
+      "title": "The reference schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "collection_reference"
+      ]
+    },
+    "layouts": {
+      "$id": "#/properties/layouts",
+      "type": "array",
+      "title": "The layouts schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": [
+        {
+          "$id": "#/properties/layouts/items"
+        }
+      ]
+    },
+    "pages": {
+      "$id": "#/properties/pages",
+      "type": "array",
+      "title": "The pages schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": [
+        {
+          "$id": "#/properties/pages/items"
+        }
+      ]
+    },
+    "components": {
+      "$id": "#/properties/components",
+      "type": "array",
+      "title": "The components schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": [
+        {
+          "$id": "#/properties/components/items"
+        }
+      ]
+    },
+    "componentPositions": {
+      "$id": "#/properties/componentPositions",
+      "type": "array",
+      "title": "The componentPositions schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": [
+        {
+          "$id": "#/properties/componentPositions/items"
+        }
+      ]
+    },
+    "createdAt": {
+      "$id": "#/properties/createdAt",
+      "type": "string",
+      "title": "The createdAt schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-05-10T14:07:56+00:00"
+      ]
+    },
+    "modifiedAt": {
+      "$id": "#/properties/modifiedAt",
+      "type": "string",
+      "title": "The modifiedAt schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-05-10T14:07:56+00:00"
+      ]
+    },
+    "_metadata": {
+      "$id": "#/properties/_metadata",
+      "type": "object",
+      "title": "The _metadata schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "persisted": true
+        }
+      ],
+      "required": [
+        "persisted"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "persisted": {
+          "$id": "#/properties/_metadata/properties/persisted",
+          "type": "boolean",
+          "title": "The persisted schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        }
+      },
+      "additionalPropeties": true
+    }
+  },
+  "additionalPropeties": true
 }

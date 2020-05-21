@@ -29,6 +29,8 @@ use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -342,6 +344,56 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a Page
+     */
+    public function thereIsAPage(): void
+    {
+        $page = new Page();
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given there is a Route :route with redirects to :redirectTo
+     */
+    public function thereIsARouteWithRedirects(string $firstRoute, string $redirectTo): void
+    {
+        $finalRoute = new Route();
+        $finalRoute
+            ->setRoute($redirectTo)
+            ->setName($redirectTo);
+        $this->timestampedHelper->persistTimestampedFields($finalRoute, true);
+        $this->manager->persist($finalRoute);
+
+        $middleRoute = new Route();
+        $middleRoute
+            ->setRoute(bin2hex(random_bytes(10)))
+            ->setName(bin2hex(random_bytes(10)))
+            ->setRedirect($finalRoute);
+        $this->timestampedHelper->persistTimestampedFields($middleRoute, true);
+        $this->manager->persist($middleRoute);
+
+        $route = new Route();
+        $route
+            ->setRoute($firstRoute)
+            ->setName($firstRoute)
+            ->setRedirect($middleRoute);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $page = new Page();
+        $finalRoute->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+
+        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
      * @Then there should be :count DummyComponent resources
      */
     public function thereShouldBeDummyComponentResources(int $count): void
@@ -394,9 +446,11 @@ final class DoctrineContext implements Context
     {
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
     }
 
@@ -408,9 +462,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertEquals($emailAddress, $user->getEmailAddress());
         Assert::assertNull($user->getNewEmailAddress());
     }
@@ -423,9 +479,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertTrue($user->isEmailAddressVerified());
     }
 
@@ -437,9 +495,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertFalse($user->isEmailAddressVerified());
     }
 }

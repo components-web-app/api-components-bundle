@@ -34,15 +34,15 @@ class Layout
     use UiTrait;
 
     /**
-     * @var Collection|PageTemplate[]
+     * @var Collection|Page[]
      */
-    public Collection $pageTemplates;
+    public Collection $pages;
 
     public bool $default;
 
     public function __construct()
     {
         $this->initComponentCollections();
-        $this->pageTemplates = new ArrayCollection();
+        $this->pages = new ArrayCollection();
     }
 }

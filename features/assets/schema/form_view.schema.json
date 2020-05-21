@@ -1,290 +1,293 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "type": "object",
-    "title": "The Formview Schema",
-    "description": "An explanation about the purpose of this instance.",
-    "default": {},
-    "examples": [],
-    "required": [
-        "vars",
-        "children",
-        "rendered",
-        "methodRendered",
-        "form"
-    ],
-    "properties": {
-        "vars": {
-            "$id": "#/properties/vars",
-            "type": "object",
-            "title": "The Vars Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": {},
-            "examples": [],
-            "required": [
-                "attr",
-                "block_prefixes",
-                "disabled",
-                "full_name",
-                "id",
-                "name",
-                "unique_block_prefix"
-            ],
-            "anyOf": [
-                {
-                    "block_prefixes": {
-                        "contains": {
-                            "const": "repeated"
-                        }
-                    }
-                },
-                {
-                    "allOf": [
-                        {
-                            "required": [
-                                "required",
-                                "submitted",
-                                "valid"
-                            ]
-                        },
-                        {
-                            "anyOf": [
-                                {
-                                    "required": [
-                                        "value"
-                                    ]
-                                },
-                                {
-                                    "required": [
-                                        "action"
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            "properties": {
-                "errors": {
-                    "$id": "#/properties/vars/properties/errors",
-                    "type": "array",
-                    "title": "The Errors Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": []
-                },
-                "action": {
-                    "$id": "#/properties/vars/properties/action",
-                    "type": "string",
-                    "title": "The Action Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit"
-                    ]
-                },
-                "api_request": {
-                    "$id": "#/properties/vars/properties/api_request",
-                    "type": "boolean",
-                    "title": "The Api_request Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        true
-                    ]
-                },
-                "attr": {
-                    "$id": "#/properties/vars/properties/attr",
-                    "type": ["object", "array"]
-                },
-                "block_prefixes": {
-                    "$id": "#/properties/vars/properties/block_prefixes",
-                    "type": "array",
-                    "title": "The Block_prefixes Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": [],
-                    "items": {
-                        "$id": "#/properties/vars/properties/block_prefixes/items",
-                        "type": "string",
-                        "title": "The Items Schema",
-                        "description": "An explanation about the purpose of this instance.",
-                        "default": "",
-                        "examples": [
-                            "form",
-                            "test",
-                            "_test"
-                        ]
-                    }
-                },
-                "disabled": {
-                    "$id": "#/properties/vars/properties/disabled",
-                    "type": "boolean",
-                    "title": "The Disabled Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        false
-                    ]
-                },
-                "full_name": {
-                    "$id": "#/properties/vars/properties/full_name",
-                    "type": "string",
-                    "title": "The Full_name Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "test"
-                    ]
-                },
-                "id": {
-                    "$id": "#/properties/vars/properties/id",
-                    "type": "string",
-                    "title": "The Id Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "test"
-                    ]
-                },
-                "label_attr": {
-                    "$id": "#/properties/vars/properties/label_attr",
-                    "type": "array",
-                    "title": "The Label_attr Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": []
-                },
-                "name": {
-                    "$id": "#/properties/vars/properties/name",
-                    "type": "string",
-                    "title": "The Name Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "test"
-                    ]
-                },
-                "post_app_proxy": {
-                    "$id": "#/properties/vars/properties/post_app_proxy",
-                    "type": "string",
-                    "title": "The Post_app_proxy Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "/proxy"
-                    ]
-                },
-                "realtime_validate": {
-                    "$id": "#/properties/vars/properties/realtime_validate",
-                    "type": "boolean",
-                    "title": "The Realtime_validate Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        true
-                    ]
-                },
-                "unique_block_prefix": {
-                    "$id": "#/properties/vars/properties/unique_block_prefix",
-                    "type": "string",
-                    "title": "The Unique_block_prefix Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        "_test"
-                    ]
-                },
-                "required": {
-                    "$id": "#/properties/vars/properties/required",
-                    "type": "boolean",
-                    "title": "The Required Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        true
-                    ]
-                },
-                "submitted": {
-                    "$id": "#/properties/vars/properties/submitted",
-                    "type": "boolean",
-                    "title": "The Submitted Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        false
-                    ]
-                },
-                "valid": {
-                    "$id": "#/properties/vars/properties/valid",
-                    "type": "boolean",
-                    "title": "The Valid Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": false,
-                    "examples": [
-                        true
-                    ]
-                },
-                "value": {
-                    "$id": "#/properties/children/items/properties/vars/properties/value",
-                    "type": [
-                        "string",
-                        "array",
-                        "object"
-                    ],
-                    "title": "The Value Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": ""
-                }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "The Formview Schema",
+  "description": "An explanation about the purpose of this instance.",
+  "default": {},
+  "examples": [],
+  "required": [
+    "vars",
+    "children",
+    "rendered",
+    "methodRendered",
+    "form"
+  ],
+  "properties": {
+    "vars": {
+      "$id": "#/properties/vars",
+      "type": "object",
+      "title": "The Vars Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [],
+      "required": [
+        "attr",
+        "block_prefixes",
+        "disabled",
+        "full_name",
+        "id",
+        "name",
+        "unique_block_prefix"
+      ],
+      "anyOf": [
+        {
+          "block_prefixes": {
+            "contains": {
+              "const": "repeated"
             }
+          }
         },
-        "children": {
-            "$id": "#/properties/children",
-            "type": "array",
-            "title": "The Children Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": [],
-            "items": {
-                "$ref": "#"
-            }
-        },
-        "rendered": {
-            "$id": "#/properties/rendered",
-            "type": "boolean",
-            "title": "The Rendered Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": false,
-            "examples": [
-                false
-            ]
-        },
-        "methodRendered": {
-            "$id": "#/properties/methodRendered",
-            "type": "boolean",
-            "title": "The Methodrendered Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": false,
-            "examples": [
-                false
-            ]
-        },
-        "form": {
-            "$id": "#/properties/form",
-            "type": "object",
-            "title": "The Form Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": {},
-            "examples": [
+        {
+          "allOf": [
+            {
+              "required": [
+                "required",
+                "submitted",
+                "valid"
+              ]
+            },
+            {
+              "anyOf": [
                 {
-                    "name": []
+                  "required": [
+                    "value"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
                 }
-            ],
-            "required": [],
-            "properties": {
-                "name": {
-                    "$id": "#/properties/form/properties/name",
-                    "type": "array",
-                    "title": "The Name Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": []
-                }
+              ]
             }
+          ]
         }
+      ],
+      "properties": {
+        "errors": {
+          "$id": "#/properties/vars/properties/errors",
+          "type": "array",
+          "title": "The Errors Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": []
+        },
+        "action": {
+          "$id": "#/properties/vars/properties/action",
+          "type": "string",
+          "title": "The Action Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit"
+          ]
+        },
+        "api_request": {
+          "$id": "#/properties/vars/properties/api_request",
+          "type": "boolean",
+          "title": "The Api_request Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "attr": {
+          "$id": "#/properties/vars/properties/attr",
+          "type": [
+            "object",
+            "array"
+          ]
+        },
+        "block_prefixes": {
+          "$id": "#/properties/vars/properties/block_prefixes",
+          "type": "array",
+          "title": "The Block_prefixes Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": [],
+          "items": {
+            "$id": "#/properties/vars/properties/block_prefixes/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+              "form",
+              "test",
+              "_test"
+            ]
+          }
+        },
+        "disabled": {
+          "$id": "#/properties/vars/properties/disabled",
+          "type": "boolean",
+          "title": "The Disabled Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "full_name": {
+          "$id": "#/properties/vars/properties/full_name",
+          "type": "string",
+          "title": "The Full_name Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "test"
+          ]
+        },
+        "id": {
+          "$id": "#/properties/vars/properties/id",
+          "type": "string",
+          "title": "The Id Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "test"
+          ]
+        },
+        "label_attr": {
+          "$id": "#/properties/vars/properties/label_attr",
+          "type": "array",
+          "title": "The Label_attr Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": []
+        },
+        "name": {
+          "$id": "#/properties/vars/properties/name",
+          "type": "string",
+          "title": "The Name Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "test"
+          ]
+        },
+        "post_app_proxy": {
+          "$id": "#/properties/vars/properties/post_app_proxy",
+          "type": "string",
+          "title": "The Post_app_proxy Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/proxy"
+          ]
+        },
+        "realtime_validate": {
+          "$id": "#/properties/vars/properties/realtime_validate",
+          "type": "boolean",
+          "title": "The Realtime_validate Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "unique_block_prefix": {
+          "$id": "#/properties/vars/properties/unique_block_prefix",
+          "type": "string",
+          "title": "The Unique_block_prefix Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "_test"
+          ]
+        },
+        "required": {
+          "$id": "#/properties/vars/properties/required",
+          "type": "boolean",
+          "title": "The Required Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "submitted": {
+          "$id": "#/properties/vars/properties/submitted",
+          "type": "boolean",
+          "title": "The Submitted Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "valid": {
+          "$id": "#/properties/vars/properties/valid",
+          "type": "boolean",
+          "title": "The Valid Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "value": {
+          "$id": "#/properties/children/items/properties/vars/properties/value",
+          "type": [
+            "string",
+            "array",
+            "object"
+          ],
+          "title": "The Value Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": ""
+        }
+      }
+    },
+    "children": {
+      "$id": "#/properties/children",
+      "type": "array",
+      "title": "The Children Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "items": {
+        "$ref": "#"
+      }
+    },
+    "rendered": {
+      "$id": "#/properties/rendered",
+      "type": "boolean",
+      "title": "The Rendered Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": false,
+      "examples": [
+        false
+      ]
+    },
+    "methodRendered": {
+      "$id": "#/properties/methodRendered",
+      "type": "boolean",
+      "title": "The Methodrendered Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": false,
+      "examples": [
+        false
+      ]
+    },
+    "form": {
+      "$id": "#/properties/form",
+      "type": "object",
+      "title": "The Form Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "name": []
+        }
+      ],
+      "required": [],
+      "properties": {
+        "name": {
+          "$id": "#/properties/form/properties/name",
+          "type": "array",
+          "title": "The Name Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": []
+        }
+      }
     }
+  }
 }

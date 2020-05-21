@@ -84,9 +84,11 @@ class EmailAddressManager
 
     public function verifyEmailAddress(string $username, string $token): void
     {
-        $user = $this->userRepository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $this->userRepository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         if (!$user) {
             throw new InvalidArgumentException('User not found');
         }

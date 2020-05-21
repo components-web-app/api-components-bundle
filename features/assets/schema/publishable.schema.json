@@ -1,90 +1,94 @@
 {
-    "type": "object",
-    "title": "The Root Schema",
-    "description": "The root schema comprises the entire JSON document.",
-    "required": [
-        "@context",
-        "@id",
-        "@type",
-        "_metadata"
-    ],
-    "if": {
-        "properties": {
-            "published": { "const": true }
-        },
-        "required": ["publishedAt"]
-    },
+  "type": "object",
+  "title": "The Root Schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "_metadata"
+  ],
+  "if": {
     "properties": {
-        "@context": {
-            "$id": "#/@context",
-            "type": "string",
-            "title": "The @context Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/DraftComponent"
-            ]
-        },
-        "@id": {
-            "$id": "#/@id",
-            "type": "string",
-            "title": "The @id Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
-            ]
-        },
-        "@type": {
-            "$id": "#/@type",
-            "type": "string",
-            "title": "The @type Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "DraftComponent"
-            ]
-        },
-        "publishedAt": {
-            "$id": "#/publishedAt",
-            "type": "string",
-            "title": "The Modified Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:49+00:00"
-            ]
-        },
-        "_metadata": {
-            "$id": "#/_metadata",
-            "type": "object",
-            "title": "The _metadata Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                {
-                    "published": true
-                }
-            ],
-            "required": [
-                "published"
-            ],
-            "properties": {
-                "published": {
-                    "$id": "#/_metadata",
-                    "type": "boolean",
-                    "title": "The published Schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": "",
-                    "examples": [
-                        false,
-                        true
-                    ]
-                },
-                "violation_list": {
-                    "$ref": "validation_errors.schema.json"
-                }
-            }
+      "published": {
+        "const": true
+      }
+    },
+    "required": [
+      "publishedAt"
+    ]
+  },
+  "properties": {
+    "@context": {
+      "$id": "#/@context",
+      "type": "string",
+      "title": "The @context Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/DraftComponent"
+      ]
+    },
+    "@id": {
+      "$id": "#/@id",
+      "type": "string",
+      "title": "The @id Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
+      ]
+    },
+    "@type": {
+      "$id": "#/@type",
+      "type": "string",
+      "title": "The @type Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "DraftComponent"
+      ]
+    },
+    "publishedAt": {
+      "$id": "#/publishedAt",
+      "type": "string",
+      "title": "The Modified Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T09:38:49+00:00"
+      ]
+    },
+    "_metadata": {
+      "$id": "#/_metadata",
+      "type": "object",
+      "title": "The _metadata Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        {
+          "published": true
         }
+      ],
+      "required": [
+        "published"
+      ],
+      "properties": {
+        "published": {
+          "$id": "#/_metadata",
+          "type": "boolean",
+          "title": "The published Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            false,
+            true
+          ]
+        },
+        "violation_list": {
+          "$ref": "validation_errors.schema.json"
+        }
+      }
     }
+  }
 }

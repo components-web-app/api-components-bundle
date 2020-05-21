@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="Silverback\ApiComponentsBundle\Entity\Component\Collection" table="collection">
-    <field name="resourceIri" column="resource_class" nullable="true" />
-    <field name="perPage" type="integer" column="per_page" precision="0" scale="0" nullable="true"/>
-    <field name="defaultQueryParameters" type="json" column="default_query_parameters" nullable="true"/>
-  </entity>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="Silverback\ApiComponentsBundle\Entity\Component\Collection" table="collection">
+        <field name="resourceIri" column="resource_class" nullable="true"/>
+        <field name="perPage" type="integer" column="per_page" precision="0" scale="0" nullable="true"/>
+        <field name="defaultQueryParameters" type="json" column="default_query_parameters" nullable="true"/>
+    </entity>
 </doctrine-mapping>

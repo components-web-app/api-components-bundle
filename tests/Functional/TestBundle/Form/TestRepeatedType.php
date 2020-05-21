@@ -23,23 +23,29 @@ class TestRepeatedType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'attr' => [
-                'novalidate' => 'novalidate',
-            ],
-            'post_app_proxy' => '/proxy',
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'attr' => [
+                    'novalidate' => 'novalidate',
+                ],
+                'post_app_proxy' => '/proxy',
+            ]
+        );
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('repeat', RepeatedType::class, [
-                'type' => TextType::class,
-                'invalid_message' => 'The repeat fields must match.',
-                'options' => ['attr' => ['autocomplete' => 'new-password']],
-                'required' => true,
-            ]);
+            ->add(
+                'repeat',
+                RepeatedType::class,
+                [
+                    'type' => TextType::class,
+                    'invalid_message' => 'The repeat fields must match.',
+                    'options' => ['attr' => ['autocomplete' => 'new-password']],
+                    'required' => true,
+                ]
+            );
     }
 }

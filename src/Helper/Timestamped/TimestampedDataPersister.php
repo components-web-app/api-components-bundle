@@ -36,9 +36,13 @@ class TimestampedDataPersister
     {
         $configuration = $this->annotationReader->getConfiguration($timestamped);
         $classMetadata = $this->getClassMetadata($timestamped);
-        $classMetadata->setFieldValue($timestamped, $configuration->createdAtField, $isNew ?
+        $classMetadata->setFieldValue(
+            $timestamped,
+            $configuration->createdAtField,
+            $isNew ?
             new \DateTimeImmutable() :
-            $classMetadata->getFieldValue($timestamped, $configuration->createdAtField));
+            $classMetadata->getFieldValue($timestamped, $configuration->createdAtField)
+        );
         $classMetadata->setFieldValue($timestamped, $configuration->modifiedAtField, new \DateTime());
     }
 }

@@ -1,95 +1,98 @@
 {
-    "type": "object",
-    "title": "The Root Schema",
-    "description": "The root schema comprises the entire JSON document.",
-    "required": [
-        "@context",
-        "@id",
-        "@type",
-        "formType",
-        "formView",
-        "componentPositions",
-        "componentCollections"
-    ],
-    "properties": {
-        "@context": {
-            "$id": "#/properties/@context",
-            "type": "string",
-            "title": "The @context Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/Form"
-            ]
-        },
-        "@id": {
-            "$id": "#/properties/@id",
-            "type": "string",
-            "title": "The @id Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/component/forms/429f977154fd434ab3ec4a13b7dcffd5"
-            ]
-        },
-        "@type": {
-            "$id": "#/properties/@type",
-            "type": "string",
-            "title": "The @type Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "Form"
-            ]
-        },
-        "formType": {
-            "$id": "#/properties/formType",
-            "type": "string",
-            "title": "The Formtype Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
-            ]
-        },
-        "formView": {
-            "$id": "#/properties/formView",
-            "type": "object",
-            "$ref": "form_view_root.schema.json"
-        },
-        "componentPositions": {
-            "$id": "#/properties/componentPositions",
-            "type": "array",
-            "title": "The Componentlocations Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": []
-        },
-        "modifiedAt": {
-            "$id": "#/properties/modifiedAt",
-            "type": "string",
-            "title": "The modifiedAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T11:48:08+00:00"
-            ]
-        },
-        "componentCollections": {
-            "$id": "#/properties/componentCollections",
-            "type": "array",
-            "title": "The componentCollections Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": []
-        },
-        "createdAt": {
-            "$id": "#/properties/createdAt",
-            "type": ["string", "null"],
-            "title": "The createdAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T00:00:00+00:00"
-            ]
-        }
+  "type": "object",
+  "title": "The Root Schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "formType",
+    "formView",
+    "componentPositions",
+    "componentCollections"
+  ],
+  "properties": {
+    "@context": {
+      "$id": "#/properties/@context",
+      "type": "string",
+      "title": "The @context Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/Form"
+      ]
+    },
+    "@id": {
+      "$id": "#/properties/@id",
+      "type": "string",
+      "title": "The @id Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/component/forms/429f977154fd434ab3ec4a13b7dcffd5"
+      ]
+    },
+    "@type": {
+      "$id": "#/properties/@type",
+      "type": "string",
+      "title": "The @type Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "Form"
+      ]
+    },
+    "formType": {
+      "$id": "#/properties/formType",
+      "type": "string",
+      "title": "The Formtype Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Form\\TestType"
+      ]
+    },
+    "formView": {
+      "$id": "#/properties/formView",
+      "type": "object",
+      "$ref": "form_view_root.schema.json"
+    },
+    "componentPositions": {
+      "$id": "#/properties/componentPositions",
+      "type": "array",
+      "title": "The Componentlocations Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": []
+    },
+    "modifiedAt": {
+      "$id": "#/properties/modifiedAt",
+      "type": "string",
+      "title": "The modifiedAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T11:48:08+00:00"
+      ]
+    },
+    "componentCollections": {
+      "$id": "#/properties/componentCollections",
+      "type": "array",
+      "title": "The componentCollections Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": []
+    },
+    "createdAt": {
+      "$id": "#/properties/createdAt",
+      "type": [
+        "string",
+        "null"
+      ],
+      "title": "The createdAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T00:00:00+00:00"
+      ]
     }
+  }
 }

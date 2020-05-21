@@ -15,9 +15,9 @@ namespace Silverback\ApiComponentsBundle\Tests\DataTransformer;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\DataTransformer\PageTemplateOutputDataTransformer;
+use Silverback\ApiComponentsBundle\DataTransformer\PageOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
-use Silverback\ApiComponentsBundle\Entity\Core\PageTemplate;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 
 class PageTemplateOutputDataTransformerTest extends TestCase
@@ -27,25 +27,31 @@ class PageTemplateOutputDataTransformerTest extends TestCase
      */
     private $respositoryMock;
 
-    private PageTemplateOutputDataTransformer $transformer;
+    private PageOutputDataTransformer $transformer;
 
     protected function setUp(): void
     {
         $this->respositoryMock = $this->createMock(LayoutRepository::class);
-        $this->transformer = new PageTemplateOutputDataTransformer($this->respositoryMock);
+        $this->transformer = new PageOutputDataTransformer($this->respositoryMock);
     }
 
     public function test_supports_method(): void
     {
-        $supported = new PageTemplate();
+        $supported = new Page();
         $supported->layout = null;
         $this->assertTrue($this->transformer->supportsTransformation($supported, '', []));
 
-        $unsupported = new PageTemplate();
+        $unsupported = new Page();
         $unsupported->layout = new Layout();
         $this->assertFalse($this->transformer->supportsTransformation($unsupported, '', []));
-        $this->assertFalse($this->transformer->supportsTransformation(new class() {
-        }, '', []));
+        $this->assertFalse(
+            $this->transformer->supportsTransformation(
+                new class() {
+                },
+                '',
+                []
+            )
+        );
     }
 
     public function test_default_layout_added(): void
@@ -58,7 +64,7 @@ class PageTemplateOutputDataTransformerTest extends TestCase
             ->method('findDefault')
             ->willReturn($layout);
 
-        $supported = new PageTemplate();
+        $supported = new Page();
         $output = $this->transformer->transform($supported, '', []);
         $this->assertEquals($layout, $output->layout);
     }

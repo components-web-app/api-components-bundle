@@ -26,8 +26,8 @@ Feature: A Collection component resource
   @loginUser
   Scenario Outline: I cannot create a collection component with an invalid Resource IRI
     When I send a "POST" request to "/component/collections" with data:
-     | resourceIri    |
-     | <resourceIri>  |
+      | resourceIri   |
+      | <resourceIri> |
     Then the response status code should be 400
     And the JSON should be valid according to the schema file "validation_errors.schema.json"
     Examples:
@@ -75,12 +75,12 @@ Feature: A Collection component resource
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "<total>" elements
     Examples:
-      | total    | postfix              |
-      | 10       |                      |
-      | 20       | ?perPage=20          |
-      | 40       | ?perPage=90          |
-      | 50       | ?pagination=false    |
-      | 50       | ?perPage=0           |
+      | total | postfix           |
+      | 10    |                   |
+      | 20    | ?perPage=20       |
+      | 40    | ?perPage=90       |
+      | 50    | ?pagination=false |
+      | 50    | ?perPage=0        |
 
   @loginUser
   Scenario Outline: I can have default querystring parameters and filters
@@ -90,10 +90,10 @@ Feature: A Collection component resource
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "<total>" elements
     Examples:
-      | total    | postfix                      |
-      | 17       |                              |
-      | 17       | ?pagination=false            |
-      | 40       | ?reference=                  |
-      | 80       | ?pagination=false&reference= |
-      | 20       | ?perPage=20&reference=       |
-      | 1        | ?reference=10                |
+      | total | postfix                      |
+      | 17    |                              |
+      | 17    | ?pagination=false            |
+      | 40    | ?reference=                  |
+      | 80    | ?pagination=false&reference= |
+      | 20    | ?perPage=20&reference=       |
+      | 1     | ?reference=10                |

@@ -47,39 +47,53 @@ class ChangePasswordType extends AbstractType
         $user = $builder->getEmptyData();
 
         $builder
-            ->add('username', HiddenType::class, [
-                'attr' => ['autocomplete' => 'username'],
-                'data' => $user ? $user->getUsername() : null,
-                'disabled' => true,
-            ])
-            ->add('oldPassword', PasswordType::class, [
-                'label' => 'Current password',
-                'attr' => ['autocomplete' => 'current-password'],
-            ])
-            ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'invalid_message' => 'The passwords you entered are not the same.',
-                'first_options' => [
-                    'label' => 'Password',
-                    'attr' => ['autocomplete' => 'new-password'],
-                ],
-                'second_options' => [
-                    'label' => 'Repeat Password',
-                    'attr' => ['autocomplete' => 'new-password'],
-                ],
-            ]);
+            ->add(
+                'username',
+                HiddenType::class,
+                [
+                    'attr' => ['autocomplete' => 'username'],
+                    'data' => $user ? $user->getUsername() : null,
+                    'disabled' => true,
+                ]
+            )
+            ->add(
+                'oldPassword',
+                PasswordType::class,
+                [
+                    'label' => 'Current password',
+                    'attr' => ['autocomplete' => 'current-password'],
+                ]
+            )
+            ->add(
+                'plainPassword',
+                RepeatedType::class,
+                [
+                    'type' => PasswordType::class,
+                    'invalid_message' => 'The passwords you entered are not the same.',
+                    'first_options' => [
+                        'label' => 'Password',
+                        'attr' => ['autocomplete' => 'new-password'],
+                    ],
+                    'second_options' => [
+                        'label' => 'Repeat Password',
+                        'attr' => ['autocomplete' => 'new-password'],
+                    ],
+                ]
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'attr' => [
-                'novalidate' => 'novalidate',
-            ],
-            'data_class' => $this->userClass,
-            'validation_groups' => ['User:password:create', 'User:password:change'],
-            'empty_data' => $this->security->getUser(),
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'attr' => [
+                    'novalidate' => 'novalidate',
+                ],
+                'data_class' => $this->userClass,
+                'validation_groups' => ['User:password:create', 'User:password:change'],
+                'empty_data' => $this->security->getUser(),
+            ]
+        );
     }
 }

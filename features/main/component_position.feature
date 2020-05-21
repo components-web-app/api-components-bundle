@@ -16,8 +16,8 @@ Feature: Component positions
       | <componentCollection> | <component> |
     Then the response status code should be 201
     Examples:
-      | component                    | componentCollection             |
-      | component[dummy_component]   | component[component_collection] |
+      | component                  | componentCollection             |
+      | component[dummy_component] | component[component_collection] |
 
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection

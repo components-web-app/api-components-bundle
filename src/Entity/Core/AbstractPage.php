@@ -33,14 +33,14 @@ abstract class AbstractPage
 
     /**
      * This will be se so that when auto-generating a route for a newly created
-     * PageTemplate / PageData, we can prepend parent routes.
+     * Page / PageData, we can prepend parent routes.
      */
     public ?Route $parentRoute;
 
     /**
-     * If true, then the PageTemplate/PageData is nested within the parentRoute.
+     * If true, then the Page/PageData is nested within the parentRoute.
      * So not only will any auto-generated route have the parent route prefixes,
-     * the front end should expect to load the PageTemplate/PageData nested within
+     * the front end should expect to load the Page/PageData nested within
      * the parent page(s) up to the point where a parent is defined as not nested or
      * does not have a parent route
      * E.g. the parent route's page may just be a Hero and some Tab navigation.

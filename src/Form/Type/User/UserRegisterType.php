@@ -41,27 +41,39 @@ class UserRegisterType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username', TextType::class, [
-                'attr' => [
-                    'placeholder' => '',
-                    'autocomplete' => 'username',
-                ],
-                'label' => 'Username',
-            ])
-            ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'invalid_message' => 'The password fields must match.',
-                'options' => ['attr' => ['autocomplete' => 'new-password']],
-                'required' => true,
-                'first_options' => ['label' => 'Create Password'],
-                'second_options' => ['label' => 'Repeat Password'],
-            ])
-            ->add('submit', SubmitType::class, [
-                'attr' => [
-                    'class' => 'is-large is-primary is-fullwidth',
-                ],
-                'label' => 'Register',
-            ]);
+            ->add(
+                'username',
+                TextType::class,
+                [
+                    'attr' => [
+                        'placeholder' => '',
+                        'autocomplete' => 'username',
+                    ],
+                    'label' => 'Username',
+                ]
+            )
+            ->add(
+                'plainPassword',
+                RepeatedType::class,
+                [
+                    'type' => PasswordType::class,
+                    'invalid_message' => 'The password fields must match.',
+                    'options' => ['attr' => ['autocomplete' => 'new-password']],
+                    'required' => true,
+                    'first_options' => ['label' => 'Create Password'],
+                    'second_options' => ['label' => 'Repeat Password'],
+                ]
+            )
+            ->add(
+                'submit',
+                SubmitType::class,
+                [
+                    'attr' => [
+                        'class' => 'is-large is-primary is-fullwidth',
+                    ],
+                    'label' => 'Register',
+                ]
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -71,14 +83,16 @@ class UserRegisterType extends AbstractType
          */
         $user = new $this->userClass();
 
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'attr' => [
-                'novalidate' => 'novalidate',
-            ],
-            'data_class' => $this->userClass,
-            'empty_data' => $user,
-            'validation_groups' => ['Default', 'User:password:create'],
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'attr' => [
+                    'novalidate' => 'novalidate',
+                ],
+                'data_class' => $this->userClass,
+                'empty_data' => $user,
+                'validation_groups' => ['Default', 'User:password:create'],
+            ]
+        );
     }
 }

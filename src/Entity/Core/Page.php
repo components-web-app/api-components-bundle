@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource
  */
-class PageTemplate extends AbstractPage
+class Page extends AbstractPage
 {
     use UiTrait;
 

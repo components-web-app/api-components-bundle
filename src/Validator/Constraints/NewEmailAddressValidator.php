@@ -26,6 +26,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class NewEmailAddressValidator extends ConstraintValidator
 {
     use ClassMetadataTrait;
+
     private UserRepository $userRepository;
 
     public function __construct(UserRepository $userRepository)

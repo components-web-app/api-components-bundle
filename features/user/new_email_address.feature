@@ -8,7 +8,7 @@ Feature: Register process via a form
     And I add "Content-Type" header equal to "application/ld+json"
 
   @loginUser
-  @restartBrowser
+    @restartBrowser
   Scenario Outline: Submit a successful change email request
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
@@ -27,13 +27,13 @@ Feature: Register process via a form
     And the JSON node "newEmailConfirmationToken" should not exist
     And I should get a "<expectedEmail>" email sent
     Examples:
-      | headerName | headerValue             | postfix                                                                          | expectedEmail                    |
-      | origin     | http://www.website.com  | /submit                                                                          | change_email_confirmation        |
-      | referer    | http://www.website.com  | /submit                                                                          | change_email_confirmation        |
-      | referer    | http://www.website.com  | /submit?email_redirect=/another-path/{{ username }}/{{ new_email }}/{{ token }}  | custom_change_email_confirmation |
+      | headerName | headerValue            | postfix                                                                         | expectedEmail                    |
+      | origin     | http://www.website.com | /submit                                                                         | change_email_confirmation        |
+      | referer    | http://www.website.com | /submit                                                                         | change_email_confirmation        |
+      | referer    | http://www.website.com | /submit?email_redirect=/another-path/{{ username }}/{{ new_email }}/{{ token }} | custom_change_email_confirmation |
 
   @loginUser
-  @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks
+    @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks
   Scenario Outline: Test invalid referer and missing referer and origin headers
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
@@ -49,14 +49,14 @@ Feature: Register process via a form
     And the JSON node "hydra:description" should be equal to "<expectedMessage>"
     And I should not receive any emails
     Examples:
-      | headerName | headerValue           | expectedMessage                                                                                            |
-      | referer    | invalid               | Could not extract `host` while parsing the `referer` header                                                |
-      | referer    | no-scheme.com:90/path | Could not extract `scheme` while parsing the `referer` header                                              |
-      | referer    |                       | Could not extract `host` while parsing the `referer` header                                                |
-      | origin     | invalid               | Could not extract `host` while parsing the `origin` header                                                 |
-      | origin     | no-scheme.com:90/path | Could not extract `scheme` while parsing the `origin` header                                               |
-      | origin     |                       | Could not extract `host` while parsing the `origin` header                                                 |
-      |            |                       | To generate an absolute URL to the referrer, the request must have a `origin` or `referer` header present  |
+      | headerName | headerValue           | expectedMessage                                                                                           |
+      | referer    | invalid               | Could not extract `host` while parsing the `referer` header                                               |
+      | referer    | no-scheme.com:90/path | Could not extract `scheme` while parsing the `referer` header                                             |
+      | referer    |                       | Could not extract `host` while parsing the `referer` header                                               |
+      | origin     | invalid               | Could not extract `host` while parsing the `origin` header                                                |
+      | origin     | no-scheme.com:90/path | Could not extract `scheme` while parsing the `origin` header                                              |
+      | origin     |                       | Could not extract `host` while parsing the `origin` header                                                |
+      |            |                       | To generate an absolute URL to the referrer, the request must have a `origin` or `referer` header present |
 
   @loginUser
   Scenario: I get an invalid response if I try to change my email address to the same as it already is

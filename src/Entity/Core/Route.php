@@ -29,11 +29,20 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     collectionOperations={
  *         "get"={"security"="is_granted('ROLE_SUPER_ADMIN')"},
  *         "post"
+ *     },
+ *     itemOperations={
+ *         "get"={
+ *             "requirements"={"id"="(.+)"}
+ *         }
  *     }
  * )
  * @Assert\Expression(
- *     "!(this.pageTemplate == null & this.pageData == null) & !(this.pageTemplate != null & this.pageData != null)",
- *     message="Please specify either pageTemplate or pageData, not both."
+ *     "!(this.getPage() == null & this.getPageData() == null)",
+ *     message="Please specify either page or pageData."
+ * )
+ * @Assert\Expression(
+ *     "!(this.getPage() != null & this.getPageData() != null)",
+ *     message="Please specify either page or pageData, not both."
  * )
  */
 class Route
@@ -44,23 +53,101 @@ class Route
     /**
      * @Assert\NotNull()
      */
-    public string $route;
+    private string $route;
 
     /**
      * @Assert\NotNull()
      */
-    public string $name;
+    private string $name;
 
-    public ?Route $redirect = null;
+    private ?Route $redirect = null;
 
-    public Collection $redirectedFrom;
+    private Collection $redirectedFrom;
 
-    public ?PageTemplate $pageTemplate = null;
+    private ?Page $page = null;
 
-    public ?AbstractPageData $pageData = null;
+    private ?AbstractPageData $pageData = null;
 
     public function __construct()
     {
         $this->redirectedFrom = new ArrayCollection();
+    }
+
+    public function getRoute(): string
+    {
+        return $this->route;
+    }
+
+    public function setRoute(string $route): self
+    {
+        $this->route = $route;
+
+        return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getRedirect(): ?self
+    {
+        return $this->redirect;
+    }
+
+    public function setRedirect(?self $redirect): self
+    {
+        $this->redirect = $redirect;
+
+        return $this;
+    }
+
+    public function getRedirectedFrom()
+    {
+        return $this->redirectedFrom;
+    }
+
+    public function setRedirectedFrom($redirectedFrom): self
+    {
+        $this->redirectedFrom = $redirectedFrom;
+
+        return $this;
+    }
+
+    public function getPage(): ?Page
+    {
+        return $this->page;
+    }
+
+    public function setPage(?Page $page): self
+    {
+        $this->page = $page;
+        if ($this->page) {
+            $this->page->route = $this;
+        }
+
+        return $this;
+    }
+
+    public function getPageData(): ?AbstractPageData
+    {
+        return $this->pageData;
+    }
+
+    public function setPageData(?AbstractPageData $pageData): self
+    {
+        $this->pageData = $pageData;
+        if ($this->pageData) {
+            $this->pageData->route = $this;
+        }
+
+        return $this;
     }
 }

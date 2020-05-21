@@ -1,64 +1,64 @@
 {
-    "type": "object",
-    "title": "The Root Schema",
-    "description": "The root schema comprises the entire JSON document.",
-    "required": [
-        "@context",
-        "@id",
-        "@type",
-        "modifiedAt",
-        "createdAt"
-    ],
-    "properties": {
-        "@context": {
-            "$id": "#/properties/@context",
-            "type": "string",
-            "title": "The @context Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/DummyTimestamped"
-            ]
-        },
-        "@id": {
-            "$id": "#/properties/@id",
-            "type": "string",
-            "title": "The @id Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/dummy_timestampeds/125345"
-            ]
-        },
-        "@type": {
-            "$id": "#/properties/@type",
-            "type": "string",
-            "title": "The @type Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "DummyTimestamped"
-            ]
-        },
-        "modifiedAt": {
-            "$id": "#/properties/modifiedAt",
-            "type": "string",
-            "title": "The modifiedAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:49+00:00"
-            ]
-        },
-        "createdAt": {
-            "$id": "#/properties/createdAt",
-            "type": "string",
-            "title": "The createdAt Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "2020-04-07T09:38:48+00:00"
-            ]
-        }
+  "type": "object",
+  "title": "The Root Schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "modifiedAt",
+    "createdAt"
+  ],
+  "properties": {
+    "@context": {
+      "$id": "#/properties/@context",
+      "type": "string",
+      "title": "The @context Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/DummyTimestamped"
+      ]
+    },
+    "@id": {
+      "$id": "#/properties/@id",
+      "type": "string",
+      "title": "The @id Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/dummy_timestampeds/125345"
+      ]
+    },
+    "@type": {
+      "$id": "#/properties/@type",
+      "type": "string",
+      "title": "The @type Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "DummyTimestamped"
+      ]
+    },
+    "modifiedAt": {
+      "$id": "#/properties/modifiedAt",
+      "type": "string",
+      "title": "The modifiedAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T09:38:49+00:00"
+      ]
+    },
+    "createdAt": {
+      "$id": "#/properties/createdAt",
+      "type": "string",
+      "title": "The createdAt Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-04-07T09:38:48+00:00"
+      ]
     }
+  }
 }

@@ -45,9 +45,12 @@ final class PasswordResetEmailFactory extends AbstractUserEmailFactory
 
     protected static function getContextKeys(): ?array
     {
-        return array_merge(parent::getContextKeys(), [
-            'redirect_url',
-        ]);
+        return array_merge(
+            parent::getContextKeys(),
+            [
+                'redirect_url',
+            ]
+        );
     }
 
     protected function getTemplate(): string

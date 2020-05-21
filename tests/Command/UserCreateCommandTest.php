@@ -55,9 +55,11 @@ class UserCreateCommandTest extends AbstractRepositoryTest
         $repo = $this->entityManager->getRepository(AbstractUser::class);
         /** @var AbstractUser|null $user */
         $user = $repo
-            ->findOneBy([
-                'username' => 'daniel',
-            ]);
+            ->findOneBy(
+                [
+                    'username' => 'daniel',
+                ]
+            );
         $this->assertNotNull($user);
 
         $this->assertEquals('daniel@silverback.is', $user->getEmailAddress());
@@ -75,14 +77,16 @@ class UserCreateCommandTest extends AbstractRepositoryTest
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $commandTester->execute([
-            'username' => 'daniel',
-            'email' => 'daniel@silverback.is',
-            'password' => 'password',
-            '--inactive' => null,
-            '--super-admin' => null,
-            '--overwrite' => null,
-        ]);
+        $commandTester->execute(
+            [
+                'username' => 'daniel',
+                'email' => 'daniel@silverback.is',
+                'password' => 'password',
+                '--inactive' => null,
+                '--super-admin' => null,
+                '--overwrite' => null,
+            ]
+        );
 
         $output = $commandTester->getDisplay();
         $this->assertStringContainsString('Created user: daniel', $output);
@@ -90,9 +94,11 @@ class UserCreateCommandTest extends AbstractRepositoryTest
         $repo = $this->entityManager->getRepository(AbstractUser::class);
         /** @var AbstractUser|null $user */
         $user = $repo
-            ->findOneBy([
-                'username' => 'daniel',
-            ]);
+            ->findOneBy(
+                [
+                    'username' => 'daniel',
+                ]
+            );
         $this->assertNotNull($user);
 
         $this->assertEquals($existingUser->getId(), $user->getId());
@@ -114,9 +120,11 @@ class UserCreateCommandTest extends AbstractRepositoryTest
         $commandTester = new CommandTester($this->command);
 
         $this->expectMissingInputException();
-        $commandTester->execute([
-            'username' => 'daniel',
-        ]);
+        $commandTester->execute(
+            [
+                'username' => 'daniel',
+            ]
+        );
     }
 
     public function test_required_password(): void
@@ -124,10 +132,12 @@ class UserCreateCommandTest extends AbstractRepositoryTest
         $commandTester = new CommandTester($this->command);
 
         $this->expectMissingInputException();
-        $commandTester->execute([
-            'username' => 'daniel',
-            'email' => 'daniel@silverback.is',
-        ]);
+        $commandTester->execute(
+            [
+                'username' => 'daniel',
+                'email' => 'daniel@silverback.is',
+            ]
+        );
     }
 
     private function expectMissingInputException()

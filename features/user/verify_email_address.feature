@@ -54,6 +54,6 @@ Feature: Email address verification
     Then the response status code should be 404
     And the user "my_username" should have an unverified email address
     Examples:
-      | username    | token      |
-      | my_username | wrong      |
-      | wrong       | abc123     |
+      | username    | token  |
+      | my_username | wrong  |
+      | wrong       | abc123 |

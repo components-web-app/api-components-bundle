@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Route:jsonld",
+  "definitions": {
+    "Route:jsonld": {
+      "type": "object",
+      "description": "",
+      "required": [
+        "route",
+        "name",
+        "page"
+      ],
+      "properties": {
+        "@context": {
+          "readOnly": true,
+          "type": "string",
+          "const": "/contexts/Route"
+        },
+        "@id": {
+          "readOnly": true,
+          "type": "string",
+          "examples": [
+            "/_/routes/30da53e4-9b4e-11ea-a164-acde48001122"
+          ]
+        },
+        "@type": {
+          "readOnly": true,
+          "type": "string",
+          "const": "Route"
+        },
+        "route": {
+          "type": "string",
+          "examples": [
+            "/contact"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "examples": [
+            "contact-page"
+          ]
+        },
+        "redirectRoute": {
+          "type": "string",
+          "nullable": true,
+          "examples": [null, "/contact-new"]
+        },
+        "page": {
+          "type": "string",
+          "format": "iri-reference",
+          "nullable": true,
+          "examples": [
+            "/_/pages/30b4ec9e-9b4e-11ea-84a9-acde48001122"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "examples": [
+            "2020-05-21T10:31:11+00:00"
+          ]
+        },
+        "modifiedAt": {
+          "type": "string",
+          "format": "date-time",
+          "examples": [
+            "2020-05-21T10:31:11+00:00"
+          ]
+        }
+      }
+    }
+  }
+}

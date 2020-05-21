@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <mapped-superclass repository-class="Silverback\ApiComponentsBundle\Repository\User\UserRepository" name="Silverback\ApiComponentsBundle\Entity\User\AbstractUser" table="abstract_user">
-    <indexes>
-      <index name="username_idx" columns="username"/>
-      <index name="email_address_idx" columns="email_address"/>
-    </indexes>
-    <field name="username" length="255" column="username"/>
-    <field name="emailAddress" length="255" column="email_address"/>
-    <field name="roles" column="roles" type="array"/>
-    <field name="enabled" column="enabled" type="boolean"/>
-    <field name="password" column="password" length="255"/>
-    <field name="newPasswordConfirmationToken" column="new_password_confirmation_token" nullable="true"/>
-    <field name="passwordRequestedAt" column="password_requested_at" type="datetime" nullable="true"/>
-    <field name="passwordUpdatedAt" column="password_updated_at" type="datetime" nullable="true"/>
-    <field name="newEmailAddress" column="new_email_address" length="255" nullable="true"/>
-    <field name="newEmailConfirmationToken" column="new_email_verification_token" nullable="true"/>
-    <field name="newEmailAddressChangeRequestedAt" column="new_email_address_change_requested_at" type="datetime" nullable="true"/>
-    <field name="emailAddressVerified" column="email_address_verified" type="boolean"/>
-    <field name="emailAddressVerifyToken" column="restore_access_token" length="255" nullable="true"/>
-    <field name="emailLastUpdatedAt" column="email_last_updated_at" type="datetime" nullable="true"/>
-  </mapped-superclass>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <mapped-superclass repository-class="Silverback\ApiComponentsBundle\Repository\User\UserRepository" name="Silverback\ApiComponentsBundle\Entity\User\AbstractUser" table="abstract_user">
+        <indexes>
+            <index name="username_idx" columns="username"/>
+            <index name="email_address_idx" columns="email_address"/>
+        </indexes>
+        <field name="username" length="255" column="username"/>
+        <field name="emailAddress" length="255" column="email_address"/>
+        <field name="roles" column="roles" type="array"/>
+        <field name="enabled" column="enabled" type="boolean"/>
+        <field name="password" column="password" length="255"/>
+        <field name="newPasswordConfirmationToken" column="new_password_confirmation_token" nullable="true"/>
+        <field name="passwordRequestedAt" column="password_requested_at" type="datetime" nullable="true"/>
+        <field name="passwordUpdatedAt" column="password_updated_at" type="datetime" nullable="true"/>
+        <field name="newEmailAddress" column="new_email_address" length="255" nullable="true"/>
+        <field name="newEmailConfirmationToken" column="new_email_verification_token" nullable="true"/>
+        <field name="newEmailAddressChangeRequestedAt" column="new_email_address_change_requested_at" type="datetime" nullable="true"/>
+        <field name="emailAddressVerified" column="email_address_verified" type="boolean"/>
+        <field name="emailAddressVerifyToken" column="restore_access_token" length="255" nullable="true"/>
+        <field name="emailLastUpdatedAt" column="email_last_updated_at" type="datetime" nullable="true"/>
+    </mapped-superclass>
 </doctrine-mapping>

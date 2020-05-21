@@ -40,19 +40,23 @@ class TimestampedListener
         $configuration = $this->annotationReader->getConfiguration($metadata->getName());
 
         if (!$metadata->hasField($configuration->createdAtField)) {
-            $metadata->mapField([
-                'fieldName' => $configuration->createdAtField,
-                'type' => 'datetime_immutable',
-                'nullable' => false,
-            ]);
+            $metadata->mapField(
+                [
+                    'fieldName' => $configuration->createdAtField,
+                    'type' => 'datetime_immutable',
+                    'nullable' => false,
+                ]
+            );
         }
 
         if (!$metadata->hasField($configuration->modifiedAtField)) {
-            $metadata->mapField([
-                'fieldName' => $configuration->modifiedAtField,
-                'type' => 'datetime',
-                'nullable' => false,
-            ]);
+            $metadata->mapField(
+                [
+                    'fieldName' => $configuration->modifiedAtField,
+                    'type' => 'datetime',
+                    'nullable' => false,
+                ]
+            );
         }
     }
 }

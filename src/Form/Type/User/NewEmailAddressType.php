@@ -49,24 +49,30 @@ class NewEmailAddressType extends AbstractType
             $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());
         }
         $builder
-            ->add('newEmailAddress', EmailType::class, [
-                'label' => 'Login Email',
-                'attr' => ['autocomplete' => 'username email'],
-                'data' => $data ? $data->getEmailAddress() : '',
-                'help' => $help,
-            ]);
+            ->add(
+                'newEmailAddress',
+                EmailType::class,
+                [
+                    'label' => 'Login Email',
+                    'attr' => ['autocomplete' => 'username email'],
+                    'data' => $data ? $data->getEmailAddress() : '',
+                    'help' => $help,
+                ]
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'attr' => [
-                'novalidate' => 'novalidate',
-            ],
-            'data_class' => $this->userClass,
-            'validation_groups' => ['User:emailAddress'],
-            'empty_data' => $this->security->getUser(),
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'attr' => [
+                    'novalidate' => 'novalidate',
+                ],
+                'data_class' => $this->userClass,
+                'validation_groups' => ['User:emailAddress'],
+                'empty_data' => $this->security->getUser(),
+            ]
+        );
     }
 }

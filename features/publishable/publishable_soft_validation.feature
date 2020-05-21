@@ -60,8 +60,8 @@ Feature: Soft validation on draft resources
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
     Examples:
-      | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                          |
-      | null        | valid_draft     | 200        | 0              | validate_published=false | publishable_invalid.schema.json |
+      | publishedAt | data        | httpStatus | validToPublish | postfix                  | schema                          |
+      | null        | valid_draft | 200        | 0              | validate_published=false | publishable_invalid.schema.json |
 
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is valid to make it published when ready
@@ -88,14 +88,14 @@ Feature: Soft validation on draft resources
     And the JSON should be valid according to the schema file "<schema>"
     And the JSON node "_metadata.violation_list.violations[0]" should not exist
     Examples:
-      | publishedAt | data            | httpStatus | validToPublish | postfix                  | schema                        |
-      | null        | invalid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
-      | null        | invalid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
-      | null        | valid_draft     | 400        | 0              | validate_published=true  | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
-      | now         | invalid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | 0              | validate_published=true  | validation_errors.schema.json |
-      | now         | valid_draft     | 400        | 0              | validate_published=false | validation_errors.schema.json |
+      | publishedAt | data          | httpStatus | validToPublish | postfix                  | schema                        |
+      | null        | invalid_draft | 400        | 0              | validate_published=false | validation_errors.schema.json |
+      | null        | invalid_draft | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | null        | valid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | now         | invalid_draft | 400        | 0              | validate_published=false | validation_errors.schema.json |
+      | now         | invalid_draft | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | now         | valid_draft   | 400        | 0              | validate_published=true  | validation_errors.schema.json |
+      | now         | valid_draft   | 400        | 0              | validate_published=false | validation_errors.schema.json |
 
   @loginAdmin
   Scenario Outline: Updating a resource to published. The querystring should make no difference and the response is published so no header should exist

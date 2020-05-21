@@ -146,7 +146,7 @@ class MediaObjectFactory
                 $mediaObject->width = (int) $xmlattributes->width;
                 $mediaObject->height = (int) $xmlattributes->height;
             } else {
-                [ $mediaObject->width, $mediaObject->height ] = @getimagesize($file);
+                [$mediaObject->width, $mediaObject->height] = @getimagesize($file);
             }
         }
 

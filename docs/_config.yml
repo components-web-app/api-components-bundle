@@ -8,22 +8,22 @@ exclude: ["*.gemspec", "*.gem", "Gemfile", "Gemfile.lock", "Api Components Bundl
 remote_theme: pmarsceill/just-the-docs
 
 aux_links:
-  "View on GitHub":
-    - "https://github.com/components-web-app/api-components-bundle"
+    "View on GitHub":
+        - "https://github.com/components-web-app/api-components-bundle"
 
 footer_content: "Copyright &copy; 2018-2020 Silverback IS. Distributed by an <a href=\"https://github.com/components-web-app/api-components-bundle/blob/master/LICENSE.txt\">MIT license.</a>"
 # ga_tracking: UA-5555555-55
 
 plugins:
-  - jekyll-seo-tag
-  - jemoji
+    - jekyll-seo-tag
+    - jemoji
 
 compress_html:
-  clippings: all
-  comments: all
-  endings: all
-  startings: []
-  blanklines: false
-  profile: false
+    clippings: all
+    comments: all
+    endings: all
+    startings: []
+    blanklines: false
+    profile: false
 
 url: https://docs.acb.silverback.is

@@ -46,9 +46,9 @@ class ComponentCollection
     public $layouts;
 
     /**
-     * @var Collection|PageTemplate[]
+     * @var Collection|Page[]
      */
-    public Collection $pageTemplates;
+    public Collection $pages;
 
     /**
      * @ApiProperty(writable=false)
