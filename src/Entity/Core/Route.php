@@ -53,7 +53,7 @@ class Route
     /**
      * @Assert\NotNull()
      */
-    private string $route;
+    private string $path;
 
     /**
      * @Assert\NotNull()
@@ -73,14 +73,14 @@ class Route
         $this->redirectedFrom = new ArrayCollection();
     }
 
-    public function getRoute(): string
+    public function getPath(): string
     {
-        return $this->route;
+        return $this->path;
     }
 
-    public function setRoute(string $route): self
+    public function setPath(string $path): self
     {
-        $this->route = $route;
+        $this->path = $path;
 
         return $this;
     }

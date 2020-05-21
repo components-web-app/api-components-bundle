@@ -40,11 +40,11 @@ class RouteRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($route);
         $this->entityManager->flush();
 
-        $this->assertNull($this->repository->findOneByIdOrRoute('/does_not_exist'));
-        $routeByRoute = $this->repository->findOneByIdOrRoute('/path');
+        $this->assertNull($this->repository->findOneByIdOrPath('/does_not_exist'));
+        $routeByRoute = $this->repository->findOneByIdOrPath('/path');
         $this->assertInstanceOf(Route::class, $routeByRoute);
 
-        $routeById = $this->repository->findOneByIdOrRoute((string) $routeByRoute->getId());
+        $routeById = $this->repository->findOneByIdOrPath((string) $routeByRoute->getId());
         $this->assertInstanceOf(Route::class, $routeById);
     }
 }

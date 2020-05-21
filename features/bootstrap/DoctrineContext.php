@@ -362,14 +362,14 @@ final class DoctrineContext implements Context
     {
         $finalRoute = new Route();
         $finalRoute
-            ->setRoute($redirectTo)
+            ->setPath($redirectTo)
             ->setName($redirectTo);
         $this->timestampedHelper->persistTimestampedFields($finalRoute, true);
         $this->manager->persist($finalRoute);
 
         $middleRoute = new Route();
         $middleRoute
-            ->setRoute(bin2hex(random_bytes(10)))
+            ->setPath(bin2hex(random_bytes(10)))
             ->setName(bin2hex(random_bytes(10)))
             ->setRedirect($finalRoute);
         $this->timestampedHelper->persistTimestampedFields($middleRoute, true);
@@ -377,7 +377,7 @@ final class DoctrineContext implements Context
 
         $route = new Route();
         $route
-            ->setRoute($firstRoute)
+            ->setPath($firstRoute)
             ->setName($firstRoute)
             ->setRedirect($middleRoute);
         $this->timestampedHelper->persistTimestampedFields($route, true);

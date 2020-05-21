@@ -11,7 +11,7 @@ Feature: Route resources
   Scenario: I can create a route
     Given there is a Page
     When I send a "POST" request to "/_/routes" with data:
-      | route    | name         | page            |
+      | path     | name         | page            |
       | /contact | contact-page | component[page] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
@@ -23,8 +23,9 @@ Feature: Route resources
     Then the response status code should be 204
 
   Scenario: A route will output the nested redirect routes and data for the redirected page
-    Given there is a Route "/contact" with redirects to "contact-new"
+    Given there is a Route "/contact" with redirects to "/contact-new"
     When I send a "GET" request to "/_/routes//contact"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the JSON node redirectRoute should be equal to the string "/contact-new"
+    And the JSON node redirectPath should be equal to the string "/contact-new"
+    And the JSON node page should be equal to the string "component[page]"

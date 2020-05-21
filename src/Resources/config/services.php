@@ -101,6 +101,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormali
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
@@ -633,6 +634,11 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.item_data_provider', ['priority' => 1]);
+
+    $services
+        ->set(RouteNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(RouteRepository::class)

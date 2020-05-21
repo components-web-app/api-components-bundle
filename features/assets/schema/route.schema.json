@@ -6,7 +6,7 @@
       "type": "object",
       "description": "",
       "required": [
-        "route",
+        "path",
         "name",
         "page"
       ],
@@ -28,7 +28,7 @@
           "type": "string",
           "const": "Route"
         },
-        "route": {
+        "path": {
           "type": "string",
           "examples": [
             "/contact"

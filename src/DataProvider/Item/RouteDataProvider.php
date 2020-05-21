@@ -37,6 +37,6 @@ class RouteDataProvider implements ItemDataProviderInterface, RestrictedDataProv
 
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
     {
-        return $this->routeRepository->findOneByIdOrRoute($id);
+        return $this->routeRepository->findOneByIdOrPath($id);
     }
 }
