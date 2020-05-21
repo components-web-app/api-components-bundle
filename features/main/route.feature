@@ -10,9 +10,10 @@ Feature: Route resources
   @loginUser
   Scenario: I can create a route
     Given there is a Page
+    And there is a Route "/other" with a page
     When I send a "POST" request to "/_/routes" with data:
-      | path     | name         | page            |
-      | /contact | contact-page | component[page] |
+      | path     | name         | page            | redirect         |
+      | /contact | contact-page | component[page] | component[route] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
 
@@ -28,4 +29,4 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "route.schema.json"
     And the JSON node redirectPath should be equal to the string "/contact-new"
-    And the JSON node page should be equal to the string "component[page]"
+    And the JSON node page should be equal to the string "component[route_page]"

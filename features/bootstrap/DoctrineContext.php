@@ -356,9 +356,31 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a Route :route with redirects to :redirectTo
+     * @Given there is a Route :path with a page
      */
-    public function thereIsARouteWithRedirects(string $firstRoute, string $redirectTo): void
+    public function thereIsARouteWithAPage(string $path): void
+    {
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $page = new Page();
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $route->setPage($page);
+        $this->manager->flush();
+
+        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given there is a Route :path with redirects to :redirectTo
+     */
+    public function thereIsARouteWithRedirects(string $firstPath, string $redirectTo): void
     {
         $finalRoute = new Route();
         $finalRoute
@@ -377,20 +399,21 @@ final class DoctrineContext implements Context
 
         $route = new Route();
         $route
-            ->setPath($firstRoute)
-            ->setName($firstRoute)
+            ->setPath($firstPath)
+            ->setName($firstPath)
             ->setRedirect($middleRoute);
         $this->timestampedHelper->persistTimestampedFields($route, true);
         $this->manager->persist($route);
 
         $page = new Page();
-        $finalRoute->setPage($page);
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
+
+        $finalRoute->setPage($page);
         $this->manager->flush();
 
         $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
-        $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
     }
 
     /**

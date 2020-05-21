@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer;
 
 use ApiPlatform\Core\Bridge\RamseyUuid\Identifier\Normalizer\UuidNormalizer as BaseUuidNormalizer;
-use ApiPlatform\Core\Exception\InvalidIdentifierException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Because we have a couple of entities which can be fetched with either the UUID or another
- * field, this normalizer allows the UUID denormalization to fail silently.
+ * field, we should pass strings through.
  *
  * @author Daniel West <daniel@silverback.is>
  */
@@ -37,11 +36,11 @@ class UuidNormalizer implements DenormalizerInterface
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
-        try {
-            return $this->decorated->denormalize($data, $class, $format, $context);
-        } catch (InvalidIdentifierException $e) {
+        if (\is_string($data)) {
             return $data;
         }
+
+        return $this->decorated->denormalize($data, $class, $format, $context);
     }
 
     /**

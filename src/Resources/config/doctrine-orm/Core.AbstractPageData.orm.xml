@@ -6,7 +6,7 @@
         <discriminator-map>
             <discriminator-mapping value="abstractpagedata" class="Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData"/>
         </discriminator-map>
-        <field name="isNested" type="boolean" column="is_nested" precision="0" scale="0" nullable="false"/>
+        <field name="nested" type="boolean" column="nested" precision="0" scale="0" nullable="false"/>
         <field name="title" type="string" column="title" precision="0" scale="0" nullable="false"/>
         <field name="metaDescription" type="string" column="meta_description" precision="0" scale="0" nullable="true"/>
         <one-to-one field="parentRoute" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" fetch="LAZY">

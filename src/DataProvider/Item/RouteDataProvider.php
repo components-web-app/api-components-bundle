@@ -23,20 +23,29 @@ use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
  */
 class RouteDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {
-    private RouteRepository $routeRepository;
+    private const ALREADY_CALLED = 'ROUTE_DATA_PROVIDER_ALREADY_CALLED';
 
-    public function __construct(RouteRepository $routeRepository)
+    private RouteRepository $routeRepository;
+    private ItemDataProviderInterface $defaultProvider;
+
+    public function __construct(RouteRepository $routeRepository, ItemDataProviderInterface $defaultProvider)
     {
         $this->routeRepository = $routeRepository;
+        $this->defaultProvider = $defaultProvider;
     }
 
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
-        return Route::class === $resourceClass;
+        return Route::class === $resourceClass && !isset($context[self::ALREADY_CALLED]);
     }
 
     public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
     {
+        $context[self::ALREADY_CALLED] = true;
+        if (!\is_string($id)) {
+            return $this->defaultProvider->getItem($resourceClass, $id, $operationName, $context);
+        }
+
         return $this->routeRepository->findOneByIdOrPath($id);
     }
 }

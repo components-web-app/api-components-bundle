@@ -40,7 +40,7 @@
             "contact-page"
           ]
         },
-        "redirectRoute": {
+        "redirectPath": {
           "type": "string",
           "nullable": true,
           "examples": [null, "/contact-new"]

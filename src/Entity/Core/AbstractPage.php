@@ -29,13 +29,13 @@ abstract class AbstractPage
     use IdTrait;
     use TimestampedTrait;
 
-    public ?Route $route;
+    protected ?Route $route;
 
     /**
      * This will be se so that when auto-generating a route for a newly created
      * Page / PageData, we can prepend parent routes.
      */
-    public ?Route $parentRoute;
+    protected ?Route $parentRoute;
 
     /**
      * If true, then the Page/PageData is nested within the parentRoute.
@@ -45,9 +45,69 @@ abstract class AbstractPage
      * does not have a parent route
      * E.g. the parent route's page may just be a Hero and some Tab navigation.
      */
-    public bool $isNested = true;
+    protected bool $nested = true;
 
-    public string $title = 'Unnamed Page';
+    protected string $title = 'Unnamed Page';
 
-    public ?string $metaDescription;
+    protected ?string $metaDescription;
+
+    public function getRoute(): ?Route
+    {
+        return $this->route;
+    }
+
+    public function setRoute(?Route $route): self
+    {
+        $this->route = $route;
+
+        return $this;
+    }
+
+    public function getParentRoute(): ?Route
+    {
+        return $this->parentRoute;
+    }
+
+    public function setParentRoute(?Route $parentRoute): self
+    {
+        $this->parentRoute = $parentRoute;
+
+        return $this;
+    }
+
+    public function isNested(): bool
+    {
+        return $this->nested;
+    }
+
+    public function setNested(bool $nested): self
+    {
+        $this->nested = $nested;
+
+        return $this;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getMetaDescription(): ?string
+    {
+        return $this->metaDescription;
+    }
+
+    public function setMetaDescription(?string $metaDescription): self
+    {
+        $this->metaDescription = $metaDescription;
+
+        return $this;
+    }
 }

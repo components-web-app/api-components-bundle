@@ -630,6 +630,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(RouteRepository::class),
+                new Reference('api_platform.item_data_provider'),
             ]
         )
         ->autoconfigure(false)

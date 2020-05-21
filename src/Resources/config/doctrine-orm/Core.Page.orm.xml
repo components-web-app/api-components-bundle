@@ -2,7 +2,7 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="Silverback\ApiComponentsBundle\Entity\Core\Page" table="page">
-        <field name="isNested" type="boolean" column="is_nested" precision="0" scale="0" nullable="false"/>
+        <field name="nested" type="boolean" column="nested" precision="0" scale="0" nullable="false"/>
         <field name="title" type="string" column="title" precision="0" scale="0" nullable="false"/>
         <field name="metaDescription" type="string" column="meta_description" precision="0" scale="0" nullable="true"/>
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>

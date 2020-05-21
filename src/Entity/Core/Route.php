@@ -130,7 +130,7 @@ class Route
     {
         $this->page = $page;
         if ($this->page) {
-            $this->page->route = $this;
+            $this->page->setRoute($this);
         }
 
         return $this;
@@ -145,7 +145,7 @@ class Route
     {
         $this->pageData = $pageData;
         if ($this->pageData) {
-            $this->pageData->route = $this;
+            $this->pageData->setRoute($this);
         }
 
         return $this;
