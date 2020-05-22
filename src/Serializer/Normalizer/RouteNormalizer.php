@@ -55,7 +55,6 @@ class RouteNormalizer implements ContextAwareNormalizerInterface, CacheableSuppo
 
         $normalized = $this->normalizer->normalize($object, $format, $context);
 
-        unset($normalized['pageData'], $normalized['redirectedFrom']);
         if ($isRedirect) {
             $normalized['redirectPath'] = $finalRoute->getPath();
         }
