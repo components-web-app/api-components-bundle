@@ -34,7 +34,6 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixRe
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
-use Silverback\ApiComponentsBundle\DataProvider\Item\LayoutDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
@@ -380,16 +379,6 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles']);
-
-    $services
-        ->set(LayoutDataProvider::class)
-        ->args(
-            [
-                new Reference(LayoutRepository::class),
-            ]
-        )
-        ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
 
     $services
         ->set(LayoutRepository::class)

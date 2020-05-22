@@ -29,6 +29,7 @@ use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -414,6 +415,19 @@ final class DoctrineContext implements Context
 
         $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
         $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given /^there is a Layout(?: with the reference "([^"]*)"|)$/
+     */
+    public function thereIsALayout(string $reference = 'no-reference'): void
+    {
+        $layout = new Layout();
+        $layout->reference = $reference;
+        $this->timestampedHelper->persistTimestampedFields($layout, true);
+        $this->manager->persist($layout);
+        $this->manager->flush();
+        $this->restContext->components['layout'] = $this->iriConverter->getIriFromItem($layout);
     }
 
     /**

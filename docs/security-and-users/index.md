@@ -1,15 +1,17 @@
 ---
 layout: default
-nav_order: 2
+nav_order: 3
 has_children: true
 ---
 # Security & Users
 
+**The refresh token is a WIP**
+
 ## Types of authentication
 ### JWT Tokens for Users
-This bundle uses [LexikJWTAuthenticationBundle](https://github.com/lexik/LexikJWTAuthenticationBundle) and [JWTRefreshTokenBundle](https://github.com/markitosgv/JWTRefreshTokenBundle) to provide an authentication method for users.
+This bundle uses [LexikJWTAuthenticationBundle](https://github.com/lexik/LexikJWTAuthenticationBundle) and will silently refresh the JWT tokens without ever exposing this to the end user.
 
->Because refresh tokens have the potential for a long lifetime, developers should ensure that strict storage requirements are in place to keep them from being leaked. For example, on web applications, refresh tokens should only leave the backend when being sent to the authorization server, and the backend should be secure. The client secret should be protected in a similar fashion. Mobile applications do not require a client secret, but they should still be sure to store refresh tokens somewhere only the client application can access.
+>Because refresh tokens have the potential for a long lifetime, developers should ensure that strict storage requirements are in place to keep them from being leaked. For example, on web applications, refresh tokens should only leave the backend when being sent to the authorization server, and the backend should be secure. The client secret should be protected in a similar fashion.
 
 _(Source: https://auth0.com/learn/refresh-tokens/)_
 

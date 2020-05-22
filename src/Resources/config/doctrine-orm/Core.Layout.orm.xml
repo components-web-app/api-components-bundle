@@ -6,7 +6,7 @@
             <generator strategy="CUSTOM"/>
             <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
         </id>
-        <field name="default" type="boolean" column="is_default" precision="0" scale="0" nullable="false"/>
+        <field name="reference" type="string" column="reference" precision="0" scale="0" nullable="false"/>
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
         <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
         <one-to-many field="pages" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Page" mapped-by="layout" fetch="LAZY"/>
