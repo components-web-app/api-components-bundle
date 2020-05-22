@@ -37,7 +37,6 @@ use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
-use Silverback\ApiComponentsBundle\DataTransformer\PageOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
@@ -447,15 +446,6 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('validator.constraint_validator');
-
-    $services
-        ->set(PageOutputDataTransformer::class)
-        ->tag('api_platform.data_transformer')
-        ->args(
-            [
-                new Reference(LayoutRepository::class),
-            ]
-        );
 
     $services
         ->set(PasswordChangedEmailFactory::class)
