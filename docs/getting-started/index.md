@@ -18,14 +18,14 @@ This bundle introduces a number of core resources which enables you to define yo
 The main principle of this data structure is to allow you to configure which UI components should be displayed on any given page. To do this, it is important you understand our terminology.
 
 ### The Resource Structure
-1. As an API user you will request a `Route` which will in turn provide you with a link to the `Page` resource.
+1. As an API user you will request a `Route` resource which will have a `Page` resource.
 1. The `Page` resource will use a `Layout` resource which can be used across multiple pages.
-1. Both `Page` and `Layout` resources will contain `ComponentCollection` resources to group your components.
+1. Both `Page` and `Layout` resources will contain (possibly more than one) `ComponentCollection` resource(s) to group your components into.
 1. Within the collection you will have many `ComponentPosition` resources which define which component is displayed within it, and the order in which to display it.
 1. You will create the component resources by extending `AbstractComponent`.
 
 ### What is UI Component?
-When we refer to the UI component, we just mean the name by which the component in your front-end application will be named. E.g. [VueJS Components](https://vuejs.org/v2/guide/components.html)
+**This is not a resource in the API.** When we refer to the UI component (abbreviation of User-Interface Component), we just mean the name by which the component in your front-end application will be named. For example, you may have made a component called `NavigationBar` in the front-end. When it is referred to in the context of an API Component resource (see below), the API resource/class name will usually be the same as the name defined in the front-end application, but this can be changed. E.g. [VueJS Components](https://vuejs.org/v2/guide/components.html)
 
 ### What is a Component resource?
 A component as an API resource will define which reusable UI component you have created in your front-end application and usually the data associated with it. An example output could be the following.
@@ -40,7 +40,7 @@ A component as an API resource will define which reusable UI component you have 
     "html": "<p>Hello world</p>"
 }
 ```
-You will have made this API resource which is very easy, as we will show later, and your front-end application will have sent a POST request to create it.
+You will have made this API resource which is very easy, as we will show later, and your front-end application will have sent a POST request to create it. The front-end application should then look for the UI component named `HTMLContent` to display. There is an optional property `uiComponent` where you can explicitly define the name of the front-end UI Component to display.
 
 ### What is a ComponentPosition resource?
 You can locate a component within Component Collections (which we will talk about in a moment). This is simply a resource that determines collection(s) the component is rendered, and the position within it.
