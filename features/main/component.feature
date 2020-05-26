@@ -17,6 +17,25 @@ Feature: Components
     And the JSON should be valid according to the schema file "component.schema.json"
 
   @loginUser
+  Scenario Outline: I can create a component and the ComponentPosition at the same time
+    Given there is a ComponentCollection with 0 components
+    When I send a "POST" request to "/component/dummy_components" with body:
+    """
+    {
+      "componentPositions": [
+        {
+          "componentCollection": "<componentCollection>"
+        }
+      ]
+    }
+    """
+    Then the response status code should be 201
+    And the JSON should be valid according to the schema file "component.schema.json"
+    Examples:
+     | componentCollection             |
+     | component[component_collection] |
+
+  @loginUser
   Scenario: When I delete a component
     Given there is a DummyComponent
     When I send a "DELETE" request to the component "dummy_component"

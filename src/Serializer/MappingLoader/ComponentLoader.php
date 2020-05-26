@@ -32,7 +32,7 @@ final class ComponentLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        if (!$reflectionClass->isSubclassOf(AbstractComponent::class)) {
+        if (AbstractComponent::class !== $reflectionClass->getName() && !$reflectionClass->isSubclassOf(AbstractComponent::class)) {
             return true;
         }
 
@@ -41,17 +41,13 @@ final class ComponentLoader implements LoaderInterface
         $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
         $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
-        $properties = $reflectionClass->getProperties();
-        foreach ($properties as $property) {
-            if ('id' === $property->getName()) {
+        foreach ($allAttributesMetadata as $attributeMetadatum) {
+            if ('id' === $attributeMetadatum->getName()) {
                 continue;
             }
-            if (
-                ($attributeMetadata = ($allAttributesMetadata[$property->getName()] ?? null)) &&
-                empty($attributeMetadata->getGroups())
-            ) {
-                $attributeMetadata->addGroup($readGroup);
-                $attributeMetadata->addGroup($writeGroup);
+            if (empty($attributeMetadatum->getGroups())) {
+                $attributeMetadatum->addGroup($readGroup);
+                $attributeMetadatum->addGroup($writeGroup);
             }
         }
 

@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
@@ -237,6 +238,15 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
         ])
         ->tag('validator.constraint_validator');
+
+    $services
+        ->set(ComponentPropertyMetadataFactory::class)
+        ->decorate('api_platform.metadata.property.metadata_factory')
+        ->args(
+            [
+                new Reference(ComponentPropertyMetadataFactory::class . '.inner'),
+            ]
+        );
 
     $services
         ->set(DownloadAction::class)

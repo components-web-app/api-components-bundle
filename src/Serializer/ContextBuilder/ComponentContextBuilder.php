@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -32,15 +33,19 @@ final class ComponentContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (empty($resourceClass = $context['resource_class'])) {
+        if (is_a($resourceClass = $context['resource_class'], AbstractComponent::class)) {
             return $context;
         }
 
         $reflectionClass = new \ReflectionClass($resourceClass);
-        if ($normalization) {
-            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), ComponentLoader::GROUP_NAME);
-        } else {
-            $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), ComponentLoader::GROUP_NAME);
+        $componentNames = [$reflectionClass->getShortName()];
+        while ($parent = $reflectionClass->getParentClass()) {
+            $componentNames[] = $parent->getShortName();
+            $reflectionClass = $parent;
+        }
+        $rw = $normalization ? 'read' : 'write';
+        foreach ($componentNames as $componentName) {
+            $context['groups'][] = sprintf('%s:%s:%s', $componentName, ComponentLoader::GROUP_NAME, $rw);
         }
 
         return $context;
