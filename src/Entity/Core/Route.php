@@ -19,6 +19,7 @@ use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -44,6 +45,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     "!(this.getPage() != null & this.getPageData() != null)",
  *     message="Please specify either page or pageData, not both."
  * )
+ * @UniqueEntity("name", message="The route name must be unique.")
+ * @UniqueEntity("path", message="The route path must be unique.")
  */
 class Route
 {

@@ -16,11 +16,14 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
+ *
+ * @UniqueEntity("route", message="The route must be unique.")
  *
  * @internal
  */
@@ -47,7 +50,7 @@ abstract class AbstractPage
      */
     protected bool $nested = true;
 
-    protected string $title = 'Unnamed Page';
+    protected ?string $title = 'Unnamed Page';
 
     protected ?string $metaDescription = null;
 
@@ -87,12 +90,12 @@ abstract class AbstractPage
         return $this;
     }
 
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
 

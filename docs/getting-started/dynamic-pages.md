@@ -3,7 +3,7 @@ layout: default
 parent: Getting Started
 nav_order: 2
 ---
-# Dynamic pages
+# Dynamic Pages
 
 ### Abstract core resources
 - `AbstractPageData` (docs coming soon)

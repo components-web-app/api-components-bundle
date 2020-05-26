@@ -21,7 +21,6 @@ use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
 use Behatch\Context\RestContext as BehatchRestContext;
-use Behatch\HttpCall\Request;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 
 /**
@@ -84,6 +83,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^(false|true)$/
+     */
+    public function castBoolean(string $boolStr): bool
+    {
+        return 'true' === $boolStr;
+    }
+
+    /**
      * @Transform /^base64\((.*)\)$/
      */
     public function castBase64FileToString(string $value): string
@@ -107,7 +114,7 @@ class RestContext implements Context
     /**
      * @Given I send a :method request to :url with data:
      */
-    public function iSendARequestToWithData($method, $url, TableNode $tableNode)
+    public function iSendARequestToWithData($method, $url, TableNode $tableNode): void
     {
         $this->restContext->iSendARequestToWithBody($method, $url, new PyStringNode([json_encode($this->castTableNodeToArray($tableNode))], 0));
     }
@@ -173,6 +180,10 @@ class RestContext implements Context
 
                     if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
                         $value = $this->castComponentToIri($matches[1]);
+                    }
+
+                    if (preg_match('/^(false|true)$/', $value, $matches)) {
+                        $value = $this->castBoolean($matches[1]);
                     }
                 }
 

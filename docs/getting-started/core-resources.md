@@ -6,6 +6,8 @@ nav_order: 1
 # Core Resources
 {: .no_toc }
 
+Here is a simple overview of all of the resources. We are creating documentation and will have more detail on the features in future. Feel free to look through our Behat test scenarios to check for undocumented features.
+
 ## Table of contents
 {: .no_toc .text-delta }
 
@@ -39,7 +41,7 @@ Resource endpoint: `/_/pages`
 
 ```json
 {
-  "reference": "header",
+  "reference": "home",
   "title": "Home Page",
   "metaDescription": "I like search engines to display me...",
   "route": "/_/route/abcd-1234",
@@ -87,3 +89,23 @@ You would normally create this resource at the same time as creating your compon
 ```
 
 When a ComponentPosition resource is created with the same sort value as an existing ComponentPosition, the existing resource's sortValue (and all subsequent resource's sortValue) property will be increased to avoid duplicates.
+
+## Route
+
+Resource endpoint: `/_/routes`
+
+##### Sample post request
+{: .no_toc }
+
+```json
+{
+  "path": "/contact",
+  "name": "contact-page",
+  "page": "/_/pages/abcd-1234",
+  "redirect": "/_/routes/abcd-1234"
+}
+```
+
+A front-end application loading the page path `/contact` will request the route resource `/_/routes//contact` to get the associated page.
+
+The response will include `redirectPath` if a redirect exists and this will be to the deepest nested redirect. The response will also include the page of the redirected route, so the front-end can usually avoid another request.

@@ -36,7 +36,7 @@ class ComponentCollection
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(message="A component collection must have a reference")
+     * @Assert\NotBlank(message="Please enter a reference.")
      */
     public string $reference;
 

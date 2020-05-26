@@ -3,55 +3,45 @@
   "$ref": "#/definitions/AbstractPageData:jsonld",
   "definitions": {
     "AbstractPageData:jsonld": {
-      "type": "object",
-      "properties": {
-        "@context": {
-          "readOnly": true,
-          "type": "string"
+      "allOf": [
+        {
+          "$ref": "timestamped.schema.json"
         },
-        "@id": {
-          "readOnly": true,
-          "type": "string"
-        },
-        "@type": {
-          "readOnly": true,
-          "type": "string"
-        },
-        "page": {
-          "type": "string",
-          "format": "iri-reference"
-        },
-        "route": {
-          "type": "string",
-          "format": "iri-reference",
-          "nullable": true
-        },
-        "parentRoute": {
-          "description": "This will be se so that when auto-generating a route for a newly created\nPage / PageData, we can prepend parent routes.",
-          "type": "string",
-          "format": "iri-reference",
-          "nullable": true
-        },
-        "isNested": {
-          "description": "If true, then the Page/PageData is nested within the parentRoute.",
-          "type": "boolean"
-        },
-        "title": {
-          "type": "string"
-        },
-        "metaDescription": {
-          "type": "string",
-          "nullable": true
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "modifiedAt": {
-          "type": "string",
-          "format": "date-time"
+        {
+          "type": "object",
+          "required": [
+            "nested"
+          ],
+          "properties": {
+            "page": {
+              "type": "string",
+              "format": "iri-reference"
+            },
+            "route": {
+              "type": "string",
+              "format": "iri-reference",
+              "nullable": true
+            },
+            "parentRoute": {
+              "description": "This will be se so that when auto-generating a route for a newly created\nPage / PageData, we can prepend parent routes.",
+              "type": "string",
+              "format": "iri-reference",
+              "nullable": true
+            },
+            "nested": {
+              "description": "If true, then the Page/PageData is nested within the parentRoute.",
+              "type": "boolean"
+            },
+            "title": {
+              "type": "string"
+            },
+            "metaDescription": {
+              "type": "string",
+              "nullable": true
+            }
+          }
         }
-      }
+      ]
     }
   }
 }

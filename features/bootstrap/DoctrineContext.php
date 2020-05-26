@@ -307,7 +307,7 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a ComponentCollection with :count components
      */
-    public function thereIsAComponentCollectionWithComponents(int $count)
+    public function thereIsAComponentCollectionWithComponents(int $count): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'collection';
@@ -334,7 +334,7 @@ final class DoctrineContext implements Context
     /**
      * @Given the ComponentCollection has the allowedComponent :allowedComponent
      */
-    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent)
+    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent): void
     {
         /** @var ComponentCollection $collection */
         $collection = $this->iriConverter->getItemFromIri($this->restContext->components['component_collection']);
@@ -350,10 +350,28 @@ final class DoctrineContext implements Context
     public function thereIsAPage(): void
     {
         $page = new Page();
+        $page->reference = 'page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $this->manager->flush();
         $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given /^there (?:is|are) (\d+) Route(?:s)?$/
+     */
+    public function thereAreRoutes(int $count): void
+    {
+        for ($x = 0; $x < $count; ++$x) {
+            $route = new Route();
+            $route
+                ->setPath(sprintf('/route-%s', $x))
+                ->setName(sprintf('/route-%s', $x));
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+            $this->restContext->components['route_' . $x] = $this->iriConverter->getIriFromItem($route);
+        }
+        $this->manager->flush();
     }
 
     /**
@@ -369,6 +387,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($route);
 
         $page = new Page();
+        $page->reference = 'route-page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $route->setPage($page);
@@ -407,6 +426,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($route);
 
         $page = new Page();
+        $page->reference = 'route-page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
 
