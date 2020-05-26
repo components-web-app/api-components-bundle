@@ -1,0 +1,13 @@
+{
+  "allOf": [
+    {
+      "$ref": "user.schema.json"
+    },
+    {
+      "required": [
+        "roles",
+        "enabled"
+      ]
+    }
+  ]
+}

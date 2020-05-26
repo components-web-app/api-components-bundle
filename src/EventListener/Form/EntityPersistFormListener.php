@@ -70,6 +70,8 @@ abstract class EntityPersistFormListener
 
     public function __invoke(FormSuccessEvent $event)
     {
+        // This is not a sub-request because forms have greater permissions to create entitites with whatever properties wanted.
+
         if (
             $this->formType !== $event->getForm()->formType ||
             !is_a($data = $event->getFormData(), $this->dataClass, true)

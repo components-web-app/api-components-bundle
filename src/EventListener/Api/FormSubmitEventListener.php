@@ -56,6 +56,9 @@ class FormSubmitEventListener
         if ($data->formView->getForm()->isValid()) {
             $result = $this->formSubmitHelper->handleSuccess($data);
             if ($result) {
+                // we were going to do sub-requests, but then we may require authorization and for forms we shouldn't need that
+                // instead Form:component:read serialization group should be added to properties of objects being returned
+                // for them to be serialized in the result
                 $data = $result;
             }
         }

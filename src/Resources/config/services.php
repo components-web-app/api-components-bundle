@@ -132,6 +132,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -205,6 +206,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ComponentContextBuilder::class . '.inner'),
+                new Reference(RoleHierarchyInterface::class),
+                new Reference(Security::class),
             ]
         )
         ->autoconfigure(false);

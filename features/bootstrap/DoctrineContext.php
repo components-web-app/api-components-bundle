@@ -26,6 +26,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -305,14 +306,20 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a ComponentCollection with :count components
+     * @Given /^there is a ComponentCollection with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentCollectionWithComponents(int $count): void
+    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'collection';
         $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $this->manager->persist($componentCollection);
+        if ($id) {
+            $reflection = new \ReflectionClass($componentCollection);
+            $reflectionProp = $reflection->getProperty('id');
+            $reflectionProp->setAccessible(true);
+            $reflectionProp->setValue($componentCollection, Uuid::fromString($id));
+        }
 
         for ($x = 0; $x < $count; ++$x) {
             $component = new DummyComponent();

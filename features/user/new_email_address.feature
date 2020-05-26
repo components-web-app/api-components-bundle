@@ -8,7 +8,7 @@ Feature: Register process via a form
     And I add "Content-Type" header equal to "application/ld+json"
 
   @loginUser
-    @restartBrowser
+  @restartBrowser
   Scenario Outline: Submit a successful change email request
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
