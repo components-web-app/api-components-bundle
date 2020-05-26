@@ -26,9 +26,13 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -302,14 +306,20 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a ComponentCollection with :count components
+     * @Given /^there is a ComponentCollection with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentCollectionWithComponents(int $count)
+    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'collection';
         $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $this->manager->persist($componentCollection);
+        if ($id) {
+            $reflection = new \ReflectionClass($componentCollection);
+            $reflectionProp = $reflection->getProperty('id');
+            $reflectionProp->setAccessible(true);
+            $reflectionProp->setValue($componentCollection, Uuid::fromString($id));
+        }
 
         for ($x = 0; $x < $count; ++$x) {
             $component = new DummyComponent();
@@ -331,7 +341,7 @@ final class DoctrineContext implements Context
     /**
      * @Given the ComponentCollection has the allowedComponent :allowedComponent
      */
-    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent)
+    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent): void
     {
         /** @var ComponentCollection $collection */
         $collection = $this->iriConverter->getItemFromIri($this->restContext->components['component_collection']);
@@ -339,6 +349,112 @@ final class DoctrineContext implements Context
         $this->manager->persist($collection);
         $this->manager->flush();
         $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a Page
+     */
+    public function thereIsAPage(): void
+    {
+        $page = new Page();
+        $page->reference = 'page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given /^there (?:is|are) (\d+) Route(?:s)?$/
+     */
+    public function thereAreRoutes(int $count): void
+    {
+        for ($x = 0; $x < $count; ++$x) {
+            $route = new Route();
+            $route
+                ->setPath(sprintf('/route-%s', $x))
+                ->setName(sprintf('/route-%s', $x));
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+            $this->restContext->components['route_' . $x] = $this->iriConverter->getIriFromItem($route);
+        }
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a Route :path with a page
+     */
+    public function thereIsARouteWithAPage(string $path): void
+    {
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $page = new Page();
+        $page->reference = 'route-page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $route->setPage($page);
+        $this->manager->flush();
+
+        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given there is a Route :path with redirects to :redirectTo
+     */
+    public function thereIsARouteWithRedirects(string $firstPath, string $redirectTo): void
+    {
+        $finalRoute = new Route();
+        $finalRoute
+            ->setPath($redirectTo)
+            ->setName($redirectTo);
+        $this->timestampedHelper->persistTimestampedFields($finalRoute, true);
+        $this->manager->persist($finalRoute);
+
+        $middleRoute = new Route();
+        $middleRoute
+            ->setPath(bin2hex(random_bytes(10)))
+            ->setName(bin2hex(random_bytes(10)))
+            ->setRedirect($finalRoute);
+        $this->timestampedHelper->persistTimestampedFields($middleRoute, true);
+        $this->manager->persist($middleRoute);
+
+        $route = new Route();
+        $route
+            ->setPath($firstPath)
+            ->setName($firstPath)
+            ->setRedirect($middleRoute);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $page = new Page();
+        $page->reference = 'route-page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $finalRoute->setPage($page);
+        $this->manager->flush();
+
+        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+    }
+
+    /**
+     * @Given /^there is a Layout(?: with the reference "([^"]*)"|)$/
+     */
+    public function thereIsALayout(string $reference = 'no-reference'): void
+    {
+        $layout = new Layout();
+        $layout->reference = $reference;
+        $this->timestampedHelper->persistTimestampedFields($layout, true);
+        $this->manager->persist($layout);
+        $this->manager->flush();
+        $this->restContext->components['layout'] = $this->iriConverter->getIriFromItem($layout);
     }
 
     /**
@@ -394,9 +510,11 @@ final class DoctrineContext implements Context
     {
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
     }
 
@@ -408,9 +526,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertEquals($emailAddress, $user->getEmailAddress());
         Assert::assertNull($user->getNewEmailAddress());
     }
@@ -423,9 +543,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertTrue($user->isEmailAddressVerified());
     }
 
@@ -437,9 +559,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy([
-            'username' => $username,
-        ]);
+        $user = $repository->findOneBy(
+            [
+                'username' => $username,
+            ]
+        );
         Assert::assertFalse($user->isEmailAddressVerified());
     }
 }

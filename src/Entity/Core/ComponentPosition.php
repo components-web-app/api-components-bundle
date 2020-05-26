@@ -55,4 +55,25 @@ class ComponentPosition
     {
         return $this->componentCollection->componentPositions;
     }
+
+    public function setComponentCollection(ComponentCollection $componentCollection): self
+    {
+        $this->componentCollection = $componentCollection;
+
+        return $this;
+    }
+
+    public function setComponent(AbstractComponent $component): self
+    {
+        $this->component = $component;
+
+        return $this;
+    }
+
+    public function setSortValue(int $sortValue): self
+    {
+        $this->sortValue = $sortValue;
+
+        return $this;
+    }
 }

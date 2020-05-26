@@ -1,64 +1,64 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$ref": "#/definitions/Collection:jsonld",
-    "definitions": {
-        "Collection:jsonld": {
-            "type": "object",
-            "description": "",
-            "properties": {
-                "@context": {
-                    "readOnly": true,
-                    "type": "string"
-                },
-                "@id": {
-                    "readOnly": true,
-                    "type": "string"
-                },
-                "@type": {
-                    "readOnly": true,
-                    "type": "string"
-                },
-                "componentPositions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "iri-reference"
-                    }
-                },
-                "uiComponent": {
-                    "type": "string",
-                    "nullable": true
-                },
-                "uiClassNames": {},
-                "componentCollections": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "iri-reference"
-                    }
-                },
-                "resourceIri": {
-                    "type": "string"
-                },
-                "perPage": {
-                    "type": "integer",
-                    "nullable": true
-                },
-                "defaultQueryParameters": {
-                    "type": "object",
-                    "items": {
-                        "type": "string"
-                    },
-                    "nullable": true
-                },
-                "collection": {
-                    "readOnly": true,
-                    "type": "object"
-                }
-            },
-            "required": [
-                "resourceIri"
-            ]
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Collection:jsonld",
+  "definitions": {
+    "Collection:jsonld": {
+      "type": "object",
+      "description": "",
+      "properties": {
+        "@context": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "@id": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "@type": {
+          "readOnly": true,
+          "type": "string"
+        },
+        "componentPositions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "iri-reference"
+          }
+        },
+        "uiComponent": {
+          "type": "string",
+          "nullable": true
+        },
+        "uiClassNames": {},
+        "componentCollections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "iri-reference"
+          }
+        },
+        "resourceIri": {
+          "type": "string"
+        },
+        "perPage": {
+          "type": "integer",
+          "nullable": true
+        },
+        "defaultQueryParameters": {
+          "type": "object",
+          "items": {
+            "type": "string"
+          },
+          "nullable": true
+        },
+        "collection": {
+          "readOnly": true,
+          "type": "object"
         }
+      },
+      "required": [
+        "resourceIri"
+      ]
     }
+  }
 }

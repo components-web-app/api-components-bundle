@@ -42,14 +42,14 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     /**
      * @Assert\NotBlank(groups={"Default"}, message="Please enter a username.")
-     * @Groups({"User:superAdmin", "User:output"})
+     * @Groups({"User:superAdmin", "User:output", "Form:component:read"})
      */
     protected ?string $username;
 
     /**
      * @Assert\NotBlank(groups={"Default"})
      * @Assert\Email()
-     * @Groups({"User:superAdmin", "User:output"})
+     * @Groups({"User:superAdmin", "User:output", "Form:component:read"})
      */
     protected ?string $emailAddress;
 
@@ -84,7 +84,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $newPasswordConfirmationToken = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainNewPasswordConfirmationToken = null;
 
@@ -108,7 +108,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * @Assert\NotBlank(groups={"User:emailAddress", "Default"}, allowNull=true)
      * @Assert\Email()
-     * @Groups({"User:input", "User:output", "User:emailAddress"})
+     * @Groups({"User:input", "User:output", "User:emailAddress", "Form:component:read:role_user"})
      */
     protected ?string $newEmailAddress = null;
 
@@ -126,7 +126,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?DateTime $newEmailAddressChangeRequestedAt = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainNewEmailConfirmationToken = null;
 
@@ -143,7 +143,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $emailAddressVerifyToken = null;
 
     /**
-     *  @ApiProperty(readable=false, writable=false)
+     * @ApiProperty(readable=false, writable=false)
      */
     public ?string $plainEmailAddressVerifyToken = null;
 
@@ -342,14 +342,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /** @see \Serializable::serialize() */
     public function serialize(): string
     {
-        return serialize([
-            (string) $this->id,
-            $this->username,
-            $this->emailAddress,
-            $this->password,
-            $this->enabled,
-            $this->roles,
-        ]);
+        return serialize(
+            [
+                (string) $this->id,
+                $this->username,
+                $this->emailAddress,
+                $this->password,
+                $this->enabled,
+                $this->roles,
+            ]
+        );
     }
 
     /**

@@ -44,30 +44,46 @@ class PasswordUpdateType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username', HiddenType::class, [
-                'attr' => [
-                    'autocomplete' => 'username',
-                ],
-            ])
-            ->add('newPasswordConfirmationToken', HiddenType::class, [
-                'attr' => [
-                    'placeholder' => '',
-                ],
-            ])
-            ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'invalid_message' => 'The password fields must match.',
-                'options' => ['attr' => ['autocomplete' => 'new-password']],
-                'required' => true,
-                'first_options' => ['label' => 'Create Password'],
-                'second_options' => ['label' => 'Repeat Password'],
-            ])
-            ->add('submit', SubmitType::class, [
-                'attr' => [
-                    'class' => 'is-large is-success is-fullwidth',
-                ],
-                'label' => 'Login',
-            ]);
+            ->add(
+                'username',
+                HiddenType::class,
+                [
+                    'attr' => [
+                        'autocomplete' => 'username',
+                    ],
+                ]
+            )
+            ->add(
+                'newPasswordConfirmationToken',
+                HiddenType::class,
+                [
+                    'attr' => [
+                        'placeholder' => '',
+                    ],
+                ]
+            )
+            ->add(
+                'plainPassword',
+                RepeatedType::class,
+                [
+                    'type' => PasswordType::class,
+                    'invalid_message' => 'The password fields must match.',
+                    'options' => ['attr' => ['autocomplete' => 'new-password']],
+                    'required' => true,
+                    'first_options' => ['label' => 'Create Password'],
+                    'second_options' => ['label' => 'Repeat Password'],
+                ]
+            )
+            ->add(
+                'submit',
+                SubmitType::class,
+                [
+                    'attr' => [
+                        'class' => 'is-large is-success is-fullwidth',
+                    ],
+                    'label' => 'Login',
+                ]
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -84,17 +100,19 @@ class PasswordUpdateType extends AbstractType
             $user->setNewPasswordConfirmationToken($query->get('token'));
         }
 
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'attr' => [
-                'id' => 'password_update_form',
-                'novalidate' => 'novalidate',
-            ],
-            'action' => '/password/reset',
-            'realtime_validate' => false,
-            'data_class' => $this->userClass,
-            'data' => $user,
-            'validation_groups' => ['User:password:create'],
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'attr' => [
+                    'id' => 'password_update_form',
+                    'novalidate' => 'novalidate',
+                ],
+                'action' => '/password/reset',
+                'realtime_validate' => false,
+                'data_class' => $this->userClass,
+                'data' => $user,
+                'validation_groups' => ['User:password:create'],
+            ]
+        );
     }
 }

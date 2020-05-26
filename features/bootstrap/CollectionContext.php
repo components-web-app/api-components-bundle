@@ -101,10 +101,12 @@ class CollectionContext implements Context
     public function thereIsACollectionResourceWithDefaultQueryStringParameters(string $iri = '/component/dummy_components')
     {
         $component = new Collection();
-        $component->setDefaultQueryParameters([
-            'perPage' => 40,
-            'reference' => '1',
-        ]);
+        $component->setDefaultQueryParameters(
+            [
+                'perPage' => 40,
+                'reference' => '1',
+            ]
+        );
         $component->setResourceIri($iri);
         $this->manager->persist($component);
         $this->manager->flush();

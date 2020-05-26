@@ -60,10 +60,10 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
     Examples:
-      | name       | company   | status |
-      | John Smith | company   | 200    |
-      |            | company   | 400    |
-      |            |           | 400    |
+      | name       | company | status |
+      | John Smith | company | 200    |
+      |            | company | 400    |
+      |            |         | 400    |
 
   Scenario: I send a PATCH request to the form with no fields
     Given there is a "test" form
@@ -97,10 +97,10 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
     Examples:
-      | name       | company   | status |
-      | John Smith | company   | 201    |
-      |            | company   | 400    |
-      |            |           | 400    |
+      | name       | company | status |
+      | John Smith | company | 201    |
+      |            | company | 400    |
+      |            |         | 400    |
 
   Scenario: I send a POST request to the form with an invalid root key
     Given there is a "test" form

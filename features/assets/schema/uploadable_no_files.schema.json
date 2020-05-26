@@ -1,18 +1,18 @@
 {
-    "allOf": [
-        {
-            "$ref": "uploadable.schema.json"
-        },
-        {
-            "properties": {
-                "_metadata": {
-                    "not": {
-                        "required": [
-                            "media_objects"
-                        ]
-                    }
-                }
-            }
+  "allOf": [
+    {
+      "$ref": "uploadable.schema.json"
+    },
+    {
+      "properties": {
+        "_metadata": {
+          "not": {
+            "required": [
+              "media_objects"
+            ]
+          }
         }
-    ]
+      }
+    }
+  ]
 }

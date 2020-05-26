@@ -16,12 +16,9 @@ security:
         login:
             pattern:  ^/login
             stateless: true
-            # anonymous: true
+            anonymous: true
             provider: user_provider
             user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
-            guard:
-                authenticators:
-                    - Silverback\ApiComponentsBundle\Security\TokenAuthenticator
             json_login:
                 check_path: /login
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -36,9 +33,8 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
     access_control:
-        - { path: ^/login, roles: ROLE_TOKEN_USER }
         - { path: ^/password/(reset|update), roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
         - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         # For a specific tests to ensure anonymous users can use publishable
         - { path: ^/component/dummy_publishable_components, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
+#        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

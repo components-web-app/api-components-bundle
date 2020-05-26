@@ -58,9 +58,11 @@ class UserFactory
             ->setEmailAddress($email)
             ->setEnabled(!$inactive)
             ->setEmailAddressVerified(true)
-            ->setRoles([
-                $superAdmin ? 'ROLE_SUPER_ADMIN' : 'ROLE_USER',
-            ]);
+            ->setRoles(
+                [
+                    $superAdmin ? 'ROLE_SUPER_ADMIN' : 'ROLE_USER',
+                ]
+            );
 
         $this->timestampedDataPersister->persistTimestampedFields($user, true);
         $this->validator->validate($user);

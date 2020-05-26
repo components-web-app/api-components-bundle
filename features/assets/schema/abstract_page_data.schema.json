@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/AbstractPageData:jsonld",
+  "definitions": {
+    "AbstractPageData:jsonld": {
+      "allOf": [
+        {
+          "$ref": "timestamped.schema.json"
+        },
+        {
+          "type": "object",
+          "required": [
+            "nested"
+          ],
+          "properties": {
+            "page": {
+              "type": "string",
+              "format": "iri-reference"
+            },
+            "route": {
+              "type": "string",
+              "format": "iri-reference",
+              "nullable": true
+            },
+            "parentRoute": {
+              "description": "This will be se so that when auto-generating a route for a newly created\nPage / PageData, we can prepend parent routes.",
+              "type": "string",
+              "format": "iri-reference",
+              "nullable": true
+            },
+            "nested": {
+              "description": "If true, then the Page/PageData is nested within the parentRoute.",
+              "type": "boolean"
+            },
+            "title": {
+              "type": "string"
+            },
+            "metaDescription": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

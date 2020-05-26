@@ -4,17 +4,17 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <route id="api_components_login_check" path="/login" />
+    <route id="api_components_login_check" path="/login"/>
 
     <route id="api_components_reset_password" path="/password/reset/request/{username}"
            controller="Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction"
-           methods="GET" />
+           methods="GET"/>
 
     <route id="api_components_confirm_email" path="/confirm-email/{username}/{emailAddress}/{token}"
            controller="Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction"
-           methods="GET" />
+           methods="GET"/>
 
     <route id="api_components_verify_email" path="/verify-email/{username}/{token}"
            controller="Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction"
-           methods="GET" />
+           methods="GET"/>
 </routes>

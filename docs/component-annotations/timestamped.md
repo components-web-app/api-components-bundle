@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Timestamped
-parent: Custom Components
+parent: Component Annotations
 nav_order: 2
 ---
 # Timestamped

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" table="component_collection">
-    <id name="id" column="id" type="uuid_binary_ordered_time">
-      <generator strategy="CUSTOM"/>
-      <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
-    </id>
-    <field name="reference" type="string" column="reference" precision="0" scale="0" unique="true" nullable="false"/>
-    <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="componentCollection" fetch="LAZY" orphan-removal="true">
-      <order-by>
-        <order-by-field name="sortValue" direction="ASC"/>
-      </order-by>
-    </one-to-many>
-    <many-to-many field="layouts" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Layout" mapped-by="componentCollections" fetch="LAZY"/>
-    <many-to-many field="pageTemplates" target-entity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate" mapped-by="componentCollections" fetch="LAZY"/>
-    <many-to-many field="components" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" mapped-by="componentCollections" fetch="LAZY"/>
-    <field name="allowedComponents" column="allowed_components" type="array" nullable="true"/>
-  </entity>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" table="component_collection">
+        <id name="id" column="id" type="uuid_binary_ordered_time">
+            <generator strategy="CUSTOM"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+        </id>
+        <field name="reference" type="string" column="reference" precision="0" scale="0" unique="true" nullable="false"/>
+        <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="componentCollection" fetch="LAZY" orphan-removal="true">
+            <order-by>
+                <order-by-field name="sortValue" direction="ASC"/>
+            </order-by>
+        </one-to-many>
+        <many-to-many field="layouts" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Layout" mapped-by="componentCollections" fetch="LAZY"/>
+        <many-to-many field="pages" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Page" mapped-by="componentCollections" fetch="LAZY"/>
+        <many-to-many field="components" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" mapped-by="componentCollections" fetch="LAZY"/>
+        <field name="allowedComponents" column="allowed_components" type="array" nullable="true"/>
+    </entity>
 </doctrine-mapping>

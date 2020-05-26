@@ -39,27 +39,43 @@ class UserLoginType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username', TextType::class, [
-                'attr' => [
-                    'placeholder' => '',
-                    'autocomplete' => 'username',
-                ],
-                'label' => 'Username',
-            ])
-            ->add('password', PasswordType::class, [
-                'label' => 'Password',
-                'attr' => ['autocomplete' => 'current-password'],
-            ])
-            ->add('submit', SubmitType::class, [
-                'attr' => [
-                    'class' => 'is-large is-success is-fullwidth',
-                ],
-                'label' => 'Login',
-            ])
+            ->add(
+                'username',
+                TextType::class,
+                [
+                    'attr' => [
+                        'placeholder' => '',
+                        'autocomplete' => 'username',
+                    ],
+                    'label' => 'Username',
+                ]
+            )
+            ->add(
+                'password',
+                PasswordType::class,
+                [
+                    'label' => 'Password',
+                    'attr' => ['autocomplete' => 'current-password'],
+                ]
+            )
+            ->add(
+                'submit',
+                SubmitType::class,
+                [
+                    'attr' => [
+                        'class' => 'is-large is-success is-fullwidth',
+                    ],
+                    'label' => 'Login',
+                ]
+            )
             // js server will look for this to know where to send login request to
-            ->add('_action', HiddenType::class, [
-                'data' => $this->router->generate('api_components_login_check'),
-            ]);
+            ->add(
+                '_action',
+                HiddenType::class,
+                [
+                    'data' => $this->router->generate('api_components_login_check'),
+                ]
+            );
     }
 
     public function getBlockPrefix(): ?string
@@ -70,16 +86,18 @@ class UserLoginType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         // Post to the js server to store credentials in session
-        $resolver->setDefaults([
-            'csrf_protection' => false,
-            'data_class' => LoginForm::class,
-            'attr' => [
-                'id' => 'login_form',
-                'novalidate' => 'novalidate',
-            ],
-            'action' => '/login',
-            'realtime_validate' => false,
-            FormSubmitHelper::FORM_API_DISABLED => true,
-        ]);
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+                'data_class' => LoginForm::class,
+                'attr' => [
+                    'id' => 'login_form',
+                    'novalidate' => 'novalidate',
+                ],
+                'action' => '/login',
+                'realtime_validate' => false,
+                FormSubmitHelper::FORM_API_DISABLED => true,
+            ]
+        );
     }
 }

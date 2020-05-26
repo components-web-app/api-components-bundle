@@ -181,9 +181,16 @@ final class PublishableContext implements Context
      */
     public function iCreateAResource(): void
     {
-        $this->behatchRestContext->iSendARequestTo('POST', '/publishable_components', new PyStringNode(['{
+        $this->behatchRestContext->iSendARequestTo(
+            'POST',
+            '/publishable_components',
+            new PyStringNode(
+                ['{
                 "name": "John Doe"
-            }'], 1), );
+            }'],
+                1
+            ),
+        );
     }
 
     /**
@@ -193,9 +200,12 @@ final class PublishableContext implements Context
     {
         $response = $this->jsonContext->getJsonAsArray();
         $items = $response['hydra:member'];
-        $draftResources = array_filter($this->resources, static function (DummyPublishableComponent $component) {
-            return 'is_draft' === $component->reference;
-        });
+        $draftResources = array_filter(
+            $this->resources,
+            static function (DummyPublishableComponent $component) {
+                return 'is_draft' === $component->reference;
+            }
+        );
 
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
 
@@ -220,9 +230,12 @@ final class PublishableContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
         $items = $response['hydra:member'];
 
-        $publishedResources = array_filter($this->resources, static function (DummyPublishableComponent $component) {
-            return 'is_published' === $component->reference;
-        });
+        $publishedResources = array_filter(
+            $this->resources,
+            static function (DummyPublishableComponent $component) {
+                return 'is_published' === $component->reference;
+            }
+        );
 
         $expectedTotal = \count($publishedResources);
 
@@ -253,8 +266,11 @@ final class PublishableContext implements Context
 
     private function getResourceIds(array $resources): array
     {
-        return array_map(function (DummyPublishableComponent $component) {
-            return $this->iriConverter->getIriFromItem($component);
-        }, $resources);
+        return array_map(
+            function (DummyPublishableComponent $component) {
+                return $this->iriConverter->getIriFromItem($component);
+            },
+            $resources
+        );
     }
 }

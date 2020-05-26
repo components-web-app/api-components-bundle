@@ -33,7 +33,8 @@ class UserContextBuilder implements SerializerContextBuilderInterface
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
         $resourceClass = $context['resource_class'] ?? null;
-        if (!is_subclass_of($resourceClass, AbstractUser::class)) {
+
+        if (!is_subclass_of($resourceClass, AbstractUser::class, true)) {
             return $context;
         }
 

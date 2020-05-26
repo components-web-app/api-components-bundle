@@ -34,11 +34,13 @@ class RouteRepository extends ServiceEntityRepository
         parent::__construct($registry, Route::class);
     }
 
-    public function findOneByIdOrRoute(string $idOrRoute)
+    public function findOneByIdOrPath(string $idOrRoute)
     {
-        $route = $this->findOneBy([
-            'route' => $idOrRoute,
-        ]);
+        $route = $this->findOneBy(
+            [
+                'path' => $idOrRoute,
+            ]
+        );
         if ($route) {
             return $route;
         }

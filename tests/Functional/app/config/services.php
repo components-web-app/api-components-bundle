@@ -45,8 +45,10 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->set(LocalFilesystemAdapter::class)
-        ->args([
-            '%kernel.cache_dir%/uploads',
-        ])
+        ->args(
+            [
+                '%kernel.cache_dir%/uploads',
+            ]
+        )
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
 };

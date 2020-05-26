@@ -23,8 +23,12 @@ class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
     public function test_skip_user_validation_if_disabled(): void
     {
         $factory = new PasswordChangedEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
-        $this->assertNull($factory->create(new class() extends AbstractUser {
-        }));
+        $this->assertNull(
+            $factory->create(
+                new class() extends AbstractUser {
+                }
+            )
+        );
     }
 
     public function test_redirect_url_context_added_and_html_template_passed(): void
@@ -43,10 +47,12 @@ class PasswordChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
             ->htmlTemplate('@SilverbackApiComponents/emails/user_password_changed.html.twig')
-            ->context([
-                'website_name' => 'my website',
-                'user' => $user,
-            ]);
+            ->context(
+                [
+                    'website_name' => 'my website',
+                    'user' => $user,
+                ]
+            );
 
         $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordChangedEmailFactory::MESSAGE_ID_PREFIX);
     }

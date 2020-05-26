@@ -112,10 +112,14 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
         $mediaObjects = $this->mediaObjectFactory->createMediaObjects($object);
         if ($mediaObjects) {
-            $mediaObjects = $this->normalizer->normalize($mediaObjects, $format, [
-                'jsonld_embed_context' => true,
-                'skip_null_values' => $context['skip_null_values'] ?? false,
-            ]);
+            $mediaObjects = $this->normalizer->normalize(
+                $mediaObjects,
+                $format,
+                [
+                    'jsonld_embed_context' => true,
+                    'skip_null_values' => $context['skip_null_values'] ?? false,
+                ]
+            );
             $context[MetadataNormalizer::METADATA_CONTEXT]['media_objects'] = $mediaObjects;
         }
 

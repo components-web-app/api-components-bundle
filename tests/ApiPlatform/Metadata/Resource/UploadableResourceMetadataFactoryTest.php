@@ -129,37 +129,49 @@ class UploadableResourceMetadataFactoryTest extends TestCase
                 ],
             ],
         ];
-        $this->assertEquals([
-            'method' => 'POST',
-            'controller' => UploadAction::class,
-            'path' => '/my_name/upload',
-            'deserialize' => false,
-            'openapi_context' => $commonOpenApiContext,
-        ], $collectionOperations['post_upload']);
+        $this->assertEquals(
+            [
+                'method' => 'POST',
+                'controller' => UploadAction::class,
+                'path' => '/my_name/upload',
+                'deserialize' => false,
+                'openapi_context' => $commonOpenApiContext,
+            ],
+            $collectionOperations['post_upload']
+        );
 
         $this->assertIsArray($itemOperations = $output->getItemOperations());
 
-        $this->assertEquals([
-            'method' => 'PUT',
-            'controller' => UploadAction::class,
-            'path' => '/my_name/{id}/upload',
-            'deserialize' => false,
-            'openapi_context' => $commonOpenApiContext,
-        ], $itemOperations['put_upload']);
+        $this->assertEquals(
+            [
+                'method' => 'PUT',
+                'controller' => UploadAction::class,
+                'path' => '/my_name/{id}/upload',
+                'deserialize' => false,
+                'openapi_context' => $commonOpenApiContext,
+            ],
+            $itemOperations['put_upload']
+        );
 
-        $this->assertEquals([
-            'method' => 'PATCH',
-            'controller' => UploadAction::class,
-            'path' => '/my_name/{id}/upload',
-            'deserialize' => false,
-            'openapi_context' => $commonOpenApiContext,
-        ], $itemOperations['patch_upload']);
+        $this->assertEquals(
+            [
+                'method' => 'PATCH',
+                'controller' => UploadAction::class,
+                'path' => '/my_name/{id}/upload',
+                'deserialize' => false,
+                'openapi_context' => $commonOpenApiContext,
+            ],
+            $itemOperations['patch_upload']
+        );
 
-        $this->assertEquals([
-            'method' => 'GET',
-            'controller' => DownloadAction::class,
-            'path' => '/my_name/{id}/download/{property}',
-            'serialize' => false,
-        ], $itemOperations['download']);
+        $this->assertEquals(
+            [
+                'method' => 'GET',
+                'controller' => DownloadAction::class,
+                'path' => '/my_name/{id}/download/{property}',
+                'serialize' => false,
+            ],
+            $itemOperations['download']
+        );
     }
 }

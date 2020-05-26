@@ -23,36 +23,8 @@ Feature: Prevent disabled users from logging in
     """
     Then the response status code should be 404
 
-  Scenario: Logins should be restricted with an API key to protect the refresh token
-    Given there is a user with the username "user" password "password" and role "ROLE_USER"
-    When I send a "POST" request to "/login" with body:
-    """
-    {
-      "username": "user",
-      "password": "password"
-    }
-    """
-    Then the response status code should be 401
-    And the JSON should be valid according to the schema file "error.schema.json"
-    And the JSON node "hydra:description" should be equal to "Token Authentication Required"
-
-  Scenario: Logins should be restricted with an API key to protect the refresh token
-    Given there is a user with the username "user" password "password" and role "ROLE_USER"
-    And I add "X-AUTH-TOKEN" header equal to "abc"
-    When I send a "POST" request to "/login" with body:
-    """
-    {
-      "username": "user",
-      "password": "password"
-    }
-    """
-    Then the response status code should be 401
-    And the JSON should be valid according to the schema file "error.schema.json"
-    And the JSON node "hydra:description" should be equal to "The authentication token provided in the X-AUTH-TOKEN header is invalid"
-
   Scenario: A successful login
     Given there is a user with the username "user" password "password" and role "ROLE_USER"
-    And I add "X-AUTH-TOKEN" header equal to "not_a_secret"
     When I send a "POST" request to "/login" with body:
     """
     {

@@ -58,25 +58,28 @@ class FormView
     ];
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"AbstractComponent:component:read"})
      */
     private array $vars;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"AbstractComponent:component:read"})
      */
     private DoctrineCollection $children;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"AbstractComponent:component:read"})
      */
     private bool $rendered;
 
     /**
-     * @Groups({"component", "content"})
+     * @Groups({"AbstractComponent:component:read"})
      */
     private bool $methodRendered;
 
+    /**
+     * @Groups({"AbstractComponent:component:read"})
+     */
     private FormInterface $form;
 
     public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)

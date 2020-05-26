@@ -74,13 +74,13 @@ Feature: Forgot password system
     """
     Then the response status code should be <status>
     Examples:
-      | username  | token       | requestedAt         | status  |
-      | username  | abc123      | 1970-01-01 00:00:00 | 404     |
-      |           | abc123      | now                 | 404     |
-      | username  |             | now                 | 404     |
-      |           |             | now                 | 404     |
-      | invalid   |             | now                 | 404     |
-    
+      | username | token  | requestedAt         | status |
+      | username | abc123 | 1970-01-01 00:00:00 | 404    |
+      |          | abc123 | now                 | 404    |
+      | username |        | now                 | 404    |
+      |          |        | now                 | 404    |
+      | invalid  |        | now                 | 404    |
+
   Scenario Outline: I should receive the form errors on an invalid password
     Given there is a "password_update" form
     And there is a user with the username "username" password "password" and role "ROLE_USER"
@@ -102,7 +102,7 @@ Feature: Forgot password system
     And the JSON should be valid according to the schema file "form.schema.json"
     And the JSON node "formView.children[2].children[0].vars.errors[0]" should be equal to "<message>"
     Examples:
-      | passwordFirst    | passwordSecond  | message                                              |
-      | a                | a               | Your password must be more than 6 characters long.   |
-      | mynewpassword    |                 | The password fields must match.                      |
-      |                  | mynewpassword   | The password fields must match.                      |
+      | passwordFirst | passwordSecond | message                                            |
+      | a             | a              | Your password must be more than 6 characters long. |
+      | mynewpassword |                | The password fields must match.                    |
+      |               | mynewpassword  | The password fields must match.                    |

@@ -23,12 +23,18 @@ class ChildType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please provide your name',
-                    ]),
-                ],
-            ]);
+            ->add(
+                'name',
+                TextType::class,
+                [
+                    'constraints' => [
+                        new NotBlank(
+                            [
+                                'message' => 'Please provide your name',
+                            ]
+                        ),
+                    ],
+                ]
+            );
     }
 }

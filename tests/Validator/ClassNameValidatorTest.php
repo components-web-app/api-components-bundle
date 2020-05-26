@@ -34,9 +34,12 @@ class ClassNameValidatorTest extends TestCase
     {
         $this->class = new DummyComponent();
         $factory = new LazyLoadingValueHolderFactory(new Configuration());
-        $this->proxy = $factory->createProxy(DummyComponent::class, static function (&$wrappedObject) {
-            $wrappedObject = new DummyComponent();
-        });
+        $this->proxy = $factory->createProxy(
+            DummyComponent::class,
+            static function (&$wrappedObject) {
+                $wrappedObject = new DummyComponent();
+            }
+        );
     }
 
     /**

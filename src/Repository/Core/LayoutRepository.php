@@ -31,11 +31,4 @@ class LayoutRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Layout::class);
     }
-
-    public function findDefault()
-    {
-        return $this->findOneBy([
-            'default' => true,
-        ]);
-    }
 }

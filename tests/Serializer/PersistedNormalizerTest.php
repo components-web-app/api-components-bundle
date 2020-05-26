@@ -106,11 +106,15 @@ class PersistedNormalizerTest extends TestCase
         $this->normalizerMock
             ->expects($this->once())
             ->method('normalize')
-            ->with($dummyComponent, $format, [
-                'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
-                'default_context_param' => 'default_value',
-                'silverback_api_components_bundle_metadata' => ['persisted' => true],
-            ])
+            ->with(
+                $dummyComponent,
+                $format,
+                [
+                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                    'default_context_param' => 'default_value',
+                    'silverback_api_components_bundle_metadata' => ['persisted' => true],
+                ]
+            )
             ->willReturn('anything');
 
         $this->entityManagerMock
@@ -131,10 +135,14 @@ class PersistedNormalizerTest extends TestCase
         $this->normalizerMock
             ->expects($this->once())
             ->method('normalize')
-            ->with($dummyComponent, $format, [
-                'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
-                'silverback_api_components_bundle_metadata' => ['persisted' => false],
-            ])
+            ->with(
+                $dummyComponent,
+                $format,
+                [
+                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                    'silverback_api_components_bundle_metadata' => ['persisted' => false],
+                ]
+            )
             ->willReturn('anything');
 
         $this->entityManagerMock

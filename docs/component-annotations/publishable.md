@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Publishable
-parent: Custom Components
+parent: Component Annotations
 nav_order: 1
 ---
 # Publishable

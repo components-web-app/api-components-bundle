@@ -33,10 +33,6 @@ Feature: Register process via a form
         "@type": "User",
         "username": "user@example.com",
         "emailAddress": "user@example.com",
-        "roles": [
-            "ROLE_USER"
-        ],
-        "enabled": true,
         "_metadata": {
           "persisted": true
         }

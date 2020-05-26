@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Layout:jsonld",
+  "definitions": {
+    "Layout:jsonld": {
+      "type": "object",
+      "description": "",
+      "required": [
+        "@context",
+        "@id",
+        "@type",
+        "pages",
+        "createdAt",
+        "modifiedAt",
+        "uiComponent",
+        "componentCollections"
+      ],
+      "properties": {
+        "@context": {
+          "readOnly": true,
+          "type": "string",
+          "const": "/contexts/Layout"
+        },
+        "@id": {
+          "readOnly": true,
+          "type": "string",
+          "examples": ["/_/layouts/4e20d288-9c26-11ea-9705-acde48001122"]
+        },
+        "@type": {
+          "readOnly": true,
+          "type": "string",
+          "const": "Layout"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "iri-reference"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "uiComponent": {
+          "type": "string",
+          "nullable": true
+        },
+        "uiClassNames": {},
+        "componentCollections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "iri-reference"
+          }
+        }
+      }
+    }
+  }
+}

@@ -118,9 +118,13 @@ class UploadableFileManager
             $path = $fieldConfiguration->prefix ?? '';
             $path .= $file->getFilename();
             $stream = fopen($file->getRealPath(), 'r');
-            $filesystem->writeStream($path, $stream, [
-                'mimetype' => $file->getMimeType(),
-            ]);
+            $filesystem->writeStream(
+                $path,
+                $stream,
+                [
+                    'mimetype' => $file->getMimeType(),
+                ]
+            );
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, $path);
             $propertyAccessor->setValue($object, $fileProperty, null);
         }
@@ -159,11 +163,13 @@ class UploadableFileManager
         $filePath = $classMetadata->getFieldValue($object, $propertyConfiguration->property);
 
         $response = new StreamedResponse();
-        $response->setCallback(static function () use ($filesystem, $filePath) {
-            $outputStream = fopen('php://output', 'w');
-            $fileStream = $filesystem->readStream($filePath);
-            stream_copy_to_stream($fileStream, $outputStream);
-        });
+        $response->setCallback(
+            static function () use ($filesystem, $filePath) {
+                $outputStream = fopen('php://output', 'w');
+                $fileStream = $filesystem->readStream($filePath);
+                stream_copy_to_stream($fileStream, $outputStream);
+            }
+        );
         $response->headers->set('Content-Type', $filesystem->mimeType($filePath));
 
         $disposition = HeaderUtils::makeDisposition($forceDownload ? HeaderUtils::DISPOSITION_ATTACHMENT : HeaderUtils::DISPOSITION_INLINE, $filePath);

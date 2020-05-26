@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Uploadable
-parent: Custom Components
+parent: Component Annotations
 nav_order: 3
 ---
 # Uploadable

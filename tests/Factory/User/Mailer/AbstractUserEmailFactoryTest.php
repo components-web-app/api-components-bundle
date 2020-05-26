@@ -53,11 +53,14 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
     public function test_subscribed_services(): void
     {
-        $this->assertEquals([
-            RequestStack::class,
-            RefererUrlResolver::class,
-            Environment::class,
-        ], AbstractUserEmailFactory::getSubscribedServices());
+        $this->assertEquals(
+            [
+                RequestStack::class,
+                RefererUrlResolver::class,
+                Environment::class,
+            ],
+            AbstractUserEmailFactory::getSubscribedServices()
+        );
     }
 
     public function test_create_email_called_before_init_user_throws_exception(): void
@@ -75,8 +78,10 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
                 return '';
             }
         };
-        $factory->create(new class() extends AbstractUser {
-        });
+        $factory->create(
+            new class() extends AbstractUser {
+            }
+        );
     }
 
     public function test_exception_thrown_if_user_has_no_username(): void
@@ -151,9 +156,14 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->to(Address::fromString('email@address.com'))
             ->subject('website name is my website')
             ->htmlTemplate('@SilverbackApiComponents/emails/template.html.twig')
-            ->context(array_merge(self::VALID_CONTEXT, [
-                'user' => $user,
-            ]));
+            ->context(
+                array_merge(
+                    self::VALID_CONTEXT,
+                    [
+                        'user' => $user,
+                    ]
+                )
+            );
 
         $event = new UserEmailMessageEvent(DummyUserEmailFactory::class, $emailMessage);
         $this->eventDispatcherMock
@@ -190,8 +200,10 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The `defaultRedirectPath` or `redirectPathQueryKey` must be set');
-        $userEmailFactory->dummyGetTokenUrl(new class() extends AbstractUser {
-        });
+        $userEmailFactory->dummyGetTokenUrl(
+            new class() extends AbstractUser {
+            }
+        );
     }
 
     public function test_dummy_get_token_url_throws_exception_if_no_default_path_and_no_query_in_current_request(): void
@@ -212,8 +224,10 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage(sprintf('The querystring key `%s` could not be found in the request to generate a token URL', 'queryKey'));
-        $userEmailFactory->dummyGetTokenUrl(new class() extends AbstractUser {
-        });
+        $userEmailFactory->dummyGetTokenUrl(
+            new class() extends AbstractUser {
+            }
+        );
     }
 
     public function test_dummy_get_token_url_can_get_path_from_querystring_over_default_path(): void
@@ -248,8 +262,13 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->with('/query-path')
             ->willReturn('/any-path');
 
-        $this->assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl(new class() extends AbstractUser {
-        }));
+        $this->assertEquals(
+            '/any-path',
+            $userEmailFactory->dummyGetTokenUrl(
+                new class() extends AbstractUser {
+                }
+            )
+        );
     }
 
     public function test_dummy_get_token_url_can_get_path_from_default_path(): void
@@ -283,8 +302,13 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->with('/a-default-path')
             ->willReturn('/any-path');
 
-        $this->assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl(new class() extends AbstractUser {
-        }));
+        $this->assertEquals(
+            '/any-path',
+            $userEmailFactory->dummyGetTokenUrl(
+                new class() extends AbstractUser {
+                }
+            )
+        );
     }
 
     public function test_token_path_variable_populate(): void

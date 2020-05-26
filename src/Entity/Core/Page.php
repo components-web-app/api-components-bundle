@@ -13,16 +13,27 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource
  */
-class PageTemplate extends AbstractPage
+class Page extends AbstractPage
 {
     use UiTrait;
 
+    /**
+     * @Assert\NotBlank(message="Please specify a layout.")
+     */
     public ?Layout $layout;
+
+    /**
+     * @Assert\NotBlank(message="Please enter a reference.")
+     */
+    public string $reference;
 
     public function __construct()
     {

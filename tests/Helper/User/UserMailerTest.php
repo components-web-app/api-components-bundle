@@ -55,15 +55,18 @@ class UserMailerTest extends TestCase
 
     public function test_subscribed_services(): void
     {
-        $this->assertEquals([
-            PasswordResetEmailFactory::class,
-            ChangeEmailConfirmationEmailFactory::class,
-            WelcomeEmailFactory::class,
-            UserEnabledEmailFactory::class,
-            UsernameChangedEmailFactory::class,
-            PasswordChangedEmailFactory::class,
-            VerifyEmailFactory::class,
-        ], UserMailer::getSubscribedServices());
+        $this->assertEquals(
+            [
+                PasswordResetEmailFactory::class,
+                ChangeEmailConfirmationEmailFactory::class,
+                WelcomeEmailFactory::class,
+                UserEnabledEmailFactory::class,
+                UsernameChangedEmailFactory::class,
+                PasswordChangedEmailFactory::class,
+                VerifyEmailFactory::class,
+            ],
+            UserMailer::getSubscribedServices()
+        );
     }
 
     public function test_context_can_be_omitted(): void

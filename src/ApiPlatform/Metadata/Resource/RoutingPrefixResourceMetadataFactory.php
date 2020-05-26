@@ -66,8 +66,13 @@ class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInt
 
         $attributes = $resourceMetadata->getAttributes() ?: [];
 
-        return $resourceMetadata->withAttributes(array_merge($attributes, [
-            'route_prefix' => $newRoutePrefix,
-        ]));
+        return $resourceMetadata->withAttributes(
+            array_merge(
+                $attributes,
+                [
+                    'route_prefix' => $newRoutePrefix,
+                ]
+            )
+        );
     }
 }

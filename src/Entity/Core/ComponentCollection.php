@@ -36,7 +36,7 @@ class ComponentCollection
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(message="A component collection must have a reference")
+     * @Assert\NotBlank(message="Please enter a reference.")
      */
     public string $reference;
 
@@ -46,9 +46,9 @@ class ComponentCollection
     public $layouts;
 
     /**
-     * @var Collection|PageTemplate[]
+     * @var Collection|Page[]
      */
-    public Collection $pageTemplates;
+    public Collection $pages;
 
     /**
      * @ApiProperty(writable=false)
@@ -66,6 +66,101 @@ class ComponentCollection
 
     public function __construct()
     {
+        $this->layouts = new ArrayCollection();
+        $this->pages = new ArrayCollection();
+        $this->components = new ArrayCollection();
         $this->componentPositions = new ArrayCollection();
+    }
+
+    public function setReference(string $reference): self
+    {
+        $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function setLayouts(iterable $layouts): self
+    {
+        $this->layouts = new ArrayCollection();
+        foreach ($layouts as $layout) {
+            $this->addLayout($layout);
+        }
+
+        return $this;
+    }
+
+    public function addLayout(Layout $layout): self
+    {
+        $this->layouts->add($layout);
+
+        return $this;
+    }
+
+    public function setPages(iterable $pages): self
+    {
+        $this->pages = new ArrayCollection();
+        foreach ($pages as $page) {
+            $this->addPage($page);
+        }
+
+        return $this;
+    }
+
+    public function addPage(Page $page): self
+    {
+        $this->pages->add($page);
+
+        return $this;
+    }
+
+    public function setComponents(iterable $components): self
+    {
+        $this->components = new ArrayCollection();
+        foreach ($components as $component) {
+            $this->addComponent($component);
+        }
+
+        return $this;
+    }
+
+    public function addComponent(AbstractComponent $component): self
+    {
+        $this->components->add($component);
+
+        return $this;
+    }
+
+    public function setComponentPositions(iterable $componentPositions): self
+    {
+        $this->componentPositions = new ArrayCollection();
+        foreach ($componentPositions as $componentPosition) {
+            $this->addComponentPosition($componentPosition);
+        }
+
+        return $this;
+    }
+
+    public function addComponentPosition(ComponentPosition $componentPosition): self
+    {
+        $this->componentPositions->add($componentPosition);
+
+        return $this;
+    }
+
+    public function setAllowedComponents(iterable $allowedComponents): self
+    {
+        $this->allowedComponents = new ArrayCollection();
+        foreach ($allowedComponents as $componentIri) {
+            $this->addAllowedComponent($componentIri);
+        }
+
+        return $this;
+    }
+
+    public function addAllowedComponent(string $allowedComponent): self
+    {
+        $this->allowedComponents->add($allowedComponent);
+
+        return $this;
     }
 }

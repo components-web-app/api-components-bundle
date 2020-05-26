@@ -125,14 +125,18 @@ class AbstractUserTest extends TestCase
         $this->assertEquals($user, $user->unserialize($serialized));
         $this->assertEquals($serialized, $user->serialize());
 
-        $user->unserialize(serialize([
-            $newId = '253e0f90-8842-4731-91dd-0191816e6a28',
-            'new_user',
-            'new@email',
-            'new_pass',
-            false,
-            ['ROLE_ADMIN'],
-        ]));
+        $user->unserialize(
+            serialize(
+                [
+                    $newId = '253e0f90-8842-4731-91dd-0191816e6a28',
+                    'new_user',
+                    'new@email',
+                    'new_pass',
+                    false,
+                    ['ROLE_ADMIN'],
+                ]
+            )
+        );
 
         $this->assertEquals(Uuid::fromString($newId), $user->getId());
         $this->assertEquals('new_user', $user->getUsername());

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
 use Symfony\Component\Validator\Constraint;
@@ -23,6 +24,13 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class ComponentPositionValidator extends ConstraintValidator
 {
+    private IriConverterInterface $iriConverter;
+
+    public function __construct(IriConverterInterface $iriConverter)
+    {
+        $this->iriConverter = $iriConverter;
+    }
+
     /**
      * @param ComponentPosition           $componentPosition
      * @param ComponentPositionConstraint $constraint
@@ -30,10 +38,11 @@ class ComponentPositionValidator extends ConstraintValidator
     public function validate($componentPosition, Constraint $constraint): void
     {
         $collection = $componentPosition->componentCollection;
-        if (($allowed = $collection->allowedComponents) && !$allowed->contains($className = \get_class($componentPosition->component))) {
+        if (($allowed = $collection->allowedComponents) && !$allowed->contains($iri = $this->iriConverter->getIriFromResourceClass(\get_class($componentPosition->component)))) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ component }}', $className)
+                ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
+                ->setParameter('{{ allowed }}', implode(',', $collection->allowedComponents->toArray()))
                 ->addViolation();
         }
     }

@@ -31,24 +31,14 @@ class LayoutRepositoryTest extends AbstractRepositoryTest
         $this->repository = new LayoutRepository($registry);
     }
 
-    public function test_get_default_layout_does_not_exist(): void
-    {
-        $this->assertNull($this->repository->findDefault());
-    }
-
-    public function test_get_default_layout(): void
+    public function test_find_layout(): void
     {
         $layout = new Layout();
         $layout->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
-        $layout->default = false;
+        $layout->reference = 'primary';
         $this->entityManager->persist($layout);
 
-        $defaultLayout = new Layout();
-        $defaultLayout->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
-        $defaultLayout->default = true;
-        $this->entityManager->persist($defaultLayout);
-
         $this->entityManager->flush();
-        $this->assertEquals($defaultLayout, $this->repository->findDefault());
+        $this->assertEquals($layout, $this->repository->find($layout->getId()));
     }
 }

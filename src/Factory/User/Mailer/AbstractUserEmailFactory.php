@@ -106,9 +106,13 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
             throw $exception;
         }
 
-        $context = array_replace_recursive([
-            'user' => $this->user,
-        ], $this->emailContext, $context);
+        $context = array_replace_recursive(
+            [
+                'user' => $this->user,
+            ],
+            $this->emailContext,
+            $context
+        );
         $this->validateContext($context);
 
         $twig = $this->container->get(Environment::class);
@@ -131,11 +135,14 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
 
     protected function getTokenUrl(string $token, string $username, ?string $newEmail = null): string
     {
-        $path = $this->populatePathVariables($this->getTokenPath(), [
-            'token' => $token,
-            'username' => $username,
-            'new_email' => $newEmail,
-        ]);
+        $path = $this->populatePathVariables(
+            $this->getTokenPath(),
+            [
+                'token' => $token,
+                'username' => $username,
+                'new_email' => $newEmail,
+            ]
+        );
 
         $refererUrlResolver = $this->container->get(RefererUrlResolver::class);
 

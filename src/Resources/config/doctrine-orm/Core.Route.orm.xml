@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity repository-class="Silverback\ApiComponentsBundle\Repository\Core\RouteRepository" name="Silverback\ApiComponentsBundle\Entity\Core\Route" table="route">
-    <id name="id" column="id" type="uuid_binary_ordered_time">
-      <generator strategy="CUSTOM"/>
-      <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
-    </id>
-    <field name="route" type="string" column="route" precision="0" scale="0" unique="true" nullable="false"/>
-    <field name="name" type="string" column="name" precision="0" scale="0" unique="true" nullable="false"/>
-    <one-to-one field="pageTemplate" target-entity="Silverback\ApiComponentsBundle\Entity\Core\PageTemplate" mapped-by="route" fetch="LAZY">
-      <join-columns>
-        <join-column name="page_template_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
-      </join-columns>
-    </one-to-one>
-    <one-to-one field="pageData" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData" mapped-by="route" fetch="LAZY">
-      <join-columns>
-        <join-column name="page_data_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
-      </join-columns>
-    </one-to-one>
-    <one-to-many field="redirectedFrom" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" mapped-by="redirect" fetch="LAZY"/>
-    <many-to-one field="redirect" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="redirectedFrom" fetch="LAZY">
-      <join-columns>
-        <join-column name="redirect" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
-      </join-columns>
-    </many-to-one>
-  </entity>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity repository-class="Silverback\ApiComponentsBundle\Repository\Core\RouteRepository" name="Silverback\ApiComponentsBundle\Entity\Core\Route" table="route">
+        <id name="id" column="id" type="uuid_binary_ordered_time">
+            <generator strategy="CUSTOM"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+        </id>
+        <field name="path" type="string" column="route" precision="0" scale="0" unique="true" nullable="false"/>
+        <field name="name" type="string" column="name" precision="0" scale="0" unique="true" nullable="false"/>
+        <one-to-one field="page" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Page" mapped-by="route" fetch="LAZY">
+            <join-columns>
+                <join-column name="page_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
+            </join-columns>
+        </one-to-one>
+        <one-to-one field="pageData" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData" mapped-by="route" fetch="LAZY">
+            <join-columns>
+                <join-column name="page_data_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
+            </join-columns>
+        </one-to-one>
+        <one-to-many field="redirectedFrom" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" mapped-by="redirect" fetch="LAZY"/>
+        <many-to-one field="redirect" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="redirectedFrom" fetch="EAGER">
+            <join-columns>
+                <join-column name="redirect" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
+            </join-columns>
+        </many-to-one>
+    </entity>
 </doctrine-mapping>

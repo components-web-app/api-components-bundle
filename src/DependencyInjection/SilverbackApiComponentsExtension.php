@@ -40,7 +40,6 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\TokenAuthenticator;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
@@ -67,9 +66,6 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
-
-        $definition = $container->getDefinition(TokenAuthenticator::class);
-        $definition->setArgument('$tokens', $config['security']['tokens']);
 
         $definition = $container->getDefinition(UserRepository::class);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
@@ -133,9 +129,12 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
     private function setMailerServiceArguments(ContainerBuilder $container, array $config): void
     {
         $definition = $container->getDefinition(UserMailer::class);
-        $definition->setArgument('$context', [
-            'website_name' => $config['website_name'],
-        ]);
+        $definition->setArgument(
+            '$context',
+            [
+                'website_name' => $config['website_name'],
+            ]
+        );
 
         $mapping = [
             PasswordChangedEmailFactory::class => 'password_changed',
@@ -193,16 +192,19 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
     private function prependDoctrineConfiguration(ContainerBuilder $container): void
     {
-        $container->prependExtensionConfig('doctrine', [
-            'dbal' => [
-                'types' => [
-                    'uuid_binary_ordered_time' => UuidBinaryOrderedTimeType::class,
+        $container->prependExtensionConfig(
+            'doctrine',
+            [
+                'dbal' => [
+                    'types' => [
+                        'uuid_binary_ordered_time' => UuidBinaryOrderedTimeType::class,
+                    ],
+                    'mapping_types' => [
+                        'uuid_binary_ordered_time' => 'binary',
+                    ],
                 ],
-                'mapping_types' => [
-                    'uuid_binary_ordered_time' => 'binary',
-                ],
-            ],
-        ]);
+            ]
+        );
     }
 
     private function prependApiAPlatformConfig(ContainerBuilder $container, array $config): void
@@ -220,36 +222,39 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $websiteName = $config['website_name'];
 
-        $container->prependExtensionConfig('api_platform', [
-            'title' => $websiteName,
-            'description' => sprintf('API for %s', $websiteName),
-            'collection' => [
-                'pagination' => [
-                    'client_items_per_page' => true,
-                    'items_per_page_parameter_name' => 'perPage',
-                    'maximum_items_per_page' => 100,
-                ],
-            ],
-            'mapping' => [
-                'paths' => $mappingPaths,
-            ],
-            'swagger' => [
-                'api_keys' => [
-                    'API Token' => [
-                        'name' => 'X-AUTH-TOKEN',
-                        'type' => 'header',
-                    ],
-                    'JWT (use prefix `Bearer`)' => [
-                        'name' => 'Authorization',
-                        'type' => 'header',
+        $container->prependExtensionConfig(
+            'api_platform',
+            [
+                'title' => $websiteName,
+                'description' => sprintf('API for %s', $websiteName),
+                'collection' => [
+                    'pagination' => [
+                        'client_items_per_page' => true,
+                        'items_per_page_parameter_name' => 'perPage',
+                        'maximum_items_per_page' => 100,
                     ],
                 ],
-            ],
-            'exception_to_status' => [
-                UnparseableRequestHeaderException::class => 400,
-                ApiPlatformAuthenticationException::class => 401,
-                UserDisabledException::class => 401,
-            ],
-        ]);
+                'mapping' => [
+                    'paths' => $mappingPaths,
+                ],
+                'swagger' => [
+                    'api_keys' => [
+                        'API Token' => [
+                            'name' => 'X-AUTH-TOKEN',
+                            'type' => 'header',
+                        ],
+                        'JWT (use prefix `Bearer`)' => [
+                            'name' => 'Authorization',
+                            'type' => 'header',
+                        ],
+                    ],
+                ],
+                'exception_to_status' => [
+                    UnparseableRequestHeaderException::class => 400,
+                    ApiPlatformAuthenticationException::class => 401,
+                    UserDisabledException::class => 401,
+                ],
+            ]
+        );
     }
 }

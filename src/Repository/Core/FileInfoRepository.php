@@ -36,10 +36,12 @@ class FileInfoRepository extends ServiceEntityRepository
 
     public function findOneByPathAndFilter(string $path, ?string $filter): ?FileInfo
     {
-        return $this->findOneBy([
-            'path' => $path,
-            'filter' => $filter,
-        ]);
+        return $this->findOneBy(
+            [
+                'path' => $path,
+                'filter' => $filter,
+            ]
+        );
     }
 
     /**

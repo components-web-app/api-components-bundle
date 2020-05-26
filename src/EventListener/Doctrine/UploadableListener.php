@@ -48,11 +48,13 @@ final class UploadableListener
 
         foreach ($propertyConfigurations as $propertyConfiguration) {
             if (!$metadata->hasField($propertyConfiguration->property)) {
-                $metadata->mapField([
-                    'fieldName' => $propertyConfiguration->property,
-                    'type' => 'string',
-                    'nullable' => true,
-                ]);
+                $metadata->mapField(
+                    [
+                        'fieldName' => $propertyConfiguration->property,
+                        'type' => 'string',
+                        'nullable' => true,
+                    ]
+                );
             }
         }
     }

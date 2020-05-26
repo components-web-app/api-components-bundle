@@ -20,12 +20,16 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
  * @ApiResource
+ * @UniqueEntity(fields={"reference"}, message="There is already a Layout with that reference.")
  */
 class Layout
 {
@@ -34,15 +38,25 @@ class Layout
     use UiTrait;
 
     /**
-     * @var Collection|PageTemplate[]
+     * @Assert\NotBlank(message="Please enter a reference.")
      */
-    public Collection $pageTemplates;
+    public string $reference;
 
-    public bool $default;
+    /**
+     * @var Collection|Page[]
+     */
+    public Collection $pages;
 
     public function __construct()
     {
         $this->initComponentCollections();
-        $this->pageTemplates = new ArrayCollection();
+        $this->pages = new ArrayCollection();
+    }
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
+    {
+        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
+            'message' => 'You must define the uiComponent for this resource.',
+        ]));
     }
 }

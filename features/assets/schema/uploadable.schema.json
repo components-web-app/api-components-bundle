@@ -1,78 +1,80 @@
 {
-    "type": "object",
-    "title": "The Root Schema",
-    "description": "The root schema comprises the entire JSON document.",
-    "default": {},
-    "additionalProperties": true,
-    "required": [
-        "@context",
-        "@id",
-        "@type",
-        "_metadata"
-    ],
-    "properties": {
-        "@context": {
-            "$id": "#/properties/@context",
-            "type": "string",
-            "title": "The @context Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/contexts/DummyFile"
-            ]
-        },
-        "@id": {
-            "$id": "#/properties/@id",
-            "type": "string",
-            "title": "The @id Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "/dummy_files/d031392b4f154350829a6b7f42b68a20"
-            ]
-        },
-        "@type": {
-            "$id": "#/properties/@type",
-            "type": "string",
-            "title": "The @type Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                "DummyFile"
-            ]
-        },
-        "_metadata": {
-            "$id": "#/_metadata",
-            "type": "object",
-            "title": "The _metadata Schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": "",
-            "examples": [
-                {
-                    "persisted": true
-                }
-            ],
-            "properties": {
-                "media_objects": {
-                    "$id": "#/properties/media_objects",
-                    "type": "object",
-                    "required": [
-                        "file"
-                    ],
-                    "patternProperties": {
-                        "^.*": {
-                            "$id": "#/properties/media_objects/filename",
-                            "type": "array",
-                            "minItems": 1,
-                            "title": "The media_objects Schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": [],
-                            "items": { "$ref": "media_object.schema.json" }
-                        }
-                    },
-                    "additionalProperties": true
-                }
-            }
+  "type": "object",
+  "title": "The Root Schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "additionalProperties": true,
+  "required": [
+    "@context",
+    "@id",
+    "@type",
+    "_metadata"
+  ],
+  "properties": {
+    "@context": {
+      "$id": "#/properties/@context",
+      "type": "string",
+      "title": "The @context Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/contexts/DummyFile"
+      ]
+    },
+    "@id": {
+      "$id": "#/properties/@id",
+      "type": "string",
+      "title": "The @id Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/dummy_files/d031392b4f154350829a6b7f42b68a20"
+      ]
+    },
+    "@type": {
+      "$id": "#/properties/@type",
+      "type": "string",
+      "title": "The @type Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "DummyFile"
+      ]
+    },
+    "_metadata": {
+      "$id": "#/_metadata",
+      "type": "object",
+      "title": "The _metadata Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        {
+          "persisted": true
         }
+      ],
+      "properties": {
+        "media_objects": {
+          "$id": "#/properties/media_objects",
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "patternProperties": {
+            "^.*": {
+              "$id": "#/properties/media_objects/filename",
+              "type": "array",
+              "minItems": 1,
+              "title": "The media_objects Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": [],
+              "items": {
+                "$ref": "media_object.schema.json"
+              }
+            }
+          },
+          "additionalProperties": true
+        }
+      }
     }
+  }
 }

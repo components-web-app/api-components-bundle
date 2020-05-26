@@ -24,8 +24,12 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
     public function test_skip_user_validation_if_disabled(): void
     {
         $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
-        $this->assertNull($factory->create(new class() extends AbstractUser {
-        }));
+        $this->assertNull(
+            $factory->create(
+                new class() extends AbstractUser {
+                }
+            )
+        );
     }
 
     public function test_exception_thrown_if_no_token(): void
@@ -60,11 +64,13 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
             ->to(Address::fromString('email@address.com'))
             ->subject('subject')
             ->htmlTemplate('@SilverbackApiComponents/emails/user_password_reset.html.twig')
-            ->context([
-                'website_name' => 'my website',
-                'user' => $user,
-                'redirect_url' => '/transformed-path',
-            ]);
+            ->context(
+                [
+                    'website_name' => 'my website',
+                    'user' => $user,
+                    'redirect_url' => '/transformed-path',
+                ]
+            );
 
         $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordResetEmailFactory::MESSAGE_ID_PREFIX);
     }

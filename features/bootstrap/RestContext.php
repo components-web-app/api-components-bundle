@@ -21,7 +21,6 @@ use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BaseRestContext;
 use Behatch\Context\RestContext as BehatchRestContext;
-use Behatch\HttpCall\Request;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 
 /**
@@ -84,6 +83,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^(false|true)$/
+     */
+    public function castBoolean(string $boolStr): bool
+    {
+        return 'true' === $boolStr;
+    }
+
+    /**
      * @Transform /^base64\((.*)\)$/
      */
     public function castBase64FileToString(string $value): string
@@ -107,7 +114,7 @@ class RestContext implements Context
     /**
      * @Given I send a :method request to :url with data:
      */
-    public function iSendARequestToWithData($method, $url, TableNode $tableNode)
+    public function iSendARequestToWithData($method, $url, TableNode $tableNode): void
     {
         $this->restContext->iSendARequestToWithBody($method, $url, new PyStringNode([json_encode($this->castTableNodeToArray($tableNode))], 0));
     }
@@ -135,48 +142,52 @@ class RestContext implements Context
         return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
     }
 
-    /**
-     * @Then the file :file should exist
-     */
     private function castTableNodeToArray(TableNode $tableNode): array
     {
-        $data = array_map(function ($value) {
-            if ('null' === $value) {
-                $value = null;
-            }
-
-            if ('now' === $value) {
-                $value = $this->getCachedNow();
-            }
-
-            if ('invalid_draft' === $value) {
-                $value = ['name' => ''];
-            }
-
-            if ('valid_draft' === $value) {
-                $value = ['name' => 'John Doe'];
-            }
-
-            if ('valid_published' === $value) {
-                $value = ['name' => 'John Doe', 'description' => 'nobody'];
-            }
-
-            if (\is_string($value)) {
-                if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
-                    $value = $this->castBase64FileToString($matches[1]);
+        $data = array_map(
+            function ($value) {
+                if ('null' === $value) {
+                    $value = null;
                 }
 
-                if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
-                    $value = $this->castBase64FileToSimpleString($matches[1]);
+                if ('now' === $value) {
+                    $value = $this->getCachedNow();
                 }
 
-                if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
-                    $value = $this->castComponentToIri($matches[1]);
+                if ('invalid_draft' === $value) {
+                    $value = ['name' => ''];
                 }
-            }
 
-            return $value;
-        }, array_combine($tableNode->getRow(0), $tableNode->getRow(1)));
+                if ('valid_draft' === $value) {
+                    $value = ['name' => 'John Doe'];
+                }
+
+                if ('valid_published' === $value) {
+                    $value = ['name' => 'John Doe', 'description' => 'nobody'];
+                }
+
+                if (\is_string($value)) {
+                    if (preg_match('/^base64\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castBase64FileToString($matches[1]);
+                    }
+
+                    if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castBase64FileToSimpleString($matches[1]);
+                    }
+
+                    if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
+                        $value = $this->castComponentToIri($matches[1]);
+                    }
+
+                    if (preg_match('/^(false|true)$/', $value, $matches)) {
+                        $value = $this->castBoolean($matches[1]);
+                    }
+                }
+
+                return $value;
+            },
+            array_combine($tableNode->getRow(0), $tableNode->getRow(1))
+        );
 
         if (isset($data['resourceData']) && \is_array($resourceData = $data['resourceData'])) {
             unset($data['resourceData']);
