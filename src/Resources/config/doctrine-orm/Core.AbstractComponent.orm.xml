@@ -9,7 +9,11 @@
         </id>
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
         <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
-        <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="component" fetch="LAZY" orphan-removal="true"/>
+        <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="component" fetch="LAZY" orphan-removal="true">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+        </one-to-many>
         <many-to-many field="componentCollections" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="components" fetch="LAZY">
             <join-table name="abstract_component_component_collection">
                 <join-columns>

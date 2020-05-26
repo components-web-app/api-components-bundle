@@ -29,7 +29,7 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @var Collection|ComponentPosition[]
      */
-    public Collection $componentPositions;
+    private Collection $componentPositions;
 
     public function __construct()
     {
@@ -40,5 +40,28 @@ abstract class AbstractComponent implements ComponentInterface
     public function isPositionRestricted(): bool
     {
         return false;
+    }
+
+    public function getComponentPositions()
+    {
+        return $this->componentPositions;
+    }
+
+    public function setComponentPositions(iterable $componentPositions): self
+    {
+        $this->componentPositions = new ArrayCollection();
+        foreach ($componentPositions as $componentPosition) {
+            $this->addComponentPosition($componentPosition);
+        }
+
+        return $this;
+    }
+
+    public function addComponentPosition(ComponentPosition $componentPosition): self
+    {
+        $componentPosition->setComponent($this);
+        $this->componentPositions->add($componentPosition);
+
+        return $this;
     }
 }

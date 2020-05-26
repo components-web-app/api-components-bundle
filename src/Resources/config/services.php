@@ -90,9 +90,11 @@ use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UserContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
@@ -174,6 +176,14 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
+        ->set(ApiResourceRouteFinder::class)
+        ->args(
+            [
+                new Reference('api_platform.router'),
+            ]
+        );
+
+    $services
         ->set(ChangeEmailConfirmationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
@@ -189,12 +199,17 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('form.type');
 
     $services
-        ->set(ApiResourceRouteFinder::class)
+        ->set(ComponentContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference('api_platform.router'),
+                new Reference(ComponentContextBuilder::class . '.inner'),
             ]
-        );
+        )
+        ->autoconfigure(false);
+
+    $services
+        ->set(ComponentLoader::class);
 
     $services
         ->set(ChangePasswordListener::class)
