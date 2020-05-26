@@ -218,6 +218,9 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ComponentPositionValidator::class)
+        ->args([
+            new Reference(IriConverterInterface::class),
+        ])
         ->tag('validator.constraint_validator');
 
     $services

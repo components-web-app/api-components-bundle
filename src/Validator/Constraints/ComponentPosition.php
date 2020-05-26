@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraint;
  */
 class ComponentPosition extends Constraint
 {
-    public string $message = 'The component `{{ component }}` is not permitted to be added to the collection `{{ reference }}`';
+    public string $message = 'The IRI `{{ iri }}` is not permitted to be added to the collection `{{ reference }}`. Allowed IRIs: {{ allowed }}';
 
     public function getTargets()
     {
