@@ -1,0 +1,101 @@
+{
+  "allOf": [
+    {
+      "$ref": "timestamped.schema.json"
+    },
+    {
+      "$schema": "http://json-schema.org/draft-07/schema",
+      "$id": "http://example.com/example.json",
+      "type": "object",
+      "title": "The root schema",
+      "description": "The root schema comprises the entire JSON document.",
+      "default": {},
+      "examples": [
+        {
+          "@context": "/contexts/ComponentPosition",
+          "@id": "/_/component_positions/61ffe5b8-a023-11ea-9f5f-acde48001122",
+          "@type": "ComponentPosition",
+          "componentCollection": "/_/component_collections/61ffe1da-a023-11ea-af3c-acde48001122",
+          "component": "/component/dummy_components/61ffe41e-a023-11ea-b865-acde48001122",
+          "sortValue": 0,
+          "createdAt": "2020-05-27T14:07:21+00:00",
+          "modifiedAt": "2020-05-27T14:07:21+00:00",
+          "_metadata": {
+            "persisted": true
+          }
+        }
+      ],
+      "required": [
+        "@context",
+        "@id",
+        "@type",
+        "componentCollection",
+        "component",
+        "sortValue"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "@context": {
+          "$id": "#/properties/@context",
+          "type": "string",
+          "title": "The @context schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/contexts/ComponentPosition"
+          ]
+        },
+        "@id": {
+          "$id": "#/properties/@id",
+          "type": "string",
+          "title": "The @id schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/_/component_positions/61ffe5b8-a023-11ea-9f5f-acde48001122"
+          ]
+        },
+        "@type": {
+          "$id": "#/properties/@type",
+          "type": "string",
+          "title": "The @type schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "ComponentPosition"
+          ]
+        },
+        "componentCollection": {
+          "$id": "#/properties/componentCollection",
+          "type": "string",
+          "title": "The componentCollection schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/_/component_collections/61ffe1da-a023-11ea-af3c-acde48001122"
+          ]
+        },
+        "component": {
+          "$id": "#/properties/component",
+          "type": "string",
+          "title": "The component schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/component/dummy_components/61ffe41e-a023-11ea-b865-acde48001122"
+          ]
+        },
+        "sortValue": {
+          "$id": "#/properties/sortValue",
+          "type": "integer",
+          "title": "The sortValue schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": 0,
+          "examples": [
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

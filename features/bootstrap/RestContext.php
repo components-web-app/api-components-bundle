@@ -62,6 +62,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^(\d+)$/
+     */
+    public function castNumber(string $number): int
+    {
+        return (int) $number;
+    }
+
+    /**
      * @Transform /^component\[([^\[\]]+)\]$/
      */
     public function castComponentToIri(string $component): string
@@ -181,6 +189,10 @@ class RestContext implements Context
 
                     if (preg_match('/^(false|true)$/', $value, $matches)) {
                         $value = $this->castBoolean($matches[1]);
+                    }
+
+                    if (preg_match('/^(\d+)$/', $value, $matches)) {
+                        $value = $this->castNumber($matches[1]);
                     }
                 }
 

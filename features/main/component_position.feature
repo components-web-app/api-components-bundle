@@ -8,16 +8,14 @@ Feature: Component positions
     And I add "Content-Type" header equal to "application/ld+json"
 
   @loginUser
-  Scenario Outline: When I delete a component collection resource, locations are also deleted but components are not
+  Scenario: Create a new component position resource
     Given there is a ComponentCollection with 0 components
     And there is a DummyComponent
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentCollection   | component   |
-      | <componentCollection> | <component> |
+      | componentCollection             | component                  |
+      | component[component_collection] | component[dummy_component] |
     Then the response status code should be 201
-    Examples:
-      | component                  | componentCollection             |
-      | component[dummy_component] | component[component_collection] |
+    And the JSON should be valid according to the schema file "component_position.schema.json"
 
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection
@@ -33,3 +31,38 @@ Feature: Component positions
       | component                       | componentCollection             | status |
       | component[dummy_component]      | component[component_collection] | 400    |
       | component[restricted_component] | component[component_collection] | 201    |
+
+  @loginUser
+  Scenario: ComponentPosition sortValue auto-increments
+    Given there is a ComponentCollection with 1 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentCollection             | component              |
+      | component[component_collection] | component[component_0] |
+    Then the response status code should be 201
+    And the JSON node "sortValue" should be equal to the number 1
+    And the JSON should be valid according to the schema file "component_position.schema.json"
+
+  @loginUser
+  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+    Given there is a ComponentCollection with 3 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentCollection             | component              | sortValue   |
+      | component[component_collection] | component[component_0] | 1           |
+    Then the response status code should be 201
+    And the JSON node "sortValue" should be equal to the number 1
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the component "position_0"
+    And the response status code should be 200
+    And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the JSON node "sortValue" should be equal to the number 0
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the component "position_1"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 2
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the component "position_2"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 3

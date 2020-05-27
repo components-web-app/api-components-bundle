@@ -330,6 +330,7 @@ final class DoctrineContext implements Context
             $position->componentCollection = $componentCollection;
             $position->component = $component;
             $this->manager->persist($position);
+            $this->restContext->components['component_' . $x] = $this->iriConverter->getIriFromItem($component);
             $this->restContext->components['position_' . $x] = $this->iriConverter->getIriFromItem($position);
         }
         $this->manager->flush();

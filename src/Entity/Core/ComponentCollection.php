@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -51,8 +50,6 @@ class ComponentCollection
     public Collection $pages;
 
     /**
-     * @ApiProperty(writable=false)
-     *
      * @var Collection|AbstractComponent[]
      */
     public Collection $components;

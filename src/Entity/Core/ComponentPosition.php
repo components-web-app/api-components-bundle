@@ -19,13 +19,14 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ApiResource(attributes={"order"={"sortValue"="ASC"}})
+ * @ApiResource(attributes={"order"={"sortValue"="ASC"}}, normalizationContext={"groups"={"ComponentPosition:read"}}, denormalizationContext={"groups"={"ComponentPosition:write"}})
  * @AcbAssert\ComponentPosition
  */
 class ComponentPosition
@@ -35,21 +36,24 @@ class ComponentPosition
 
     /**
      * @Assert\NotNull()
+     * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
     public ComponentCollection $componentCollection;
 
     /**
      * @Assert\NotNull()
+     * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
     public AbstractComponent $component;
 
     /**
      * @Assert\NotNull()
+     * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
     public int $sortValue = 0;
 
     /**
-     * @return Collection|AbstractComponent[]|null
+     * @return ComponentPosition[]|Collection|null
      */
     public function getSortCollection(): ?Collection
     {

@@ -99,6 +99,7 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
@@ -234,6 +235,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('api_platform.data_transformer');
+
+    $services
+        ->set(ComponentPositionNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(ComponentPositionValidator::class)

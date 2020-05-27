@@ -38,8 +38,5 @@ Feature: Components
     When I send a "DELETE" request to the component "dummy_component"
     Then the response status code should be 204
 
-  @loginUser
-  Scenario: I can add a component to a component collection.
-
   @wip
   Scenario: I can can configure the component so it must be specifically allowed within a component group to be able to be added to it

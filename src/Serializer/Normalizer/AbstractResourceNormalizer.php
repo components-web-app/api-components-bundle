@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class AbstractResourceNormalizer implements ContextAwareDenormalizerInterface, CacheableSupportsMethodInterface, DenormalizerAwareInterface
+class AbstractResourceNormalizer implements CacheableSupportsMethodInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 
