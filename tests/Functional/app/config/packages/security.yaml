@@ -37,4 +37,4 @@ security:
         - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         # For a specific tests to ensure anonymous users can use publishable
         - { path: ^/component/dummy_publishable_components, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-#        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

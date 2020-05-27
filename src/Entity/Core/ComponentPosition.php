@@ -38,13 +38,13 @@ class ComponentPosition
      * @Assert\NotNull()
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
-    public ComponentCollection $componentCollection;
+    public ?ComponentCollection $componentCollection = null;
 
     /**
      * @Assert\NotNull()
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
-    public AbstractComponent $component;
+    public ?AbstractComponent $component = null;
 
     /**
      * @Assert\NotNull()
