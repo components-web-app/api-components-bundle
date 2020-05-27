@@ -57,7 +57,7 @@ class ComponentPosition
      */
     public function getSortCollection(): ?Collection
     {
-        return $this->componentCollection->componentPositions;
+        return $this->componentCollection ? $this->componentCollection->componentPositions : null;
     }
 
     public function setComponentCollection(ComponentCollection $componentCollection): self

@@ -187,12 +187,10 @@ class RestContext implements Context
                         $value = $this->castComponentToIri($matches[1]);
                     }
 
-                    if (preg_match('/^(false|true)$/', $value, $matches)) {
-                        $value = $this->castBoolean($matches[1]);
-                    }
-
                     if (preg_match('/^(\d+)$/', $value, $matches)) {
                         $value = $this->castNumber($matches[1]);
+                    } elseif (preg_match('/^(false|true)$/', $value, $matches)) {
+                        $value = $this->castBoolean($matches[1]);
                     }
                 }
 
