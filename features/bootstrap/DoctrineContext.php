@@ -346,7 +346,9 @@ final class DoctrineContext implements Context
     {
         /** @var ComponentCollection $collection */
         $collection = $this->iriConverter->getItemFromIri($this->restContext->resources['component_collection']);
-        $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+        if ('' !== $allowedComponent) {
+            $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+        }
         $this->manager->persist($collection);
         $this->manager->flush();
         $this->manager->clear();
