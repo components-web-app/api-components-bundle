@@ -8,6 +8,8 @@ nav_order: 1
 
 This will walk you through the process of creating your first page. In this example we will create the most basic page with just a single component.
 
+> *Remember all the IDs will be automatically generated, so you will need to pay attention in the example POST requests and use the appropriate IDs*
+
 ## Table of contents
 {: .no_toc .text-delta }
 
@@ -191,6 +193,42 @@ You will receive a 201 HTTP response with the resource
   "html": "<p>Hello Covid World</p>",
   "uiComponent": "HtmlComponent",
   "componentCollections": [],
+  "_metadata": {
+    "persisted": true
+  }
+}
+```
+
+## Create a Route
+
+Finally you will want your page to be accessible via a route/path.
+
+
+Send your JSON POST request to `/_/routes`
+
+```json
+{
+  "path": "/example",
+  "name": "example-route",
+  "page": "/_/pages/56fd3fe0-9f69-11ea-9d75-acde48001122"
+}
+```
+
+And your route will be created and returned
+
+```json
+{
+  "@context": "/contexts/Route",
+  "@id": "/_/routes/88a9f186-a0b4-11ea-a314-acde48001122",
+  "@type": "Route",
+  "createdAt": "2020-05-28T07:26:23+00:00",
+  "modifiedAt": "2020-05-28T07:26:23+00:00",
+  "path": "/example",
+  "name": "example-route",
+  "redirect": null,
+  "redirectedFrom": [],
+  "page": "/_/pages/56fd3fe0-9f69-11ea-9d75-acde48001122",
+  "pageData": null,
   "_metadata": {
     "persisted": true
   }
