@@ -48,6 +48,7 @@ use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\RouteDenyAccessListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -727,6 +728,15 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.item_data_provider', ['priority' => 1]);
+
+    $services
+        ->set(RouteDenyAccessListener::class)
+        ->args([
+            new Reference('security.access_map'),
+            new Reference(IriConverterInterface::class),
+            new Reference(Security::class),
+        ])
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE, 'method' => 'onPostDeserialize']);
 
     $services
         ->set(RouteNormalizer::class)
