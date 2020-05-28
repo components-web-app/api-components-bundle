@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,13 +20,17 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ApiResource
+ * @ApiResource(
+ *     normalizationContext={ "groups"={"ComponentCollection:read"} },
+ *     denormalizationContext={ "groups"={"ComponentCollection:write"} }
+ * )
  * @UniqueEntity(fields={"reference"}, message="There is already a ComponentCollection resource with that reference.")
  */
 class ComponentCollection
@@ -37,31 +40,37 @@ class ComponentCollection
 
     /**
      * @Assert\NotBlank(message="Please enter a reference.")
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
     public string $reference;
 
     /**
      * @var Collection|Layout[]
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
     public $layouts;
 
     /**
      * @var Collection|Page[]
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
     public Collection $pages;
 
     /**
-     * @ApiProperty(writable=false)
-     *
      * @var Collection|AbstractComponent[]
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
     public Collection $components;
 
     /**
      * @var Collection|ComponentPosition[]
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
     public Collection $componentPositions;
 
+    /**
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     */
     public ?Collection $allowedComponents = null;
 
     public function __construct()
@@ -91,7 +100,10 @@ class ComponentCollection
 
     public function addLayout(Layout $layout): self
     {
-        $this->layouts->add($layout);
+        if (!$this->layouts->contains($layout)) {
+            $this->layouts->add($layout);
+            $layout->addComponentCollection($this);
+        }
 
         return $this;
     }
@@ -108,7 +120,10 @@ class ComponentCollection
 
     public function addPage(Page $page): self
     {
-        $this->pages->add($page);
+        if (!$this->pages->contains($page)) {
+            $this->pages->add($page);
+            $page->addComponentCollection($this);
+        }
 
         return $this;
     }
@@ -125,7 +140,10 @@ class ComponentCollection
 
     public function addComponent(AbstractComponent $component): self
     {
-        $this->components->add($component);
+        if (!$this->components->contains($component)) {
+            $this->components->add($component);
+            $component->addComponentCollection($this);
+        }
 
         return $this;
     }
@@ -142,7 +160,9 @@ class ComponentCollection
 
     public function addComponentPosition(ComponentPosition $componentPosition): self
     {
-        $this->componentPositions->add($componentPosition);
+        if (!$this->componentPositions->contains($componentPosition)) {
+            $this->componentPositions->add($componentPosition);
+        }
 
         return $this;
     }

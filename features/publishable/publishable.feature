@@ -104,7 +104,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, I should have the draft resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "publishable_published"
+    When I send a "GET" request to the resource "publishable_published"
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
@@ -114,7 +114,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "publishable_published" and the postfix "?published=true"
+    When I send a "GET" request to the resource "publishable_published" and the postfix "?published=true"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
@@ -124,13 +124,13 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I get a draft resource with published=true query filter, I should have a 404 error.
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "publishable_draft" and the postfix "?published=true"
+    When I send a "GET" request to the resource "publishable_draft" and the postfix "?published=true"
     Then the response status code should be 404
 
   @loginUser
   Scenario: As any user, when I get a resource with a past publication date, and a draft resource available with an active publication date, the draft resource replaces the published one, and the old one is removed.
     Given there is a published resource with a draft set to publish at "2020-01-01T00:00:00+00:00"
-    When I send a "GET" request to the component "publishable_published"
+    When I send a "GET" request to the resource "publishable_published"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the component "publishable_draft" should not exist
@@ -141,7 +141,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario Outline: As a user with no draft access, when I get a published resource with a draft resource available, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "publishable_published" and the postfix "?<querystring>"
+    When I send a "GET" request to the resource "publishable_published" and the postfix "?<querystring>"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the JSON should be valid according to the schema file "publishable.schema.json"
@@ -154,7 +154,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: I can use a publishable entity with customised fields
     Given there is a custom publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "publishable_draft"
+    When I send a "GET" request to the resource "publishable_draft"
     Then the response status code should be 200
     And the response should be the component "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
@@ -166,7 +166,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: when the publication date of a draft is reached, it should automatically merge with the published resource
     Given there is a published resource with a draft set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "GET" request to the component "<requestComponent>"
+    When I send a "GET" request to the resource "<requestComponent>"
     Then the response status code should be 200
     And the response should be the component "publishable_published"
     And the JSON node "reference" should be equal to is_draft
@@ -183,7 +183,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" with body:
+    When I send a "PUT" request to the resource "publishable_published" with body:
     """
     {
         "reference": "updated"
@@ -197,7 +197,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with body:
+    When I send a "PUT" request to the resource "publishable_draft" with body:
     """
     {
         "reference": "updated"
@@ -210,7 +210,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" with data:
+    When I send a "PUT" request to the resource "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
@@ -223,7 +223,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published/draft resource with a draft resource available, and set a publication date in the past (or now), it should update the draft resource, merge it with the public resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "<component>" with data:
+    When I send a "PUT" request to the resource "<component>" with data:
       | publishedAt   | reference |
       | <publishedAt> | updated   |
     Then the response status code should be 200
@@ -241,7 +241,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the future, it should update and return the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" with body:
+    When I send a "PUT" request to the resource "publishable_published" with body:
     """
     {
         "publishedAt": "2991-11-11T23:59:59+00:00"
@@ -254,7 +254,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with no draft access, when I update a published resource, it should update and return the published resource.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" with body:
+    When I send a "PUT" request to the resource "publishable_published" with body:
     """
     {
         "reference": "updated"
@@ -267,7 +267,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with no draft access, I cannot update a draft resource.
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with body:
+    When I send a "PUT" request to the resource "publishable_draft" with body:
     """
     {
         "reference": "updated"
@@ -278,7 +278,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: I cannot modify the publishedResource property via the API
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_draft" with body:
+    When I send a "PUT" request to the resource "publishable_draft" with body:
     """
     {
         "reference": "updated",
@@ -293,7 +293,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As any user, when I delete a published resource with a draft resource available, it should delete the published resource and keep the draft.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_published"
+    When I send a "DELETE" request to the resource "publishable_published"
     Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
@@ -301,7 +301,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, I can delete a draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_draft"
+    When I send a "DELETE" request to the resource "publishable_draft"
     Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
@@ -309,14 +309,14 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user which does not normally have draft access, I can delete a component where security groups are configured to allow it
     Given there is a DummyPublishableWithSecurityGroups resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_draft"
+    When I send a "DELETE" request to the resource "publishable_draft"
     Then the response status code should be 204
     And the component "publishable_draft" should not exist
 
   @loginAdmin
   Scenario: As a user with draft access, if I delete a published resource, it will delete the draft instead
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_published"
+    When I send a "DELETE" request to the resource "publishable_published"
     Then the response status code should be 204
     And the component "publishable_draft" should not exist
     And the component "publishable_published" should exist
@@ -324,7 +324,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, if I delete a published resource, with the published=true querystring it will delete the published resource
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_published" and the postfix "?published=true"
+    When I send a "DELETE" request to the resource "publishable_published" and the postfix "?published=true"
     Then the response status code should be 204
     And the component "publishable_published" should not exist
     And the component "publishable_draft" should exist
@@ -332,7 +332,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with no draft access, I cannot delete a draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "DELETE" request to the component "publishable_draft"
+    When I send a "DELETE" request to the resource "publishable_draft"
     Then the response status code should be 404
     And the component "publishable_draft" should exist
     And the component "publishable_published" should exist

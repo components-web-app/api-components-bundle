@@ -171,7 +171,7 @@ final class PublishableContext implements Context
 
         $this->resources[] = $resource;
         $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
-        $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromItem($resource);
 
         return $resource;
     }
@@ -259,7 +259,7 @@ final class PublishableContext implements Context
         $this->resources[] = $resource;
 
         $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
-        $this->restContext->components[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromItem($resource);
 
         return $resource;
     }

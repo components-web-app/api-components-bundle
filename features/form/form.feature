@@ -23,7 +23,7 @@ Feature: Form component that defines a form type created in the application
   Scenario Outline: I can validate a single form field
     Given there is a "test" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "test_form" and the postfix "/submit" with body:
      """
      {
        "test": {
@@ -46,7 +46,7 @@ Feature: Form component that defines a form type created in the application
   Scenario Outline: I send a PATCH request to the form with multiple fields
     Given there is a "test" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "test_form" and the postfix "/submit" with body:
      """
      {
        "test": {
@@ -68,7 +68,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I send a PATCH request to the form with no fields
     Given there is a "test" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "test_form" and the postfix "/submit" with body:
     """
     {
       "test": {}
@@ -83,7 +83,7 @@ Feature: Form component that defines a form type created in the application
 
   Scenario Outline: I send a POST request to the form with fields
     Given there is a "test" form
-    When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "test_form" and the postfix "/submit" with body:
      """
      {
        "test": {
@@ -104,7 +104,7 @@ Feature: Form component that defines a form type created in the application
 
   Scenario: I send a POST request to the form with an invalid root key
     Given there is a "test" form
-    When I send a "POST" request to the component "test_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "test_form" and the postfix "/submit" with body:
     """
     {
       "invalid_root_key": {}
@@ -125,7 +125,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can send a valid field for validation of one of the children in a CollectionType
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -146,7 +146,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can send null children in place of an empty object and validation will still pass only for the submitted fields
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -169,7 +169,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can send an invalid field for validation of one of the children in a CollectionType
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -190,7 +190,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can validate a valid field that is a collection type with a simple field
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -208,7 +208,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can validate a valid field that is a collection type with multiple simple field
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -227,7 +227,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: I can validate an invalid field that is a collection type with a simple field
     Given there is a "nested" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -247,7 +247,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: Validate repeated field - valid
     Given there is a "test_repeated" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "test_repeated_form" and the postfix "/submit" with body:
     """
     {
       "test_repeated": {
@@ -266,7 +266,7 @@ Feature: Form component that defines a form type created in the application
   Scenario: Validate repeated field - invalid
     Given there is a "test_repeated" form
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "test_repeated_form" and the postfix "/submit" with body:
+    When I send a "PATCH" request to the resource "test_repeated_form" and the postfix "/submit" with body:
     """
     {
       "test_repeated": {
@@ -286,7 +286,7 @@ Feature: Form component that defines a form type created in the application
 
   Scenario: Each text_children should have a minimum length of 1 - post invalid form
     Given there is a "nested" form
-    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -308,7 +308,7 @@ Feature: Form component that defines a form type created in the application
 
   Scenario: Children is required - post an invalid form
     Given there is a "nested" form
-    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {
@@ -326,7 +326,7 @@ Feature: Form component that defines a form type created in the application
 
   Scenario: Post a valid form
     Given there is a "nested" form
-    When I send a "POST" request to the component "nested_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "nested_form" and the postfix "/submit" with body:
     """
     {
       "nested": {

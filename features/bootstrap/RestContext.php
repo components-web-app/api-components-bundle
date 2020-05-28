@@ -30,7 +30,7 @@ class RestContext implements Context
 {
     private ?BaseRestContext $restContext;
     private ?MinkContext $minkContext;
-    public array $components = [];
+    public array $resources = [];
     public string $now = '';
     private ?BehatchRestContext $behatchRestContext;
 
@@ -62,11 +62,19 @@ class RestContext implements Context
     }
 
     /**
-     * @Transform /^component\[([^\[\]]+)\]$/
+     * @Transform /^(\d+)$/
      */
-    public function castComponentToIri(string $component): string
+    public function castNumber(string $number): int
     {
-        return $this->components[$component];
+        return (int) $number;
+    }
+
+    /**
+     * @Transform /(?:^|"| )resource\[([^\[\]]+)\](?:$|"| )/
+     */
+    public function castResourceToIri(string $resource): string
+    {
+        return $this->resources[$resource];
     }
 
     /**
@@ -112,6 +120,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^json_decode\((.*)\)$/
+     */
+    public function castFromJson(string $value)
+    {
+        return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * @Given I send a :method request to :url with data:
      */
     public function iSendARequestToWithData($method, $url, TableNode $tableNode): void
@@ -120,26 +136,26 @@ class RestContext implements Context
     }
 
     /**
-     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with body:|)|)$/i
+     * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with body:|)|)$/i
      */
-    public function iSendARequestToTheComponentWithBody(string $method, string $component, ?string $postfix = null, ?PyStringNode $body = null)
+    public function iSendARequestToTheResourceWithBody(string $method, string $resource, ?string $postfix = null, ?PyStringNode $body = null)
     {
-        if (!isset($this->components[$component])) {
-            throw new ExpectationException(sprintf("The component with name $component has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->components))), $this->minkContext->getSession()->getDriver());
+        if (!isset($this->resources[$resource])) {
+            throw new ExpectationException(sprintf("The component with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
         }
-        $endpoint = $this->components[$component] . ($postfix ?: '');
+        $endpoint = $this->resources[$resource] . ($postfix ?: '');
 
         return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body ?? new PyStringNode([], 0));
     }
 
     /**
-     * @When /^I send a "([^"]*)" request to the component "([^"]*)"(?: and the postfix "([^"]*)"|)? with data:$/i
+     * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?: and the postfix "([^"]*)"|)? with data:$/i
      */
-    public function iSendARequestToTheComponentWithData(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
+    public function iSendARequestToTheResourceWithData(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
     {
         $data = $this->castTableNodeToArray($tableNode);
 
-        return $this->iSendARequestToTheComponentWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
+        return $this->iSendARequestToTheResourceWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
     }
 
     private function castTableNodeToArray(TableNode $tableNode): array
@@ -175,12 +191,16 @@ class RestContext implements Context
                         $value = $this->castBase64FileToSimpleString($matches[1]);
                     }
 
-                    if (preg_match('/^component\[([^\[\]]+)\]$/', $value, $matches)) {
-                        $value = $this->castComponentToIri($matches[1]);
+                    if (preg_match('/(?:^|"| )(resource\[([^\[\]]+)\])(?:$|"| )/', $value, $matches)) {
+                        $value = str_replace($matches[1], $this->castResourceToIri($matches[2]), $value);
                     }
 
-                    if (preg_match('/^(false|true)$/', $value, $matches)) {
+                    if (preg_match('/^(\d+)$/', $value, $matches)) {
+                        $value = $this->castNumber($matches[1]);
+                    } elseif (preg_match('/^(false|true)$/', $value, $matches)) {
                         $value = $this->castBoolean($matches[1]);
+                    } elseif (preg_match('/^json_decode\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castFromJson($matches[1]);
                     }
                 }
 

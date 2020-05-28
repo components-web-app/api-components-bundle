@@ -33,7 +33,7 @@ Feature: Timestamped resources
   @loginUser
   Scenario: Use custom timestamped fields
     Given there is a DummyCustomTimestamped resource
-    When I send a "GET" request to the component "dummy_custom_timestamped"
+    When I send a "GET" request to the resource "dummy_custom_timestamped"
     Then the response status code should be 200
     And the JSON node "customCreatedAt" should be now
     And the JSON node "customModifiedAt" should be now
@@ -41,7 +41,7 @@ Feature: Timestamped resources
   @loginUser
   Scenario: Use custom timestamped fields
     Given there is a DummyTimestampedWithSerializationGroups resource
-    When I send a "GET" request to the component "dummy_custom_timestamped"
+    When I send a "GET" request to the resource "dummy_custom_timestamped"
     Then the response status code should be 200
     And the JSON node "createdAt" should be now
     And the JSON node "modifiedAt" should be now

@@ -38,11 +38,28 @@ class ComponentPositionValidator extends ConstraintValidator
     public function validate($componentPosition, Constraint $constraint): void
     {
         $collection = $componentPosition->componentCollection;
-        if (($allowed = $collection->allowedComponents) && !$allowed->contains($iri = $this->iriConverter->getIriFromResourceClass(\get_class($componentPosition->component)))) {
-            $this->context->buildViolation($constraint->message)
+        if (!$collection) {
+            return;
+        }
+
+        $iri = $this->iriConverter->getIriFromResourceClass(\get_class($componentPosition->component));
+
+        if ($allowedComponents = $collection->allowedComponents) {
+            if (!$allowedComponents->contains($iri)) {
+                $this->context->buildViolation($constraint->message)
+                    ->setParameter('{{ iri }}', $iri)
+                    ->setParameter('{{ reference }}', $collection->reference)
+                    ->setParameter('{{ allowed }}', implode(',', $allowedComponents->toArray()))
+                    ->addViolation();
+            }
+
+            return;
+        }
+
+        if ($componentPosition->component->isPositionRestricted()) {
+            $this->context->buildViolation($constraint->restrictedMessage)
                 ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
-                ->setParameter('{{ allowed }}', implode(',', $collection->allowedComponents->toArray()))
                 ->addViolation();
         }
     }

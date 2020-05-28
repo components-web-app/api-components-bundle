@@ -32,14 +32,59 @@ trait UiTrait
     public ?array $uiClassNames = null;
 
     /**
-     * @ORM\ManyToMany(targetEntity="ComponentCollection")
+     * @ORM\ManyToMany(targetEntity=ComponentCollection::class)
      *
      * @var Collection|ComponentCollection[]
      */
-    public Collection $componentCollections;
+    private Collection $componentCollections;
 
     private function initComponentCollections(): void
     {
         $this->componentCollections = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection|ComponentCollection[]
+     */
+    public function getComponentCollections()
+    {
+        return $this->componentCollections;
+    }
+
+    /**
+     * @return static
+     */
+    public function setComponentCollections(iterable $componentCollections)
+    {
+        $this->componentCollections = new ArrayCollection();
+        foreach ($componentCollections as $componentCollection) {
+            $this->addComponentCollection($componentCollection);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public function addComponentCollection(ComponentCollection $componentCollection)
+    {
+        if (!$this->componentCollections->contains($componentCollection)) {
+            $this->componentCollections->add($componentCollection);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public function removeComponentCollection(ComponentCollection $componentCollection)
+    {
+        if ($this->componentCollections->contains($componentCollection)) {
+            $this->componentCollections->remove($componentCollection);
+        }
+
+        return $this;
     }
 }

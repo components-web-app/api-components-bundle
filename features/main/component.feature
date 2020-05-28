@@ -31,15 +31,17 @@ Feature: Components
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
+    And I save the JSON node "@id" as the component "new_component"
+    And I save the JSON node "componentPositions[0]" as the component "new_component_position"
+    Then I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "new_component_position"
+    And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the JSON node "componentCollection" should be equal to the string "/_/component_collections/41c57f7a-9f69-11ea-8188-acde48001122"
+    And the JSON node "component" should be equal to the IRI of the resource "new_component"
 
   @loginUser
   Scenario: When I delete a component
     Given there is a DummyComponent
-    When I send a "DELETE" request to the component "dummy_component"
+    When I send a "DELETE" request to the resource "dummy_component"
     Then the response status code should be 204
-
-  @loginUser
-  Scenario: I can add a component to a component collection.
-
-  @wip
-  Scenario: I can can configure the component so it must be specifically allowed within a component group to be able to be added to it

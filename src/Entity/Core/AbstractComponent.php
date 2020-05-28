@@ -13,13 +13,18 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
 /**
+ * We must define this as an API resource, otherwise when serializing and the relation is to this class,
+ * API Platform does not know that it will be a resource and will make it an object, not an IRI.
+ *
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(collectionOperations={}, itemOperations={})
  */
 abstract class AbstractComponent implements ComponentInterface
 {

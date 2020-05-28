@@ -58,27 +58,27 @@ class FormView
     ];
 
     /**
-     * @Groups({"AbstractComponent:component:read"})
+     * @Groups({"Form:component:read"})
      */
     private array $vars;
 
     /**
-     * @Groups({"AbstractComponent:component:read"})
+     * @Groups({"Form:component:read"})
      */
     private DoctrineCollection $children;
 
     /**
-     * @Groups({"AbstractComponent:component:read"})
+     * @Groups({"Form:component:read"})
      */
     private bool $rendered;
 
     /**
-     * @Groups({"AbstractComponent:component:read"})
+     * @Groups({"Form:component:read"})
      */
     private bool $methodRendered;
 
     /**
-     * @Groups({"AbstractComponent:component:read"})
+     * @Groups({"Form:component:read"})
      */
     private FormInterface $form;
 

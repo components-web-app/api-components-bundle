@@ -26,7 +26,7 @@ Feature: Forgot password system
 
   Scenario Outline: I can get a Password updated form with pre-filled fields
     Given there is a "password_update" form
-    When I send a "GET" request to the component "password_update_form" and the postfix "<postfix>"
+    When I send a "GET" request to the resource "password_update_form" and the postfix "<postfix>"
     Then the response status code should be 200
     And the JSON node "formView.children[0].vars.value" should be equal to "<expectedUsername>"
     And the JSON node "formView.children[1].vars.value" should be equal to "<expectedToken>"
@@ -39,7 +39,7 @@ Feature: Forgot password system
     Given there is a "password_update" form
     And there is a user with the username "username" password "password" and role "ROLE_USER"
     And the user has the newPasswordConfirmationToken "abc123" requested at "now"
-    When I send a "POST" request to the component "password_update_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "password_update_form" and the postfix "/submit" with body:
     """
     {
       "password_update": {
@@ -59,7 +59,7 @@ Feature: Forgot password system
     Given there is a "password_update" form
     And there is a user with the username "username" password "password" and role "ROLE_USER"
     And the user has the newPasswordConfirmationToken "abc123" requested at "<requestedAt>"
-    When I send a "POST" request to the component "password_update_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "password_update_form" and the postfix "/submit" with body:
     """
     {
       "password_update": {
@@ -85,7 +85,7 @@ Feature: Forgot password system
     Given there is a "password_update" form
     And there is a user with the username "username" password "password" and role "ROLE_USER"
     And the user has the newPasswordConfirmationToken "abc123" requested at "now"
-    When I send a "POST" request to the component "password_update_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "password_update_form" and the postfix "/submit" with body:
     """
     {
       "password_update": {

@@ -39,7 +39,7 @@ Feature: A Collection component resource
   @loginUser
   Scenario: I can delete a collection component
     Given there is a Collection resource
-    When I send a "DELETE" request to the component "collection"
+    When I send a "DELETE" request to the resource "collection"
     Then the response status code should be 204
 
 
@@ -47,7 +47,7 @@ Feature: A Collection component resource
   Scenario: I can get a collection and the default pagination is enabled
     Given there are 50 DummyComponent resources
     And there is a Collection resource
-    When I send a "GET" request to the component "collection"
+    When I send a "GET" request to the resource "collection"
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "30" elements
     And the JSON node "collection.hydra:totalItems" should be equal to "50"
@@ -71,7 +71,7 @@ Feature: A Collection component resource
   Scenario Outline: I can configure component pagination
     Given there are 50 DummyResourceWithPagination resources
     And there is a Collection resource with the resource IRI "/dummy_resource_with_paginations"
-    When I send a "GET" request to the component "collection" and the postfix "<postfix>"
+    When I send a "GET" request to the resource "collection" and the postfix "<postfix>"
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "<total>" elements
     Examples:
@@ -86,7 +86,7 @@ Feature: A Collection component resource
   Scenario Outline: I can have default querystring parameters and filters
     Given there are 80 DummyResourceWithFilters resources
     And there is a Collection resource with the resource IRI "/dummy_resource_with_filters" and default query string parameters
-    When I send a "GET" request to the component "collection" and the postfix "<postfix>"
+    When I send a "GET" request to the resource "collection" and the postfix "<postfix>"
     Then the response status code should be 200
     And the JSON node "collection.hydra:member" should have "<total>" elements
     Examples:

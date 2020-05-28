@@ -10,6 +10,6 @@ Feature: Super Admin users have more information on users
   @loginSuperAdmin
   Scenario:
     Given there is a user with the username "my_user" password "password" and role "ROLE_ADMIN"
-    When I send a "GET" request to the component "user"
+    When I send a "GET" request to the resource "user"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "user_super_admin.schema.json"

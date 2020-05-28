@@ -119,7 +119,7 @@ final class DoctrineContext implements Context
 
         $token = $this->jwtManager->create($user);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
-        $this->restContext->components['login_user'] = $this->iriConverter->getIriFromItem($user);
+        $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromItem($user);
     }
 
     /**
@@ -188,7 +188,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($form, true);
         $this->manager->persist($form);
         $this->manager->flush();
-        $this->restContext->components[$type . '_form'] = $this->iriConverter->getIriFromItem($form);
+        $this->restContext->resources[$type . '_form'] = $this->iriConverter->getIriFromItem($form);
     }
 
     /**
@@ -207,7 +207,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
-        $this->restContext->components['user'] = $this->iriConverter->getIriFromItem($user);
+        $this->restContext->resources['user'] = $this->iriConverter->getIriFromItem($user);
     }
 
     /**
@@ -216,7 +216,7 @@ final class DoctrineContext implements Context
     public function theUserHasTheNewPasswordConfirmationToken(string $token, string $dateTime): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
         $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
         $this->manager->flush();
     }
@@ -227,7 +227,7 @@ final class DoctrineContext implements Context
     public function theUserIsDisabled(): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
         $user->setEnabled(false);
         $this->manager->flush();
     }
@@ -238,7 +238,7 @@ final class DoctrineContext implements Context
     public function theUserEmailIsNotVerified(?string $verificationToken = null): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
         $user->setEmailAddressVerified(false);
         if ($verificationToken) {
             $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $verificationToken));
@@ -252,7 +252,7 @@ final class DoctrineContext implements Context
     public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->components['user']);
+        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
         $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
         $this->manager->flush();
     }
@@ -265,7 +265,7 @@ final class DoctrineContext implements Context
         $component = new DummyComponent();
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_component'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -276,7 +276,7 @@ final class DoctrineContext implements Context
         $component = new RestrictedComponent();
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['restricted_component'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['restricted_component'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -289,7 +289,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($component, true);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -302,7 +302,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($component, true);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -330,12 +330,13 @@ final class DoctrineContext implements Context
             $position->componentCollection = $componentCollection;
             $position->component = $component;
             $this->manager->persist($position);
-            $this->restContext->components['position_' . $x] = $this->iriConverter->getIriFromItem($position);
+            $this->restContext->resources['component_' . $x] = $this->iriConverter->getIriFromItem($component);
+            $this->restContext->resources['position_' . $x] = $this->iriConverter->getIriFromItem($position);
         }
         $this->manager->flush();
         $this->manager->clear();
 
-        $this->restContext->components['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
+        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
     }
 
     /**
@@ -344,8 +345,10 @@ final class DoctrineContext implements Context
     public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent): void
     {
         /** @var ComponentCollection $collection */
-        $collection = $this->iriConverter->getItemFromIri($this->restContext->components['component_collection']);
-        $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+        $collection = $this->iriConverter->getItemFromIri($this->restContext->resources['component_collection']);
+        if ('' !== $allowedComponent) {
+            $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+        }
         $this->manager->persist($collection);
         $this->manager->flush();
         $this->manager->clear();
@@ -361,7 +364,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $this->manager->flush();
-        $this->restContext->components['page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromItem($page);
     }
 
     /**
@@ -376,7 +379,7 @@ final class DoctrineContext implements Context
                 ->setName(sprintf('/route-%s', $x));
             $this->timestampedHelper->persistTimestampedFields($route, true);
             $this->manager->persist($route);
-            $this->restContext->components['route_' . $x] = $this->iriConverter->getIriFromItem($route);
+            $this->restContext->resources['route_' . $x] = $this->iriConverter->getIriFromItem($route);
         }
         $this->manager->flush();
     }
@@ -400,8 +403,8 @@ final class DoctrineContext implements Context
         $route->setPage($page);
         $this->manager->flush();
 
-        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
-        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromItem($page);
     }
 
     /**
@@ -440,8 +443,8 @@ final class DoctrineContext implements Context
         $finalRoute->setPage($page);
         $this->manager->flush();
 
-        $this->restContext->components['route'] = $this->iriConverter->getIriFromItem($route);
-        $this->restContext->components['route_page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromItem($route);
+        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromItem($page);
     }
 
     /**
@@ -454,7 +457,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($layout, true);
         $this->manager->persist($layout);
         $this->manager->flush();
-        $this->restContext->components['layout'] = $this->iriConverter->getIriFromItem($layout);
+        $this->restContext->resources['layout'] = $this->iriConverter->getIriFromItem($layout);
     }
 
     /**
@@ -482,7 +485,7 @@ final class DoctrineContext implements Context
     {
         $this->manager->clear();
         try {
-            $iri = $this->restContext->components[$name];
+            $iri = $this->restContext->resources[$name];
             $this->iriConverter->getItemFromIri($iri);
             throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
         } catch (ItemNotFoundException $exception) {
@@ -496,7 +499,7 @@ final class DoctrineContext implements Context
     {
         $this->manager->clear();
         try {
-            $iri = $this->restContext->components[$name];
+            $iri = $this->restContext->resources[$name];
             $this->iriConverter->getItemFromIri($iri);
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());

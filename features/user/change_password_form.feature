@@ -11,7 +11,7 @@ Feature: Register process via a form
   @loginUser
   Scenario: I can change my password
     Given there is a "change_password" form
-    When I send a "POST" request to the component "change_password_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "change_password_form" and the postfix "/submit" with body:
     """
     {
       "change_password": {
@@ -31,7 +31,7 @@ Feature: Register process via a form
   @loginUser
   Scenario: I cannot change my password if my old password is incorrect
     Given there is a "change_password" form
-    When I send a "POST" request to the component "change_password_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "change_password_form" and the postfix "/submit" with body:
     """
     {
       "change_password": {
@@ -52,7 +52,7 @@ Feature: Register process via a form
   @loginUser
   Scenario: I cannot change my password if my passwords do not match
     Given there is a "change_password" form
-    When I send a "POST" request to the component "change_password_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "change_password_form" and the postfix "/submit" with body:
     """
     {
       "change_password": {
@@ -74,7 +74,7 @@ Feature: Register process via a form
   Scenario: If I submit the username field, it is ignored.
     Given there is a "change_password" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
-    When I send a "POST" request to the component "change_password_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "change_password_form" and the postfix "/submit" with body:
     """
     {
       "change_password": {

@@ -59,9 +59,9 @@ class UploadsContext implements Context
      */
     public function removeFile(): void
     {
-        if (isset($this->restContext->components['dummy_uploadable'])) {
+        if (isset($this->restContext->resources['dummy_uploadable'])) {
             try {
-                $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->components['dummy_uploadable']));
+                $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->resources['dummy_uploadable']));
             } catch (ItemNotFoundException $e) {
                 // we may heva just deleted this resource 'dummy_uploadable'
             }
@@ -78,7 +78,7 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->components['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
     }
 
     /**
@@ -86,7 +86,7 @@ class UploadsContext implements Context
      */
     public function iRequestTheDownloadEndpoint(?string $postfix = null)
     {
-        $endpoint = $this->restContext->components['dummy_uploadable'] . '/download/file';
+        $endpoint = $this->restContext->resources['dummy_uploadable'] . '/download/file';
         if ($postfix) {
             $endpoint .= $postfix;
         }
@@ -95,11 +95,11 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Then the JSON node :node should be a valid download link for the component :component
+     * @Then the JSON node :node should be a valid download link for the resource :resource
      */
-    public function thenTheJsonNodeShoudBeAValidDownloadLinkForTheComponent($node, $component)
+    public function thenTheJsonNodeShoudBeAValidDownloadLinkForTheResource($node, $resource)
     {
-        $endpoint = 'http://example.com' . $this->restContext->components['dummy_uploadable'] . '/download/file';
+        $endpoint = 'http://example.com' . $this->restContext->resources[$resource] . '/download/file';
         $this->behatchJsonContext->theJsonNodeShouldBeEqualToTheString($node, $endpoint);
     }
 }
