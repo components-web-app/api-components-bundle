@@ -30,7 +30,7 @@ class AbstractComponentTest extends TestCase
 
     public function test_construct(): void
     {
-        $this->assertInstanceOf(ArrayCollection::class, $this->anonymousClassFromAbstract->componentCollections);
-        $this->assertCount(0, $this->anonymousClassFromAbstract->componentCollections);
+        $this->assertInstanceOf(ArrayCollection::class, $this->anonymousClassFromAbstract->getComponentCollections());
+        $this->assertCount(0, $this->anonymousClassFromAbstract->getComponentCollections());
     }
 }

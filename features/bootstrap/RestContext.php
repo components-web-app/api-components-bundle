@@ -70,7 +70,7 @@ class RestContext implements Context
     }
 
     /**
-     * @Transform /(?:"| )resource\[([^\[\]]+)\](?:"| )/
+     * @Transform /(?:^|"| )resource\[([^\[\]]+)\](?:$|"| )/
      */
     public function castResourceToIri(string $resource): string
     {
@@ -191,7 +191,7 @@ class RestContext implements Context
                         $value = $this->castBase64FileToSimpleString($matches[1]);
                     }
 
-                    if (preg_match('/(?:"| )(resource\[([^\[\]]+)\])(?:"| )/', $value, $matches)) {
+                    if (preg_match('/(?:^|"| )(resource\[([^\[\]]+)\])(?:$|"| )/', $value, $matches)) {
                         $value = str_replace($matches[1], $this->castResourceToIri($matches[2]), $value);
                     }
 
