@@ -23,12 +23,15 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * Routes have special security. Getting a collection will NOT implement this security as it is carried out per item.
+ * Only the most trusted people should get access to all routes for management.
+ *
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
  * @ApiResource(
  *     collectionOperations={
- *         "get",
+ *         "get"={ "security"="is_granted('ROLE_SUPER_ADMIN')" },
  *         "post"
  *     },
  *     itemOperations={
