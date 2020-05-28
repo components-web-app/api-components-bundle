@@ -65,10 +65,10 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario: I can get an image media resource with imagine filters configured
     Given there is a DummyUploadableWithImagineFilters
-    When I send a "GET" request to the component "dummy_uploadable"
+    When I send a "GET" request to the resource "dummy_uploadable"
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
-    And the JSON node "_metadata.media_objects.file[0].contentUrl" should be a valid download link for the component "dummy_uploadable"
+    And the JSON node "_metadata.media_objects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
     And the JSON node "_metadata.media_objects.file[0].@type" should be equal to the string "http://schema.org/MediaObject"
     And the JSON node "_metadata.media_objects.file[0].@context.formattedFileSize" should be equal to the string "http://schema.org/contentSize"
     And the JSON node "_metadata.media_objects.file[0].@context.contentUrl" should be equal to the string "http://schema.org/contentUrl"
@@ -103,7 +103,7 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario Outline: I can update a media resource
     Given there is a DummyUploadableWithImagineFilters
-    When I send a "PUT" request to the component "dummy_uploadable" with data:
+    When I send a "PUT" request to the resource "dummy_uploadable" with data:
       | file           |
       | base64(<file>) |
     Then the response status code should be 200
@@ -118,5 +118,5 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario: I can delete a media resource
     Given there is a DummyUploadableWithImagineFilters
-    When I send a "DELETE" request to the component "dummy_uploadable"
+    When I send a "DELETE" request to the resource "dummy_uploadable"
     Then the response status code should be 204

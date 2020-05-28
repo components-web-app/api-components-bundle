@@ -9,13 +9,13 @@ Feature: Prevent disabled users from logging in
 
   Scenario: I can use a login form (it is a helper form so that styling and front-end functionality can remain the same)
     Given there is a "login" form
-    When I send a "GET" request to the component "login_form"
+    When I send a "GET" request to the resource "login_form"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  Scenario: I cannot submit a login form back to the component
+  Scenario: I cannot submit a login form back to the resource
     Given there is a "login" form
-    When I send a "POST" request to the component "login_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "login_form" and the postfix "/submit" with body:
     """
     {
       "user_login": {}

@@ -12,7 +12,7 @@ Feature: Register process via a form
   Scenario Outline: Submit a successful change email request
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
-    When I send a "POST" request to the component "new_email_form" and the postfix "<postfix>" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "<postfix>" with body:
     """
     {
       "new_email_address": {
@@ -37,7 +37,7 @@ Feature: Register process via a form
   Scenario Outline: Test invalid referer and missing referer and origin headers
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
     """
     {
       "new_email_address": {
@@ -62,7 +62,7 @@ Feature: Register process via a form
   Scenario: I get an invalid response if I try to change my email address to the same as it already is
     Given there is a "new_email" form
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
     """
     {
       "new_email_address": {
@@ -79,7 +79,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
     """
     {
       "new_email_address": {
@@ -96,7 +96,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "PUT" request to the component "user" with body:
+    When I send a "PUT" request to the resource "user" with body:
     """
     {
       "newEmailAddress": ""
@@ -112,7 +112,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "PUT" request to the component "user" with body:
+    When I send a "PUT" request to the resource "user" with body:
     """
     {
       "newEmailAddress": null
@@ -128,7 +128,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
     """
     {
       "new_email_address": {
@@ -146,7 +146,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "POST" request to the component "new_email_form" and the postfix "/submit" with body:
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
     """
     {
       "new_email_address": {

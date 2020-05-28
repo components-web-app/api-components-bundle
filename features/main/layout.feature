@@ -39,5 +39,5 @@ Feature: Layout resources
   @loginUser
   Scenario: I can delete a route
     Given there is a Layout
-    When I send a "DELETE" request to the component "layout"
+    When I send a "DELETE" request to the resource "layout"
     Then the response status code should be 204

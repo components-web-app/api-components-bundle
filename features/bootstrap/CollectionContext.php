@@ -92,7 +92,7 @@ class CollectionContext implements Context
         $component->setResourceIri($iri);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['collection'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['collection'] = $this->iriConverter->getIriFromItem($component);
     }
 
     /**
@@ -110,6 +110,6 @@ class CollectionContext implements Context
         $component->setResourceIri($iri);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->components['collection'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['collection'] = $this->iriConverter->getIriFromItem($component);
     }
 }

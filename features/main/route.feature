@@ -13,14 +13,14 @@ Feature: Route resources
     And there is a Route "/other" with a page
     When I send a "POST" request to "/_/routes" with data:
       | path     | name         | page            | redirect         |
-      | /contact | contact-page | component[page] | component[route] |
+      | /contact | contact-page | resource[page] | resource[route] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
 
   @loginUser
   Scenario: I can delete a route
     Given there is a DummyComponent
-    When I send a "DELETE" request to the component "dummy_component"
+    When I send a "DELETE" request to the resource "dummy_component"
     Then the response status code should be 204
 
   Scenario: A route will output the nested redirect routes and data for the redirected page
@@ -29,4 +29,4 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "route.schema.json"
     And the JSON node redirectPath should be equal to the string "/contact-new"
-    And the JSON node page should be equal to the string "component[route_page]"
+    And the JSON node page should be equal to the string "resource[route_page]"

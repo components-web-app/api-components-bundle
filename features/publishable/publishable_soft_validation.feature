@@ -11,7 +11,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: I get a draft resource with draft access, so should also have headers and violations
     Given there is a DummyPublishableWithValidation resource
-    When I send a "GET" request to the component "publishable_draft" and the postfix "?<postfix>"
+    When I send a "GET" request to the resource "publishable_draft" and the postfix "?<postfix>"
     Then the response status code should be <statusCode>
     And the JSON should be valid according to the schema file "<schema>"
     And the header "valid-to-publish" should be equal to "<validToPublish>"
@@ -24,7 +24,7 @@ Feature: Soft validation on draft resources
 
   Scenario Outline: A user without draft access gets a published resource which is no longer valid to be published. They should not see violations.
     Given there is a DummyPublishableWithValidation resource set to publish at "1970-01-01 00:00:00"
-    When I send a "GET" request to the component "publishable_published" and the postfix "?<postfix>"
+    When I send a "GET" request to the resource "publishable_published" and the postfix "?<postfix>"
     Then the response status code should be <statusCode>
     And the JSON should be valid according to the schema file "<schema>"
     And the header "valid-to-publish" should not exist
@@ -39,7 +39,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: When I update a draft resource, there should be a header to indicate whether validation is passing if I were to try and publish it
     Given there is a DummyPublishableWithValidation resource
-    When I send a "PUT" request to the component "publishable_draft" with data:
+    When I send a "PUT" request to the resource "publishable_draft" with data:
       | resourceData |
       | <data>       |
     Then the response status code should be 200
@@ -53,7 +53,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is OK for a draft, but not for published
     Given there is a DummyPublishableWithValidation resource
-    When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
+    When I send a "PUT" request to the resource "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -66,7 +66,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: I update a draft resource with data that is valid to make it published when ready
     Given there is a DummyPublishableWithValidation resource
-    When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
+    When I send a "PUT" request to the resource "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -80,7 +80,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: I update a draft resource and expect to see a hard fail with validation errors and no need to populate metadata as the output is the violations
     Given there is a DummyPublishableWithValidation resource
-    When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
+    When I send a "PUT" request to the resource "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -100,7 +100,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario Outline: Updating a resource to published. The querystring should make no difference and the response is published so no header should exist
     Given there is a DummyPublishableWithValidation resource
-    When I send a "PUT" request to the component "publishable_draft" and the postfix "?<postfix>" with data:
+    When I send a "PUT" request to the resource "publishable_draft" and the postfix "?<postfix>" with data:
       | publishedAt   | resourceData |
       | <publishedAt> | <data>       |
     Then the response status code should be <httpStatus>
@@ -114,7 +114,7 @@ Feature: Soft validation on draft resources
   @loginAdmin
   Scenario: I update a published resource with the querystring "validate_published=false" and "published=true" should have no effect and published resource validation should still apply
     Given there is a DummyPublishableWithValidation resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the component "publishable_published" and the postfix "?validate_published=false&published=true" with body:
+    When I send a "PUT" request to the resource "publishable_published" and the postfix "?validate_published=false&published=true" with body:
      """
      {
        "description": ""

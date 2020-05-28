@@ -19,8 +19,8 @@ Feature: Page resources
     And the JSON should be valid according to the schema file "page.schema.json"
     Examples:
       | route              | parentRoute            | layout              | componentCollection             | reference | title     | metaDescription | nested |
-      | component[route_0] | component[route_1]     | component[layout]   | component[component_collection] | home      | Home page | my meta         | false  |
-      | null               | null                   | component[layout]   | null                            | home      | null      | null            | true   |
+      | resource[route_0] | resource[route_1]     | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  |
+      | null               | null                   | resource[layout]   | null                            | home      | null      | null            | true   |
 
   @loginUser
   Scenario Outline: The page resource validates properly
@@ -35,7 +35,7 @@ Feature: Page resources
     Examples:
       | layout             | reference | propertyPath       | message                                    |
       | null               | home      | layout             | Please specify a layout.                   |
-      | component[layout]  |           | reference          | Please enter a reference.                  |
+      | resource[layout]  |           | reference          | Please enter a reference.                  |
 
   @loginUser
   Scenario Outline: The page resource returns errors on incorrect data types
@@ -48,11 +48,11 @@ Feature: Page resources
     And the JSON node "hydra:description" should be equal to the string '<message>'
     Examples:
       | layout             | reference | nested | message                                                               |
-      | component[layout]  | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |
-      | component[layout]  | null      | true   | The type of the "reference" attribute must be "string", "NULL" given. |
+      | resource[layout]  | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |
+      | resource[layout]  | null      | true   | The type of the "reference" attribute must be "string", "NULL" given. |
 
   @loginUser
   Scenario: I can delete a page
     Given there is a Page
-    When I send a "DELETE" request to the component "page"
+    When I send a "DELETE" request to the resource "page"
     Then the response status code should be 204

@@ -12,7 +12,7 @@ Feature: Receive notification emails on important user changes
     Given there is a user with the username "user@user.co" password "password" and role "ROLE_USER"
     And the user is disabled
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "enabled": true
@@ -25,7 +25,7 @@ Feature: Receive notification emails on important user changes
   Scenario: I do not receive an email if my account is disabled
     Given there is a user with the username "user@user.co" password "password" and role "ROLE_USER"
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "enabled": false
@@ -38,7 +38,7 @@ Feature: Receive notification emails on important user changes
   Scenario: I do not receive an email is the account was already enabled
     Given there is a user with the username "user@user.co" password "password" and role "ROLE_USER"
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the component "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "enabled": true
@@ -52,7 +52,7 @@ Feature: Receive notification emails on important user changes
     Given I add "Content-Type" header equal to "application/merge-patch+json"
     And I add "referer" header equal to "http://www.website.com"
     And there is a user with the username "my_username" password "pass" and role "ROLE_USER"
-    When I send a "PATCH" request to the component "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "username": "test.user@example.com"

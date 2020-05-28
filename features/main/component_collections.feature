@@ -32,16 +32,16 @@ Feature: ComponentCollection resource
   @loginUser
   Scenario: When I delete a component collection resource, locations are also deleted but components are not
     Given there is a ComponentCollection with 4 components
-    When I send a "DELETE" request to the component "component_collection"
+    When I send a "DELETE" request to the resource "component_collection"
     Then the response status code should be 204
     And there should be 4 DummyComponent resources
     And there should be 0 ComponentPosition resources
 
-  Scenario: Components are ordered by the sortValue of the ComponentPosition
+  Scenario: Components are ordered by the sortValue of the resourcePosition
     Given there is a ComponentCollection with 4 components
-    When I send a "GET" request to the component "component_collection"
+    When I send a "GET" request to the resource "component_collection"
     Then the response status code should be 200
-    And the JSON node "componentPositions[0]" should be equal to the IRI of the component "position_0"
-    And the JSON node "componentPositions[1]" should be equal to the IRI of the component "position_1"
-    And the JSON node "componentPositions[2]" should be equal to the IRI of the component "position_2"
-    And the JSON node "componentPositions[3]" should be equal to the IRI of the component "position_3"
+    And the JSON node "componentPositions[0]" should be equal to the IRI of the resource "position_0"
+    And the JSON node "componentPositions[1]" should be equal to the IRI of the resource "position_1"
+    And the JSON node "componentPositions[2]" should be equal to the IRI of the resource "position_2"
+    And the JSON node "componentPositions[3]" should be equal to the IRI of the resource "position_3"

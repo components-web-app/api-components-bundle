@@ -126,11 +126,11 @@ class JsonContext implements Context
     /**
      * @Then the response should be the component :name
      */
-    public function theResponseShouldBeTheComponent($name): void
+    public function theResponseShouldBeTheResource($name): void
     {
         $response = $this->getJsonAsArray();
         Assert::assertArrayHasKey('@id', $response);
-        Assert::assertEquals($this->restContext->components[$name], $response['@id']);
+        Assert::assertEquals($this->restContext->resources[$name], $response['@id']);
     }
 
     /**
@@ -149,23 +149,23 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then the JSON node :name should be equal to the IRI of the component :component
+     * @Then the JSON node :name should be equal to the IRI of the resource :resource
      */
-    public function theJsonNodeShouldBeEqualToTheIriOfTheComponent(string $name, string $component)
+    public function theJsonNodeShouldBeEqualToTheIriOfTheResource(string $name, string $resource)
     {
-        $this->jsonContext->theJsonNodeShouldBeEqualTo($name, $this->restContext->components[$component]);
+        $this->jsonContext->theJsonNodeShouldBeEqualTo($name, $this->restContext->resources[$resource]);
     }
 
     /**
-     * @Then I save the JSON node :name as the component :component
+     * @Then I save the JSON node :name as the component :resource
      */
-    public function iSaveTheJsonNodeAsTheComponent(string $name, string $component)
+    public function iSaveTheJsonNodeAsTheResource(string $name, string $resource)
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $name);
 
-        $this->restContext->components[$component] = $actual;
+        $this->restContext->resources[$resource] = $actual;
     }
 
     private function getJson()

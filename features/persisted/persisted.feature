@@ -9,7 +9,7 @@ Feature: A user should know whether the data is a persisted object in the databa
 
   Scenario: An object has been persisted to the database
     Given there is a DummyComponent
-    When I send a "GET" request to the component "dummy_component"
+    When I send a "GET" request to the resource "dummy_component"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "persisted.schema.json"
     And the JSON node "_metadata.persisted" should be equal to "true"
