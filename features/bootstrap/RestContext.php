@@ -70,7 +70,7 @@ class RestContext implements Context
     }
 
     /**
-     * @Transform /^resource\[([^\[\]]+)\]$/
+     * @Transform /(?:"| )resource\[([^\[\]]+)\](?:"| )/
      */
     public function castResourceToIri(string $resource): string
     {
@@ -117,6 +117,14 @@ class RestContext implements Context
         $filePath = rtrim($this->behatchRestContext->getMinkParameter('files_path'), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . $value;
 
         return base64_encode(file_get_contents($filePath));
+    }
+
+    /**
+     * @Transform /^json_decode\((.*)\)$/
+     */
+    public function castFromJson(string $value)
+    {
+        return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -183,14 +191,16 @@ class RestContext implements Context
                         $value = $this->castBase64FileToSimpleString($matches[1]);
                     }
 
-                    if (preg_match('/^resource\[([^\[\]]+)\]$/', $value, $matches)) {
-                        $value = $this->castResourceToIri($matches[1]);
+                    if (preg_match('/(?:"| )(resource\[([^\[\]]+)\])(?:"| )/', $value, $matches)) {
+                        $value = str_replace($matches[1], $this->castResourceToIri($matches[2]), $value);
                     }
 
                     if (preg_match('/^(\d+)$/', $value, $matches)) {
                         $value = $this->castNumber($matches[1]);
                     } elseif (preg_match('/^(false|true)$/', $value, $matches)) {
                         $value = $this->castBoolean($matches[1]);
+                    } elseif (preg_match('/^json_decode\((.*)\)$/', $value, $matches)) {
+                        $value = $this->castFromJson($matches[1]);
                     }
                 }
 

@@ -36,6 +36,7 @@ Feature: Components
     Then I add "Content-Type" header equal to "application/ld+json"
     And I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to the resource "new_component_position"
+    And the JSON should be valid according to the schema file "component_position.schema.json"
     And the JSON node "componentCollection" should be equal to the string "/_/component_collections/41c57f7a-9f69-11ea-8188-acde48001122"
     And the JSON node "component" should be equal to the IRI of the resource "new_component"
 
