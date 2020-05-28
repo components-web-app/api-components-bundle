@@ -9,12 +9,12 @@
         <field name="sortValue" type="integer" column="sort_value" precision="0" scale="0" nullable="false"/>
         <many-to-one field="componentCollection" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="componentPositions" fetch="LAZY">
             <join-columns>
-                <join-column name="component_collection_id" referenced-column-name="id" on-delete="CASCADE"/>
+                <join-column name="component_collection_id" referenced-column-name="id" on-delete="CASCADE" nullable="false"/>
             </join-columns>
         </many-to-one>
         <many-to-one field="component" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" inversed-by="componentPositions" fetch="LAZY">
             <join-columns>
-                <join-column name="component_id" referenced-column-name="id" on-delete="CASCADE"/>
+                <join-column name="component_id" referenced-column-name="id" on-delete="CASCADE" nullable="false"/>
             </join-columns>
         </many-to-one>
     </entity>

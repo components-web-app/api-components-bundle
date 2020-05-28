@@ -31,6 +31,13 @@ Feature: Components
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
+    And I save the JSON node "@id" as the component "new_component"
+    And I save the JSON node "componentPositions[0]" as the component "new_component_position"
+    Then I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the component "new_component_position"
+    And the JSON node "componentCollection" should be equal to the string "/_/component_collections/41c57f7a-9f69-11ea-8188-acde48001122"
+    And the JSON node "component" should be equal to the IRI of the component "new_component"
 
   @loginUser
   Scenario: When I delete a component

@@ -156,6 +156,18 @@ class JsonContext implements Context
         $this->jsonContext->theJsonNodeShouldBeEqualTo($name, $this->restContext->components[$component]);
     }
 
+    /**
+     * @Then I save the JSON node :name as the component :component
+     */
+    public function iSaveTheJsonNodeAsTheComponent(string $name, string $component)
+    {
+        $json = $this->getJson();
+
+        $actual = $this->inspector->evaluate($json, $name);
+
+        $this->restContext->components[$component] = $actual;
+    }
+
     private function getJson()
     {
         return new Json($this->getContent());
