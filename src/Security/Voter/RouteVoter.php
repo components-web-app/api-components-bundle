@@ -26,8 +26,6 @@ use Symfony\Component\Security\Http\AccessMapInterface;
  */
 class RouteVoter extends Voter
 {
-    public const ROUTE_READ = 'route_read';
-
     private AccessMapInterface $accessMap;
     private IriConverterInterface $iriConverter;
     private Security $security;
@@ -39,12 +37,12 @@ class RouteVoter extends Voter
         $this->security = $security;
     }
 
-    protected function supports(string $attribute, $subject): bool
+    protected function supports($subject, $notRequired): bool
     {
-        return self::ROUTE_READ === $attribute && $subject instanceof Route;
+        return $subject instanceof Route;
     }
 
-    protected function voteOnAttribute(string $attribute, $route, TokenInterface $token): bool
+    protected function voteOnAttribute($route, $notRequired, TokenInterface $token): bool
     {
         $routeIri = $this->iriConverter->getIriFromResourceClass(Route::class);
         [$roles] = $this->accessMap->getPatterns(Request::create(sprintf('%s/%s', $routeIri, $route->getPath()), 'GET'));
