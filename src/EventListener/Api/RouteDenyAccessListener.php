@@ -13,27 +13,21 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
-use Symfony\Component\HttpFoundation\Request;
+use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Security\Http\AccessMapInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class RouteDenyAccessListener
 {
-    private AccessMapInterface $accessMap;
-    private IriConverterInterface $iriConverter;
     private Security $security;
 
-    public function __construct(AccessMapInterface $accessMap, IriConverterInterface $iriConverter, Security $security)
+    public function __construct(Security $security)
     {
-        $this->accessMap = $accessMap;
-        $this->iriConverter = $iriConverter;
         $this->security = $security;
     }
 
@@ -46,16 +40,9 @@ class RouteDenyAccessListener
         $this->checkSecurity($route);
     }
 
-    private function checkSecurity(Route $route): void
+    public function checkSecurity(Route $route): void
     {
-        $routeIri = $this->iriConverter->getIriFromResourceClass(Route::class);
-        [$roles] = $this->accessMap->getPatterns(Request::create(sprintf('%s/%s', $routeIri, $route->getPath()), 'GET'));
-        if ($roles) {
-            foreach ($roles as $role) {
-                if ($this->security->isGranted($role)) {
-                    return;
-                }
-            }
+        if (!$this->security->isGranted(RouteVoter::ROUTE_READ, $route)) {
             throw new AccessDeniedException('Access denied.');
         }
     }

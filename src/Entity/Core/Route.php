@@ -26,6 +26,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Routes have special security. Getting a collection will NOT implement this security as it is carried out per item.
  * Only the most trusted people should get access to all routes for management.
  *
+ * Providing security on the collection will not be easy unless we do simple role based authentication where we can
+ * modify the sql query to filter results on the database request. Retrospective filtering once the results
+ * have been fetched is difficult/impossible with the pagination implementation.
+ *
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped

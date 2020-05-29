@@ -36,6 +36,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixRe
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
+use Silverback\ApiComponentsBundle\DataProvider\Collection\RouteCollectionDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
@@ -97,6 +98,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
@@ -718,6 +720,15 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
+        ->set(RouteCollectionDataProvider::class)
+        ->args([
+            new Reference('api_platform.collection_data_provider'),
+            new Reference(Security::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.collection_data_provider', ['priority' => 1]);
+
+    $services
         ->set(RouteDataProvider::class)
         ->args(
             [
@@ -731,8 +742,6 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(RouteDenyAccessListener::class)
         ->args([
-            new Reference('security.access_map'),
-            new Reference(IriConverterInterface::class),
             new Reference(Security::class),
         ])
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE, 'method' => 'onPostDeserialize']);
@@ -750,6 +759,15 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(RouteVoter::class)
+        ->args([
+            new Reference('security.access_map'),
+            new Reference(IriConverterInterface::class),
+            new Reference(Security::class),
+        ])
+        ->tag('security.voter');
 
     $services
         ->set(RoutingPrefixResourceMetadataFactory::class)
