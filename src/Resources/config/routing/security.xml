@@ -6,6 +6,8 @@
 
     <route id="api_components_login_check" path="/login"/>
 
+    <route id="api_components_logout" path="/logout"/>
+
     <route id="api_components_reset_password" path="/password/reset/request/{username}"
            controller="Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction"
            methods="GET"/>

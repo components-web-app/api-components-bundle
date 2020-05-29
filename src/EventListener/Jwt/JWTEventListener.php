@@ -14,17 +14,24 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
+use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
+use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-class JwtCreatedEventListener
+final class JWTEventListener
 {
     private RoleHierarchy $roleHierarchy;
+    private JWTCookieProvider $cookieProvider;
+    private ?string $token = null;
 
-    public function __construct(RoleHierarchy $roleHierarchy)
+    public function __construct(RoleHierarchy $roleHierarchy, JWTCookieProvider $cookieProvider)
     {
+        $this->cookieProvider = $cookieProvider;
         $this->roleHierarchy = $roleHierarchy;
     }
 
@@ -35,5 +42,17 @@ class JwtCreatedEventListener
         $rolesAsEntities = $user->getRoles();
         $data['roles'] = $this->roleHierarchy->getReachableRoleNames($rolesAsEntities);
         $event->setData($data);
+    }
+
+    public function onJWTRefreshed(JWTRefreshedEvent $event): void
+    {
+        $this->token = $event->getToken();
+    }
+
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        if (!empty($this->token)) {
+            $event->getResponse()->headers->setCookie($this->cookieProvider->createCookie($this->token));
+        }
     }
 }

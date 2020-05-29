@@ -32,9 +32,9 @@ Feature: Prevent disabled users from logging in
       "password": "password"
     }
     """
-    Then the response status code should be 200
-    And the JSON node "token" should exist
-    And the JSON node "refresh_token" should exist
+    Then the response status code should be 204
+    And the response should be empty
+    And the response should have a "api_component" cookie
 
   Scenario: A disabled user is not able to login
     Given there is a user with the username "user" password "password" and role "ROLE_USER"

@@ -134,6 +134,14 @@ class JsonContext implements Context
     }
 
     /**
+     * @Then the response should have a :name cookie
+     */
+    public function theResponseShouldHaveACookie(string $name): void
+    {
+        Assert::assertNotNull($this->jsonContext->getSession()->getCookie($name), sprintf('No cookie "%s" found in response.', $name));
+    }
+
+    /**
      * @Then the JSON node :node should be now
      */
     public function theJsonNodeShouldBeEqualTo($node)

@@ -1,4 +1,10 @@
 silverback_api_components:
+    refresh_token:
+        handler_id: silverback.api_component.refresh_token.storage.doctrine
+        options:
+            class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken
+        cookie_name: api_component
+        ttl: 604800 # 1 week
     website_name: New Website
     user:
         class_name: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User

@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
+use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -56,7 +57,7 @@ use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListen
 use Silverback\ApiComponentsBundle\EventListener\Form\User\PasswordUpdateListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Jwt\JwtCreatedEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -86,10 +87,12 @@ use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
@@ -109,6 +112,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Serializer\UuidNormalizer;
+use Silverback\ApiComponentsBundle\Services\JWTManager;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
@@ -127,6 +131,7 @@ use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -408,15 +413,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
 
     $services
-        ->set(JwtCreatedEventListener::class)
-        ->args(
-            [
-                new Reference('security.role_hierarchy'),
-            ]
-        )
-        ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles']);
-
-    $services
         ->set(LayoutRepository::class)
         ->args(
             [
@@ -623,6 +619,50 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('annotations.reader'),
             ]
         );
+
+    $services
+        ->set(JWTManager::class)
+        ->decorate('lexik_jwt_authentication.jwt_manager')
+        ->args(
+            [
+                new Reference(JWTManager::class . '.inner'),
+                new Reference('lexik_jwt_authentication.jws_provider.lcobucci'),
+                new Reference('security.user.provider.concrete.user_provider'),
+                new Reference('event_dispatcher'),
+                '', // injected in dependency injection
+            ]
+        )
+        ->autoconfigure(false);
+
+    $services
+        ->set(JWTEventListener::class)
+        ->args(
+            [
+                new Reference('security.role_hierarchy'),
+                '', // injected in dependency injection
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles'])
+        ->tag('kernel.event_listener', ['event' => JWTRefreshedEvent::class, 'method' => 'onJWTRefreshed'])
+        ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
+
+    $services
+        ->set(LogoutHandler::class)
+        ->args(
+            [
+                '', // injected in dependency injection
+            ]
+        );
+
+    $services
+        ->set('silverback.api_component.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)
+        ->args(
+            [
+                new Reference('doctrine'),
+                '%silverback.api_component.refresh_token.ttl%',
+            ]
+        );
+    $services->alias(DoctrineRefreshTokenStorage::class, 'silverback.api_component.refresh_token.storage.doctrine');
 
     $services
         ->set(ResourceIriValidator::class)
