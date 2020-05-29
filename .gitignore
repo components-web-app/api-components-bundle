@@ -1,4 +1,5 @@
 /composer.lock
+/build/
 /vendor/
 /src/var/
 /symfony.lock

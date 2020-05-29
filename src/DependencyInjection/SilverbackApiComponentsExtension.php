@@ -18,6 +18,7 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -39,9 +40,12 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Services\JWTManager;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -71,6 +75,28 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$entityClass', $config['user']['class_name']);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
+
+        $definition = $container->getDefinition(JWTEventListener::class);
+        $definition->setArgument('$cookieProvider', new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']));
+        $container->setParameter('silverback.api_component.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
+
+        if (!empty($config['refresh_token']['options'])) {
+            $definition = $container->getDefinition($config['refresh_token']['handler_id']);
+            $definition->setArgument('$options', $config['refresh_token']['options']);
+        }
+
+        if ('silverback.api_component.refresh_token.storage.doctrine' === $config['refresh_token']['handler_id']) {
+            $container
+                ->register(RefreshTokenRepository::class)
+                ->setArguments([new Reference('doctrine'), $config['refresh_token']['options']['class']])
+                ->addTag('doctrine.repository_service');
+        }
+
+        $definition = $container->getDefinition(LogoutHandler::class);
+        $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+
+        $definition = $container->getDefinition(JWTManager::class);
+        $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
