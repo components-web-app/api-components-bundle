@@ -20,6 +20,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "PierreRebeilleau",
+      "name": "Pierre Rebeilleau",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/49146882?v=4",
+      "profile": "https://github.com/PierreRebeilleau",
+      "contributions": [
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 6
