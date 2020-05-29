@@ -26,6 +26,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Although a user will be able to get the routes and the tree of data down to getting the ID for a component
  * fetching a component will be restricted based on the route it is within.
  *
+ * Providing security on the collection will not be easy unless we do simple role based authentication where we can
+ * modify the sql query to filter results on the database request. Retrospective filtering once the results
+ * have been fetched is difficult/impossible with the pagination implementation.
+ *
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
