@@ -10,6 +10,17 @@
   "imageSize": 60,
   "commit": true,
   "commitConvention": "none",
-  "contributors": [],
+  "contributors": [
+    {
+      "login": "vincentchalamon",
+      "name": "Vincent",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/407859?v=4",
+      "profile": "https://les-tilleuls.coop",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    }
+  ],
   "contributorsPerLine": 6
 }

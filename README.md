@@ -22,6 +22,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://les-tilleuls.coop"><img src="https://avatars1.githubusercontent.com/u/407859?v=4" width="60px;" alt=""/><br /><sub><b>Vincent</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=vincentchalamon" title="Code">💻</a> <a href="#ideas-vincentchalamon" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+</table>
+
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
