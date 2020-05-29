@@ -36,6 +36,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResou
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -479,6 +480,13 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('validator.constraint_validator');
+
+    $services
+        ->set(PageDataProvider::class)
+        ->args([
+            new Reference(RequestStack::class),
+            new Reference(RouteRepository::class),
+        ]);
 
     $services
         ->set(PasswordChangedEmailFactory::class)
