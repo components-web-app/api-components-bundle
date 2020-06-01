@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
+use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -27,6 +28,6 @@ final class SecurityCompilerPass implements CompilerPassInterface
         // TODO `security.logout_listener.main` should be dynamic
         $container
             ->getDefinition('security.logout_listener.main')
-            ->addMethodCall('addHandler', [new Reference('security.logout.handler.session')]);
+            ->addMethodCall('addHandler', [new Reference(LogoutHandler::class)]);
     }
 }

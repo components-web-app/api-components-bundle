@@ -28,6 +28,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Silverback\Timestamped
  * @ApiResource(attributes={"order"={"sortValue"="ASC"}}, normalizationContext={"groups"={"ComponentPosition:read"}}, denormalizationContext={"groups"={"ComponentPosition:write"}})
  * @AcbAssert\ComponentPosition
+ * @Assert\Expression(
+ *     "!(this.component == null & this.pageDataProperty == null)",
+ *     message="Please specify either a component or pageDataProperty.",
+ * )
  */
 class ComponentPosition
 {
@@ -41,10 +45,14 @@ class ComponentPosition
     public ?ComponentCollection $componentCollection = null;
 
     /**
-     * @Assert\NotNull()
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
     public ?AbstractComponent $component = null;
+
+    /**
+     * @Groups({"ComponentPosition:read:role_admin", "ComponentPosition:write"})
+     */
+    public ?string $pageDataProperty = null;
 
     /**
      * @Assert\NotNull()
