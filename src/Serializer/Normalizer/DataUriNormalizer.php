@@ -48,7 +48,7 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
         return $this->decorated->hasCacheableSupportsMethod();
     }
 
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = [])
     {
         if ($data instanceof UploadedDataUriFile) {
             return $data;
@@ -56,17 +56,17 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
         $this->decorated->denormalize($data, $type, $format, $context);
     }
 
-    public function supportsDenormalization($data, string $type, string $format = null): bool
+    public function supportsDenormalization($data, $type, $format = null): bool
     {
         return $this->decorated->supportsDenormalization($data, $type, $format);
     }
 
-    public function normalize($object, string $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = [])
     {
         return $this->decorated->normalize($object, $format, $context);
     }
 
-    public function supportsNormalization($data, string $format = null): bool
+    public function supportsNormalization($data, $format = null): bool
     {
         return $this->decorated->supportsNormalization($data, $format);
     }

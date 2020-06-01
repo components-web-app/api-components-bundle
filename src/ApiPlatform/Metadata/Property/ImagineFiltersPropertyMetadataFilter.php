@@ -32,7 +32,7 @@ class ImagineFiltersPropertyMetadataFilter implements PropertyMetadataFactoryInt
     public function create(string $resourceClass, string $property, array $options = []): PropertyMetadata
     {
         $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
-        if ('imagineFilters' !== $property || !class_implements($resourceClass, ImagineFiltersInterface::class)) {
+        if ('imagineFilters' !== $property || !is_a($resourceClass, ImagineFiltersInterface::class, true)) {
             return $propertyMetadata;
         }
 
