@@ -39,6 +39,7 @@ use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentsBundle\DataTransformer\ComponentPositionDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -244,6 +245,14 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(SerializeFormatResolver::class),
             ]
         )
+        ->tag('api_platform.data_transformer');
+
+    $services
+        ->set(ComponentPositionDataTransformer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(PageDataProvider::class),
+        ])
         ->tag('api_platform.data_transformer');
 
     $services
