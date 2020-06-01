@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class TimestampedContextBuilder implements SerializerContextBuilderInterface
+final class UploadableContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
 
@@ -39,9 +39,9 @@ final class TimestampedContextBuilder implements SerializerContextBuilderInterfa
 
         $reflectionClass = new \ReflectionClass($resourceClass);
         if ($normalization) {
-            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), TimestampedLoader::GROUP_NAME);
+            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
         } else {
-            $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), TimestampedLoader::GROUP_NAME);
+            $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
         }
 
         return $context;

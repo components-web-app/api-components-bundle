@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -36,6 +37,7 @@ class SerializerCompilerPass implements CompilerPassInterface
                     new Reference(PublishableLoader::class),
                     new Reference(TimestampedLoader::class),
                     new Reference(ComponentLoader::class),
+                    new Reference(UploadableLoader::class),
                 ]
             )
         );

@@ -30,7 +30,8 @@ use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentPropertyMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFilter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
@@ -98,12 +99,15 @@ use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UploadableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UserContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
@@ -264,6 +268,17 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
+        ->set(DataUriNormalizer::class)
+        ->decorate('serializer.normalizer.data_uri')
+        ->autoconfigure(false)
+        ->args(
+            [
+                new Reference(DataUriNormalizer::class . '.inner'),
+            ]
+        )
+        ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
         ->set(DownloadAction::class)
         ->tag('controller.service_arguments');
 
@@ -412,6 +427,15 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
+
+    $services
+        ->set(ImagineFiltersPropertyMetadataFilter::class)
+        ->decorate('api_platform.metadata.property.metadata_factory')
+        ->args(
+            [
+                new Reference(ImagineFiltersPropertyMetadataFilter::class . '.inner'),
+            ]
+        );
 
     $services
         ->set(LayoutRepository::class)
@@ -747,7 +771,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(TimestampedContextBuilder::class)
-        ->decorate('api_platform.serializer.context_builder')
+        ->decorate('api_platform.serializer.context_builder', null, -1)
         ->args(
             [
                 new Reference(TimestampedContextBuilder::class . '.inner'),
@@ -826,6 +850,16 @@ return static function (ContainerConfigurator $configurator) {
         ->parent(AnnotationReader::class);
 
     $services
+        ->set(UploadableContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder', null, -1)
+        ->args(
+            [
+                new Reference(UploadableContextBuilder::class . '.inner'),
+            ]
+        )
+        ->autoconfigure(false);
+
+    $services
         ->set(UploadableEventListener::class)
         ->args(
             [
@@ -858,6 +892,15 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
+        ->set(UploadableLoader::class)
+        ->args(
+            [
+                new Reference('annotations.reader'),
+                new Reference(UploadableAnnotationReader::class),
+            ]
+        );
 
     $services
         ->set(UploadableNormalizer::class)
