@@ -15,25 +15,17 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Annotation as Silverback;
-use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
-use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
-use Symfony\Component\HttpFoundation\File\File;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Uploadable
  * @ApiResource
  * @ORM\Entity
  */
-class DummyUploadable
+class PageDataWithComponent extends AbstractPageData
 {
-    use IdTrait;
-    use UploadableTrait;
-
     /**
-     * @Silverback\UploadableField(adapter="local")
+     * @ORM\ManyToOne(targetEntity=DummyComponent::class)
      */
-    public ?File $file = null;
+    public ?DummyComponent $component = null;
 }

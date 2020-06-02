@@ -11,19 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
+namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property;
 
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 
 /**
- * We should allow componentPositions to be writable. API Platform will not do this automatically based on
- * AbstractComponent xml definitions or groups as we define them using our decorators.
- *
  * @author Daniel West <daniel@silverback.is>
  */
-class ComponentPropertyMetadataFactory implements PropertyMetadataFactoryInterface
+class ImagineFiltersPropertyMetadataFilter implements PropertyMetadataFactoryInterface
 {
     private PropertyMetadataFactoryInterface $decorated;
 
@@ -35,10 +32,10 @@ class ComponentPropertyMetadataFactory implements PropertyMetadataFactoryInterfa
     public function create(string $resourceClass, string $property, array $options = []): PropertyMetadata
     {
         $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
-        if ('componentPositions' === $property && !is_a($resourceClass, AbstractComponent::class, true)) {
+        if ('imagineFilters' !== $property || !is_a($resourceClass, ImagineFiltersInterface::class, true)) {
             return $propertyMetadata;
         }
 
-        return $propertyMetadata->withWritableLink(true);
+        return $propertyMetadata->withReadable(false);
     }
 }

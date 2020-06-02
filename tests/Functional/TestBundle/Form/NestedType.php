@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -52,7 +51,7 @@ class NestedType extends AbstractType
                     'by_reference' => false,
                     'required' => true,
                     'error_bubbling' => false,
-                    'empty_data' => new ArrayCollection([new ChildType()]),
+                    'empty_data' => [new ChildType()],
                     'constraints' => [
                         new Count(
                             [

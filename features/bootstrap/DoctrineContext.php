@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
@@ -260,12 +261,14 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a DummyComponent
      */
-    public function thereIsADummyComponent(): void
+    public function thereIsADummyComponent(): DummyComponent
     {
         $component = new DummyComponent();
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->resources['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+
+        return $component;
     }
 
     /**
@@ -458,6 +461,47 @@ final class DoctrineContext implements Context
         $this->manager->persist($layout);
         $this->manager->flush();
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromItem($layout);
+    }
+
+    /**
+     * @Given there is a PageData resource with the route path :route
+     */
+    public function thereIsAPageDataResourceWithRoutePath(string $path): void
+    {
+        $componentCollection = new ComponentCollection();
+        $componentCollection->reference = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
+        $this->manager->persist($componentCollection);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->pageDataProperty = 'component';
+        $componentPosition->componentCollection = $componentCollection;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
+
+        $page = new Page();
+        $page->reference = 'test page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $dummyComponent = $this->thereIsADummyComponent();
+        $pageData = new PageDataWithComponent();
+        $pageData->component = $dummyComponent;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path)
+            ->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $this->manager->flush();
     }
 
     /**
