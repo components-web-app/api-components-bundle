@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 use Exception;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
@@ -44,6 +45,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Services\JWTManager;
 use Symfony\Component\Config\FileLocator;
@@ -120,6 +122,12 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $definition = $container->getDefinition(MediaObjectFactory::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
         }
+
+        $definition = $container->getDefinition(RouteExtension::class);
+        $definition->setArgument('$config', $config['route_security']);
+
+        $definition = $container->getDefinition(RouteVoter::class);
+        $definition->setArgument('$config', $config['route_security']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void

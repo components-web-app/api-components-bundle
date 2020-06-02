@@ -31,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Silverback\Timestamped
  * @ApiResource(
  *     collectionOperations={
- *         "get"={"security"="is_granted('ROLE_SUPER_ADMIN')"},
+ *         "get",
  *         "post"
  *     },
  *     itemOperations={

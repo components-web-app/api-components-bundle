@@ -13,47 +13,40 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security\Voter;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Security\Http\AccessMapInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class RouteVoter extends Voter
 {
-    private AccessMapInterface $accessMap;
-    private IriConverterInterface $iriConverter;
-    private Security $security;
+    private ?array $config;
+    private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(AccessMapInterface $accessMap, IriConverterInterface $iriConverter, Security $security)
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker)
     {
-        $this->accessMap = $accessMap;
-        $this->iriConverter = $iriConverter;
-        $this->security = $security;
+        $this->config = $config;
+        $this->resourceAccessChecker = $resourceAccessChecker;
     }
 
     protected function supports($subject, $notRequired): bool
     {
-        return $subject instanceof Route;
+        return $subject instanceof Route && $this->config;
     }
 
+    /**
+     * @param Route $route
+     */
     protected function voteOnAttribute($route, $notRequired, TokenInterface $token): bool
     {
-        $routeIri = $this->iriConverter->getIriFromResourceClass(Route::class);
-        [$roles] = $this->accessMap->getPatterns(Request::create(sprintf('%s/%s', $routeIri, $route->getPath()), 'GET'));
-        if ($roles) {
-            foreach ($roles as $role) {
-                if ($this->security->isGranted($role)) {
-                    return true;
-                }
+        foreach ($this->config as $index => $routeConfig) {
+            $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
+            if (!$this->resourceAccessChecker->isGranted(\get_class($route), $routeConfig['security']) && preg_match(sprintf('#%s#', $routeRegex), $route->getPath())) {
+                return false;
             }
-
-            return false;
         }
 
         return true;

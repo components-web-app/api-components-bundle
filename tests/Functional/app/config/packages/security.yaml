@@ -40,4 +40,3 @@ security:
         # For a specific tests to ensure anonymous users can use publishable
         - { path: ^/component/dummy_publishable_components, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
-        - { path: ^/_/routes//role-user-only, roles: ROLE_USER, methods: [GET] }

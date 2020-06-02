@@ -41,6 +41,7 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
@@ -729,6 +730,16 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('api_platform.item_data_provider', ['priority' => 1]);
 
     $services
+        ->set(RouteExtension::class)
+        ->args(
+            [
+                '', // added in dependency injection
+                new Reference('api_platform.security.resource_access_checker'),
+            ]
+        )
+        ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
         ->set(RouteNormalizer::class)
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
@@ -745,9 +756,8 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(RouteVoter::class)
         ->args([
-            new Reference('security.access_map'),
-            new Reference(IriConverterInterface::class),
-            new Reference(Security::class),
+            '', // added in dependency injection
+            new Reference('api_platform.security.resource_access_checker'),
         ])
         ->tag('security.voter');
 

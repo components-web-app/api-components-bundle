@@ -33,12 +33,28 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('metadata_key')->defaultValue('_metadata')->end()
             ->end();
 
+        $this->addRouteSecurityNode($rootNode);
         $this->addRefreshTokenNode($rootNode);
         $this->addPublishableNode($rootNode);
         $this->addEnabledComponentsNode($rootNode);
         $this->addUserNode($rootNode);
 
         return $treeBuilder;
+    }
+
+    private function addRouteSecurityNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('route_security')
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('route')->end()
+                            ->scalarNode('security')->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     private function addRefreshTokenNode(ArrayNodeDefinition $rootNode): void
