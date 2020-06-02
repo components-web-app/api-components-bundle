@@ -13,18 +13,16 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+
 /**
+ * We must define this as an API resource, otherwise when serializing and the relation is to this class,
+ * API Platform does not know that it will be a resource and will make it an object, not an IRI. (same notes as AbstractComponent).
+ *
  * @author Daniel West <daniel@silverback.is>
+ * @ApiResource(collectionOperations={}, itemOperations={})
  */
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
-    /*
-     * Extend this class for pages where the same page template should be used for multiple entities.
-     * A good example is an article page. You would create an Article entity in your project that extends this class.
-     * That article can then be accessed via a route on the API and the data in this class will override whatever is in the template.
-     * You can create a ComponentPopulator service to use the data provided here to populate the template. You could update text
-     * within entities with interpolation, or add new components on the fly depending on what you have defined here.
-     */
-
     public Page $page;
 }
