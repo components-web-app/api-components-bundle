@@ -28,6 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @Silverback\Timestamped
  * @ApiResource(
+ *     mercure=true,
  *     normalizationContext={ "groups"={"ComponentCollection:read"} },
  *     denormalizationContext={ "groups"={"ComponentCollection:write"} }
  * )
