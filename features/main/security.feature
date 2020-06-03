@@ -17,6 +17,11 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to "/_/routes//user-area/my-page"
     Then the response status code should be 401
 
+  Scenario: A route retrieved by path is allowed if not in config
+    Given there is a Route "/my-page" with a page
+    When I send a "GET" request to "/_/routes//my-page"
+    Then the response status code should be 200
+
   Scenario: A collection of routes will not include pages what a user has no access to
     Given there is a Route "/user-area/my-page" with a page
     When I send a "GET" request to "/_/routes"
