@@ -4,7 +4,7 @@
     <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" table="component_collection">
         <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="reference" type="string" column="reference" precision="0" scale="0" unique="true" nullable="false"/>
         <one-to-many field="componentPositions" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" mapped-by="componentCollection" fetch="LAZY" orphan-removal="true">

@@ -4,7 +4,7 @@
     <mapped-superclass name="Silverback\ApiComponentsBundle\Entity\Core\AbstractPage" table="abstract_page">
         <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
     </mapped-superclass>
 </doctrine-mapping>

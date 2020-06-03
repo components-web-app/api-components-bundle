@@ -4,7 +4,7 @@
     <entity repository-class="Silverback\ApiComponentsBundle\Repository\Core\RouteRepository" name="Silverback\ApiComponentsBundle\Entity\Core\Route" table="route">
         <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="path" type="string" column="route" precision="0" scale="0" unique="true" nullable="false"/>
         <field name="name" type="string" column="name" precision="0" scale="0" unique="true" nullable="false"/>

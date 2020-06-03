@@ -7,7 +7,7 @@
         </unique-constraints>
         <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="path" column="path"/>
         <field name="mimeType" column="mime_type"/>

@@ -5,7 +5,7 @@
         <discriminator-column name="dtype" type="string" length="255"/>
         <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
         <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>

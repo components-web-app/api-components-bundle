@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Utility;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Codec\OrderedTimeCodec;
-use Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator;
+use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -33,7 +33,7 @@ trait IdTrait
      * @ORM\Id
      * @ORM\Column(type="uuid", unique=true)
      * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class=UuidOrderedTimeGenerator::class)
+     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
      * @ApiProperty(readable=false)
      */
     protected ?UuidInterface $id = null;
