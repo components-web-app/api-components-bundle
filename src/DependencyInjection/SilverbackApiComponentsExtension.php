@@ -221,22 +221,22 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
         $this->prependApiAPlatformConfig($container, $config);
-//        $this->prependDoctrineConfiguration($container);
+        $this->prependDoctrineConfiguration($container);
     }
 
-//    private function prependDoctrineConfiguration(ContainerBuilder $container): void
-//    {
-//        $container->prependExtensionConfig(
-//            'doctrine',
-//            [
-//                'dbal' => [
-//                    'types' => [
-//                        'uuid' => UuidType::class,
-//                    ],
-//                ],
-//            ]
-//        );
-//    }
+    private function prependDoctrineConfiguration(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig(
+            'doctrine',
+            [
+                'dbal' => [
+                    'types' => [
+                        'uuid' => UuidType::class,
+                    ],
+                ],
+            ]
+        );
+    }
 
     private function prependApiAPlatformConfig(ContainerBuilder $container, array $config): void
     {

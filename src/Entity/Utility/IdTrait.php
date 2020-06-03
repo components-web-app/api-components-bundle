@@ -15,8 +15,8 @@ namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Codec\OrderedTimeCodec;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\Doctrine\UuidGenerator;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * Reusable trait by application developer so keep annotations as we cannot map with XML.
@@ -29,32 +29,15 @@ trait IdTrait
      * Must allow return `null` for lowest dependencies.
      *
      * @ORM\Id
-     * @ORM\Column(type="string", unique=true)
-     * @ORM\GeneratedValue(strategy="UUID")
+     * @ORM\Column(type="uuid", unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
      * @ApiProperty(readable=false)
      */
-    protected ?string $id = null;
+    protected ?UuidInterface $id = null;
 
-    public function getId(): ?string
+    public function getId(): ?UuidInterface
     {
         return $this->id;
     }
-
-//    /**
-//     * @return static
-//     */
-//    public function setId()
-//    {
-//        $factory = clone Uuid::getFactory();
-//
-//        $codec = new OrderedTimeCodec(
-//            $factory->getUuidBuilder()
-//        );
-//
-//        $factory->setCodec($codec);
-//
-//        $this->id = $factory->uuid1();
-//
-//        return $this;
-//    }
 }
