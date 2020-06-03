@@ -2,7 +2,7 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity repository-class="Silverback\ApiComponentsBundle\Repository\Core\RouteRepository" name="Silverback\ApiComponentsBundle\Entity\Core\Route" table="route">
-        <id name="id" column="id" type="uuid">
+        <id name="id" column="id" type="string">
             <generator strategy="UUID"/>
         </id>
         <field name="path" type="string" column="route" precision="0" scale="0" unique="true" nullable="false"/>

@@ -2,7 +2,7 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <mapped-superclass name="Silverback\ApiComponentsBundle\Entity\Core\AbstractPage" table="abstract_page">
-        <id name="id" column="id" type="uuid">
+        <id name="id" column="id" type="string">
             <generator strategy="UUID"/>
         </id>
     </mapped-superclass>
