@@ -31,7 +31,7 @@ trait IdTrait
      * Must allow return `null` for lowest dependencies.
      *
      * @ORM\Id
-     * @ORM\Column(type="uuid_binary_ordered_time", unique=true)
+     * @ORM\Column(type="uuid", unique=true)
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class=UuidOrderedTimeGenerator::class)
      * @ApiProperty(readable=false)

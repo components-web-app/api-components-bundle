@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
+use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -232,6 +233,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 'dbal' => [
                     'types' => [
                         'uuid_binary_ordered_time' => UuidBinaryOrderedTimeType::class,
+                        'uuid' => UuidType::class,
                     ],
                     'mapping_types' => [
                         'uuid_binary_ordered_time' => 'binary',
