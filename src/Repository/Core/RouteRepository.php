@@ -47,13 +47,14 @@ class RouteRepository extends ServiceEntityRepository
             return $route;
         }
 
-        try {
-            $uuid = Uuid::fromString($idOrRoute);
-        } catch (InvalidUuidStringException $e) {
-            return null;
-        }
-
-        return $this->find($uuid);
+        return $this->find($idOrRoute);
+//        try {
+//            $uuid = Uuid::fromString($idOrRoute);
+//        } catch (InvalidUuidStringException $e) {
+//            return null;
+//        }
+//
+//        return $this->find($uuid);
     }
 
     /**
