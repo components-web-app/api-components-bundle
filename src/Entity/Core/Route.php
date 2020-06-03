@@ -27,6 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @Silverback\Timestamped
  * @ApiResource(
+ *     mercure=true,
  *     collectionOperations={
  *         "get",
  *         "post"
