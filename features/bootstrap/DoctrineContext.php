@@ -311,7 +311,7 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a ComponentCollection with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null): void
+    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null): ComponentCollection
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'collection';
@@ -337,9 +337,10 @@ final class DoctrineContext implements Context
             $this->restContext->resources['position_' . $x] = $this->iriConverter->getIriFromItem($position);
         }
         $this->manager->flush();
-        $this->manager->clear();
 
         $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
+
+        return $componentCollection;
     }
 
     /**
@@ -360,7 +361,7 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a Page
      */
-    public function thereIsAPage(): void
+    public function thereIsAPage(): Page
     {
         $page = new Page();
         $page->reference = 'page';
@@ -368,6 +369,8 @@ final class DoctrineContext implements Context
         $this->manager->persist($page);
         $this->manager->flush();
         $this->restContext->resources['page'] = $this->iriConverter->getIriFromItem($page);
+
+        return $page;
     }
 
     /**
@@ -500,6 +503,61 @@ final class DoctrineContext implements Context
             ->setPageData($pageData);
         $this->timestampedHelper->persistTimestampedFields($route, true);
         $this->manager->persist($route);
+
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a component in a route with the path :path
+     */
+    public function thereIsAComponentInARouteWithPath(string $path): void
+    {
+        $page = $this->thereIsAPage();
+
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path)
+            ->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1);
+        $page->addComponentCollection($componentCollection);
+
+        $this->manager->persist($page);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the resource :resource is in a route with the path :path
+     */
+    public function theIsAComponentInARouteWithPath(string $resource, string $path): void
+    {
+        $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$resource]);
+
+        $page = $this->thereIsAPage();
+
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path)
+            ->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $componentCollection = new ComponentCollection();
+        $componentCollection->reference = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
+        $this->manager->persist($componentCollection);
+        $page->addComponentCollection($componentCollection);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->component = $component;
+        $componentPosition->componentCollection = $componentCollection;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
 
         $this->manager->flush();
     }

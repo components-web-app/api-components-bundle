@@ -95,6 +95,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
@@ -282,6 +283,15 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(DenyAccessListener::class)
+        ->args(
+            [
+                new Reference(RouteRepository::class),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);
 
     $services
         ->set(DownloadAction::class)

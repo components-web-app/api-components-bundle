@@ -29,3 +29,20 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to "/_/routes"
     Then the response status code should be 200
     And the JSON node "hydra:member[0]" should exist
+
+  Scenario: A component in a restricted route cannot be loaded by an anonymous user
+    Given there is a component in a route with the path "/user-area/my-page"
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 401
+
+  @loginUser
+  Scenario: A component in a restricted route can be loaded by an authorised user
+    Given there is a component in a route with the path "/user-area/my-page"
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
+
+  Scenario: A component within a restricted route and a public route can be loaded by an anonymous user
+    Given there is a component in a route with the path "/user-area/my-page"
+    And the resource "component_0" is in a route with the path "/any-page"
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200

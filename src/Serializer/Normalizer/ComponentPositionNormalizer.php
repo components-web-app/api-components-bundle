@@ -67,6 +67,8 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         if (!$sortCollection) {
             return $object;
         }
+
+        // Todo: Move to another class for easier use by the final application developer (e.g. in fixtures)
         if (!isset($data['sortValue'])) {
             /** @var ComponentPosition|null $lastPosition */
             $lastPosition = $sortCollection->last();

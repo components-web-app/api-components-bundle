@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security\EventListener;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
@@ -24,12 +23,10 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
  */
 final class DenyAccessListener
 {
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
     private RouteRepository $routeRepository;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, RouteRepository $routeRepository)
+    public function __construct(RouteRepository $routeRepository)
     {
-        $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->routeRepository = $routeRepository;
     }
 
@@ -43,7 +40,12 @@ final class DenyAccessListener
         if (!is_a($resourceClass = $attributes['resource_class'], AbstractComponent::class, true)) {
             return;
         }
-        dump($attributes);
-        $this->routeRepository->findByComponent($resourceClass);
+
+        /** @var AbstractComponent $component */
+        $component = $request->attributes->get('data');
+
+        $routes = $this->routeRepository->findByComponent($request->attributes->get('data'));
+
+        dump($routes);
     }
 }
