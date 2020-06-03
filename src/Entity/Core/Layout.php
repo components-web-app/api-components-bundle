@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ApiResource
+ * @ApiResource(mercure=true)
  * @UniqueEntity(fields={"reference"}, message="There is already a Layout with that reference.")
  */
 class Layout
