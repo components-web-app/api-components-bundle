@@ -46,6 +46,6 @@ final class DenyAccessListener
 
         $routes = $this->routeRepository->findByComponent($request->attributes->get('data'));
 
-        dump($routes);
+        // dump($routes);
     }
 }

@@ -85,7 +85,7 @@ class RouteRepository extends ServiceEntityRepository
             )
             ->andWhere($queryBuilder->expr()->eq('page_component', ':component'))
             ->setParameter('component', $component);
-        dump($queryBuilder->getQuery()->getDQL());
+        // dump($queryBuilder->getQuery()->getDQL());
 
         return $queryBuilder->getQuery()->getResult();
     }
