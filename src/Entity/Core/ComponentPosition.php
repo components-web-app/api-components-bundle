@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
- * @ApiResource(attributes={"order"={"sortValue"="ASC"}}, normalizationContext={"groups"={"ComponentPosition:read"}}, denormalizationContext={"groups"={"ComponentPosition:write"}})
+ * @ApiResource(mercure=true, attributes={"order"={"sortValue"="ASC"}}, normalizationContext={"groups"={"ComponentPosition:read"}}, denormalizationContext={"groups"={"ComponentPosition:write"}})
  * @AcbAssert\ComponentPosition
  * @Assert\Expression(
  *     "!(this.component == null & this.pageDataProperty == null)",
