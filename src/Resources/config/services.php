@@ -1017,6 +1017,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ValidatorInterface::class),
                 new Reference(UserRepository::class),
                 new Reference(TimestampedDataPersister::class),
+                new Reference(UserPasswordEncoderInterface::class),
                 '', // injected in dependency injection
             ]
         );
