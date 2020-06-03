@@ -15,6 +15,8 @@ namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Doctrine\UuidGenerator;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * Reusable trait by application developer so keep annotations as we cannot map with XML.
@@ -27,13 +29,14 @@ trait IdTrait
      * Must allow return `null` for lowest dependencies.
      *
      * @ORM\Id
-     * @ORM\Column(type="string", unique=true)
-     * @ORM\GeneratedValue(strategy="UUID")
+     * @ORM\Column(type="uuid", unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
      * @ApiProperty(readable=false)
      */
-    protected $id;
+    protected ?UuidInterface $id = null;
 
-    public function getId()
+    public function getId(): ?UuidInterface
     {
         return $this->id;
     }
