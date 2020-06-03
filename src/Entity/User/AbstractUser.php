@@ -359,16 +359,16 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      */
     public function unserialize(string $serialized): self
     {
-        $id = null;
+        // $id = null;
         [
-            $id,
+            $this->id,
             $this->username,
             $this->emailAddress,
             $this->password,
             $this->enabled,
             $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);
-        $this->id = Uuid::fromString($id);
+        // $this->id = Uuid::fromString($id);
 
         return $this;
     }
