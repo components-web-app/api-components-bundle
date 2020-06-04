@@ -397,9 +397,20 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
 
     public static function createFromPayload($username, array $payload)
     {
-        return new static(
+        $newUser = new static(
             $username,
-            $payload['roles']
+            $payload['roles'],
+            $payload['emailAddress'],
+            $payload['emailAddressVerified']
         );
+
+        $newUser->setNewEmailAddress($payload['newEmailAddress']);
+
+        $reflection = new \ReflectionClass(static::class);
+        $idProperty = $reflection->getProperty('id');
+        $idProperty->setAccessible(true);
+        $idProperty->setValue($newUser, Uuid::fromString($payload['id']));
+
+        return $newUser;
     }
 }

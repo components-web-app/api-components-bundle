@@ -23,7 +23,7 @@ Feature: Register process via a form
       }
     }
     """
-    And the response status code should be 201
+    Then the response status code should be 201
     And I should get a "change_password_notification" email sent
     And the password should be "new_password" for username "user@example.com"
     And the JSON should be valid according to the schema file "user.schema.json"

@@ -6,12 +6,15 @@ security:
         Silverback\ApiComponentsBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
-        user_provider:
+        database:
             entity:
                 class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
         jwt:
             lexik_jwt:
                 class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
+        jwt_database_chain:
+            chain:
+                providers: ['jwt', 'database']
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -20,7 +23,7 @@ security:
             pattern:  ^/login
             stateless: true
             anonymous: true
-            provider: user_provider
+            provider: database
             user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
             json_login:
                 check_path: /login
@@ -30,7 +33,7 @@ security:
             pattern:   ^/
             stateless: true
             anonymous: true
-            provider: jwt
+            provider: jwt_database_chain
             logout:
                 path: /logout
             guard:

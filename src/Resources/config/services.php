@@ -126,6 +126,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValida
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
@@ -143,6 +144,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -209,6 +211,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(Security::class),
+                new Reference(UserRepository::class),
                 '', // injected in dependency injection
             ]
         )
@@ -506,6 +509,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(Security::class),
+                new Reference(UserRepository::class),
                 '', // injected in dependency injection
             ]
         )
@@ -674,7 +678,8 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(JWTManager::class . '.inner'),
                 new Reference('lexik_jwt_authentication.jws_provider.lcobucci'),
-                new Reference('security.user.provider.concrete.user_provider'),
+                // Todo: make this configurable
+                new Reference('security.user.provider.concrete.database'),
                 new Reference('event_dispatcher'),
                 '', // injected in dependency injection
             ]
@@ -689,7 +694,7 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected in dependency injection
             ]
         )
-        ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'updateTokenRoles'])
+        ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'onJWTCreated'])
         ->tag('kernel.event_listener', ['event' => JWTRefreshedEvent::class, 'method' => 'onJWTRefreshed'])
         ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
 
@@ -1066,6 +1071,15 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(UserPasswordValidator::class)
+        ->args([
+            new Reference(TokenStorageInterface::class),
+            new Reference(EncoderFactoryInterface::class),
+            new Reference(UserRepository::class),
+        ])
+        ->decorate('security.validator.user_password');
 
     $services
         ->set(UserRegisterListener::class)

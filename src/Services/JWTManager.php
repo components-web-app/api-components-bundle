@@ -50,7 +50,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(UserInterface $user)
+    public function create(UserInterface $user): string
     {
         return $this->decorated->create($user);
     }
@@ -110,7 +110,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function getUserIdentityField()
+    public function getUserIdentityField(): string
     {
         return $this->decorated->getUserIdentityField();
     }
@@ -118,7 +118,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function getUserIdClaim()
+    public function getUserIdClaim(): string
     {
         return $this->decorated->getUserIdClaim();
     }
