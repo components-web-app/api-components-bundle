@@ -5,15 +5,12 @@ has_children: true
 ---
 # Security & Users
 
-**The refresh token is a WIP**
-
 ## Types of authentication
 ### JWT Tokens for Users
-This bundle uses [LexikJWTAuthenticationBundle](https://github.com/lexik/LexikJWTAuthenticationBundle) and will silently refresh the JWT tokens without ever exposing this to the end user.
 
->Because refresh tokens have the potential for a long lifetime, developers should ensure that strict storage requirements are in place to keep them from being leaked. For example, on web applications, refresh tokens should only leave the backend when being sent to the authorization server, and the backend should be secure. The client secret should be protected in a similar fashion.
+This bundle uses [LexikJWTAuthenticationBundle](https://github.com/lexik/LexikJWTAuthenticationBundle) with some additions.
 
-_(Source: https://auth0.com/learn/refresh-tokens/)_
+The API will refresh the token based on your bundle configuration. There is no refresh token returned to your final application. These are secrets which are stored internally. When an expired JWT token is used, the API will return a new JWT token in a `Set-Cookie` header.
 
 ## Getting started
 
@@ -25,24 +22,6 @@ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_
 openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
 ```
 
-Configure `JWTRefreshTokenBundle`:
-```yaml
-# /config/packages/gesdinet_jwt_refresh_token.yaml
-gesdinet_jwt_refresh_token:
-    # 30 day
-    ttl: 2592000
-    user_identity_field: username
-    firewall: main
-    user_provider: 'security.user.provider.concrete.user_provider'
-```
-```yaml
-# /config/routes/gesdinet_jwt_refresh_token.yaml
-gesdinet_jwt_refresh_token:
-    path:     /token/refresh
-    defaults: { _controller: gesdinet.jwtrefreshtoken:refresh }
-```
-The above configurations are a bit different to those that will be added by Symfony Flex for the package. The `user_provider` must use the database for us to retain the user's roles. For our purposes, the route does not need the `/api` prefix.
-
 Configure your security/firewall. Below is a recommended configuration, **but please check it and ensure it meets your needs**:
 ```yaml
 # /config/packages/security.yaml
@@ -51,12 +30,12 @@ security:
         ROLE_ADMIN:       ROLE_USER
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
     encoders:
-        Silverback\ApiComponentBundle\Entity\User\AbstractUser:
+        Silverback\ApiComponentsBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
         user_provider:
             entity:
-                class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
+                class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
         jwt:
             lexik_jwt:
                 class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
@@ -64,16 +43,12 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        refresh:
-            pattern: ^/token/refresh
-            stateless: true
-            anonymous: true
         login:
             pattern:  ^/login
             stateless: true
-            anonymous: true
+            anonymous: lazy
             provider: user_provider
-            user_checker: Silverback\ApiComponentBundle\Security\UserChecker
+            user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
             json_login:
                 check_path: /login
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -81,8 +56,10 @@ security:
         main:
             pattern:   ^/
             stateless: true
-            anonymous: true
+            anonymous: lazy
             provider: jwt
+            logout:
+                path: /logout
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
@@ -108,4 +85,28 @@ If you do not use Flex, or you create a difference User class you must configure
 silverback_api_component:
   user:
     class_name: App\Entity\User
+```
+
+```yaml
+lexik_jwt_authentication:
+    secret_key: '%env(resolve:JWT_SECRET_KEY)%'
+    public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    set_cookies:
+        api_component:
+            lifetime: 604800 # 1 week
+```
+
+### Refresh token configuration
+
+This documentation is incomplete. We may add the `set_cookies` configuration for `lexik_jwt_authentication` automatically based on the cookie name below. TBD.
+
+```yaml
+silverback_api_components:
+    refresh_token:
+        handler_id: silverback.api_component.refresh_token.storage.doctrine
+        options:
+            class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken
+        cookie_name: api_component
+        ttl: 604800 # 1 week
 ```

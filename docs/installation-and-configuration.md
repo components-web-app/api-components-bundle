@@ -14,9 +14,11 @@ nav_order: 0
 
 ## Recommended Installation
 
-Please see the [Components Web App](https://github.com/components-web-app/components-web-app) template repository. This includes a complete setup with the front-end application using our own Nuxt module as well. It also includes testing frameworks setup by default so you can start writing tests for your application immediately, a `docker-compose.yaml` configuration for local development, a helm chart for Kubernetes and a complete Gitlab devops configuration for a production environment.
+Please see the [Components Web App](https://github.com/components-web-app/components-web-app) template repository. This includes a complete setup with the front-end application using our own Nuxt module as well. It also includes testing frameworks setup by default so you can start writing tests for your application immediately, a `docker-compose.yaml` configuration for local development, a helm chart for Kubernetes and a complete Gitlab dev-ops configuration for a production environment.
 
-## Bundle configuration
+[You will need to create your JWT keys and setup your security.](/security-and-users/)
+
+## General bundle configuration
 
 You can configure the name of the website the API is for which is used in a number of places, such as the default email signatures, and the API Swagger documentation. You can also adjust the default prefix applied to tables in your database. This is to prevent any naming conflicts.
 
