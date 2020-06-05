@@ -98,6 +98,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
         $definition = $container->getDefinition(JWTManager::class);
+        $definition->setArgument('$userProvider', new Reference(sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);

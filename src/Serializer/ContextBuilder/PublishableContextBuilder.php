@@ -35,7 +35,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        // Todo: Looks like we may have an issue using both publishable and timestamped annots when checking if groups empty... tests needed
+
         if (
             empty($resourceClass = $context['resource_class']) ||
             empty($context['groups']) ||

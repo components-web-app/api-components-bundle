@@ -71,6 +71,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->scalarNode('cookie_name')->cannotBeEmpty()->isRequired()->end()
                         ->scalarNode('ttl')->cannotBeEmpty()->isRequired()->end()
+                        ->scalarNode('database_user_provider')->cannotBeEmpty()->isRequired()->end()
                     ->end()
                 ->end()
             ->end();

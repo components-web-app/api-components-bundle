@@ -678,9 +678,8 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(JWTManager::class . '.inner'),
                 new Reference('lexik_jwt_authentication.jws_provider.lcobucci'),
-                // Todo: make this configurable
-                new Reference('security.user.provider.concrete.database'),
                 new Reference('event_dispatcher'),
+                '', // injected in dependency injection
                 '', // injected in dependency injection
             ]
         )
