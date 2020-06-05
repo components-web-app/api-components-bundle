@@ -67,7 +67,7 @@ class RouteRepository extends ServiceEntityRepository
                 'route.page',
                 'page',
                 Join::WITH,
-                $queryBuilder->expr()->eq('route.page', 'page.id')
+                $queryBuilder->expr()->eq('route', 'page.route')
             )
             ->leftJoin(
                 'page.componentCollections',
@@ -85,7 +85,6 @@ class RouteRepository extends ServiceEntityRepository
             )
             ->andWhere($queryBuilder->expr()->eq('page_component', ':component'))
             ->setParameter('component', $component);
-        // dump($queryBuilder->getQuery()->getDQL());
 
         return $queryBuilder->getQuery()->getResult();
     }

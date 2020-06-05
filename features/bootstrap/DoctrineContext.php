@@ -361,10 +361,10 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a Page
      */
-    public function thereIsAPage(): Page
+    public function thereIsAPage(string $reference = 'page'): Page
     {
         $page = new Page();
-        $page->reference = 'page';
+        $page->reference = $reference;
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $this->manager->flush();
@@ -537,7 +537,7 @@ final class DoctrineContext implements Context
     {
         $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$resource]);
 
-        $page = $this->thereIsAPage();
+        $page = $this->thereIsAPage('page_1');
 
         $route = new Route();
         $route
@@ -556,6 +556,7 @@ final class DoctrineContext implements Context
         $componentPosition = new ComponentPosition();
         $componentPosition->component = $component;
         $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);

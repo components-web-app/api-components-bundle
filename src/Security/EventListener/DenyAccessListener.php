@@ -16,18 +16,26 @@ namespace Silverback\ApiComponentsBundle\Security\EventListener;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Security;
 
 /**
+ * This will NOT restrict access to components fetched as a collection. As recomended by API Platform best practices, that should
+ * be implemented in a Doctrine extension by the application developer.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 final class DenyAccessListener
 {
     private RouteRepository $routeRepository;
+    private Security $security;
 
-    public function __construct(RouteRepository $routeRepository)
+    public function __construct(RouteRepository $routeRepository, Security $security)
     {
         $this->routeRepository = $routeRepository;
+        $this->security = $security;
     }
 
     public function onPreDeserialize(RequestEvent $event)
@@ -37,15 +45,26 @@ final class DenyAccessListener
         if (!$attributes = RequestAttributesExtractor::extractAttributes($request)) {
             return;
         }
-        if (!is_a($resourceClass = $attributes['resource_class'], AbstractComponent::class, true)) {
+        $resourceClass = $attributes['resource_class'];
+        if (
+            !is_a($resourceClass, AbstractComponent::class, true) ||
+            !($component = $request->attributes->get('data')) instanceof AbstractComponent ||
+            Request::METHOD_POST === $request->getMethod()
+        ) {
             return;
         }
 
-        /** @var AbstractComponent $component */
-        $component = $request->attributes->get('data');
+        $routes = $this->routeRepository->findByComponent($component);
+        if (!\count($routes)) {
+            return;
+        }
 
-        // $routes = $this->routeRepository->findByComponent($request->attributes->get('data'));
+        foreach ($routes as $route) {
+            if ($this->security->isGranted($route)) {
+                return;
+            }
+        }
 
-        // dump($routes);
+        throw new AccessDeniedException('Access denied.');
     }
 }

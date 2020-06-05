@@ -258,6 +258,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(RouteRepository::class),
+                new Reference(Security::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);
