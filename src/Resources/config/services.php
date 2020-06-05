@@ -33,6 +33,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentProper
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFilter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
@@ -943,9 +944,11 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UserMailer::class),
+                new Reference(Security::class),
             ]
         )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite'])
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_READ, 'method' => 'onPreRead']);
 
     $services
         ->set(UserFactory::class)
@@ -1029,6 +1032,15 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set(UserResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args(
+            [
+                new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+            ]
+        );
 
     $services
         ->set(UuidNormalizer::class)

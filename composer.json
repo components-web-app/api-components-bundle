@@ -83,8 +83,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "root-dir": "tests/app",
-            "require": "4.*"
+            "root-dir": "tests/app"
         }
     },
     "scripts": {
