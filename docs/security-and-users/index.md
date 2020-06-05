@@ -61,7 +61,7 @@ security:
             logout:
                 path: /logout
                 # Required for Symfony < 5.1
-                # success_handler: silverback.security.logout_handler
+                # handlers: [silverback.security.logout_handler]
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
