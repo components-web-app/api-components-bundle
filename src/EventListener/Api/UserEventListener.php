@@ -16,7 +16,10 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Security;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,10 +27,34 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 class UserEventListener
 {
     private UserMailer $userMailer;
+    private Security $security;
 
-    public function __construct(UserMailer $userMailer)
+    public function __construct(UserMailer $userMailer, Security $security)
     {
         $this->userMailer = $userMailer;
+        $this->security = $security;
+    }
+
+    public function onPreRead(RequestEvent $event): void
+    {
+        $request = $event->getRequest();
+        $resourceClass = $request->attributes->get('_api_resource_class');
+        if (
+            empty($resourceClass) ||
+            !is_a($resourceClass, AbstractUser::class, true) ||
+            'me' !== $request->attributes->get('_api_item_operation_name')
+        ) {
+            return;
+        }
+
+        $user = $this->security->getUser();
+        if (!$user) {
+            throw new AccessDeniedException('Access denied.');
+        }
+        if (!$user instanceof AbstractUser) {
+            throw new AccessDeniedException('Access denied. User not supported.');
+        }
+        $request->attributes->set('id', $user->getId());
     }
 
     public function onPostWrite(ViewEvent $event): void
