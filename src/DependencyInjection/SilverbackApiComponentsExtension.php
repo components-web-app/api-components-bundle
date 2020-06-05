@@ -43,7 +43,7 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
+use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
@@ -54,6 +54,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Security\Http\Event\LogoutEvent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -94,8 +95,13 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 ->addTag('doctrine.repository_service');
         }
 
-        $definition = $container->getDefinition(LogoutHandler::class);
-        $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        if (!class_exists(LogoutEvent::class)) {
+            $definition = $container->getDefinition('silverback.security.logout_handler');
+            $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        } else {
+            $definition = $container->getDefinition(LogoutListener::class);
+            $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        }
 
         $definition = $container->getDefinition(JWTManager::class);
         $definition->setArgument('$userProvider', new Reference(sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));

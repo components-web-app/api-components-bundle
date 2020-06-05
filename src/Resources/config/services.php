@@ -96,6 +96,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
+use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
@@ -150,6 +151,7 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -698,12 +700,22 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
 
     $services
-        ->set(LogoutHandler::class)
+        ->set('silverback.security.logout_handler')
+        ->class(LogoutHandler::class)
         ->args(
             [
                 '', // injected in dependency injection
             ]
         );
+
+    $services
+        ->set(LogoutListener::class)
+        ->args(
+            [
+                '', // injected in dependency injection
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
 
     $services
         ->set('silverback.api_component.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)
