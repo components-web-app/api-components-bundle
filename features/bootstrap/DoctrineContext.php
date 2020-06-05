@@ -531,6 +531,33 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a component in a PageData route with the path :path
+     */
+    public function thereIsAComponentInAPageDataRouteWithPath(string $path): void
+    {
+        $page = $this->thereIsAPage();
+
+        $pageData = new PageDataWithComponent();
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path)
+            ->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1);
+        $page->addComponentCollection($componentCollection);
+
+        $this->manager->persist($page);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given the resource :resource is in a route with the path :path
      */
     public function theIsAComponentInARouteWithPath(string $resource, string $path): void
