@@ -58,7 +58,7 @@ class ComponentPosition
      * @Assert\NotNull()
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
-    public int $sortValue = 0;
+    public ?int $sortValue = null;
 
     /**
      * @return ComponentPosition[]|Collection|null

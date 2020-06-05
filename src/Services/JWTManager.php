@@ -34,23 +34,23 @@ final class JWTManager implements JWTTokenManagerInterface
 {
     private JWTTokenManagerInterface $decorated;
     private JWSProviderInterface $jwsProvider;
-    private UserProviderInterface $userProvider;
     private EventDispatcherInterface $dispatcher;
+    private UserProviderInterface $userProvider;
     private RefreshTokenStorageInterface $storage;
 
-    public function __construct(JWTTokenManagerInterface $decorated, JWSProviderInterface $jwsProvider, UserProviderInterface $userProvider, EventDispatcherInterface $dispatcher, RefreshTokenStorageInterface $storage)
+    public function __construct(JWTTokenManagerInterface $decorated, JWSProviderInterface $jwsProvider, EventDispatcherInterface $dispatcher, UserProviderInterface $userProvider, RefreshTokenStorageInterface $storage)
     {
         $this->decorated = $decorated;
         $this->jwsProvider = $jwsProvider;
-        $this->userProvider = $userProvider;
         $this->dispatcher = $dispatcher;
+        $this->userProvider = $userProvider;
         $this->storage = $storage;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create(UserInterface $user)
+    public function create(UserInterface $user): string
     {
         return $this->decorated->create($user);
     }
@@ -110,7 +110,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function getUserIdentityField()
+    public function getUserIdentityField(): string
     {
         return $this->decorated->getUserIdentityField();
     }
@@ -118,7 +118,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function getUserIdClaim()
+    public function getUserIdClaim(): string
     {
         return $this->decorated->getUserIdClaim();
     }

@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
@@ -35,12 +36,18 @@ final class JWTEventListener
         $this->roleHierarchy = $roleHierarchy;
     }
 
-    public function updateTokenRoles(JWTCreatedEvent $event): void
+    public function onJWTCreated(JWTCreatedEvent $event): void
     {
+        /** @var AbstractUser $user */
         $user = $event->getUser();
         $data = $event->getData();
         $rolesAsEntities = $user->getRoles();
         $data['roles'] = $this->roleHierarchy->getReachableRoleNames($rolesAsEntities);
+        $data['id'] = $user->getId();
+        $data['emailAddress'] = $user->getEmailAddress();
+        $data['emailAddressVerified'] = $user->isEmailAddressVerified();
+        $data['newEmailAddress'] = $user->getNewEmailAddress();
+
         $event->setData($data);
     }
 

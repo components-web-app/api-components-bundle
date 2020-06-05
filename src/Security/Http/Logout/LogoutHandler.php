@@ -19,6 +19,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Logout\LogoutHandlerInterface;
 
+/**
+ * @deprecated As of Symfony 5.1 implement an event listener instead. Will be removed when supported symfony versions >=5.1
+ */
 final class LogoutHandler implements LogoutHandlerInterface
 {
     private RefreshTokenStorageInterface $storage;
@@ -31,7 +34,7 @@ final class LogoutHandler implements LogoutHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function logout(Request $request, Response $response, TokenInterface $token)
+    public function logout(Request $request, Response $response, TokenInterface $token): void
     {
         $this->storage->expireAll($token->getUser());
     }

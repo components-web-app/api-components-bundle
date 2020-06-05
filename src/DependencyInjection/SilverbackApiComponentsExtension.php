@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
-use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
+use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -42,16 +42,17 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
+use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
-use Silverback\ApiComponentsBundle\Services\JWTManager;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Security\Http\Event\LogoutEvent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -76,7 +77,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
 
-        $definition = $container->getDefinition(JWTEventListener::class);
+        $definition = $container->getDefinition('silverback.security.jwt_event_listener');
         $definition->setArgument('$cookieProvider', new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']));
         $container->setParameter('silverback.api_component.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
 
@@ -92,10 +93,16 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 ->addTag('doctrine.repository_service');
         }
 
-        $definition = $container->getDefinition(LogoutHandler::class);
-        $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        if (class_exists(LogoutEvent::class)) {
+            $definition = $container->getDefinition(LogoutListener::class);
+            $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        } else {
+            $definition = $container->getDefinition('silverback.security.logout_handler');
+            $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+        }
 
-        $definition = $container->getDefinition(JWTManager::class);
+        $definition = $container->getDefinition('silverback.security.jwt_manager');
+        $definition->setArgument('$userProvider', new Reference(sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);
@@ -120,6 +127,12 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $definition = $container->getDefinition(MediaObjectFactory::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
         }
+
+        $definition = $container->getDefinition(RouteExtension::class);
+        $definition->setArgument('$config', $config['route_security']);
+
+        $definition = $container->getDefinition(RouteVoter::class);
+        $definition->setArgument('$config', $config['route_security']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void
@@ -205,6 +218,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
+        $loader->load('services_normalizers.php');
     }
 
     public function prepend(ContainerBuilder $container): void
@@ -223,10 +237,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             [
                 'dbal' => [
                     'types' => [
-                        'uuid_binary_ordered_time' => UuidBinaryOrderedTimeType::class,
-                    ],
-                    'mapping_types' => [
-                        'uuid_binary_ordered_time' => 'binary',
+                        'uuid' => UuidType::class,
                     ],
                 ],
             ]

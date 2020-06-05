@@ -110,7 +110,7 @@ class AbstractUserTest extends TestCase
 
     public function test_user_serialization(): void
     {
-        $user = new class('username', 'email@address', true) extends AbstractUser {
+        $user = new class('username', 'email@address', true, ['ROLE_USER']) extends AbstractUser {
         };
         $user->setPassword('password_encoded');
         $original = [

@@ -23,6 +23,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * Although a user will be able to get the routes and the tree of data down to getting the ID for a component
+ * fetching a component will be restricted based on the route it is within.
+ *
  * @author Daniel West <daniel@silverback.is>
  *
  * @Silverback\Timestamped
@@ -33,9 +36,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *         "post"
  *     },
  *     itemOperations={
- *         "get"={
- *             "requirements"={"id"="(.+)"}
- *         }
+ *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted(object)" }
  *     }
  * )
  * @Assert\Expression(

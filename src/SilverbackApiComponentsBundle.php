@@ -18,7 +18,6 @@ use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformC
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineOrmCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\FlysystemCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
-use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SecurityCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -37,7 +36,6 @@ class SilverbackApiComponentsBundle extends Bundle
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
         $container->addCompilerPass(new FlysystemCompilerPass());
-        $container->addCompilerPass(new SecurityCompilerPass());
 
         if (class_exists(DoctrineOrmMappingsPass::class)) {
             $container->addCompilerPass(new DoctrineOrmCompilerPass());

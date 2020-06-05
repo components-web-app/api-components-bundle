@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -30,14 +31,16 @@ use Symfony\Component\Security\Core\Security;
 class ChangePasswordType extends AbstractType
 {
     private Security $security;
+    private UserRepository $userRepository;
     private string $userClass;
 
-    public function __construct(Security $security, string $userClass)
+    public function __construct(Security $security, UserRepository $userRepository, string $userClass)
     {
         if (!is_subclass_of($userClass, AbstractUser::class)) {
             throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
         $this->security = $security;
+        $this->userRepository = $userRepository;
         $this->userClass = $userClass;
     }
 
@@ -84,6 +87,13 @@ class ChangePasswordType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        /** @var AbstractUser $securityUser */
+        $securityUser = $this->security->getUser();
+
+        // With JWT, we are not hitting the database for the user, but in this case we should be.
+        // This is so we can detect change sets in the form listeners.
+        $databaseUser = $this->userRepository->find($securityUser->getId());
+
         $resolver->setDefaults(
             [
                 'csrf_protection' => false,
@@ -92,7 +102,7 @@ class ChangePasswordType extends AbstractType
                 ],
                 'data_class' => $this->userClass,
                 'validation_groups' => ['User:password:create', 'User:password:change'],
-                'empty_data' => $this->security->getUser(),
+                'empty_data' => $databaseUser,
             ]
         );
     }

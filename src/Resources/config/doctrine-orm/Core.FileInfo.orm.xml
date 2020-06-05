@@ -5,9 +5,9 @@
         <unique-constraints>
             <unique-constraint name="unique_cache_item" columns="path,filter"/>
         </unique-constraints>
-        <id name="id" column="id" type="uuid_binary_ordered_time">
+        <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="path" column="path"/>
         <field name="mimeType" column="mime_type"/>

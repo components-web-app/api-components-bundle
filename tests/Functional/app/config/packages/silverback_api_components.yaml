@@ -5,6 +5,7 @@ silverback_api_components:
             class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken
         cookie_name: api_component
         ttl: 604800 # 1 week
+        database_user_provider: database
     website_name: New Website
     user:
         class_name: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
@@ -26,3 +27,5 @@ silverback_api_components:
                 default_redirect_path: /confirm-new-email/{{ username }}/{{ new_email }}/{{ token }}
     publishable:
         permission: "is_granted('ROLE_ADMIN')"
+    route_security:
+        - { route: "/user-area*", security: "is_granted('ROLE_USER')" }

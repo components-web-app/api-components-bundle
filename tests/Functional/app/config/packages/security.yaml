@@ -6,9 +6,15 @@ security:
         Silverback\ApiComponentsBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
-        user_provider:
+        database:
             entity:
                 class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
+        jwt:
+            lexik_jwt:
+                class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
+        jwt_database_chain:
+            chain:
+                providers: ['jwt', 'database']
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -17,7 +23,7 @@ security:
             pattern:  ^/login
             stateless: true
             anonymous: true
-            provider: user_provider
+            provider: database
             user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
             json_login:
                 check_path: /login
@@ -27,6 +33,7 @@ security:
             pattern:   ^/
             stateless: true
             anonymous: true
+            provider: jwt_database_chain
             logout:
                 path: /logout
             guard:
@@ -35,8 +42,10 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
     access_control:
+        - { path: ^/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/password/(reset|update), roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-        - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
         # For a specific tests to ensure anonymous users can use publishable
         - { path: ^/component/dummy_publishable_components, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-#        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
+        # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
+        - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

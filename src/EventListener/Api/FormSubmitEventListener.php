@@ -94,7 +94,7 @@ class FormSubmitEventListener
         if (
             empty($data) ||
             !$data instanceof Form ||
-            !\in_array($method, [Request::METHOD_POST, Request::METHOD_PATCH], true) ||
+            !\in_array($method, [Request::METHOD_POST, Request::METHOD_PATCH, Request::METHOD_PUT], true) ||
             0 !== substr_compare($request->getPathInfo(), $postfix, -\strlen($postfix))
         ) {
             return null;

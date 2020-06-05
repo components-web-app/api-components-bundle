@@ -2,9 +2,9 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition" table="component_position">
-        <id name="id" column="id" type="uuid_binary_ordered_time">
+        <id name="id" column="id" type="uuid">
             <generator strategy="CUSTOM"/>
-            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidOrderedTimeGenerator"/>
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
         </id>
         <field name="sortValue" type="integer" column="sort_value" precision="0" scale="0" nullable="false"/>
         <many-to-one field="componentCollection" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="componentPositions" fetch="LAZY">
