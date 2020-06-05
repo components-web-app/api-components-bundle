@@ -16,6 +16,7 @@ use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\RouteCollectionBuilder;
+use Symfony\Component\Security\Http\Event\LogoutEvent;
 
 /**
  * AppKernel for tests.
@@ -90,6 +91,10 @@ class AppKernel extends Kernel
         $loader->load($confDir . '/packages/*' . self::CONFIG_EXTS, 'glob');
         if (is_dir($confDir . '/packages/' . $this->environment)) {
             $loader->load($confDir . '/packages/' . $this->environment . '/**/*' . self::CONFIG_EXTS, 'glob');
+        }
+        // Todo: Could probably do with a better check for which symfony version we are in. LogoutEvent was introduced in 5.1
+        if (!class_exists(LogoutEvent::class)) {
+            $loader->load($confDir . '/packages/<5.1/**/*' . self::CONFIG_EXTS, 'glob');
         }
         $loader->load($confDir . '/services' . self::CONFIG_EXTS, 'glob');
         $loader->load($confDir . '/services_' . $this->environment . self::CONFIG_EXTS, 'glob');
