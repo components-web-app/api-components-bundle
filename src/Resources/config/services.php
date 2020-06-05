@@ -635,23 +635,25 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
     $services->alias(JWTEventListener::class, 'silverback.security.jwt_event_listener');
 
-    $services
-        ->set('silverback.security.logout_handler')
-        ->class(LogoutHandler::class)
-        ->args(
-            [
-                '', // injected in dependency injection
-            ]
-        );
-
-    $services
-        ->set(LogoutListener::class)
-        ->args(
-            [
-                '', // injected in dependency injection
-            ]
-        )
-        ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
+    if (class_exists(LogoutEvent::class)) {
+        $services
+            ->set(LogoutListener::class)
+            ->args(
+                [
+                    '', // injected in dependency injection
+                ]
+            )
+            ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
+    } else {
+        $services
+            ->set('silverback.security.logout_handler')
+            ->class(LogoutHandler::class)
+            ->args(
+                [
+                    '', // injected in dependency injection
+                ]
+            );
+    }
 
     $services
         ->set('silverback.api_component.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)

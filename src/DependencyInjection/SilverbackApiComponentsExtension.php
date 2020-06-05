@@ -93,11 +93,11 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 ->addTag('doctrine.repository_service');
         }
 
-        if (!class_exists(LogoutEvent::class)) {
-            $definition = $container->getDefinition('silverback.security.logout_handler');
+        if (class_exists(LogoutEvent::class)) {
+            $definition = $container->getDefinition(LogoutListener::class);
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
         } else {
-            $definition = $container->getDefinition(LogoutListener::class);
+            $definition = $container->getDefinition('silverback.security.logout_handler');
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
         }
 
