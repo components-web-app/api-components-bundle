@@ -152,7 +152,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
      */
     protected ?DateTime $emailLastUpdatedAt = null;
 
-    public function __construct(string $username = '', array $roles = ['ROLE_USER'], string $emailAddress = '', bool $emailAddressVerified = false, string $password = '', bool $enabled = true)
+    public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
     {
         $this->username = $username;
         $this->emailAddress = $emailAddress;
@@ -399,9 +399,9 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     {
         $newUser = new static(
             $username,
-            $payload['roles'],
             $payload['emailAddress'],
-            $payload['emailAddressVerified']
+            $payload['emailAddressVerified'],
+            $payload['roles']
         );
 
         $newUser->setNewEmailAddress($payload['newEmailAddress']);

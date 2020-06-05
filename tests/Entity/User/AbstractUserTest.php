@@ -22,7 +22,7 @@ class AbstractUserTest extends TestCase
 {
     public function test_construct(): void
     {
-        $user = new class('username', ['ROLE_ADMIN'], 'email@address.com', true, 'password', false) extends AbstractUser {
+        $user = new class('username', 'email@address.com', true, ['ROLE_ADMIN'], 'password', false) extends AbstractUser {
         };
         $this->assertEquals('username', $user->getUsername());
         $this->assertEquals('email@address.com', $user->getEmailAddress());
@@ -110,7 +110,7 @@ class AbstractUserTest extends TestCase
 
     public function test_user_serialization(): void
     {
-        $user = new class('username', ['ROLE_USER'], 'email@address', true) extends AbstractUser {
+        $user = new class('username', 'email@address', true, ['ROLE_USER']) extends AbstractUser {
         };
         $user->setPassword('password_encoded');
         $original = [
