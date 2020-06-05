@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -40,10 +41,12 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     private const ALREADY_CALLED = 'COMPONENT_POSITION_NORMALIZER_ALREADY_CALLED';
 
     private PageDataProvider $pageDataProvider;
+    private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
 
-    public function __construct(PageDataProvider $pageDataProvider)
+    public function __construct(PageDataProvider $pageDataProvider, ComponentPositionSortValueHelper $componentPositionSortValueHelper)
     {
         $this->pageDataProvider = $pageDataProvider;
+        $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -62,31 +65,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         /** @var ComponentPosition $object */
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
-
-        $sortCollection = $object->getSortCollection();
-        if (!$sortCollection) {
-            return $object;
-        }
-
-        // Todo: Move to another class for easier use by the final application developer (e.g. in fixtures)
-        if (!isset($data['sortValue'])) {
-            /** @var ComponentPosition|null $lastPosition */
-            $lastPosition = $sortCollection->last();
-            if ($lastPosition) {
-                $nextValue = $lastPosition->sortValue + 1;
-                $object->setSortValue($nextValue);
-            }
-        } else {
-            // Update other component position sort values as well
-            // Thought about putting this in an event listener
-            // but ComponentPosition cal also be added as writeableLink from any component...
-            // Seemed simplest implementation to put it here...
-            foreach ($sortCollection as $componentPosition) {
-                if ($componentPosition->sortValue >= $object->sortValue) {
-                    ++$componentPosition->sortValue;
-                }
-            }
-        }
+        $this->componentPositionSortValueHelper->calculateSortValue($object);
 
         return $object;
     }

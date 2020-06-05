@@ -479,6 +479,7 @@ final class DoctrineContext implements Context
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'component';
         $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);

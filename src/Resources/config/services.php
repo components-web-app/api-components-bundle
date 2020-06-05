@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -79,6 +78,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -109,16 +109,6 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Serializer\UuidNormalizer;
 use Silverback\ApiComponentsBundle\Services\JWTManager;
@@ -163,17 +153,6 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_lo
  */
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
-
-    $services
-        ->set(AbstractResourceNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(ApiResourceRouteFinder::class),
-                new Reference(IriConverterInterface::class),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(AbstractUserEmailFactory::class)
@@ -255,12 +234,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('api_platform.data_transformer');
 
     $services
-        ->set(ComponentPositionNormalizer::class)
-        ->autoconfigure(false)
-        ->args([
-            new Reference(PageDataProvider::class),
-        ])
-        ->tag('serializer.normalizer', ['priority' => -499]);
+        ->set('silverback.helper.component_position_sort_value')
+        ->class(ComponentPositionSortValueHelper::class);
 
     $services
         ->set(ComponentPositionValidator::class)
@@ -277,17 +252,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ComponentPropertyMetadataFactory::class . '.inner'),
             ]
         );
-
-    $services
-        ->set(DataUriNormalizer::class)
-        ->decorate('serializer.normalizer.data_uri')
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(DataUriNormalizer::class . '.inner'),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(DenyAccessListener::class)
@@ -492,16 +456,6 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(MetadataNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                '', // set in dependency injection
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -500]);
-
-    $services
         ->set(NewEmailAddressListener::class)
         ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
@@ -575,17 +529,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
-        ->set(PersistedNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(EntityManagerInterface::class),
-                new Reference(ResourceClassResolverInterface::class),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
-
-    $services
         ->set(PublishableAnnotationReader::class)
         ->parent(AnnotationReader::class);
 
@@ -644,18 +587,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('api_platform.doctrine.orm.query_extension.collection');
 
     $services
-        ->set(PublishableNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(PublishableStatusChecker::class),
-                new Reference('doctrine'),
-                new Reference('request_stack'),
-                new Reference('api_platform.validator'),
-            ]
-        )->tag('serializer.normalizer', ['priority' => -400]);
-
-    $services
         ->set(PublishableValidator::class)
         ->decorate('api_platform.validator')
         ->args(
@@ -674,11 +605,12 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(JWTManager::class)
+        ->set('silverback.security.jwt_manager')
+        ->class(JWTManager::class)
         ->decorate('lexik_jwt_authentication.jwt_manager')
         ->args(
             [
-                new Reference(JWTManager::class . '.inner'),
+                new Reference('silverback.security.jwt_manager.inner'),
                 new Reference('lexik_jwt_authentication.jws_provider.lcobucci'),
                 new Reference('event_dispatcher'),
                 '', // injected in dependency injection
@@ -686,9 +618,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->autoconfigure(false);
+    $services->alias(JWTManager::class, 'silverback.security.jwt_manager');
 
     $services
-        ->set(JWTEventListener::class)
+        ->set('silverback.security.jwt_event_listener')
+        ->class(JWTEventListener::class)
         ->args(
             [
                 new Reference('security.role_hierarchy'),
@@ -698,6 +632,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'onJWTCreated'])
         ->tag('kernel.event_listener', ['event' => JWTRefreshedEvent::class, 'method' => 'onJWTRefreshed'])
         ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
+    $services->alias(JWTEventListener::class, 'silverback.security.jwt_event_listener');
 
     $services
         ->set('silverback.security.logout_handler')
@@ -764,11 +699,6 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
-
-    $services
-        ->set(RouteNormalizer::class)
-        ->autoconfigure(false)
-        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(RouteRepository::class)
@@ -869,18 +799,6 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(TimestampedNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
-                new Reference(TimestampedDataPersister::class),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
-
-    $services
         ->set(TimestampedValidator::class)
         ->decorate('api_platform.validator')
         ->args(
@@ -950,19 +868,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UploadableAnnotationReader::class),
             ]
         );
-
-    $services
-        ->set(UploadableNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(MediaObjectFactory::class),
-                new Reference(UploadableAnnotationReader::class),
-                new Reference(ManagerRegistry::class),
-                new Reference(RequestStack::class),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(UploadableResourceMetadataFactory::class)
@@ -1072,16 +977,6 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected in dependency injection
             ]
         );
-
-    $services
-        ->set(UserNormalizer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(UserDataProcessor::class),
-            ]
-        )
-        ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(UserPasswordValidator::class)

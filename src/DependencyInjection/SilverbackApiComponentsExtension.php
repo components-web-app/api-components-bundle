@@ -19,7 +19,6 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -47,7 +46,6 @@ use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
-use Silverback\ApiComponentsBundle\Services\JWTManager;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -79,7 +77,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
 
-        $definition = $container->getDefinition(JWTEventListener::class);
+        $definition = $container->getDefinition('silverback.security.jwt_event_listener');
         $definition->setArgument('$cookieProvider', new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']));
         $container->setParameter('silverback.api_component.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
 
@@ -103,7 +101,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
         }
 
-        $definition = $container->getDefinition(JWTManager::class);
+        $definition = $container->getDefinition('silverback.security.jwt_manager');
         $definition->setArgument('$userProvider', new Reference(sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
@@ -220,6 +218,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
+        $loader->load('services_normalizers.php');
     }
 
     public function prepend(ContainerBuilder $container): void
