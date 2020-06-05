@@ -1038,7 +1038,7 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args(
             [
-                new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+                new Reference(UserResourceMetadataFactory::class . '.inner'),
             ]
         );
 
