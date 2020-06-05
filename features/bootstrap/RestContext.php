@@ -62,6 +62,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /^null$/
+     */
+    public function castNull()
+    {
+        return null;
+    }
+
+    /**
      * @Transform /^(\d+)$/
      */
     public function castNumber(string $number): int

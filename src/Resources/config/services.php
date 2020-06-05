@@ -91,6 +91,7 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
+use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
@@ -131,6 +132,7 @@ use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
@@ -153,6 +155,15 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_lo
  */
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
+
+    $services
+        ->set(AbstractPageDataRepository::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('doctrine.repository_service');
 
     $services
         ->set(AbstractUserEmailFactory::class)
@@ -258,7 +269,10 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(RouteRepository::class),
+                new Reference(AbstractPageDataRepository::class),
                 new Reference(Security::class),
+                new Reference(IriConverterInterface::class),
+                new Reference(HttpKernelInterface::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);

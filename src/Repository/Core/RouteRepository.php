@@ -19,6 +19,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Exception\InvalidUuidStringException;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
@@ -119,6 +120,25 @@ class RouteRepository extends ServiceEntityRepository
                 )
             )
             ->setParameter('component', $component);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    /**
+     * @return Route[]
+     */
+    public function findByPageData(AbstractPageData $pageData): array
+    {
+        $queryBuilder = $this->createQueryBuilder('route');
+        $queryBuilder
+            ->leftJoin(
+                'route.pageData',
+                'pageData',
+                Join::WITH,
+                $queryBuilder->expr()->eq('route', 'pageData.route')
+            )
+            ->andWhere($queryBuilder->expr()->eq('pageData', ':page_data'))
+            ->setParameter('page_data', $pageData);
 
         return $queryBuilder->getQuery()->getResult();
     }

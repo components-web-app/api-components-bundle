@@ -43,8 +43,10 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedPageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
@@ -311,10 +313,10 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a ComponentCollection with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null): ComponentCollection
+    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentCollection
     {
         $componentCollection = new ComponentCollection();
-        $componentCollection->reference = 'collection';
+        $componentCollection->reference = $collectionReference;
         $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $this->manager->persist($componentCollection);
         if ($id) {
@@ -533,24 +535,55 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a component in a PageData route with the path :path
      */
-    public function thereIsAComponentInAPageDataRouteWithPath(string $path): void
+    public function thereIsAComponentInAPageDataRouteWithPath(?string $path): void
     {
-        $page = $this->thereIsAPage();
+        $page = $this->thereIsAPage('page_data_page');
 
-        $pageData = new PageDataWithComponent();
+        $pageData = new PageData();
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
 
-        $route = new Route();
-        $route
-            ->setPath($path)
-            ->setName($path)
-            ->setPageData($pageData);
-        $this->timestampedHelper->persistTimestampedFields($route, true);
-        $this->manager->persist($route);
+        if ($path) {
+            $route = new Route();
+            $route
+                ->setPath($path)
+                ->setName($path)
+                ->setPageData($pageData);
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+        }
 
-        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1);
+        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1, null, 'page_data_cc');
+        $page->addComponentCollection($componentCollection);
+
+        $this->manager->persist($page);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a component in a RestrictedPageData route with the path :path
+     */
+    public function thereIsAComponentInARestrictedPageDataRouteWithPath(?string $path): void
+    {
+        $page = $this->thereIsAPage('restricted_page_data_page');
+
+        $pageData = new RestrictedPageData();
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        if ($path) {
+            $route = new Route();
+            $route
+                ->setPath($path)
+                ->setName($path)
+                ->setPageData($pageData);
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+        }
+
+        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1, null, 'restricted_page_data_cc');
         $page->addComponentCollection($componentCollection);
 
         $this->manager->persist($page);

@@ -63,11 +63,25 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to the resource "component_0"
     Then the response status code should be 200
 
-  @wip
   Scenario: A component in a PageData resource which is restricted by API Platform security metadata is also restricted
+    Given there is a component in a RestrictedPageData route with the path null
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 401
 
-  @wip
+  @loginUser
+  Scenario: A component in a PageData resource which is restricted by API Platform security metadata is allowed by a user
+    Given there is a component in a RestrictedPageData route with the path null
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
+
   Scenario: A component restricted in PageData but allowed in a static Page route is allowed
+    Given there is a component in a RestrictedPageData route with the path null
+    And the resource "component_0" is in a route with the path "/any-page"
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
 
-  @wip
   Scenario: A component forbidden in a static route but allowed within PageData is allowed
+    Given there is a component in a route with the path "/user-area/my-page"
+    And there is a component in a PageData route with the path null
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
