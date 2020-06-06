@@ -31,7 +31,6 @@ use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\PageDataRoutePropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
@@ -496,15 +495,6 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('validator.constraint_validator');
-
-    $services
-        ->set(PageDataRoutePropertyMetadataFactory::class)
-        ->decorate('api_platform.metadata.property.metadata_factory')
-        ->args(
-            [
-                new Reference(PageDataRoutePropertyMetadataFactory::class . '.inner'),
-            ]
-        );
 
     $services
         ->set(PageDataProvider::class)

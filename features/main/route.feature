@@ -35,13 +35,6 @@ Feature: Route resources
   @loginUser
   Scenario: I can automatically generate a route from a PageData resource
     Given there is a PageData resource with the route path null
-    When I send a "POST" request to the resource "page_data" and the postfix "/routes/generate"
-    Then the response status code should be 201
-    And the JSON should be valid according to the schema file "route.schema.json"
-
-  @loginUser
-  Scenario: I can automatically generate a route from a PageData resource
-    Given there is a PageData resource with the route path null
     When I send a "POST" request to "/_/routes/generate" with data:
      | pageData            |
      | resource[page_data] |
