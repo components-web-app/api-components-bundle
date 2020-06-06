@@ -49,4 +49,4 @@ Feature: Route resources
       | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the Route "/original" should redirect to "/unnamed-page"
+    And the Route "/original" should redirect to "/unnamed-page"]

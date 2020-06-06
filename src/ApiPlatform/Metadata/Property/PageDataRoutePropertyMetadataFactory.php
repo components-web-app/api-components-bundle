@@ -22,7 +22,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PageDataRoutePropertyMetadataFilter implements PropertyMetadataFactoryInterface
+class PageDataRoutePropertyMetadataFactory implements PropertyMetadataFactoryInterface
 {
     private PropertyMetadataFactoryInterface $decorated;
 
@@ -39,7 +39,7 @@ class PageDataRoutePropertyMetadataFilter implements PropertyMetadataFactoryInte
         }
 
         $subresourceMetadata = new SubresourceMetadata(Route::class, false, 1);
-
+        dump($subresourceMetadata);
         return $propertyMetadata->withSubresource($subresourceMetadata);
     }
 }
