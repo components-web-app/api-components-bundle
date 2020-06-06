@@ -33,7 +33,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     mercure=true,
  *     collectionOperations={
  *         "get",
- *         "post"
+ *         "post",
+ *         "generate"={ "method"="POST", "path"="/routes/generate" }
  *     },
  *     itemOperations={
  *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted(object)" }

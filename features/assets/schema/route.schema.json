@@ -7,8 +7,15 @@
       "description": "",
       "required": [
         "path",
-        "name",
-        "page"
+        "name"
+      ],
+      "anyOf": [
+        {
+          "required": ["page"]
+        },
+        {
+          "required": ["pageData"]
+        }
       ],
       "properties": {
         "@context": {
@@ -40,17 +47,32 @@
             "contact-page"
           ]
         },
+        "redirect": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "iri-reference"
+        },
         "redirectPath": {
           "type": "string",
           "nullable": true,
           "examples": [null, "/contact-new"]
         },
         "page": {
-          "type": "string",
+          "type": ["string", "null"],
           "format": "iri-reference",
           "nullable": true,
           "examples": [
             "/_/pages/30b4ec9e-9b4e-11ea-84a9-acde48001122"
+          ]
+        },
+        "pageData": {
+          "type": ["string", "null"],
+          "format": "iri-reference",
+          "nullable": true,
+          "examples": [
+            "/page_data/blog_pages/30b4ec9e-9b4e-11ea-84a9-acde48001122"
           ]
         },
         "createdAt": {
