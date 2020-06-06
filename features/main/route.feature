@@ -41,6 +41,7 @@ Feature: Route resources
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
 
+  @loginUser
   Scenario: I generate a route for page data with a pre-existing route. The original route will change to a redirect.
     Given there is a PageData resource with the route path "/original"
     When I send a "POST" request to "/_/routes/generate" with data:
@@ -48,4 +49,4 @@ Feature: Route resources
       | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the Route "/original" should redirect to "/test-page"
+    And the Route "/original" should redirect to "/unnamed-page"

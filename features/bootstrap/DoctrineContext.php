@@ -737,9 +737,9 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Then the Route :newPath should redirect to :oldPath
+     * @Then the Route :oldPath should redirect to :newPath
      */
-    public function theRouteShouldRedirectTo(string $newPath, string $oldPath): void
+    public function theRouteShouldRedirectTo(string $oldPath, string $newPath): void
     {
         $this->manager->clear();
         $repository = $this->manager->getRepository(Route::class);
