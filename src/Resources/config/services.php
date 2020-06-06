@@ -30,8 +30,8 @@ use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFilter;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\PageDataRoutePropertyMetadataFilter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\PageDataRoutePropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
@@ -430,11 +430,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
 
     $services
-        ->set(ImagineFiltersPropertyMetadataFilter::class)
+        ->set(ImagineFiltersPropertyMetadataFactory::class)
         ->decorate('api_platform.metadata.property.metadata_factory')
         ->args(
             [
-                new Reference(ImagineFiltersPropertyMetadataFilter::class . '.inner'),
+                new Reference(ImagineFiltersPropertyMetadataFactory::class . '.inner'),
             ]
         );
 
@@ -498,11 +498,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('validator.constraint_validator');
 
     $services
-        ->set(PageDataRoutePropertyMetadataFilter::class)
+        ->set(PageDataRoutePropertyMetadataFactory::class)
         ->decorate('api_platform.metadata.property.metadata_factory')
         ->args(
             [
-                new Reference(PageDataRoutePropertyMetadataFilter::class . '.inner'),
+                new Reference(PageDataRoutePropertyMetadataFactory::class . '.inner'),
             ]
         );
 

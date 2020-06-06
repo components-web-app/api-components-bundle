@@ -15,14 +15,12 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property;
 
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
-use ApiPlatform\Core\Metadata\Property\SubresourceMetadata;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PageDataRoutePropertyMetadataFilter implements PropertyMetadataFactoryInterface
+class ImagineFiltersPropertyMetadataFactory implements PropertyMetadataFactoryInterface
 {
     private PropertyMetadataFactoryInterface $decorated;
 
@@ -34,12 +32,10 @@ class PageDataRoutePropertyMetadataFilter implements PropertyMetadataFactoryInte
     public function create(string $resourceClass, string $property, array $options = []): PropertyMetadata
     {
         $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
-        if ('route' !== $property || !is_a($resourceClass, AbstractPageData::class, true)) {
+        if ('imagineFilters' !== $property || !is_a($resourceClass, ImagineFiltersInterface::class, true)) {
             return $propertyMetadata;
         }
 
-        $subresourceMetadata = new SubresourceMetadata(Route::class, false, 1);
-
-        return $propertyMetadata->withSubresource($subresourceMetadata);
+        return $propertyMetadata->withReadable(false);
     }
 }
