@@ -43,8 +43,8 @@ final class UploadableLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        /** @var Uploadable $configuration */
-        if (!$configuration = $this->reader->getClassAnnotation($reflectionClass, Uploadable::class)) {
+        /* @var Uploadable $configuration */
+        if (!$this->reader->getClassAnnotation($reflectionClass, Uploadable::class)) {
             return true;
         }
 

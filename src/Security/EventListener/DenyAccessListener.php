@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Security\EventListener;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
@@ -49,13 +48,9 @@ final class DenyAccessListener
         $this->httpKernel = $httpKernel;
     }
 
-    public function onPreDeserialize(RequestEvent $event)
+    public function onPreDeserialize(RequestEvent $event): void
     {
         $request = $event->getRequest();
-
-        if (!$attributes = RequestAttributesExtractor::extractAttributes($request)) {
-            return;
-        }
 
         $resource = $request->attributes->get('data');
 
@@ -83,11 +78,6 @@ final class DenyAccessListener
 
     private function isComponentAllowedByPageDataSecurityPolicy(AbstractComponent $component, Request $request): ?bool
     {
-        // abstain - we need request
-        if (!$attributes = RequestAttributesExtractor::extractAttributes($request)) {
-            return null;
-        }
-
         $pageDataResources = $this->pageDataRepository->findByComponent($component);
 
         // abstain - no results to say yay or nay
