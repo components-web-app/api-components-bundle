@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class ImagineFiltersPropertyMetadataFilter implements PropertyMetadataFactoryInterface
+class ImagineFiltersPropertyMetadataFactory implements PropertyMetadataFactoryInterface
 {
     private PropertyMetadataFactoryInterface $decorated;
 

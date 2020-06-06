@@ -30,8 +30,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFilter;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\PageDataRoutePropertyMetadataFilter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
@@ -50,6 +49,7 @@ use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -85,6 +85,7 @@ use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -430,11 +431,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
 
     $services
-        ->set(ImagineFiltersPropertyMetadataFilter::class)
+        ->set(ImagineFiltersPropertyMetadataFactory::class)
         ->decorate('api_platform.metadata.property.metadata_factory')
         ->args(
             [
-                new Reference(ImagineFiltersPropertyMetadataFilter::class . '.inner'),
+                new Reference(ImagineFiltersPropertyMetadataFactory::class . '.inner'),
             ]
         );
 
@@ -496,15 +497,6 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('validator.constraint_validator');
-
-    $services
-        ->set(PageDataRoutePropertyMetadataFilter::class)
-        ->decorate('api_platform.metadata.property.metadata_factory')
-        ->args(
-            [
-                new Reference(PageDataRoutePropertyMetadataFilter::class . '.inner'),
-            ]
-        );
 
     $services
         ->set(PageDataProvider::class)
@@ -719,6 +711,14 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('api_platform.item_data_provider', ['priority' => 1]);
 
     $services
+        ->set('silverback.event_listener.api.route_event_listener')
+        ->class(RouteEventListener::class)
+        ->args([
+            new Reference('silverback.helper.route_generator'),
+        ])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE, 'method' => 'onPreValidate']);
+
+    $services
         ->set(RouteExtension::class)
         ->args(
             [
@@ -727,6 +727,14 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
+        ->set('silverback.helper.route_generator')
+        ->class(RouteGenerator::class)
+        ->args([
+            new Reference('cocur_slugify'),
+            new Reference(ManagerRegistry::class),
+        ]);
 
     $services
         ->set(RouteRepository::class)

@@ -471,7 +471,7 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a PageData resource with the route path :route
      */
-    public function thereIsAPageDataResourceWithRoutePath(string $path): void
+    public function thereIsAPageDataResourceWithRoutePath(?string $path): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
@@ -499,13 +499,15 @@ final class DoctrineContext implements Context
         $this->manager->persist($pageData);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
 
-        $route = new Route();
-        $route
-            ->setPath($path)
-            ->setName($path)
-            ->setPageData($pageData);
-        $this->timestampedHelper->persistTimestampedFields($route, true);
-        $this->manager->persist($route);
+        if ($path) {
+            $route = new Route();
+            $route
+                ->setPath($path)
+                ->setName($path)
+                ->setPageData($pageData);
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+        }
 
         $this->manager->flush();
     }
@@ -732,5 +734,21 @@ final class DoctrineContext implements Context
             ]
         );
         Assert::assertFalse($user->isEmailAddressVerified());
+    }
+
+    /**
+     * @Then the Route :oldPath should redirect to :newPath
+     */
+    public function theRouteShouldRedirectTo(string $oldPath, string $newPath): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(Route::class);
+        /** @var Route $route */
+        $route = $repository->findOneBy(
+            [
+                'path' => $oldPath,
+            ]
+        );
+        Assert::assertEquals($newPath, $route->getRedirect()->getPath());
     }
 }
