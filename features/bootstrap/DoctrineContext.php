@@ -122,7 +122,6 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
-        $this->manager->clear();
 
         $token = $this->jwtManager->create($user);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
