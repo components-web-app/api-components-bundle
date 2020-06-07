@@ -124,7 +124,7 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then the response should be the component :name
+     * @Then the response should be the resource :name
      */
     public function theResponseShouldBeTheResource($name): void
     {
@@ -165,7 +165,7 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then I save the JSON node :name as the component :resource
+     * @Then I save the JSON node :name as the resource :resource
      */
     public function iSaveTheJsonNodeAsTheResource(string $name, string $resource): void
     {

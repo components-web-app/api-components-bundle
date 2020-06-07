@@ -55,4 +55,21 @@ Feature: Prevent disabled users from logging in
     And the response should be empty
     And the response should have a "api_component" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
-    And 1 refresh token should have been generated
+    And 1 refresh token should exist
+
+  @loginUser
+  Scenario: Expired JWT tokens should be refreshed
+    Given I have a refresh token
+    And my JWT token has expired
+    When I send a "GET" request to "/me"
+    Then the response status code should be 200
+    And the refresh token should be expired
+    And the response should have a "api_component" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And 2 refresh tokens should exist
+
+  @wip
+  Scenario: given I have an expired refresh-token when I log in with an expired access-token, I should get a 401
+
+  @wip
+  Scenario: given I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire

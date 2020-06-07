@@ -67,7 +67,8 @@ final class JWTManager implements JWTTokenManagerInterface
                 throw $exception;
             }
 
-            $payload = $this->jwsProvider->load($token->getCredentials());
+            $jws = $this->jwsProvider->load($token->getCredentials());
+            $payload = $jws->getPayload();
             $idClaim = $this->getUserIdClaim();
 
             if (!isset($payload[$idClaim])) {
