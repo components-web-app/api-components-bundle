@@ -57,7 +57,7 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         /** @var RefreshToken $refreshToken */
         $refreshToken = new $className();
         $refreshToken->setCreatedAt(new \DateTimeImmutable());
-        $refreshToken->setExpiredAt(new \DateTimeImmutable("$this->ttl seconds"));
+        $refreshToken->setExpiresAt(new \DateTimeImmutable("$this->ttl seconds"));
         $refreshToken->setUser($user);
 
         $em = $this->getEntityManager();
@@ -72,7 +72,7 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         $refreshTokens = $user ? $repository->findBy(['user' => $user]) : $repository->findAll();
 
         foreach ($refreshTokens as $refreshToken) {
-            $refreshToken->setExpiredAt(new \DateTimeImmutable());
+            $refreshToken->setExpiresAt(new \DateTimeImmutable());
             $em->persist($refreshToken);
         }
 

@@ -24,6 +24,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ObjectManager;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
@@ -45,6 +46,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCusto
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedPageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
@@ -66,6 +68,7 @@ final class DoctrineContext implements Context
     private SchemaTool $schemaTool;
     private UserPasswordEncoderInterface $passwordEncoder;
     private array $classes;
+    private JWTEncoderInterface $jwtEncoder;
 
     /**
      * Initializes context.
@@ -74,7 +77,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordEncoderInterface $passwordEncoder, JWTEncoderInterface $jwtEncoder)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -84,6 +87,7 @@ final class DoctrineContext implements Context
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
         $this->passwordEncoder = $passwordEncoder;
+        $this->jwtEncoder = $jwtEncoder;
     }
 
     /**
@@ -118,11 +122,11 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
-        $this->manager->clear();
 
         $token = $this->jwtManager->create($user);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
         $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromItem($user);
+        $this->manager->clear();
     }
 
     /**
@@ -627,6 +631,41 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given /I have a refresh token(?: which expires at "([^"]*)"|)?$/
+     */
+    public function iHaveARefreshToken(string $expiresAt = '+10 seconds'): void
+    {
+        $repo = $this->manager->getRepository(RefreshToken::class);
+        $tokens = $repo->findBy([
+            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+        ]);
+        foreach ($tokens as $token) {
+            $this->manager->remove($token);
+        }
+
+        $refreshToken = new RefreshToken();
+        $refreshToken
+            ->setUser($this->iriConverter->getItemFromIri($this->restContext->resources['login_user']))
+            ->setCreatedAt(new \DateTime())
+            ->setExpiresAt(new \DateTime($expiresAt));
+        $this->manager->persist($refreshToken);
+        $this->manager->flush();
+        $this->restContext->resources['refresh_token'] = $refreshToken->getId();
+    }
+
+    /**
+     * @Given my JWT token has expired
+     */
+    public function myJwtTokenHasExpired(): void
+    {
+        $token = $this->jwtEncoder->encode([
+            'exp' => (new \DateTime('-1 second'))->getTimestamp(),
+            'username' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user'])->getUsername(),
+        ]);
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+    }
+
+    /**
      * @Then there should be :count DummyComponent resources
      */
     public function thereShouldBeDummyComponentResources(int $count): void
@@ -645,30 +684,62 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Then the component :name should not exist
+     * @Then the resource :name should not exist
      */
-    public function theComponentShouldNotExist(string $name): void
+    public function theResourceShouldNotExist(string $name): void
     {
         $this->manager->clear();
         try {
             $iri = $this->restContext->resources[$name];
             $this->iriConverter->getItemFromIri($iri);
-            throw new ExpectationException(sprintf('The component %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(sprintf('The resource %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
         } catch (ItemNotFoundException $exception) {
         }
     }
 
     /**
-     * @Then the component :name should exist
+     * @Then the refresh token should be expired
      */
-    public function theComponentShouldExist(string $name): void
+    public function theRefreshTokenShouldBeExpired(): void
+    {
+        $this->manager->clear();
+        $repo = $this->manager->getRepository(RefreshToken::class);
+        $token = $repo->findOneBy([
+            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+        ]);
+        if (!$token->isExpired()) {
+            throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then /^all the refresh tokens should be expired$/
+     */
+    public function allTheRefreshTokensShouldBeExpired(): void
+    {
+        $this->manager->clear();
+        $repo = $this->manager->getRepository(RefreshToken::class);
+        $tokens = $repo->findBy([
+            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+        ]);
+        foreach ($tokens as $token) {
+            if (!$token->isExpired()) {
+                throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+            }
+        }
+    }
+
+    /**
+     * @Then the resource :name should exist
+     */
+    public function theResourceShouldExist(string $name): void
     {
         $this->manager->clear();
         try {
             $iri = $this->restContext->resources[$name];
             $this->iriConverter->getItemFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new ExpectationException(sprintf('The component %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
     }
 
@@ -750,5 +821,15 @@ final class DoctrineContext implements Context
             ]
         );
         Assert::assertEquals($newPath, $route->getRedirect()->getPath());
+    }
+
+    /**
+     * @Then /^(\d+) refresh token(?:s)? should exist$/
+     */
+    public function aRefreshTokenShouldHaveBeenGenerated(int $count): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(RefreshToken::class);
+        Assert::assertCount($count, $repository->findAll());
     }
 }
