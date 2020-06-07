@@ -23,23 +23,9 @@ Feature: Prevent disabled users from logging in
     """
     Then the response status code should be 404
 
-  Scenario: A successful login
-    Given there is a user with the username "user" password "password" and role "ROLE_USER"
-    When I send a "POST" request to "/login" with body:
-    """
-    {
-      "username": "user",
-      "password": "password"
-    }
-    """
-    Then the response status code should be 204
-    And the response should be empty
-    And the response should have a "api_component" cookie
-
   Scenario: A disabled user is not able to login
     Given there is a user with the username "user" password "password" and role "ROLE_USER"
     And the user is disabled
-    And I add "X-AUTH-TOKEN" header equal to "not_a_secret"
     When I send a "POST" request to "/login" with body:
     """
     {
@@ -55,3 +41,18 @@ Feature: Prevent disabled users from logging in
         "message": "Your account is currently disabled."
     }
     """
+
+  Scenario: A successful login
+    Given there is a user with the username "user" password "password" and role "ROLE_USER"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "user",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the response should be empty
+    And the response should have a "api_component" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And 1 refresh token should have been generated

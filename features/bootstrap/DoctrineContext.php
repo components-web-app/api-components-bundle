@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCusto
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedPageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
@@ -750,5 +751,14 @@ final class DoctrineContext implements Context
             ]
         );
         Assert::assertEquals($newPath, $route->getRedirect()->getPath());
+    }
+
+    /**
+     * @Then /^(\d+) refresh token(?:s)? should have been generated$/
+     */
+    public function aRefreshTokenShouldHaveBeenGenerated(int $count): void
+    {
+        $repository = $this->manager->getRepository(RefreshToken::class);
+        Assert::assertCount(1, $repository->findAll());
     }
 }

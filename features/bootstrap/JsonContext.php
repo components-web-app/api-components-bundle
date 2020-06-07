@@ -144,7 +144,7 @@ class JsonContext implements Context
     /**
      * @Then the JSON node :node should be now
      */
-    public function theJsonNodeShouldBeEqualTo($node)
+    public function theJsonNodeShouldBeEqualTo($node): void
     {
         $text = $this->restContext->getCachedNow();
         $json = $this->getJson();
@@ -159,7 +159,7 @@ class JsonContext implements Context
     /**
      * @Then the JSON node :name should be equal to the IRI of the resource :resource
      */
-    public function theJsonNodeShouldBeEqualToTheIriOfTheResource(string $name, string $resource)
+    public function theJsonNodeShouldBeEqualToTheIriOfTheResource(string $name, string $resource): void
     {
         $this->jsonContext->theJsonNodeShouldBeEqualTo($name, $this->restContext->resources[$resource]);
     }
@@ -167,7 +167,7 @@ class JsonContext implements Context
     /**
      * @Then I save the JSON node :name as the component :resource
      */
-    public function iSaveTheJsonNodeAsTheResource(string $name, string $resource)
+    public function iSaveTheJsonNodeAsTheResource(string $name, string $resource): void
     {
         $json = $this->getJson();
 
@@ -176,7 +176,7 @@ class JsonContext implements Context
         $this->restContext->resources[$resource] = $actual;
     }
 
-    private function getJson()
+    private function getJson(): Json
     {
         return new Json($this->getContent());
     }
