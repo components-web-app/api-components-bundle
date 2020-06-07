@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\Services;
+namespace Silverback\ApiComponentsBundle\Security;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidPayloadException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
@@ -52,6 +52,7 @@ final class JWTManager implements JWTTokenManagerInterface
      */
     public function create(UserInterface $user): string
     {
+        $this->storage->create($user);
         return $this->decorated->create($user);
     }
 

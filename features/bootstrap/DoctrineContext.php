@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
-use _HumbugBox01d8f9a04075\Nette\Utils\DateTime;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
@@ -632,15 +631,15 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given I have a refresh token
+     * @Given /I have a refresh token(?: which expires at "([^"]*)"|)?$/
      */
-    public function iHaveARefreshToken(): void
+    public function iHaveARefreshToken(string $expiresAt = '+10 seconds'): void
     {
         $refreshToken = new RefreshToken();
         $refreshToken
             ->setUser($this->iriConverter->getItemFromIri($this->restContext->resources['login_user']))
-            ->setCreatedAt(new DateTime())
-            ->setExpiresAt(new DateTime('+10 seconds'));
+            ->setCreatedAt(new \DateTime())
+            ->setExpiresAt(new \DateTime($expiresAt));
         $this->manager->persist($refreshToken);
         $this->manager->flush();
         $this->restContext->resources['refresh_token'] = $refreshToken->getId();
@@ -652,7 +651,7 @@ final class DoctrineContext implements Context
     public function myJwtTokenHasExpired(): void
     {
         $token = $this->jwtEncoder->encode([
-            'exp' => (new DateTime('-1 second'))->getTimestamp(),
+            'exp' => (new \DateTime('-1 second'))->getTimestamp(),
             'username' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user'])->getUsername(),
         ]);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
@@ -700,6 +699,23 @@ final class DoctrineContext implements Context
         $token = $repo->find($this->restContext->resources['refresh_token']);
         if (!$token->isExpired()) {
             throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then /^all the refresh tokens should be expired$/
+     */
+    public function allTheRefreshTokensShouldBeExpired(): void
+    {
+        $this->manager->clear();
+        $repo = $this->manager->getRepository(RefreshToken::class);
+        $tokens = $repo->findBy([
+            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+        ]);
+        foreach ($tokens as $token) {
+            if (!$token->isExpired()) {
+                throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+            }
         }
     }
 
@@ -802,6 +818,7 @@ final class DoctrineContext implements Context
      */
     public function aRefreshTokenShouldHaveBeenGenerated(int $count): void
     {
+        $this->manager->clear();
         $repository = $this->manager->getRepository(RefreshToken::class);
         Assert::assertCount($count, $repository->findAll());
     }
