@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiSubresource;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -33,9 +32,6 @@ abstract class AbstractPage
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @ApiSubresource()
-     */
     protected ?Route $route = null;
 
     /**

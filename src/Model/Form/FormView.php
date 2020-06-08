@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Model\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
+use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -78,11 +79,15 @@ class FormView
     private bool $methodRendered;
 
     /**
+     * Todo: THIS PROPERTY should type hint FormInterface - but as of API platform 2.5.6 and Symgony PropertyInfo 5.1 this is not working with an error 'Class elf does not exist'
+     * See: https://github.com/api-platform/core/issues/3344
+     * See: https://github.com/components-web-app/api-components-bundle/issues/96.
+     *
      * @Groups({"Form:component:read"})
      */
-    private FormInterface $form;
+    private Form $form;
 
-    public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)
+    public function __construct(Form $form, ?SymfonyFormView $formView = null, bool $children = true)
     {
         $isRoot = !$formView;
         if (!$formView) {
@@ -91,7 +96,7 @@ class FormView
         $this->init($formView, $form, $children, $isRoot);
     }
 
-    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true, bool $isRoot = false): void
+    private function init(SymfonyFormView $formView, Form $form, bool $children = true, bool $isRoot = false): void
     {
         $this->form = $form;
         $this->rendered = $formView->isRendered();
