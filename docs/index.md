@@ -8,6 +8,8 @@ nav_order: -9999
 
 >__Creates a flexible API for a website's structure, reusable components and common functionality.__
 
+### **[See it in action: Components Web App](https://github.com/components-web-app/components-web-app)**
+
 ## Introduction
 This bundle provides an extremely flexible API with functionality to provide the data structure and functionality for front-end web applications. With this bundle you can build website data by defining re-usable `components` for the front-end web application and define everything you would need to create a fully-featured website including an intuitive CMS.
 

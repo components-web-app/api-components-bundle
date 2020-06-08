@@ -15,6 +15,8 @@
 
 ### **[Read the documentation](https://docs.acb.silverback.is)**
 
+### **[See it in action: Components Web App](https://github.com/components-web-app/components-web-app)**
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
