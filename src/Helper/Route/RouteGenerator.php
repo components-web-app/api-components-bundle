@@ -15,10 +15,10 @@ namespace Silverback\ApiComponentsBundle\Helper\Route;
 
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,11 +27,13 @@ class RouteGenerator implements RouteGeneratorInterface
 {
     private SlugifyInterface $slugify;
     private ManagerRegistry $registry;
+    private TimestampedDataPersister $timestampedDataPersister;
 
-    public function __construct(SlugifyInterface $slugify, ManagerRegistry $registry)
+    public function __construct(SlugifyInterface $slugify, ManagerRegistry $registry, TimestampedDataPersister $timestampedDataPersister)
     {
         $this->slugify = $slugify;
         $this->registry = $registry;
+        $this->timestampedDataPersister = $timestampedDataPersister;
     }
 
     public function create(RoutableInterface $object, ?Route $route = null): Route
@@ -41,12 +43,14 @@ class RouteGenerator implements RouteGeneratorInterface
             throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
         }
         $uow = $entityManager->getUnitOfWork();
-        /** @var AbstractPage $originalPage */
+        /** @var RoutableInterface $originalPage */
         $originalPage = $uow->getOriginalEntityData($object);
-        $existingRoute = $originalPage['route'];
+        $existingRoute = $originalPage['route'] ?? null;
 
+        $isNew = !((bool) $route);
         $route = $route ?? new Route();
 
+        $this->timestampedDataPersister->persistTimestampedFields($route, $isNew);
         $path = $this->slugify->slugify($object->getTitle());
 
         $route

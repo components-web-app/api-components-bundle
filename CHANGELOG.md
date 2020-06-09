@@ -6,3 +6,6 @@
 - `RouteGenerator::create` now accepts any object implementing new `RoutableIterface`
 - Added `RouteGeneratorInterface`
 - Added `RoutableInterface`
+- Add `RouteGeneratorInterface` alias to service `silverback.helper.route_generator`
+- Bug fix - RouteGenerator allow for old entity not to have a route index
+- Bug fix - route generator will also persist timestamp fields
