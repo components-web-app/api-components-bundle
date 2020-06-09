@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
-use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -23,9 +23,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class RouteEventListener
 {
-    private RouteGenerator $routeGenerator;
+    private RouteGeneratorInterface $routeGenerator;
 
-    public function __construct(RouteGenerator $routeGenerator)
+    public function __construct(RouteGeneratorInterface $routeGenerator)
     {
         $this->routeGenerator = $routeGenerator;
     }
@@ -47,7 +47,7 @@ class RouteEventListener
             throw new BadRequestHttpException('You must submit a page or pageData to generate a route.');
         }
 
-        $route = $this->routeGenerator->createFromPage($page, $data);
+        $route = $this->routeGenerator->create($page, $data);
         $request->attributes->set('data', $route);
     }
 }

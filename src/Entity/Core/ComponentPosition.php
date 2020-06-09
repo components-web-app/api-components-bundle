@@ -88,4 +88,16 @@ class ComponentPosition
 
         return $this;
     }
+
+    public function getPageDataProperty(): ?string
+    {
+        return $this->pageDataProperty;
+    }
+
+    public function setPageDataProperty(?string $pageDataProperty): self
+    {
+        $this->pageDataProperty = $pageDataProperty;
+
+        return $this;
+    }
 }

@@ -525,7 +525,7 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '5.1'
+          - '5.2'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -625,7 +625,7 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '5.1'
+          - '5.2'
       fail-fast: false
     timeout-minutes: 20
     steps:

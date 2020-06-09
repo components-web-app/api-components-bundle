@@ -27,7 +27,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *
  * @internal
  */
-abstract class AbstractPage
+abstract class AbstractPage implements RoutableInterface
 {
     use IdTrait;
     use TimestampedTrait;
