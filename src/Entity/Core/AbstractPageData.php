@@ -20,7 +20,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
  * API Platform does not know that it will be a resource and will make it an object, not an IRI. (same notes as AbstractComponent).
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(collectionOperations={}, itemOperations={})
+ * @ApiResource(collectionOperations={}, itemOperations={ "GET" })
  */
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
