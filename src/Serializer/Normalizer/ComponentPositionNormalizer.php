@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -42,11 +43,13 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
     private PageDataProvider $pageDataProvider;
     private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
+    private RequestStack $requestStack;
 
-    public function __construct(PageDataProvider $pageDataProvider, ComponentPositionSortValueHelper $componentPositionSortValueHelper)
+    public function __construct(PageDataProvider $pageDataProvider, ComponentPositionSortValueHelper $componentPositionSortValueHelper, RequestStack $requestStack)
     {
         $this->pageDataProvider = $pageDataProvider;
         $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
+        $this->requestStack = $requestStack;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -72,7 +75,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return $data instanceof ComponentPosition && $data->pageDataProperty && !isset($context[self::ALREADY_CALLED]);
+        return $data instanceof ComponentPosition && $data->pageDataProperty && !isset($context[self::ALREADY_CALLED]) && (bool) $this->requestStack->getCurrentRequest();
     }
 
     /**

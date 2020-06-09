@@ -10,3 +10,4 @@
 - Bug fix - RouteGenerator allow for old entity not to have a route index
 - Bug fix - route generator will also persist timestamp fields
 - Bug fix - mapping of parentRoute. Change to Many-To-One from One-To-One.
+- ComponentPositionNormalizer - do not normalize if no request
