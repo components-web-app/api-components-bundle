@@ -51,11 +51,16 @@ class RouteGenerator implements RouteGeneratorInterface
         $route = $route ?? new Route();
 
         $this->timestampedDataPersister->persistTimestampedFields($route, $isNew);
-        $path = $this->slugify->slugify($object->getTitle());
+        $titleSlug = $this->slugify->slugify($object->getTitle());
+        $path = '/' . ltrim($titleSlug, '/');
+
+        if ($parentRoute = $object->getParentRoute()) {
+            $path = '/' . ltrim($parentRoute->getPath(), '/') . $path;
+        }
 
         $route
-            ->setName(sprintf('generated-%s', $path))
-            ->setPath('/' . ltrim($path, '/'));
+            ->setName(sprintf('generated-%s', $titleSlug))
+            ->setPath($path);
         $object->setRoute($route);
 
         if ($existingRoute) {

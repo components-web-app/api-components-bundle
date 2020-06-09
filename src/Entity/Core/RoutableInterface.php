@@ -18,10 +18,19 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
  */
 interface RoutableInterface
 {
+    public function getTitle(): ?string;
+
+    public function getRoute(): ?Route;
+
     /**
      * @return static
      */
     public function setRoute(?Route $route);
 
-    public function getTitle(): ?string;
+    public function getParentRoute(): ?Route;
+
+    /**
+     * @return static
+     */
+    public function setParentRoute(?Route $parentRoute);
 }

@@ -11,3 +11,4 @@
 - Bug fix - route generator will also persist timestamp fields
 - Bug fix - mapping of parentRoute. Change to Many-To-One from One-To-One.
 - ComponentPositionNormalizer - do not normalize if no request
+- Simple use of parentRoute of pageData (data structure needs a re-think though - parent routes, parent pages and how they should work)
