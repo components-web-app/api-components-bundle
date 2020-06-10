@@ -90,7 +90,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
             if ($object->component) {
                 return $this->normalizer->normalize($object, $format, $context);
             }
-            throw new UnexpectedValueException('Could not find page data.');
+            throw new UnexpectedValueException('Could not find page data for this route.');
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();

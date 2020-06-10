@@ -129,7 +129,7 @@ class Route
 
     public function getPage(): ?Page
     {
-        return $this->page;
+        return $this->page ?? ($this->pageData ? $this->pageData->page : null);
     }
 
     public function setPage(?Page $page): self
