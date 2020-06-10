@@ -110,7 +110,7 @@ final class DoctrineContext implements Context
         $this->schemaTool->createSchema($this->classes);
     }
 
-    private function login(array $roles = []): void
+    private function login(array $roles = [], $useAuthHeader = false): void
     {
         $user = new User();
         $user
@@ -124,7 +124,11 @@ final class DoctrineContext implements Context
         $this->manager->flush();
 
         $token = $this->jwtManager->create($user);
-        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        if ($useAuthHeader) {
+            $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        } else {
+            $this->minkContext->getSession()->setCookie('api_component', $token);
+        }
         $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromItem($user);
         $this->manager->clear();
     }
@@ -150,7 +154,7 @@ final class DoctrineContext implements Context
      */
     public function loginUser(BeforeScenarioScope $scope): void
     {
-        $this->login(['ROLE_USER']);
+        $this->login(['ROLE_USER'], true);
     }
 
     /**
