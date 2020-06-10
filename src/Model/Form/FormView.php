@@ -79,10 +79,6 @@ class FormView
     private bool $methodRendered;
 
     /**
-     * Todo: THIS PROPERTY should type hint FormInterface - but as of API platform 2.5.6 and Symgony PropertyInfo 5.1 this is not working with an error 'Class elf does not exist'
-     * See: https://github.com/api-platform/core/issues/3344
-     * See: https://github.com/components-web-app/api-components-bundle/issues/96.
-     *
      * @Groups({"Form:component:read"})
      */
     private Form $form;
