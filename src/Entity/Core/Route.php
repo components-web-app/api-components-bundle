@@ -37,7 +37,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *         "generate"={ "method"="POST", "path"="/routes/generate" }
  *     },
  *     itemOperations={
- *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted(object)" }
+ *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
  *     }
  * )
  * @Assert\Expression(
@@ -129,7 +129,7 @@ class Route
 
     public function getPage(): ?Page
     {
-        return $this->page ?? ($this->pageData ? $this->pageData->page : null);
+        return $this->page;
     }
 
     public function setPage(?Page $page): self

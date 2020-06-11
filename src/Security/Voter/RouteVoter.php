@@ -23,6 +23,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 class RouteVoter extends Voter
 {
+    public const READ_ROUTE = 'read_route';
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
@@ -32,15 +33,15 @@ class RouteVoter extends Voter
         $this->resourceAccessChecker = $resourceAccessChecker;
     }
 
-    protected function supports($subject, $notRequired): bool
+    protected function supports(string $attribute, $subject): bool
     {
-        return $subject instanceof Route && $this->config;
+        return self::READ_ROUTE === $attribute && $subject instanceof Route && $this->config;
     }
 
     /**
      * @param Route $route
      */
-    protected function voteOnAttribute($route, $notRequired, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, $route, TokenInterface $token): bool
     {
         foreach ($this->config as $index => $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));

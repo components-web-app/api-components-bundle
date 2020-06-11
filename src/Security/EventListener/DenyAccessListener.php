@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -122,7 +123,7 @@ final class DenyAccessListener
         }
 
         foreach ($routes as $route) {
-            if ($this->security->isGranted($route)) {
+            if ($this->security->isGranted(RouteVoter::READ_ROUTE, $route)) {
                 return true;
             }
         }
@@ -132,13 +133,20 @@ final class DenyAccessListener
 
     private function isPageDataAllowedByRoute(AbstractPageData $pageData): ?bool
     {
-        $route = $this->routeRepository->findByPageData($pageData);
+        $routes = $this->routeRepository->findByPageData($pageData);
 
         // abstain - no route to check
-        if (!$route) {
+        if (!\count($routes)) {
             return null;
         }
 
-        return $this->security->isGranted($route);
+        foreach ($routes as $route) {
+            $isGranted = $this->security->isGranted(RouteVoter::READ_ROUTE, $route);
+            if ($isGranted) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -58,6 +58,7 @@ class RouteGenerator implements RouteGeneratorInterface
             $path = '/' . ltrim($parentRoute->getPath(), '/') . $path;
         }
 
+        // Todo: avoid duplicate names/paths
         $route
             ->setName($titleSlug)
             ->setPath($path);
