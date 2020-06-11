@@ -59,7 +59,7 @@ class RouteGenerator implements RouteGeneratorInterface
         }
 
         $route
-            ->setName(sprintf('generated-%s', $titleSlug))
+            ->setName($titleSlug)
             ->setPath($path);
         $object->setRoute($route);
 
