@@ -42,7 +42,6 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
-use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
@@ -77,8 +76,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
 
+        $cookieProvider = new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']);
         $definition = $container->getDefinition('silverback.security.jwt_event_listener');
-        $definition->setArgument('$cookieProvider', new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']));
+        $definition->setArgument('$cookieProvider', $cookieProvider);
         $container->setParameter('silverback.api_component.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
 
         if (!empty($config['refresh_token']['options'])) {
@@ -94,11 +94,13 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         }
 
         if (class_exists(LogoutEvent::class)) {
-            $definition = $container->getDefinition(LogoutListener::class);
+            $definition = $container->getDefinition('silverback.security.logout_listener');
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+            $definition->setArgument('$cookieProvider', $cookieProvider);
         } else {
             $definition = $container->getDefinition('silverback.security.logout_handler');
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+            $definition->setArgument('$cookieProvider', $cookieProvider);
         }
 
         $definition = $container->getDefinition('silverback.security.jwt_manager');

@@ -13,3 +13,4 @@
 - ComponentPositionNormalizer - do not normalize if no request
 - Simple use of parentRoute of pageData (data structure needs a re-think though - parent routes, parent pages and how they should work)
 - Bug fix: Only apply doctrine extension for routes to the route resources
+- Bug fix: Return expired jwt cookie on logout
