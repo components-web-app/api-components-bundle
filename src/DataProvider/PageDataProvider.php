@@ -38,6 +38,9 @@ class PageDataProvider
         if (!$request) {
             return null;
         }
+        if ($path = $request->query->get('path')) {
+            return $path;
+        }
         $referer = $request->headers->get('referer');
         if (!$referer) {
             throw new BadRequestHttpException('Could not find referer header to retrieve page data');
