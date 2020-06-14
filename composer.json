@@ -17,7 +17,7 @@
         "doctrine/doctrine-bundle": "^2.0.7",
         "doctrine/doctrine-migrations-bundle": "^2.1",
         "doctrine/orm": "^2.6.4",
-        "lexik/jwt-authentication-bundle": "dev-master#3074c41",
+        "lexik/jwt-authentication-bundle": "^2.8",
         "liip/imagine-bundle": "^2.3",
         "ocramius/proxy-manager": "^2.7",
         "ramsey/uuid": "^4.0.1",
@@ -60,6 +60,9 @@
         "symfony/phpunit-bridge": "^4.4 || ^5.0.3 || dev-master",
         "symfony/profiler-pack": "^1.0",
         "symfony/test-pack": "^1"
+    },
+    "replace": {
+        "namshi/jose": "^7.2"
     },
     "config": {
         "preferred-install": {
