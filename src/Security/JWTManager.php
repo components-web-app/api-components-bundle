@@ -17,7 +17,6 @@ use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidPayloadException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\UserNotFoundException;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\PreAuthenticationJWTUserToken;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
@@ -33,15 +32,13 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 final class JWTManager implements JWTTokenManagerInterface
 {
     private JWTTokenManagerInterface $decorated;
-    private JWSProviderInterface $jwsProvider;
     private EventDispatcherInterface $dispatcher;
     private UserProviderInterface $userProvider;
     private RefreshTokenStorageInterface $storage;
 
-    public function __construct(JWTTokenManagerInterface $decorated, JWSProviderInterface $jwsProvider, EventDispatcherInterface $dispatcher, UserProviderInterface $userProvider, RefreshTokenStorageInterface $storage)
+    public function __construct(JWTTokenManagerInterface $decorated, EventDispatcherInterface $dispatcher, UserProviderInterface $userProvider, RefreshTokenStorageInterface $storage)
     {
         $this->decorated = $decorated;
-        $this->jwsProvider = $jwsProvider;
         $this->dispatcher = $dispatcher;
         $this->userProvider = $userProvider;
         $this->storage = $storage;
@@ -69,8 +66,7 @@ final class JWTManager implements JWTTokenManagerInterface
                 throw $exception;
             }
 
-            $jws = $this->jwsProvider->load($token->getCredentials());
-            $payload = $jws->getPayload();
+            $payload = $exception->getPayload();
             $idClaim = $this->getUserIdClaim();
 
             if (!isset($payload[$idClaim])) {

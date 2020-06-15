@@ -629,7 +629,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.security.jwt_manager.inner'),
-                new Reference('lexik_jwt_authentication.jws_provider.lcobucci'),
                 new Reference('event_dispatcher'),
                 '', // injected in dependency injection
                 '', // injected in dependency injection
