@@ -33,7 +33,7 @@ class RouteVoter extends Voter
         $this->resourceAccessChecker = $resourceAccessChecker;
     }
 
-    protected function supports(string $attribute, $subject): bool
+    protected function supports($attribute, $subject): bool
     {
         return self::READ_ROUTE === $attribute && $subject instanceof Route && $this->config;
     }
@@ -41,7 +41,7 @@ class RouteVoter extends Voter
     /**
      * @param Route $route
      */
-    protected function voteOnAttribute(string $attribute, $route, TokenInterface $token): bool
+    protected function voteOnAttribute($attribute, $route, TokenInterface $token): bool
     {
         foreach ($this->config as $index => $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
