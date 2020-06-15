@@ -29,6 +29,15 @@
       "contributions": [
         "test"
       ]
+    },
+    {
+      "login": "chalasr",
+      "name": "Robin Chalas",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/7502063?v=4",
+      "profile": "https://github.com/chalasr",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 6
