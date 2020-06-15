@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,12 +29,14 @@ class RouteGenerator implements RouteGeneratorInterface
     private SlugifyInterface $slugify;
     private ManagerRegistry $registry;
     private TimestampedDataPersister $timestampedDataPersister;
+    private RouteRepository $routeRepository;
 
-    public function __construct(SlugifyInterface $slugify, ManagerRegistry $registry, TimestampedDataPersister $timestampedDataPersister)
+    public function __construct(SlugifyInterface $slugify, ManagerRegistry $registry, TimestampedDataPersister $timestampedDataPersister, RouteRepository $routeRepository)
     {
         $this->slugify = $slugify;
         $this->registry = $registry;
         $this->timestampedDataPersister = $timestampedDataPersister;
+        $this->routeRepository = $routeRepository;
     }
 
     public function create(RoutableInterface $object, ?Route $route = null): Route
@@ -52,15 +55,27 @@ class RouteGenerator implements RouteGeneratorInterface
 
         $this->timestampedDataPersister->persistTimestampedFields($route, $isNew);
         $titleSlug = $this->slugify->slugify($object->getTitle());
+        $name = $titleSlug;
+
         $path = '/' . ltrim($titleSlug, '/');
 
         if ($parentRoute = $object->getParentRoute()) {
             $path = '/' . ltrim($parentRoute->getPath(), '/') . $path;
         }
 
-        // Todo: avoid duplicate names/paths
+        $conflicts = $this->routeRepository->findConflicts($name, $path);
+
+        $baseName = $name;
+        $basePath = $path;
+        $conflictCounter = 0;
+        while ($this->conflictExists($name, $path, $conflicts)) {
+            ++$conflictCounter;
+            $name = sprintf('%s-%d', $baseName, $conflictCounter);
+            $path = sprintf('%s-%d', $basePath, $conflictCounter);
+        }
+
         $route
-            ->setName($titleSlug)
+            ->setName($name)
             ->setPath($path);
         $object->setRoute($route);
 
@@ -69,5 +84,22 @@ class RouteGenerator implements RouteGeneratorInterface
         }
 
         return $route;
+    }
+
+    /**
+     * @param Route[] $conflicts
+     */
+    private function conflictExists(string $name, string $path, array $conflicts): bool
+    {
+        foreach ($conflicts as $conflict) {
+            if ($conflict->getPath() === $path) {
+                return true;
+            }
+            if ($conflict->getName() === $name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -142,4 +142,19 @@ class RouteRepository extends ServiceEntityRepository
 
         return $queryBuilder->getQuery()->getResult();
     }
+
+    public function findConflicts(string $name, string $path): array
+    {
+        $queryBuilder = $this->createQueryBuilder('route');
+        $expr = $queryBuilder->expr();
+        $queryBuilder
+            ->andWhere($expr->orX(
+                $expr->like('route.path', ':path'),
+                $expr->like('route.name', ':name'),
+            ))
+            ->setParameter('path', $path . '%')
+            ->setParameter('name', $name . '%');
+
+        return $queryBuilder->getQuery()->getResult();
+    }
 }

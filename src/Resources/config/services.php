@@ -272,7 +272,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(DenyAccessListener::class)
         ->args(
             [
-                new Reference(RouteRepository::class),
+                new Reference('silverback.repository.route'),
                 new Reference(AbstractPageDataRepository::class),
                 new Reference(Security::class),
                 new Reference(IriConverterInterface::class),
@@ -503,7 +503,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PageDataProvider::class)
         ->args([
             new Reference(RequestStack::class),
-            new Reference(RouteRepository::class),
+            new Reference('silverback.repository.route'),
         ]);
 
     $services
@@ -706,7 +706,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(RouteDataProvider::class)
         ->args(
             [
-                new Reference(RouteRepository::class),
+                new Reference('silverback.repository.route'),
                 new Reference('api_platform.item_data_provider'),
             ]
         )
@@ -738,9 +738,13 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('cocur_slugify'),
             new Reference(ManagerRegistry::class),
             new Reference('silverback.helper.timestamped_data_persister'),
+            new Reference('silverback.repository.route'),
         ]);
     $services->alias(RouteGeneratorInterface::class, 'silverback.helper.route_generator');
 
+    // Having trouble setting the repository with a service ID.
+    // Doctrine reporting that the repository class is not tagged
+    // and if I use service ID that it does not exist...
     $services
         ->set(RouteRepository::class)
         ->args(
@@ -749,6 +753,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
+    $services->alias('silverback.repository.route', RouteRepository::class);
 
     $services
         ->set(RouteVoter::class)

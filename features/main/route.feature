@@ -40,6 +40,8 @@ Feature: Route resources
      | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
+    And the JSON node "path" should be equal to the string "/unnamed-page"
+    And the JSON node "name" should be equal to the string "unnamed-page"
 
   @loginUser
   Scenario: I generate a route for page data with a pre-existing route. The original route will change to a redirect.
@@ -50,3 +52,14 @@ Feature: Route resources
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
     And the Route "/original" should redirect to "/unnamed-page"
+
+  @loginUser
+  Scenario: I generate a route for a path that already exists and the new route is generated with a postfix
+    Given there is a PageData resource with the route path "/unnamed-page"
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | pageData            |
+      | resource[page_data] |
+    Then the response status code should be 201
+    And the JSON should be valid according to the schema file "route.schema.json"
+    And the JSON node "path" should be equal to the string "/unnamed-page-1"
+    And the JSON node "name" should be equal to the string "unnamed-page-1"
