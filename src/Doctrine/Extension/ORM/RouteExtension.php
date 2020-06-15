@@ -17,6 +17,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionEx
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -34,7 +35,7 @@ class RouteExtension implements ContextAwareQueryCollectionExtensionInterface
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null, array $context = []): void
     {
-        if (!$this->config) {
+        if (!$this->config || Route::class !== $resourceClass) {
             return;
         }
         $alias = $queryBuilder->getRootAliases()[0];

@@ -5,3 +5,11 @@ lexik_jwt_authentication:
     set_cookies:
         api_component:
             lifetime: 604800 # 1 week
+    token_extractors:
+        authorization_header:
+            enabled: true
+            prefix:  Bearer
+            name:    Authorization
+        cookie:
+            enabled: true
+            name:    api_component

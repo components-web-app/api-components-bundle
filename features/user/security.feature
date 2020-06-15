@@ -78,6 +78,9 @@ Feature: Prevent disabled users from logging in
   Scenario: given I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
     Given I have a refresh token
     When I send a "GET" request to "/logout"
-    Then the response status code should be 302
+    Then the response status code should be 200
     And 1 refresh tokens should exist
     And all the refresh tokens should be expired
+    And the response should have a "api_component" cookie
+    And the header "set-cookie" should contain "api_component=."
+    And the header "set-cookie" should contain "Max-Age=0"

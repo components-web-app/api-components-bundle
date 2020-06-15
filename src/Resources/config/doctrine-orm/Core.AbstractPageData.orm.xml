@@ -6,14 +6,14 @@
         <field name="nested" type="boolean" column="nested" precision="0" scale="0" nullable="false"/>
         <field name="title" type="string" column="title" precision="0" scale="0" nullable="false"/>
         <field name="metaDescription" type="string" column="meta_description" precision="0" scale="0" nullable="true"/>
-        <one-to-one field="parentRoute" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" fetch="LAZY">
+        <many-to-one field="parentRoute" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" fetch="LAZY">
             <cascade>
                 <cascade-persist/>
             </cascade>
             <join-columns>
                 <join-column name="parent_route_id" referenced-column-name="id"/>
             </join-columns>
-        </one-to-one>
+        </many-to-one>
         <one-to-one field="route" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="pageData" fetch="LAZY">
             <cascade>
                 <cascade-persist/>

@@ -24,7 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
  * API Platform does not know that it will be a resource and will make it an object, not an IRI.
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(collectionOperations={}, itemOperations={})
+ * @ApiResource(collectionOperations={}, itemOperations={ "GET" })
  */
 abstract class AbstractComponent implements ComponentInterface
 {

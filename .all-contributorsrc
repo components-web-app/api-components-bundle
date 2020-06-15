@@ -39,6 +39,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "soyuka",
+      "name": "Antoine Bluchet",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1321971?v=4",
+      "profile": "https://soyuka.me",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 6

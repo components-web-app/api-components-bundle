@@ -38,12 +38,12 @@ class PageDataProvider
         if (!$request) {
             return null;
         }
-        $referer = $request->headers->get('referer');
-        if (!$referer) {
+        $path = $request->headers->get('path');
+        if (!$path) {
             throw new BadRequestHttpException('Could not find referer header to retrieve page data');
         }
 
-        return parse_url($referer, PHP_URL_PATH);
+        return parse_url($path, PHP_URL_PATH);
     }
 
     public function getPageData(): ?AbstractPageData

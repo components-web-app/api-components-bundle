@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security\Http\Logout;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,10 +26,12 @@ use Symfony\Component\Security\Http\Logout\LogoutHandlerInterface;
 final class LogoutHandler implements LogoutHandlerInterface
 {
     private RefreshTokenStorageInterface $storage;
+    private JWTCookieProvider $cookieProvider;
 
-    public function __construct(RefreshTokenStorageInterface $storage)
+    public function __construct(RefreshTokenStorageInterface $storage, JWTCookieProvider $cookieProvider)
     {
         $this->storage = $storage;
+        $this->cookieProvider = $cookieProvider;
     }
 
     /**
@@ -37,5 +40,8 @@ final class LogoutHandler implements LogoutHandlerInterface
     public function logout(Request $request, Response $response, TokenInterface $token): void
     {
         $this->storage->expireAll($token->getUser());
+        $response->headers->setCookie($this->cookieProvider->createCookie('.', null, time()));
+        $response->headers->remove('Location');
+        $response->setStatusCode(Response::HTTP_OK)->setContent('');
     }
 }
