@@ -8,7 +8,7 @@ nav_order: 1
 >__Because the login process serves a JWT Refresh token, this must be done by your front-end server-side application and authenticated using an API Token.__
 
 ## Login Form
-You can create a [Form component](../components/form-component.md) which references a pre-configured Symfony Form for logins `Silverback\ApiComponentBundle\Form\Type\User\UserLoginType`. This adds a hidden field `_action` which is an absolute URL to the API's login endpoint for JWT authentication. It also has a some defaults set on the form that your front-end application can read:
+You can create a [Form component](../components/form-component.md) which references a pre-configured Symfony Form for logins `Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType`. This adds a hidden field `_action` which is an absolute URL to the API's login endpoint for JWT authentication. It also has a some defaults set on the form that your front-end application can read:
 ```php
 [
     'attr' => [
@@ -24,7 +24,7 @@ The action is pre-set and will call your front end's `/login` endpoint instead o
 
 You can create this component as you would create any other form component, but _it does require that you have not disabled the in-built form component._
 ```yaml
-silverback_api_component:
+silverback_api_components:
     enabled_components:
         form: true # <-- this is the default value
 ```

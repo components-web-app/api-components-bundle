@@ -38,7 +38,7 @@ security:
                 class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
         jwt:
             lexik_jwt:
-                class: Silverback\ApiComponentBundle\Entity\User\AbstractUser
+                class: Silverback\ApiComponentsBundle\Entity\User\AbstractUser
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -78,13 +78,13 @@ security:
 ### JWT Authentication
 By using the flex recipe, you will already have a pre-configured `App\Entity\User` entity in your project.
 
-By default, although there is a column for the username and one for the email address in the database, these are kept synchronised by the `User` class. You can modify the class to suit your needs. Just be sure to extend the class `Silverback\ApiComponentBundle\Entity\User\AbstractUser`.
+By default, although there is a column for the username and one for the email address in the database, these are kept synchronised by the `User` class. You can modify the class to suit your needs. Just be sure to extend the class `Silverback\ApiComponentsBundle\Entity\User\AbstractUser`.
 
 The repository automatically configured for your User entity will look up users by their email address or username properties.
 
 If you do not use Flex, or you create a difference User class you must configure this in the bundle:
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     class_name: App\Entity\User
 ```
@@ -95,7 +95,7 @@ lexik_jwt_authentication:
     public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
     pass_phrase: '%env(JWT_PASSPHRASE)%'
     set_cookies:
-        api_component:
+        api_components:
             lifetime: 604800 # 1 week
 ```
 
@@ -106,9 +106,9 @@ This documentation is incomplete. We may add the `set_cookies` configuration for
 ```yaml
 silverback_api_components:
     refresh_token:
-        handler_id: silverback.api_component.refresh_token.storage.doctrine
+        handler_id: silverback.api_components.refresh_token.storage.doctrine
         options:
             class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken
-        cookie_name: api_component
+        cookie_name: api_components
         ttl: 604800 # 1 week
 ```

@@ -53,7 +53,7 @@ Feature: Prevent disabled users from logging in
     """
     Then the response status code should be 204
     And the response should be empty
-    And the response should have a "api_component" cookie
+    And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And 1 refresh token should exist
 
@@ -63,7 +63,7 @@ Feature: Prevent disabled users from logging in
     When I send a "GET" request to "/me"
     Then the response status code should be 200
     And the refresh token should be expired
-    And the response should have a "api_component" cookie
+    And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And 3 refresh tokens should exist
 
@@ -81,6 +81,6 @@ Feature: Prevent disabled users from logging in
     Then the response status code should be 200
     And 1 refresh tokens should exist
     And all the refresh tokens should be expired
-    And the response should have a "api_component" cookie
-    And the header "set-cookie" should contain "api_component=."
+    And the response should have a "api_components" cookie
+    And the header "set-cookie" should contain "api_components=."
     And the header "set-cookie" should contain "Max-Age=0"

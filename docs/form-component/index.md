@@ -16,7 +16,7 @@ nav_order: 4
 The default bundle configuration is to enable this component as seen below.
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
   enabled_components:
     form: true #default
 ```
