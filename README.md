@@ -28,6 +28,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://les-tilleuls.coop"><img src="https://avatars1.githubusercontent.com/u/407859?v=4" width="60px;" alt=""/><br /><sub><b>Vincent</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=vincentchalamon" title="Code">💻</a> <a href="#ideas-vincentchalamon" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/PierreRebeilleau"><img src="https://avatars1.githubusercontent.com/u/49146882?v=4" width="60px;" alt=""/><br /><sub><b>Pierre Rebeilleau</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=PierreRebeilleau" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/chalasr"><img src="https://avatars0.githubusercontent.com/u/7502063?v=4" width="60px;" alt=""/><br /><sub><b>Robin Chalas</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=chalasr" title="Code">💻</a> <a href="https://github.com/components-web-app/api-components-bundle/pulls?q=is%3Apr+reviewed-by%3Achalasr" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
 
