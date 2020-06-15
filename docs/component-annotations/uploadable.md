@@ -28,7 +28,7 @@ app.flysystem.adapter.local:
     class: League\Flysystem\Local\LocalFilesystemAdapter
     arguments: ['%kernel.project_dir%/var/storage/default']
     tag:
-      - { name: 'silverback.api_component.filesystem_adapter', alias: 'local' }
+      - { name: 'silverback.api_components.filesystem_adapter', alias: 'local' }
 ```
 
 Install the adapters you need from Flysystem and remember to use adapters supporting version 2 (e.g. `composer require league/flysystem-aws-s3-v3:^2`)
@@ -47,7 +47,7 @@ We use our own binary provider so that we can use the filesystem you have define
 
 ```yaml
 liip_imagine:
-    data_loader: silverback.api_component.liip_imagine.binary.loader
+    data_loader: silverback.api_components.liip_imagine.binary.loader
 ```
 
 or on a specific filter set
@@ -56,7 +56,7 @@ or on a specific filter set
 liip_imagine:
     filter_sets:
         my_special_style:
-            data_loader: silverback.api_component.liip_imagine.binary.loader
+            data_loader: silverback.api_components.liip_imagine.binary.loader
             filters:
                 # your filters
 ```

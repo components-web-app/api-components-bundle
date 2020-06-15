@@ -127,7 +127,7 @@ final class DoctrineContext implements Context
         if ($useAuthHeader) {
             $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
         } else {
-            $this->minkContext->getSession()->setCookie('api_component', $token);
+            $this->minkContext->getSession()->setCookie('api_components', $token);
         }
         $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromItem($user);
         $this->manager->clear();

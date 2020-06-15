@@ -79,14 +79,14 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $cookieProvider = new Reference('lexik_jwt_authentication.cookie_provider.' . $config['refresh_token']['cookie_name']);
         $definition = $container->getDefinition('silverback.security.jwt_event_listener');
         $definition->setArgument('$cookieProvider', $cookieProvider);
-        $container->setParameter('silverback.api_component.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
+        $container->setParameter('silverback.api_components.refresh_token.ttl', (int) $config['refresh_token']['ttl']);
 
         if (!empty($config['refresh_token']['options'])) {
             $definition = $container->getDefinition($config['refresh_token']['handler_id']);
             $definition->setArgument('$options', $config['refresh_token']['options']);
         }
 
-        if ('silverback.api_component.refresh_token.storage.doctrine' === $config['refresh_token']['handler_id']) {
+        if ('silverback.api_components.refresh_token.storage.doctrine' === $config['refresh_token']['handler_id']) {
             $container
                 ->register(RefreshTokenRepository::class)
                 ->setArguments([new Reference('doctrine'), $config['refresh_token']['options']['class']])
@@ -117,7 +117,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
 
-        $imagineEnabled = $container->getParameter('api_component.imagine_enabled');
+        $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
         $definition = $container->getDefinition(UploadableAnnotationReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
 

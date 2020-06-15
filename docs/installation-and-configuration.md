@@ -27,7 +27,7 @@ You can configure the name of the website the API is for which is used in a numb
 This is used for a number of default features, including email signatures and adding a default title to your swagger documentation (if you remove the title configuration from the API Platform recipe)
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
     website_name: ~ # Required
 ```
 
@@ -36,7 +36,7 @@ silverback_api_component:
 To prevent table name conflicts, we automatically prefix `_acb_` to the database tables that API Component Bundle manages. You can customise this using this configuration.
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
     table_prefix: _acb_
 ```
 
@@ -45,7 +45,7 @@ silverback_api_component:
 Resources handled by API Components Bundle will include metadata. We inject this into a variable in your output which is `_metadata` by default. You can customise this in your configuration.
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
     metadata_key: _metadata
 ```
 

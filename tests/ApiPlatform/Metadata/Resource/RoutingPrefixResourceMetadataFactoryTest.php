@@ -60,7 +60,7 @@ class RoutingPrefixResourceMetadataFactoryTest extends TestCase
         $this->assertEquals('/page_data', $result->getAttribute('route_prefix'));
     }
 
-    public function test_api_component_bundle_prefix(): void
+    public function test_api_components_bundle_prefix(): void
     {
         $decoratedMock = $this->getDecoratedMock();
         $factory = new RoutingPrefixResourceMetadataFactory($decoratedMock);

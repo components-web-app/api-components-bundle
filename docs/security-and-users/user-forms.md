@@ -25,8 +25,8 @@ If you need additional fields, you can extend these forms to fit your requiremen
 
 ### Register form
 
-- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\UserRegisterType`
-- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
+- Form Type: `Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType`
+- Successful submission return object `Silverback\ApiComponentsBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -44,8 +44,8 @@ If you need additional fields, you can extend these forms to fit your requiremen
 
 ### New email address form
 
-- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\NewEmailAddressType`
-- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
+- Form Type: `Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType`
+- Successful submission return object `Silverback\ApiComponentsBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -59,8 +59,8 @@ If you need additional fields, you can extend these forms to fit your requiremen
 
 ### Change password form
 
-- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\ChangePasswordType`
-- Successful submission return object `Silverback\ApiComponentBundle\Entity\User\AbstractUser` (your extended user class)
+- Form Type: `Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType`
+- Successful submission return object `Silverback\ApiComponentsBundle\Entity\User\AbstractUser` (your extended user class)
 
 #### Example expected POST:
 
@@ -81,7 +81,7 @@ If you need additional fields, you can extend these forms to fit your requiremen
 
 ### Password update form
 
-- Form Type: `Silverback\ApiComponentBundle\Form\Type\User\PasswordUpdateType`
+- Form Type: `Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType`
 - Successful submission return object `null`
 
 #### Example expected POST

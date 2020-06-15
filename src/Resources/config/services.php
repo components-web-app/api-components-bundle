@@ -350,7 +350,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(FilesystemProvider::class),
             ]
         )
-        ->tag('liip_imagine.binary.loader', ['loader' => 'silverback.api_component.liip_imagine.binary.loader']);
+        ->tag('liip_imagine.binary.loader', ['loader' => 'silverback.api_components.liip_imagine.binary.loader']);
 
     $services
         ->set(FormCachePurgeCommand::class)
@@ -676,14 +676,14 @@ return static function (ContainerConfigurator $configurator) {
     }
 
     $services
-        ->set('silverback.api_component.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)
+        ->set('silverback.api_components.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)
         ->args(
             [
                 new Reference('doctrine'),
-                '%silverback.api_component.refresh_token.ttl%',
+                '%silverback.api_components.refresh_token.ttl%',
             ]
         );
-    $services->alias(DoctrineRefreshTokenStorage::class, 'silverback.api_component.refresh_token.storage.doctrine');
+    $services->alias(DoctrineRefreshTokenStorage::class, 'silverback.api_components.refresh_token.storage.doctrine');
 
     $services
         ->set(ResourceIriValidator::class)

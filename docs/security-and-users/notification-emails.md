@@ -38,7 +38,7 @@ The `redirect_url` variable is generated using either the configured `default_re
 Template: `@SilverbackApiComponent/emails/user_password_reset.html.twig`
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     password_reset:
       email:
@@ -87,7 +87,7 @@ You will receive a `200` status code on a successful password change or `404` on
 Template: `@SilverbackApiComponent/emails/user_verify_email.html.twig`
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     email_verification:
       enabled: true
@@ -110,7 +110,7 @@ To complete the verification your front-end appication should send a `GET` reque
 Template: `@SilverbackApiComponent/emails/user_change_email_confirmation.html.twig`
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     new_email_confirmation:
       email:
@@ -130,7 +130,7 @@ Template: `@SilverbackApiComponent/emails/user_welcome.html.twig`
 
 {% raw %}
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     emails:
       welcome:
@@ -142,7 +142,7 @@ silverback_api_component:
 ### User Enabled
 Template: `@SilverbackApiComponent/emails/user_enabled.html.twig`
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     emails:
       user_enabled:
@@ -153,7 +153,7 @@ silverback_api_component:
 ### Username Changed
 Template: `@SilverbackApiComponent/emails/user_username_changed.html.twig`
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     emails:
       username_changed:
@@ -164,7 +164,7 @@ silverback_api_component:
 ### Password Changed
 Template: `@SilverbackApiComponent/emails/user_password_changed.html.twig`
 ```yaml
-silverback_api_component:
+silverback_api_components:
   user:
     emails:
       password_changed:

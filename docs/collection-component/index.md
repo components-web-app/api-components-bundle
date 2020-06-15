@@ -16,7 +16,7 @@ nav_order: 5
 The following configuration can be used to explicitly disable or enable the collection resource. By default it is enabled.
 
 ```yaml
-silverback_api_component:
+silverback_api_components:
   enabled_components:
     collection: true  # default
 ```

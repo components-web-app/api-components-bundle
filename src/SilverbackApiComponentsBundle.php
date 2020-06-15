@@ -43,7 +43,7 @@ class SilverbackApiComponentsBundle extends Bundle
 
         $bundles = $container->getParameter('kernel.bundles');
         $imagineEnabled = isset($bundles['LiipImagineBundle']);
-        $container->setParameter('api_component.imagine_enabled', $imagineEnabled);
+        $container->setParameter('api_components.imagine_enabled', $imagineEnabled);
         if ($imagineEnabled) {
             $container->addCompilerPass(new ImagineCompilerPass());
         }

@@ -2,7 +2,7 @@
 liip_imagine:
     # valid drivers options include "gd" or "gmagick" or "imagick"
     driver: "gd"
-    data_loader: silverback.api_component.liip_imagine.binary.loader
+    data_loader: silverback.api_components.liip_imagine.binary.loader
     cache: custom_cache_resolver
     filter_sets:
         thumbnail:

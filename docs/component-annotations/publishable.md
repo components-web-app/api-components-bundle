@@ -89,8 +89,8 @@ class Foo
 Configure the security with expression language, for users who have access to publishable resources:
 
 ```yaml
-# config/packages/silverback_api_component.yaml:
-silverback_api_component:
+# config/packages/silverback_api_components.yaml:
+silverback_api_components:
     # ...
     publishable:
         permission: "is_granted('ROLE_ADMIN')" # default value

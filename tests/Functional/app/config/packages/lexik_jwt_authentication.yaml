@@ -3,7 +3,7 @@ lexik_jwt_authentication:
     public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
     pass_phrase: '%env(JWT_PASSPHRASE)%'
     set_cookies:
-        api_component:
+        api_components:
             lifetime: 604800 # 1 week
     token_extractors:
         authorization_header:
@@ -12,4 +12,4 @@ lexik_jwt_authentication:
             name:    Authorization
         cookie:
             enabled: true
-            name:    api_component
+            name:    api_components
