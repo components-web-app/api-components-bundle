@@ -48,6 +48,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "maxhelias",
+      "name": "Maxime Helias",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/12966574?v=4",
+      "profile": "https://twitter.com/maxhelias",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 6

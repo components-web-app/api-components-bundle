@@ -39,6 +39,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/PierreRebeilleau"><img src="https://avatars1.githubusercontent.com/u/49146882?v=4" width="60px;" alt=""/><br /><sub><b>Pierre Rebeilleau</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=PierreRebeilleau" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/chalasr"><img src="https://avatars0.githubusercontent.com/u/7502063?v=4" width="60px;" alt=""/><br /><sub><b>Robin Chalas</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=chalasr" title="Code">💻</a></td>
     <td align="center"><a href="https://soyuka.me"><img src="https://avatars3.githubusercontent.com/u/1321971?v=4" width="60px;" alt=""/><br /><sub><b>Antoine Bluchet</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/issues?q=author%3Asoyuka" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://twitter.com/maxhelias"><img src="https://avatars2.githubusercontent.com/u/12966574?v=4" width="60px;" alt=""/><br /><sub><b>Maxime Helias</b></sub></a><br /><a href="https://github.com/components-web-app/api-components-bundle/commits?author=maxhelias" title="Documentation">📖</a></td>
   </tr>
 </table>
 
