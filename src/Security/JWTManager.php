@@ -49,6 +49,7 @@ final class JWTManager implements JWTTokenManagerInterface
      */
     public function create(UserInterface $user): string
     {
+        $this->storage->expireAll($user);
         $this->storage->create($user);
 
         return $this->decorated->create($user);
