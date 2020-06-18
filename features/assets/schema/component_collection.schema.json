@@ -16,6 +16,7 @@
       "layouts": [],
       "components": [],
       "reference": "collection_reference",
+      "location": "collection_location",
       "componentPositions": [],
       "pages": [],
       "@type": "ComponentCollection",
@@ -27,6 +28,7 @@
     "@id",
     "@type",
     "reference",
+    "location",
     "layouts",
     "pages",
     "components",
@@ -75,6 +77,16 @@
       "default": "",
       "examples": [
         "collection_reference"
+      ]
+    },
+    "location": {
+      "$id": "#/properties/location",
+      "type": "string",
+      "title": "The reference schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "collection_location"
       ]
     },
     "layouts": {

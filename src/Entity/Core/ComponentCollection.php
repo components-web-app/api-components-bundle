@@ -40,16 +40,22 @@ class ComponentCollection
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(message="Please enter a reference.")
+     * @Assert\NotBlank(message="The reference cannot be blank.")
      * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
-    public string $reference;
+    public ?string $reference = null;
+
+    /**
+     * @Assert\NotBlank(message="The location cannot be blank.")
+     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     */
+    public ?string $location = null;
 
     /**
      * @var Collection|Layout[]
      * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
-    public $layouts;
+    public Collection $layouts;
 
     /**
      * @var Collection|Page[]
@@ -85,6 +91,13 @@ class ComponentCollection
     public function setReference(string $reference): self
     {
         $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function setLocation(string $location): self
+    {
+        $this->location = $location;
 
         return $this;
     }

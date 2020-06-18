@@ -325,6 +325,7 @@ final class DoctrineContext implements Context
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = $collectionReference;
+        $componentCollection->location = $collectionReference;
         $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
         $this->manager->persist($componentCollection);
         if ($id) {
@@ -483,6 +484,7 @@ final class DoctrineContext implements Context
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
+        $componentCollection->location = 'test';
         $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
         $this->manager->persist($componentCollection);
 
@@ -619,6 +621,7 @@ final class DoctrineContext implements Context
 
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
+        $componentCollection->location = 'test';
         $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
         $this->manager->persist($componentCollection);
         $page->addComponentCollection($componentCollection);

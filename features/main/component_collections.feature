@@ -23,7 +23,8 @@ Feature: ComponentCollection resource
     When I send a "POST" request to "/_/component_collections" with body:
     """
     {
-      "reference": "collection_reference"
+      "reference": "collection_reference",
+      "location": "collection_location"
     }
     """
     Then the response status code should be 201
@@ -52,8 +53,8 @@ Feature: ComponentCollection resource
     And there is a Layout
     And there is a DummyComponent
     When I send a "POST" request to "/_/component_collections" with data:
-     | reference | pages                             | layouts                             | components                                   |
-     | main_body | json_decode([ "resource[page]" ]) | json_decode([ "resource[layout]" ]) | json_decode([ "resource[dummy_component]" ]) |
+     | reference | location  | pages                             | layouts                             | components                                   |
+     | main_body | main      | json_decode([ "resource[page]" ]) | json_decode([ "resource[layout]" ]) | json_decode([ "resource[dummy_component]" ]) |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_collection.schema.json"
     And the JSON node "pages[0]" should be equal to the IRI of the resource "page"
