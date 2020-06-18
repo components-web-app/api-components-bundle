@@ -54,7 +54,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     protected ?string $emailAddress;
 
     /**
-     * @Groups({"User:superAdmin"})
+     * @Groups({"User:superAdmin", "User:output", "Form:component:read"})
      */
     protected array $roles;
 

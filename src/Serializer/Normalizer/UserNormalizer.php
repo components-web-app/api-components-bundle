@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -35,10 +36,12 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
     private const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
 
     private UserDataProcessor $userDataProcessor;
+    private RoleHierarchy $roleHierarchy;
 
-    public function __construct(UserDataProcessor $userDataProcessor)
+    public function __construct(UserDataProcessor $userDataProcessor, RoleHierarchy $roleHierarchy)
     {
         $this->userDataProcessor = $userDataProcessor;
+        $this->roleHierarchy = $roleHierarchy;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -74,9 +77,16 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
         return !isset($context[self::ALREADY_CALLED]) && $data instanceof AbstractUser;
     }
 
+    /**
+     * @param AbstractUser $object
+     * @param mixed|null   $format
+     */
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED] = true;
+
+        $rolesAsEntities = $object->getRoles();
+        $object->setRoles($this->roleHierarchy->getReachableRoleNames($rolesAsEntities));
 
         return $this->normalizer->normalize($object, $format, $context);
     }

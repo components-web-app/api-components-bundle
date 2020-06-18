@@ -14,3 +14,5 @@
 - Simple use of parentRoute of pageData (data structure needs a re-think though - parent routes, parent pages and how they should work)
 - Bug fix: Only apply doctrine extension for routes to the route resources
 - Bug fix: Return expired jwt cookie on logout
+- Feature: Added a `location` property to ComponentCollection resource so reusable page templates can decide which collection to display where
+- Feature: Return roles (and hierarchical roles granted) with users from /me route

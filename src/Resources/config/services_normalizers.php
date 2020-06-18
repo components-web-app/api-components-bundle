@@ -38,6 +38,7 @@ use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -143,6 +144,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UserDataProcessor::class),
+                new Reference(RoleHierarchyInterface::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
