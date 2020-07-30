@@ -22,12 +22,13 @@ Examples:
 ```sh
 bin/console silverback:api-components:user:create new_username
 bin/console silverback:api-components:user:create new_username user@email.com password
-bin/console silverback:api-components:user:create new_username --super-admin
+bin/console silverback:api-components:user:create new_admin --admin
+bin/console silverback:api-components:user:create new_super_admin --super-admin
 bin/console silverback:api-components:user:create disabled_user --inactive
 bin/console silverback:api-components:user:create existing_username --overwrite
 ```
 
-If you do not provide all the required parameters, the command will prompt you for answers. However, you will not be prompted for any of the optional flags (e.g. super-admin, inactive or overwrite).
+If you do not provide all the required parameters, the command will prompt you for answers. However, you will not be prompted for any of the optional flags (e.g. admin, super-admin, inactive or overwrite).
 
 ## Purge form cache
 

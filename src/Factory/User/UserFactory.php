@@ -42,7 +42,7 @@ class UserFactory
         $this->userClass = $userClass;
     }
 
-    public function create(string $username, string $password, string $email = null, bool $inactive = false, bool $superAdmin = false, bool $overwrite = false): void
+    public function create(string $username, string $password, string $email = null, bool $inactive = false, bool $superAdmin = false, bool $admin = false, bool $overwrite = false): void
     {
         if (!$email) {
             $email = $username;
@@ -57,17 +57,20 @@ class UserFactory
 
         $encodedPassword = $this->passwordEncoder->encodePassword($user, $password);
 
+        $roles = ['ROLE_USER'];
+        if ($superAdmin) {
+            $roles = ['ROLE_SUPER_ADMIN'];
+        } elseif ($admin) {
+            $roles = ['ROLE_ADMIN'];
+        }
+
         $user
             ->setUsername($username)
             ->setPassword($encodedPassword)
             ->setEmailAddress($email)
             ->setEnabled(!$inactive)
             ->setEmailAddressVerified(true)
-            ->setRoles(
-                [
-                    $superAdmin ? 'ROLE_SUPER_ADMIN' : 'ROLE_USER',
-                ]
-            );
+            ->setRoles($roles);
 
         $this->timestampedDataPersister->persistTimestampedFields($user, true);
         $this->validator->validate($user);
