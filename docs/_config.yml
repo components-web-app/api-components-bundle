@@ -26,4 +26,4 @@ compress_html:
     blanklines: false
     profile: false
 
-url: https://docs.acb.silverback.is
+url: https://docs.api.cwa.rocks
