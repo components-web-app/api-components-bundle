@@ -93,6 +93,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 ->addTag('doctrine.repository_service');
         }
 
+        $definition = $container->getDefinition('silverback.command.refresh_tokens_expire');
+        $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
+
         if (class_exists(LogoutEvent::class)) {
             $definition = $container->getDefinition('silverback.security.logout_listener');
             $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));

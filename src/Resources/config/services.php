@@ -35,6 +35,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixRe
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
+use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -699,6 +700,17 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(RequestStack::class),
+            ]
+        );
+
+    $services
+        ->set('silverback.command.refresh_tokens_expire')
+        ->class(RefreshTokensExpireCommand::class)
+        ->tag('console.command')
+        ->args(
+            [
+                '', // injected in dependency injection
+                new Reference(UserRepository::class),
             ]
         );
 
