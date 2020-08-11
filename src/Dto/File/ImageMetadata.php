@@ -55,7 +55,7 @@ class ImageMetadata
             $this->width = (int) $xmlattributes->width;
             $this->height = (int) $xmlattributes->height;
         } else {
-            $isAbsolute = false !== strpos($publicPath, '://') || strpos($publicPath, '//') === 0;
+            $isAbsolute = false !== strpos($filePath, '://') || strpos($filePath, '//') === 0;
             [$this->width, $this->height] = getimagesize($isAbsolute ? $publicPath : $filePath);
             $this->imagineKey = $imagineKey;
         }
