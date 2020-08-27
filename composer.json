@@ -42,7 +42,7 @@
         "friends-of-behat/mink-extension": "^2.4",
         "friends-of-behat/symfony-extension": "^2.1",
         "justinrainbow/json-schema": "^5.2",
-        "league/flysystem": "2.0.0-alpha.3@dev",
+        "league/flysystem": "2.x-dev",
         "league/flysystem-memory": "^2",
         "phpspec/prophecy": "^1.8",
         "phpstan/extension-installer": "^1.0",
