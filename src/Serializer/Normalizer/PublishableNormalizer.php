@@ -61,6 +61,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[self::ALREADY_CALLED] = true;
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
+        // display soft validation violations in the response
         if ($this->publishableStatusChecker->isGranted($object)) {
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);

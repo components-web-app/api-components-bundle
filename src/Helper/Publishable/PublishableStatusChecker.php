@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -45,7 +46,11 @@ class PublishableStatusChecker
      */
     public function isGranted($class): bool
     {
-        return $this->authorizationChecker->isGranted(new Expression($this->annotationReader->getConfiguration($class)->isGranted ?? $this->permission));
+        try {
+            return $this->authorizationChecker->isGranted(new Expression($this->annotationReader->getConfiguration($class)->isGranted ?? $this->permission));
+        } catch (AuthenticationCredentialsNotFoundException $e) {
+            return false;
+        }
     }
 
     public function isActivePublishedAt(object $object): bool
