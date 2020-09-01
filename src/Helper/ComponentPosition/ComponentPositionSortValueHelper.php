@@ -20,13 +20,56 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
  */
 class ComponentPositionSortValueHelper
 {
-    public function calculateSortValue(ComponentPosition $componentPosition): void
+    public function calculateSortValue(ComponentPosition $componentPosition, ?int $originalSortValue): void
     {
         $sortCollection = $componentPosition->getSortCollection();
         $sortValueSet = null !== $componentPosition->sortValue;
         if (!$sortCollection) {
             if (!$sortValueSet) {
                 $componentPosition->setSortValue(0);
+            }
+
+            return;
+        }
+
+        if (null !== $originalSortValue) {
+            $moveTo = $componentPosition->sortValue;
+            if ($moveTo === $originalSortValue) {
+                return;
+            }
+
+            $positionIsSame = static function (ComponentPosition $posA, ComponentPosition $posB) {
+                return $posA->getId() === $posB->getId();
+            };
+
+            if ($moveTo > $originalSortValue) {
+                // value increased
+                foreach ($sortCollection as $existingComponentPosition) {
+                    if ($positionIsSame($existingComponentPosition, $componentPosition)) {
+                        continue;
+                    }
+                    if (
+                        $existingComponentPosition->sortValue > $originalSortValue &&
+                        $existingComponentPosition->sortValue <= $moveTo
+                    ) {
+                        --$existingComponentPosition->sortValue;
+                    }
+                }
+
+                return;
+            }
+
+            // value decreased
+            foreach ($sortCollection as $existingComponentPosition) {
+                if ($positionIsSame($existingComponentPosition, $componentPosition)) {
+                    continue;
+                }
+                if (
+                    $existingComponentPosition->sortValue < $originalSortValue &&
+                    $existingComponentPosition->sortValue >= $moveTo
+                ) {
+                    ++$existingComponentPosition->sortValue;
+                }
             }
 
             return;

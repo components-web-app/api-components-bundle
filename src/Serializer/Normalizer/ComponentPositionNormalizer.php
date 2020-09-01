@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
@@ -66,9 +67,12 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     {
         $context[self::ALREADY_CALLED] = true;
 
+        $originalObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
+        $originalSortValue = $originalObject ? $originalObject->sortValue : null;
+
         /** @var ComponentPosition $object */
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
-        $this->componentPositionSortValueHelper->calculateSortValue($object);
+        $this->componentPositionSortValueHelper->calculateSortValue($object, $originalSortValue);
 
         return $object;
     }

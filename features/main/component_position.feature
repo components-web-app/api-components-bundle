@@ -49,7 +49,7 @@ Feature: Component positions
     Given there is a ComponentCollection with 3 components
     When I send a "POST" request to "/_/component_positions" with data:
       | componentCollection             | component              | sortValue   |
-      | resource[component_collection] | resource[component_0] | 1           |
+      | resource[component_collection]  | resource[component_0]  | 1           |
     Then the response status code should be 201
     And the JSON node "sortValue" should be equal to the number 1
     And I add "Content-Type" header equal to "application/ld+json"
@@ -66,6 +66,64 @@ Feature: Component positions
     And I add "Content-Type" header equal to "application/ld+json"
     And I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to the resource "position_2"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 3
+
+  @loginUser
+  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+    Given there is a ComponentCollection with 4 components
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "position_2" with data:
+      | componentCollection             | component              | sortValue   |
+      | resource[component_collection]  | resource[component_0]  | 3           |
+    Then the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 3
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_0"
+    And the response status code should be 200
+    And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the JSON node "sortValue" should be equal to the number 0
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_1"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 1
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_3"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 2
+
+  @loginUser
+  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+    Given there is a ComponentCollection with 4 components
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "position_2" with data:
+      | componentCollection             | component              | sortValue   |
+      | resource[component_collection]  | resource[component_0]  | 1           |
+    Then the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 1
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_0"
+    And the response status code should be 200
+    And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the JSON node "sortValue" should be equal to the number 0
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_1"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 2
+
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_3"
     And the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 3
 
