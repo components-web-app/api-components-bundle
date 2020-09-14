@@ -99,9 +99,11 @@ final class CollectionDataTransformer implements DataTransformerInterface
         }
 
         $arrayCollection = $collection instanceof Paginator ? (array)$collection->getIterator() : $collection;
-        $resources = array_map(function ($object) {
-            return $this->iriConverter->getIriFromItem($object);
-        }, $arrayCollection);
+        $resources = [];
+        foreach ($arrayCollection as $item) {
+            $iri = $this->iriConverter->getIriFromItem($item);
+            $resources[$iri] = $iri;
+        }
 
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
 
