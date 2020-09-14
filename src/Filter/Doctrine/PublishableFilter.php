@@ -47,19 +47,18 @@ final class PublishableFilter extends SQLFilter
     private function getWhereStatement(string $alias): string
     {
         $this->setParameter('published', true);
-        $this->setParameter('published_date', date('Y-m-d H:i:s'));
 
         $pColumn = sprintf('%s.published', $alias);
         $stmt = '(' . $this->exprBuilder->orX(
-            $this->exprBuilder->isNull($pColumn),
-            $this->exprBuilder->eq($pColumn, $this->getParameter('published'))
-        ) . ')';
+                $this->exprBuilder->isNull($pColumn),
+                $this->exprBuilder->eq($pColumn, $this->getParameter('published'))
+            ) . ')';
 
         $pdColumn = sprintf('%s.published_date', $alias);
         $stmt .= ' AND (' . $this->exprBuilder->orX(
-            $this->exprBuilder->isNull($pdColumn),
-            $this->exprBuilder->lte($pdColumn, $this->getParameter('published_date'))
-        ) . ')';
+                $this->exprBuilder->isNull($pdColumn),
+                $this->exprBuilder->lte($pdColumn, 'CURRENT_TIMESTAMP')
+            ) . ')';
 
         return $stmt;
     }
