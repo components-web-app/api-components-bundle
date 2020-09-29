@@ -102,10 +102,10 @@ class FormView
     private function processViewVars(SymfonyFormView $formView): void
     {
         $outputVars = array_merge(self::ARRAY_OUTPUT_VARS, self::OUTPUT_VARS);
-        foreach ($outputVars as $var) {
-            if (isset($formView->vars[$var])) {
-                $this->vars[$var] = $formView->vars[$var];
-                $this->convertVarToArray($var);
+        foreach ($formView->vars as $key=>$value) {
+            if (strpos($key, 'custom_') === 0 || in_array($key, $outputVars, true)) {
+                $this->vars[$key] = $formView->vars[$key];
+                $this->convertVarToArray($key);
             }
         }
     }
