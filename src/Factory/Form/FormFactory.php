@@ -32,7 +32,7 @@ class FormFactory
      */
     public function create(Form $component): FormBuilderInterface
     {
-        $builder = $this->formFactory->createBuilder($component->getFormType());
+        $builder = $this->formFactory->createBuilder($component->getFormType(), null, $component->getFormOptions());
         if (!($currentAction = $builder->getAction()) || $currentAction === '') {
             $action = $this->router->generate(
                 'api_forms_post_item',

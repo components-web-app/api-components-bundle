@@ -48,6 +48,13 @@ class Form extends AbstractComponent
      */
     private $form;
 
+    /**
+     * @ORM\Column(type="json")
+     * @Groups({"component_write"})
+     * @var array|null
+     */
+    private $formOptions;
+
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
         $metadata->addPropertyConstraints(
@@ -133,5 +140,15 @@ class Form extends AbstractComponent
     {
         $this->lastModified = $lastModified;
         return $this;
+    }
+
+    public function getFormOptions(): array
+    {
+        return $this->formOptions ?: [];
+    }
+
+    public function setFormOptions(?array $formOptions): void
+    {
+        $this->formOptions = $formOptions;
     }
 }
