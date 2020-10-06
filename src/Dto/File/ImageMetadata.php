@@ -56,8 +56,12 @@ class ImageMetadata
             $this->height = (int) $xmlattributes->height;
         } else {
             // this is if we are on external storage e.g. amazon
-            $isAbsolute = false !== strpos($publicPath, '://') || strpos($publicPath, '//') === 0;
-            // dump($isAbsolute, $filePath, $publicPath);
+            $hostname = parse_url($publicPath, PHP_URL_HOST);
+            if ($hostname === 'localhost') {
+                $isAbsolute = false;
+            } else {
+                $isAbsolute = false !== strpos($publicPath, '://') || strpos($publicPath, '//') === 0;
+            }
             [$this->width, $this->height] = getimagesize($isAbsolute ? $publicPath : $filePath);
             $this->imagineKey = $imagineKey;
         }
