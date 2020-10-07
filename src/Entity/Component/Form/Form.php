@@ -147,8 +147,9 @@ class Form extends AbstractComponent
         return $this->formOptions ?: [];
     }
 
-    public function setFormOptions(?array $formOptions): void
+    public function setFormOptions(?array $formOptions): Form
     {
         $this->formOptions = $formOptions;
+        return $this;
     }
 }
