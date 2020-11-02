@@ -176,6 +176,20 @@ class JsonContext implements Context
         $this->restContext->resources[$resource] = $actual;
     }
 
+    /**
+     * @Then the JSON node :name should match the regex :expression
+     */
+    public function theJsonNodeShouldMatchTheRegex(string $name, string $expression): void
+    {
+        $json = $this->getJson();
+
+        $actual = $this->inspector->evaluate($json, $name);
+
+        if (false === preg_match($expression, $actual)) {
+            throw new \Exception(sprintf("The node value did not match '%s'. It is '%s'", $expression, json_encode($actual)));
+        }
+    }
+
     private function getJson(): Json
     {
         return new Json($this->getContent());

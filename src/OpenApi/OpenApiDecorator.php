@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\OpenApi;
 
 use ApiPlatform\Core\Documentation\Documentation;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
+use PackageVersions\Versions;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -51,7 +52,8 @@ class OpenApiDecorator implements NormalizerInterface
             $classes[] = $className;
         }
         $newResourceNameCollection = new ResourceNameCollection($classes);
-        $newDocumentation = new Documentation($newResourceNameCollection, $object->getTitle(), $object->getDescription(), $object->getVersion(), $object->getMimeTypes());
+        $version = sprintf('%s (%s)', $object->getVersion(), Versions::getVersion('silverbackis/api-components-bundle'));
+        $newDocumentation = new Documentation($newResourceNameCollection, $object->getTitle(), $object->getDescription(), $version, $object->getMimeTypes());
 
         return $this->decorated->normalize($newDocumentation, $format, $context);
     }
