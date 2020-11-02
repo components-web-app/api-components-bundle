@@ -32,7 +32,7 @@ class OpenApiDecorator implements NormalizerInterface
         $this->decorated = $decorated;
     }
 
-    public function normalize($object, string $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = [])
     {
         if (!$object instanceof Documentation) {
             throw new InvalidArgumentException(sprintf('%s only supports %s', self::class, Documentation::class));
@@ -40,6 +40,7 @@ class OpenApiDecorator implements NormalizerInterface
 
         // We should prevent normalization for the FormInterface (Symfony) class. get the `Class elf does not exist` error
         // This currently removed the Form component from the docs... Not ideal!
+        // See: https://github.com/api-platform/core/issues/3344
         $resourceNameCollection = $object->getResourceNameCollection();
         $classes = [];
         $unsupported = [Form::class, AbstractComponent::class];
@@ -55,7 +56,7 @@ class OpenApiDecorator implements NormalizerInterface
         return $this->decorated->normalize($newDocumentation, $format, $context);
     }
 
-    public function supportsNormalization($data, string $format = null): bool
+    public function supportsNormalization($data, $format = null): bool
     {
         return $this->decorated->supportsNormalization($data, $format);
     }
