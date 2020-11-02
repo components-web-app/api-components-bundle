@@ -57,12 +57,12 @@ class Route
     use TimestampedTrait;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\NotNull
      */
     private string $path;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\NotNull
      */
     private string $name;
 

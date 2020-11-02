@@ -34,7 +34,7 @@ class DummyResourceWithFilters
     use IdTrait;
 
     /**
-     * @ORM\Column()
+     * @ORM\Column
      */
     public string $reference;
 }

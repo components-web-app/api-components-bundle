@@ -39,7 +39,7 @@ class ComponentPosition
     use TimestampedTrait;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\NotNull
      * @Groups({"ComponentPosition:read", "ComponentPosition:write", "AbstractComponent:component:write"})
      */
     public ?ComponentCollection $componentCollection = null;
@@ -55,7 +55,7 @@ class ComponentPosition
     public ?string $pageDataProperty = null;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\NotNull
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
     public ?int $sortValue = null;

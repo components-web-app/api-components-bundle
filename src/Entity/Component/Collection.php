@@ -29,7 +29,7 @@ class Collection extends AbstractComponent
     /**
      * @ORM\Column(nullable=false)
      * @Assert\NotNull(message="The resource iri for a collection component is required")
-     * @AcbAssert\ResourceIri()
+     * @AcbAssert\ResourceIri
      */
     private ?string $resourceIri;
 
