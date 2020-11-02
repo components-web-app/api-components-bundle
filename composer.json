@@ -10,7 +10,6 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "composer-runtime-api": "^2.0",
         "api-platform/api-pack": "^1.2",
         "api-platform/core": "^2.5.6",
         "cocur/slugify": "^4.0",
