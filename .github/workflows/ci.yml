@@ -179,12 +179,6 @@ jobs:
           else
             vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
           fi
-      - name: Merge code coverage reports
-        if: matrix.coverage
-        run: |
-          wget -qO /usr/local/bin/phpcov https://phar.phpunit.de/phpcov.phar
-          chmod +x /usr/local/bin/phpcov
-          phpcov merge --clover build/logs/phpunit/clover.xml build/logs/phpunit/coverage-xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v1
