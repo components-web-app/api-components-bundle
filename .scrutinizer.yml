@@ -17,7 +17,7 @@ build:
             SYMFONY_DEPRECATIONS_HELPER: disabled
             SYMFONY_PHPUNIT_VERSION: 7.5
         php:
-            version: 7.4
+            version: 7.4.7
             ini:
                 'date.timezone': 'Europe/London'
                 memory_limit: -1

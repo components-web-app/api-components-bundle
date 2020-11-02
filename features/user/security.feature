@@ -82,5 +82,5 @@ Feature: Prevent disabled users from logging in
     And 1 refresh tokens should exist
     And all the refresh tokens should be expired
     And the response should have a "api_components" cookie
-    And the header "set-cookie" should contain "api_components=."
-    And the header "set-cookie" should contain "Max-Age=0"
+    And the header "set-cookie" should contain "api_components=x.x.x"
+    And the header "set-cookie" should contain "Max-Age=1"
