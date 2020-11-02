@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\OpenApi\OpenApiDecorator;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
@@ -42,6 +43,15 @@ use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
+
+    $services
+        ->set('silverback.api_components_bundle.open_api.normalizer.api_gateway')
+        ->autoconfigure(false)
+        ->class(OpenApiDecorator::class)
+        ->decorate('api_platform.swagger.normalizer.api_gateway')
+        ->args([
+            new Reference('silverback.api_components_bundle.open_api.normalizer.api_gateway.inner'),
+        ]);
 
     $services
         ->set(AbstractResourceNormalizer::class)

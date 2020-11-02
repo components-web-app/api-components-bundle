@@ -91,6 +91,14 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @BeforeSuite
+     */
+    public static function clearAppCache(): void
+    {
+        exec('php tests/Functional/app/console cache:clear --env=test --no-warmup');
+    }
+
+    /**
      * @BeforeScenario
      */
     public function gatherContexts(BeforeScenarioScope $scope): void
