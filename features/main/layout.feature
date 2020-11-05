@@ -44,3 +44,5 @@ Feature: Layout resources
     Given there is a Layout
     When I send a "DELETE" request to the resource "layout"
     Then the response status code should be 204
+
+  # Todo: Order by and search filter tests needed to ensure it is implemented
