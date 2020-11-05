@@ -29,7 +29,13 @@
           "type": "string",
           "nullable": true
         },
-        "uiClassNames": {},
+        "uiClassNames": {
+          "type": "array",
+          "nullable": true,
+          "items": {
+            "type": "string"
+          }
+        },
         "componentCollections": {
           "type": "array",
           "items": {

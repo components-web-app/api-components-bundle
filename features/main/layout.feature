@@ -14,11 +14,14 @@ Feature: Layout resources
     {
       "reference": "primary",
       "uiComponent": "PrimaryLayout",
-      "classNames": ["has-border"]
+      "uiClassNames": ["has-border"]
     }
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "layout.schema.json"
+    And the JSON node reference should exist
+    And the JSON node uiComponent should exist
+    And the JSON node uiClassNames should exist
 
   @loginUser
   Scenario Outline: The layout resource validates properly
