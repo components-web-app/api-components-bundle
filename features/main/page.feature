@@ -13,29 +13,30 @@ Feature: Page resources
     And there is a Layout
     And there are 2 Routes
     When I send a "POST" request to "/_/pages" with data:
-      | route    | parentRoute      | layout    | componentCollection   | reference   | title   | metaDescription   | nested    |
-      | <route>  | <parentRoute>    | <layout>  | <componentCollection> | <reference> | <title> | <metaDescription> | <nested>  |
+      | route    | parentRoute      | layout    | componentCollection   | reference   | title   | metaDescription   | nested    | uiComponent   |
+      | <route>  | <parentRoute>    | <layout>  | <componentCollection> | <reference> | <title> | <metaDescription> | <nested>  | <uiComponent> |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
     Examples:
-      | route              | parentRoute            | layout              | componentCollection             | reference | title     | metaDescription | nested |
-      | resource[route_0] | resource[route_1]     | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  |
-      | null               | null                   | resource[layout]   | null                            | home      | null      | null            | true   |
+      | route              | parentRoute            | layout             | componentCollection            | reference | title     | metaDescription | nested | uiComponent      |
+      | resource[route_0]  | resource[route_1]      | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  | myComponent      |
+      | null               | null                   | resource[layout]   | null                           | home      | null      | null            | true   | myComponent      |
 
   @loginUser
-  Scenario Outline: The page resource validates properly
+  Scenario Outline: The page resource validates correctly
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
-      | layout    | reference   | nested    |
-      | <layout>  | <reference> | false     |
+      | layout    | reference   | nested    | uiComponent   |
+      | <layout>  | <reference> | false     | <uiComponent> |
     Then the response status code should be 400
     And the JSON should be valid according to the schema file "validation_errors.schema.json"
     And the JSON node "violations[0].propertyPath" should be equal to "<propertyPath>"
     And the JSON node "violations[0].message" should be equal to "<message>"
     Examples:
-      | layout             | reference | propertyPath       | message                                    |
-      | null               | home      | layout             | Please specify a layout.                   |
-      | resource[layout]  |           | reference          | Please enter a reference.                  |
+      | layout             | reference | propertyPath       | message                                    | uiComponent    |
+      | null               | home      | layout             | Please specify a layout.                   | myComponent    |
+      | resource[layout]   |           | reference          | Please enter a reference.                  | myComponent    |
+      | resource[layout]   | home      | uiComponent        | Please specify a UI component.             |                |
 
   @loginUser
   Scenario Outline: The page resource returns errors on incorrect data types
@@ -48,8 +49,8 @@ Feature: Page resources
     And the JSON node "hydra:description" should be equal to the string '<message>'
     Examples:
       | layout             | reference | nested | message                                                               |
-      | resource[layout]  | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |
-      | resource[layout]  | null      | true   | The type of the "reference" attribute must be "string", "NULL" given. |
+      | resource[layout]   | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |
+      | resource[layout]   | null      | true   | The type of the "reference" attribute must be "string", "NULL" given. |
 
   @loginUser
   Scenario: I can delete a page

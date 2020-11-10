@@ -17,7 +17,6 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -51,9 +50,6 @@ abstract class AbstractPage implements RoutableInterface
      */
     protected bool $nested = true;
 
-    /**
-     * @Assert\NotBlank(message="Please enter a title.")
-     */
     protected ?string $title = 'Unnamed Page';
 
     protected ?string $metaDescription = null;
