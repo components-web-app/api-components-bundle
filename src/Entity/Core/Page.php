@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -38,5 +39,12 @@ class Page extends AbstractPage
     public function __construct()
     {
         $this->initComponentCollections();
+    }
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata): void
+    {
+        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
+            'message' => 'You must define the uiComponent for this resource.',
+        ]));
     }
 }
