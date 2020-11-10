@@ -13,14 +13,19 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(mercure=true)
+ * @ApiFilter(OrderFilter::class, properties={"createdAt", "reference"}, arguments={"orderParameterName"="order"})
+ * @ApiFilter(OrSearchFilter::class, properties={"title"="ipartial", "reference"="ipartial", "uiComponent"="ipartial", "layout.reference"="ipartial"})
  */
 class Page extends AbstractPage
 {
