@@ -84,3 +84,12 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "api_components=x.x.x"
     And the header "set-cookie" should contain "Max-Age=1"
+
+  @loginUser
+  Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
+    Given I have an invalid JWT token
+    When I send a "GET" request to "/"
+    Then the response status code should be 401
+    And the response should have a "api_components" cookie
+    And the header "set-cookie" should contain "api_components=x.x.x"
+    And the header "set-cookie" should contain "Max-Age=1"

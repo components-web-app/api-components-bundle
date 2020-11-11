@@ -122,4 +122,12 @@ final class JWTManager implements JWTTokenManagerInterface
     {
         return $this->decorated->getUserIdClaim();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createFromPayload(UserInterface $user, array $payload)
+    {
+        return $this->decorated->createFromPayload($user, $payload);
+    }
 }

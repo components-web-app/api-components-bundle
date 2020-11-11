@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Security;
 
 /**
- * This will NOT restrict access to components fetched as a collection. As recomended by API Platform best practices, that should
+ * This will NOT restrict access to components fetched as a collection. As recommended by API Platform best practices, that should
  * be implemented in a Doctrine extension by the application developer.
  *
  * @author Daniel West <daniel@silverback.is>

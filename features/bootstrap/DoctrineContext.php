@@ -681,6 +681,15 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given I have an invalid JWT token
+     */
+    public function iHaveAnInvalidJwtToken(): void
+    {
+        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2MDUxMTcxNDMsImV4cCI6MTYwNTEyMDc0Mywicm9sZXMiOlsiUk9MRV9BRE1JTiIsIlJPTEVfVVNFUiJdLCJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOiIxMGE0YjIxNS05NDc5LTRjODAtYmIyOS0yODA3NzFhMDI3ZGUiLCJlbWFpbEFkZHJlc3MiOiJhZG1pbiIsImVtYWlsQWRkcmVzc1ZlcmlmaWVkIjp0cnVlLCJuZXdFbWFpbEFkZHJlc3MiOm51bGx9.K5cZ5dZrQapzUUE6NIA466-EcuqGwRIJ1c0UzKFyz5qKUdVoRaG9NhWG5hIjJVm9ug7VBJypgsLfucwnbVRhseoPGAb0Y88nh9JmI1CI11ImR-BJQm3vT2ff-HqizvHkom13JaLeyXC5WYfB2Ap4b1lG7k_9FTpYsfipcRNkmminUiibce0RMfghRzpiAmd_5kWAI9uqLdHEq1DwJozLO92imYDTec6JtlBJHZX52nvKGJOjas0E9cNQsVChwpRp9EXqEuVI4BtCU428rnrNQr5ExxjsgNPEY4FRHMP72ZthYmQ-37nBfFsskak-e0t26UTdiXS8M8up0BG60lFAzkt09HeqFrGGJzt9ngFPcBPjEp8o7cMBeSSbFf2gU58x8YrdCr0Tq_HOZAOuPiYDz31h9wdPGkySSNq0jhwYK5VIU47VtJbHmWm0gWTdKZ97REXKoc_4D2IhLtwmhNgDH8AUXpy5QIwSlv41Sluw6VktyST-ZmV0_2A9lTzgeN5kRWt4fCRtaSJebd7KdOQgonR69MNvLigOs9YoEWOUMwFuUbetNWbsTs6o8qDBVYDY7Hj1Vrcy3ujCjQJIT-1F7c4GYlAYWMzG8zkumRQ3zZ394ZKRcYaRD8WA2WNYqmc3EpFQFXv9Wjq2j3-5gNJVZFCYoarDcxSXjCb-Ep3LSf8';
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+    }
+
+    /**
      * @Then there should be :count DummyComponent resources
      */
     public function thereShouldBeDummyComponentResources(int $count): void
