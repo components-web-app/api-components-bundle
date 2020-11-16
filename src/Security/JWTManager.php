@@ -87,10 +87,6 @@ final class JWTManager implements JWTTokenManagerInterface
                 throw $exception;
             }
 
-            $this->storage->expireAll($user);
-
-            $this->storage->create($user);
-
             $accessToken = $this->create($user);
 
             $this->dispatcher->dispatch(new JWTRefreshedEvent($accessToken));

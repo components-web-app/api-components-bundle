@@ -65,7 +65,7 @@ Feature: Prevent disabled users from logging in
     And the refresh token should be expired
     And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
-    And 3 refresh tokens should exist
+    And 2 refresh tokens should exist
 
   @loginUser
   Scenario: given I have an expired refresh-token when I log in with an expired access-token, I should get a 401
