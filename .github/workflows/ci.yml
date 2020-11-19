@@ -170,7 +170,7 @@ jobs:
           tests/Functional/app/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
-        run: echo '::set-env name=COVERAGE::1'
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
@@ -312,7 +312,7 @@ jobs:
           tests/Functional/app/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
-        run: echo '::set-env name=COVERAGE::1'
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat
