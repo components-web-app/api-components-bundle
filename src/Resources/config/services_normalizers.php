@@ -71,6 +71,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PageDataProvider::class),
             new Reference('silverback.helper.component_position_sort_value'),
             new Reference(RequestStack::class),
+            new Reference('security.helper'),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 

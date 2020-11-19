@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -45,12 +46,18 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     private PageDataProvider $pageDataProvider;
     private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
     private RequestStack $requestStack;
+    private Security $security;
 
-    public function __construct(PageDataProvider $pageDataProvider, ComponentPositionSortValueHelper $componentPositionSortValueHelper, RequestStack $requestStack)
-    {
+    public function __construct(
+        PageDataProvider $pageDataProvider,
+        ComponentPositionSortValueHelper $componentPositionSortValueHelper,
+        RequestStack $requestStack,
+        Security $security
+    ) {
         $this->pageDataProvider = $pageDataProvider;
         $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
         $this->requestStack = $requestStack;
+        $this->security = $security;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -91,7 +98,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $context[self::ALREADY_CALLED] = true;
         $pageData = $this->pageDataProvider->getPageData();
         if (!$pageData) {
-            if ($object->component) {
+            if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
                 return $this->normalizer->normalize($object, $format, $context);
             }
             throw new UnexpectedValueException('Could not find page data for this route.');
