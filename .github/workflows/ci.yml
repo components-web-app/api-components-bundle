@@ -28,7 +28,6 @@ jobs:
       matrix:
         php:
           - '7.4'
-          #- '8.0'
       fail-fast: false
     timeout-minutes: 5
     env:
@@ -87,23 +86,24 @@ jobs:
       options: >-
         --tmpfs /tmp:exec
         --tmpfs /var/tmp:exec
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         php:
           - '7.4'
-          - '8.0'
         symfony:
           - '4.4.*'
           - '5.*'
+        experimental:
+            - false
         include:
           - php: '7.4'
             symfony: '5.*'
             coverage: true
           - php: '8.0'
             symfony: '5.*'
-            continue-on-error: true
+            experimental: true
       fail-fast: false
-    continue-on-error: ${{ matrix.continue-on-failure }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -235,23 +235,24 @@ jobs:
       options: >-
         --tmpfs /tmp:exec
         --tmpfs /var/tmp:exec
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         php:
           - '7.4'
-          - '8.0'
         symfony:
           - '4.4.*'
           - '5.*'
+        experimental:
+          - false
         include:
           - php: '7.4'
             symfony: '5.*'
             coverage: true
           - php: '8.0'
             symfony: '5.*'
-            continue-on-error: true
+            experimental: true
       fail-fast: false
-    continue-on-error: ${{ matrix.continue-on-failure }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -376,7 +377,6 @@ jobs:
       matrix:
         php:
           - '7.4'
-          # - '8.0'
         symfony:
           - '4.4.*'
           - '5.*'
@@ -456,7 +456,6 @@ jobs:
       matrix:
         php:
           - '7.4'
-          # - '8.0'
         symfony:
           - '4.4.*'
           - '5.*'
@@ -537,7 +536,6 @@ jobs:
       matrix:
         php:
           - '7.4'
-          # - '8.0'
         symfony:
           - '5.3'
       fail-fast: false
@@ -638,7 +636,6 @@ jobs:
       matrix:
         php:
           - '7.4'
-          # - '8.0'
         symfony:
           - '5.3'
       fail-fast: false
