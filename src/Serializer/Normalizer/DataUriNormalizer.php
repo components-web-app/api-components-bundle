@@ -33,8 +33,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareInterface, CacheableSupportsMethodInterface, NormalizerInterface, DenormalizerInterface
 {
-    use NormalizerAwareTrait;
     use DenormalizerAwareTrait;
+    use NormalizerAwareTrait;
 
     private SymfonyDataUriNormalizer $decorated;
 

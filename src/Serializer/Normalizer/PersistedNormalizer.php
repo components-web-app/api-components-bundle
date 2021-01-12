@@ -27,8 +27,8 @@ use Traversable;
  */
 class PersistedNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
 {
-    use NormalizerAwareTrait;
     use ClassInfoTrait;
+    use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'PERSISTED_NORMALIZER_ALREADY_CALLED';
 

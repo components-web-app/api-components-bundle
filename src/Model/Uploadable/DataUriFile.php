@@ -97,7 +97,7 @@ class DataUriFile extends File
         }
 
         if (false === @fclose($source)) {
-            throw new FileException(sprintf('Unable to close data stream'));
+            throw new FileException('Unable to close data stream');
         }
 
         $this->closeFile($target);

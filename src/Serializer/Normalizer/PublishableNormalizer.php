@@ -38,8 +38,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
  */
 final class PublishableNormalizer implements ContextAwareNormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface, ContextAwareDenormalizerInterface, DenormalizerAwareInterface
 {
-    use NormalizerAwareTrait;
     use DenormalizerAwareTrait;
+    use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
 
