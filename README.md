@@ -13,7 +13,7 @@
 
 #### Creates a flexible API for a website's structure, reusable components and common functionality.
 
-### **[Read the documentation](https://docs.acb.silverback.is)**
+### **[Read the documentation](https://docs.api.cwa.rocks/)**
 
 ### **[See it in action: Components Web App](https://github.com/components-web-app/components-web-app)**
 
