@@ -59,7 +59,8 @@ class ChangePasswordType extends AbstractType
             ],
             'data_class' => UserInterface::class,
             'validation_groups' => ['change_password'],
-            'empty_data' => $this->security->getUser()
+            'empty_data' => $this->security->getUser(),
+            'method' => 'POST'
         ]);
     }
 }

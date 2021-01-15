@@ -44,7 +44,8 @@ class NewUsernameType extends AbstractType
             ],
             'data_class' => User::class,
             'validation_groups' => ['new_username'],
-            'empty_data' => $this->security->getUser()
+            'empty_data' => $this->security->getUser(),
+            'method' => 'POST'
         ]);
     }
 }
