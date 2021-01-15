@@ -65,7 +65,8 @@ class LoginType extends AbstractType
             // Post to the js server to store credentials in session
             'action' => '/login',
             'realtime_validate' => false,
-            'api_request' => false
+            'api_request' => false,
+            'method' => "POST"
         ]);
     }
 }
