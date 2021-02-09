@@ -3,7 +3,7 @@
 namespace Silverback\ApiComponentBundle\Security;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidEntityException;
 use Silverback\ApiComponentBundle\Mailer\Mailer;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -34,7 +34,7 @@ class PasswordManager
         $this->tokenTtl = $tokenTtl;
     }
 
-    public function requestResetEmail(User $user, string $resetUrl): void
+    public function requestResetEmail(UserInterface $user, string $resetUrl): void
     {
         if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {
             return;
@@ -47,10 +47,10 @@ class PasswordManager
     }
 
     /**
-     * @param User $user
+     * @param UserInterface $user
      * @param string $newPassword
      */
-    public function passwordReset(User $user, string $newPassword): void
+    public function passwordReset(UserInterface $user, string $newPassword): void
     {
         $user->setPlainPassword($newPassword);
         $user->setPasswordResetConfirmationToken(null);
@@ -62,7 +62,7 @@ class PasswordManager
         $this->persistPlainPassword($user);
     }
 
-    public function persistPlainPassword(User $user): User
+    public function persistPlainPassword(UserInterface $user): UserInterface
     {
         $password = $this->passwordEncoder->encodePassword($user, $user->getPlainPassword());
         $user->setPassword($password);

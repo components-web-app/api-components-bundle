@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentBundle\Mailer;
 
-use Silverback\ApiComponentBundle\Entity\User\User;
+use Silverback\ApiComponentBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentBundle\Exception\InvalidParameterException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
@@ -66,15 +66,15 @@ final class Mailer
         return $this->mailer->send($message);
     }
 
-    public function passwordResetEmail(User $user, string $resetUrl): int
+    public function passwordResetEmail(UserInterface $user, string $resetUrl): int
     {
         $confirmationToken = $user->getPasswordResetConfirmationToken();
         if (!$confirmationToken) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a password reset email.', User::class));
+            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a password reset email.', get_class($user)));
         }
         $username = $user->getUsername();
         if (!$username) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', User::class));
+            throw new InvalidParameterException(sprintf('The entity %s should have a username set to send a password reset email.', get_class($user)));
         }
         $resetUrl = $this->pathToAppUrl(
             $resetUrl,
@@ -94,15 +94,15 @@ final class Mailer
         return $this->sendEmail($user->getUsername(), $subject, $htmlEmail, $textEmail);
     }
 
-    public function newUsernameConfirmation(User $user, string $confirmUrl): int
+    public function newUsernameConfirmation(UserInterface $user, string $confirmUrl): int
     {
         $confirmationToken = $user->getUsernameConfirmationToken();
         if (!$confirmationToken) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a new user confirmation email.', User::class));
+            throw new InvalidParameterException(sprintf('The entity %s should have a confirmation token set to send a new user confirmation email.', get_class($user)));
         }
         $username = $user->getNewUsername();
         if (!$username) {
-            throw new InvalidParameterException(sprintf('The entity %s should have a new username set to send a new user confirmation email.', User::class));
+            throw new InvalidParameterException(sprintf('The entity %s should have a new username set to send a new user confirmation email.', get_class($user)));
         }
 
         $confirmUrl = $this->pathToAppUrl(
