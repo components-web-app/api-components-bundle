@@ -6,7 +6,6 @@ use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentBundle\Validator\Constraints as APIAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -134,7 +133,7 @@ abstract class User implements UserInterface
         return $this;
     }
 
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
