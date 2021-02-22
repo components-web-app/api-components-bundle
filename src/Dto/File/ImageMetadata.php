@@ -13,15 +13,13 @@ class ImageMetadata
 {
     /**
      * @Groups({"default"})
-     * @var int
      */
-    private $width;
+    private $width = null;
 
     /**
      * @Groups({"default"})
-     * @var int
      */
-    private $height;
+    private $height = null;
 
     /**
      * @Groups({"default"})
@@ -67,41 +65,26 @@ class ImageMetadata
         }
     }
 
-    /**
-     * @return int
-     */
-    public function getWidth(): int
+    public function getWidth(): ?int
     {
         return $this->width;
     }
 
-    /**
-     * @return int
-     */
-    public function getHeight(): int
+    public function getHeight(): ?int
     {
         return $this->height;
     }
 
-    /**
-     * @return string
-     */
     public function getFilePath(): string
     {
         return $this->filePath;
     }
 
-    /**
-     * @return string
-     */
     public function getPublicPath(): string
     {
         return $this->publicPath;
     }
 
-    /**
-     * @return null|string
-     */
     public function getImagineKey(): ?string
     {
         return $this->imagineKey;
