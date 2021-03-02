@@ -121,7 +121,7 @@ class UserCreateCommand extends Command
             $question = new Question('Please choose a password:');
             $question
                 ->setValidator(self::getNotEmptyValidator('Password'))
-                ->isHidden();
+                ->setHidden(true);
             $this->questions['password'] = $question;
         }
     }
