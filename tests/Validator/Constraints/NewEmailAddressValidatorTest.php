@@ -86,19 +86,19 @@ class NewEmailAddressValidatorTest extends TestCase
         $constraint = new NewEmailAddress();
 
         $this->executionContextMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('buildViolation')
             ->with($constraint->message)
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('atPath')
             ->with('newEmailAddress')
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('addViolation')
             ->willReturn(null);
 
@@ -114,7 +114,7 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
 
         $this->repositoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findExistingUserByNewEmail')
             ->with($dummyUser)
             ->willReturn(null);
@@ -132,7 +132,7 @@ class NewEmailAddressValidatorTest extends TestCase
         };
 
         $this->repositoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findExistingUserByNewEmail')
             ->with($dummyUser)
             ->willReturn($dummyUser);
@@ -140,19 +140,19 @@ class NewEmailAddressValidatorTest extends TestCase
         $constraint = new NewEmailAddress();
 
         $this->executionContextMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('buildViolation')
             ->with($constraint->uniqueMessage)
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('atPath')
             ->with('newEmailAddress')
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('addViolation')
             ->willReturn(null);
 
@@ -169,7 +169,7 @@ class NewEmailAddressValidatorTest extends TestCase
         };
 
         $this->repositoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findExistingUserByNewEmail')
             ->with($dummyUser)
             ->willReturn(null);

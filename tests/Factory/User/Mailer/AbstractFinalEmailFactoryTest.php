@@ -40,43 +40,39 @@ abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
 
     protected function assertCommonMockMethodsCalled(bool $tokenPathExpected = false): void
     {
-        $callIndex = 0;
+        $loaderMock = $this->createMock(LoaderInterface::class);
+        $twig = new Environment($loaderMock);
+
+        $containerWith = [];
+        $willReturn = [];
+
         if ($tokenPathExpected) {
             $requestStackMock = $this->createMock(RequestStack::class);
             $requestStackMock
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getMasterRequest')
                 ->willReturn(null);
 
-            $this->containerInterfaceMock
-                ->expects($this->at($callIndex))
-                ->method('get')
-                ->with(RequestStack::class)
-                ->willReturn($requestStackMock);
-            ++$callIndex;
-
             $refererUrlMock = $this->createMock(RefererUrlResolver::class);
             $refererUrlMock
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getAbsoluteUrl')
                 ->with('/default-path')
                 ->willReturn('/transformed-path');
 
-            $this->containerInterfaceMock
-                ->expects($this->at($callIndex))
-                ->method('get')
-                ->with(RefererUrlResolver::class)
-                ->willReturn($refererUrlMock);
-            ++$callIndex;
+            $containerWith[] = [RequestStack::class];
+            $containerWith[] = [RefererUrlResolver::class];
+            $willReturn[] = $requestStackMock;
+            $willReturn[] = $refererUrlMock;
         }
 
-        $loaderMock = $this->createMock(LoaderInterface::class);
-        $twig = new Environment($loaderMock);
+        $containerWith[] = [Environment::class];
+        $willReturn[] = $twig;
 
         $this->containerInterfaceMock
-            ->expects($this->at($callIndex))
+            ->expects(self::exactly(\count($willReturn)))
             ->method('get')
-            ->with(Environment::class)
-            ->willReturn($twig);
+            ->withConsecutive(...$containerWith)
+            ->willReturnOnConsecutiveCalls(...$willReturn);
     }
 }

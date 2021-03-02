@@ -41,7 +41,7 @@ class RouteDataProviderTest extends TestCase
             ->expects($this->never())
             ->method('getItem');
         $repository
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findOneByIdOrPath')
             ->with('abcd')
             ->willReturn($route = new Route());
@@ -56,7 +56,7 @@ class RouteDataProviderTest extends TestCase
         $repository = $this->createMock(RouteRepository::class);
         $defaultProvider = $this->createMock(ItemDataProviderInterface::class);
         $defaultProvider
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getItem')
             ->with(Route::class, $uuid, 'post', ['blah' => 'abc', 'ROUTE_DATA_PROVIDER_ALREADY_CALLED' => true])
             ->willReturn($route = new Route());

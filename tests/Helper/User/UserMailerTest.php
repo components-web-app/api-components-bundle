@@ -79,7 +79,7 @@ class UserMailerTest extends TestCase
         $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
         $factoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->with($user, [])
             ->willReturn(null);
@@ -95,7 +95,7 @@ class UserMailerTest extends TestCase
         $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
         $factoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->with($user, self::TEST_CONTEXT)
             ->willReturn(null);
@@ -116,14 +116,14 @@ class UserMailerTest extends TestCase
         $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
         $factoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->with($user, self::TEST_CONTEXT)
             ->willReturn($templateEmail);
 
         $mockException = $this->createMock(TransportExceptionInterface::class);
         $this->mailerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('send')
             ->with($templateEmail)
             ->willThrowException($mockException);
@@ -205,7 +205,7 @@ class UserMailerTest extends TestCase
         $factoryMock = $this->getFactoryFromContainerMock($factoryClass);
 
         $factoryMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->with($user, self::TEST_CONTEXT)
             ->willReturn($templateEmail);
@@ -217,7 +217,7 @@ class UserMailerTest extends TestCase
     {
         $factoryMock = $this->createMock(AbstractUserEmailFactory::class);
         $this->containerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('get')
             ->with($factory)
             ->willReturn($factoryMock);
@@ -228,7 +228,7 @@ class UserMailerTest extends TestCase
     private function expectMailerSendMethod(?RawMessage $message): void
     {
         $this->mailerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('send')
             ->with($message);
     }

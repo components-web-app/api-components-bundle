@@ -68,12 +68,12 @@ class UploadableResourceMetadataFactoryTest extends TestCase
         $resourceMetadata = new ResourceMetadata();
 
         $this->decoratedMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->willReturn($resourceMetadata);
 
         $this->uploadableHelper
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isConfigured')
             ->willReturn(false);
 
@@ -89,22 +89,22 @@ class UploadableResourceMetadataFactoryTest extends TestCase
         $resourceMetadata = new ResourceMetadata();
         $resourceMetadata = $resourceMetadata->withShortName('MyName');
         $this->decoratedMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->willReturn($resourceMetadata);
 
         $this->uploadableHelper
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isConfigured')
             ->willReturn(true);
 
         $this->uploadableHelper
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getConfiguredProperties')
             ->willReturn(['resourceDocument' => []]);
 
         $this->pathSegmentNameGenerator
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getSegmentName')
             ->with('MyName')
             ->willReturn('my_name');

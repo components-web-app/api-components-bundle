@@ -99,19 +99,19 @@ class FormTypeClassValidatorTest extends TestCase
         $constraint = new FormTypeClass();
 
         $this->executionContextMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('buildViolation')
             ->with($constraint->message)
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('setParameter')
             ->with('{{ string }}', __CLASS__)
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('addViolation');
         $this->formTypeClassValidator->initialize($this->executionContextMock);
 
@@ -123,18 +123,18 @@ class FormTypeClassValidatorTest extends TestCase
         $constraint = new FormTypeClass();
 
         $this->executionContextMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('buildViolation')
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('setParameter')
             ->with('{{ string }}', 'NotAClass')
             ->willReturn($this->constraintViolationBuilderMock);
 
         $this->constraintViolationBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('addViolation');
         $this->formTypeClassValidator->initialize($this->executionContextMock);
 

@@ -41,7 +41,7 @@ class UserContextBuilderTest extends TestCase
         $extractedAttributes = ['attr' => 'value'];
 
         $this->serializerContextBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createFromRequest')
             ->with($request, $normalization, $extractedAttributes)
             ->willReturn(['context_key' => 'context_value']);
@@ -60,7 +60,7 @@ class UserContextBuilderTest extends TestCase
         $extractedAttributes = ['attr' => 'value'];
 
         $this->serializerContextBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createFromRequest')
             ->with($request, $normalization, $extractedAttributes)
             ->willReturn(['context_key' => 'context_value', 'resource_class' => __CLASS__]);
@@ -78,13 +78,13 @@ class UserContextBuilderTest extends TestCase
         $normalization = true;
 
         $this->serializerContextBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createFromRequest')
             ->with($request, $normalization, null)
             ->willReturn(['resource_class' => User::class]);
 
         $this->authorizationCheckerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isGranted')
             ->with('ROLE_SUPER_ADMIN')
             ->willReturn(false);
@@ -98,13 +98,13 @@ class UserContextBuilderTest extends TestCase
         $normalization = false;
 
         $this->serializerContextBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createFromRequest')
             ->with($request, $normalization, null)
             ->willReturn(['groups' => ['a_group'], 'resource_class' => User::class]);
 
         $this->authorizationCheckerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isGranted')
             ->with('ROLE_SUPER_ADMIN')
             ->willReturn(false);
@@ -118,13 +118,13 @@ class UserContextBuilderTest extends TestCase
         $normalization = false;
 
         $this->serializerContextBuilderMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createFromRequest')
             ->with($request, $normalization, null)
             ->willReturn(['resource_class' => User::class]);
 
         $this->authorizationCheckerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isGranted')
             ->with('ROLE_SUPER_ADMIN')
             ->willReturn(true);

@@ -72,7 +72,7 @@ class PersistedNormalizerTest extends TestCase
         $format = 'jsonld';
 
         $this->resourceClassResolverMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isResourceClass')
             ->with(DummyComponent::class)
             ->willReturn(false);
@@ -85,7 +85,7 @@ class PersistedNormalizerTest extends TestCase
         $format = 'jsonld';
 
         $this->resourceClassResolverMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('isResourceClass')
             ->with(DummyComponent::class)
             ->willReturn(true);
@@ -104,7 +104,7 @@ class PersistedNormalizerTest extends TestCase
         $format = 'jsonld';
 
         $this->normalizerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('normalize')
             ->with(
                 $dummyComponent,
@@ -118,7 +118,7 @@ class PersistedNormalizerTest extends TestCase
             ->willReturn('anything');
 
         $this->entityManagerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('contains')
             ->with($dummyComponent)
             ->willReturn(true);
@@ -133,7 +133,7 @@ class PersistedNormalizerTest extends TestCase
         $format = 'jsonld';
 
         $this->normalizerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('normalize')
             ->with(
                 $dummyComponent,
@@ -146,7 +146,7 @@ class PersistedNormalizerTest extends TestCase
             ->willReturn('anything');
 
         $this->entityManagerMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('contains')
             ->with($dummyComponent)
             ->willReturn(false);

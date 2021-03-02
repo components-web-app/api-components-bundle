@@ -35,7 +35,7 @@ class RoutingPrefixResourceMetadataFactoryTest extends TestCase
     {
         $mock = $this->createMock(ResourceMetadataFactoryInterface::class);
         $mock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('create')
             ->willReturn($resourceMetadata ?? new ResourceMetadata());
 

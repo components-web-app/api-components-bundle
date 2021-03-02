@@ -46,7 +46,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('To generate an absolute URL to the referrer, there must be a valid master request');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn(null);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -57,7 +57,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('To generate an absolute URL to the referrer, the request must have a `origin` or `referer` header present');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn(new Request());
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -81,7 +81,7 @@ class RefererUrlResolverTest extends TestCase
         $request = new Request();
         $request->headers->set('origin', 'https://www.example.com/');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
@@ -96,7 +96,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `scheme` while parsing the `origin` header');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -110,7 +110,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `host` while parsing the `origin` header');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -124,7 +124,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `scheme` while parsing the `referer` header');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -138,7 +138,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `host` while parsing the `referer` header');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -152,7 +152,7 @@ class RefererUrlResolverTest extends TestCase
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->expectExceptionMessage('Could not extract `host` while parsing the `referer` header');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -165,7 +165,7 @@ class RefererUrlResolverTest extends TestCase
 
         $this->expectException(UnparseableRequestHeaderException::class);
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
         $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert');
@@ -176,7 +176,7 @@ class RefererUrlResolverTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'https://www.example.com/some-path');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
@@ -188,7 +188,7 @@ class RefererUrlResolverTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'https://www.example.com:443/some-path');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
@@ -200,7 +200,7 @@ class RefererUrlResolverTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'http://www.example.com:80/some-path');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
@@ -212,7 +212,7 @@ class RefererUrlResolverTest extends TestCase
         $request = new Request();
         $request->headers->set('referer', 'https://www.example.com:999/some-path');
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 

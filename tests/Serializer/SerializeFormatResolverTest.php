@@ -64,7 +64,7 @@ class SerializeFormatResolverTest extends TestCase
     public function test_default_format_if_no_master_request(): void
     {
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn(null);
 
@@ -77,7 +77,7 @@ class SerializeFormatResolverTest extends TestCase
         $request->attributes->set('_format', 'attr_format');
 
         $this->requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 

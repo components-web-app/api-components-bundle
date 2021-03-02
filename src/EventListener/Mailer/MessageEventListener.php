@@ -35,6 +35,12 @@ class MessageEventListener
         if (!$message instanceof Email) {
             return;
         }
-        $message->from(Address::fromString($this->fromEmailAddress));
+        // symfony/mime 5.2 deprecated fromString
+        if (method_exists(Address::class, 'create')) {
+            $toEmailAddress = Address::create($this->fromEmailAddress);
+        } else {
+            $toEmailAddress = Address::fromString($this->fromEmailAddress);
+        }
+        $message->from($toEmailAddress);
     }
 }

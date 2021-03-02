@@ -44,7 +44,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
         $this->assertCommonMockMethodsCalled();
 
         $email = (new TemplatedEmail())
-            ->to(Address::fromString('email@address.com'))
+            ->to(Address::create('email@address.com'))
             ->subject('subject')
             ->htmlTemplate('@SilverbackApiComponents/emails/user_welcome.html.twig')
             ->context(
@@ -70,7 +70,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
         $this->assertCommonMockMethodsCalled(true);
 
         $email = (new TemplatedEmail())
-            ->to(Address::fromString('email@address.com'))
+            ->to(Address::create('email@address.com'))
             ->subject('subject')
             ->htmlTemplate('@SilverbackApiComponents/emails/user_welcome.html.twig')
             ->context(

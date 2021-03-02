@@ -147,13 +147,13 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $twig = new Environment($loaderMock);
 
         $this->containerInterfaceMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('get')
             ->with(Environment::class)
             ->willReturn($twig);
 
         $emailMessage = (new TemplatedEmail())
-            ->to(Address::fromString('email@address.com'))
+            ->to(Address::create('email@address.com'))
             ->subject('website name is my website')
             ->htmlTemplate('@SilverbackApiComponents/emails/template.html.twig')
             ->context(
@@ -167,7 +167,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $event = new UserEmailMessageEvent(DummyUserEmailFactory::class, $emailMessage);
         $this->eventDispatcherMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('dispatch')
             ->with($event);
 
@@ -184,11 +184,11 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
 
         $this->containerInterfaceMock
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('get');
 
         $this->eventDispatcherMock
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('dispatch');
 
         $returnedEmailMessage = $userEmailFactory->create($user, self::VALID_CONTEXT);
@@ -212,12 +212,12 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn(new Request());
 
         $this->containerInterfaceMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('get')
             ->with(RequestStack::class)
             ->willReturn($requestStackMock);
@@ -239,30 +239,30 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
-        $this->containerInterfaceMock
-            ->expects($this->at(0))
-            ->method('get')
-            ->with(RequestStack::class)
-            ->willReturn($requestStackMock);
-
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
-        $this->containerInterfaceMock
-            ->expects($this->at(1))
-            ->method('get')
-            ->with(RefererUrlResolver::class)
-            ->willReturn($refererUrlMock);
-
         $refererUrlMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getAbsoluteUrl')
             ->with('/query-path')
             ->willReturn('/any-path');
 
-        $this->assertEquals(
+        $this->containerInterfaceMock
+            ->expects(self::exactly(2))
+            ->method('get')
+            ->withConsecutive(
+                [RequestStack::class],
+                [RefererUrlResolver::class]
+            )
+            ->willReturnOnConsecutiveCalls(
+                $requestStackMock,
+                $refererUrlMock
+            );
+
+        self::assertEquals(
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
                 new class() extends AbstractUser {
@@ -279,30 +279,27 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
-        $this->containerInterfaceMock
-            ->expects($this->at(0))
-            ->method('get')
-            ->with(RequestStack::class)
-            ->willReturn($requestStackMock);
-
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $this->containerInterfaceMock
-            ->expects($this->at(1))
+            ->expects(self::exactly(2))
             ->method('get')
-            ->with(RefererUrlResolver::class)
-            ->willReturn($refererUrlMock);
+            ->withConsecutive([RequestStack::class], [RefererUrlResolver::class])
+            ->willReturnOnConsecutiveCalls(
+                $requestStackMock,
+                $refererUrlMock
+            );
 
         $refererUrlMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getAbsoluteUrl')
             ->with('/a-default-path')
             ->willReturn('/any-path');
 
-        $this->assertEquals(
+        self::assertEquals(
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
                 new class() extends AbstractUser {
@@ -319,25 +316,19 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMasterRequest')
             ->willReturn($request);
 
-        $this->containerInterfaceMock
-            ->expects($this->at(0))
-            ->method('get')
-            ->with(RequestStack::class)
-            ->willReturn($requestStackMock);
-
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $this->containerInterfaceMock
-            ->expects($this->at(1))
+            ->expects(self::exactly(2))
             ->method('get')
-            ->with(RefererUrlResolver::class)
-            ->willReturn($refererUrlMock);
+            ->withConsecutive([RequestStack::class], [RefererUrlResolver::class])
+            ->willReturnOnConsecutiveCalls($requestStackMock, $refererUrlMock);
 
         $refererUrlMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getAbsoluteUrl')
             ->with('/path/token%20username/my_token')
             ->willReturn('/any-path');
@@ -345,6 +336,6 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $user = new class() extends AbstractUser {
         };
         $user->setUsername('token username');
-        $this->assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl($user));
+        self::assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl($user));
     }
 }
