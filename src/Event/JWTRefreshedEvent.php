@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Event;
 
-use Lexik\Bundle\JWTAuthenticationBundle\Event\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
