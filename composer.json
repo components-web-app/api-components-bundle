@@ -3,6 +3,12 @@
     "type": "symfony-bundle",
     "description": "Creates a flexible API for a website's structure, reusable components and common functionality.",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/silverbackdan/contexts"
+        }
+    ],
     "require": {
         "php": ">=7.4.7",
         "ext-exif": "*",
@@ -35,7 +41,7 @@
     },
     "require-dev": {
         "behat/behat": "^3.6",
-        "behatch/contexts": "^3.3",
+        "behatch/contexts": "dev-master",
         "doctrine/common": "^3.1",
         "doctrine/doctrine-fixtures-bundle": "^3.3",
         "friends-of-behat/mink": "^1.8",
