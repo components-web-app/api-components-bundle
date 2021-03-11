@@ -92,7 +92,6 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '4.4.*'
           - '5.*'
         experimental:
             - false
@@ -241,7 +240,6 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '4.4.*'
           - '5.*'
         experimental:
           - false
@@ -378,7 +376,6 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '4.4.*'
           - '5.*'
       fail-fast: false
     timeout-minutes: 20
@@ -457,7 +454,6 @@ jobs:
         php:
           - '7.4'
         symfony:
-          - '4.4.*'
           - '5.*'
       fail-fast: false
     timeout-minutes: 20
