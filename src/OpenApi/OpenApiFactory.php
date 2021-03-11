@@ -16,19 +16,28 @@ namespace Silverback\ApiComponentsBundle\OpenApi;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use PackageVersions\Versions;
-use Silverback\ApiComponentsBundle\Entity\Component\Form;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class OpenApiFactory implements OpenApiFactoryInterface
 {
-    private $decorated;
+    private OpenApiFactoryInterface $decorated;
 
     public function __construct(OpenApiFactoryInterface $decorated)
     {
         $this->decorated = $decorated;
+    }
+
+    private function removePath(OpenApi $openApi, string $path): void
+    {
+        $pathItem = $openApi->getPaths()->getPath($path);
+        if ($pathItem) {
+            $openApi->getPaths()->addPath(
+                $path,
+                $pathItem->withGet(null)->withPut(null)->withPost(null)->withDelete(null)->withPatch(null)
+            );
+        }
     }
 
     public function __invoke(array $context = []): OpenApi
@@ -36,16 +45,9 @@ class OpenApiFactory implements OpenApiFactoryInterface
         $openApi = $this->decorated->__invoke($context);
         $version = sprintf('%s (%s)', $openApi->getInfo()->getVersion(), Versions::getVersion('silverbackis/api-components-bundle'));
 
+        $this->removePath($openApi, '/_/abstract_components/{id}');
+        $this->removePath($openApi, '/component/forms/{id}');
+
         return $openApi->withInfo($openApi->getInfo()->withVersion($version));
-//        $components = $openApi->getComponents();
-//        $classes = [];
-//        $unsupported = [Form::class, AbstractComponent::class];
-//        foreach ($components as $className => $component) {
-//            if (\in_array($className, $unsupported, true)) {
-//                continue;
-//            }
-//            $classes[] = $className;
-//        }
-//        $newResourceNameCollection = new ResourceNameCollection($classes);
     }
 }
