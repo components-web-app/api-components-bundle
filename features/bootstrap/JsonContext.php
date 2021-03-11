@@ -22,6 +22,7 @@ use Behatch\Json\Json;
 use Behatch\Json\JsonInspector;
 use Behatch\Json\JsonSchema;
 use PHPUnit\Framework\Assert;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class JsonContext implements Context
 {
@@ -147,6 +148,25 @@ class JsonContext implements Context
     public function theResponseShouldHaveACookie(string $name): void
     {
         Assert::assertNotNull($this->jsonContext->getSession()->getCookie($name), sprintf('No cookie "%s" found in response.', $name));
+    }
+
+    /**
+     * @Then the response should have a :name cookie with max age less than :seconds
+     */
+    public function theResponseShouldHaveACookieWithMaxAgeLessThan(string $name, int $seconds): void
+    {
+        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
+        $timeDiff = $cookie->getExpiresTime() - time();
+        Assert::assertLessThan($seconds, $timeDiff, sprintf('The cookie "%s" expires in "%d" seconds. Expected less than "%d" seconds', $name, $timeDiff, $seconds));
+    }
+
+    /**
+     * @Then the response should have a :name cookie with the value :value
+     */
+    public function theResponseShouldHaveACookieWithTheValue(string $name, string $value): void
+    {
+        $real = $this->jsonContext->getSession()->getCookie($name);
+        Assert::assertEquals($value, $real, sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
     }
 
     /**
