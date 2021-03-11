@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
+use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Filter;
 use SebastianBergmann\CodeCoverage\Report\Clover;
 
@@ -40,7 +41,11 @@ final class CoverageContext implements Context
     {
         $filter = new Filter();
         $filter->includeDirectory(__DIR__ . '/../../src');
-        self::$coverage = new CodeCoverage(null, $filter);
+        $codeCoverageDriver = (new Selector())->forLineCoverage($filter);
+        self::$coverage = new CodeCoverage(
+            $codeCoverageDriver,
+            $filter
+        );
     }
 
     /**
