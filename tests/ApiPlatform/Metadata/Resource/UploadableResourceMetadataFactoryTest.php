@@ -111,7 +111,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
 
         $output = $this->factory->create(Uploadable::class);
 
-        $this->assertIsArray($collectionOperations = $output->getCollectionOperations());
+        self::assertIsArray($collectionOperations = $output->getCollectionOperations());
         $commonOpenApiContext = [
             'requestBody' => [
                 'content' => [
@@ -129,47 +129,51 @@ class UploadableResourceMetadataFactoryTest extends TestCase
                 ],
             ],
         ];
-        $this->assertEquals(
+        self::assertEquals(
             [
                 'method' => 'POST',
                 'controller' => UploadAction::class,
                 'path' => '/my_name/upload',
                 'deserialize' => false,
                 'openapi_context' => $commonOpenApiContext,
+                'stateless' => null,
             ],
             $collectionOperations['post_upload']
         );
 
-        $this->assertIsArray($itemOperations = $output->getItemOperations());
+        self::assertIsArray($itemOperations = $output->getItemOperations());
 
-        $this->assertEquals(
+        self::assertEquals(
             [
                 'method' => 'PUT',
                 'controller' => UploadAction::class,
                 'path' => '/my_name/{id}/upload',
                 'deserialize' => false,
                 'openapi_context' => $commonOpenApiContext,
+                'stateless' => null,
             ],
             $itemOperations['put_upload']
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             [
                 'method' => 'PATCH',
                 'controller' => UploadAction::class,
                 'path' => '/my_name/{id}/upload',
                 'deserialize' => false,
                 'openapi_context' => $commonOpenApiContext,
+                'stateless' => null,
             ],
             $itemOperations['patch_upload']
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             [
                 'method' => 'GET',
                 'controller' => DownloadAction::class,
                 'path' => '/my_name/{id}/download/{property}',
                 'serialize' => false,
+                'stateless' => null,
             ],
             $itemOperations['download']
         );
