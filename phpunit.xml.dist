@@ -1,50 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         backupGlobals="false"
-         colors="true"
-         bootstrap="tests/Functional/app/bootstrap.php"
->
-    <php>
-        <ini name="error_reporting" value="-1" />
-        <ini name="memory_limit" value="-1" />
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=2" />
-        <server name="KERNEL_DIR" value="tests/Functional/app/" />
-        <server name="KERNEL_CLASS" value="AppKernel"/>
-        <server name="APP_ENV" value="test" force="true" />
-        <server name="LEGACY" value="0" />
-        <server name="SHELL_VERBOSITY" value="-1" />
-        <server name="SYMFONY_PHPUNIT_REMOVE" value="" />
-        <server name="SYMFONY_PHPUNIT_VERSION" value="8.5.3" />
-    </php>
-
-    <logging>
-        <log type="coverage-clover" target="clover.xml"/>
-        <log type="coverage-xml" target="/tmp/infection/coverage-xml"/>
-        <log type="junit" target="/tmp/infection/phpunit.junit.xml"/>
-    </logging>
-
-    <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>tests</directory>
-        </testsuite>
-    </testsuites>
-
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory>.</directory>
-            <exclude>
-                <directory>tests</directory>
-                <directory>features</directory>
-                <directory>vendor</directory>
-                <directory>src/Resources/config</directory>
-            </exclude>
-        </whitelist>
-    </filter>
-
-    <listeners>
-        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
-    </listeners>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" backupGlobals="false" colors="true" bootstrap="tests/Functional/app/bootstrap.php">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory>.</directory>
+    </include>
+    <exclude>
+      <directory>tests</directory>
+      <directory>features</directory>
+      <directory>vendor</directory>
+      <directory>src/Resources/config</directory>
+    </exclude>
+    <report>
+      <clover outputFile="clover.xml"/>
+      <xml outputDirectory="infection-coverage-xml"/>
+    </report>
+  </coverage>
+  <php>
+    <ini name="error_reporting" value="-1"/>
+    <ini name="memory_limit" value="-1"/>
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=2"/>
+    <server name="KERNEL_DIR" value="tests/Functional/app/"/>
+    <server name="KERNEL_CLASS" value="AppKernel"/>
+    <server name="APP_ENV" value="test" force="true"/>
+    <server name="LEGACY" value="0"/>
+    <server name="SHELL_VERBOSITY" value="-1"/>
+    <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
+    <server name="SYMFONY_PHPUNIT_VERSION" value="8.5.3"/>
+  </php>
+  <logging>
+    <junit outputFile="/tmp/infection/phpunit.junit.xml"/>
+  </logging>
+  <testsuites>
+    <testsuite name="Project Test Suite">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+  <listeners>
+    <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+  </listeners>
 </phpunit>
