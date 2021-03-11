@@ -28,7 +28,7 @@ Feature: A Collection component resource
     When I send a "POST" request to "/component/collections" with data:
       | resourceIri   |
       | <resourceIri> |
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors.schema.json"
     Examples:
       | resourceIri |

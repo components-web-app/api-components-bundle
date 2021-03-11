@@ -19,8 +19,8 @@ use Silverback\ApiComponentsBundle\Model\Form\FormView;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -66,7 +66,7 @@ class FormSubmitHelper
     private function getRootData(FormInterface $form, $content): array
     {
         if (!isset($content[$form->getName()])) {
-            throw new BadRequestHttpException(sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName()));
+            throw new UnprocessableEntityHttpException(sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName()));
         }
 
         return $content[$form->getName()];

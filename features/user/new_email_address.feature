@@ -70,7 +70,7 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Your new email address should be different."
     And the JSON should be valid according to the schema file "form.schema.json"
 
@@ -87,7 +87,7 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Someone else is already registered with that email address."
     And the JSON should be valid according to the schema file "form.schema.json"
 
@@ -102,7 +102,7 @@ Feature: Register process via a form
       "newEmailAddress": ""
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the JSON node "violations[0].propertyPath" should be equal to "newEmailAddress"
     And the JSON node "violations[0].message" should be equal to "This value should not be blank."
     And the JSON should be valid according to the schema file "validation_errors.schema.json"

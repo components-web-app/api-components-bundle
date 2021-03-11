@@ -89,6 +89,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
     {
         return [
             'method' => 'GET',
+            'stateless' => null,
             'controller' => DownloadAction::class,
             'path' => $path,
             'serialize' => false,
@@ -98,6 +99,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
     private function getUploadOperationConfiguration(array $properties, string $path): array
     {
         return [
+            'stateless' => null,
             'controller' => UploadAction::class,
             'path' => $path,
             'deserialize' => false,

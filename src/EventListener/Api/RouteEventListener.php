@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -44,7 +44,7 @@ class RouteEventListener
 
         $page = $data->getPageData() ?? $data->getPage();
         if (!$page) {
-            throw new BadRequestHttpException('You must submit a page or pageData to generate a route.');
+            throw new UnprocessableEntityHttpException('You must submit a page or pageData to generate a route.');
         }
 
         $route = $this->routeGenerator->create($page, $data);

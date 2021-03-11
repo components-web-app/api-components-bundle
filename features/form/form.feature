@@ -38,7 +38,7 @@ Feature: Form component that defines a form type created in the application
     Examples:
       | name       | status |
       | John Smith | 200    |
-      |            | 400    |
+      |            | 422    |
 
 
   # PATCH
@@ -62,8 +62,8 @@ Feature: Form component that defines a form type created in the application
     Examples:
       | name       | company | status |
       | John Smith | company | 200    |
-      |            | company | 400    |
-      |            |         | 400    |
+      |            | company | 422    |
+      |            |         | 422    |
 
   Scenario: I send a PATCH request to the form with no fields
     Given there is a "test" form
@@ -99,8 +99,8 @@ Feature: Form component that defines a form type created in the application
     Examples:
       | name       | company | status |
       | John Smith | company | 201    |
-      |            | company | 400    |
-      |            |         | 400    |
+      |            | company | 422    |
+      |            |         | 422    |
 
   Scenario: I send a POST request to the form with an invalid root key
     Given there is a "test" form
@@ -110,7 +110,7 @@ Feature: Form component that defines a form type created in the application
       "invalid_root_key": {}
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be a superset of:
@@ -182,7 +182,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
@@ -237,7 +237,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
@@ -277,7 +277,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
@@ -301,7 +301,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
@@ -319,7 +319,7 @@ Feature: Form component that defines a form type created in the application
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"

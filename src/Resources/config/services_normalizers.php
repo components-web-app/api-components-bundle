@@ -24,7 +24,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
-use Silverback\ApiComponentsBundle\OpenApi\OpenApiDecorator;
+use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
@@ -45,12 +45,12 @@ return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
     $services
-        ->set('silverback.api_components_bundle.open_api.normalizer.api_gateway')
+        ->set('silverback.api_components_bundle.open_api.factory')
         ->autoconfigure(false)
-        ->class(OpenApiDecorator::class)
-        ->decorate('api_platform.swagger.normalizer.api_gateway')
+        ->class(OpenApiFactory::class)
+        ->decorate('api_platform.openapi.factory')
         ->args([
-            new Reference('silverback.api_components_bundle.open_api.normalizer.api_gateway.inner'),
+            new Reference('silverback.api_components_bundle.open_api.factory.inner'),
         ]);
 
     $services

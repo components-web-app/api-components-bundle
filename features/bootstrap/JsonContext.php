@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
+use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Constraint\ArraySubset;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
@@ -66,7 +67,14 @@ class JsonContext implements Context
     public function theJsonIsASupersetOf(PyStringNode $content): void
     {
         // Must change to https://github.com/rdohms/phpunit-arraysubset-asserts for PHPUnit 9
-        Assert::assertArraySubset(json_decode($content->getRaw(), true), $this->getJsonAsArray());
+        self::assertArraySubset(json_decode($content->getRaw(), true), $this->getJsonAsArray());
+    }
+
+    public static function assertArraySubset($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
+    {
+        $constraint = new ArraySubset($subset, $checkForObjectIdentity);
+
+        Assert::assertThat($array, $constraint, $message);
     }
 
     private function sortArrays($obj)

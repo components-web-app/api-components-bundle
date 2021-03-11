@@ -56,7 +56,7 @@ Feature: Register process via a form
       }
     }
     """
-    And the response status code should be 400
+    And the response status code should be 422
     And the response should be in JSON
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Sorry, that user already exists in the database."
     And the JSON node "formView.children[1].children[0].vars.errors[0]" should be equal to "Your password must be more than 6 characters long."
@@ -73,7 +73,7 @@ Feature: Register process via a form
       }
     }
     """
-    And the response status code should be 400
+    And the response status code should be 422
     And the response should be in JSON
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Please enter a username."
     And the JSON node "formView.children[1].children[0].vars.errors[0]" should be equal to "Please enter your desired password."

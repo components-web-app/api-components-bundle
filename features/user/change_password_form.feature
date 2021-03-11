@@ -43,7 +43,7 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And I should not receive any emails
     And the JSON should be valid according to the schema file "form.schema.json"
     And the JSON node "formView.children[1].vars.errors[0]" should be equal to "You have not entered your current password correctly. Please try again."
@@ -64,7 +64,7 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And I should not receive any emails
     And the JSON should be valid according to the schema file "form.schema.json"
     And the JSON node "formView.children[2].children[0].vars.errors[0]" should be equal to "The passwords you entered are not the same."

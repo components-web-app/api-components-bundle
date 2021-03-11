@@ -98,7 +98,7 @@ Feature: Forgot password system
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 422
     And the JSON should be valid according to the schema file "form.schema.json"
     And the JSON node "formView.children[2].children[0].vars.errors[0]" should be equal to "<message>"
     Examples:

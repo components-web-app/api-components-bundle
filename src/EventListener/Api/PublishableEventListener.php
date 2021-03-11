@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -99,7 +99,7 @@ final class PublishableEventListener
             true === $this->publishableStatusChecker->isPublishedRequest($request) &&
             $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($data, $configuration->fieldName)
         ) {
-            throw new BadRequestHttpException('You cannot change the publication date of a published resource.');
+            throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
         }
     }
 

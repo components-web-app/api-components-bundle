@@ -44,7 +44,7 @@ class PasswordRequestAction
         } catch (InvalidArgumentException $e) {
             return new Response(null, Response::HTTP_NOT_FOUND);
         } catch (UnexpectedValueException $e) {
-            return new Response(null, Response::HTTP_BAD_REQUEST);
+            return new Response(null, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($user) {

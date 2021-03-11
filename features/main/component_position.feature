@@ -29,9 +29,9 @@ Feature: Component positions
     Then the response status code should be <status>
     Examples:
       | component                       | componentCollection             | status | allowedComponent                 |
-      | resource[dummy_component]       | resource[component_collection]  | 400    | /component/restricted_components |
+      | resource[dummy_component]       | resource[component_collection]  | 422    | /component/restricted_components |
       | resource[restricted_component]  | resource[component_collection]  | 201    | /component/restricted_components |
-      | resource[restricted_component]  | resource[component_collection]  | 400    |                                  |
+      | resource[restricted_component]  | resource[component_collection]  | 422    |                                  |
       | resource[dummy_component]       | resource[component_collection]  | 201    |                                  |
 
   @loginUser

@@ -80,7 +80,7 @@ class FormSubmitEventListener
             $form = $formView->getForm();
             $response = $event->getResponse();
             if (!$form->isValid()) {
-                $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+                $response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
     }

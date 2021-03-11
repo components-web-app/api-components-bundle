@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\DataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -40,7 +40,7 @@ class PageDataProvider
         }
         $path = $request->headers->get('path');
         if (!$path) {
-            throw new BadRequestHttpException('Could not find referer header to retrieve page data');
+            throw new UnprocessableEntityHttpException('Could not find referer header to retrieve page data');
         }
 
         return parse_url($path, PHP_URL_PATH);
