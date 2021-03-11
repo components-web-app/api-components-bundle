@@ -675,6 +675,7 @@ return static function (ContainerConfigurator $configurator) {
             )
             ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
     } else {
+        // Deprecated from Symfony 5.1
         $services
             ->set('silverback.security.logout_handler')
             ->class(LogoutHandler::class)
