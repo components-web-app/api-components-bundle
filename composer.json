@@ -6,7 +6,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "git@github.com:silverbackdan/contexts.git"
+            "url": "https://github.com/silverbackdan/contexts"
         }
     ],
     "require": {

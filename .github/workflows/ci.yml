@@ -164,6 +164,8 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
+        env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
@@ -311,6 +313,8 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
+        env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
@@ -420,6 +424,8 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
+        env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
@@ -498,6 +504,8 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
+        env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
@@ -585,6 +593,8 @@ jobs:
           run: |
             jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
       -   name: Update project dependencies
+          env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
@@ -684,6 +694,8 @@ jobs:
           run: |
             jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
       -   name: Update project dependencies
+          env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
