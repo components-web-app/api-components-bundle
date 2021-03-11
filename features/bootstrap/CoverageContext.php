@@ -39,7 +39,7 @@ final class CoverageContext implements Context
     public static function setup()
     {
         $filter = new Filter();
-        $filter->addDirectoryToWhitelist(__DIR__ . '/../../src');
+        $filter->includeDirectory(__DIR__ . '/../../src');
         self::$coverage = new CodeCoverage(null, $filter);
     }
 
