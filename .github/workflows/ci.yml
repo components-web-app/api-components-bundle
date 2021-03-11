@@ -423,7 +423,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          ./ven 
+          composer update --no-progress --no-suggest --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
