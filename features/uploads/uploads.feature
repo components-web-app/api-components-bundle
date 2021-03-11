@@ -19,8 +19,8 @@ Feature: API Resources which can have files uploaded
     And the JSON node "filePath" should not exist
     Examples:
       | file           | schema                           |
-      | image.png      | uploadable_has_files.schema.json |
       | image.svg      | uploadable_has_files.schema.json |
+      | image.png      | uploadable_has_files.schema.json |
       | test_file.txt  | uploadable_has_files.schema.json |
       | test_file.docx | uploadable_has_files.schema.json |
 

@@ -139,9 +139,9 @@ class MediaObjectFactory
         $mediaObject->fileSize = $filesystem->fileSize($filename);
         $mediaObject->mimeType = $filesystem->mimeType($filename);
         if (false !== strpos($mediaObject->mimeType, 'image/')) {
-            $file = $filesystem->read($filename);
+            $file = str_replace("\0", '', $filesystem->read($filename));
             if ('image/svg+xml' === $mediaObject->mimeType) {
-                $xmlget = simplexml_load_string(file_get_contents($file));
+                $xmlget = simplexml_load_string($file);
                 $xmlattributes = $xmlget->attributes();
                 $mediaObject->width = (int) $xmlattributes->width;
                 $mediaObject->height = (int) $xmlattributes->height;

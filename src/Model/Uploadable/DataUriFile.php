@@ -41,7 +41,7 @@ class DataUriFile extends File
      */
     private function restoreToTemporary($encoded): string
     {
-        preg_match('/^(?:(?:data:(?:\/\/)?([A-Za-z]+\/[A-Za-z.-]+)(?:;(base64))?,|)(?:(.+)|((?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?)))$/', $encoded, $matches);
+        preg_match('/^(?:(?:data:(?:\/\/)?([A-Za-z]+\/[A-Za-z.\-\+]+)(?:;(base64))?,|)(?:(.+)|((?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?)))$/', $encoded, $matches);
 
         $mimeType = $matches[1];
         $base64Match = 'base64' === $matches[2];
@@ -59,7 +59,7 @@ class DataUriFile extends File
     private function decodePlainBase64(string $encoded): string
     {
         if (false === $decoded = base64_decode($encoded, true)) {
-            throw new FileException('Unable to decode the string as base64');
+            throw new FileException('Unable to decode the string as plain base64');
         }
 
         $path = $this->getTempFileBasePath();
