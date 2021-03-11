@@ -132,7 +132,7 @@ class RestContext implements Context
      */
     public function castFromJson(string $value)
     {
-        return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+        return json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
     }
 
     /**

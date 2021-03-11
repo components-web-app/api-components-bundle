@@ -43,7 +43,7 @@ class PageDataProvider
             throw new UnprocessableEntityHttpException('Could not find referer header to retrieve page data');
         }
 
-        return parse_url($path, PHP_URL_PATH);
+        return parse_url($path, \PHP_URL_PATH);
     }
 
     public function getPageData(): ?AbstractPageData

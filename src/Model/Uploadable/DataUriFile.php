@@ -64,7 +64,7 @@ class DataUriFile extends File
 
         $path = $this->getTempFileBasePath();
 
-        if (false === file_put_contents($path, $decoded, FILE_BINARY)) {
+        if (false === file_put_contents($path, $decoded, \FILE_BINARY)) {
             throw new FileException(sprintf('Unable to write the file "%s"', $path));
         }
 

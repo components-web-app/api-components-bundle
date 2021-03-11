@@ -210,6 +210,6 @@ class JsonContext implements Context
 
     public function getJsonAsArray(): array
     {
-        return json_decode($this->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode($this->getContent(), true, 512, \JSON_THROW_ON_ERROR);
     }
 }

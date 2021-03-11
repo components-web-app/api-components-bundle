@@ -217,7 +217,7 @@ final class PublishableContext implements Context
 
         foreach ($items as $item) {
             if ('is_draft' !== $item['reference'] && !\in_array($item['@id'], $expectedPublishedResourceIds, true)) {
-                throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
+                throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, \JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
             }
         }
     }
@@ -242,7 +242,7 @@ final class PublishableContext implements Context
         Assert::assertEquals($expectedTotal, $receivedTotal = \count($items), sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
 
         foreach ($items as $item) {
-            Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, JSON_THROW_ON_ERROR, 512));
+            Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, \JSON_THROW_ON_ERROR, 512));
         }
     }
 
