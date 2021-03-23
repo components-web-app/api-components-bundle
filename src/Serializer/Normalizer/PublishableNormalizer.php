@@ -180,7 +180,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         // Set publishedResource on draft
         $classMetadata->setFieldValue($draft, $configuration->associationName, $object);
 
-        // Set draftResource on data
+        // Set draftResource on data if we have permission
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
 
         // Add draft object to UnitOfWork

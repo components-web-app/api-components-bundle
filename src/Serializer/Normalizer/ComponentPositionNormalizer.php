@@ -128,9 +128,8 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         /** @var ClassMetadataInfo $classMetadata */
         $classMetadata = $em->getClassMetadata($type);
         $draft = $classMetadata->getFieldValue($component, $configuration->reverseAssociationName);
-        $published = $classMetadata->getFieldValue($component, $configuration->associationName);
 
-        return $draft ?? $published;
+        return $draft ?? $component;
     }
 
     private function normalizeForPageData(ComponentPosition $object): ComponentPosition
