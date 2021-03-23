@@ -40,7 +40,7 @@ class PageDataProvider
         }
         $path = $request->headers->get('path');
         if (!$path) {
-            throw new UnprocessableEntityHttpException('Could not find referer header to retrieve page data');
+            throw new UnprocessableEntityHttpException('Could not find path header to retrieve page data');
         }
 
         return parse_url($path, \PHP_URL_PATH);
