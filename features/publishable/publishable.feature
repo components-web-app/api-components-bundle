@@ -27,14 +27,14 @@ Feature: Access to unpublished/draft resources should be configurable
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/dummy_publishable_components"
     Then the response status code should be 200
-    And the response should include the published resources only
+    And the response should include the published resources only without the draftResources key
 
   @loginUser
   Scenario: As a user with no draft access, when I get a collection of published resources with draft resources available, and published=false query filter, it should not include the draft resources.
     Given there are 2 draft and published resources available
     When I send a "GET" request to "/component/dummy_publishable_components?published=false"
     Then the response status code should be 200
-    And the response should include the published resources only
+    And the response should include the published resources only without the draftResources key
 
   # POST
   @loginAdmin

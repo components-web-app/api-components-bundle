@@ -216,6 +216,8 @@ final class PublishableContext implements Context
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
 
         foreach ($items as $item) {
+            Assert::assertArrayNotHasKey('draftResource', $item, 'No published resources which have a draft available should be returned but there is a resource with a draftResource property indicating there is a draft resource available for this published item.');
+
             if ('is_draft' !== $item['reference'] && !\in_array($item['@id'], $expectedPublishedResourceIds, true)) {
                 throw new ExpectationException('Received an unexpected item in the response: ' . json_encode($item, \JSON_THROW_ON_ERROR, 512), $this->minkContext->getSession()->getDriver());
             }
@@ -225,7 +227,7 @@ final class PublishableContext implements Context
     /**
      * @Then the response should include the published resources only
      */
-    public function theResponseShouldIncludeThePublishedResourcesOnly(): void
+    public function theResponseShouldIncludeThePublishedResourcesOnly(): array
     {
         $response = $this->jsonContext->getJsonAsArray();
         $items = $response['hydra:member'];
@@ -243,6 +245,19 @@ final class PublishableContext implements Context
 
         foreach ($items as $item) {
             Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, \JSON_THROW_ON_ERROR, 512));
+        }
+
+        return $items;
+    }
+
+    /**
+     * @Then the response should include the published resources only without the draftResources key
+     */
+    public function theResponseShouldIncludeThePublishedResourcesOnlyWithoutTheDraftResourcesKey(): void
+    {
+        $items = $this->theResponseShouldIncludeThePublishedResourcesOnly();
+        foreach ($items as $item) {
+            Assert::assertArrayNotHasKey('draftResource', $item, 'A draft resource was included in the response of a published resource');
         }
     }
 

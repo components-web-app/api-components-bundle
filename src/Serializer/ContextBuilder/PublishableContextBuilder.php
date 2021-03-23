@@ -45,9 +45,13 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         }
 
         $reflectionClass = new \ReflectionClass($resourceClass);
+        $isAuthorized = $this->publishableStatusChecker->isGranted($resourceClass);
         if ($normalization) {
             $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
-        } elseif ($this->publishableStatusChecker->isGranted($resourceClass)) {
+            if ($isAuthorized) {
+                $context['groups'][] = sprintf('%s:%s:read:authorized', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
+            }
+        } elseif ($isAuthorized) {
             $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), PublishableLoader::GROUP_NAME);
         }
 

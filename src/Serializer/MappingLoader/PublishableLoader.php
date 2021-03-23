@@ -65,6 +65,13 @@ final class PublishableLoader implements LoaderInterface
             $attributeMetadata->addGroup($readGroup);
         }
 
+        if (
+            $attributeMetadata = ($allAttributesMetadata[$configuration->reverseAssociationName] ?? null)
+        ) {
+            $authorizedReadGroup = sprintf('%s:%s:read:authorized', $shortClassName, self::GROUP_NAME);
+            $attributeMetadata->addGroup($authorizedReadGroup);
+        }
+
         return true;
     }
 }
