@@ -111,6 +111,22 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node "_metadata.published" should be equal to "false"
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
+  @loginAdmin
+  Scenario: As a user with draft access, when I get a component position, the draft component should be returned
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the component position should have the component "publishable_draft"
+
+  @loginAdmin
+  Scenario: As a user without draft access, when I get a component position, the published component should be returned
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the component position should have the component "publishable_published"
+
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"

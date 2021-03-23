@@ -24,6 +24,8 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableWithSecurityGroups;
@@ -110,6 +112,31 @@ final class PublishableContext implements Context
         $draft = $this->thereIsAPublishableResource($publishAt, false, true);
         $draft->setPublishedResource($publishedRecently);
         $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a ComponentPosition with the resource :resource
+     */
+    public function thereIsAComponentPositionWithTheResource(string $resource)
+    {
+        $collection = new ComponentCollection();
+        $collection
+            ->setReference('dummy_collection')
+            ->setLocation('nowhere')
+            ->setCreatedAt(new \DateTimeImmutable())
+            ->setModifiedAt(new \DateTime());
+        $this->manager->persist($collection);
+
+        $position = new ComponentPosition();
+        $position
+            ->setComponentCollection($collection)
+            ->setComponent($this->iriConverter->getItemFromIri($this->restContext->resources[$resource]))
+            ->setSortValue(1)
+            ->setCreatedAt(new \DateTimeImmutable())
+            ->setModifiedAt(new \DateTime());
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($position);
     }
 
     /**
@@ -259,6 +286,15 @@ final class PublishableContext implements Context
         foreach ($items as $item) {
             Assert::assertArrayNotHasKey('draftResource', $item, 'A draft resource was included in the response of a published resource');
         }
+    }
+
+    /**
+     * @Then the component position should have the component :reference
+     */
+    public function theComponentPositionShouldHaveTheComponent(string $reference)
+    {
+        $response = $this->jsonContext->getJsonAsArray();
+        Assert::assertEquals($this->restContext->resources[$reference], $response['component'], sprintf('The component position was expected to have the component %s but %s was returned', $this->restContext->resources[$reference], $response['component']));
     }
 
     /**
