@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Security;
@@ -47,17 +50,23 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
     private RequestStack $requestStack;
     private Security $security;
+    private PublishableStatusChecker $publishableStatusChecker;
+    private ManagerRegistry $registry;
 
     public function __construct(
         PageDataProvider $pageDataProvider,
         ComponentPositionSortValueHelper $componentPositionSortValueHelper,
         RequestStack $requestStack,
-        Security $security
+        Security $security,
+        PublishableStatusChecker $publishableStatusChecker,
+        ManagerRegistry $registry
     ) {
         $this->pageDataProvider = $pageDataProvider;
         $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
         $this->requestStack = $requestStack;
         $this->security = $security;
+        $this->publishableStatusChecker = $publishableStatusChecker;
+        $this->registry = $registry;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -79,6 +88,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         /** @var ComponentPosition $object */
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
+
         $this->componentPositionSortValueHelper->calculateSortValue($object, $originalSortValue);
 
         return $object;
@@ -86,20 +96,49 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return $data instanceof ComponentPosition && $data->pageDataProperty && !isset($context[self::ALREADY_CALLED]) && (bool) $this->requestStack->getCurrentRequest();
+        return $data instanceof ComponentPosition && !isset($context[self::ALREADY_CALLED]);
     }
 
-    /**
-     * @param ComponentPosition $object
-     * @param mixed|null        $format
-     */
     public function normalize($object, $format = null, array $context = [])
     {
+        /* @var ComponentPosition $object */
+        /* @var mixed|null        $format */
+
         $context[self::ALREADY_CALLED] = true;
+
+        if ($object->pageDataProperty && (bool) $this->requestStack->getCurrentRequest()) {
+            $object = $this->normalizeForPageData($object);
+        }
+
+        $component = $object->component;
+        if ($component && $this->publishableStatusChecker->getAnnotationReader()->isConfigured($component) && $this->publishableStatusChecker->isGranted($component)) {
+            $object->setComponent($this->normalizePublishableComponent($component));
+        }
+
+        return $this->normalizer->normalize($object, $format, $context);
+    }
+
+    private function normalizePublishableComponent(AbstractComponent $component)
+    {
+        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type = \get_class($component));
+        $em = $this->registry->getManagerForClass(\get_class($component));
+        if (!$em) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+        }
+        /** @var ClassMetadataInfo $classMetadata */
+        $classMetadata = $em->getClassMetadata($type);
+        $draft = $classMetadata->getFieldValue($component, $configuration->reverseAssociationName);
+        $published = $classMetadata->getFieldValue($component, $configuration->associationName);
+
+        return $draft ?? $published;
+    }
+
+    private function normalizeForPageData(ComponentPosition $object): ComponentPosition
+    {
         $pageData = $this->pageDataProvider->getPageData();
         if (!$pageData) {
             if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
-                return $this->normalizer->normalize($object, $format, $context);
+                return $object;
             }
             throw new UnexpectedValueException('Could not find page data for this route.');
         }
@@ -116,6 +155,6 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         $object->setComponent($component);
 
-        return $this->normalizer->normalize($object, $format, $context);
+        return $object;
     }
 }

@@ -119,7 +119,7 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the component position should have the component "publishable_draft"
 
-  @loginAdmin
+  @loginUser
   Scenario: As a user without draft access, when I get a component position, the published component should be returned
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     And there is a ComponentPosition with the resource "publishable_published"
