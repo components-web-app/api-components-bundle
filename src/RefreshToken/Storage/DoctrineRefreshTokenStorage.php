@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\RefreshToken\Storage;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
@@ -48,11 +49,16 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         if (!$repository instanceof RefreshTokenRepository) {
             throw new \InvalidArgumentException('RefreshToken entity repository must be instance of ' . RefreshTokenRepository::class);
         }
+        try {
+            return $repository->findOneByUser($user);
+        } catch (NonUniqueResultException $exception) {
+            $this->expireAll($user);
 
-        return $repository->findOneByUser($user);
+            return $this->create($user);
+        }
     }
 
-    public function create(UserInterface $user): void
+    public function create(UserInterface $user): RefreshToken
     {
         $className = $this->className;
         /** @var RefreshToken $refreshToken */
@@ -64,6 +70,8 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         $em = $this->getEntityManager();
         $em->persist($refreshToken);
         $em->flush($refreshToken);
+
+        return $refreshToken;
     }
 
     public function expireAll(?UserInterface $user): void

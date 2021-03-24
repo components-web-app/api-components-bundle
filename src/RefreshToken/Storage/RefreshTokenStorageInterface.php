@@ -24,7 +24,7 @@ interface RefreshTokenStorageInterface
 {
     public function findOneByUser(UserInterface $user): ?RefreshToken;
 
-    public function create(UserInterface $user): void;
+    public function create(UserInterface $user): RefreshToken;
 
     public function expireAll(?UserInterface $user): void;
 
