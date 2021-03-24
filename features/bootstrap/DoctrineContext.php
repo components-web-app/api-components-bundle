@@ -863,6 +863,6 @@ final class DoctrineContext implements Context
                 ++$nonExpiredCount;
             }
         }
-        Assert::assertEquals(1, $nonExpiredCount, 'There should only be 1 token that is not expired. There are %d', $nonExpiredCount);
+        Assert::assertLessThanOrEqual(1, $nonExpiredCount, sprintf('There should only be 1 token that is not expired. There are %d', $nonExpiredCount));
     }
 }
