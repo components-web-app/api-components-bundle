@@ -47,6 +47,7 @@ class OpenApiFactory implements OpenApiFactoryInterface
 
         $this->removePath($openApi, '/_/abstract_components/{id}');
         $this->removePath($openApi, '/component/forms/{id}');
+        $this->removePath($openApi, '/media_objects/{id}');
 
         return $openApi->withInfo($openApi->getInfo()->withVersion($version));
     }
