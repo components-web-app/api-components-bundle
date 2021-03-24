@@ -45,8 +45,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     public function findOneByEmail($value): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.emailAddress = :val')
-            ->setParameter('val', $value)
+            ->andWhere('LOWER(u.emailAddress) = :val')
+            ->setParameter('val', strtolower($value))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -57,10 +57,10 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
 
         return $this->createQueryBuilder('u')
-            ->andWhere('u.username = :username')
+            ->andWhere('LOWER(u.username) = :username')
             ->andWhere('u.newPasswordConfirmationToken IS NOT NULL')
             ->andWhere('u.passwordRequestedAt > :minimumDateTime')
-            ->setParameter('username', $username)
+            ->setParameter('username', strtolower($username))
             ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
@@ -72,23 +72,23 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->newEmailConfirmTimeout));
 
         return $this->createQueryBuilder('u')
-            ->andWhere('u.username = :username')
-            ->andWhere('u.newEmailAddress = :email')
+            ->andWhere('LOWER(u.username) = :username')
+            ->andWhere('LOWER(u.newEmailAddress) = :email')
             ->andWhere('u.newEmailConfirmationToken IS NOT NULL')
             ->andWhere('u.newEmailAddressChangeRequestedAt > :minimumDateTime')
-            ->setParameter('username', $username)
-            ->setParameter('email', $email)
+            ->setParameter('username', strtolower($username))
+            ->setParameter('email', strtolower($email))
             ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function loadUserByUsername($usernameOrEmail): ?AbstractUser
+    public function loadUserByUsername(string $usernameOrEmail): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.username = :username')
-            ->orWhere('u.emailAddress = :username')
-            ->setParameter('username', $usernameOrEmail)
+            ->andWhere('LOWER(u.username) = :username')
+            ->orWhere('LOWER(u.emailAddress) = :username')
+            ->setParameter('username', strtolower($usernameOrEmail))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -98,9 +98,9 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $queryBuilder = $this->createQueryBuilder('u');
         $expr = $queryBuilder->expr();
         $queryBuilder
-            ->andWhere($expr->eq('u.emailAddress', ':email_address'))
+            ->andWhere($expr->eq('LOWER(u.emailAddress)', ':email_address'))
             ->andWhere($expr->neq('u', ':user'))
-            ->setParameter('email_address', $user->getNewEmailAddress())
+            ->setParameter('email_address', strtolower($user->getNewEmailAddress()))
             ->setParameter('user', $user, $this->getClassMetadata()->getTypeOfField('id'));
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
