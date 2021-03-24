@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\RefreshToken\Storage;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -72,16 +73,27 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         $refreshTokens = $user ? $repository->findBy(['user' => $user]) : $repository->findAll();
 
         foreach ($refreshTokens as $refreshToken) {
-            $refreshToken->setExpiresAt(new \DateTimeImmutable());
-            $em->persist($refreshToken);
+            /* @var AbstractRefreshToken $refreshToken */
+            $this->expireToken($refreshToken, false);
         }
 
         $em->flush();
     }
 
+    public function expireToken(AbstractRefreshToken $refreshToken, bool $flush = true): void
+    {
+        $em = $this->getEntityManager();
+        if (!$refreshToken->isExpired()) {
+            $refreshToken->setExpiresAt(new \DateTimeImmutable());
+        }
+        if ($flush) {
+            $em->flush();
+        }
+    }
+
     private function getEntityManager(): EntityManager
     {
-        /** @var EntityManager $em */
+        /** @var EntityManager|null $em */
         $em = $this->registry->getManagerForClass($this->className);
         if (!$em) {
             throw new EntityNotFoundException('No entity found for class RefreshToken::class.');

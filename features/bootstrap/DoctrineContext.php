@@ -677,7 +677,8 @@ final class DoctrineContext implements Context
             'exp' => (new \DateTime('-1 second'))->getTimestamp(),
             'username' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user'])->getUsername(),
         ]);
-        $this->baseRestContext->iAddHeaderEqualTo('Authorization', "Bearer $token");
+        $this->minkContext->getSession()->setCookie('api_components', $token);
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', '');
     }
 
     /**
@@ -854,6 +855,14 @@ final class DoctrineContext implements Context
     {
         $this->manager->clear();
         $repository = $this->manager->getRepository(RefreshToken::class);
-        Assert::assertCount($count, $repository->findAll());
+        $allTokens = $repository->findAll();
+        Assert::assertCount($count, $allTokens);
+        $nonExpiredCount = 0;
+        foreach ($allTokens as $token) {
+            if (!$token->isExpired()) {
+                ++$nonExpiredCount;
+            }
+        }
+        Assert::assertEquals(1, $nonExpiredCount, 'There should only be 1 token that is not expired. There are %d', $nonExpiredCount);
     }
 }

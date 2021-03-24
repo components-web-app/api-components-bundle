@@ -18,6 +18,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\UserNotFoundException;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\PreAuthenticationJWTUserToken;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -47,9 +48,13 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(UserInterface $user): string
+    public function create(UserInterface $user, ?AbstractRefreshToken $token = null): string
     {
-        $this->storage->expireAll($user);
+        if ($token) {
+            $this->storage->expireToken($token);
+        } else {
+            $this->storage->expireAll($user);
+        }
         $this->storage->create($user);
 
         return $this->decorated->create($user);
@@ -87,7 +92,7 @@ final class JWTManager implements JWTTokenManagerInterface
                 throw $exception;
             }
 
-            $accessToken = $this->create($user);
+            $accessToken = $this->create($user, $refreshToken);
 
             $this->dispatcher->dispatch(new JWTRefreshedEvent($accessToken));
 

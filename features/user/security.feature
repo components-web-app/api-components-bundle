@@ -60,6 +60,7 @@ Feature: Prevent disabled users from logging in
   @loginUser
   Scenario: Expired JWT tokens should be refreshed
     Given my JWT token has expired
+    And I have a refresh token
     When I send a "GET" request to "/me"
     Then the response status code should be 200
     And the refresh token should be expired
