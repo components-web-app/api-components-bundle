@@ -42,7 +42,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $this->newEmailConfirmTimeout = $newEmailConfirmTimeout;
     }
 
-    public function findOneByEmail($value): ?AbstractUser
+    public function findOneByEmail(string $value): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.emailAddress) = :val')
@@ -83,12 +83,12 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getOneOrNullResult();
     }
 
-    public function loadUserByUsername(string $usernameOrEmail): ?AbstractUser
+    public function loadUserByUsername(string $username): ?AbstractUser
     {
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.username) = :username')
             ->orWhere('LOWER(u.emailAddress) = :username')
-            ->setParameter('username', strtolower($usernameOrEmail))
+            ->setParameter('username', strtolower($username))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -97,10 +97,11 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     {
         $queryBuilder = $this->createQueryBuilder('u');
         $expr = $queryBuilder->expr();
+        $newEmail = $user->getNewEmailAddress();
         $queryBuilder
             ->andWhere($expr->eq('LOWER(u.emailAddress)', ':email_address'))
             ->andWhere($expr->neq('u', ':user'))
-            ->setParameter('email_address', strtolower($user->getNewEmailAddress()))
+            ->setParameter('email_address', $newEmail ? strtolower($newEmail) : null)
             ->setParameter('user', $user, $this->getClassMetadata()->getTypeOfField('id'));
 
         return $queryBuilder->getQuery()->getOneOrNullResult();

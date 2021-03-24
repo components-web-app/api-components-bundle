@@ -272,12 +272,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             [
                 'title' => $websiteName,
                 'description' => sprintf('API for %s', $websiteName),
-                'collection' => [
-                    'pagination' => [
-                        'client_items_per_page' => true,
-                        'items_per_page_parameter_name' => 'perPage',
-                        'maximum_items_per_page' => 100,
-                    ],
+                'defaults' => [
+                    'pagination_client_items_per_page' => true,
+                    'pagination_maximum_items_per_page' => 100,
+                    'pagination_items_per_page_parameter_name' => 'perPage',
                 ],
                 'mapping' => [
                     'paths' => $mappingPaths,

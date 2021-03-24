@@ -11,3 +11,5 @@ framework:
         storage_id:                    'session.storage.mock_file'
     profiler:
         collect: true
+    router:
+        utf8: true
