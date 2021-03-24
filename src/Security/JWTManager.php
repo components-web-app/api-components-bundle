@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security;
 
+use Doctrine\ORM\OptimisticLockException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidPayloadException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\UserNotFoundException;
@@ -50,12 +51,18 @@ final class JWTManager implements JWTTokenManagerInterface
      */
     public function create(UserInterface $user, ?AbstractRefreshToken $token = null): string
     {
-        if ($token) {
-            $this->storage->expireToken($token);
-        } else {
-            $this->storage->expireAll($user);
+        try {
+            if ($token) {
+                $this->storage->expireToken($token);
+            } else {
+                $this->storage->expireAll($user);
+            }
+            $this->storage->create($user);
+        } catch (OptimisticLockException $exception) {
+            // do nothing, we have already modified the refresh token.
+            // we can continue to generate a jwt token, won't make any difference
+            // if the user has a new one of these...
         }
-        $this->storage->create($user);
 
         return $this->decorated->create($user);
     }
@@ -80,7 +87,6 @@ final class JWTManager implements JWTTokenManagerInterface
             }
 
             $identity = $payload[$idClaim];
-
             try {
                 $user = $this->userProvider->loadUserByUsername($identity);
             } catch (UsernameNotFoundException $e) {

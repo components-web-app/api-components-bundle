@@ -4,5 +4,6 @@
     <mapped-superclass repository-class="Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository" name="Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken" table="refresh_token">
         <field name="createdAt" column="created_at" type="datetime"/>
         <field name="expiresAt" column="expired_at" type="datetime"/>
+        <field name="version" type="integer" version="true"/>
     </mapped-superclass>
 </doctrine-mapping>

@@ -49,19 +49,8 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         if (!$repository instanceof RefreshTokenRepository) {
             throw new \InvalidArgumentException('RefreshToken entity repository must be instance of ' . RefreshTokenRepository::class);
         }
-        $refreshTokens = $repository->findByUser($user);
 
-        // Concurrent requests will result in multiple refresh tokens having been expired and re-created
-        if (\count($refreshTokens) > 1) {
-            foreach ($refreshTokens as $i => $refreshToken) {
-                if ($i > 0) {
-                    $em->remove($refreshToken);
-                }
-            }
-            $em->flush();
-        }
-
-        return $refreshTokens[0] ?? null;
+        return $repository->findOneByUser($user);
     }
 
     public function create(UserInterface $user): RefreshToken

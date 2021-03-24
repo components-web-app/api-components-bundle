@@ -23,6 +23,7 @@ class RefreshToken
     protected ?\DateTimeInterface $createdAt = null;
     protected ?\DateTimeInterface $expiresAt = null;
     protected ?UserInterface $user = null;
+    protected ?int $version = null;
 
     public function getCreatedAt(): ?\DateTimeInterface
     {

@@ -37,15 +37,12 @@ class RefreshTokenRepository extends ServiceEntityRepository
         parent::__construct($registry, $entityClass);
     }
 
-    /**
-     * @return AbstractRefreshToken[]
-     */
-    public function findByUser(UserInterface $user): array
+    public function findOneByUser(UserInterface $user): ?AbstractRefreshToken
     {
         return $this->createQueryBuilder('rt')
             ->andWhere('rt.user = :user')->setParameter('user', $user)
             ->andWhere('rt.expiresAt > :now')->setParameter('now', new \DateTimeImmutable())
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 }
