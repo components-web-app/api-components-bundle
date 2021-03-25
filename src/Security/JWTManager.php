@@ -21,6 +21,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\PreAuthen
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -93,8 +94,8 @@ final class JWTManager implements JWTTokenManagerInterface
                 throw new UserNotFoundException($idClaim, $identity);
             }
 
-            $refreshToken = $this->storage->findOneByUser($user);
-            if (!$refreshToken || $refreshToken->isExpired()) {
+            $refreshToken = $this->resolveCurrentRefreshToken($user);
+            if (!$refreshToken) {
                 throw $exception;
             }
 
@@ -104,6 +105,24 @@ final class JWTManager implements JWTTokenManagerInterface
 
             return $this->decorated->decode(new PreAuthenticationJWTUserToken($accessToken));
         }
+    }
+
+    private function resolveCurrentRefreshToken(UserInterface $user, int $retries = 0): ?RefreshToken
+    {
+        // the refresh token could have just ben expired and is being refreshed by another request
+        $refreshToken = $this->storage->findOneByUser($user);
+        if (!$refreshToken || $refreshToken->isExpired()) {
+            if ($retries < 1) {
+                ++$retries;
+                sleep(1);
+
+                return $this->resolveCurrentRefreshToken($user, $retries);
+            }
+
+            return null;
+        }
+
+        return $refreshToken;
     }
 
     /**
