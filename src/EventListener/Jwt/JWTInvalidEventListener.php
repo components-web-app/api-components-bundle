@@ -32,6 +32,6 @@ class JWTInvalidEventListener
     public function onJwtInvalid(JWTInvalidEvent $event): void
     {
         $response = $event->getResponse();
-        $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, time() + 1));
+        $response->headers->setCookie($this->cookieProvider->createCookie('', null, 1));
     }
 }
