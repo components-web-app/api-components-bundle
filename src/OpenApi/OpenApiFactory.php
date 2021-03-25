@@ -38,7 +38,7 @@ class OpenApiFactory implements OpenApiFactoryInterface
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
-    private function removeResources(OpenApi $openApi, array $resourceClassNames): void
+    private function getResourceClassShortNames(array $resourceClassNames): array
     {
         $shortNames = [];
         foreach ($resourceClassNames as $resourceClassName) {
@@ -49,6 +49,13 @@ class OpenApiFactory implements OpenApiFactoryInterface
                 // the component may not be enabled
             }
         }
+
+        return $shortNames;
+    }
+
+    private function removeResources(OpenApi $openApi, array $resourceClassNames): void
+    {
+        $shortNames = $this->getResourceClassShortNames($resourceClassNames);
         $openApiPaths = $openApi->getPaths();
         $paths = $openApiPaths->getPaths();
         foreach ($paths as $path => $pathItem) {
