@@ -167,7 +167,8 @@ class JsonContext implements Context
      */
     public function theResponseShouldHaveACookieWithTheValue(string $name, ?string $value = null): void
     {
-        $real = $this->jsonContext->getSession()->getCookie($name);
+        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
+        $real = $cookie->getValue();
         Assert::assertEquals($value, $real, sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
     }
 

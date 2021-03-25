@@ -84,7 +84,7 @@ Feature: Prevent disabled users from logging in
     And all the refresh tokens should be expired
     And the response should have a "api_components" cookie
     And the response should have a "api_components" cookie with max age less than 2
-    And the response should have a "api_components" cookie with the value ""
+    And the response should have a "api_components" cookie with the value "x.x.x"
 
   @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
@@ -93,4 +93,4 @@ Feature: Prevent disabled users from logging in
     Then the response status code should be 401
     And the response should have a "api_components" cookie
     And the response should have a "api_components" cookie with max age less than 2
-    And the response should have a "api_components" cookie with the value ""
+    And the response should have a "api_components" cookie with the value "x.x.x"

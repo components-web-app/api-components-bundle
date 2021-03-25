@@ -40,7 +40,7 @@ final class LogoutHandler implements LogoutHandlerInterface
     public function logout(Request $request, Response $response, TokenInterface $token): void
     {
         $this->storage->expireAll($token->getUser());
-        $response->headers->setCookie($this->cookieProvider->createCookie('', null, 1));
+        $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
         $response->headers->remove('Location');
         $response->setStatusCode(Response::HTTP_OK)->setContent('');
     }
