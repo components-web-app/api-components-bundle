@@ -36,7 +36,7 @@ class LogoutListener
     {
         $this->storage->expireAll($event->getToken()->getUser());
         $response = $event->getResponse() ?? new Response();
-        $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, time() + 1));
+        $response->headers->setCookie($this->cookieProvider->createCookie('', null, 1));
         $response->headers->remove('Location');
         $response->setStatusCode(Response::HTTP_OK)->setContent('');
     }

@@ -147,7 +147,9 @@ class JsonContext implements Context
      */
     public function theResponseShouldHaveACookie(string $name): void
     {
-        Assert::assertNotNull($this->jsonContext->getSession()->getCookie($name), sprintf('No cookie "%s" found in response.', $name));
+        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
+        $realName = $cookie->getName();
+        Assert::assertEquals($realName, $name, sprintf('The cookie "%s" was not found in the response headers.', $name));
     }
 
     /**
@@ -161,9 +163,9 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then the response should have a :name cookie with the value :value
+     * @Then /^the response should have a "(.+)" cookie with the value "(.+)?"$/
      */
-    public function theResponseShouldHaveACookieWithTheValue(string $name, string $value): void
+    public function theResponseShouldHaveACookieWithTheValue(string $name, ?string $value = null): void
     {
         $real = $this->jsonContext->getSession()->getCookie($name);
         Assert::assertEquals($value, $real, sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
