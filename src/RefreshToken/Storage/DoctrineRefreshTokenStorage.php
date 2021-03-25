@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\RefreshToken\Storage;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -53,7 +52,7 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
         return $repository->findOneByUser($user);
     }
 
-    public function create(UserInterface $user): RefreshToken
+    public function create(UserInterface $user, bool $flush = true): RefreshToken
     {
         $className = $this->className;
         /** @var RefreshToken $refreshToken */
@@ -64,26 +63,51 @@ final class DoctrineRefreshTokenStorage implements RefreshTokenStorageInterface
 
         $em = $this->getEntityManager();
         $em->persist($refreshToken);
-        $em->flush($refreshToken);
+
+        if ($flush) {
+            $em->flush($refreshToken);
+        }
 
         return $refreshToken;
     }
 
-    public function expireAll(?UserInterface $user): void
+    // in 1 transaction so concurrent requests will not find no valid request token
+    public function createAndExpire(UserInterface $user, RefreshToken $refreshToken): RefreshToken
+    {
+        $em = $this->getEntityManager();
+        $newToken = $this->create($user, false);
+        $this->expireToken($refreshToken, false);
+        $em->flush();
+
+        return $newToken;
+    }
+
+    public function createAndExpireAll(UserInterface $user): RefreshToken
+    {
+        $em = $this->getEntityManager();
+        $newToken = $this->create($user, false);
+        $this->expireAll($user, false);
+        $em->flush();
+
+        return $newToken;
+    }
+
+    public function expireAll(?UserInterface $user, bool $flush = true): void
     {
         $em = $this->getEntityManager();
         $repository = $em->getRepository($this->className);
         $refreshTokens = $user ? $repository->findBy(['user' => $user]) : $repository->findAll();
 
         foreach ($refreshTokens as $refreshToken) {
-            /* @var AbstractRefreshToken $refreshToken */
+            /* @var RefreshToken $refreshToken */
             $this->expireToken($refreshToken, false);
         }
-
-        $em->flush();
+        if ($flush) {
+            $em->flush();
+        }
     }
 
-    public function expireToken(AbstractRefreshToken $refreshToken, bool $flush = true): void
+    public function expireToken(RefreshToken $refreshToken, bool $flush = true): void
     {
         $em = $this->getEntityManager();
         if (!$refreshToken->isExpired()) {

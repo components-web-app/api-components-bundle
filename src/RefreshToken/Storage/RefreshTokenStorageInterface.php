@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\RefreshToken\Storage;
 
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -26,7 +25,11 @@ interface RefreshTokenStorageInterface
 
     public function create(UserInterface $user): RefreshToken;
 
+    public function createAndExpire(UserInterface $user, RefreshToken $refreshToken): RefreshToken;
+
+    public function createAndExpireAll(UserInterface $user): RefreshToken;
+
     public function expireAll(?UserInterface $user): void;
 
-    public function expireToken(AbstractRefreshToken $refreshToken): void;
+    public function expireToken(RefreshToken $refreshToken): void;
 }

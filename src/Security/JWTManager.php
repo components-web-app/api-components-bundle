@@ -19,7 +19,6 @@ use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\UserNotFoundException;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\PreAuthenticationJWTUserToken;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractRefreshToken;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
@@ -50,15 +49,14 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(UserInterface $user, ?AbstractRefreshToken $token = null): string
+    public function create(UserInterface $user, ?RefreshToken $token = null): string
     {
         try {
             if ($token) {
-                $this->storage->expireToken($token);
+                $this->storage->createAndExpire($user, $token);
             } else {
-                $this->storage->expireAll($user);
+                $this->storage->createAndExpireAll($user);
             }
-            $this->storage->create($user);
         } catch (OptimisticLockException $exception) {
             // do nothing, we have already modified the refresh token.
             // we can continue to generate a jwt token, won't make any difference
@@ -107,18 +105,11 @@ final class JWTManager implements JWTTokenManagerInterface
         }
     }
 
-    private function resolveCurrentRefreshToken(UserInterface $user, int $retries = 0): ?RefreshToken
+    private function resolveCurrentRefreshToken(UserInterface $user): ?RefreshToken
     {
         // the refresh token could have just ben expired and is being refreshed by another request
         $refreshToken = $this->storage->findOneByUser($user);
         if (!$refreshToken || $refreshToken->isExpired()) {
-            if ($retries < 1) {
-                ++$retries;
-                sleep(1);
-
-                return $this->resolveCurrentRefreshToken($user, $retries);
-            }
-
             return null;
         }
 
