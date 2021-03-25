@@ -101,7 +101,7 @@ jobs:
             coverage: true
           - php: '8.0'
             symfony: '5.*'
-            experimental: true
+            experimental: false
       fail-fast: false
     timeout-minutes: 20
     steps:

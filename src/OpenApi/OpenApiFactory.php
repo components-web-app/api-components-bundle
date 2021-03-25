@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\OpenApi;
 
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\Core\OpenApi\Model\PathItem;
 use ApiPlatform\Core\OpenApi\OpenApi;
@@ -28,17 +29,20 @@ use Symfony\Component\Form\Forms;
 class OpenApiFactory implements OpenApiFactoryInterface
 {
     private OpenApiFactoryInterface $decorated;
+    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
 
-    public function __construct(OpenApiFactoryInterface $decorated)
+    public function __construct(OpenApiFactoryInterface $decorated, ResourceMetadataFactoryInterface $resourceMetadataFactory)
     {
         $this->decorated = $decorated;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
     private function removeResources(OpenApi $openApi, array $resourceClassNames): void
     {
         $shortNames = [];
         foreach ($resourceClassNames as $resourceClassName) {
-            $shortNames[] = (new \ReflectionClass($resourceClassName))->getShortName();
+            $metadata = $this->resourceMetadataFactory->create($resourceClassName);
+            $shortNames[] = $metadata->getShortName();
         }
         $openApiPaths = $openApi->getPaths();
         $paths = $openApiPaths->getPaths();
