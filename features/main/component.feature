@@ -11,10 +11,15 @@ Feature: Components
   Scenario: I can create a component
     When I send a "POST" request to "/component/dummy_components" with body:
     """
-    {}
+    {
+      "uiComponent": "AnotherComponent",
+      "uiClassNames": ["my-class"]
+    }
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
+    And the JSON node "uiComponent" should be equal to "AnotherComponent"
+    And the JSON node "uiClassNames[0]" should be equal to "my-class"
 
   @loginUser
   Scenario: I can create a component and the ComponentPosition at the same time
