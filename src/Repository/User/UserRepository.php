@@ -17,7 +17,6 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,7 +26,7 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  * @method AbstractUser[]    findAll()
  * @method AbstractUser[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
+class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface
 {
     private int $passwordRequestTimeout;
     private int $newEmailConfirmTimeout;

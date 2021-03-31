@@ -54,7 +54,12 @@ class UserEventListener
         if (!$user instanceof AbstractUser) {
             throw new AccessDeniedException('Access denied. User not supported.');
         }
-        $request->attributes->set('id', $user->getId());
+
+        // the id cannot be trusted if the data was reloaded and the ID changed for any reason
+        // technically the JWT token is still valid, but the id may not be found. So we don't
+        // want to give a user the impression of being unauthenticated when they are. Could be
+        // abused and attacked. So we will want to refresh the user's jwt token
+        $request->attributes->set('id', $user->getUsername());
     }
 
     public function onPostWrite(ViewEvent $event): void

@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Helper\User;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class UserDataProcessor
 {
     private UserPasswordEncoderInterface $passwordEncoder;
-    private UserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
     private EncoderFactoryInterface $encoderFactory;
     private bool $initialEmailVerifiedState;
     private bool $verifyEmailOnRegister;
@@ -36,7 +36,7 @@ class UserDataProcessor
 
     public function __construct(
         UserPasswordEncoderInterface $passwordEncoder,
-        UserRepository $userRepository,
+        UserRepositoryInterface $userRepository,
         EncoderFactoryInterface $encoderFactory,
         bool $initialEmailVerifiedState,
         bool $verifyEmailOnRegister,

@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Command;
 
 use Doctrine\ORM\EntityNotFoundException;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,9 +28,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class RefreshTokensExpireCommand extends Command
 {
     private RefreshTokenStorageInterface $storage;
-    private UserRepository $repository;
+    private UserRepositoryInterface $repository;
 
-    public function __construct(RefreshTokenStorageInterface $storage, UserRepository $repository)
+    public function __construct(RefreshTokenStorageInterface $storage, UserRepositoryInterface $repository)
     {
         parent::__construct('silverback:api-components:refresh-tokens:expire');
         $this->storage = $storage;

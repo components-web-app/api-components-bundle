@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -27,9 +27,9 @@ class NewEmailAddressValidator extends ConstraintValidator
 {
     use ClassMetadataTrait;
 
-    private UserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
 
-    public function __construct(UserRepository $userRepository)
+    public function __construct(UserRepositoryInterface $userRepository)
     {
         $this->userRepository = $userRepository;
     }

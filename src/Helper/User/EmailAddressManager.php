@@ -17,7 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 /**
@@ -26,14 +26,14 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 class EmailAddressManager
 {
     private EntityManagerInterface $entityManager;
-    private UserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
     private EncoderFactoryInterface $encoderFactory;
     private UserDataProcessor $userDataProcessor;
     private UserEventListener $userEventListener;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        UserRepository $userRepository,
+        UserRepositoryInterface $userRepository,
         EncoderFactoryInterface $encoderFactory,
         UserDataProcessor $userDataProcessor,
         UserEventListener $userEventListener

@@ -38,6 +38,7 @@ use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\Item\UserDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
@@ -102,6 +103,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
@@ -209,7 +211,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(Security::class),
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
                 '', // injected in dependency injection
             ]
         )
@@ -292,7 +294,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(EntityManagerInterface::class),
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
                 new Reference(EncoderFactoryInterface::class),
                 new Reference(UserDataProcessor::class),
                 new Reference(UserEventListener::class),
@@ -486,7 +488,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(Security::class),
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
                 '', // injected in dependency injection
             ]
         )
@@ -496,7 +498,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(NewEmailAddressValidator::class)
         ->args(
             [
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
             ]
         )
         ->tag('validator.constraint_validator');
@@ -721,7 +723,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 '', // injected in dependency injection
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
             ]
         );
 
@@ -988,6 +990,16 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
+        ->set(UserDataProvider::class)
+        ->args(
+            [
+                new Reference('silverback.repository.user'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+
+    $services
         ->set(UserEnabledEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
         ->tag('container.service_subscriber');
@@ -1009,7 +1021,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(EntityManagerInterface::class),
                 new Reference(ValidatorInterface::class),
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
                 new Reference('silverback.helper.timestamped_data_persister'),
                 new Reference(UserPasswordEncoderInterface::class),
                 '', // injected in dependency injection
@@ -1042,7 +1054,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UserPasswordEncoderInterface::class),
-                new Reference(UserRepository::class),
+                new Reference('silverback.repository.user'),
                 new Reference(EncoderFactoryInterface::class),
                 '', // injected in dependency injection
                 '', // injected in dependency injection
@@ -1056,7 +1068,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(TokenStorageInterface::class),
             new Reference(EncoderFactoryInterface::class),
-            new Reference(UserRepository::class),
+            new Reference('silverback.repository.user'),
         ])
         ->decorate('security.validator.user_password');
 
@@ -1075,7 +1087,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('form.type');
 
     $services
-        ->set(UserRepository::class)
+        ->set(UserRepositoryInterface::class)
+        ->class(UserRepository::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
@@ -1085,6 +1098,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
+    $services->alias('silverback.repository.user', UserRepositoryInterface::class);
 
     $services
         ->set(UserResourceMetadataFactory::class)

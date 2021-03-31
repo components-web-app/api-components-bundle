@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -30,9 +30,9 @@ class UserPasswordValidator extends ConstraintValidator
 {
     private TokenStorageInterface $tokenStorage;
     private EncoderFactoryInterface $encoderFactory;
-    private UserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
 
-    public function __construct(TokenStorageInterface $tokenStorage, EncoderFactoryInterface $encoderFactory, UserRepository $userRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, EncoderFactoryInterface $encoderFactory, UserRepositoryInterface $userRepository)
     {
         $this->tokenStorage = $tokenStorage;
         $this->encoderFactory = $encoderFactory;

@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Factory\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -27,12 +27,12 @@ class UserFactory
 {
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
-    private UserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
     private TimestampedDataPersister $timestampedDataPersister;
     private UserPasswordEncoderInterface $passwordEncoder;
     private string $userClass;
 
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository, TimestampedDataPersister $timestampedDataPersister, UserPasswordEncoderInterface $passwordEncoder, string $userClass)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepositoryInterface $userRepository, TimestampedDataPersister $timestampedDataPersister, UserPasswordEncoderInterface $passwordEncoder, string $userClass)
     {
         $this->entityManager = $entityManager;
         $this->validator = $validator;

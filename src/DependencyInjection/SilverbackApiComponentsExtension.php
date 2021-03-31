@@ -41,7 +41,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
-use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
@@ -71,7 +71,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
 
-        $definition = $container->getDefinition(UserRepository::class);
+        $definition = $container->getDefinition(UserRepositoryInterface::class);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
