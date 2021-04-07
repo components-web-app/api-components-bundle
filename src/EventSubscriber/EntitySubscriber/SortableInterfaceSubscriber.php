@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentBundle\EventSubscriber\EntitySubscriber;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
