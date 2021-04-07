@@ -7,7 +7,7 @@ namespace Silverback\ApiComponentBundle\Factory;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentBundle\Entity\Content\Page\Dynamic\DynamicContent;
 use Silverback\ApiComponentBundle\Entity\Content\Page\StaticPage;
