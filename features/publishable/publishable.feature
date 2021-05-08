@@ -71,7 +71,6 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node publishedAt should exist
     And the JSON node _metadata.published should be true
 
-
   @loginUser
   Scenario Outline: As a user with draft access to a specific resource, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
     When I send a "POST" request to "/component/dummy_publishable_with_security_groups" with data:
@@ -109,6 +108,8 @@ Feature: Access to unpublished/draft resources should be configurable
     And the response should be the resource "publishable_draft"
     And the header "expires" should contain "Tue, 31 Dec 2999 23:59:59 GMT"
     And the JSON node "_metadata.published" should be equal to "false"
+    And the JSON node "publishedResource" should exist
+    And the JSON node "publishedResource._metadata" should exist
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginAdmin

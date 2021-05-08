@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -29,10 +32,12 @@ class MetadataNormalizer implements ContextAwareNormalizerInterface, CacheableSu
     private const ALREADY_CALLED = 'METADATA_NORMALIZER_ALREADY_CALLED';
 
     private string $metadataKey;
+    private PropertyAccessor $propertyAccessor;
 
     public function __construct(string $metadataKey)
     {
         $this->metadataKey = $metadataKey;
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -42,12 +47,25 @@ class MetadataNormalizer implements ContextAwareNormalizerInterface, CacheableSu
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && isset($context[self::METADATA_CONTEXT]);
+        if (!\is_object($data)) {
+            return false;
+        }
+        if (!isset($context[self::ALREADY_CALLED])) {
+            $context[self::ALREADY_CALLED] = [];
+        }
+        try {
+            $id = $this->propertyAccessor->getValue($data, 'id');
+        } catch (NoSuchPropertyException $e) {
+            return false;
+        }
+
+        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
+            isset($context[self::METADATA_CONTEXT]);
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
-        $context[self::ALREADY_CALLED] = true;
+        $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $data = $this->normalizer->normalize($object, $format, $context);
         $data[$this->metadataKey] = (array) $context[self::METADATA_CONTEXT];
 
