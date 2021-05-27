@@ -21,7 +21,9 @@ use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -30,6 +32,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
+use Traversable;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -45,11 +48,13 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
     private MediaObjectFactory $mediaObjectFactory;
     private UploadableAnnotationReader $annotationReader;
+    private PropertyAccessor $propertyAccessor;
 
     public function __construct(MediaObjectFactory $mediaObjectFactory, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
     {
         $this->mediaObjectFactory = $mediaObjectFactory;
         $this->annotationReader = $annotationReader;
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->initRegistry($registry);
     }
 
@@ -100,15 +105,27 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) &&
-            \is_object($data) &&
-            !$data instanceof \Traversable &&
+        if (!\is_object($data) || $data instanceof Traversable) {
+            return false;
+        }
+
+        if (!isset($context[self::ALREADY_CALLED])) {
+            $context[self::ALREADY_CALLED] = [];
+        }
+
+        try {
+            $id = $this->propertyAccessor->getValue($data, 'id');
+        } catch (NoSuchPropertyException $e) {
+            return false;
+        }
+
+        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
             $this->annotationReader->isConfigured($data);
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
-        $context[self::ALREADY_CALLED] = true;
+        $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
 
         $mediaObjects = $this->mediaObjectFactory->createMediaObjects($object);
         if ($mediaObjects) {

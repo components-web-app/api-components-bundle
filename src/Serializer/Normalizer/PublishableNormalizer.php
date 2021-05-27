@@ -22,6 +22,9 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -47,6 +50,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     private ManagerRegistry $registry;
     private RequestStack $requestStack;
     private ValidatorInterface $validator;
+    private PropertyAccessor $propertyAccessor;
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, RequestStack $requestStack, ValidatorInterface $validator)
     {
@@ -54,11 +58,12 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $this->registry = $registry;
         $this->requestStack = $requestStack;
         $this->validator = $validator;
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
-        $context[self::ALREADY_CALLED] = true;
+        $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
         // display soft validation violations in the response
@@ -75,9 +80,19 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
     public function supportsNormalization($data, $format = null, $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) &&
-            \is_object($data) &&
-            !$data instanceof \Traversable &&
+        if (!\is_object($data) || $data instanceof \Traversable) {
+            return false;
+        }
+        if (!isset($context[self::ALREADY_CALLED])) {
+            $context[self::ALREADY_CALLED] = [];
+        }
+        try {
+            $id = $this->propertyAccessor->getValue($data, 'id');
+        } catch (NoSuchPropertyException $e) {
+            return false;
+        }
+
+        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
             $this->publishableStatusChecker->getAnnotationReader()->isConfigured($data);
     }
 

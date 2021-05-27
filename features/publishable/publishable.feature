@@ -110,6 +110,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node "_metadata.published" should be equal to "false"
     And the JSON node "publishedResource" should exist
     And the JSON node "publishedResource._metadata" should exist
+    And the JSON node "publishedResource._metadata.published" should be equal to "true"
     And the JSON should be valid according to the schema file "publishable.schema.json"
 
   @loginAdmin
