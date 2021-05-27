@@ -55,15 +55,15 @@ class PersistedNormalizerTest extends TestCase
     public function tests_does_not_support_normalization_never_reaching_resource_class_resolver(): void
     {
         $this->resourceClassResolverMock
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('isResourceClass');
 
         $format = 'jsonld';
-        $this->assertFalse($this->apiNormalizer->supportsNormalization(new DummyComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => true]));
-        $this->assertFalse($this->apiNormalizer->supportsNormalization([], $format, []));
-        $this->assertFalse($this->apiNormalizer->supportsNormalization('string', $format, []));
+        self::assertFalse($this->apiNormalizer->supportsNormalization(new DummyComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => [null]]));
+        self::assertFalse($this->apiNormalizer->supportsNormalization([], $format, []));
+        self::assertFalse($this->apiNormalizer->supportsNormalization('string', $format, []));
         $traversable = $this->createMock(Traversable::class);
-        $this->assertFalse($this->apiNormalizer->supportsNormalization($traversable, $format, []));
+        self::assertFalse($this->apiNormalizer->supportsNormalization($traversable, $format, []));
     }
 
     public function test_does_not_support_non_api_platform_resource_normalization(): void
@@ -76,7 +76,7 @@ class PersistedNormalizerTest extends TestCase
             ->method('isResourceClass')
             ->with(DummyComponent::class)
             ->willReturn(false);
-        $this->assertFalse($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
+        self::assertFalse($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
     }
 
     public function tests_supports_normalization(): void
@@ -89,13 +89,13 @@ class PersistedNormalizerTest extends TestCase
             ->method('isResourceClass')
             ->with(DummyComponent::class)
             ->willReturn(true);
-        $this->assertTrue($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
+        self::assertTrue($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
     }
 
     public function test_has_cacheable_supports_method(): void
     {
         // context changes so will support the first time and not in future to prevent infinite loop
-        $this->assertFalse($this->apiNormalizer->hasCacheableSupportsMethod());
+        self::assertFalse($this->apiNormalizer->hasCacheableSupportsMethod());
     }
 
     public function test_normalization_result_entity_is_persisted(): void
@@ -110,7 +110,7 @@ class PersistedNormalizerTest extends TestCase
                 $dummyComponent,
                 $format,
                 [
-                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => [null],
                     'default_context_param' => 'default_value',
                     'silverback_api_components_bundle_metadata' => ['persisted' => true],
                 ]
@@ -124,7 +124,7 @@ class PersistedNormalizerTest extends TestCase
             ->willReturn(true);
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value', 'silverback_api_components_bundle_metadata' => ['persisted' => true]]);
-        $this->assertEquals('anything', $result);
+        self::assertEquals('anything', $result);
     }
 
     public function test_normalization_result_entity_is_not_persisted(): void
@@ -139,7 +139,7 @@ class PersistedNormalizerTest extends TestCase
                 $dummyComponent,
                 $format,
                 [
-                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => true,
+                    'PERSISTED_NORMALIZER_ALREADY_CALLED' => [null],
                     'silverback_api_components_bundle_metadata' => ['persisted' => false],
                 ]
             )
@@ -152,6 +152,6 @@ class PersistedNormalizerTest extends TestCase
             ->willReturn(false);
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['silverback_api_components_bundle_metadata' => ['persisted' => false]]);
-        $this->assertEquals('anything', $result);
+        self::assertEquals('anything', $result);
     }
 }
