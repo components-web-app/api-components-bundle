@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Exception\UserEmailAddressUnverified;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\UnsupportedUser;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 
 class UserCheckerTest extends TestCase
 {
@@ -43,7 +44,11 @@ class UserCheckerTest extends TestCase
         };
 
         $user->setEnabled(false)->setEmailAddressVerified(true);
-        $this->expectException(UserDisabledException::class);
+        if (class_exists(CustomUserMessageAccountStatusException::class)) {
+            $this->expectException(CustomUserMessageAccountStatusException::class);
+        } else {
+            $this->expectException(UserDisabledException::class);
+        }
         $userChecker->checkPreAuth($user);
     }
 
@@ -55,7 +60,11 @@ class UserCheckerTest extends TestCase
 
         $user->setEnabled(true);
         $user->setEmailAddressVerified(false);
-        $this->expectException(UserEmailAddressUnverified::class);
+        if (class_exists(CustomUserMessageAccountStatusException::class)) {
+            $this->expectException(CustomUserMessageAccountStatusException::class);
+        } else {
+            $this->expectException(UserEmailAddressUnverified::class);
+        }
         $userChecker->checkPreAuth($user);
     }
 
