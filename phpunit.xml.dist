@@ -10,6 +10,7 @@
       <directory>features</directory>
       <directory>vendor</directory>
       <directory>src/Resources/config</directory>
+      <directory>.php-cs-fixer.dist.php</directory>
     </exclude>
     <report>
       <clover outputFile="clover.xml"/>
