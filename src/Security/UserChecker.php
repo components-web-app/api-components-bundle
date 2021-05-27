@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Security;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Exception\UserEmailAddressUnverified;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -35,11 +36,19 @@ class UserChecker implements UserCheckerInterface
         }
 
         if (!$user->isEnabled()) {
-            throw new UserDisabledException('Your account is currently disabled.');
+            $message = 'Your account is currently disabled.';
+            if (class_exists(CustomUserMessageAccountStatusException::class)) {
+                throw new CustomUserMessageAccountStatusException($message);
+            }
+            throw new UserDisabledException($message);
         }
 
         if ($this->denyUnverifiedLogin && !$user->isEmailAddressVerified()) {
-            throw new UserEmailAddressUnverified('Please verify your email address before logging in. If you did not receive a confirmation email please try resetting your password using the forgot password feature.');
+            $message = 'Please verify your email address before logging in. If you did not receive a confirmation email please try resetting your password using the forgot password feature.';
+            if (class_exists(CustomUserMessageAccountStatusException::class)) {
+                throw new CustomUserMessageAccountStatusException($message);
+            }
+            throw new UserEmailAddressUnverified($message);
         }
     }
 
