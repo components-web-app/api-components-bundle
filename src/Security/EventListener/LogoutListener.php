@@ -39,5 +39,6 @@ class LogoutListener
         $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
         $response->headers->remove('Location');
         $response->setStatusCode(Response::HTTP_OK)->setContent('');
+        $event->setResponse($response);
     }
 }
