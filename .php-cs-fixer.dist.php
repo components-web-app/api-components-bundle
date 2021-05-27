@@ -1,15 +1,24 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 $header = <<<'HEADER'
-This file is part of the Silverback API Components Bundle Project
+    This file is part of the Silverback API Components Bundle Project
 
-(c) Daniel West <daniel@silverback.is>
+    (c) Daniel West <daniel@silverback.is>
 
-For the full copyright and license information, please view the LICENSE
-file that was distributed with this source code.
-HEADER;
+    For the full copyright and license information, please view the LICENSE
+    file that was distributed with this source code.
+    HEADER;
 
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__)
@@ -18,7 +27,7 @@ $finder = PhpCsFixer\Finder::create()
         'tests/Functional/app/console',
     ]);
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@DoctrineAnnotation' => true,
@@ -37,7 +46,7 @@ return PhpCsFixer\Config::create()
         'comment_to_phpdoc' => true,
         'compact_nullable_typehint' => true,
         'concat_space' => [
-          'spacing' => 'one'
+            'spacing' => 'one',
         ],
         'doctrine_annotation_array_assignment' => [
             'operator' => '=',
@@ -111,7 +120,7 @@ return PhpCsFixer\Config::create()
         ],
         'void_return' => false,
         'method_argument_space' => [
-            'on_multiline' => 'ensure_fully_multiline'
-        ]
+            'on_multiline' => 'ensure_fully_multiline',
+        ],
     ])
     ->setFinder($finder);
