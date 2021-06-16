@@ -20,6 +20,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
@@ -55,13 +56,15 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     private ValidatorInterface $validator;
     private PropertyAccessor $propertyAccessor;
     private IriConverterInterface $iriConverter;
+    private ?PurgeHttpCacheListener $purgeHttpCacheListener;
 
     public function __construct(
         PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
         RequestStack $requestStack,
         ValidatorInterface $validator,
-        IriConverterInterface $iriConverter
+        IriConverterInterface $iriConverter,
+        ?PurgeHttpCacheListener $purgeHttpCacheListener = null
     ) {
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->registry = $registry;
@@ -69,6 +72,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $this->validator = $validator;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->iriConverter = $iriConverter;
+        $this->purgeHttpCacheListener = $purgeHttpCacheListener;
     }
 
     public function normalize($object, $format = null, array $context = [])
@@ -222,6 +226,11 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
         // Add draft object to UnitOfWork
         $em->persist($draft);
+
+        // Clear the cache of the published resource because it should now also return an associated draft
+        if ($this->purgeHttpCacheListener) {
+            $this->purgeHttpCacheListener->addTagsFor($object);
+        }
 
         return $draft;
     }

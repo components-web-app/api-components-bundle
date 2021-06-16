@@ -227,6 +227,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
         $loader->load('services_normalizers.php');
+
+        if ($container->hasDefinition('api_platform.http_cache.purger')) {
+            $loader->load('services_doctrine_cache.php');
+        }
     }
 
     public function prepend(ContainerBuilder $container): void
@@ -234,7 +238,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $configs = $container->getExtensionConfig($this->getAlias());
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        $this->prependApiAPlatformConfig($container, $config);
+        $this->prependApiPlatformConfig($container, $config);
         $this->prependDoctrineConfiguration($container);
     }
 
@@ -252,7 +256,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         );
     }
 
-    private function prependApiAPlatformConfig(ContainerBuilder $container, array $config): void
+    private function prependApiPlatformConfig(ContainerBuilder $container, array $config): void
     {
         $srcBase = __DIR__ . '/..';
         $configBasePath = $srcBase . '/Resources/config/api_platform';

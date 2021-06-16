@@ -36,6 +36,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -120,6 +121,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('request_stack'),
                 new Reference('api_platform.validator'),
                 new Reference(IriConverterInterface::class),
+                new Reference('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
 
