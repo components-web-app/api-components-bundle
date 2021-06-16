@@ -119,6 +119,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('doctrine'),
                 new Reference('request_stack'),
                 new Reference('api_platform.validator'),
+                new Reference(IriConverterInterface::class),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
 

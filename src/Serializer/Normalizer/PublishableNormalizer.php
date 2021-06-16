@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Core\Validator\ValidatorInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -45,26 +47,51 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
+    private const ASSOCIATION = 'PUBLISHABLE_ASSOCIATION';
 
     private PublishableStatusChecker $publishableStatusChecker;
     private ManagerRegistry $registry;
     private RequestStack $requestStack;
     private ValidatorInterface $validator;
     private PropertyAccessor $propertyAccessor;
+    private IriConverterInterface $iriConverter;
 
-    public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, RequestStack $requestStack, ValidatorInterface $validator)
-    {
+    public function __construct(
+        PublishableStatusChecker $publishableStatusChecker,
+        ManagerRegistry $registry,
+        RequestStack $requestStack,
+        ValidatorInterface $validator,
+        IriConverterInterface $iriConverter
+    ) {
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->registry = $registry;
         $this->requestStack = $requestStack;
         $this->validator = $validator;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->iriConverter = $iriConverter;
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
+
+        if (isset($context[self::ASSOCIATION]) && $context[self::ASSOCIATION] === $object) {
+            return $this->iriConverter->getIriFromItem($object);
+        }
+
+        $type = \get_class($object);
+        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
+        $em = $this->getManagerFromType($type);
+        $classMetadata = $this->getClassMetadataInfo($em, $type);
+
+        $context[MetadataNormalizer::METADATA_CONTEXT][$configuration->fieldName] = $classMetadata->getFieldValue($object, $configuration->fieldName);
+        if (\is_object($assocObject = $classMetadata->getFieldValue($object, $configuration->associationName))) {
+            $context[self::ASSOCIATION] = $assocObject;
+        }
+        if (\is_object($reverseAssocObject = $classMetadata->getFieldValue($object, $configuration->reverseAssociationName))) {
+            $context[self::ASSOCIATION] = $reverseAssocObject;
+        }
 
         // display soft validation violations in the response
         if ($this->publishableStatusChecker->isGranted($object)) {
@@ -174,13 +201,8 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
     private function createDraft(object $object, Publishable $configuration, string $type): object
     {
-        $em = $this->registry->getManagerForClass($type);
-        if (!$em) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
-        }
-
-        /** @var ClassMetadataInfo $classMetadata */
-        $classMetadata = $em->getClassMetadata($type);
+        $em = $this->getManagerFromType($type);
+        $classMetadata = $this->getClassMetadataInfo($em, $type);
 
         // Resource is a draft: nothing to do here anymore
         if (null !== $classMetadata->getFieldValue($object, $configuration->associationName)) {
@@ -215,5 +237,25 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     public function hasCacheableSupportsMethod(): bool
     {
         return false;
+    }
+
+    private function getManagerFromType(string $type): ObjectManager
+    {
+        $em = $this->registry->getManagerForClass($type);
+        if (!$em) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+        }
+
+        return $em;
+    }
+
+    private function getClassMetadataInfo(ObjectManager $em, string $type): ClassMetadataInfo
+    {
+        $classMetadata = $em->getClassMetadata($type);
+        if (!$classMetadata instanceof ClassMetadataInfo) {
+            throw new InvalidArgumentException(sprintf('Class metadata for %s was not an instance of %s', $type, ClassMetadataInfo::class));
+        }
+
+        return $classMetadata;
     }
 }

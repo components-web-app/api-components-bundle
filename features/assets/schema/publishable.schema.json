@@ -59,6 +59,26 @@
         "2020-04-07T09:38:49+00:00"
       ]
     },
+    "draftResource": {
+      "$id": "#/draftResource",
+      "type": "string",
+      "title": "The Modified Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
+      ]
+    },
+    "publishedResource": {
+      "$id": "#/publishedResource",
+      "type": "string",
+      "title": "The Modified Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/component/publishable_components/09242f6f30b64754ab3fe57804411597"
+      ]
+    },
     "_metadata": {
       "$id": "#/_metadata",
       "type": "object",
