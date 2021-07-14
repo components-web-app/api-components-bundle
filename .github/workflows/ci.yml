@@ -217,7 +217,7 @@ jobs:
         run: |
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
-          gpg --recv-keys C6D76C329EBADE2FB9C458CFC5095986493B4AA0
+          gpg --keyserver keyserver.ubuntu.com --recv-keys C6D76C329EBADE2FB9C458CFC5095986493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
           ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=85 --threads=30
