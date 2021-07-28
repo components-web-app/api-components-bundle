@@ -155,7 +155,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
     /**
      * `final` to make `createFromPayload` safe. Could instead make an interface? Or abstract and force child to define constructor?
      */
-    final public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
+    public function __construct(string $username = '', string $emailAddress = '', bool $emailAddressVerified = false, array $roles = ['ROLE_USER'], string $password = '', bool $enabled = true)
     {
         $this->username = $username;
         $this->emailAddress = $emailAddress;
