@@ -60,10 +60,50 @@
         "collection": {
           "readOnly": true,
           "type": "object"
+        },
+        "_metadata": {
+          "$id": "#/properties/_metadata",
+          "type": "object",
+          "title": "The _metadata schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": {},
+          "examples": [
+            {
+              "persisted": true
+            }
+          ],
+          "required": [
+            "persisted",
+            "collection"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "persisted": {
+              "$id": "#/properties/_metadata/properties/persisted",
+              "type": "boolean",
+              "title": "The persisted schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": false,
+              "examples": [
+                true
+              ]
+            },
+            "collection": {
+              "$id": "#/properties/_metadata/properties/collection",
+              "type": "boolean",
+              "title": "The persisted schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": true,
+              "examples": [
+                true
+              ]
+            }
+          }
         }
       },
       "required": [
-        "resourceIri"
+        "resourceIri",
+        "_metadata"
       ]
     }
   }

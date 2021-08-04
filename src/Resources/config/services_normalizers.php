@@ -26,6 +26,7 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
@@ -64,6 +65,11 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(IriConverterInterface::class),
             ]
         )
+        ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(CollectionNormalizer::class)
+        ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
