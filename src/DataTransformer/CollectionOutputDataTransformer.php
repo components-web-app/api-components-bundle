@@ -84,7 +84,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                 $filters[$this->paginationEnabledParameterName] = false;
             }
 
-            $collectionContext = ['filters' => $filters, 'groups' => $context['groups']];
+            $collectionContext = ['filters' => $filters];
             if ($request) {
                 // Comment copied from ApiPlatform\Core\EventListener\ReadListener
                 // Builtin data providers are able to use the serialization context to automatically add join clauses
@@ -116,6 +116,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             'jsonld_has_context' => false,
             'api_sub_level' => null,
             'subresource_operation_name' => Request::METHOD_GET,
+            'groups' => $context['groups'],
         ];
         $normalizedCollection = $this->itemNormalizer->normalize($collection, $format, $normalizerContext);
 

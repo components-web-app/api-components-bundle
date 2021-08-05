@@ -15,7 +15,8 @@ namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
@@ -23,7 +24,7 @@ use Symfony\Component\Security\Core\Security;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class ComponentContextBuilder implements SerializerContextBuilderInterface
+final class CwaResourceContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
     private RoleHierarchyInterface $roleHierarchy;
@@ -39,7 +40,7 @@ final class ComponentContextBuilder implements SerializerContextBuilderInterface
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (!is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true)) {
+        if (!is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true) && !is_a($resourceClass = $context['resource_class'], AbstractPageData::class, true)) {
             return $context;
         }
 
@@ -52,14 +53,14 @@ final class ComponentContextBuilder implements SerializerContextBuilderInterface
         }
         $rw = $normalization ? 'read' : 'write';
         foreach ($componentNames as $componentName) {
-            $context['groups'][] = sprintf('%s:%s:%s', $componentName, ComponentLoader::GROUP_NAME, $rw);
+            $context['groups'][] = sprintf('%s:%s:%s', $componentName, CwaResourceLoader::GROUP_NAME, $rw);
         }
 
         $user = $this->security->getUser();
         if ($user) {
             $reachableRoles = $this->roleHierarchy->getReachableRoleNames($user->getRoles());
             foreach ($reachableRoles as $reachableRole) {
-                $context['groups'][] = sprintf('%s:%s:%s:%s', $shortName, ComponentLoader::GROUP_NAME, $rw, strtolower($reachableRole));
+                $context['groups'][] = sprintf('%s:%s:%s:%s', $shortName, CwaResourceLoader::GROUP_NAME, $rw, strtolower($reachableRole));
             }
         }
 

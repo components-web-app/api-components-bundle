@@ -110,12 +110,12 @@ use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
-use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentContextBuilder;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UploadableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\UserContextBuilder;
-use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
@@ -218,11 +218,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('form.type');
 
     $services
-        ->set(ComponentContextBuilder::class)
+        ->set(CwaResourceContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(ComponentContextBuilder::class . '.inner'),
+                new Reference(CwaResourceContextBuilder::class . '.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
             ]
@@ -230,7 +230,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false);
 
     $services
-        ->set(ComponentLoader::class);
+        ->set(CwaResourceLoader::class);
 
     $services
         ->set(ChangePasswordListener::class)

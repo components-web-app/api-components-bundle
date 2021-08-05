@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentsBundle\Serializer\MappingLoader\ComponentLoader;
+use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
@@ -36,7 +36,7 @@ class SerializerCompilerPass implements CompilerPassInterface
                 [
                     new Reference(PublishableLoader::class),
                     new Reference(TimestampedLoader::class),
-                    new Reference(ComponentLoader::class),
+                    new Reference(CwaResourceLoader::class),
                     new Reference(UploadableLoader::class),
                 ]
             )

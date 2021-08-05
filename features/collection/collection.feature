@@ -12,7 +12,7 @@ Feature: A Collection component resource
     When I send a "POST" request to "/component/collections" with body:
     """
     {
-        "resourceIri": "/component/dummy_components",
+        "resourceIri": "/page_data/page_datas",
         "perPage": 20,
         "defaultQueryParameters": {
           "search": "something",

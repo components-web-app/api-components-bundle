@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\MappingLoader;
 
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
@@ -22,9 +23,9 @@ use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-final class ComponentLoader implements LoaderInterface
+final class CwaResourceLoader implements LoaderInterface
 {
-    public const GROUP_NAME = 'component';
+    public const GROUP_NAME = 'cwa_resource';
 
     /**
      * {@inheritdoc}
@@ -32,7 +33,7 @@ final class ComponentLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        if (AbstractComponent::class !== $reflectionClass->getName() && !$reflectionClass->isSubclassOf(AbstractComponent::class)) {
+        if (AbstractComponent::class !== $reflectionClass->getName() && !$reflectionClass->isSubclassOf(AbstractComponent::class) && !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
             return true;
         }
 
