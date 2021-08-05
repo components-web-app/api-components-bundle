@@ -40,7 +40,7 @@ class ComponentPosition
 
     /**
      * @Assert\NotNull
-     * @Groups({"ComponentPosition:read", "ComponentPosition:write", "AbstractComponent:component:write"})
+     * @Groups({"ComponentPosition:read", "ComponentPosition:write", "AbstractComponent:cwa_resource:write"})
      */
     public ?ComponentCollection $componentCollection = null;
 

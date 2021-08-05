@@ -59,27 +59,27 @@ class FormView
     ];
 
     /**
-     * @Groups({"Form:component:read"})
+     * @Groups({"Form:cwa_resource:read"})
      */
     private array $vars;
 
     /**
-     * @Groups({"Form:component:read"})
+     * @Groups({"Form:cwa_resource:read"})
      */
     private DoctrineCollection $children;
 
     /**
-     * @Groups({"Form:component:read"})
+     * @Groups({"Form:cwa_resource:read"})
      */
     private bool $rendered;
 
     /**
-     * @Groups({"Form:component:read"})
+     * @Groups({"Form:cwa_resource:read"})
      */
     private bool $methodRendered;
 
     /**
-     * @Groups({"Form:component:read"})
+     * @Groups({"Form:cwa_resource:read"})
      */
     private Form $form;
 

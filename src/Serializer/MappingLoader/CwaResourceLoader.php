@@ -33,7 +33,12 @@ final class CwaResourceLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        if (AbstractComponent::class !== $reflectionClass->getName() && !$reflectionClass->isSubclassOf(AbstractComponent::class) && !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
+        $reflectionClassName = $reflectionClass->getName();
+        if (
+            AbstractComponent::class !== $reflectionClassName &&
+            AbstractPageData::class !== $reflectionClassName &&
+            !$reflectionClass->isSubclassOf(AbstractComponent::class) &&
+            !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
             return true;
         }
 
