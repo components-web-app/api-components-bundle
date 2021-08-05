@@ -84,7 +84,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
                 $filters[$this->paginationEnabledParameterName] = false;
             }
 
-            $collectionContext = ['filters' => $filters];
+            $collectionContext = ['filters' => $filters, 'groups' => $context['groups']];
             if ($request) {
                 // Comment copied from ApiPlatform\Core\EventListener\ReadListener
                 // Builtin data providers are able to use the serialization context to automatically add join clauses
