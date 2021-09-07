@@ -129,9 +129,16 @@ class Route
         return $this->redirectedFrom;
     }
 
-    public function setRedirectedFrom(Collection $redirectedFrom): self
+    /**
+     * @param array|Collection $redirectedFrom
+     */
+    public function setRedirectedFrom($redirectedFrom): self
     {
-        $this->redirectedFrom = $redirectedFrom;
+        $isArray = \is_array($redirectedFrom);
+        if (!$isArray && !$redirectedFrom instanceof Collection) {
+            throw new \InvalidArgumentException('setRedirectedFrom requires an array or Collection');
+        }
+        $this->redirectedFrom = $isArray ? new ArrayCollection($redirectedFrom) : $redirectedFrom;
 
         return $this;
     }
