@@ -39,7 +39,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     itemOperations={
  *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
  *         "delete"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
+ *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
+ *         "patch"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
  *     }
  * )
  * @Assert\Expression(
@@ -59,9 +60,9 @@ class Route
     use TimestampedTrait;
 
     /**
-     * @Assert\NotNull
+     * @Assert\NotBlank
      */
-    private string $path;
+    private string $path = '';
 
     /**
      * @Assert\NotNull
@@ -113,18 +114,33 @@ class Route
     public function setRedirect(?self $redirect): self
     {
         $this->redirect = $redirect;
+        if ($redirect) {
+            $redirect->addRedirectedFrom($this);
+        }
 
         return $this;
     }
 
+    /**
+     * @return Collection|Route[]
+     */
     public function getRedirectedFrom()
     {
         return $this->redirectedFrom;
     }
 
-    public function setRedirectedFrom($redirectedFrom): self
+    public function setRedirectedFrom(Collection $redirectedFrom): self
     {
         $this->redirectedFrom = $redirectedFrom;
+
+        return $this;
+    }
+
+    public function addRedirectedFrom(self $redirectedFrom): self
+    {
+        if (!$this->redirectedFrom->contains($redirectedFrom)) {
+            $this->redirectedFrom->add($redirectedFrom);
+        }
 
         return $this;
     }

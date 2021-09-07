@@ -839,6 +839,7 @@ final class DoctrineContext implements Context
     {
         $this->manager->clear();
         $repository = $this->manager->getRepository(Route::class);
+
         /** @var Route $route */
         $route = $repository->findOneBy(
             [

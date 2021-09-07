@@ -81,6 +81,12 @@ class RouteGenerator implements RouteGeneratorInterface
 
         if ($existingRoute) {
             $existingRoute->setRedirect($route);
+            // When we enabled patch endpoint for route, this was required.
+            // The existing route is found in uow, perhaps this is why..
+            // Future investigation would be nice to know reasoning for this breaking tests and pageData becoming null
+            // on the $route and staying on the existingRoute only when patch enabled.
+            $route->setPage($existingRoute->getPage());
+            $route->setpageData($existingRoute->getPageData());
         }
 
         return $route;

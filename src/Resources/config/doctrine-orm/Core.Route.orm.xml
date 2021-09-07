@@ -15,13 +15,13 @@
         </one-to-one>
         <one-to-one field="pageData" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData" mapped-by="route" fetch="LAZY">
             <join-columns>
-                <join-column name="page_data_id" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
+                <join-column name="page_data_id" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
             </join-columns>
         </one-to-one>
         <one-to-many field="redirectedFrom" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" mapped-by="redirect" fetch="LAZY"/>
         <many-to-one field="redirect" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="redirectedFrom" fetch="EAGER">
             <join-columns>
-                <join-column name="redirect" referenced-column-name="id" on-delete="SET NULL" nullable="1"/>
+                <join-column name="redirect" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
             </join-columns>
         </many-to-one>
     </entity>
