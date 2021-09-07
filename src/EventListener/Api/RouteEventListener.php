@@ -48,6 +48,7 @@ class RouteEventListener
         }
 
         $route = $this->routeGenerator->create($page, $data);
+
         $request->attributes->set('data', $route);
     }
 }

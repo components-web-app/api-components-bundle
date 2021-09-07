@@ -39,8 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     itemOperations={
  *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
  *         "delete"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "patch"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
+ *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
  *     }
  * )
  * @Assert\Expression(

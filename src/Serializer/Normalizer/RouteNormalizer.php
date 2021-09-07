@@ -38,6 +38,7 @@ class RouteNormalizer implements ContextAwareNormalizerInterface, CacheableSuppo
         $context[self::ALREADY_CALLED] = true;
 
         $finalRoute = $object;
+
         $redirectedRoutes = [$finalRoute->getId()];
         while (($nextRedirect = $finalRoute->getRedirect())) {
             if (\in_array($nextRedirect->getId(), $redirectedRoutes, true)) {
