@@ -19,8 +19,8 @@ Feature: Route resources
 
   @loginUser
   Scenario: I can delete a route
-    Given there is 1 Route
-    When I send a "DELETE" request to the resource "route_0"
+    Given there is a Route "/deletable" with a page
+    When I send a "DELETE" request to the resource "route"
     Then the response status code should be 204
 
   Scenario: A route will output the nested redirect routes and data for the redirected page

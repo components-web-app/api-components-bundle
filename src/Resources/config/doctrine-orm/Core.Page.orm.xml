@@ -13,7 +13,7 @@
                 <cascade-persist/>
             </cascade>
             <join-columns>
-                <join-column name="parent_route_id" referenced-column-name="id"/>
+                <join-column name="parent_route_id" referenced-column-name="id" on-delete="SET NULL"/>
             </join-columns>
         </one-to-one>
         <one-to-one field="route" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="page" fetch="LAZY">
@@ -21,7 +21,7 @@
                 <cascade-persist/>
             </cascade>
             <join-columns>
-                <join-column name="route_id" referenced-column-name="id"/>
+                <join-column name="route_id" referenced-column-name="id" on-delete="SET NULL"/>
             </join-columns>
         </one-to-one>
         <many-to-one field="layout" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Layout" inversed-by="pages" fetch="LAZY">
