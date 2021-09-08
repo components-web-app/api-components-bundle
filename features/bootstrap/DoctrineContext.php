@@ -468,6 +468,7 @@ final class DoctrineContext implements Context
         $finalRoute->setPage($page);
         $this->manager->flush();
 
+        $this->restContext->resources['final_route'] = $this->iriConverter->getIriFromItem($finalRoute);
         $this->restContext->resources['route'] = $this->iriConverter->getIriFromItem($route);
         $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromItem($page);
     }

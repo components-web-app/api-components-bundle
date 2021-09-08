@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -37,10 +38,18 @@ use Symfony\Component\Validator\Constraints as Assert;
  *         "generate"={ "method"="POST", "path"="/routes/generate" }
  *     },
  *     itemOperations={
- *         "get"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
+ *         "get"={ "requirements"={"id"="(?!.+\/redirects$).+"}, "security"="is_granted('read_route', object)" },
  *         "delete"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
  *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "patch"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" }
+ *         "patch"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
+ *         "redirects"={
+ *             "method"="GET",
+ *             "path"="/routes/{id}/redirects",
+ *             "requirements"={"id"="(.+)"},
+ *             "security"="is_granted('read_route', object)",
+ *             "normalization_context"={ "groups"={"Route:redirect:read"} },
+ *             "defaults"={ "_api_item_operation_name"="route_redirects" }
+ *         }
  *     }
  * )
  * @Assert\Expression(
@@ -61,6 +70,7 @@ class Route
 
     /**
      * @Assert\NotBlank
+     * @Groups({"Route:redirect:read"})
      */
     private string $path = '';
 
@@ -71,6 +81,9 @@ class Route
 
     private ?Route $redirect = null;
 
+    /**
+     * @Groups({"Route:redirect:read"})
+     */
     private Collection $redirectedFrom;
 
     private ?Page $page = null;

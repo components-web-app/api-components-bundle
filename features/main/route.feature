@@ -13,7 +13,7 @@ Feature: Route resources
     And there is a Route "/other" with a page
     When I send a "POST" request to "/_/routes" with data:
       | path     | name         | page            | redirect         |
-      | /contact | contact-page | resource[page] | resource[route] |
+      | /contact | contact-page | resource[page]  | resource[route] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
 
@@ -63,3 +63,14 @@ Feature: Route resources
     And the JSON should be valid according to the schema file "route.schema.json"
     And the JSON node "path" should be equal to the string "/unnamed-page-1"
     And the JSON node "name" should be equal to the string "unnamed-page-1"
+
+  @loginUser
+  Scenario: I can get all the redirects for a route in a single call
+    Given there is a Route "/redirect1" with redirects to "/unnamed-page"
+    When I send a "GET" request to the resource "final_route" and the postfix "/redirects"
+    Then the response status code should be 200
+    And the JSON node "@id" should exist
+    And the JSON node "path" should be equal to the string "/unnamed-page"
+    And the JSON node "redirectedFrom[0]" should exist
+    And the JSON node "redirectedFrom[0].redirectedFrom" should exist
+    And the JSON node "redirectedFrom[0].redirectedFrom[0].path" should be equal to the string "/redirect1"
