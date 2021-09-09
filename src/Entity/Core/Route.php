@@ -53,8 +53,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     }
  * )
  * @Assert\Expression(
- *     "!(this.getPage() == null & this.getPageData() == null)",
- *     message="Please specify either page or pageData.",
+ *     "!(this.getPage() == null & this.getPageData() == null & this.getRedirect() == null)",
+ *     message="Please specify either page, pageData or redirect.",
  *     groups={"Route:generate:write", "Default"}
  * )
  * @Assert\Expression(
