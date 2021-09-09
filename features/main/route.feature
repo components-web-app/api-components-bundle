@@ -23,7 +23,7 @@ Feature: Route resources
     And there is a Route "/other" with a page
     When I send a "POST" request to "/_/routes" with data:
       | path     | name         | page            | redirect         |
-      | /contact | contact-page | null            | resource[route]  |
+      | /contact | contact-page | null            | null             |
     Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors.schema.json"
 
