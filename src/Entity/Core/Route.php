@@ -35,7 +35,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     collectionOperations={
  *         "get",
  *         "post",
- *         "generate"={ "method"="POST", "path"="/routes/generate" }
+ *         "generate"={ "method"="POST", "path"="/routes/generate", "validation_groups"={ "Route:generate:write" } }
  *     },
  *     itemOperations={
  *         "get"={ "requirements"={"id"="(?!.+\/redirects$).+"}, "security"="is_granted('read_route', object)" },
@@ -54,11 +54,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  * )
  * @Assert\Expression(
  *     "!(this.getPage() == null & this.getPageData() == null)",
- *     message="Please specify either page or pageData."
+ *     message="Please specify either page or pageData.",
+ *     groups={"Route:generate:write", "Default"}
  * )
  * @Assert\Expression(
  *     "!(this.getPage() != null & this.getPageData() != null)",
- *     message="Please specify either page or pageData, not both."
+ *     message="Please specify either page or pageData, not both.",
+ *     groups={"Route:generate:write", "Default"}
  * )
  * @UniqueEntity("name", message="The route name must be unique.")
  * @UniqueEntity("path", message="The route path must be unique.")

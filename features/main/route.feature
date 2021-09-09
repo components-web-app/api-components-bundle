@@ -18,6 +18,16 @@ Feature: Route resources
     And the JSON should be valid according to the schema file "route.schema.json"
 
   @loginUser
+  Scenario: I cannot create a route without a page
+    Given there is a Page
+    And there is a Route "/other" with a page
+    When I send a "POST" request to "/_/routes" with data:
+      | path     | name         | page            | redirect         |
+      | /contact | contact-page | null            | resource[route]  |
+    Then the response status code should be 422
+    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+
+  @loginUser
   Scenario: I can delete a route
     Given there is a Route "/deletable" with a page
     When I send a "DELETE" request to the resource "route"
@@ -52,6 +62,16 @@ Feature: Route resources
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
     And the Route "/original" should redirect to "/unnamed-page"
+
+  @loginUser
+  Scenario: I update a route path. A new redirect will be created.
+    Given there is a PageData resource with the route path "/original"
+    When I send a "PUT" request to "/_/routes//original" with data:
+      | path            |
+      | /new            |
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema file "route.schema.json"
+    And the Route "/original" should redirect to "/new"
 
   @loginUser
   Scenario: I generate a route for a path that already exists and the new route is generated with a postfix

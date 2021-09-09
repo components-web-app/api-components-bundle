@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,27 +26,59 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 class RouteEventListener
 {
     private RouteGeneratorInterface $routeGenerator;
+    private ManagerRegistry $registry;
 
-    public function __construct(RouteGeneratorInterface $routeGenerator)
+    public function __construct(RouteGeneratorInterface $routeGenerator, ManagerRegistry $registry)
     {
         $this->routeGenerator = $routeGenerator;
+        $this->registry = $registry;
     }
 
-    public function onPreValidate(ViewEvent $event): void
+    public function onPostValidate(ViewEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
+        $operationName = $request->attributes->get('_api_collection_operation_name');
         if (
             empty($data) ||
             !$data instanceof Route ||
-            'generate' !== $request->attributes->get('_api_collection_operation_name')
+            'generate' !== $operationName
         ) {
             return;
         }
 
+        $this->generateRoute($data, $request);
+    }
+
+    public function onPostWrite(ViewEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        $operationName = $request->attributes->get('_api_item_operation_name');
+        if (
+            empty($data) ||
+            !$data instanceof Route ||
+            !\in_array($operationName, ['put', 'patch'], true)
+        ) {
+            return;
+        }
+        $entityManager = $this->registry->getManagerForClass($className = Route::class);
+        if (!$entityManager) {
+            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
+        }
+
+        $previousRouteData = $request->attributes->get('previous_data');
+        $previousPath = $previousRouteData->getPath();
+        $newRedirect = $this->routeGenerator->createRedirect($previousPath, $data);
+        $entityManager->persist($newRedirect);
+        $entityManager->flush();
+    }
+
+    private function generateRoute(Route $data, Request $request): void
+    {
         $page = $data->getPageData() ?? $data->getPage();
         if (!$page) {
-            throw new UnprocessableEntityHttpException('You must submit a page or pageData to generate a route.');
+            throw new \LogicException('Validation should have already checked if the pageData or page values are set.');
         }
 
         $route = $this->routeGenerator->create($page, $data);

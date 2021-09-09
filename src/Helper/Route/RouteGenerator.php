@@ -31,12 +31,30 @@ class RouteGenerator implements RouteGeneratorInterface
     private TimestampedDataPersister $timestampedDataPersister;
     private RouteRepository $routeRepository;
 
-    public function __construct(SlugifyInterface $slugify, ManagerRegistry $registry, TimestampedDataPersister $timestampedDataPersister, RouteRepository $routeRepository)
-    {
+    public function __construct(
+        SlugifyInterface $slugify,
+        ManagerRegistry $registry,
+        TimestampedDataPersister $timestampedDataPersister,
+        RouteRepository $routeRepository
+    ) {
         $this->slugify = $slugify;
         $this->registry = $registry;
         $this->timestampedDataPersister = $timestampedDataPersister;
         $this->routeRepository = $routeRepository;
+    }
+
+    public function createRedirect(string $fromPath, Route $targetRoute): Route
+    {
+        [$name] = $this->resolveConflicts($fromPath, $fromPath);
+
+        $newRedirect = new Route();
+        $newRedirect
+            ->setName($name)
+            ->setPath($fromPath)
+            ->setRedirect($targetRoute);
+        $this->timestampedDataPersister->persistTimestampedFields($newRedirect, true);
+
+        return $newRedirect;
     }
 
     public function create(RoutableInterface $object, ?Route $route = null): Route
@@ -63,16 +81,7 @@ class RouteGenerator implements RouteGeneratorInterface
             $path = '/' . ltrim($parentRoute->getPath(), '/') . $path;
         }
 
-        $conflicts = $this->routeRepository->findConflicts($name, $path);
-
-        $baseName = $name;
-        $basePath = $path;
-        $conflictCounter = 0;
-        while ($this->conflictExists($name, $path, $conflicts)) {
-            ++$conflictCounter;
-            $name = sprintf('%s-%d', $baseName, $conflictCounter);
-            $path = sprintf('%s-%d', $basePath, $conflictCounter);
-        }
+        [$name, $path] = $this->resolveConflicts($name, $path);
 
         $route
             ->setName($name)
@@ -90,6 +99,22 @@ class RouteGenerator implements RouteGeneratorInterface
         }
 
         return $route;
+    }
+
+    private function resolveConflicts(string $name, string $path): array
+    {
+        $conflicts = $this->routeRepository->findConflicts($name, $path);
+
+        $baseName = $name;
+        $basePath = $path;
+        $conflictCounter = 0;
+        while ($this->conflictExists($name, $path, $conflicts)) {
+            ++$conflictCounter;
+            $name = sprintf('%s-%d', $baseName, $conflictCounter);
+            $path = sprintf('%s-%d', $basePath, $conflictCounter);
+        }
+
+        return [$name, $path];
     }
 
     /**

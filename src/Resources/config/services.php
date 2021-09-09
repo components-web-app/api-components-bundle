@@ -743,8 +743,10 @@ return static function (ContainerConfigurator $configurator) {
         ->class(RouteEventListener::class)
         ->args([
             new Reference('silverback.helper.route_generator'),
+            new Reference(ManagerRegistry::class),
         ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_VALIDATE, 'method' => 'onPreValidate']);
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_VALIDATE, 'method' => 'onPostValidate'])
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
 
     $services
         ->set(RouteExtension::class)
