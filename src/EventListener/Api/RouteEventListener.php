@@ -69,9 +69,11 @@ class RouteEventListener
 
         $previousRouteData = $request->attributes->get('previous_data');
         $previousPath = $previousRouteData->getPath();
-        $newRedirect = $this->routeGenerator->createRedirect($previousPath, $data);
-        $entityManager->persist($newRedirect);
-        $entityManager->flush();
+        if ($previousPath !== $data->getPath()) {
+            $newRedirect = $this->routeGenerator->createRedirect($previousPath, $data);
+            $entityManager->persist($newRedirect);
+            $entityManager->flush();
+        }
     }
 
     private function generateRoute(Route $data, Request $request): void
