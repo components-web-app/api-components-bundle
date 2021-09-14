@@ -62,8 +62,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     message="Please specify either page or pageData, not both.",
  *     groups={"Route:generate:write", "Default"}
  * )
- * @UniqueEntity("name", message="The route name must be unique.")
- * @UniqueEntity("path", message="The route path must be unique.")
+ * @UniqueEntity("name", message="This route name is already in use.")
+ * @UniqueEntity("path", message="This path is already in use.")
  */
 class Route
 {
