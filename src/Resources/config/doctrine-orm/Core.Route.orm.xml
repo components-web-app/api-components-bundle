@@ -18,7 +18,11 @@
                 <join-column name="page_data_id" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
             </join-columns>
         </one-to-one>
-        <one-to-many field="redirectedFrom" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" mapped-by="redirect" fetch="LAZY"/>
+        <one-to-many field="redirectedFrom" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" mapped-by="redirect" fetch="LAZY">
+            <cascade>
+                <cascade-remove />
+            </cascade>
+        </one-to-many>
         <many-to-one field="redirect" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Route" inversed-by="redirectedFrom" fetch="EAGER">
             <join-columns>
                 <join-column name="redirect" referenced-column-name="id" on-delete="CASCADE" nullable="true"/>
