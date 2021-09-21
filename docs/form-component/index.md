@@ -55,7 +55,7 @@ Here is an example of the data you will receive:
         "vars": {
             "errors": [],
             "action": "",
-            "api_request": true,
+            "api_disabled": false,
             "attr": {
                 "novalidate": "novalidate"
             },
@@ -184,7 +184,7 @@ Example:
         "vars": {
             "errors": [],
             "action": "",
-            "api_request": true,
+            "api_disabled": false,
             "attr": {
                 "novalidate": "novalidate"
             },

@@ -81,10 +81,10 @@
             "/component/forms/429f977154fd434ab3ec4a13b7dcffd5/submit"
           ]
         },
-        "api_request": {
-          "$id": "#/properties/vars/properties/api_request",
+        "api_disabled": {
+          "$id": "#/properties/vars/properties/api_disabled",
           "type": "boolean",
-          "title": "The Api_request Schema",
+          "title": "The api_disabled Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": false,
           "examples": [

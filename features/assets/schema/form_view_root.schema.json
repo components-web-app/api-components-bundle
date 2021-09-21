@@ -7,7 +7,7 @@
       "properties": {
         "vars": {
           "required": [
-            "api_request",
+            "api_disabled",
             "realtime_validate_disabled"
           ]
         }
