@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Form\Type\User;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -108,7 +109,7 @@ class PasswordUpdateType extends AbstractType
                     'novalidate' => 'novalidate',
                 ],
                 'action' => '/password/reset',
-                'realtime_validate' => false,
+                FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED => true,
                 'data_class' => $this->userClass,
                 'data' => $user,
                 'validation_groups' => ['User:password:create'],

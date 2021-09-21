@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form;
 
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -29,7 +30,7 @@ class TestRepeatedType extends AbstractType
                 'attr' => [
                     'novalidate' => 'novalidate',
                 ],
-                'post_app_proxy' => '/proxy',
+                FormSubmitHelper::FORM_POST_APP_PROXY => '/proxy',
             ]
         );
     }

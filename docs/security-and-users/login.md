@@ -16,11 +16,11 @@ You can create a [Form component](../components/form-component.md) which referen
         'novalidate' => 'novalidate',
     ],
     'action' => '/login',
-    'realtime_validate' => false,
+    FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED => true,
     FormSubmitHelper::FORM_API_DISABLED => true,
 ];
 ```
-The action is pre-set and will call your front end's `/login` endpoint instead of calling the API because `'api_disabled' => true`. We also let the front-end application know that this form should not put in real-time verification requests with `'realtime_validate' => false`. A couple of HTML attributes are defined for your convenience too.
+The action is pre-set and will call your front end's `/login` endpoint instead of calling the API because `'api_disabled' => true`. We also let the front-end application know that this form should not put in real-time verification requests with `'realtime_validate_disabled' => true`. A couple of HTML attributes are defined for your convenience too.
 
 You can create this component as you would create any other form component, but _it does require that you have not disabled the in-built form component._
 ```yaml

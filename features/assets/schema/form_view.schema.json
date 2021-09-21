@@ -174,10 +174,10 @@
             "/proxy"
           ]
         },
-        "realtime_validate": {
-          "$id": "#/properties/vars/properties/realtime_validate",
+        "realtime_validate_disabled": {
+          "$id": "#/properties/vars/properties/realtime_validate_disabled",
           "type": "boolean",
-          "title": "The Realtime_validate Schema",
+          "title": "The Realtime_validate_disabled Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": false,
           "examples": [

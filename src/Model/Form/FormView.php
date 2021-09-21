@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Model\Form;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
@@ -34,7 +35,6 @@ class FormView
 
     private const OUTPUT_VARS = [
         'action',
-        'api_request',
         'attr',
         'block_prefixes',
         'checked',
@@ -50,8 +50,9 @@ class FormView
         'name',
         'placeholder',
         'placeholder_in_choices',
-        'post_app_proxy',
-        'realtime_validate',
+        FormSubmitHelper::FORM_POST_APP_PROXY,
+        FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED,
+        FormSubmitHelper::FORM_API_DISABLED,
         'required',
         'submitted',
         'unique_block_prefix',

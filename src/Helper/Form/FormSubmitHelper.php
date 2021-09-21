@@ -27,7 +27,9 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 class FormSubmitHelper
 {
+    public const FORM_REALTIME_VALIDATE_DISABLED = 'realtime_validate_disabled';
     public const FORM_API_DISABLED = 'api_disabled';
+    public const FORM_POST_APP_PROXY = 'post_app_proxy';
     private FormFactoryInterface $formFactory;
     private EventDispatcherInterface $eventDispatcher;
 

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Form;
 
+use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Symfony\Component\Form\AbstractType as BaseAbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
@@ -24,8 +25,8 @@ class AbstractType extends BaseAbstractType implements FormTypeInterface
 {
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        $view->vars['realtime_validate'] = $options['realtime_validate'] ?? true;
-        $view->vars['api_request'] = $options['api_request'] ?? true;
-        $view->vars['post_app_proxy'] = $options['post_app_proxy'] ?? null;
+        $view->vars[FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED] = $options[FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED] ?? false;
+        $view->vars[FormSubmitHelper::FORM_API_DISABLED] = $options[FormSubmitHelper::FORM_API_DISABLED] ?? false;
+        $view->vars[FormSubmitHelper::FORM_POST_APP_PROXY] = $options[FormSubmitHelper::FORM_POST_APP_PROXY] ?? null;
     }
 }

@@ -95,7 +95,7 @@ class UserLoginType extends AbstractType
                     'novalidate' => 'novalidate',
                 ],
                 'action' => '/login',
-                'realtime_validate' => false,
+                FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED => true,
                 FormSubmitHelper::FORM_API_DISABLED => true,
             ]
         );

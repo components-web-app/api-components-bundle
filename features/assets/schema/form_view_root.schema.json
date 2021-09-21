@@ -8,7 +8,7 @@
         "vars": {
           "required": [
             "api_request",
-            "realtime_validate"
+            "realtime_validate_disabled"
           ]
         }
       }
