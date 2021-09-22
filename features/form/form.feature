@@ -164,7 +164,7 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
-  # PATCH COLLLECTION TYPE SUPPORT
+  # PATCH COLLECTION TYPE SUPPORT
 
   Scenario: I can send an invalid field for validation of one of the children in a CollectionType
     Given there is a "nested" form

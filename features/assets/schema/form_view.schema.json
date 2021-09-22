@@ -9,8 +9,7 @@
     "vars",
     "children",
     "rendered",
-    "methodRendered",
-    "form"
+    "methodRendered"
   ],
   "properties": {
     "vars": {
@@ -266,28 +265,6 @@
       "examples": [
         false
       ]
-    },
-    "form": {
-      "$id": "#/properties/form",
-      "type": "object",
-      "title": "The Form Schema",
-      "description": "An explanation about the purpose of this instance.",
-      "default": {},
-      "examples": [
-        {
-          "name": []
-        }
-      ],
-      "required": [],
-      "properties": {
-        "name": {
-          "$id": "#/properties/form/properties/name",
-          "type": "array",
-          "title": "The Name Schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": []
-        }
-      }
     }
   }
 }

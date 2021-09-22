@@ -79,9 +79,6 @@ class FormView
      */
     private bool $methodRendered;
 
-    /**
-     * @Groups({"Form:cwa_resource:read"})
-     */
     private Form $form;
 
     public function __construct(Form $form, ?SymfonyFormView $formView = null, bool $children = true)
