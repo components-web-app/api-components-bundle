@@ -145,27 +145,27 @@ class UploadableResourceMetadataFactoryTest extends TestCase
 
         self::assertEquals(
             [
-                'method' => 'PUT',
+                'method' => 'POST',
                 'controller' => UploadAction::class,
                 'path' => '/my_name/{id}/upload',
                 'deserialize' => false,
                 'openapi_context' => $commonOpenApiContext,
                 'stateless' => null,
             ],
-            $itemOperations['put_upload']
+            $itemOperations['post_upload']
         );
 
-        self::assertEquals(
-            [
-                'method' => 'PATCH',
-                'controller' => UploadAction::class,
-                'path' => '/my_name/{id}/upload',
-                'deserialize' => false,
-                'openapi_context' => $commonOpenApiContext,
-                'stateless' => null,
-            ],
-            $itemOperations['patch_upload']
-        );
+//        self::assertEquals(
+//            [
+//                'method' => 'PATCH',
+//                'controller' => UploadAction::class,
+//                'path' => '/my_name/{id}/upload',
+//                'deserialize' => false,
+//                'openapi_context' => $commonOpenApiContext,
+//                'stateless' => null,
+//            ],
+//            $itemOperations['patch_upload']
+//        );
 
         self::assertEquals(
             [
