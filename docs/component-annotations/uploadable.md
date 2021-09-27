@@ -137,11 +137,6 @@ class File
     
     /** @Silverback\UploadableField(adapter="local", imagineFilters={"thumbnail", "thumbnail_square"}) */
     public ?File $file;
-
-    public function __construct()
-    {
-        $this->mediaObjects = new ArrayCollection();
-    }
 ```
 
 ### ImagineFiltersInterface
@@ -163,11 +158,6 @@ class File implements ImagineFiltersInterface
     
     /** @Silverback\UploadableField(adapter="local") */
     public ?File $file;
-
-    public function __construct()
-    {
-        $this->mediaObjects = new ArrayCollection();
-    }
 
     public function getImagineFilters(string $property, ?Request $request): array
     {

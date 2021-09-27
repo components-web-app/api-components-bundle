@@ -80,8 +80,7 @@ class UploadableFileManager
             $this->flysystemDataLoader->setAdapter($fieldConfiguration->adapter);
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-
-            if ($object instanceof ImagineFiltersInterface && $this->filterService) {
+            if ($filename && $object instanceof ImagineFiltersInterface && $this->filterService) {
                 $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
                     // This will trigger the cached file to be store
