@@ -98,12 +98,12 @@ Feature: API Resources which can have files uploaded
     And the header "content-type" should be equal to "image/png"
     And the header "content-disposition" should be equal to "attachment; filename=image.png"
 
-  # PUT
+  # POST/UPDATE
 
   @loginUser
   Scenario Outline: I can update a media resource
     Given there is a DummyUploadableWithImagineFilters
-    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+    When I send a "POST" request to the resource "dummy_uploadable" with data:
       | file           |
       | base64(<file>) |
     Then the response status code should be 200
