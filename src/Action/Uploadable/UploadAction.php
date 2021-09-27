@@ -31,6 +31,7 @@ class UploadAction
             throw new UnsupportedMediaTypeHttpException('The "Content-Type" header must exist.');
         }
 
+        $contentType = explode(';', $contentType)[0];
         $formats = ['multipart/form-data'];
         if (!\in_array(strtolower($contentType), $formats, true)) {
             throw new UnsupportedMediaTypeHttpException(sprintf('The content-type "%s" is not supported. Supported MIME type is "%s".', $contentType, implode('", "', $formats)));
