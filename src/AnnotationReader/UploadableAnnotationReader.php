@@ -41,7 +41,7 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
         if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
             return $isConfigured;
         }
-        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', $class));
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', \is_string($class) ? $class : \get_class($class)));
     }
 
     /**
