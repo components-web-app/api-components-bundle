@@ -102,5 +102,9 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         }
+    },
+    "conflict": {
+        "symfony/mailer": "5.3.8",
+        "symfony/translation": "5.3.8"
     }
 }
