@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer as SymfonyDataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
@@ -50,7 +51,7 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
 
     public function denormalize($data, $type, $format = null, array $context = [])
     {
-        if ($data instanceof UploadedDataUriFile) {
+        if ($data instanceof UploadedDataUriFile || ($data instanceof File && '' === $data->getPath())) {
             return $data;
         }
         $this->decorated->denormalize($data, $type, $format, $context);

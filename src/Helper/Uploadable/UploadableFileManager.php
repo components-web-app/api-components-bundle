@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,18 +98,20 @@ class UploadableFileManager
         $classMetadata = $this->getClassMetadata($object);
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
-        /**
-         * @var UploadableField[] $configuredProperties
-         */
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if ($currentFilepath) {
-                $this->removeFilepath($object, $fieldConfiguration);
-            }
-            /** @var UploadedDataUriFile|null $file */
+            // this will be a file that does not exist if uploaded - null if not submitted
+            /** @var File|UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
-                $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+                continue;
+            }
+
+            // this will not have been updated yet, original database value
+            $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+            if ($currentFilepath && '__DELETE__' === $file->getFilename()) {
+                // probably do not need to unset the property - will already have been unset triggering the __DELETE__ filename
+                // $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+                $this->removeFilepath($object, $fieldConfiguration);
                 continue;
             }
 

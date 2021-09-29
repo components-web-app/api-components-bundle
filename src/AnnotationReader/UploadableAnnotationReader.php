@@ -79,6 +79,8 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
 
     /**
      * @param object|string $data
+     *
+     * @return UploadableField[]
      */
     public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable
     {

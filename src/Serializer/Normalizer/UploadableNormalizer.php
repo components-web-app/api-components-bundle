@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -88,7 +89,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
 
             // Value is empty: set it to null.
             if (empty($value)) {
-                $data[$fieldName] = null;
+                $data[$fieldName] = new File('__DELETE__', false);
                 continue;
             }
 

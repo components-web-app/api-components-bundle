@@ -124,7 +124,28 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
     And the JSON node "_metadata.published" should be false
 
+  @loginAdmin
+  Scenario: When I publish an uploadable component, the file should still exist and media object returned
+    Given there is a draft DummyUploadableAndPublishable
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
+      | publishedAt   |
+      | now           |
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
+    And the JSON node "_metadata.published" should be true
+
   # DELETE
+
+  @loginAdmin
+  Scenario: I can set the file to null to delete it
+    And there is a DummyUploadableAndPublishable
+    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+      | file   |
+      | null   |
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_no_files.schema.json"
+    And the JSON node "_metadata.published" should be false
 
   @loginUser
   Scenario: I can delete a media resource

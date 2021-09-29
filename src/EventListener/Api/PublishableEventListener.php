@@ -62,6 +62,7 @@ final class PublishableEventListener
         }
 
         $publishable = $this->checkMergeDraftIntoPublished($request, $data);
+
         $event->setControllerResult($publishable);
     }
 
@@ -229,6 +230,7 @@ final class PublishableEventListener
 
         $entityManager = $this->getEntityManager($draftResource);
         $entityManager->remove($draftResource);
+
         if ($flushDatabase) {
             $entityManager->flush();
         }
