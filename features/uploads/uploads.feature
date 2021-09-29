@@ -113,6 +113,17 @@ Feature: API Resources which can have files uploaded
       | file      | schema                           |
       | image.png | uploadable_has_files.schema.json |
 
+  @loginAdmin
+  Scenario: When an uploadable resource is also publishable, uploading a resource creates a draft
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    And there is a DummyUploadableAndPublishable
+    When I send a "POST" request to the resource "dummy_uploadable" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.png |
+    Then the response status code should be 201
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
+    And the JSON node "_metadata.published" should be false
+
   # DELETE
 
   @loginUser

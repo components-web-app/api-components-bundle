@@ -166,6 +166,16 @@ class RestContext implements Context
         return $this->iSendARequestToTheResourceWithBody($method, $component, $postfix, new PyStringNode([json_encode($data)], 0));
     }
 
+    /**
+     * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?: and the postfix "([^"]*)"|)? with parameters:$/i
+     */
+    public function iSendARequestToTheResourceWithParameters(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
+    {
+        $endpoint = $this->resources[$component] . ($postfix ?: '');
+
+        return $this->restContext->iSendARequestToWithParameters($method, $endpoint, $tableNode);
+    }
+
     private function castTableNodeToArray(TableNode $tableNode): array
     {
         $data = array_map(

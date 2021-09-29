@@ -203,7 +203,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         return $data;
     }
 
-    private function createDraft(object $object, Publishable $configuration, string $type): object
+    public function createDraft(object $object, Publishable $configuration, string $type): object
     {
         $em = $this->getManagerFromType($type);
         $classMetadata = $this->getClassMetadataInfo($em, $type);

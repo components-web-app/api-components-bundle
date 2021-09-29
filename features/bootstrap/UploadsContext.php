@@ -22,6 +22,7 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -74,6 +75,20 @@ class UploadsContext implements Context
     public function thereIsADummyUploadableWithImagineFilters(): void
     {
         $object = new DummyUploadableWithImagineFilters();
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+    }
+
+    /**
+     * @Given /^there is a( draft)? DummyUploadableAndPublishable?$/
+     */
+    public function thereIsADummyUploadableAndPublishable(bool $isDraft = false): void
+    {
+        $object = new DummyUploadableAndPublishable();
+        $object->setPublishedAt($isDraft ? null : new \DateTime());
         $object->file = new File(__DIR__ . '/../assets/files/image.png');
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);

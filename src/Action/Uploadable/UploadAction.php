@@ -14,17 +14,20 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Action\Uploadable;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadAction
 {
-    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager)
+    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager, PublishableStatusChecker $publishableStatusChecker, PublishableNormalizer $publishableNormalizer)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
@@ -39,6 +42,30 @@ class UploadAction
 
         $resourceClass = $request->attributes->get('_api_resource_class');
         $resource = $data ?? new $resourceClass();
+
+        /**
+         * if it IS publishable
+         * if NOT asking to update published ?published=true
+         * if it IS currently published
+         * if the user DOES have permission.
+         */
+        $publishableAnnotationReader = $publishableStatusChecker->getAnnotationReader();
+        if ($publishableAnnotationReader->isConfigured($resource)) {
+            $configuration = $publishableAnnotationReader->getConfiguration($resource);
+            $isGranted = $publishableStatusChecker->isGranted($resource);
+            if (!$data) {
+                if (!$isGranted) {
+                    $accessor = PropertyAccess::createPropertyAccessor();
+                    $accessor->setValue($resource, $configuration->fieldName, date('Y-m-d H:i:s'));
+                }
+            } elseif (
+                $isGranted &&
+                !$publishableStatusChecker->isPublishedRequest($request) &&
+                $publishableStatusChecker->isActivePublishedAt($resource)
+            ) {
+                $resource = $publishableNormalizer->createDraft($resource, $configuration, $resourceClass);
+            }
+        }
 
         try {
             $uploadableFileManager->setUploadedFilesFromFileBag($resource, $request->files);
