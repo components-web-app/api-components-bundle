@@ -17,11 +17,11 @@ use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -46,16 +46,19 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
+    public const UPLOADABLE_TO_DELETE = 'cwa_uploadable_to_delete';
 
     private MediaObjectFactory $mediaObjectFactory;
     private UploadableAnnotationReader $annotationReader;
     private PropertyAccessor $propertyAccessor;
+    private UploadableFileManager $uploadableFileManager;
 
-    public function __construct(MediaObjectFactory $mediaObjectFactory, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry)
+    public function __construct(MediaObjectFactory $mediaObjectFactory, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry, UploadableFileManager $uploadableFileManager)
     {
         $this->mediaObjectFactory = $mediaObjectFactory;
         $this->annotationReader = $annotationReader;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->uploadableFileManager = $uploadableFileManager;
         $this->initRegistry($registry);
     }
 
@@ -87,9 +90,11 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
                 continue;
             }
 
-            // Value is empty: set it to null.
+            // Value is empty: set it to null. Might be blank string
             if (empty($value)) {
-                $data[$fieldName] = new File('__DELETE__', false);
+                $fieldConfig = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
+                $this->uploadableFileManager->addDeletedField($fieldConfig->property);
+                $data[$fieldName] = null;
                 continue;
             }
 

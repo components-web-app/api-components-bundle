@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -44,6 +45,7 @@ class UploadableFileManager
     private FileInfoCacheManager $fileInfoCacheManager;
     private ?CacheManager $imagineCacheManager;
     private ?FilterService $filterService;
+    private ArrayCollection $deletedFields;
 
     public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
     {
@@ -54,6 +56,12 @@ class UploadableFileManager
         $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
+        $this->deletedFields = new ArrayCollection();
+    }
+
+    public function addDeletedField($field)
+    {
+        $this->deletedFields->add($field);
     }
 
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
@@ -65,7 +73,7 @@ class UploadableFileManager
          * @var UploadableField[] $configuredProperties
          */
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            if ($file = $fileBag->get($fileProperty, null)) {
+            if ($file = $fileBag->get($fileProperty)) {
                 $propertyAccessor->setValue($object, $fileProperty, $file);
             }
         }
@@ -99,19 +107,19 @@ class UploadableFileManager
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            // this will be a file that does not exist if uploaded - null if not submitted
+            // this is null if null is submitted as the value and null if not submitted
             /** @var File|UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
-                continue;
-            }
-
-            // this will not have been updated yet, original database value
-            $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if ($currentFilepath && '__DELETE__' === $file->getFilename()) {
-                // probably do not need to unset the property - will already have been unset triggering the __DELETE__ filename
-                // $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
-                $this->removeFilepath($object, $fieldConfiguration);
+                if ($this->deletedFields->contains($fieldConfiguration->property)) {
+                    // this will not have been updated yet, original database value - string file path
+                    $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+                    if ($currentFilepath) {
+                        $this->removeFilepath($object, $fieldConfiguration);
+                        // file path set to null
+                        $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+                    }
+                }
                 continue;
             }
 

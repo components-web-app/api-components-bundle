@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
@@ -156,7 +157,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(MediaObjectFactory::class),
                 new Reference(UploadableAnnotationReader::class),
                 new Reference(ManagerRegistry::class),
-                new Reference(RequestStack::class),
+                new Reference(UploadableFileManager::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
