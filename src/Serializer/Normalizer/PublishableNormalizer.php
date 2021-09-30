@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -57,6 +58,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     private PropertyAccessor $propertyAccessor;
     private IriConverterInterface $iriConverter;
     private ?PurgeHttpCacheListener $purgeHttpCacheListener;
+    private UploadableFileManager $uploadableFileManager;
 
     public function __construct(
         PublishableStatusChecker $publishableStatusChecker,
@@ -64,6 +66,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         RequestStack $requestStack,
         ValidatorInterface $validator,
         IriConverterInterface $iriConverter,
+        UploadableFileManager $uploadableFileManager,
         ?PurgeHttpCacheListener $purgeHttpCacheListener = null
     ) {
         $this->publishableStatusChecker = $publishableStatusChecker;
@@ -73,6 +76,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->iriConverter = $iriConverter;
         $this->purgeHttpCacheListener = $purgeHttpCacheListener;
+        $this->uploadableFileManager = $uploadableFileManager;
     }
 
     public function normalize($object, $format = null, array $context = [])
@@ -223,6 +227,12 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
 
         // Set draftResource on data if we have permission
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
+
+        try {
+            $this->uploadableFileManager->processClonedUploadable($object, $draft);
+        } catch (\InvalidArgumentException $e) {
+            // ok exception, it may not be uploadable...
+        }
 
         // Add draft object to UnitOfWork
         $em->persist($draft);

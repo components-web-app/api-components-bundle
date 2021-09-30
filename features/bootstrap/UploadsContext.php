@@ -17,10 +17,13 @@ use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Mink\Exception\ExpectationException;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
@@ -116,5 +119,35 @@ class UploadsContext implements Context
     {
         $endpoint = 'http://example.com' . $this->restContext->resources[$resource] . '/download/file';
         $this->behatchJsonContext->theJsonNodeShouldBeEqualToTheString($node, $endpoint);
+    }
+
+    /**
+     * @Then the resource :name should have an uploaded file
+     */
+    public function theResourceShouldHaveAnUploadedFile(string $name): void
+    {
+        $item = $this->getUploadableResourceByName($name);
+        Assert::assertNotNull($item->getFilename());
+    }
+
+    /**
+     * @Then the resource :name should not have an uploaded file
+     */
+    public function theResourceShouldNotHaveAnUploadedFile(string $name): void
+    {
+        $item = $this->getUploadableResourceByName($name);
+        Assert::assertNull($item->getFilename());
+    }
+
+    private function getUploadableResourceByName(string $name)
+    {
+        $this->manager->clear();
+        try {
+            $iri = $this->restContext->resources[$name];
+            /* @var UploadableTrait $item */
+            return $this->iriConverter->getItemFromIri($iri);
+        } catch (ItemNotFoundException $exception) {
+            throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
+        }
     }
 }

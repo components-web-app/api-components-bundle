@@ -128,6 +128,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('request_stack'),
                 new Reference('api_platform.validator'),
                 new Reference(IriConverterInterface::class),
+                new Reference(UploadableFileManager::class),
                 new Reference('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);

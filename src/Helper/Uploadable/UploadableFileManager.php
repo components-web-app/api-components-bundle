@@ -59,9 +59,31 @@ class UploadableFileManager
         $this->deletedFields = new ArrayCollection();
     }
 
-    public function addDeletedField($field)
+    public function addDeletedField($field): void
     {
         $this->deletedFields->add($field);
+    }
+
+    public function processClonedUploadable(object $oldObject, object $newObject): object
+    {
+        if (!$this->annotationReader->isConfigured($oldObject)) {
+            throw new \InvalidArgumentException('The old object is not configured as uploadable');
+        }
+
+        if (\get_class($oldObject) !== \get_class($newObject)) {
+            throw new \InvalidArgumentException('The objects must be the same class');
+        }
+
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $configuredProperties = $this->annotationReader->getConfiguredProperties($oldObject, false);
+        foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
+            if ($propertyAccessor->getValue($oldObject, $fieldConfiguration->property)) {
+                $newPath = $this->copyFilepath($oldObject, $fieldConfiguration);
+                $propertyAccessor->setValue($newObject, $fieldConfiguration->property, $newPath);
+            }
+        }
+
+        return $newObject;
     }
 
     public function setUploadedFilesFromFileBag(object $object, FileBag $fileBag): void
@@ -203,5 +225,27 @@ class UploadableFileManager
         if ($filesystem->fileExists($currentFilepath)) {
             $filesystem->delete($currentFilepath);
         }
+    }
+
+    private function copyFilepath(object $object, UploadableField $fieldConfiguration)
+    {
+        $classMetadata = $this->getClassMetadata($object);
+
+        $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
+        $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        if (!$filesystem->fileExists($currentFilepath)) {
+            return null;
+        }
+        [ 'filename' => $basename, 'extension' => $extension ] = pathinfo($currentFilepath);
+        if (!empty($extension)) {
+            $extension = sprintf('.%s', $extension);
+        }
+        $num = 1;
+        while ($filesystem->fileExists($newFilepath = sprintf('%s_%d%s', $basename, $num, $extension))) {
+            ++$num;
+        }
+        $filesystem->copy($currentFilepath, $newFilepath);
+
+        return $newFilepath;
     }
 }

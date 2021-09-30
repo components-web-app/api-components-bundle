@@ -62,7 +62,6 @@ final class PublishableEventListener
         }
 
         $publishable = $this->checkMergeDraftIntoPublished($request, $data);
-
         $event->setControllerResult($publishable);
     }
 

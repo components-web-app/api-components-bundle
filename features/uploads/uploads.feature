@@ -138,14 +138,26 @@ Feature: API Resources which can have files uploaded
   # DELETE
 
   @loginAdmin
-  Scenario: I can set the file to null to delete it
+  Scenario: I can set the file to null to delete it, in a publishable component this creates a draft
     And there is a DummyUploadableAndPublishable
-    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
       | file   |
       | null   |
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_no_files.schema.json"
     And the JSON node "_metadata.published" should be false
+    And the resource dummy_uploadable should have an uploaded file
+
+  @loginAdmin
+  Scenario: I can set the file to null to delete it
+    And there is a DummyUploadableWithImagineFilters
+    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+      | file   |
+      | null   |
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_no_files.schema.json"
+    And the resource dummy_uploadable should not have an uploaded file
 
   @loginUser
   Scenario: I can delete a media resource
