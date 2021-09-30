@@ -236,7 +236,9 @@ class UploadableFileManager
         if (!$filesystem->fileExists($currentFilepath)) {
             return null;
         }
-        [ 'filename' => $basename, 'extension' => $extension ] = pathinfo($currentFilepath);
+        $pathInfo = pathinfo($currentFilepath);
+        $basename = $pathInfo['filename'];
+        $extension = $pathInfo['extension'] ?? null;
         if (!empty($extension)) {
             $extension = sprintf('.%s', $extension);
         }
