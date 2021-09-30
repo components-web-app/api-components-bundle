@@ -171,7 +171,9 @@ class UploadableFileManager
         $classMetadata = $this->getClassMetadata($object);
 
         $filePath = $classMetadata->getFieldValue($object, $propertyConfiguration->property);
-
+        if (empty($filePath)) {
+            return new Response('The file path for this resource is empty', Response::HTTP_NOT_FOUND);
+        }
         $response = new StreamedResponse();
         $response->setCallback(
             static function () use ($filesystem, $filePath) {
