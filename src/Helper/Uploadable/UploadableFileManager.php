@@ -227,7 +227,7 @@ class UploadableFileManager
         }
     }
 
-    private function copyFilepath(object $object, UploadableField $fieldConfiguration)
+    private function copyFilepath(object $object, UploadableField $fieldConfiguration): ?string
     {
         $classMetadata = $this->getClassMetadata($object);
 

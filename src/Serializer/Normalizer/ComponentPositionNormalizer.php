@@ -136,10 +136,11 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     {
         $pageData = $this->pageDataProvider->getPageData();
         if (!$pageData) {
-            if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
-                return $object;
-            }
-            throw new UnexpectedValueException('Could not find page data for this route.');
+            return $object;
+//            if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
+//                return $object;
+//            }
+//            throw new UnexpectedValueException('Could not find page data for this route.');
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
