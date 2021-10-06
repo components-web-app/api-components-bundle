@@ -28,18 +28,21 @@ class SerializerCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        $definition = $container->getDefinition('serializer.mapping.chain_loader');
-        $definition->replaceArgument(
-            0,
-            array_merge(
-                $definition->getArgument(0),
-                [
-                    new Reference(PublishableLoader::class),
-                    new Reference(TimestampedLoader::class),
-                    new Reference(CwaResourceLoader::class),
-                    new Reference(UploadableLoader::class),
-                ]
-            )
-        );
+        $definitions = ['serializer.mapping.chain_loader', 'serializer.mapping.cache_warmer'];
+        foreach ($definitions as $definitonId) {
+            $definition = $container->getDefinition($definitonId);
+            $definition->replaceArgument(
+                0,
+                array_merge(
+                    $definition->getArgument(0),
+                    [
+                        new Reference(PublishableLoader::class),
+                        new Reference(TimestampedLoader::class),
+                        new Reference(CwaResourceLoader::class),
+                        new Reference(UploadableLoader::class),
+                    ]
+                )
+            );
+        }
     }
 }

@@ -137,6 +137,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $pageData = $this->pageDataProvider->getPageData();
         if (!$pageData) {
             return $object;
+            // Todo: causes a 500 error, perhaps we should look to return 404 and the front-end to handle this on server-side when it will not be admin then try again client-side
 //            if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
 //                return $object;
 //            }

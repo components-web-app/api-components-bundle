@@ -43,13 +43,11 @@ final class UploadableLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        /* @var Uploadable $configuration */
         if (!$this->reader->getClassAnnotation($reflectionClass, Uploadable::class)) {
             return true;
         }
 
         $properties = $reflectionClass->getProperties();
-
         $allAttributesMetadata = $classMetadata->getAttributesMetadata();
         $shortClassName = $reflectionClass->getShortName();
         $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
