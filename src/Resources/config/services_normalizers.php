@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageDataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
@@ -132,6 +133,16 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
+
+    $services
+        ->set(PageDataNormalizer::class)
+        ->autoconfigure(false)
+        ->args(
+            [
+                new Reference('doctrine'),
+                new Reference(IriConverterInterface::class),
+            ]
+        )->tag('serializer.normalizer', ['priority' => -499]);
 
     $services
         ->set(RouteNormalizer::class)

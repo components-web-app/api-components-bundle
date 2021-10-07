@@ -487,6 +487,24 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is an empty PageData resource
+     */
+    public function thereIsAnEmptyPageDataResource(): void
+    {
+        $page = new Page();
+        $page->reference = 'test page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $pageData = new PageDataWithComponent();
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a PageData resource with the route path :route
      */
     public function thereIsAPageDataResourceWithRoutePath(?string $path): void
