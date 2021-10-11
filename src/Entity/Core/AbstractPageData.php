@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * We must define this as an API resource, otherwise when serializing and the relation is to this class,
@@ -24,5 +25,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
  */
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
+    /**
+     * @Assert\NotBlank(message="Please select a page template")
+     */
     public Page $page;
 }
