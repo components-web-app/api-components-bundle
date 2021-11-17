@@ -28,3 +28,10 @@ Feature: Dynamic pages
     When I send a "GET" request to the resource "component_position"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "component_position.schema.json"
+
+  Scenario: Populating the component from a page data property
+    Given there is a PageData resource with the route path "/page-data"
+    And I add "path" header equal to the resource "page_data"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema file "component_position.schema.json"

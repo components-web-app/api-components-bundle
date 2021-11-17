@@ -508,6 +508,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(RequestStack::class),
             new Reference('silverback.repository.route'),
+            new Reference('api_platform.iri_converter'),
         ]);
 
     $services

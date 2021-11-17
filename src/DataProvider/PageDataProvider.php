@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -25,11 +26,13 @@ class PageDataProvider
 {
     private RequestStack $requestStack;
     private RouteRepository $routeRepository;
+    private IriConverterInterface $iriConverter;
 
-    public function __construct(RequestStack $requestStack, RouteRepository $routeRepository)
+    public function __construct(RequestStack $requestStack, RouteRepository $routeRepository, IriConverterInterface $iriConverter)
     {
         $this->requestStack = $requestStack;
         $this->routeRepository = $routeRepository;
+        $this->iriConverter = $iriConverter;
     }
 
     private function getOriginalRequestPath(): ?string
@@ -55,6 +58,11 @@ class PageDataProvider
 
         $route = $this->routeRepository->findOneByIdOrPath($path);
         if (!$route) {
+            $object = $this->iriConverter->getItemFromIri($path);
+            if ($object instanceof AbstractPageData) {
+                return $object;
+            }
+
             return null;
         }
 

@@ -37,7 +37,7 @@ class RouteRepository extends ServiceEntityRepository
         parent::__construct($registry, Route::class);
     }
 
-    public function findOneByIdOrPath(string $idOrRoute)
+    public function findOneByIdOrPath(string $idOrRoute): ?Route
     {
         $route = $this->findOneBy(
             [
@@ -50,11 +50,12 @@ class RouteRepository extends ServiceEntityRepository
 
         try {
             $uuid = Uuid::fromString($idOrRoute);
+
+            return $this->find($uuid);
         } catch (InvalidUuidStringException $e) {
-            return null;
         }
 
-        return $this->find($uuid);
+        return null;
     }
 
     /**
