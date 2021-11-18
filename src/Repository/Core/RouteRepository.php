@@ -71,7 +71,6 @@ class RouteRepository extends ServiceEntityRepository
                 Join::WITH,
                 $queryBuilder->expr()->eq('route', 'pageData.route')
             )
-
             ->leftJoin(
                 'pageData.page',
                 'pageData_page',

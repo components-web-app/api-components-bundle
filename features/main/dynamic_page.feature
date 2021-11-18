@@ -7,7 +7,7 @@ Feature: Dynamic pages
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
-  @loginUser
+  @loginAdmin
   Scenario: When I get a page data resource, it will be returned with the components generated
     Given there is an empty PageData resource
     When I send a "GET" request to the resource "page_data"

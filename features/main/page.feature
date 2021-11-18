@@ -52,7 +52,7 @@ Feature: Page resources
       | resource[layout]   | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |
       | resource[layout]   | null      | true   | The type of the "reference" attribute must be "string", "NULL" given. |
 
-  @loginUser
+  @loginAdmin
   Scenario: I can delete a page
     Given there is a Page
     When I send a "DELETE" request to the resource "page"

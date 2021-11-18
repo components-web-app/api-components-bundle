@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 use Exception;
 use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
@@ -43,6 +44,7 @@ use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
@@ -141,6 +143,12 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition(RouteVoter::class);
         $definition->setArgument('$config', $config['route_security']);
+
+        $definition = $container->getDefinition(RoutableExtension::class);
+        $definition->setArgument('$securityStr', $config['routable_security']);
+
+        $definition = $container->getDefinition(RoutableVoter::class);
+        $definition->setArgument('$securityStr', $config['routable_security']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void

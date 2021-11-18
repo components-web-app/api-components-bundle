@@ -72,12 +72,14 @@ final class DenyAccessListener
 
     private function isComponentAccessible(AbstractComponent $component, Request $request): bool
     {
+        // TODO: What if the component is nested in another component's component collection, that's recursive... TBD
+        // Maybe we need to select the component and traverse up querying as we go... can we .. ?
         return true === ($isRouteAllowed = $this->isComponentAllowedByRoute($component)) ||
-            true === ($isPageDataAllowed = $this->isComponentAllowedByPageDataSecurityPolicy($component, $request)) ||
+            true === ($isPageDataAllowed = $this->isComponentAllowedByIfPageDataIsReachableAnonymously($component, $request)) ||
             (null === $isRouteAllowed && null === $isPageDataAllowed);
     }
 
-    private function isComponentAllowedByPageDataSecurityPolicy(AbstractComponent $component, Request $request): ?bool
+    private function isComponentAllowedByIfPageDataIsReachableAnonymously(AbstractComponent $component, Request $request): ?bool
     {
         $pageDataResources = $this->pageDataRepository->findByComponent($component);
 

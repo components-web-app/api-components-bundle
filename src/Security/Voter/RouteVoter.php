@@ -43,7 +43,7 @@ class RouteVoter extends Voter
      */
     protected function voteOnAttribute($attribute, $route, TokenInterface $token): bool
     {
-        foreach ($this->config as $index => $routeConfig) {
+        foreach ($this->config as $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
             if (!$this->resourceAccessChecker->isGranted(\get_class($route), $routeConfig['security']) && preg_match(sprintf('#%s#', $routeRegex), $route->getPath())) {
                 return false;

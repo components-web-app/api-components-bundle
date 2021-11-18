@@ -29,3 +29,4 @@ silverback_api_components:
         permission: "is_granted('ROLE_ADMIN')"
     route_security:
         - { route: "/user-area*", security: "is_granted('ROLE_USER')" }
+    routable_security: "is_granted('ROLE_ADMIN')"

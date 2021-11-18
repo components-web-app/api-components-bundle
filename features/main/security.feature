@@ -68,7 +68,7 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to the resource "component_0"
     Then the response status code should be 401
 
-  @loginUser
+  @loginAdmin
   Scenario: A component in a PageData resource which is restricted by API Platform security metadata is allowed by a user
     Given there is a component in a RestrictedPageData route with the path null
     When I send a "GET" request to the resource "component_0"
@@ -82,6 +82,18 @@ Feature: Restrict loading of components and routes
 
   Scenario: A component forbidden in a static route but allowed within PageData is allowed
     Given there is a component in a route with the path "/user-area/my-page"
-    And there is a component in a PageData route with the path null
+    And there is a component in a PageData route with the path "/any-path"
     When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
+
+  # Un-routed routable page security
+  Scenario: A routable resource is forbidden to be loaded
+    Given there is a Page
+    When I send a "GET" request to the resource "page"
+    Then the response status code should be 401
+
+  @loginAdmin
+  Scenario: A routable resource can be loaded by an admin
+    Given there is a Page
+    When I send a "GET" request to the resource "page"
     Then the response status code should be 200

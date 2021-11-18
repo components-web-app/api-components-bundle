@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
@@ -43,6 +44,7 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
@@ -109,6 +111,7 @@ use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
@@ -792,11 +795,38 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('security.voter');
 
     $services
+        ->set(RoutableExtension::class)
+        ->args(
+            [
+                '', // added in dependency injection
+                new Reference('api_platform.security.resource_access_checker'),
+            ]
+        )
+        ->tag('api_platform.doctrine.orm.query_extension.collection');
+
+    $services
+        ->set(RoutableVoter::class)
+        ->args([
+            '', // added in dependency injection
+            new Reference('api_platform.security.resource_access_checker'),
+        ])
+        ->tag('security.voter');
+
+    $services
         ->set(RoutingPrefixResourceMetadataFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_factory')
         ->args(
             [
                 new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+            ]
+        );
+
+    $services
+        ->set(RoutableResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args(
+            [
+                new Reference(RoutableResourceMetadataFactory::class . '.inner'),
             ]
         );
 

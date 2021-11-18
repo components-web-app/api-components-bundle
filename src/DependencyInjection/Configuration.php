@@ -34,6 +34,7 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         $this->addRouteSecurityNode($rootNode);
+        $this->addRoutableSecurityNode($rootNode);
         $this->addRefreshTokenNode($rootNode);
         $this->addPublishableNode($rootNode);
         $this->addEnabledComponentsNode($rootNode);
@@ -54,6 +55,14 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+            ->end();
+    }
+
+    private function addRoutableSecurityNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->scalarNode('routable_security')->defaultNull()->end()
             ->end();
     }
 

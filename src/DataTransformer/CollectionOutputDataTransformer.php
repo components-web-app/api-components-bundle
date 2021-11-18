@@ -61,7 +61,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     /**
      * @param Collection $object
      */
-    public function transform($object, string $to, array $context = [])
+    public function transform($object, string $to, array $context = []): Collection
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
@@ -125,7 +125,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $object;
     }
 
-    private function getFilters(Collection $object, Request $request)
+    private function getFilters(Collection $object, Request $request): ?array
     {
         if ($queryParams = $object->getDefaultQueryParameters()) {
             $request = clone $request;
