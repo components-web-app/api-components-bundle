@@ -147,7 +147,9 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
         if (!$component) {
-            throw new UnexpectedValueException(sprintf('Page data does not contain a value at %s', $object->pageDataProperty));
+            // it is now optional to have the page data defined
+            return $object;
+            // throw new UnexpectedValueException(sprintf('Page data does not contain a value at %s', $object->pageDataProperty));
         }
 
         if (!$component instanceof AbstractComponent) {
