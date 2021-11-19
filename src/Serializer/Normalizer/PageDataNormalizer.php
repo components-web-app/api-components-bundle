@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -34,16 +34,16 @@ final class PageDataNormalizer implements ContextAwareNormalizerInterface, Cache
     private const ALREADY_CALLED = 'PAGE_DATA_NORMALIZER_ALREADY_CALLED';
 
     private ManagerRegistry $registry;
-    private IriConverterInterface $iriConverter;
     private PropertyAccessor $propertyAccessor;
+    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
 
     public function __construct(
         ManagerRegistry $registry,
-        IriConverterInterface $iriConverter
+        ResourceMetadataFactoryInterface $resourceMetadataFactory
     ) {
         $this->registry = $registry;
-        $this->iriConverter = $iriConverter;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
     public function normalize($object, $format = null, array $context = [])
@@ -71,14 +71,10 @@ final class PageDataNormalizer implements ContextAwareNormalizerInterface, Cache
         $assocFields = array_filter($classMetadata->getAssociationNames(), static function ($name) use ($abstractProps) {
             return !\in_array($name, $abstractProps, true);
         });
-        $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $props = [];
         foreach ($assocFields as $assocField) {
-            $assocData = $propertyAccessor->getValue($data, $assocField);
-            if (!$assocData) {
-                $resourceClass = $classMetadata->getAssociationTargetClass($assocField);
-                $props[$assocField] = $this->iriConverter->getIriFromResourceClass($resourceClass);
-            }
+            $resourceClass = $classMetadata->getAssociationTargetClass($assocField);
+            $props[$assocField] = $this->resourceMetadataFactory->create($resourceClass)->getShortName();
         }
 
         return $props;

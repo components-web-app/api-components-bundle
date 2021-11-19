@@ -140,7 +140,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('doctrine'),
-                new Reference(IriConverterInterface::class),
+                new Reference('api_platform.metadata.resource.metadata_factory'),
             ]
         )->tag('serializer.normalizer', ['priority' => -499]);
 

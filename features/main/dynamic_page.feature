@@ -13,7 +13,7 @@ Feature: Dynamic pages
     When I send a "GET" request to the resource "page_data"
     Then the response status code should be 200
     And the JSON node "_metadata.page_data_props" should have 1 element
-    And the JSON node "_metadata.page_data_props.component" should be equal to "/component/dummy_components"
+    And the JSON node "_metadata.page_data_props.component" should be equal to "DummyComponent"
 
   Scenario: Populating the component from a page data property
     Given there is a PageData resource with the route path "/page-data"
