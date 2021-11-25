@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use ApiPlatform\Core\Api\IriConverterInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -23,6 +24,8 @@ use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
+use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -52,6 +55,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     private Security $security;
     private PublishableStatusChecker $publishableStatusChecker;
     private ManagerRegistry $registry;
+    private IriConverterInterface $iriConverter;
 
     public function __construct(
         PageDataProvider $pageDataProvider,
@@ -59,7 +63,8 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         RequestStack $requestStack,
         Security $security,
         PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry $registry
+        ManagerRegistry $registry,
+        IriConverterInterface $iriConverter
     ) {
         $this->pageDataProvider = $pageDataProvider;
         $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
@@ -67,6 +72,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $this->security = $security;
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->registry = $registry;
+        $this->iriConverter = $iriConverter;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -106,6 +112,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         $context[self::ALREADY_CALLED] = true;
 
+        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $object->component ? $this->iriConverter->getIriFromItem($object->component) : null;
         if ($object->pageDataProperty && (bool) $this->requestStack->getCurrentRequest()) {
             $object = $this->normalizeForPageData($object);
         }
@@ -145,7 +152,12 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
+        try {
+            $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
+        } catch (UnexpectedTypeException | NoSuchIndexException $e) {
+            return $object;
+        }
+
         if (!$component) {
             // it is now optional to have the page data defined
             return $object;

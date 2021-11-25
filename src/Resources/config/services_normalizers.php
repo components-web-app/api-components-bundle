@@ -84,6 +84,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('security.helper'),
             new Reference(PublishableStatusChecker::class),
             new Reference(ManagerRegistry::class),
+            new Reference('api_platform.iri_converter'),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
