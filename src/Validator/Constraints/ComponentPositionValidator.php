@@ -41,8 +41,12 @@ class ComponentPositionValidator extends ConstraintValidator
         if (!$collection) {
             return;
         }
+        $component = $componentPosition->component;
+        if (!$component) {
+            return;
+        }
 
-        $iri = $this->iriConverter->getIriFromResourceClass(\get_class($componentPosition->component));
+        $iri = $this->iriConverter->getIriFromResourceClass(\get_class($component));
 
         if ($allowedComponents = $collection->allowedComponents) {
             if (!$allowedComponents->contains($iri)) {
@@ -56,7 +60,7 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        if ($componentPosition->component->isPositionRestricted()) {
+        if ($component->isPositionRestricted()) {
             $this->context->buildViolation($constraint->restrictedMessage)
                 ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
