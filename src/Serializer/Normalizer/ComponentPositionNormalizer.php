@@ -20,11 +20,11 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Security;
@@ -154,7 +154,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         try {
             $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
-        } catch (UnexpectedTypeException | NoSuchIndexException $e) {
+        } catch (UnexpectedTypeException | NoSuchIndexException | NoSuchPropertyException $e) {
             return $object;
         }
 
