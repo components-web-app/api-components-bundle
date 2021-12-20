@@ -22,6 +22,9 @@
             },
             "reference": {
               "type": "string"
+            },
+            "isTemplate": {
+              "type": "boolean"
             }
           }
         }

@@ -5,6 +5,7 @@
         <field name="reference" type="string" column="reference" precision="0" scale="0" unique="true" nullable="false"/>
         <field name="nested" type="boolean" column="nested" precision="0" scale="0" nullable="false"/>
         <field name="title" type="string" column="title" precision="0" scale="0" nullable="true"/>
+        <field name="isTemplate" type="boolean" column="is_template" precision="0" scale="0" nullable="false"/>
         <field name="metaDescription" type="string" column="meta_description" precision="0" scale="0" nullable="true"/>
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
         <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>

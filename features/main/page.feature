@@ -13,21 +13,21 @@ Feature: Page resources
     And there is a Layout
     And there are 2 Routes
     When I send a "POST" request to "/_/pages" with data:
-      | route    | parentRoute      | layout    | componentCollection   | reference   | title   | metaDescription   | nested    | uiComponent   |
-      | <route>  | <parentRoute>    | <layout>  | <componentCollection> | <reference> | <title> | <metaDescription> | <nested>  | <uiComponent> |
+      | route    | parentRoute      | layout    | componentCollection   | reference   | title   | metaDescription   | nested    | uiComponent   | isTemplate   |
+      | <route>  | <parentRoute>    | <layout>  | <componentCollection> | <reference> | <title> | <metaDescription> | <nested>  | <uiComponent> | <isTemplate> |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
     Examples:
-      | route              | parentRoute            | layout             | componentCollection            | reference | title     | metaDescription | nested | uiComponent      |
-      | resource[route_0]  | resource[route_1]      | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  | myComponent      |
-      | null               | null                   | resource[layout]   | null                           | home      | null      | null            | true   | myComponent      |
+      | route              | parentRoute            | layout             | componentCollection            | reference | title     | metaDescription | nested | uiComponent      | isTemplate |
+      | resource[route_0]  | resource[route_1]      | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  | myComponent      | true       |
+      | null               | null                   | resource[layout]   | null                           | home      | null      | null            | true   | myComponent      | false      |
 
   @loginUser
   Scenario Outline: The page resource validates correctly
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
-      | layout    | reference   | nested    | uiComponent   |
-      | <layout>  | <reference> | false     | <uiComponent> |
+      | layout    | reference   | nested    | uiComponent   | isTemplate |
+      | <layout>  | <reference> | false     | <uiComponent> | false      |
     Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors.schema.json"
     And the JSON node "violations[0].propertyPath" should be equal to "<propertyPath>"
@@ -42,8 +42,8 @@ Feature: Page resources
   Scenario Outline: The page resource returns errors on incorrect data types
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
-      | layout    | reference   | nested    |
-      | <layout>  | <reference> | <nested>  |
+      | layout    | reference   | nested    | isTemplate |
+      | <layout>  | <reference> | <nested>  | false      |
     Then the response status code should be 500
     And the JSON should be valid according to the schema file "error.schema.json"
     And the JSON node "hydra:description" should be equal to the string '<message>'

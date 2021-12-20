@@ -29,6 +29,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
@@ -383,6 +384,7 @@ final class DoctrineContext implements Context
     public function thereIsAPage(string $reference = 'page'): Page
     {
         $page = new Page();
+        $page->isTemplate = false;
         $page->reference = $reference;
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
@@ -422,6 +424,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($route);
 
         $page = new Page();
+        $page->isTemplate = false;
         $page->reference = 'route-page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
@@ -461,6 +464,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($route);
 
         $page = new Page();
+        $page->isTemplate = false;
         $page->reference = 'route-page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
@@ -492,6 +496,7 @@ final class DoctrineContext implements Context
     public function thereIsAnEmptyPageDataResource(): void
     {
         $page = new Page();
+        $page->isTemplate = true;
         $page->reference = 'test page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
@@ -524,6 +529,7 @@ final class DoctrineContext implements Context
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
 
         $page = new Page();
+        $page->isTemplate = true;
         $page->reference = 'test page';
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
@@ -635,6 +641,9 @@ final class DoctrineContext implements Context
     public function theIsAComponentInARouteWithPath(string $resource, string $path): void
     {
         $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$resource]);
+        if (!$component instanceof AbstractComponent) {
+            throw new \RuntimeException(sprintf('The resource named `%s` is not a component', $resource));
+        }
 
         $page = $this->thereIsAPage('page_1');
 

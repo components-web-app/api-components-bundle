@@ -25,7 +25,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  * @author Daniel West <daniel@silverback.is>
  * @ApiResource(mercure=true)
  * @ApiFilter(OrderFilter::class, properties={"createdAt", "reference"}, arguments={"orderParameterName"="order"})
- * @ApiFilter(OrSearchFilter::class, properties={"title"="ipartial", "reference"="ipartial", "uiComponent"="ipartial", "layout.reference"="ipartial"})
+ * @ApiFilter(OrSearchFilter::class, properties={"title"="ipartial", "reference"="ipartial", "isTemplate"="exact", "uiComponent"="ipartial", "layout.reference"="ipartial"})
  */
 class Page extends AbstractPage
 {
@@ -40,6 +40,11 @@ class Page extends AbstractPage
      * @Assert\NotBlank(message="Please enter a reference.")
      */
     public string $reference;
+
+    /**
+     * @Assert\NotNull(message="Please specify if this page is a template or not.")
+     */
+    public bool $isTemplate;
 
     public function __construct()
     {
