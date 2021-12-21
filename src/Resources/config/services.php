@@ -99,6 +99,9 @@ use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
+use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
+use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
@@ -1169,4 +1172,28 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('container.service_subscriber');
 
     $services->alias(Environment::class, 'twig');
+
+    $services
+        ->set('silverback.metadata.resource.metadata_factory')
+        ->class(PageDataMetadataFactory::class)
+        ->args(
+            [
+                new Reference('doctrine'),
+                new Reference('api_platform.metadata.resource.metadata_factory'),
+            ]
+        );
+
+    $services
+        ->alias(PageDataMetadataFactoryInterface::class, 'silverback.metadata.resource.metadata_factory');
+
+    $services
+        ->set('silverback.metadata.resource.metadata_factory.cached')
+        ->decorate('silverback.metadata.resource.metadata_factory')
+        ->class(CachedPageDataMetadataFactory::class)
+        ->args(
+            [
+                new Reference('api_platform.cache.metadata.resource'),
+                new Reference('silverback.metadata.resource.metadata_factory.cached.inner'),
+            ]
+        );
 };

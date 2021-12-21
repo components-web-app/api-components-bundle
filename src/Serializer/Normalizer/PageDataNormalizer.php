@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
+use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -33,51 +32,22 @@ final class PageDataNormalizer implements ContextAwareNormalizerInterface, Cache
 
     private const ALREADY_CALLED = 'PAGE_DATA_NORMALIZER_ALREADY_CALLED';
 
-    private ManagerRegistry $registry;
     private PropertyAccessor $propertyAccessor;
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
+    private PageDataMetadataFactoryInterface $pageDataMetadataFactory;
 
-    public function __construct(
-        ManagerRegistry $registry,
-        ResourceMetadataFactoryInterface $resourceMetadataFactory
-    ) {
-        $this->registry = $registry;
+    public function __construct(PageDataMetadataFactoryInterface $pageDataMetadataFactory)
+    {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->resourceMetadataFactory = $resourceMetadataFactory;
+        $this->pageDataMetadataFactory = $pageDataMetadataFactory;
     }
 
     public function normalize($object, $format = null, array $context = [])
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $context[MetadataNormalizer::METADATA_CONTEXT]['page_data_props'] = $this->getPageDataProps($object);
+        $metadata = $this->pageDataMetadataFactory->create(\get_class($object));
+        $context[MetadataNormalizer::METADATA_CONTEXT]['page_data_metadata'] = $this->normalizer->normalize($metadata, $format, $context);
 
         return $this->normalizer->normalize($object, $format, $context);
-    }
-
-    private function getPageDataProps(AbstractPageData $data): array
-    {
-        $abstractRefl = new \ReflectionClass(AbstractPageData::class);
-        $reflProps = $abstractRefl->getProperties();
-        $abstractProps = array_map(static function (\ReflectionProperty $prop) {
-            return $prop->name;
-        }, $reflProps);
-
-        $resourceClass = \get_class($data);
-        $manager = $this->registry->getManagerForClass($resourceClass);
-        if (!$manager) {
-            return [];
-        }
-        $classMetadata = $manager->getClassMetadata($resourceClass);
-        $assocFields = array_filter($classMetadata->getAssociationNames(), static function ($name) use ($abstractProps) {
-            return !\in_array($name, $abstractProps, true);
-        });
-        $props = [];
-        foreach ($assocFields as $assocField) {
-            $resourceClass = $classMetadata->getAssociationTargetClass($assocField);
-            $props[$assocField] = $this->resourceMetadataFactory->create($resourceClass)->getShortName();
-        }
-
-        return $props;
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool
