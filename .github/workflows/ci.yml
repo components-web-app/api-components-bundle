@@ -58,11 +58,11 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
       - name: Install PHP-CS-Fixer
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             friendsofphp/php-cs-fixer:"${PHP_CS_FIXER_VERSION}"
       - name: Cache PHP-CS-Fixer results
         uses: actions/cache@v1
@@ -160,16 +160,16 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --ansi
+          composer update --no-progress --ansi
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -309,16 +309,16 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --ansi
+          composer update --no-progress --ansi
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -420,16 +420,16 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --ansi --prefer-stable --prefer-lowest
+          composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -500,16 +500,16 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
-          composer global require --prefer-dist --no-progress --no-suggest --ansi \
+          composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
         run: |
           mkdir -p /tmp/api-component/core/vendor
           ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --no-suggest --ansi --prefer-stable --prefer-lowest
+          composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -587,18 +587,18 @@ jobs:
           continue-on-error: true
       -   name: Install Symfony Flex
           run: |
-            composer global require --prefer-dist --no-progress --no-suggest --ansi \
+            composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
       -   name: Allow unstable project dependencies
           run: |
             jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
       -   name: Update project dependencies
           env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
-            composer update --no-progress --no-suggest --ansi
+            composer update --no-progress --ansi
       -   name: Flag held back Symfony packages
           env:
             symfony_version: ${{ matrix.symfony }}
@@ -688,18 +688,18 @@ jobs:
           continue-on-error: true
       -   name: Install Symfony Flex
           run: |
-            composer global require --prefer-dist --no-progress --no-suggest --ansi \
+            composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
       -   name: Allow unstable project dependencies
           run: |
             jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
       -   name: Update project dependencies
           env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+            COMPOSER_AUTH: ${{secrets.GITHUB_TOKEN}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
-            composer update --no-progress --no-suggest --ansi
+            composer update --no-progress --ansi
       -   name: Flag held back Symfony packages
           env:
             symfony_version: ${{ matrix.symfony }}
