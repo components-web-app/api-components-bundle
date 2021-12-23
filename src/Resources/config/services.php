@@ -39,6 +39,8 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMet
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
+use Silverback\ApiComponentsBundle\DataProvider\Collection\PageDataMetadataCollectionProvider;
+use Silverback\ApiComponentsBundle\DataProvider\Item\PageDataMetadataItemProvider;
 use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\Item\UserDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -1266,4 +1268,24 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.metadata.resource.name_collection_factory'),
             new Reference('silverback.metadata_factory.page_data'),
         ]);
+
+    $services
+        ->set(PageDataMetadataItemProvider::class)
+        ->args(
+            [
+                new Reference('silverback.metadata_factory.page_data'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+
+    $services
+        ->set(PageDataMetadataCollectionProvider::class)
+        ->args(
+            [
+                new Reference('silverback.metadata_provider.page_data'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.collection_data_provider', ['priority' => 1]);
 };

@@ -276,6 +276,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $mappingPaths = [$srcBase . '/Entity/Core'];
         $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'uploadable');
+        $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'page_data_metadata');
         foreach ($config['enabled_components'] as $key => $enabled_component) {
             if (true === $enabled_component) {
                 $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, $key);
