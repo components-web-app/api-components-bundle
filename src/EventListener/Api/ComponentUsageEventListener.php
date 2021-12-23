@@ -18,7 +18,7 @@ use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactor
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
- * If the usage endpoint is used for a component, this will override the output with usage metadata
+ * If the usage endpoint is used for a component, this will override the output with usage metadata.
  *
  * @author Daniel West <daniel@silverback.is>
  */

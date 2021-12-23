@@ -106,6 +106,7 @@ use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactor
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
+use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -1219,9 +1220,8 @@ return static function (ContainerConfigurator $configurator) {
         ->class(ComponentUsageMetadataFactory::class)
         ->args(
             [
-                new Reference('api_platform.metadata.resource.name_collection_factory'),
                 new Reference('api_platform.metadata.resource.metadata_factory'),
-                new Reference('silverback.metadata_factory.page_data'),
+                new Reference('silverback.metadata_provider.page_data'),
                 new Reference('silverback.doctrine.repository.component_position'),
                 new Reference(ManagerRegistry::class),
             ]
@@ -1258,4 +1258,12 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+
+    $services
+        ->set('silverback.metadata_provider.page_data')
+        ->class(PageDataMetadataProvider::class)
+        ->args([
+            new Reference('api_platform.metadata.resource.name_collection_factory'),
+            new Reference('silverback.metadata_factory.page_data'),
+        ]);
 };
