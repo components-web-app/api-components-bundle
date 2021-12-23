@@ -53,7 +53,7 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
             throw new PageDataNotFoundException(sprintf('Resource class `%s` is not a valid page data resource', $resourceClass));
         }
 
-        // FInd the doctrine manager
+        // Find the doctrine manager
         $manager = $this->registry->getManagerForClass($resourceClass);
         if (!$manager) {
             throw new PageDataNotFoundException(sprintf('Cannot find manager for page data resource `%s`', $resourceClass));

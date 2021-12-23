@@ -81,7 +81,7 @@ final class DenyAccessListener
 
     private function isComponentAllowedByIfPageDataIsReachableAnonymously(AbstractComponent $component, Request $request): ?bool
     {
-        $pageDataResources = $this->pageDataRepository->findByComponent($component);
+        $pageDataResources = $this->pageDataRepository->findByNestedComponent($component);
 
         // abstain - no results to say yay or nay
         if (!\count($pageDataResources)) {

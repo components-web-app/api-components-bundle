@@ -37,7 +37,7 @@ class AbstractPageDataRepository extends ServiceEntityRepository
     /**
      * @return AbstractPageData[]
      */
-    public function findByComponent(AbstractComponent $component): array
+    public function findByNestedComponent(AbstractComponent $component): array
     {
         $queryBuilder = $this->createQueryBuilder('pageData');
         $queryBuilder
@@ -61,7 +61,6 @@ class AbstractPageDataRepository extends ServiceEntityRepository
                 Join::WITH,
                 $queryBuilder->expr()->eq('page_data_pos.component', 'page_data_component')
             )
-
             ->andWhere(
                 $queryBuilder->expr()->eq('page_data_component', ':component')
             )

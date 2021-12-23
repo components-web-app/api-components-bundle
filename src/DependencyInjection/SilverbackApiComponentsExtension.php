@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -229,8 +230,12 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_components.form_type');
 
-        $container->registerForAutoconfiguration(ComponentInterface::class)
-            ->addTag('silverback_api_components.entity.component');
+        // these won't work because they are not services...
+//        $container->registerForAutoconfiguration(ComponentInterface::class)
+//            ->addTag('silverback_api_components.entity.component');
+//
+//        $container->registerForAutoconfiguration(PageDataInterface::class)
+//            ->addTag('silverback_api_components.entity.page_data');
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');

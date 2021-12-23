@@ -83,4 +83,11 @@ class PageDataMetadata
 
         return $this;
     }
+
+    public function findPropertiesByComponentClass(string $componentClass): Collection
+    {
+        return $this->properties->filter(static function (PageDataPropertyMetadata $propertyMetadata) use ($componentClass) {
+            return $propertyMetadata->getComponentClass() === $componentClass;
+        });
+    }
 }

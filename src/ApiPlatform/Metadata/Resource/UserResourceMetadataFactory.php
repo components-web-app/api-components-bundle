@@ -41,7 +41,7 @@ class UserResourceMetadataFactory implements ResourceMetadataFactoryInterface
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
         $itemOperations['me'] = array_replace_recursive([], $itemOperations['get'], [
             'method' => 'GET',
-            'path' => '/me.{_format} ',
+            'path' => '/me.{_format}',
             'security' => 'is_granted("IS_AUTHENTICATED_FULLY")',
         ]);
 

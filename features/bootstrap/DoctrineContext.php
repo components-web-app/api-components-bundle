@@ -556,6 +556,42 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a DummyComponent in PageData and a Position
+     */
+    public function thereIsADummyComponentInPageDataAndAPosition()
+    {
+        $componentCollection = new ComponentCollection();
+        $componentCollection->reference = 'test';
+        $componentCollection->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
+        $this->manager->persist($componentCollection);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'test page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $dummyComponent = $this->thereIsADummyComponent();
+        $pageData = new PageDataWithComponent();
+        $pageData->component = $dummyComponent;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->component = $dummyComponent;
+        $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a component in a route with the path :path
      */
     public function thereIsAComponentInARouteWithPath(string $path): void

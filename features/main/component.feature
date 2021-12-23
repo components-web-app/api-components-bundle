@@ -7,6 +7,14 @@ Feature: Components
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
+  Scenario: I can get a component's usage
+    Given there is a DummyComponent in PageData and a Position
+    When I send a "GET" request to the resource "dummy_component" and the postfix "/usage"
+    Then the response status code should be 200
+    And the JSON node "total" should be equal to 2
+    And the JSON node "positionCount" should be equal to 1
+    And the JSON node "pageDataCount" should be equal to 1
+
   @loginUser
   Scenario: I can create a component
     When I send a "POST" request to "/component/dummy_components" with body:
@@ -46,7 +54,7 @@ Feature: Components
     And the JSON node "component" should be equal to the IRI of the resource "new_component"
 
   @loginUser
-  Scenario: When I delete a component
+  Scenario: I can delete a component
     Given there is a DummyComponent
     When I send a "DELETE" request to the resource "dummy_component"
     Then the response status code should be 204

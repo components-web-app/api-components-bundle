@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
@@ -51,6 +52,7 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\ComponentEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
@@ -100,10 +102,12 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
+use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
+use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
@@ -171,7 +175,8 @@ return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
     $services
-        ->set(AbstractPageDataRepository::class)
+        ->set('silverback.doctrine.repository.page_data')
+        ->class(AbstractPageDataRepository::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
@@ -283,7 +288,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.repository.route'),
-                new Reference(AbstractPageDataRepository::class),
+                new Reference('silverback.doctrine.repository.page_data'),
                 new Reference(Security::class),
                 new Reference(IriConverterInterface::class),
                 new Reference(HttpKernelInterface::class),
@@ -1196,4 +1201,48 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.metadata.resource.metadata_factory.cached.inner'),
             ]
         );
+
+    $services
+        ->set('silverback.metadata.api.component_resource_metadata_factory')
+        ->class(ComponentResourceMetadataFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->args(
+            [
+                new Reference('silverback.metadata.api.component_resource_metadata_factory.inner'),
+                new Reference('api_platform.path_segment_name_generator'),
+            ]
+        );
+
+    $services
+        ->set('silverback.metadata.factory.component_usage_factory')
+        ->class(ComponentUsageMetadataFactory::class)
+        ->args(
+            [
+                new Reference('api_platform.metadata.resource.name_collection_factory'),
+                new Reference('api_platform.metadata.resource.metadata_factory'),
+                new Reference('silverback.metadata.resource.metadata_factory'),
+                new Reference('silverback.doctrine.repository.component_position'),
+                new Reference(ManagerRegistry::class),
+            ]
+        );
+
+    $services
+        ->set('silverback.event_listener.api.component')
+        ->class(ComponentEventListener::class)
+        ->args(
+            [
+                new Reference('silverback.metadata.factory.component_usage_factory'),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead']);
+
+    $services
+        ->set('silverback.doctrine.repository.component_position')
+        ->class(ComponentPositionRepository::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('doctrine.repository_service');
 };
