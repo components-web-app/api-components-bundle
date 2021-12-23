@@ -49,7 +49,9 @@ class OrphanedComponentEventListener
         }
 
         if ($data instanceof ComponentPosition) {
-            $this->removeOrphanedComponent($data->component, $resourceClass);
+            if ($data->component) {
+                $this->removeOrphanedComponent($data->component, $resourceClass);
+            }
 
             return;
         }
@@ -58,7 +60,9 @@ class OrphanedComponentEventListener
             $pageDataMetadata = $this->pageDataMetadataFactory->create($resourceClass);
             foreach ($pageDataMetadata->getProperties() as $property) {
                 $component = $propertyAccessor->getValue($data, $property->getProperty());
-                $this->removeOrphanedComponent($component, $resourceClass);
+                if ($component instanceof ComponentInterface) {
+                    $this->removeOrphanedComponent($component, $resourceClass);
+                }
             }
         }
     }
