@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Metadata\Factory;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
@@ -63,10 +64,17 @@ class ComponentUsageMetadataFactory
         return new ComponentUsageMetadata($componentPositionCount, $pageDataCount);
     }
 
-    private function getPageDataTotal(ComponentInterface $component): int
+    private function getPageDataTotal(ComponentInterface $component): ?int
     {
         // we want the SHORT NAME
         $resourceClass = \get_class($component);
+        if ($component instanceof Proxy) {
+            $em = $this->managerRegistry->getManagerForClass($resourceClass);
+            if (!$em) {
+                return null;
+            }
+            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
+        }
         $apiPlatformMetadata = $this->resourceMetadataFactory->create($resourceClass);
         $resourceShortName = $apiPlatformMetadata->getShortName();
 

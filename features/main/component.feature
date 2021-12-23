@@ -58,3 +58,21 @@ Feature: Components
     Given there is a DummyComponent
     When I send a "DELETE" request to the resource "dummy_component"
     Then the response status code should be 204
+
+  @loginAdmin
+  Scenario Outline: A component still in use is not deleted
+    Given there is a DummyComponent in PageData and a Position
+    When I send a "DELETE" request to the resource "<resource>"
+    Then the response status code should be 204
+    And the resource dummy_component should exist
+  Examples:
+    | resource           |
+    | page_data          |
+    | component_position |
+
+  @loginAdmin
+  Scenario: An orphaned component is deleted
+    Given there is a PageData resource with the route path "/"
+    When I send a "DELETE" request to the resource "page_data"
+    Then the response status code should be 204
+    And the resource dummy_component should not exist

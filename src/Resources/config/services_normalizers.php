@@ -140,7 +140,7 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args(
             [
-                new Reference('silverback.metadata.resource.metadata_factory'),
+                new Reference('silverback.metadata_factory.page_data'),
             ]
         )->tag('serializer.normalizer', ['priority' => -499]);
 

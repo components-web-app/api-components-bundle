@@ -52,8 +52,9 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
-use Silverback\ApiComponentsBundle\EventListener\Api\ComponentEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedComponentEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -1179,7 +1180,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(Environment::class, 'twig');
 
     $services
-        ->set('silverback.metadata.resource.metadata_factory')
+        ->set('silverback.metadata_factory.page_data')
         ->class(PageDataMetadataFactory::class)
         ->args(
             [
@@ -1189,16 +1190,16 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->alias(PageDataMetadataFactoryInterface::class, 'silverback.metadata.resource.metadata_factory');
+        ->alias(PageDataMetadataFactoryInterface::class, 'silverback.metadata_factory.page_data');
 
     $services
-        ->set('silverback.metadata.resource.metadata_factory.cached')
-        ->decorate('silverback.metadata.resource.metadata_factory')
+        ->set('silverback.metadata_factory.page_data.cached')
+        ->decorate('silverback.metadata_factory.page_data')
         ->class(CachedPageDataMetadataFactory::class)
         ->args(
             [
                 new Reference('api_platform.cache.metadata.resource'),
-                new Reference('silverback.metadata.resource.metadata_factory.cached.inner'),
+                new Reference('silverback.metadata_factory.page_data.cached.inner'),
             ]
         );
 
@@ -1214,24 +1215,24 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set('silverback.metadata.factory.component_usage_factory')
+        ->set('silverback.metadata_factory.component_usage')
         ->class(ComponentUsageMetadataFactory::class)
         ->args(
             [
                 new Reference('api_platform.metadata.resource.name_collection_factory'),
                 new Reference('api_platform.metadata.resource.metadata_factory'),
-                new Reference('silverback.metadata.resource.metadata_factory'),
+                new Reference('silverback.metadata_factory.page_data'),
                 new Reference('silverback.doctrine.repository.component_position'),
                 new Reference(ManagerRegistry::class),
             ]
         );
 
     $services
-        ->set('silverback.event_listener.api.component')
-        ->class(ComponentEventListener::class)
+        ->set('silverback.event_listener.api.component_usage')
+        ->class(ComponentUsageEventListener::class)
         ->args(
             [
-                new Reference('silverback.metadata.factory.component_usage_factory'),
+                new Reference('silverback.metadata_factory.component_usage'),
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead']);
@@ -1245,4 +1246,16 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
+
+    $services
+        ->set('silverback.event_listener.api.orphaned_component')
+        ->class(OrphanedComponentEventListener::class)
+        ->args(
+            [
+                new Reference('silverback.metadata_factory.page_data'),
+                new Reference('silverback.metadata_factory.component_usage'),
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
 };
