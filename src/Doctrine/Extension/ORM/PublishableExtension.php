@@ -31,7 +31,6 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
     private PublishableStatusChecker $publishableStatusChecker;
     private RequestStack $requestStack;
     private ManagerRegistry $registry;
-    private ?Publishable $configuration = null;
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, RequestStack $requestStack, ManagerRegistry $registry)
     {
@@ -129,10 +128,10 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->configuration && ($this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass))) {
-            $this->configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($resourceClass);
+        if (!$this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass)) {
+            return null;
         }
 
-        return $this->configuration;
+        return $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($resourceClass);
     }
 }
