@@ -13,16 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security\EventListener;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Security;
 
@@ -34,19 +30,13 @@ use Symfony\Component\Security\Core\Security;
  */
 final class DenyAccessListener
 {
-    private RouteRepository $routeRepository;
-    private AbstractPageDataRepository $pageDataRepository;
     private Security $security;
-    private IriConverterInterface $iriConverter;
-    private HttpKernelInterface $httpKernel;
+    private RouteRepository $routeRepository;
 
-    public function __construct(RouteRepository $routeRepository, AbstractPageDataRepository $pageDataRepository, Security $security, IriConverterInterface $iriConverter, HttpKernelInterface $httpKernel)
+    public function __construct(Security $security, RouteRepository $routeRepository)
     {
-        $this->routeRepository = $routeRepository;
-        $this->pageDataRepository = $pageDataRepository;
         $this->security = $security;
-        $this->iriConverter = $iriConverter;
-        $this->httpKernel = $httpKernel;
+        $this->routeRepository = $routeRepository;
     }
 
     public function onPreDeserialize(RequestEvent $event): void
@@ -56,7 +46,7 @@ final class DenyAccessListener
         $resource = $request->attributes->get('data');
 
         if ($resource instanceof AbstractComponent) {
-            if ($this->isComponentAccessible($resource, $request)) {
+            if ($this->security->isGranted(ComponentVoter::READ_COMPONENT, $resource)) {
                 return;
             }
             throw new AccessDeniedException('Component access denied.');
@@ -68,69 +58,6 @@ final class DenyAccessListener
             }
             throw new AccessDeniedException('Page data access denied.');
         }
-    }
-
-    private function isComponentAccessible(AbstractComponent $component, Request $request): bool
-    {
-        // TODO: What if the component is nested in another component's component collection, that's recursive... TBD
-        // Maybe we need to select the component and traverse up querying as we go... can we .. ?
-        return true === ($isRouteAllowed = $this->isComponentAllowedByRoute($component)) ||
-            true === ($isPageDataAllowed = $this->isComponentAllowedByIfPageDataIsReachableAnonymously($component, $request)) ||
-            (null === $isRouteAllowed && null === $isPageDataAllowed);
-    }
-
-    private function isComponentAllowedByIfPageDataIsReachableAnonymously(AbstractComponent $component, Request $request): ?bool
-    {
-        $pageDataResources = $this->pageDataRepository->findByNestedComponent($component);
-
-        // abstain - no results to say yay or nay
-        if (!\count($pageDataResources)) {
-            return null;
-        }
-
-        foreach ($pageDataResources as $pageDataResource) {
-            $path = $this->iriConverter->getIriFromItem($pageDataResource);
-
-            $subRequest = Request::create(
-                $path,
-                Request::METHOD_GET,
-                [],
-                $request->cookies->all(),
-                [],
-                $request->server->all(),
-                null
-            );
-
-            try {
-                $this->httpKernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST, false);
-
-                return true;
-            } catch (\Exception $e) {
-                if (\in_array($e->getCode(), [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
-                    continue;
-                }
-                throw $e;
-            }
-        }
-
-        return false;
-    }
-
-    private function isComponentAllowedByRoute(AbstractComponent $component): ?bool
-    {
-        $routes = $this->routeRepository->findByComponent($component);
-
-        if (!\count($routes)) {
-            return null;
-        }
-
-        foreach ($routes as $route) {
-            if ($this->security->isGranted(RouteVoter::READ_ROUTE, $route)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function isPageDataAllowedByRoute(AbstractPageData $pageData): ?bool

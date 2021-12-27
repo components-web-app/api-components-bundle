@@ -7,6 +7,8 @@ Feature: Components
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
+  # Needs to be an admin as we are putting component in a page data resource which is not routed and so not accessible to anonymous
+  @loginAdmin
   Scenario: I can get a component's usage
     Given there is a DummyComponent in PageData and a Position
     When I send a "GET" request to the resource "dummy_component" and the postfix "/usage"

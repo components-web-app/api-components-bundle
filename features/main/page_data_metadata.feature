@@ -23,4 +23,4 @@ Feature: Page data metadata
     Then the response status code should be 200
     And the JSON node "properties" should have 1 element
     And the JSON node "properties[0].property" should be equal to "component"
-    And the JSON node "properties[0].componentClass" should be equal to "DummyComponent"
+    And the JSON node "properties[0].componentShortName" should be equal to "DummyComponent"

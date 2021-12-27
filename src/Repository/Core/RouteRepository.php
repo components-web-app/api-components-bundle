@@ -18,7 +18,6 @@ use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Exception\InvalidUuidStringException;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
@@ -56,72 +55,6 @@ class RouteRepository extends ServiceEntityRepository
         }
 
         return null;
-    }
-
-    /**
-     * @return Route[]
-     */
-    public function findByComponent(AbstractComponent $component): array
-    {
-        $queryBuilder = $this->createQueryBuilder('route');
-        $queryBuilder
-            ->leftJoin(
-                'route.pageData',
-                'pageData',
-                Join::WITH,
-                $queryBuilder->expr()->eq('route', 'pageData.route')
-            )
-            ->leftJoin(
-                'pageData.page',
-                'pageData_page',
-                Join::WITH,
-                $queryBuilder->expr()->eq('pageData_page', 'pageData.page')
-            )
-            ->leftJoin(
-                'pageData_page.componentCollections',
-                'page_data_cc'
-            )
-            ->leftJoin(
-                'page_data_cc.componentPositions',
-                'page_data_pos'
-            )
-            ->leftJoin(
-                'page_data_pos.component',
-                'page_data_component',
-                Join::WITH,
-                $queryBuilder->expr()->eq('page_data_pos.component', 'page_data_component')
-            )
-
-            ->leftJoin(
-                'route.page',
-                'page',
-                Join::WITH,
-                $queryBuilder->expr()->eq('route', 'page.route')
-            )
-            ->leftJoin(
-                'page.componentCollections',
-                'page_cc'
-            )
-            ->leftJoin(
-                'page_cc.componentPositions',
-                'page_pos'
-            )
-            ->leftJoin(
-                'page_pos.component',
-                'page_component',
-                Join::WITH,
-                $queryBuilder->expr()->eq('page_pos.component', 'page_component')
-            )
-
-            ->andWhere(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->eq('page_component', ':component'),
-                    $queryBuilder->expr()->eq('page_data_component', ':component')
-                )
-            )
-            ->setParameter('component', $component);
-
-        return $queryBuilder->getQuery()->getResult();
     }
 
     /**

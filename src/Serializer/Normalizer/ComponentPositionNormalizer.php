@@ -27,7 +27,6 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -52,7 +51,6 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
     private PageDataProvider $pageDataProvider;
     private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
     private RequestStack $requestStack;
-    private Security $security;
     private PublishableStatusChecker $publishableStatusChecker;
     private ManagerRegistry $registry;
     private IriConverterInterface $iriConverter;
@@ -61,7 +59,6 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         PageDataProvider $pageDataProvider,
         ComponentPositionSortValueHelper $componentPositionSortValueHelper,
         RequestStack $requestStack,
-        Security $security,
         PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
         IriConverterInterface $iriConverter
@@ -69,7 +66,6 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $this->pageDataProvider = $pageDataProvider;
         $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
         $this->requestStack = $requestStack;
-        $this->security = $security;
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->registry = $registry;
         $this->iriConverter = $iriConverter;
@@ -113,12 +109,14 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $context[self::ALREADY_CALLED] = true;
 
         $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $object->component ? $this->iriConverter->getIriFromItem($object->component) : null;
-        if ($object->pageDataProperty && (bool) $this->requestStack->getCurrentRequest()) {
-            $object = $this->normalizeForPageData($object);
-        }
+        $object = $this->normalizeForPageData($object);
 
         $component = $object->component;
-        if ($component && $this->publishableStatusChecker->getAnnotationReader()->isConfigured($component) && $this->publishableStatusChecker->isGranted($component)) {
+        if (
+            $component &&
+            $this->publishableStatusChecker->getAnnotationReader()->isConfigured($component) &&
+            $this->publishableStatusChecker->isGranted($component)
+        ) {
             $object->setComponent($this->normalizePublishableComponent($component));
         }
 
@@ -141,14 +139,12 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
     private function normalizeForPageData(ComponentPosition $object): ComponentPosition
     {
+        if (!$object->pageDataProperty || !$this->requestStack->getCurrentRequest()) {
+            return $object;
+        }
         $pageData = $this->pageDataProvider->getPageData();
         if (!$pageData) {
             return $object;
-            // Todo: causes a 500 error, perhaps we should look to return 404 and the front-end to handle this on server-side when it will not be admin then try again client-side
-//            if ($object->component || $this->security->isGranted('ROLE_ADMIN')) {
-//                return $object;
-//            }
-//            throw new UnexpectedValueException('Could not find page data for this route.');
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -158,16 +154,17 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
             return $object;
         }
 
+        // optional to have the page data component found
         if (!$component) {
-            // it is now optional to have the page data defined
             return $object;
-            // throw new UnexpectedValueException(sprintf('Page data does not contain a value at %s', $object->pageDataProperty));
         }
 
+        // it must be a component if it is found though
         if (!$component instanceof AbstractComponent) {
             throw new InvalidArgumentException(sprintf('The page data property %s is not a component', $object->pageDataProperty));
         }
 
+        // populate the position
         $object->setComponent($component);
 
         return $object;

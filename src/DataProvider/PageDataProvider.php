@@ -14,7 +14,16 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DataProvider;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Proxy\Proxy;
+use Doctrine\ORM\EntityManager;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Metadata\PageDataComponentMetadata;
+use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
+use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -27,12 +36,24 @@ class PageDataProvider
     private RequestStack $requestStack;
     private RouteRepository $routeRepository;
     private IriConverterInterface $iriConverter;
+    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
+    private PageDataMetadataProvider $pageDataMetadataProvider;
+    private ManagerRegistry $managerRegistry;
 
-    public function __construct(RequestStack $requestStack, RouteRepository $routeRepository, IriConverterInterface $iriConverter)
-    {
+    public function __construct(
+        RequestStack $requestStack,
+        RouteRepository $routeRepository,
+        IriConverterInterface $iriConverter,
+        ResourceMetadataFactoryInterface $resourceMetadataFactory,
+        PageDataMetadataProvider $pageDataMetadataProvider,
+        ManagerRegistry $managerRegistry
+    ) {
         $this->requestStack = $requestStack;
         $this->routeRepository = $routeRepository;
         $this->iriConverter = $iriConverter;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
+        $this->pageDataMetadataProvider = $pageDataMetadataProvider;
+        $this->managerRegistry = $managerRegistry;
     }
 
     private function getOriginalRequestPath(): ?string
@@ -67,5 +88,88 @@ class PageDataProvider
         }
 
         return $route->getPageData();
+    }
+
+    public function findPageDataComponentMetadata(ComponentInterface $component): iterable
+    {
+        $resourceShortName = $this->getComponentShortName($component);
+        if (!$resourceShortName) {
+            return;
+        }
+        $pageDataLocations = $this->getPageDataLocations($resourceShortName);
+        foreach ($pageDataLocations as $pageDataClassName => $properties) {
+            if ($metadata = $this->findPageDataResourcesByPropertiesAndComponent($pageDataClassName, $properties, $component)) {
+                yield $metadata;
+            }
+        }
+    }
+
+    public function findPageDataResourcesByPages(iterable $pages): array
+    {
+        $em = $this->managerRegistry->getManagerForClass(AbstractPageData::class);
+        if (!$em instanceof EntityManager) {
+            return [];
+        }
+        $qb = $em->createQueryBuilder();
+        $expr = $qb->expr();
+        $qb
+            ->select('pd')
+            ->from(AbstractPageData::class, 'pd');
+        foreach ($pages as $x => $page) {
+            $paramName = 'page_' . $x;
+            $qb->setParameter($paramName, $page);
+            $qb->orWhere($expr->eq('pd.page', ":$paramName"));
+        }
+
+        return $qb->getQuery()->getResult() ?: [];
+    }
+
+    private function findPageDataResourcesByPropertiesAndComponent(string $pageDataClassName, ArrayCollection $properties, ComponentInterface $component): ?PageDataComponentMetadata
+    {
+        $em = $this->managerRegistry->getManagerForClass($pageDataClassName);
+        if (!$em instanceof EntityManager) {
+            return null;
+        }
+        $qb = $em->createQueryBuilder();
+        $expr = $qb->expr();
+        $qb
+            ->select('pd')
+            ->from($pageDataClassName, 'pd')
+            ->setParameter('component', $component);
+        foreach ($properties as $property) {
+            $qb->orWhere($expr->eq('pd.' . $property, ':component'));
+        }
+
+        return new PageDataComponentMetadata($qb->getQuery()->getResult() ?: [], $properties);
+    }
+
+    private function getPageDataLocations(string $resourceShortName): array
+    {
+        $pageDataMetadatas = $this->pageDataMetadataProvider->createAll();
+        $pageDataLocations = [];
+        foreach ($pageDataMetadatas as $pageDataMetadata) {
+            $resourceProperties = $pageDataMetadata->findPropertiesByComponentShortName($resourceShortName);
+            if ($resourceProperties->count() > 0) {
+                $pageDataLocations[$pageDataMetadata->getResourceClass()] = $resourceProperties->map(static function (PageDataPropertyMetadata $metadata) {
+                    return $metadata->getProperty();
+                });
+            }
+        }
+
+        return $pageDataLocations;
+    }
+
+    private function getComponentShortName(ComponentInterface $component): ?string
+    {
+        $resourceClass = \get_class($component);
+        if ($component instanceof Proxy) {
+            $em = $this->managerRegistry->getManagerForClass($resourceClass);
+            if (!$em) {
+                return null;
+            }
+            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
+        }
+
+        return $this->resourceMetadataFactory->create($resourceClass)->getShortName();
     }
 }

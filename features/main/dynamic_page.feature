@@ -14,7 +14,7 @@ Feature: Dynamic pages
     Then the response status code should be 200
     And the JSON node "_metadata.page_data_metadata.properties" should have 1 element
     And the JSON node "_metadata.page_data_metadata.properties[0].property" should be equal to "component"
-    And the JSON node "_metadata.page_data_metadata.properties[0].componentClass" should be equal to "DummyComponent"
+    And the JSON node "_metadata.page_data_metadata.properties[0].componentShortName" should be equal to "DummyComponent"
 
   Scenario: Populating the component from a page data property
     Given there is a PageData resource with the route path "/page-data"

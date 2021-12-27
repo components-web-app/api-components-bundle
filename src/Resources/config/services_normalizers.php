@@ -81,7 +81,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PageDataProvider::class),
             new Reference('silverback.helper.component_position_sort_value'),
             new Reference(RequestStack::class),
-            new Reference('security.helper'),
             new Reference(PublishableStatusChecker::class),
             new Reference(ManagerRegistry::class),
             new Reference('api_platform.iri_converter'),

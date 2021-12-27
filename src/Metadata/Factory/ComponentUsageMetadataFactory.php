@@ -13,15 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Metadata\Factory;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Proxy\Proxy;
-use Doctrine\ORM\EntityManager;
-use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
-use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
-use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -31,23 +25,17 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
  */
 class ComponentUsageMetadataFactory
 {
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
     private ComponentPositionRepository $componentPositionRepository;
-    private ManagerRegistry $managerRegistry;
     private PropertyAccessor $propertyAccessor;
-    private PageDataMetadataProvider $pageDataMetadataProvider;
+    private PageDataProvider $pageDataProvider;
 
     public function __construct(
-        ResourceMetadataFactoryInterface $resourceMetadataFactory,
-        PageDataMetadataProvider $pageDataMetadataProvider,
         ComponentPositionRepository $componentPositionRepository,
-        ManagerRegistry $managerRegistry
+        PageDataProvider $pageDataProvider
     ) {
-        $this->resourceMetadataFactory = $resourceMetadataFactory;
-        $this->pageDataMetadataProvider = $pageDataMetadataProvider;
         $this->componentPositionRepository = $componentPositionRepository;
-        $this->managerRegistry = $managerRegistry;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->pageDataProvider = $pageDataProvider;
     }
 
     public function create(ComponentInterface $component): ComponentUsageMetadata
@@ -60,30 +48,14 @@ class ComponentUsageMetadataFactory
         return new ComponentUsageMetadata($componentPositionCount, $pageDataCount);
     }
 
-    private function getPageDataTotal(ComponentInterface $component): ?int
+    private function getPageDataTotal(ComponentInterface $component): int
     {
-        // we want the SHORT NAME
-        $resourceClass = \get_class($component);
-        if ($component instanceof Proxy) {
-            $em = $this->managerRegistry->getManagerForClass($resourceClass);
-            if (!$em) {
-                return null;
-            }
-            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
-        }
-        $apiPlatformMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $resourceShortName = $apiPlatformMetadata->getShortName();
-
-        $pageDataLocations = $this->getPageDataLocations($resourceShortName);
+        $pageDataLocations = $this->pageDataProvider->findPageDataComponentMetadata($component);
         $pageDataCount = 0;
-        foreach ($pageDataLocations as $pageDataClassName => $properties) {
-            $pageDataResources = $this->findPageDataResourcesByPropertiesAndComponent($pageDataClassName, $properties, $component);
-            if (!$pageDataResources) {
-                continue;
-            }
+        foreach ($pageDataLocations as $pageDataComponentMetadata) {
             $componentInDataCount = 0;
-            foreach ($pageDataResources as $pageDataResource) {
-                foreach ($properties as $property) {
+            foreach ($pageDataComponentMetadata->getPageDataResources() as $pageDataResource) {
+                foreach ($pageDataComponentMetadata->getProperties() as $property) {
                     if ($this->propertyAccessor->getValue($pageDataResource, $property) === $component) {
                         ++$componentInDataCount;
                     }
@@ -93,40 +65,5 @@ class ComponentUsageMetadataFactory
         }
 
         return $pageDataCount;
-    }
-
-    private function findPageDataResourcesByPropertiesAndComponent(string $pageDataClassName, ArrayCollection $properties, ComponentInterface $component): ?array
-    {
-        $em = $this->managerRegistry->getManagerForClass($pageDataClassName);
-        if (!$em instanceof EntityManager) {
-            return null;
-        }
-        $qb = $em->createQueryBuilder();
-        $expr = $qb->expr();
-        $qb
-            ->select('pd')
-            ->from($pageDataClassName, 'pd')
-            ->setParameter('component', $component);
-        foreach ($properties as $property) {
-            $qb->orWhere($expr->eq('pd.' . $property, ':component'));
-        }
-
-        return $qb->getQuery()->getResult();
-    }
-
-    private function getPageDataLocations(string $resourceShortName): array
-    {
-        $pageDataMetadatas = $this->pageDataMetadataProvider->createAll();
-        $pageDataLocations = [];
-        foreach ($pageDataMetadatas as $pageDataMetadata) {
-            $resourceProperties = $pageDataMetadata->findPropertiesByComponentClass($resourceShortName);
-            if ($resourceProperties->count() > 0) {
-                $pageDataLocations[$pageDataMetadata->getResourceClass()] = $resourceProperties->map(static function (PageDataPropertyMetadata $metadata) {
-                    return $metadata->getProperty();
-                });
-            }
-        }
-
-        return $pageDataLocations;
     }
 }

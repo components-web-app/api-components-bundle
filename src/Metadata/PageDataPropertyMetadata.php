@@ -30,12 +30,12 @@ class PageDataPropertyMetadata
     /**
      * @Groups({"AbstractPageData:cwa_resource:read"})
      */
-    private string $componentClass;
+    private string $componentShortName;
 
     public function __construct(string $property, string $componentClass)
     {
         $this->property = $property;
-        $this->componentClass = $componentClass;
+        $this->componentShortName = $componentClass;
     }
 
     public function getProperty(): string
@@ -43,8 +43,8 @@ class PageDataPropertyMetadata
         return $this->property;
     }
 
-    public function getComponentClass(): string
+    public function getComponentShortName(): string
     {
-        return $this->componentClass;
+        return $this->componentShortName;
     }
 }

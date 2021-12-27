@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\EventListener\EventPriorities;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -122,6 +123,7 @@ use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
@@ -154,7 +156,6 @@ use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
@@ -291,11 +292,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(DenyAccessListener::class)
         ->args(
             [
-                new Reference('silverback.repository.route'),
-                new Reference('silverback.doctrine.repository.page_data'),
                 new Reference(Security::class),
-                new Reference(IriConverterInterface::class),
-                new Reference(HttpKernelInterface::class),
+                new Reference('silverback.doctrine.repository.route'),
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);
@@ -522,8 +520,11 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PageDataProvider::class)
         ->args([
             new Reference(RequestStack::class),
-            new Reference('silverback.repository.route'),
+            new Reference('silverback.doctrine.repository.route'),
             new Reference('api_platform.iri_converter'),
+            new Reference('silverback.metadata.api.component_resource_metadata_factory'),
+            new Reference('silverback.metadata_provider.page_data'),
+            new Reference(ManagerRegistry::class),
         ]);
 
     $services
@@ -747,7 +748,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(RouteDataProvider::class)
         ->args(
             [
-                new Reference('silverback.repository.route'),
+                new Reference('silverback.doctrine.repository.route'),
                 new Reference('api_platform.item_data_provider'),
             ]
         )
@@ -781,7 +782,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('cocur_slugify'),
             new Reference(ManagerRegistry::class),
             new Reference('silverback.helper.timestamped_data_persister'),
-            new Reference('silverback.repository.route'),
+            new Reference('silverback.doctrine.repository.route'),
         ]);
     $services->alias(RouteGeneratorInterface::class, 'silverback.helper.route_generator');
 
@@ -796,7 +797,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('doctrine.repository_service');
-    $services->alias('silverback.repository.route', RouteRepository::class);
+    $services->alias('silverback.doctrine.repository.route', RouteRepository::class);
 
     $services
         ->set(RouteVoter::class)
@@ -1216,16 +1217,15 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.path_segment_name_generator'),
             ]
         );
+    $services->alias(ResourceMetadataFactoryInterface::class, 'silverback.metadata.api.component_resource_metadata_factory');
 
     $services
         ->set('silverback.metadata_factory.component_usage')
         ->class(ComponentUsageMetadataFactory::class)
         ->args(
             [
-                new Reference('api_platform.metadata.resource.metadata_factory'),
-                new Reference('silverback.metadata_provider.page_data'),
                 new Reference('silverback.doctrine.repository.component_position'),
-                new Reference(ManagerRegistry::class),
+                new Reference(PageDataProvider::class),
             ]
         );
 
@@ -1288,4 +1288,15 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.collection_data_provider', ['priority' => 1]);
+
+    $services
+        ->set('silverback.security.voter.component_voter')
+        ->class(ComponentVoter::class)
+        ->args([
+            new Reference(PageDataProvider::class),
+            new Reference('api_platform.iri_converter'),
+            new Reference('http_kernel'),
+            new Reference('request_stack'),
+        ])
+        ->tag('security.voter');
 };
