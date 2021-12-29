@@ -2,6 +2,7 @@ Feature: In order to detect the current API Components Bundle Version
   As an API User
   I should have this information when fetching the API metadata
 
+# May not be best practice really, see: https://github.com/api-platform/core/pull/3810
   Scenario Outline: I can detect the API version
     Given I add "Accept" header equal to "<header>"
     And I add "Content-Type" header equal to "<header>"
@@ -11,5 +12,4 @@ Feature: In order to detect the current API Components Bundle Version
     Examples:
       | header              | node         |
       | application/json    | info.version |
-# Awaiting PR merge and api platform version update: https://github.com/api-platform/core/pull/3810
-#      | application/ld+json | version      |
+      | application/ld+json | info.version |

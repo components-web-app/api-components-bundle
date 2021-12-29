@@ -37,6 +37,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourc
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentationNormalizer;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
@@ -1299,4 +1300,10 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('request_stack'),
         ])
         ->tag('security.voter');
+
+    $services
+        ->set('silverback.hydra.normalizer.versioned_documentation')
+        ->class(VersionedDocumentationNormalizer::class)
+        ->decorate('api_platform.hydra.normalizer.documentation')
+        ->args([new Reference('silverback.hydra.normalizer.versioned_documentation.inner')]);
 };
