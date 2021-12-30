@@ -216,7 +216,7 @@ class JsonContext implements Context
 
         $actual = $this->inspector->evaluate($json, $name);
 
-        if (false === preg_match($expression, $actual)) {
+        if (1 !== preg_match($expression, $actual)) {
             throw new \Exception(sprintf("The node value did not match '%s'. It is '%s'", $expression, json_encode($actual)));
         }
     }

@@ -70,10 +70,15 @@ class OpenApiFactory implements OpenApiFactoryInterface
         }
     }
 
+    public static function getExtendedVersion(string $version): string
+    {
+        return sprintf('%s (%s)', $version, Versions::getVersion('silverbackis/api-components-bundle'));
+    }
+
     public function __invoke(array $context = []): OpenApi
     {
         $openApi = $this->decorated->__invoke($context);
-        $version = sprintf('%s (%s)', $openApi->getInfo()->getVersion(), Versions::getVersion('silverbackis/api-components-bundle'));
+        $version = self::getExtendedVersion($openApi->getInfo()->getVersion());
 
         $this->removeResources($openApi, [
             AbstractComponent::class,

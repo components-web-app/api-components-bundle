@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Serializer;
 
+use ApiPlatform\Core\Documentation\Documentation;
 use ApiPlatform\Core\Hydra\Serializer\DocumentationNormalizer;
+use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -34,11 +37,16 @@ class VersionedDocumentationNormalizer implements NormalizerInterface, Cacheable
         return $this->decorated->hasCacheableSupportsMethod();
     }
 
-    public function normalize($object, string $format = null, array $context = [])
+    /**
+     * @param Documentation $object
+     *
+     * @throws ExceptionInterface
+     */
+    public function normalize($object, string $format = null, array $context = []): array
     {
         $doc = $this->decorated->normalize($object, $format, $context);
         if ('' !== $object->getVersion()) {
-            $doc['info'] = ['version' => $object->getVersion()];
+            $doc['info'] = ['version' => OpenApiFactory::getExtendedVersion($object->getVersion())];
         }
 
         return $doc;
