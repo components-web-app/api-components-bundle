@@ -41,7 +41,7 @@ class CollectionNormalizer implements ContextAwareNormalizerInterface, Cacheable
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
-    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
+    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $context[MetadataNormalizer::METADATA_CONTEXT]['collection'] = true;

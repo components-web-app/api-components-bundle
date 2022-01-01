@@ -48,7 +48,7 @@ class PersistedNormalizer implements ContextAwareNormalizerInterface, CacheableS
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
-    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
+    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $context[MetadataNormalizer::METADATA_CONTEXT]['persisted'] = $this->entityManager->contains($object);

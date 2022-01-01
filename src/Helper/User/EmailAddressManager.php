@@ -32,11 +32,11 @@ class EmailAddressManager
     private UserEventListener $userEventListener;
 
     public function __construct(
-        EntityManagerInterface         $entityManager,
-        UserRepositoryInterface        $userRepository,
+        EntityManagerInterface $entityManager,
+        UserRepositoryInterface $userRepository,
         PasswordHasherFactoryInterface $passwordHasherFactory,
-        UserDataProcessor              $userDataProcessor,
-        UserEventListener              $userEventListener
+        UserDataProcessor $userDataProcessor,
+        UserEventListener $userEventListener
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;

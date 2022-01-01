@@ -197,7 +197,7 @@ return static function (ContainerConfigurator $configurator) {
                 '$container' => service_locator([
                     'twig' => new Reference('twig'),
                     RequestStack::class => new Reference('request_stack'),
-                    RefererUrlResolver::class => new Reference(RefererUrlResolver::class)
+                    RefererUrlResolver::class => new Reference(RefererUrlResolver::class),
                 ]),
                 '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
             ]
@@ -223,8 +223,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ChangeEmailConfirmationEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(ChangePasswordType::class)
@@ -533,13 +532,11 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PasswordChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(PasswordResetEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(PasswordRequestAction::class)
@@ -1051,8 +1048,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UserEnabledEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(UserEventListener::class)
@@ -1095,17 +1091,15 @@ return static function (ContainerConfigurator $configurator) {
                     UserEnabledEmailFactory::class => new Reference(UserEnabledEmailFactory::class),
                     UsernameChangedEmailFactory::class => new Reference(UsernameChangedEmailFactory::class),
                     PasswordChangedEmailFactory::class => new Reference(PasswordChangedEmailFactory::class),
-                    VerifyEmailFactory::class => new Reference(VerifyEmailFactory::class)
+                    VerifyEmailFactory::class => new Reference(VerifyEmailFactory::class),
                 ]),
                 '', // injected in dependency injection
             ]
-        )
-    ;
+        );
 
     $services
         ->set(UsernameChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(UserDataProcessor::class)
@@ -1185,13 +1179,11 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(VerifyEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set(WelcomeEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class)
-    ;
+        ->parent(AbstractUserEmailFactory::class);
 
     $services
         ->set('silverback.metadata_factory.page_data')

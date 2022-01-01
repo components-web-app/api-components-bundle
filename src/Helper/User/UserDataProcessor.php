@@ -35,13 +35,13 @@ class UserDataProcessor
     private int $tokenTtl;
 
     public function __construct(
-        UserPasswordHasherInterface    $passwordHasher,
-        UserRepositoryInterface        $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        UserRepositoryInterface $userRepository,
         PasswordHasherFactoryInterface $passwordHasherFactory,
-        bool                           $initialEmailVerifiedState,
-        bool                           $verifyEmailOnRegister,
-        bool                           $verifyEmailOnChange,
-        int                            $tokenTtl = 8600
+        bool $initialEmailVerifiedState,
+        bool $verifyEmailOnRegister,
+        bool $verifyEmailOnChange,
+        int $tokenTtl = 8600
     ) {
         $this->passwordHasher = $passwordHasher;
         $this->userRepository = $userRepository;

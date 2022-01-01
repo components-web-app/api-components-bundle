@@ -69,13 +69,14 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function decode(TokenInterface $token): array|false
+    public function decode(TokenInterface $token): array | false
     {
         // parse will be used for old symfony where PreAuthenticationJWTUserToken exists
         try {
             return $this->decorated->decode($token);
         } catch (JWTDecodeFailureException $exception) {
             $jwtUserToken = $this->handleJWTDecodeFailureException($exception);
+
             return $this->decorated->decode(new PreAuthenticationJWTUserToken($jwtUserToken));
         }
     }
@@ -86,6 +87,7 @@ final class JWTManager implements JWTTokenManagerInterface
             return $this->decorated->parse($token);
         } catch (JWTDecodeFailureException $exception) {
             $jwtUserToken = $this->handleJWTDecodeFailureException($exception);
+
             return $this->decorated->parse($jwtUserToken);
         }
     }

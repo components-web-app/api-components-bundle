@@ -28,7 +28,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\RfcComplianceException as SymfonyRfcComplianceException;
 use Symfony\Component\Mime\RawMessage;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>

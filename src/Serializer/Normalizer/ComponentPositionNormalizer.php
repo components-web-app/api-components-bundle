@@ -101,7 +101,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         return $data instanceof ComponentPosition && !isset($context[self::ALREADY_CALLED]);
     }
 
-    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
+    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
     {
         /* @var ComponentPosition $object */
         /* @var mixed|null        $format */

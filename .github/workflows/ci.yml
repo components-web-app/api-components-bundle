@@ -101,11 +101,8 @@ jobs:
             experimental: false
             coverage: true
           - php: '8.1'
-            symfony: '6.0'
+            symfony: '*'
             experimental: false
-          - php: '8.1'
-            symfony: '6.*'
-            experimental: true
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -255,11 +252,8 @@ jobs:
             experimental: false
             coverage: true
           - php: '8.1'
-            symfony: '6.0'
+            symfony: '*'
             experimental: false
-          - php: '8.1'
-            symfony: '6.*'
-            experimental: true
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -549,7 +543,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6.1'
+          - '6.x-dev'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -651,7 +645,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6.1'
+          - '6.x-dev'
       fail-fast: false
     timeout-minutes: 20
     steps:
