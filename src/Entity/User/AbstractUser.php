@@ -171,7 +171,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
         return $this->username;
     }
 
-    public function setUsername(?string $username): self
+    public function setUsername(string $username): self
     {
         $this->username = $username;
 

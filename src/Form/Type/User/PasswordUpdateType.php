@@ -21,6 +21,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -47,8 +48,11 @@ class PasswordUpdateType extends AbstractType
         $builder
             ->add(
                 'username',
-                HiddenType::class,
+                // cannot be HiddenType otherwise it will be null if empty - see: https://github.com/symfony/symfony/issues/39148
+                TextType::class,
                 [
+                    'empty_data' => '',
+                    'data' => '',
                     'attr' => [
                         'autocomplete' => 'username',
                     ],
@@ -97,7 +101,7 @@ class PasswordUpdateType extends AbstractType
         $request = $this->requestStack->getMainRequest();
         if ($request) {
             $query = $request->query;
-            $user->setUsername($query->get('username'));
+            $user->setUsername($query->get('username', ''));
             $user->setNewPasswordConfirmationToken($query->get('token'));
         }
 

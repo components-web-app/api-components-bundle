@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
@@ -52,10 +53,12 @@ class ChangePasswordType extends AbstractType
         $builder
             ->add(
                 'username',
-                HiddenType::class,
+                // cannot be HiddenType otherwise it will be null if empty - see: https://github.com/symfony/symfony/issues/39148
+                TextType::class,
                 [
+                    'empty_data' => '',
                     'attr' => ['autocomplete' => 'username'],
-                    'data' => $user ? $user->getUsername() : null,
+                    'data' => $user ? $user->getUsername() : '',
                     'disabled' => true,
                 ]
             )

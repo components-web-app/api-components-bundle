@@ -43,6 +43,7 @@ class UserLoginType extends AbstractType
                 'username',
                 TextType::class,
                 [
+                    'empty_data' => '',
                     'attr' => [
                         'placeholder' => '',
                         'autocomplete' => 'username',

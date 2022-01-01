@@ -51,6 +51,7 @@ class FormSubmitEventListener
         // Handle post/patch requests
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
         $requestContent = $this->serializer->decode($request->getContent(), $format, []);
+
         $data = $this->formSubmitHelper->process($data, $requestContent, Request::METHOD_PUT !== $request->getMethod());
 
         if ($data->formView->getForm()->isValid()) {
