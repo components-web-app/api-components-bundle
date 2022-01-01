@@ -63,7 +63,7 @@ class MetadataNormalizer implements ContextAwareNormalizerInterface, CacheableSu
             isset($context[self::METADATA_CONTEXT]);
     }
 
-    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $data = $this->normalizer->normalize($object, $format, $context);

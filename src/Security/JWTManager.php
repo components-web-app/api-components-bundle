@@ -69,7 +69,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function decode(TokenInterface $token): array | false
+    public function decode(TokenInterface $token): array|false
     {
         // parse will be used for old symfony where PreAuthenticationJWTUserToken exists
         try {

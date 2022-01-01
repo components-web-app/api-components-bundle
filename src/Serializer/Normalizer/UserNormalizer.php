@@ -81,7 +81,7 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
      * @param AbstractUser $object
      * @param mixed|null   $format
      */
-    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED] = true;
 

@@ -101,7 +101,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         return $data instanceof ComponentPosition && !isset($context[self::ALREADY_CALLED]);
     }
 
-    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         /* @var ComponentPosition $object */
         /* @var mixed|null        $format */
@@ -150,7 +150,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         try {
             $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
-        } catch (UnexpectedTypeException | NoSuchIndexException | NoSuchPropertyException $e) {
+        } catch (UnexpectedTypeException|NoSuchIndexException|NoSuchPropertyException $e) {
             return $object;
         }
 

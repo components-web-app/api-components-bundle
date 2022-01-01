@@ -63,7 +63,7 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
         return $this->decorated->supportsDenormalization($data, $type, $format);
     }
 
-    public function normalize($object, $format = null, array $context = []): float | array | \ArrayObject | bool | int | string | null
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         return $this->decorated->normalize($object, $format, $context);
     }

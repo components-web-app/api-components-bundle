@@ -4,8 +4,8 @@
 /src/var/
 /symfony.lock
 /composer.phar
-/.php_cs
-/.php_cs.cache
+/.php-cs-fixer
+/.php-cs-fixer.cache
 /.phpunit.result.cache
 /tests/Functional/app/var/
 /tests/Functional/app/public/bundles/

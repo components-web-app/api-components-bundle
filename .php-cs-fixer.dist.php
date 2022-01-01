@@ -112,6 +112,7 @@ return (new PhpCsFixer\Config())
         'return_assignment' => true,
         'strict_param' => true,
         'visibility_required' => [
+            // Deprecation: Removed rootless configuration - what does that mean?  https://github.com/FriendsOfPHP/PHP-CS-Fixer/blob/v3.3.0/UPGRADE-v3.md#removed-rootless-configuration
             'elements' => [
                 'const',
                 'method',

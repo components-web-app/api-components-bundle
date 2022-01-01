@@ -23,7 +23,7 @@ class NewEmailAddress extends Constraint
     public string $message = 'Your new email address should be different.';
     public string $uniqueMessage = 'Someone else is already registered with that email address.';
 
-    public function getTargets(): string | array
+    public function getTargets(): string|array
     {
         return self::CLASS_CONSTRAINT;
     }
