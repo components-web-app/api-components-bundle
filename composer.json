@@ -105,5 +105,8 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         }
+    },
+    "conflict": {
+        "willdurand/negotiation": "^2"
     }
 }
