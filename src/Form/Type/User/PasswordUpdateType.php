@@ -52,7 +52,6 @@ class PasswordUpdateType extends AbstractType
                 TextType::class,
                 [
                     'empty_data' => '',
-                    'data' => '',
                     'attr' => [
                         'autocomplete' => 'username',
                     ],
