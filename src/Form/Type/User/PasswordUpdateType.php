@@ -94,7 +94,7 @@ class PasswordUpdateType extends AbstractType
          */
         $user = new $this->userClass();
 
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
         if ($request) {
             $query = $request->query;
             $user->setUsername($query->get('username'));

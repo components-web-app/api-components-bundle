@@ -41,7 +41,7 @@ final class PageDataNormalizer implements ContextAwareNormalizerInterface, Cache
         $this->pageDataMetadataFactory = $pageDataMetadataFactory;
     }
 
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $metadata = $this->pageDataMetadataFactory->create(\get_class($object));

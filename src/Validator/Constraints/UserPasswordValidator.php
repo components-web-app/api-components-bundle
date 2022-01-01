@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Validator\Constraint;
@@ -29,13 +29,13 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class UserPasswordValidator extends ConstraintValidator
 {
     private TokenStorageInterface $tokenStorage;
-    private EncoderFactoryInterface $encoderFactory;
+    private PasswordHasherFactoryInterface $passwordHasherFactory;
     private UserRepositoryInterface $userRepository;
 
-    public function __construct(TokenStorageInterface $tokenStorage, EncoderFactoryInterface $encoderFactory, UserRepositoryInterface $userRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, PasswordHasherFactoryInterface $passwordHasherFactory, UserRepositoryInterface $userRepository)
     {
         $this->tokenStorage = $tokenStorage;
-        $this->encoderFactory = $encoderFactory;
+        $this->passwordHasherFactory = $passwordHasherFactory;
         $this->userRepository = $userRepository;
     }
 
@@ -61,9 +61,9 @@ class UserPasswordValidator extends ConstraintValidator
             throw new ConstraintDefinitionException('The User object must implement the UserInterface interface.');
         }
 
-        $encoder = $this->encoderFactory->getEncoder($user);
+        $hasher = $this->passwordHasherFactory->getPasswordHasher($user);
 
-        if (null === $user->getPassword() || !$encoder->isPasswordValid($user->getPassword(), $password, $user->getSalt())) {
+        if (null === $user->getPassword() || !$hasher->verify($user->getPassword(), $password)) {
             $this->context->addViolation($constraint->message);
         }
     }

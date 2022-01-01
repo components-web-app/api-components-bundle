@@ -36,8 +36,8 @@ class UserDataProvider implements ItemDataProviderInterface, RestrictedDataProvi
             is_a($resourceClass, AbstractUser::class, true);
     }
 
-    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
+    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): ?object
     {
-        return $this->userRepository->loadUserByUsername($id);
+        return $this->userRepository->loadUserByIdentifier($id);
     }
 }

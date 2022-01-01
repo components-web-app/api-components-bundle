@@ -32,7 +32,7 @@ final class SerializeFormatResolver implements SerializeFormatResolverInterface
 
     public function getFormat(): string
     {
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
         if (!$request) {
             return $this->defaultFormat;
         }

@@ -65,7 +65,7 @@ class SerializeFormatResolverTest extends TestCase
     {
         $this->requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn(null);
 
         $this->assertEquals('default_format', $this->formatResolver->getFormat());
@@ -78,7 +78,7 @@ class SerializeFormatResolverTest extends TestCase
 
         $this->requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn($request);
 
         $this->assertEquals($this->formatResolver->getFormatFromRequest($request), $this->formatResolver->getFormat());

@@ -54,7 +54,7 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
         return !isset($context[self::ALREADY_CALLED]) && is_subclass_of($type, AbstractUser::class);
     }
 
-    public function denormalize($data, $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = []): AbstractUser
     {
         $context[self::ALREADY_CALLED] = true;
 
@@ -81,7 +81,7 @@ class UserNormalizer implements CacheableSupportsMethodInterface, ContextAwareDe
      * @param AbstractUser $object
      * @param mixed|null   $format
      */
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED] = true;
 

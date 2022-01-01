@@ -51,18 +51,6 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
     }
 
-    public function test_subscribed_services(): void
-    {
-        $this->assertEquals(
-            [
-                RequestStack::class,
-                RefererUrlResolver::class,
-                Environment::class,
-            ],
-            AbstractUserEmailFactory::getSubscribedServices()
-        );
-    }
-
     public function test_create_email_called_before_init_user_throws_exception(): void
     {
         $this->expectException(BadMethodCallException::class);
@@ -149,7 +137,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $this->containerInterfaceMock
             ->expects(self::once())
             ->method('get')
-            ->with(Environment::class)
+            ->with('twig')
             ->willReturn($twig);
 
         $emailMessage = (new TemplatedEmail())
@@ -213,7 +201,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn(new Request());
 
         $this->containerInterfaceMock
@@ -240,7 +228,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn($request);
 
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
@@ -280,7 +268,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn($request);
 
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
@@ -317,7 +305,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock
             ->expects(self::once())
-            ->method('getMasterRequest')
+            ->method('getMainRequest')
             ->willReturn($request);
 
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);

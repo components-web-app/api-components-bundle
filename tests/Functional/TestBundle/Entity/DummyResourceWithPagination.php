@@ -21,9 +21,9 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
  * @author Daniel West <daniel@silverback.is>
  *
  * @ApiResource(
- *     collectionOperations={ "get"={"maximum_items_per_page"=40} },
+ *     collectionOperations={ "get"={"pagination_maximum_items_per_page"=40} },
  *     attributes={
- *         "maximum_items_per_page"=40,
+ *         "pagination_maximum_items_per_page"=40,
  *         "pagination_items_per_page"=10,
  *         "pagination_client_items_per_page"=true,
  *         "pagination_client_enabled"=true,

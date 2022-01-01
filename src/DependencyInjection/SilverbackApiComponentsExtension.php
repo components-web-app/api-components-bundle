@@ -19,8 +19,6 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
-use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -290,15 +288,15 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             [
                 'title' => $websiteName,
                 'description' => sprintf('API for %s', $websiteName),
-                // 'defaults' => [
-                //   'pagination_client_items_per_page' => true,
-                //   'pagination_maximum_items_per_page' => 100,
-                // ],
+                 'defaults' => [
+                   'pagination_client_items_per_page' => true,
+                   'pagination_maximum_items_per_page' => 100,
+                 ],
                 'collection' => [
                     'pagination' => [
                         'items_per_page_parameter_name' => 'perPage',
-                        'client_items_per_page' => true,
-                        'maximum_items_per_page' => 100,
+                        // 'client_items_per_page' => true,
+                        // 'maximum_items_per_page' => 100,
                     ],
                 ],
                 'mapping' => [

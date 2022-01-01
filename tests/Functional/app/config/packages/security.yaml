@@ -1,8 +1,9 @@
 security:
+    enable_authenticator_manager: true
     role_hierarchy:
         ROLE_ADMIN:       ROLE_USER
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
-    encoders:
+    password_hashers:
         Silverback\ApiComponentsBundle\Entity\User\AbstractUser:
             algorithm: auto
     providers:
@@ -22,7 +23,6 @@ security:
         login:
             pattern:  ^/login
             stateless: true
-            anonymous: true
             provider: database
             user_checker: Silverback\ApiComponentsBundle\Security\UserChecker
             json_login:
@@ -33,20 +33,17 @@ security:
         main:
             pattern:   ^/
             stateless: true
-            anonymous: true
             provider: jwt_database_chain
             logout:
                 path: /logout
-            guard:
-                authenticators:
-                    - lexik_jwt_authentication.jwt_token_authenticator
+            jwt: ~
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
     access_control:
-        - { path: ^/token/refresh, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/password/(reset|update), roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/token/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/password/(reset|update), roles: PUBLIC_ACCESS, methods: [POST] }
         # For a specific tests to ensure anonymous users can use publishable
-        - { path: ^/component/dummy_publishable_components, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/component/dummy_publishable_components, roles: PUBLIC_ACCESS, methods: [POST] }
         # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
-        - { path: ^/component/forms/(.*)/submit, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST, PATCH] }
+        - { path: ^/component/forms/(.*)/submit, roles: PUBLIC_ACCESS, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

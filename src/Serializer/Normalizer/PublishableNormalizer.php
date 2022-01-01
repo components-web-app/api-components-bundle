@@ -79,7 +79,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $this->uploadableFileManager = $uploadableFileManager;
     }
 
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
@@ -134,14 +134,14 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = []): mixed
     {
         $context[self::ALREADY_CALLED] = true;
         $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
         if ($request && true === $this->publishableStatusChecker->isPublishedRequest($request)) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }

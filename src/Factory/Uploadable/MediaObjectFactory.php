@@ -112,7 +112,7 @@ class MediaObjectFactory
 
         $filters = $uploadableField->imagineFilters;
         if ($object instanceof ImagineFiltersInterface) {
-            $request = $this->requestStack->getMasterRequest();
+            $request = $this->requestStack->getMainRequest();
             array_push($filters, ...$object->getImagineFilters($fileProperty, $request));
         }
 

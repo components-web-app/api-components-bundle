@@ -32,7 +32,7 @@ class FormOutputDataTransformer implements DataTransformerInterface
     /**
      * @param Form $form
      */
-    public function transform($form, string $to, array $context = [])
+    public function transform($form, string $to, array $context = []): Form
     {
         $form->formView = $this->formViewFactory->create($form);
 

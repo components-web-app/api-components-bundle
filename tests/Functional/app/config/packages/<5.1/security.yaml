@@ -1,6 +1,0 @@
-security:
-    firewalls:
-        main:
-            logout:
-                # Required for Symfony < 5.1
-                handlers: [silverback.security.logout_handler]

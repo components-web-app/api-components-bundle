@@ -49,7 +49,7 @@ class AbstractResourceNormalizer implements CacheableSupportsMethodInterface, Co
         }
     }
 
-    public function denormalize($data, $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = []): mixed
     {
         $context[self::ALREADY_CALLED] = true;
 

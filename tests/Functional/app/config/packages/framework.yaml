@@ -8,7 +8,7 @@ framework:
     serializer:
         enable_annotations:            true
     session:
-        storage_id:                    'session.storage.mock_file'
+        storage_factory_id: 'session.storage.factory.mock_file'
     profiler:
         collect: true
     router:

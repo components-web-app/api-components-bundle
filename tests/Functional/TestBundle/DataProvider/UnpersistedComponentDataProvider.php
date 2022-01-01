@@ -19,7 +19,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnper
 
 class UnpersistedComponentDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
 {
-    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
+    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): DummyUnpersistedComponent
     {
         return new DummyUnpersistedComponent();
     }

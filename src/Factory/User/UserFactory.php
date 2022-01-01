@@ -17,7 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -29,16 +29,16 @@ class UserFactory
     private ValidatorInterface $validator;
     private UserRepositoryInterface $userRepository;
     private TimestampedDataPersister $timestampedDataPersister;
-    private UserPasswordEncoderInterface $passwordEncoder;
+    private UserPasswordHasherInterface $passwordHasher;
     private string $userClass;
 
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepositoryInterface $userRepository, TimestampedDataPersister $timestampedDataPersister, UserPasswordEncoderInterface $passwordEncoder, string $userClass)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepositoryInterface $userRepository, TimestampedDataPersister $timestampedDataPersister, UserPasswordHasherInterface $passwordHasher, string $userClass)
     {
         $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->userRepository = $userRepository;
         $this->timestampedDataPersister = $timestampedDataPersister;
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
         $this->userClass = $userClass;
     }
 
@@ -49,13 +49,13 @@ class UserFactory
         }
 
         /** @var AbstractUser|null $user */
-        $user = $overwrite ? $this->userRepository->loadUserByUsername($username) : null;
+        $user = $overwrite ? $this->userRepository->loadUserByIdentifier($username) : null;
 
         if (!$user) {
             $user = new $this->userClass();
         }
 
-        $encodedPassword = $this->passwordEncoder->encodePassword($user, $password);
+        $encodedPassword = $this->passwordHasher->hashPassword($user, $password);
 
         $roles = ['ROLE_USER'];
         if ($superAdmin) {

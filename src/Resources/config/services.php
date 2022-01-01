@@ -20,7 +20,6 @@ use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
-use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
@@ -160,18 +159,18 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Twig\Environment;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service_locator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
 /*
@@ -195,7 +194,11 @@ return static function (ContainerConfigurator $configurator) {
         ->abstract()
         ->args(
             [
-                '$container' => new Reference(ContainerInterface::class),
+                '$container' => service_locator([
+                    'twig' => new Reference('twig'),
+                    RequestStack::class => new Reference('request_stack'),
+                    RefererUrlResolver::class => new Reference(RefererUrlResolver::class)
+                ]),
                 '$eventDispatcher' => new Reference(EventDispatcherInterface::class),
             ]
         );
@@ -221,7 +224,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(ChangeEmailConfirmationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(ChangePasswordType::class)
@@ -309,7 +312,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(EntityManagerInterface::class),
                 new Reference('silverback.repository.user'),
-                new Reference(EncoderFactoryInterface::class),
+                new Reference(PasswordHasherFactoryInterface::class),
                 new Reference(UserDataProcessor::class),
                 new Reference(UserEventListener::class),
             ]
@@ -531,12 +534,12 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(PasswordChangedEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(PasswordResetEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(PasswordRequestAction::class)
@@ -1049,7 +1052,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(UserEnabledEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(UserEventListener::class)
@@ -1070,7 +1073,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ValidatorInterface::class),
                 new Reference('silverback.repository.user'),
                 new Reference('silverback.helper.timestamped_data_persister'),
-                new Reference(UserPasswordEncoderInterface::class),
+                new Reference(UserPasswordHasherInterface::class),
                 '', // injected in dependency injection
             ]
         );
@@ -1085,24 +1088,32 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(MailerInterface::class),
-                new Reference(ContainerInterface::class),
+                service_locator([
+                    PasswordResetEmailFactory::class => new Reference(PasswordResetEmailFactory::class),
+                    ChangeEmailConfirmationEmailFactory::class => new Reference(ChangeEmailConfirmationEmailFactory::class),
+                    WelcomeEmailFactory::class => new Reference(WelcomeEmailFactory::class),
+                    UserEnabledEmailFactory::class => new Reference(UserEnabledEmailFactory::class),
+                    UsernameChangedEmailFactory::class => new Reference(UsernameChangedEmailFactory::class),
+                    PasswordChangedEmailFactory::class => new Reference(PasswordChangedEmailFactory::class),
+                    VerifyEmailFactory::class => new Reference(VerifyEmailFactory::class)
+                ]),
                 '', // injected in dependency injection
             ]
         )
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(UsernameChangedEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(UserDataProcessor::class)
         ->args(
             [
-                new Reference(UserPasswordEncoderInterface::class),
+                new Reference(UserPasswordHasherInterface::class),
                 new Reference('silverback.repository.user'),
-                new Reference(EncoderFactoryInterface::class),
+                new Reference(PasswordHasherFactoryInterface::class),
                 '', // injected in dependency injection
                 '', // injected in dependency injection
                 '', // injected in dependency injection
@@ -1114,7 +1125,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UserPasswordValidator::class)
         ->args([
             new Reference(TokenStorageInterface::class),
-            new Reference(EncoderFactoryInterface::class),
+            new Reference(PasswordHasherFactoryInterface::class),
             new Reference('silverback.repository.user'),
         ])
         ->decorate('security.validator.user_password');
@@ -1175,14 +1186,12 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set(VerifyEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
+    ;
 
     $services
         ->set(WelcomeEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class)
-        ->tag('container.service_subscriber');
-
-    $services->alias(Environment::class, 'twig');
+    ;
 
     $services
         ->set('silverback.metadata_factory.page_data')

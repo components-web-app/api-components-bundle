@@ -152,7 +152,7 @@ class UserRepositoryTest extends AbstractRepositoryTest
     {
         $username = 'unique_username';
         $email = 'unique@email.com';
-        $this->assertNull($this->repository->loadUserByUsername('does_not_exist'));
+        $this->assertNull($this->repository->loadUserByIdentifier('does_not_exist'));
 
         $user = new User();
         $user->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
@@ -162,8 +162,8 @@ class UserRepositoryTest extends AbstractRepositoryTest
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->assertEquals($user, $this->repository->loadUserByUsername($username));
-        $this->assertEquals($user, $this->repository->loadUserByUsername($email));
+        $this->assertEquals($user, $this->repository->loadUserByIdentifier($username));
+        $this->assertEquals($user, $this->repository->loadUserByIdentifier($email));
     }
 
     public function test_find_existing_user_by_new_email(): void

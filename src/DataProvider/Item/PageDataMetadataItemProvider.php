@@ -30,7 +30,7 @@ class PageDataMetadataItemProvider implements ItemDataProviderInterface, Restric
         $this->pageDataMetadataFactory = $pageDataMetadataFactory;
     }
 
-    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
+    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): ?PageDataMetadata
     {
         return $this->pageDataMetadataFactory->create($id);
     }

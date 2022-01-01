@@ -39,7 +39,7 @@ class RouteDataProvider implements ItemDataProviderInterface, RestrictedDataProv
         return Route::class === $resourceClass && !isset($context[self::ALREADY_CALLED]);
     }
 
-    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = [])
+    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): ?object
     {
         $context[self::ALREADY_CALLED] = true;
         if (!\is_string($id)) {

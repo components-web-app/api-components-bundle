@@ -18,7 +18,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,20 +27,20 @@ class EmailAddressManager
 {
     private EntityManagerInterface $entityManager;
     private UserRepositoryInterface $userRepository;
-    private EncoderFactoryInterface $encoderFactory;
+    private PasswordHasherFactoryInterface $passwordHasherFactory;
     private UserDataProcessor $userDataProcessor;
     private UserEventListener $userEventListener;
 
     public function __construct(
-        EntityManagerInterface $entityManager,
-        UserRepositoryInterface $userRepository,
-        EncoderFactoryInterface $encoderFactory,
-        UserDataProcessor $userDataProcessor,
-        UserEventListener $userEventListener
+        EntityManagerInterface         $entityManager,
+        UserRepositoryInterface        $userRepository,
+        PasswordHasherFactoryInterface $passwordHasherFactory,
+        UserDataProcessor              $userDataProcessor,
+        UserEventListener              $userEventListener
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
-        $this->encoderFactory = $encoderFactory;
+        $this->passwordHasherFactory = $passwordHasherFactory;
         $this->userDataProcessor = $userDataProcessor;
         $this->userEventListener = $userEventListener;
     }
@@ -55,8 +55,8 @@ class EmailAddressManager
             throw new InvalidArgumentException('User not found');
         }
         $previousUser = clone $user;
-        $encoder = $this->encoderFactory->getEncoder($user);
-        if (!$encoder->isPasswordValid($user->getNewEmailConfirmationToken(), $token, $user->getSalt())) {
+        $hasher = $this->passwordHasherFactory->getPasswordHasher($user);
+        if (!$hasher->verify($user->getNewEmailConfirmationToken(), $token)) {
             throw new InvalidArgumentException('Invalid token');
         }
 
@@ -93,8 +93,8 @@ class EmailAddressManager
             throw new InvalidArgumentException('User not found');
         }
 
-        $encoder = $this->encoderFactory->getEncoder($user);
-        if (!$encoder->isPasswordValid($user->getEmailAddressVerifyToken(), $token, $user->getSalt())) {
+        $hasher = $this->passwordHasherFactory->getPasswordHasher($user);
+        if (!$hasher->verify($user->getEmailAddressVerifyToken(), $token)) {
             throw new InvalidArgumentException('Invalid token');
         }
 

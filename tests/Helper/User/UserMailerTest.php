@@ -53,22 +53,6 @@ class UserMailerTest extends TestCase
         $this->userMailer = new UserMailer($this->mailerMock, $this->containerMock, self::TEST_CONTEXT);
     }
 
-    public function test_subscribed_services(): void
-    {
-        $this->assertEquals(
-            [
-                PasswordResetEmailFactory::class,
-                ChangeEmailConfirmationEmailFactory::class,
-                WelcomeEmailFactory::class,
-                UserEnabledEmailFactory::class,
-                UsernameChangedEmailFactory::class,
-                PasswordChangedEmailFactory::class,
-                VerifyEmailFactory::class,
-            ],
-            UserMailer::getSubscribedServices()
-        );
-    }
-
     public function test_context_can_be_omitted(): void
     {
         $user = new class() extends AbstractUser {

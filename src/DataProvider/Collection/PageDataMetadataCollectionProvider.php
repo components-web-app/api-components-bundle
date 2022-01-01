@@ -30,7 +30,7 @@ class PageDataMetadataCollectionProvider implements CollectionDataProviderInterf
         $this->pageDataMetadataProvider = $pageDataMetadataProvider;
     }
 
-    public function getCollection(string $resourceClass, string $operationName = null)
+    public function getCollection(string $resourceClass, string $operationName = null): iterable
     {
         return $this->pageDataMetadataProvider->createAll();
     }

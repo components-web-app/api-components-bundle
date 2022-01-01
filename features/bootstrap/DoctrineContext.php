@@ -54,7 +54,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class DoctrineContext implements Context
 {
@@ -67,7 +67,7 @@ final class DoctrineContext implements Context
     private TimestampedDataPersister $timestampedHelper;
     private ObjectManager $manager;
     private SchemaTool $schemaTool;
-    private UserPasswordEncoderInterface $passwordEncoder;
+    private UserPasswordHasherInterface $passwordHasher;
     private array $classes;
     private JWTEncoderInterface $jwtEncoder;
 
@@ -78,7 +78,7 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordEncoderInterface $passwordEncoder, JWTEncoderInterface $jwtEncoder)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder)
     {
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -87,7 +87,7 @@ final class DoctrineContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
         $this->jwtEncoder = $jwtEncoder;
     }
 
@@ -125,7 +125,7 @@ final class DoctrineContext implements Context
         $user
             ->setRoles($roles)
             ->setUsername('user@example.com')
-            ->setPassword($this->passwordEncoder->encodePassword($user, 'password'))
+            ->setPassword($this->passwordHasher->hashPassword($user, 'password'))
             ->setEnabled(true)
             ->setEmailAddressVerified(true);
         $this->timestampedHelper->persistTimestampedFields($user, true);
@@ -220,7 +220,7 @@ final class DoctrineContext implements Context
         $user
             ->setUsername($username)
             ->setEmailAddress($emailAddress)
-            ->setPassword($this->passwordEncoder->encodePassword($user, $password))
+            ->setPassword($this->passwordHasher->hashPassword($user, $password))
             ->setRoles([$role])
             ->setEnabled(true)
             ->setEmailAddressVerified(true);
@@ -237,7 +237,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
-        $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
+        $user->setNewPasswordConfirmationToken($this->passwordHasher->hashPassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
         $this->manager->flush();
     }
 
@@ -261,7 +261,7 @@ final class DoctrineContext implements Context
         $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
         $user->setEmailAddressVerified(false);
         if ($verificationToken) {
-            $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $verificationToken));
+            $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $verificationToken));
         }
         $this->manager->flush();
     }
@@ -273,7 +273,7 @@ final class DoctrineContext implements Context
     {
         /** @var User $user */
         $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
-        $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $verificationToken));
+        $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $verificationToken));
         $this->manager->flush();
     }
 
@@ -844,7 +844,7 @@ final class DoctrineContext implements Context
                 'username' => $username,
             ]
         );
-        Assert::assertTrue($this->passwordEncoder->isPasswordValid($user, $password));
+        Assert::assertTrue($this->passwordHasher->isPasswordValid($user, $password));
     }
 
     /**

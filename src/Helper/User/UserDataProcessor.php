@@ -18,34 +18,34 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UserDataProcessor
 {
-    private UserPasswordEncoderInterface $passwordEncoder;
+    private UserPasswordHasherInterface $passwordHasher;
     private UserRepositoryInterface $userRepository;
-    private EncoderFactoryInterface $encoderFactory;
+    private PasswordHasherFactoryInterface $passwordHasherFactory;
     private bool $initialEmailVerifiedState;
     private bool $verifyEmailOnRegister;
     private bool $verifyEmailOnChange;
     private int $tokenTtl;
 
     public function __construct(
-        UserPasswordEncoderInterface $passwordEncoder,
-        UserRepositoryInterface $userRepository,
-        EncoderFactoryInterface $encoderFactory,
-        bool $initialEmailVerifiedState,
-        bool $verifyEmailOnRegister,
-        bool $verifyEmailOnChange,
-        int $tokenTtl = 8600
+        UserPasswordHasherInterface    $passwordHasher,
+        UserRepositoryInterface        $userRepository,
+        PasswordHasherFactoryInterface $passwordHasherFactory,
+        bool                           $initialEmailVerifiedState,
+        bool                           $verifyEmailOnRegister,
+        bool                           $verifyEmailOnChange,
+        int                            $tokenTtl = 8600
     ) {
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
         $this->userRepository = $userRepository;
-        $this->encoderFactory = $encoderFactory;
+        $this->passwordHasherFactory = $passwordHasherFactory;
         $this->initialEmailVerifiedState = $initialEmailVerifiedState;
         $this->verifyEmailOnRegister = $verifyEmailOnRegister;
         $this->verifyEmailOnChange = $verifyEmailOnChange;
@@ -67,7 +67,7 @@ class UserDataProcessor
         if (!$username) {
             throw new UnexpectedValueException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
-        $user->setNewPasswordConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+        $user->setNewPasswordConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
         $user->plainNewPasswordConfirmationToken = $token;
         $user->setPasswordRequestedAt(new \DateTime());
 
@@ -80,38 +80,38 @@ class UserDataProcessor
         if (!$user) {
             return null;
         }
-        $encoder = $this->encoderFactory->getEncoder($user);
-        if (!$encoder->isPasswordValid($user->getNewPasswordConfirmationToken(), $token, $user->getSalt())) {
+        $hasher = $this->passwordHasherFactory->getPasswordHasher($user);
+        if (!$hasher->verify($user->getNewPasswordConfirmationToken(), $token)) {
             return null;
         }
 
         $user->setPlainPassword($newPassword);
         $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
-        $this->encodePassword($user);
+        $this->hashPassword($user);
 
         return $user;
     }
 
     public function processChanges(AbstractUser $user, ?AbstractUser $previousUser): void
     {
-        $this->encodePassword($user);
+        $this->hashPassword($user);
         if (!$previousUser) {
             $user->setEmailAddressVerified($this->initialEmailVerifiedState);
             if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
-                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
                 $user->plainEmailAddressVerifyToken = $token;
             }
         }
 
         if ($previousUser) {
             if ($this->verifyEmailOnChange && $user->getEmailAddress() !== $previousUser->getEmailAddress()) {
-                $user->setEmailAddressVerifyToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
                 $user->plainEmailAddressVerifyToken = $token;
             }
             if (($newEmail = $user->getNewEmailAddress()) !== $previousUser->getNewEmailAddress()) {
                 if ($newEmail) {
-                    $user->setNewEmailConfirmationToken($this->passwordEncoder->encodePassword($user, $token = TokenGenerator::generateToken()));
+                    $user->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
                     $user->plainNewEmailConfirmationToken = $token;
                 } else {
                     // invalidate any existing requests
@@ -121,12 +121,12 @@ class UserDataProcessor
         }
     }
 
-    private function encodePassword(AbstractUser $entity): bool
+    private function hashPassword(AbstractUser $entity): bool
     {
         if (!$entity->getPlainPassword()) {
             return false;
         }
-        $encoded = $this->passwordEncoder->encodePassword($entity, $entity->getPlainPassword());
+        $encoded = $this->passwordHasher->hashPassword($entity, $entity->getPlainPassword());
         $entity->setPassword($encoded);
         $entity->eraseCredentials();
 

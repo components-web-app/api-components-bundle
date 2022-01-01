@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -35,7 +36,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
  * @AcbAssert\NewEmailAddress(groups={"User:emailAddress", "Default"})
  */
-abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
+abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticatedUserInterface, JWTUserInterface
 {
     use IdTrait;
     use TimestampedTrait;
@@ -398,7 +399,7 @@ abstract class AbstractUser implements SymfonyUserInterface, JWTUserInterface
         return (string) $this->id;
     }
 
-    public static function createFromPayload($username, array $payload)
+    public static function createFromPayload($username, array $payload): JWTUserInterface
     {
         $newUser = new static(
             $username,

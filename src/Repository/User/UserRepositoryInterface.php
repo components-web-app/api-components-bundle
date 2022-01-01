@@ -32,7 +32,7 @@ interface UserRepositoryInterface extends UserLoaderInterface
 
     public function findOneByUsernameAndNewEmailAddress(string $username, string $email): ?AbstractUser;
 
-    public function loadUserByUsername(string $username): ?AbstractUser;
+    public function loadUserByIdentifier(string $identifier): ?AbstractUser;
 
     public function findExistingUserByNewEmail(AbstractUser $user): ?AbstractUser;
 }

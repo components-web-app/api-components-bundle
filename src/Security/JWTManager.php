@@ -69,40 +69,57 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function decode(TokenInterface $token)
+    public function decode(TokenInterface $token): array|false
     {
+        // parse will be used for old symfony where PreAuthenticationJWTUserToken exists
         try {
             return $this->decorated->decode($token);
         } catch (JWTDecodeFailureException $exception) {
-            if (JWTDecodeFailureException::EXPIRED_TOKEN !== $exception->getReason()) {
-                throw $exception;
-            }
-
-            $payload = $exception->getPayload();
-            $idClaim = $this->getUserIdClaim();
-
-            if (!isset($payload[$idClaim])) {
-                throw new InvalidPayloadException($idClaim);
-            }
-
-            $identity = $payload[$idClaim];
-            try {
-                $user = $this->userProvider->loadUserByUsername($identity);
-            } catch (UsernameNotFoundException $e) {
-                throw new UserNotFoundException($idClaim, $identity);
-            }
-
-            $refreshToken = $this->resolveCurrentRefreshToken($user);
-            if (!$refreshToken) {
-                throw $exception;
-            }
-
-            $accessToken = $this->create($user, $refreshToken);
-
-            $this->dispatcher->dispatch(new JWTRefreshedEvent($accessToken));
-
-            return $this->decorated->decode(new PreAuthenticationJWTUserToken($accessToken));
+            $jwtUserToken = $this->handleJWTDecodeFailureException($exception);
+            return $this->decorated->decode(new PreAuthenticationJWTUserToken($jwtUserToken));
         }
+    }
+
+    public function parse(string $token): array
+    {
+        try {
+            return $this->decorated->parse($token);
+        } catch (JWTDecodeFailureException $exception) {
+            $jwtUserToken = $this->handleJWTDecodeFailureException($exception);
+            return $this->decorated->parse($jwtUserToken);
+        }
+    }
+
+    private function handleJWTDecodeFailureException(JWTDecodeFailureException $exception): string
+    {
+        if (JWTDecodeFailureException::EXPIRED_TOKEN !== $exception->getReason()) {
+            throw $exception;
+        }
+
+        $payload = $exception->getPayload();
+        $idClaim = $this->getUserIdClaim();
+
+        if (!isset($payload[$idClaim])) {
+            throw new InvalidPayloadException($idClaim);
+        }
+
+        $identity = $payload[$idClaim];
+        try {
+            $user = $this->userProvider->loadUserByIdentifier($identity);
+        } catch (UsernameNotFoundException $e) {
+            throw new UserNotFoundException($idClaim, $identity);
+        }
+
+        $refreshToken = $this->resolveCurrentRefreshToken($user);
+        if (!$refreshToken) {
+            throw $exception;
+        }
+
+        $accessToken = $this->create($user, $refreshToken);
+
+        $this->dispatcher->dispatch(new JWTRefreshedEvent($accessToken));
+
+        return $accessToken;
     }
 
     private function resolveCurrentRefreshToken(UserInterface $user): ?RefreshToken
@@ -143,7 +160,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function createFromPayload(UserInterface $user, array $payload)
+    public function createFromPayload(UserInterface $user, array $payload): string
     {
         return $this->decorated->createFromPayload($user, $payload);
     }

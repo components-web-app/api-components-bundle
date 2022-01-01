@@ -17,8 +17,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
@@ -38,14 +36,12 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
 
     private TimestampedAnnotationReader $annotationReader;
     private TimestampedDataPersister $timestampedDataPersister;
-    private PropertyAccessor $propertyAccessor;
 
     public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $annotationReader, TimestampedDataPersister $timestampedDataPersister)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->timestampedDataPersister = $timestampedDataPersister;
-        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -63,7 +59,7 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
         return !\in_array($id, $context[self::ALREADY_CALLED], true) && $this->annotationReader->isConfigured($type);
     }
 
-    public function denormalize($data, $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = []): mixed
     {
         $context[self::ALREADY_CALLED][] = $type;
 

@@ -73,7 +73,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $type, $format = null, array $context = [])
+    public function denormalize($data, $type, $format = null, array $context = []): mixed
     {
         $context[self::ALREADY_CALLED] = true;
 
@@ -129,7 +129,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
             $this->annotationReader->isConfigured($data);
     }
 
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
 

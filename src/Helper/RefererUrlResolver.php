@@ -35,7 +35,7 @@ class RefererUrlResolver
             return $path;
         }
 
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
         if (!$request) {
             throw new InvalidArgumentException('To generate an absolute URL to the referrer, there must be a valid master request');
         }

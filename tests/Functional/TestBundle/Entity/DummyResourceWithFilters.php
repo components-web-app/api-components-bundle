@@ -23,7 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
  * @author Daniel West <daniel@silverback.is>
  *
  * @ApiResource(attributes={
- *     "maximum_items_per_page"=40,
+ *     "pagination_maximum_items_per_page"=40,
  *     "pagination_client_enabled"=true,
  * })
  * @ApiFilter(SearchFilter::class, properties={"reference"="partial"})

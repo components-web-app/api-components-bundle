@@ -14,8 +14,9 @@ declare(strict_types=1);
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\Routing\RouteCollectionBuilder;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 
 /**
@@ -62,41 +63,33 @@ class AppKernel extends Kernel
         return parent::getProjectDir() . '/tests/Functional/app';
     }
 
-    /**
-     * @throws
-     */
-    protected function configureRoutes(RouteCollectionBuilder $routes)
+    protected function configureRoutes(RoutingConfigurator $routes): void
     {
         // Import routes that should be included with flex / manually
-        $routes->import($this->getProjectDir() . '/../../../src/Resources/config/routing/*' . self::CONFIG_EXTS, '/', 'glob');
+        $routes->import($this->getProjectDir() . '/../../../src/Resources/config/routing/*' . self::CONFIG_EXTS);
 
         $configDir = $this->getProjectDir() . '/config';
         if (is_dir($configDir . '/routes/')) {
-            $routes->import($configDir . '/routes/*' . self::CONFIG_EXTS, '/', 'glob');
+            $routes->import($configDir . '/routes/*' . self::CONFIG_EXTS);
         }
         if (is_dir($configDir . '/routes/' . $this->environment)) {
-            $routes->import($configDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTS, '/', 'glob');
+            $routes->import($configDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTS);
         }
-        $routes->import($configDir . '/routes' . self::CONFIG_EXTS, '/', 'glob');
+        $routes->import($configDir . '/routes' . self::CONFIG_EXTS);
     }
 
-    /**
-     * @throws
-     */
-    protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader)
+    protected function configureContainer(ContainerConfigurator $container, LoaderInterface $loader, ContainerBuilder $builder): void
     {
-        $container->setParameter('container.autowiring.strict_mode', true);
-        $container->setParameter('container.dumper.inline_class_loader', true);
+        // $container->setParameter('container.autowiring.strict_mode', true);
+        // $container->setParameter('container.dumper.inline_class_loader', true);
+
         $confDir = $this->getProjectDir() . '/config';
-        $loader->load($confDir . '/packages/*' . self::CONFIG_EXTS, 'glob');
+        $container->import($confDir . '/packages/*' . self::CONFIG_EXTS);
         if (is_dir($confDir . '/packages/' . $this->environment)) {
-            $loader->load($confDir . '/packages/' . $this->environment . '/**/*' . self::CONFIG_EXTS, 'glob');
+            $container->import($confDir . '/packages/' . $this->environment . '/**/*' . self::CONFIG_EXTS);
         }
-        // Todo: Could probably do with a better check for which symfony version we are in. LogoutEvent was introduced in 5.1
-        if (!class_exists(LogoutEvent::class)) {
-            $loader->load($confDir . '/packages/<5.1/**/*' . self::CONFIG_EXTS, 'glob');
-        }
-        $loader->load($confDir . '/services' . self::CONFIG_EXTS, 'glob');
-        $loader->load($confDir . '/services_' . $this->environment . self::CONFIG_EXTS, 'glob');
+
+        $container->import($confDir . '/services' . self::CONFIG_EXTS);
+        $container->import($confDir . '/services_' . $this->environment . self::CONFIG_EXTS);
     }
 }

@@ -65,7 +65,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getMainRequest();
 
         if (!$this->collectionDataProvider instanceof ContextAwareCollectionDataProviderInterface) {
             $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name']);

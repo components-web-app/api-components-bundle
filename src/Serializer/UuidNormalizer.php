@@ -34,7 +34,7 @@ class UuidNormalizer implements DenormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function denormalize($data, $class, $format = null, array $context = [])
+    public function denormalize($data, $class, $format = null, array $context = []): mixed
     {
         if (\is_string($data)) {
             return $data;
@@ -46,7 +46,7 @@ class UuidNormalizer implements DenormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function supportsDenormalization($data, $type, $format = null)
+    public function supportsDenormalization($data, $type, $format = null): bool
     {
         return $this->decorated->supportsDenormalization($data, $type, $format);
     }

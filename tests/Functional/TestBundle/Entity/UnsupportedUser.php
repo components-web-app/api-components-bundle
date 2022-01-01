@@ -20,8 +20,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class UnsupportedUser implements UserInterface
 {
-    public function getRoles()
+    public function getRoles(): array
     {
+        return [];
     }
 
     public function getPassword()
@@ -38,5 +39,10 @@ class UnsupportedUser implements UserInterface
 
     public function eraseCredentials()
     {
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return '';
     }
 }

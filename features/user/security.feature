@@ -69,14 +69,14 @@ Feature: Prevent disabled users from logging in
     And 2 refresh tokens should exist
 
   @loginUser
-  Scenario: given I have an expired refresh-token when I log in with an expired access-token, I should get a 401
+  Scenario: I have an expired refresh-token when I log in with an expired access-token, I should get a 401
     Given I have a refresh token which expires at "-1 second"
     And my JWT token has expired
     When I send a "GET" request to "/me"
     Then the response status code should be 401
 
   @loginUser
-  Scenario: given I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
+  Scenario: I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
     Given I have a refresh token
     When I send a "GET" request to "/logout"
     Then the response status code should be 200

@@ -50,7 +50,7 @@ abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
             $requestStackMock = $this->createMock(RequestStack::class);
             $requestStackMock
                 ->expects(self::once())
-                ->method('getMasterRequest')
+                ->method('getMainRequest')
                 ->willReturn(null);
 
             $refererUrlMock = $this->createMock(RefererUrlResolver::class);
@@ -66,7 +66,7 @@ abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
             $willReturn[] = $refererUrlMock;
         }
 
-        $containerWith[] = [Environment::class];
+        $containerWith[] = ['twig'];
         $willReturn[] = $twig;
 
         $this->containerInterfaceMock

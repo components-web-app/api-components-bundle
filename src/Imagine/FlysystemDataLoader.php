@@ -40,7 +40,7 @@ class FlysystemDataLoader implements LoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function find($path)
+    public function find($path): Binary
     {
         $filesystem = $this->filesystemProvider->getFilesystem($this->adapter);
 

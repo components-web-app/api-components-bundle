@@ -29,12 +29,11 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\RfcComplianceException as SymfonyRfcComplianceException;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
-use Twig\Environment;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
+abstract class AbstractUserEmailFactory
 {
     public const MESSAGE_ID_PREFIX = 'xx';
 
@@ -57,15 +56,6 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         $this->emailContext = $emailContext;
         $this->defaultRedirectPath = $defaultRedirectPath;
         $this->redirectPathQueryKey = $redirectPathQueryKey;
-    }
-
-    public static function getSubscribedServices(): array
-    {
-        return [
-            RequestStack::class,
-            RefererUrlResolver::class,
-            Environment::class,
-        ];
     }
 
     protected static function getContextKeys(): ?array
@@ -120,7 +110,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         );
         $this->validateContext($context);
 
-        $twig = $this->container->get(Environment::class);
+        $twig = $this->container->get('twig');
         $template = $twig->createTemplate($this->subject);
         $subject = $template->render($context);
 
@@ -161,7 +151,7 @@ abstract class AbstractUserEmailFactory implements ServiceSubscriberInterface
         }
 
         $requestStack = $this->container->get(RequestStack::class);
-        $request = $requestStack->getMasterRequest();
+        $request = $requestStack->getMainRequest();
 
         $path = ($request && $this->redirectPathQueryKey) ?
             $request->query->get($this->redirectPathQueryKey, $this->defaultRedirectPath) :

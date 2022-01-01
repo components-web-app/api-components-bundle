@@ -26,12 +26,11 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\RawMessage;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserMailer implements ServiceSubscriberInterface
+class UserMailer
 {
     private MailerInterface $mailer;
     private ContainerInterface $container;
@@ -42,19 +41,6 @@ class UserMailer implements ServiceSubscriberInterface
         $this->mailer = $mailer;
         $this->container = $container;
         $this->context = $context;
-    }
-
-    public static function getSubscribedServices(): array
-    {
-        return [
-            PasswordResetEmailFactory::class,
-            ChangeEmailConfirmationEmailFactory::class,
-            WelcomeEmailFactory::class,
-            UserEnabledEmailFactory::class,
-            UsernameChangedEmailFactory::class,
-            PasswordChangedEmailFactory::class,
-            VerifyEmailFactory::class,
-        ];
     }
 
     public function sendPasswordResetEmail(AbstractUser $user): void
