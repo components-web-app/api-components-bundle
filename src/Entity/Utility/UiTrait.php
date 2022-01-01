@@ -38,6 +38,11 @@ trait UiTrait
      */
     private Collection $componentCollections;
 
+    public function __construct()
+    {
+        $this->initComponentCollections();
+    }
+
     private function initComponentCollections(): void
     {
         $this->componentCollections = new ArrayCollection();

@@ -77,9 +77,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         $itemOperations = $resourceMetadata->getItemOperations() ?? [];
         $putProperties = $this->getUploadOperationConfiguration($properties, $uploadPath);
         // Symfony will not read the file bag unless it is POST due to HTTP spec
-        // see
-//        $itemOperations['put_upload'] = array_merge(['method' => 'PUT'], $putProperties);
-//        $itemOperations['patch_upload'] = array_merge(['method' => 'PATCH'], $putProperties);
+        // we were adding the put and patch item ops before - do not re-introduce.
         $itemOperations['post_upload'] = array_merge(['method' => 'POST'], $putProperties);
 
         $downloadPath = sprintf('/%s/{id}/download/{property}', $pathSegmentName);
