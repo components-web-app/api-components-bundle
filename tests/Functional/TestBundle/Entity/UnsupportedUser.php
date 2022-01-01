@@ -25,16 +25,19 @@ class UnsupportedUser implements UserInterface
         return [];
     }
 
-    public function getPassword()
+    public function getPassword(): ?string
     {
+        return null;
     }
 
-    public function getSalt()
+    public function getSalt(): ?string
     {
+        return null;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
+        return '';
     }
 
     public function eraseCredentials()

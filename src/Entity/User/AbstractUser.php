@@ -166,7 +166,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
         $this->enabled = $enabled;
     }
 
-    public function getUsername(): ?string
+    public function getUsername(): string
     {
         return $this->username;
     }
@@ -382,8 +382,9 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
      *
      * @ApiProperty(readable=false, writable=false)
      */
-    public function getSalt()
+    public function getSalt(): ?string
     {
+        return null;
     }
 
     /**
