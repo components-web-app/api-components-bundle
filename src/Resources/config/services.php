@@ -823,6 +823,9 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
+            new Reference(Security::class),
+            new Reference('silverback.doctrine.repository.page_data'),
+            new Reference(DenyAccessListener::class),
         ])
         ->tag('security.voter');
 

@@ -60,7 +60,7 @@ final class DenyAccessListener
         }
     }
 
-    private function isPageDataAllowedByRoute(AbstractPageData $pageData): ?bool
+    public function isPageDataAllowedByRoute(AbstractPageData $pageData): ?bool
     {
         $routes = $this->routeRepository->findByPageData($pageData);
 

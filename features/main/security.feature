@@ -87,7 +87,32 @@ Feature: Restrict loading of components and routes
     Then the response status code should be 200
 
   # Un-routed routable page security
+  Scenario: A component in a PageData resource which has a restricted route is also restricted
+    Given there is a component in a PageData route with the path "/user-area/my-page"
+    When I send a "GET" request to the resource "page"
+    Then the response status code should be 401
+
+  Scenario: A component in a PageData resource which has a restricted route is also restricted
+    Given there is a component in a PageData route with the path "/my-page"
+    When I send a "GET" request to the resource "page"
+    Then the response status code should be 200
+
   Scenario: A routable resource is forbidden to be loaded
+    Given there is a Page
+    When I send a "GET" request to the resource "page"
+    Then the response status code should be 401
+
+  Scenario: A routable resource with a public route can be loaded
+    Given there is a Route "/my-page" with a page
+    When I send a "GET" request to the resource "route_page"
+    Then the response status code should be 200
+
+  Scenario: A routable resource with a restricted route cannot be loaded by a public user
+    Given there is a Route "/user-area/my-page" with a page
+    When I send a "GET" request to the resource "route_page"
+    Then the response status code should be 401
+
+  Scenario: A routable resource cannot be loaded by public users without a route
     Given there is a Page
     When I send a "GET" request to the resource "page"
     Then the response status code should be 401
