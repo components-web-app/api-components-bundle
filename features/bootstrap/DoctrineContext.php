@@ -20,7 +20,6 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
@@ -371,7 +370,7 @@ final class DoctrineContext implements Context
         /** @var ComponentCollection $collection */
         $collection = $this->iriConverter->getItemFromIri($this->restContext->resources['component_collection']);
         if ('' !== $allowedComponent) {
-            $collection->allowedComponents = new ArrayCollection([$allowedComponent]);
+            $collection->allowedComponents = [$allowedComponent];
         }
         $this->manager->persist($collection);
         $this->manager->flush();

@@ -76,9 +76,10 @@ class ComponentCollection
     public Collection $componentPositions;
 
     /**
+     * @var string[]|null
      * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
      */
-    public ?Collection $allowedComponents = null;
+    public ?array $allowedComponents = null;
 
     public function __construct()
     {
@@ -183,7 +184,7 @@ class ComponentCollection
 
     public function setAllowedComponents(iterable $allowedComponents): self
     {
-        $this->allowedComponents = new ArrayCollection();
+        $this->allowedComponents = [];
         foreach ($allowedComponents as $componentIri) {
             $this->addAllowedComponent($componentIri);
         }
@@ -193,7 +194,10 @@ class ComponentCollection
 
     public function addAllowedComponent(string $allowedComponent): self
     {
-        $this->allowedComponents->add($allowedComponent);
+        if (null === $this->allowedComponents) {
+            $this->allowedComponents = [];
+        }
+        $this->allowedComponents[] = $allowedComponent;
 
         return $this;
     }
