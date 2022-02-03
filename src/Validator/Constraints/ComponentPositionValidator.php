@@ -49,11 +49,11 @@ class ComponentPositionValidator extends ConstraintValidator
         $iri = $this->iriConverter->getIriFromResourceClass(\get_class($component));
 
         if ($allowedComponents = $collection->allowedComponents) {
-            if (!$allowedComponents->contains($iri)) {
+            if (!\in_array($iri, $allowedComponents, true)) {
                 $this->context->buildViolation($constraint->message)
                     ->setParameter('{{ iri }}', $iri)
                     ->setParameter('{{ reference }}', $collection->reference)
-                    ->setParameter('{{ allowed }}', implode(',', $allowedComponents->toArray()))
+                    ->setParameter('{{ allowed }}', implode(',', $allowedComponents))
                     ->addViolation();
             }
 
