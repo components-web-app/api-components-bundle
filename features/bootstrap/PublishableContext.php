@@ -40,6 +40,7 @@ final class PublishableContext implements Context
     private ?BehatchRestContext $behatchRestContext;
     private ?BehatchJsonContext $behatchJsonContext;
     private ?JsonContext $jsonContext;
+    private ?DoctrineContext $doctrineContext;
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
     private array $resources = [];
@@ -63,6 +64,7 @@ final class PublishableContext implements Context
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
+        $this->doctrineContext = $scope->getEnvironment()->getContext(DoctrineContext::class);
     }
 
     /**
@@ -115,6 +117,21 @@ final class PublishableContext implements Context
     }
 
     /**
+     * @Given /^there is a draft for "([^"]*)"(?: set to publish at "(.*)"|)$/
+     */
+    public function thereIsADraftFor(string $publishedComponent, ?string $publishDate = null): void
+    {
+        $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$publishedComponent]);
+        if (!$component instanceof DummyPublishableComponent) {
+            throw new \RuntimeException(sprintf('The resource named `%s` is not a DummyPublishableComponent', $publishedComponent));
+        }
+        $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
+        $draft = $this->thereIsAPublishableResource($publishAt, false, true);
+        $draft->setPublishedResource($component);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a ComponentPosition with the resource :resource
      */
     public function thereIsAComponentPositionWithTheResource(string $resource)
@@ -137,6 +154,14 @@ final class PublishableContext implements Context
         $this->manager->persist($position);
         $this->manager->flush();
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($position);
+    }
+
+    /**
+     * @Given there is a DummyPublishableComponent in PageData and a Position
+     */
+    public function thereIsADummyPublishableComponentInPageDataAndAPosition()
+    {
+        $this->doctrineContext->abstractThereIsADummyComponentInPageDataAndAPosition($this->createPublishableComponent(new \DateTime('-10 seconds')));
     }
 
     /**

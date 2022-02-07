@@ -352,3 +352,28 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 404
     And the resource "publishable_draft" should exist
     And the resource "publishable_published" should exist
+
+  # Needs to be an admin as we are putting component in a page data resource which is not routed and so not accessible to anonymous
+  @loginAdmin
+  Scenario: I can get a published component's usage
+    Given there is a DummyPublishableComponent in PageData and a Position
+    And there is a draft for "publishable_published" set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "GET" request to the resource "publishable_published" and the postfix "/usage?published=true"
+    Then the response status code should be 200
+    And the JSON node "total" should be equal to 2
+    And the JSON node "positionCount" should be equal to 1
+    And the JSON node "pageDataCount" should be equal to 1
+
+  @loginAdmin
+  Scenario Outline: I can get a draft component's usage
+    Given there is a DummyPublishableComponent in PageData and a Position
+    And there is a draft for "publishable_published" set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "GET" request to the resource "<request_resource>" and the postfix "/usage"
+    Then the response status code should be 200
+    And the JSON node "total" should be equal to 2
+    And the JSON node "positionCount" should be equal to 1
+    And the JSON node "pageDataCount" should be equal to 1
+    Examples:
+    | request_resource |
+    | publishable_draft |
+    | publishable_published |

@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
@@ -285,6 +286,20 @@ final class DoctrineContext implements Context
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->resources['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+
+        return $component;
+    }
+
+    /**
+     * @Given there is a DummyPublishableComponent
+     */
+    public function thereIsADummyPublishableComponent(): DummyPublishableComponent
+    {
+        $this->createPublishableComponent();
+        $component = new DummyPublishableComponent();
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_publishable_component'] = $this->iriConverter->getIriFromItem($component);
 
         return $component;
     }
@@ -554,10 +569,7 @@ final class DoctrineContext implements Context
         $this->manager->flush();
     }
 
-    /**
-     * @Given there is a DummyComponent in PageData and a Position
-     */
-    public function thereIsADummyComponentInPageDataAndAPosition()
+    public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
@@ -571,9 +583,12 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
 
-        $dummyComponent = $this->thereIsADummyComponent();
         $pageData = new PageDataWithComponent();
-        $pageData->component = $dummyComponent;
+        if ($dummyComponent instanceof DummyComponent) {
+            $pageData->component = $dummyComponent;
+        } elseif ($dummyComponent instanceof DummyPublishableComponent) {
+            $pageData->publishableComponent = $dummyComponent;
+        }
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
@@ -588,6 +603,14 @@ final class DoctrineContext implements Context
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
 
         $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a DummyComponent in PageData and a Position
+     */
+    public function thereIsADummyComponentInPageDataAndAPosition()
+    {
+        $this->abstractThereIsADummyComponentInPageDataAndAPosition($this->thereIsADummyComponent());
     }
 
     /**

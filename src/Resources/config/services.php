@@ -1231,6 +1231,8 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.doctrine.repository.component_position'),
                 new Reference(PageDataProvider::class),
+                new Reference(PublishableStatusChecker::class),
+                new Reference('doctrine'),
             ]
         );
 

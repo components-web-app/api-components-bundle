@@ -28,4 +28,9 @@ class PageDataWithComponent extends AbstractPageData
      * @ORM\ManyToOne(targetEntity=DummyComponent::class)
      */
     public ?DummyComponent $component = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=DummyPublishableComponent::class)
+     */
+    public ?DummyPublishableComponent $publishableComponent = null;
 }
