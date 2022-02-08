@@ -52,18 +52,30 @@ abstract class AnnotationReader implements AnnotationReaderInterface
         return true;
     }
 
-    /**
-     * @param object|string $class
-     *
-     * @throws \ReflectionException
-     */
-    protected function getClassAnnotationConfiguration($class, string $annotationClass): ?object
+    private function resolveClassName(object|string|null $class): string
     {
-        if (null === $class || (!\is_object($class) && !\is_string($class)) || (\is_string($class) && !class_exists($class))) {
-            throw new InvalidArgumentException(sprintf('$class passed to %s must be a valid class FQN or object.', __CLASS__));
+        $error = sprintf('$class passed to %s must be a valid class FQN or object.', __CLASS__);
+        if (null === $class) {
+            throw new InvalidArgumentException($error . ' It is null.');
         }
 
-        $className = \is_object($class) ? \get_class($class) : $class;
+        if (\is_string($class)) {
+            if (!class_exists($class)) {
+                throw new InvalidArgumentException(sprintf('%s %s is not a class.', $error, $class));
+            }
+
+            return $class;
+        }
+
+        return \get_class($class);
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    protected function getClassAnnotationConfiguration(object|string|null $class, string $annotationClass): ?object
+    {
+        $className = $this->resolveClassName($class);
         if (\array_key_exists($className, $this->configurationCache)) {
             return $this->configurationCache[$className];
         }
