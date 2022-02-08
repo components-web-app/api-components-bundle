@@ -25,6 +25,11 @@ final class TimestampedAnnotationReader extends AnnotationReader
      */
     public function getConfiguration($class): Timestamped
     {
-        return $this->getClassAnnotationConfiguration($class, Timestamped::class);
+        $timestamped = $this->getClassAnnotationConfiguration($class, Timestamped::class);
+        if (!$timestamped instanceof Timestamped) {
+            throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Timestamped::class));
+        }
+
+        return $timestamped;
     }
 }

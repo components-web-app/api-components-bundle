@@ -22,9 +22,16 @@ final class PublishableAnnotationReader extends AnnotationReader
 {
     /**
      * @param object|string $class
+     *
+     * @throws \ReflectionException
      */
     public function getConfiguration($class): Publishable
     {
-        return $this->getClassAnnotationConfiguration($class, Publishable::class);
+        $publishable = $this->getClassAnnotationConfiguration($class, Publishable::class);
+        if (!$publishable instanceof Publishable) {
+            throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Publishable::class));
+        }
+
+        return $publishable;
     }
 }

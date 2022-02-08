@@ -43,6 +43,9 @@ class ComponentResourceMetadataFactory implements ResourceMetadataFactoryInterfa
         }
 
         $resourceShortName = $resourceMetadata->getShortName();
+        if (!$resourceShortName) {
+            throw new \RuntimeException(sprintf('Could not find short name from resource metadata for %s', $resourceClass));
+        }
         $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
 
         $usagePath = sprintf('/%s/{id}/usage', $pathSegmentName);

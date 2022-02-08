@@ -35,6 +35,9 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
         parent::__construct($reader, $managerRegistry);
     }
 
+    /**
+     * @param object|string $class
+     */
     public function isConfigured($class): bool
     {
         $isConfigured = parent::isConfigured($class);
@@ -49,7 +52,12 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
      */
     public function getConfiguration($class): Uploadable
     {
-        return $this->getClassAnnotationConfiguration($class, Uploadable::class);
+        $uploadable = $this->getClassAnnotationConfiguration($class, Uploadable::class);
+        if (!$uploadable instanceof Uploadable) {
+            throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Uploadable::class));
+        }
+
+        return $uploadable;
     }
 
     public function isFieldConfigured(\ReflectionProperty $property): bool
@@ -66,11 +74,12 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
     public function getPropertyConfiguration(\ReflectionProperty $property): UploadableField
     {
         /** @var UploadableField|null $annotation */
-        if (!$annotation = $this->reader->getPropertyAnnotation($property, UploadableField::class)) {
+        $annotation = $this->reader->getPropertyAnnotation($property, UploadableField::class);
+        if (!$annotation instanceof UploadableField) {
             throw new InvalidArgumentException(sprintf('%s::%s does not have %s annotation', $property->getDeclaringClass()->getName(), $property->getName(), UploadableField::class));
         }
 
-        if (\count($annotation->imagineFilters) && !$this->imagineBundleEnabled) {
+        if (!$this->imagineBundleEnabled && null !== $annotation->imagineFilters && \count($annotation->imagineFilters)) {
             throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s::$%s', $property->class, $property->getName()));
         }
 
@@ -80,9 +89,9 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
     /**
      * @param object|string $data
      *
-     * @return UploadableField[]
+     * @return UploadableField[]|\Generator
      */
-    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable
+    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): \Generator
     {
         if (!$skipUploadableCheck && !$this->isConfigured($data)) {
             throw new UnsupportedAnnotationException(sprintf('Cannot get field configuration for %s: is it not configured as Uploadable', \is_string($data) ? $data : \get_class($data)));
