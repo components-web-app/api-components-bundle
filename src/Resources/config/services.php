@@ -120,7 +120,6 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
-use Silverback\ApiComponentsBundle\Security\Http\Logout\LogoutHandler;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
@@ -683,29 +682,16 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid']);
     $services->alias(JWTInvalidEventListener::class, 'silverback.security.jwt_invalid_event_listener');
 
-    if (class_exists(LogoutEvent::class)) {
-        $services
-            ->set('silverback.security.logout_listener')
-            ->class(LogoutListener::class)
-            ->args(
-                [
-                    '', // injected in dependency injection
-                    '', // injected in dependency injection
-                ]
-            )
-            ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
-    } else {
-        // Deprecated from Symfony 5.1
-        $services
-            ->set('silverback.security.logout_handler')
-            ->class(LogoutHandler::class)
-            ->args(
-                [
-                    '', // injected in dependency injection
-                    '', // injected in dependency injection
-                ]
-            );
-    }
+    $services
+        ->set('silverback.security.logout_listener')
+        ->class(LogoutListener::class)
+        ->args(
+            [
+                '', // injected in dependency injection
+                '', // injected in dependency injection
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
 
     $services
         ->set('silverback.api_components.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)
