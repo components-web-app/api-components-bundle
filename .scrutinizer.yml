@@ -16,7 +16,7 @@ build:
         variables:
             SYMFONY_DEPRECATIONS_HELPER: disabled
         php:
-            version: 8.1
+            version: 8.1.2
             ini:
                 'date.timezone': 'Europe/London'
                 memory_limit: -1
