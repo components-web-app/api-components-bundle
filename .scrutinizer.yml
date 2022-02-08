@@ -15,9 +15,8 @@ build:
     environment:
         variables:
             SYMFONY_DEPRECATIONS_HELPER: disabled
-            SYMFONY_PHPUNIT_VERSION: 9.1
         php:
-            version: 8.0
+            version: 8.1
             ini:
                 'date.timezone': 'Europe/London'
                 memory_limit: -1

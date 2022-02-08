@@ -18,7 +18,7 @@
         "ext-simplexml": "*",
         "api-platform/api-pack": "^1.2",
         "api-platform/core": "^2.6.3",
-        "cocur/slugify": "dev-master",
+        "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.0",
