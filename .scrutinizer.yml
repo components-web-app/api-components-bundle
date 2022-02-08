@@ -12,17 +12,17 @@ build:
             tests:
                 override:
                     - php-scrutinizer-run
-    environment:
-        variables:
-            SYMFONY_DEPRECATIONS_HELPER: disabled
-        php:
-            version: 8.1.2
-            ini:
-                'date.timezone': 'Europe/London'
-                memory_limit: -1
-    tests:
-        override:
-            -   command: vendor/bin/phpunit --coverage-clover=clover.xml
-                coverage:
-                    file: clover.xml
-                    format: php-clover
+#    environment:
+#        variables:
+#            SYMFONY_DEPRECATIONS_HELPER: disabled
+#        php:
+#            version: 8.1.2
+#            ini:
+#                'date.timezone': 'Europe/London'
+#                memory_limit: -1
+#    tests:
+#        override:
+#            -   command: vendor/bin/phpunit --coverage-clover=clover.xml
+#                coverage:
+#                    file: clover.xml
+#                    format: php-clover
