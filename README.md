@@ -2,7 +2,7 @@
 [![SymfonyInsight](https://insight.symfony.com/projects/e03bfd9e-5f16-4e40-bce1-624f1b9246dc/big.svg)](https://insight.symfony.com/projects/e03bfd9e-5f16-4e40-bce1-624f1b9246dc)
 
 [![CI](https://github.com/components-web-app/api-components-bundle/workflows/CI/badge.svg?branch=master)](https://github.com/components-web-app/api-components-bundle/actions?query=workflow%3ACI)
-[![Maintainability](https://api.codeclimate.com/v1/badges/3383786bb1d50e984960/maintainability)](https://codeclimate.com/github/silverbackdan/api-components-bundle/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/6d388db1c65f6a76a41c/maintainability)](https://codeclimate.com/github/components-web-app/api-components-bundle/maintainability)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/?branch=master)
 [![codecov](https://codecov.io/gh/components-web-app/api-components-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/components-web-app/api-components-bundle)
 
