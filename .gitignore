@@ -14,6 +14,7 @@
 /infection.json
 /clover.xml
 /tests/Functional/app/vendor/
+/tools/
 
 ###> symfony/phpunit-bridge ###
 .phpunit
