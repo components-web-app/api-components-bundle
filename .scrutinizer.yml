@@ -15,8 +15,6 @@ build:
                     - php-scrutinizer-run
     environment:
         variables:
-            SYMFONY_DEPRECATIONS_HELPER: disabled
-            SYMFONY_PHPUNIT_VERSION: 9.1
             XDEBUG_MODE: coverage
         php:
             version: 8.1.2
@@ -25,7 +23,7 @@ build:
                 memory_limit: -1
     tests:
         override:
-            -   command: vendor/bin/simple-phpunit --coverage-clover=clover.xml
+            -   command: vendor/bin/phpunit --coverage-clover=clover.xml
                 coverage:
                     file: clover.xml
                     format: php-clover
