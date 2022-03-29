@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Serializer;
 
-use ApiPlatform\Core\Documentation\Documentation;
-use ApiPlatform\Core\Hydra\Serializer\DocumentationNormalizer;
+use ApiPlatform\Documentation\Documentation;
+use ApiPlatform\Hydra\Serializer\DocumentationNormalizer;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
