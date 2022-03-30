@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
 use ApiPlatform\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -59,8 +60,9 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
 
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
         $criteriaReset = false;
+        $altQueryNameGenerator = new QueryNameGenerator();
         foreach ($identifiers as $identifier => $value) {
-            $placeholder = $queryNameGenerator->generateParameterName($identifier);
+            $placeholder = $altQueryNameGenerator->generateParameterName($identifier);
 
             $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":$placeholder"), $queryBuilder->expr()->eq("$alias.$identifier", ":$placeholder"), );
 
