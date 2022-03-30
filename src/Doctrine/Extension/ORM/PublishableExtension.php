@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\QueryItemExtensionInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -60,7 +60,9 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         // (o.publishedResource = :id OR o.id = :id) ORDER BY o.publishedResource IS NULL LIMIT 1
         $criteriaReset = false;
         foreach ($identifiers as $identifier => $value) {
-            $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":id_$identifier"), $queryBuilder->expr()->eq("$alias.$identifier", ":id_$identifier"), );
+            $placeholder = $queryNameGenerator->generateParameterName($identifier);
+
+            $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":$placeholder"), $queryBuilder->expr()->eq("$alias.$identifier", ":$placeholder"), );
 
             // Reset queryBuilder to prevent an invalid DQL
             if (!$criteriaReset) {
@@ -69,7 +71,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
             } else {
                 $queryBuilder->andWhere($predicates);
             }
-            $queryBuilder->setParameter("id_$identifier", $value, $classMetadata->getTypeOfField($identifier));
+            $queryBuilder->setParameter($placeholder, $value, $classMetadata->getTypeOfField($identifier));
         }
 
         $queryBuilder->addSelect("CASE WHEN $alias.$configuration->associationName IS NULL THEN 1 ELSE 0 END AS HIDDEN assocNameSort");
