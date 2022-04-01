@@ -23,9 +23,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity]
 class RefreshToken extends AbstractRefreshToken
 {
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class)
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
     protected ?UserInterface $user = null;
 }

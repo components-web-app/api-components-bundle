@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -27,6 +28,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
     paginationItemsPerPage: 10,
     paginationMaximumItemsPerPage: 40
 )]
+#[Get]
 #[GetCollection(paginationMaximumItemsPerPage: 40)]
 #[ORM\Entity]
 class DummyResourceWithPagination

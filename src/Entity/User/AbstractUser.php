@@ -59,7 +59,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     protected string $password;
 
     #[Assert\NotBlank(message: 'Please enter your desired password.', groups: ['User:password:create'])]
-    #[Assert\Length(max: '4096', min: '6', maxMessage: 'Your password cannot be over 4096 characters', minMessage: 'Your password must be more than 6 characters long.', groups: ['User:password:create'])]
+    #[Assert\Length(min: 6, max: 4096, minMessage: 'Your password must be more than 6 characters long.', maxMessage: 'Your password cannot be over 4096 characters', groups: ['User:password:create'])]
     #[ApiProperty(readable: false)]
     #[Groups(['User:input'])]
     protected ?string $plainPassword = null;
