@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property;
 
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 
 /**
@@ -32,7 +32,7 @@ class ComponentPropertyMetadataFactory implements PropertyMetadataFactoryInterfa
         $this->decorated = $decorated;
     }
 
-    public function create(string $resourceClass, string $property, array $options = []): PropertyMetadata
+    public function create(string $resourceClass, string $property, array $options = []): ApiProperty
     {
         $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
         if ('componentPositions' === $property && !is_a($resourceClass, AbstractComponent::class, true)) {

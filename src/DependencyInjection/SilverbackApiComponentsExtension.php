@@ -273,11 +273,18 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $configBasePath = $srcBase . '/Resources/config/api_platform';
 
         $mappingPaths = [$srcBase . '/Entity/Core'];
-        $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'uploadable');
-        $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'page_data_metadata');
-        foreach ($config['enabled_components'] as $key => $enabled_component) {
-            if (true === $enabled_component) {
-                $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, $key);
+        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, 'uploadable');
+        $mappingPaths[] = sprintf('%s/%s/properties.xml', $configBasePath, 'uploadable');
+        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, 'page_data_metadata');
+        $mappingPaths[] = sprintf('%s/%s/properties.xml', $configBasePath, 'page_data_metadata');
+
+        foreach ($config['enabled_components'] as $component => $is_enabled) {
+            if (true === $is_enabled) {
+                $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, $component);
+                $propertiesPath = sprintf('%s/%s/properties.xml', $configBasePath, $component);
+                if (file_exists($propertiesPath)) {
+                    $mappingPaths[] = $propertiesPath;
+                }
             }
         }
 

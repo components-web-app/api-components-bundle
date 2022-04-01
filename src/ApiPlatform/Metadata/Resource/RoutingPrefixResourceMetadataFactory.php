@@ -41,11 +41,12 @@ class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInt
         } elseif (is_subclass_of($resourceClass, AbstractPageData::class)) {
             $routePrefixParts[] = 'page_data';
         } else {
+            // underscores for core resources
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
             $acbNamespace = 'Silverback\ApiComponentsBundle\Entity\\';
 
-            if (0 === strpos($namespace, $acbNamespace)) {
+            if (str_starts_with($namespace, $acbNamespace)) {
                 $routePrefixParts[] = '_';
             }
         }

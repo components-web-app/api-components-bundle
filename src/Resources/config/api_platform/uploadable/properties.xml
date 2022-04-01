@@ -1,0 +1,69 @@
+<properties xmlns="https://api-platform.com/schema/metadata/properties-3.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://api-platform.com/schema/metadata/properties-3.0
+           https://api-platform.com/schema/metadata/properties-3.0.xsd">
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="id"
+              readable="false"
+              writable="false"
+              identifier="true"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="contentUrl"
+              writable="false"
+    >
+        <jsonldContext>
+            <values>
+                <value name="iri">http://schema.org/contentUrl</value>
+            </values>
+        </jsonldContext>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="formattedFileSize"
+              writable="false"
+    >
+        <jsonldContext>
+            <values>
+                <value name="iri">http://schema.org/contentSize</value>
+            </values>
+        </jsonldContext>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="mimeType"
+              writable="false"
+    >
+        <jsonldContext>
+            <values>
+                <value name="iri">http://schema.org/encodingFormat</value>
+            </values>
+        </jsonldContext>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="width"
+              writable="false"
+    >
+        <jsonldContext>
+            <values>
+                <value name="iri">http://schema.org/width</value>
+            </values>
+        </jsonldContext>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="height"
+              writable="false"
+    >
+        <jsonldContext>
+            <values>
+                <value name="iri">http://schema.org/height</value>
+            </values>
+        </jsonldContext>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="fileSize"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="imagineFilter"
+              writable="false"
+    />
+</properties>

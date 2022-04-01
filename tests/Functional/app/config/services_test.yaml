@@ -23,3 +23,8 @@ services:
         class: Monolog\Formatter\LineFormatter
         calls:
             - [includeStacktraces]
+    
+    mercure.hub.default:
+        class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub
+        arguments:
+            $factory: '@mercure.hub.default.jwt.factory'

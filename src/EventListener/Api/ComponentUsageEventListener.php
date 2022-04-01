@@ -35,11 +35,12 @@ class ComponentUsageEventListener
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        $operationName = $request->attributes->get('_api_item_operation_name');
+        $operationName = $request->attributes->get('_api_operation_name');
+
         if (
             empty($data) ||
             !$data instanceof ComponentInterface ||
-            'get_usage' !== $operationName
+            !str_ends_with($operationName, 'get_usage_item')
         ) {
             return;
         }
