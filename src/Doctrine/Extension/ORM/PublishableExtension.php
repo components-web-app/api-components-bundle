@@ -64,7 +64,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         foreach ($identifiers as $identifier => $value) {
             $placeholder = $altQueryNameGenerator->generateParameterName($identifier);
 
-            $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":$placeholder"), $queryBuilder->expr()->eq("$alias.$identifier", ":$placeholder"), );
+            $predicates = $queryBuilder->expr()->orX($queryBuilder->expr()->eq("$alias.$configuration->associationName", ":$placeholder"), $queryBuilder->expr()->eq("$alias.$identifier", ":$placeholder"));
 
             // Reset queryBuilder to prevent an invalid DQL
             if (!$criteriaReset) {

@@ -83,7 +83,7 @@ class JsonContext implements Context
         $isObject = \is_object($obj);
 
         foreach ($obj as $key => $value) {
-            if (null === $value || is_scalar($value)) {
+            if (null === $value || \is_scalar($value)) {
                 continue;
             }
 
