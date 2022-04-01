@@ -24,15 +24,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class PageDataMetadata
 {
-    /**
-     * @Groups({"AbstractPageData:cwa_resource:read"})
-     */
+    #[Groups(['AbstractPageData:cwa_resource:read'])]
     private string $resourceClass;
 
     /**
      * @var Collection|PageDataPropertyMetadata[]
-     * @Groups({"AbstractPageData:cwa_resource:read"})
      */
+    #[Groups(['AbstractPageData:cwa_resource:read'])]
     private Collection $properties;
 
     public function __construct(string $resourceClass)

@@ -37,26 +37,18 @@ class ComponentPosition
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @Groups({"ComponentPosition:read", "ComponentPosition:write", "AbstractComponent:cwa_resource:write"})
-     */
     #[Assert\NotNull]
+    #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
     public ?ComponentCollection $componentCollection = null;
 
-    /**
-     * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
-     */
+    #[Groups(['ComponentPosition:read', 'ComponentPosition:write'])]
     public ?AbstractComponent $component = null;
 
-    /**
-     * @Groups({"ComponentPosition:read:role_admin", "ComponentPosition:write"})
-     */
+    #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
     public ?string $pageDataProperty = null;
 
-    /**
-     * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
-     */
     #[Assert\NotNull]
+    #[Groups(['ComponentPosition:read', 'ComponentPosition:write'])]
     public ?int $sortValue = null;
 
     /**

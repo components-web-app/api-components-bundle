@@ -67,10 +67,8 @@ class Route
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @Groups({"Route:redirect:read"})
-     */
     #[Assert\NotBlank]
+    #[Groups(['Route:redirect:read'])]
     private string $path = '';
 
     #[Assert\NotNull]
@@ -78,9 +76,7 @@ class Route
 
     private ?Route $redirect = null;
 
-    /**
-     * Groups({"Route:redirect:read"}).
-     */
+    #[Groups(['Route:redirect:read'])]
     private Collection $redirectedFrom;
 
     private ?Page $page = null;

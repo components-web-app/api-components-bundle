@@ -20,14 +20,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class ComponentUsageMetadata
 {
-    /**
-     * @Groups({"AbstractComponent:cwa_resource:read"})
-     */
+    #[Groups(['AbstractComponent:cwa_resource:read'])]
     private int $positionCount;
 
-    /**
-     * @Groups({"AbstractComponent:cwa_resource:read"})
-     */
+    #[Groups(['AbstractComponent:cwa_resource:read'])]
     private int $pageDataCount;
 
     public function __construct(int $positionCount = null, int $pageDataCount = null)
@@ -46,9 +42,7 @@ class ComponentUsageMetadata
         return $this->pageDataCount;
     }
 
-    /**
-     * @Groups({"AbstractComponent:cwa_resource:read"})
-     */
+    #[Groups(['AbstractComponent:cwa_resource:read'])]
     public function getTotal(): int
     {
         return $this->positionCount + $this->pageDataCount;
