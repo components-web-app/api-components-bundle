@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Filter;
 
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Core\Exception\InvalidArgumentException;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
 use Doctrine\ORM\QueryBuilder;
 
 class OrSearchFilter extends SearchFilter

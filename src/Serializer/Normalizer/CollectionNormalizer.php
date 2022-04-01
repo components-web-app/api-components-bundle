@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Util\ClassInfoTrait;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;

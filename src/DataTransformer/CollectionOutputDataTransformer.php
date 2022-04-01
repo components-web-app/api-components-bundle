@@ -15,10 +15,10 @@ namespace Silverback\ApiComponentsBundle\DataTransformer;
 
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
-use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use ApiPlatform\Core\Util\AttributesExtractor;
-use ApiPlatform\Core\Util\RequestParser;
+use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Util\AttributesExtractor;
+use ApiPlatform\Util\RequestParser;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;

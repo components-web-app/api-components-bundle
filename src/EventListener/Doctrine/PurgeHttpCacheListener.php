@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Exception\InvalidArgumentException;
-use ApiPlatform\Core\Exception\RuntimeException;
-use ApiPlatform\Core\HttpCache\PurgerInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\HttpCache\PurgerInterface;
 use Doctrine\ORM\PersistentCollection;
 
 /**

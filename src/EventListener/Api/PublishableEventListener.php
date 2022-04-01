@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
-use ApiPlatform\Core\Validator\ValidatorInterface;
+use ApiPlatform\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;

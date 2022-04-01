@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 
 /**

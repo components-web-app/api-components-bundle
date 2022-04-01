@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
-use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;

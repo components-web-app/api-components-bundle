@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Bridge\Symfony\Validator\Exception\ValidationException;
-use ApiPlatform\Core\Validator\ValidatorInterface;
+use ApiPlatform\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;

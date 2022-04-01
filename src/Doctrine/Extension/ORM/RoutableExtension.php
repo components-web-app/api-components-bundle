@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
+use ApiPlatform\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Symfony\Security\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 

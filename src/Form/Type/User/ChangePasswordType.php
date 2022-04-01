@@ -18,7 +18,6 @@ use Silverback\ApiComponentsBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;

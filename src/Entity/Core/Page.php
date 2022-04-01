@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Component\Validator\Constraints as Assert;

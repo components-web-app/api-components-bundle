@@ -66,6 +66,7 @@
         "symfony/dotenv": "^5.4 || ^6",
         "symfony/http-client": "^5.4 || ^6",
         "symfony/maker-bundle": "^1.0",
+        "symfony/mercure-bundle": "^0.3.4",
         "symfony/monolog-bundle": "^3.5",
         "symfony/phpunit-bridge": "^5.4 || ^6 || dev-master",
         "symfony/profiler-pack": "^1.0",

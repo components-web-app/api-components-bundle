@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Metadata\Provider;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;

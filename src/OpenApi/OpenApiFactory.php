@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\OpenApi;
 
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
-use ApiPlatform\Core\OpenApi\Model\PathItem;
-use ApiPlatform\Core\OpenApi\OpenApi;
+use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
+use ApiPlatform\OpenApi\Model\PathItem;
+use ApiPlatform\OpenApi\OpenApi;
 use PackageVersions\Versions;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;

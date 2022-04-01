@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator;
 
-use ApiPlatform\Core\Validator\ValidatorInterface;
+use ApiPlatform\Validator\ValidatorInterface;
 use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 
 /**
