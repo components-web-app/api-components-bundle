@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 use Silverback\ApiComponentsBundle\Annotation\Timestamped;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class TimestampedAnnotationReader extends AnnotationReader
+final class TimestampedAttributeReader extends AttributeReader
 {
     /**
      * @param object|string $class
      */
     public function getConfiguration($class): Timestamped
     {
-        $timestamped = $this->getClassAnnotationConfiguration($class, Timestamped::class);
+        $timestamped = $this->getClassAttributeConfiguration($class, Timestamped::class);
         if (!$timestamped instanceof Timestamped) {
             throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Timestamped::class));
         }

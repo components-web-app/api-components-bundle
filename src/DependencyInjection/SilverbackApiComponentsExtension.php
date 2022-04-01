@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
 use Ramsey\Uuid\Doctrine\UuidType;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -125,7 +125,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setMailerServiceArguments($container, $config);
 
         $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
-        $definition = $container->getDefinition(UploadableAnnotationReader::class);
+        $definition = $container->getDefinition(UploadableAttributeReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {

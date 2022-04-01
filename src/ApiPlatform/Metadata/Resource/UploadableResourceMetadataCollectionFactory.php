@@ -13,34 +13,32 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 
 /**
  * Configures API Platform metadata for file resources.
  *
  * @author Daniel West <daniel@silverback.is>
- *
- * @deprecated
  */
-class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterface
+class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    private ResourceMetadataFactoryInterface $decorated;
-    private UploadableAnnotationReaderInterface $uploadableFileManager;
+    private ResourceMetadataCollectionFactoryInterface $decorated;
+    private UploadableAttributeReaderInterface $uploadableFileManager;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated, UploadableAnnotationReaderInterface $annotationReader, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
+    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated, UploadableAttributeReaderInterface $annotationReader, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
     {
         $this->decorated = $decorated;
         $this->uploadableFileManager = $annotationReader;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
     }
 
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): ResourceMetadataCollection
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
         if (!$this->uploadableFileManager->isConfigured($resourceClass)) {
@@ -48,21 +46,25 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         }
 
         $fields = $this->uploadableFileManager->getConfiguredProperties($resourceClass, false);
-        $properties = [];
-        foreach ($fields as $field => $configuration) {
-            $properties[$field] = [
-                'type' => 'string',
-                'format' => 'binary',
-            ];
-        }
-        $resourceShortName = $resourceMetadata->getShortName();
-        $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
-        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
+        return $resourceMetadata;
 
-        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
+
+
+//        $properties = [];
+//        foreach ($fields as $field => $configuration) {
+//            $properties[$field] = [
+//                'type' => 'string',
+//                'format' => 'binary',
+//            ];
+//        }
+//        $resourceShortName = $resourceMetadata->getShortName();
+//        $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
+//        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
+//
+//        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
     }
 
-    private function getCollectionPostResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
+    private function getCollectionPostResourceMetadata(ResourceMetadataCollection $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadataCollection
     {
         $path = sprintf('/%s/upload', $pathSegmentName);
 
@@ -72,7 +74,7 @@ class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterf
         return $resourceMetadata->withCollectionOperations($collectionOperations);
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadata $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadata
+    private function getItemPutResourceMetadata(ResourceMetadataCollection $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadataCollection
     {
         $uploadPath = sprintf('/%s/{id}/upload', $pathSegmentName);
 

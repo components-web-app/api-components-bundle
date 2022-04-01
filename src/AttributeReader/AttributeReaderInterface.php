@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  * @author Daniel West <daniel@silverback.is>
  */
-interface AnnotationReaderInterface
+interface AttributeReaderInterface
 {
     public function getConfiguration($class);
 

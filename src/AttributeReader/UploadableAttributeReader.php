@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,7 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\UnsupportedAnnotationException;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadableAnnotationReader extends AnnotationReader implements UploadableAnnotationReaderInterface
+final class UploadableAttributeReader extends AttributeReader implements UploadableAttributeReaderInterface
 {
     private bool $imagineBundleEnabled;
 
@@ -52,7 +52,7 @@ final class UploadableAnnotationReader extends AnnotationReader implements Uploa
      */
     public function getConfiguration($class): Uploadable
     {
-        $uploadable = $this->getClassAnnotationConfiguration($class, Uploadable::class);
+        $uploadable = $this->getClassAttributeConfiguration($class, Uploadable::class);
         if (!$uploadable instanceof Uploadable) {
             throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Uploadable::class));
         }

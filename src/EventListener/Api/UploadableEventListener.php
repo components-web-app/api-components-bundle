@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -23,10 +23,10 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
  */
 final class UploadableEventListener
 {
-    private UploadableAnnotationReader $uploadableAnnotationReader;
+    private UploadableAttributeReader $uploadableAnnotationReader;
     private UploadableFileManager $uploadableFileManager;
 
-    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
+    public function __construct(UploadableAttributeReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
     {
         $this->uploadableAnnotationReader = $uploadableAnnotationReader;
         $this->uploadableFileManager = $uploadableFileManager;

@@ -17,7 +17,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager;
@@ -39,7 +39,7 @@ class UploadableFileManager
 {
     use ClassMetadataTrait;
 
-    private UploadableAnnotationReader $annotationReader;
+    private UploadableAttributeReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
     private FileInfoCacheManager $fileInfoCacheManager;
@@ -47,7 +47,7 @@ class UploadableFileManager
     private ?FilterService $filterService;
     private ArrayCollection $deletedFields;
 
-    public function __construct(ManagerRegistry $registry, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
+    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;

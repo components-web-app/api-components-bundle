@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\MappingLoader;
 
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
@@ -23,9 +23,9 @@ use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
  */
 final class TimestampedLoader implements LoaderInterface
 {
-    private TimestampedAnnotationReader $annotationReader;
+    private TimestampedAttributeReader $annotationReader;
 
-    public function __construct(TimestampedAnnotationReader $annotationReader)
+    public function __construct(TimestampedAttributeReader $annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }

@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\MappingLoader;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
@@ -29,9 +29,9 @@ final class UploadableLoader implements LoaderInterface
     public const GROUP_NAME = 'uploadable';
 
     private AnnotationReader $reader;
-    private UploadableAnnotationReader $annotationReader;
+    private UploadableAttributeReader $annotationReader;
 
-    public function __construct(AnnotationReader $reader, UploadableAnnotationReader $annotationReader)
+    public function __construct(AnnotationReader $reader, UploadableAttributeReader $annotationReader)
     {
         $this->reader = $reader;
         $this->annotationReader = $annotationReader;

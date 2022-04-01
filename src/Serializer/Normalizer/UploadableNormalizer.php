@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
@@ -49,11 +49,11 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, Co
     public const UPLOADABLE_TO_DELETE = 'cwa_uploadable_to_delete';
 
     private MediaObjectFactory $mediaObjectFactory;
-    private UploadableAnnotationReader $annotationReader;
+    private UploadableAttributeReader $annotationReader;
     private PropertyAccessor $propertyAccessor;
     private UploadableFileManager $uploadableFileManager;
 
-    public function __construct(MediaObjectFactory $mediaObjectFactory, UploadableAnnotationReader $annotationReader, ManagerRegistry $registry, UploadableFileManager $uploadableFileManager)
+    public function __construct(MediaObjectFactory $mediaObjectFactory, UploadableAttributeReader $annotationReader, ManagerRegistry $registry, UploadableFileManager $uploadableFileManager)
     {
         $this->mediaObjectFactory = $mediaObjectFactory;
         $this->annotationReader = $annotationReader;

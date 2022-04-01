@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableAnnotationReader extends AnnotationReader
+final class PublishableAttributeReader extends AttributeReader
 {
     /**
      * @param object|string $class
@@ -27,7 +27,7 @@ final class PublishableAnnotationReader extends AnnotationReader
      */
     public function getConfiguration($class): Publishable
     {
-        $publishable = $this->getClassAnnotationConfiguration($class, Publishable::class);
+        $publishable = $this->getClassAttributeConfiguration($class, Publishable::class);
         if (!$publishable instanceof Publishable) {
             throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Publishable::class));
         }

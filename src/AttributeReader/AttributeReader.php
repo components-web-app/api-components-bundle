@@ -11,10 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
+use JetBrains\PhpStorm\Pure;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
@@ -22,7 +23,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AnnotationReader implements AnnotationReaderInterface
+abstract class AttributeReader implements AttributeReaderInterface
 {
     use ClassMetadataTrait;
 
@@ -73,68 +74,83 @@ abstract class AnnotationReader implements AnnotationReaderInterface
     /**
      * @throws \ReflectionException
      */
-    protected function getClassAnnotationConfiguration(object|string|null $class, string $annotationClass): ?object
+    protected function getClassAttributeConfiguration(object|string|null $class, string $annotationClass): ?object
     {
         $className = $this->resolveClassName($class);
         if (\array_key_exists($className, $this->configurationCache)) {
             return $this->configurationCache[$className];
         }
 
-        $annotation = $this->findAnnotationConfiguration($class, $annotationClass);
+        $attributes = $this->findAttributeConfiguration($class, $annotationClass);
+        if (!count($attributes)) {
+            return null;
+        }
 
-        $this->configurationCache[$className] = $annotation;
+        $attribute = $attributes[0];
+        $instance = $attribute->newInstance();
+        $this->configurationCache[$className] = $instance;
 
-        return $annotation;
+        return $instance;
     }
 
     /**
      * @param string|object $class
      *
      * @throws \ReflectionException
+     * @return \ReflectionAttribute[]
      */
-    private function findAnnotationConfiguration($class, string $annotationClass): ?object
+    private function findAttributeConfiguration($class, string $annotationClass): array
     {
         $reflection = new \ReflectionClass($class);
-        $annotation = $this->reader->getClassAnnotation($reflection, $annotationClass);
-        if (!$annotation) {
-            $annotation = $this->getConfigurationFromParentClasses($reflection, $annotationClass);
-            if (!$annotation) {
-                $annotation = $this->getConfigurationFromTraits($reflection, $annotationClass);
-                if (!$annotation) {
+        $attributes = $reflection->getAttributes($annotationClass);
+
+        if (!count($attributes)) {
+            $attributes = $this->getConfigurationFromParentClasses($reflection, $annotationClass);
+            if (!count($attributes)) {
+                $attributes = $this->getConfigurationFromTraits($reflection, $annotationClass);
+                if (!count($attributes)) {
                     throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
                 }
             }
         }
 
-        return $annotation;
+        return $attributes;
     }
 
-    private function getConfigurationFromParentClasses(\ReflectionClass $reflection, string $annotationClass): ?object
+    /**
+     * @return \ReflectionAttribute[]
+     */
+    #[Pure]
+    private function getConfigurationFromParentClasses(\ReflectionClass $reflection, string $annotationClass): array
     {
-        $annotation = null;
+        $attributes = [];
 
         $parentReflection = $reflection->getParentClass();
         while (
             $parentReflection &&
-            !$annotation = $this->reader->getClassAnnotation($parentReflection, $annotationClass)
+            !$attributes = $parentReflection->getAttributes($annotationClass)
         ) {
             $parentReflection = $parentReflection->getParentClass();
         }
 
-        return $annotation;
+        return $attributes;
     }
 
-    private function getConfigurationFromTraits(\ReflectionClass $reflection, string $annotationClass): ?object
+    /**
+     * @return \ReflectionAttribute[]
+     */
+    #[Pure]
+    private function getConfigurationFromTraits(\ReflectionClass $reflection, string $annotationClass): array
     {
-        $annotation = null;
+        $attributes = [];
         $traits = $reflection->getTraits();
         foreach ($traits as $trait) {
-            $annotation = $this->reader->getClassAnnotation($trait, $annotationClass);
-            if ($annotation) {
+            $attributes = $trait->getAttributes($annotationClass);
+            if (count($attributes)) {
                 break;
             }
         }
 
-        return $annotation;
+        return $attributes;
     }
 }

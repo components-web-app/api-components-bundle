@@ -25,18 +25,18 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataCollectionFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataCollectionFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentationNormalizer;
+use Silverback\ApiComponentsBundle\AttributeReader\AttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
@@ -203,7 +203,7 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(AnnotationReader::class)
+        ->set(AttributeReader::class)
         ->abstract()
         ->args(
             [
@@ -332,7 +332,7 @@ return static function (ContainerConfigurator $configurator) {
             'init',
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
                 new Reference('silverback.helper.timestamped_data_persister'),
                 new Reference(UserEventListener::class),
                 new Reference(NormalizerInterface::class),
@@ -474,7 +474,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(ManagerRegistry::class),
                 new Reference(FileInfoCacheManager::class),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(RequestStack::class),
@@ -569,8 +569,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
-        ->set(PublishableAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(PublishableAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(PublishableContextBuilder::class)
@@ -602,7 +602,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(PublishableAnnotationReader::class),
+                new Reference(PublishableAttributeReader::class),
                 new Reference(AuthorizationCheckerInterface::class),
                 '', // injected with dependency injection
             ]
@@ -610,7 +610,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableListener::class)
-        ->args([new Reference(PublishableAnnotationReader::class)])
+        ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     // High priority for item because of queryBuilder reset
@@ -852,8 +852,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services
-        ->set(TimestampedAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(TimestampedAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(TimestampedContextBuilder::class)
@@ -871,7 +871,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
     $services->alias(TimestampedDataPersister::class, 'silverback.helper.timestamped_data_persister');
@@ -886,7 +886,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TimestampedListener::class)
         ->args(
             [
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'));
@@ -903,7 +903,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TimestampedValidatorMappingLoader::class)
         ->args(
             [
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
 
@@ -913,7 +913,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(TimestampedValidator::class . '.inner'),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
 
@@ -922,8 +922,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
-        ->set(UploadableAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(UploadableAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(UploadableContextBuilder::class)
@@ -939,7 +939,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableEventListener::class)
         ->args(
             [
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(UploadableFileManager::class),
             ]
         )
@@ -951,7 +951,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(FileInfoCacheManager::class),
@@ -964,7 +964,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableListener::class)
         ->args(
             [
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
@@ -974,21 +974,21 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('annotations.reader'),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
             ]
         );
 
-//    $services
-//        ->set(UploadableResourceMetadataFactory::class)
-//        ->decorate('api_platform.metadata.resource.metadata_factory')
-//        ->args(
-//            [
-//                new Reference(UploadableResourceMetadataFactory::class . '.inner'),
-//                new Reference(UploadableAnnotationReader::class),
-//                new Reference('api_platform.path_segment_name_generator'),
-//            ]
-//        )
-//        ->autoconfigure(false);
+    $services
+        ->set(UploadableResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
+        ->args(
+            [
+                new Reference(UploadableResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference(UploadableAttributeReader::class),
+                new Reference('api_platform.path_segment_name_generator'),
+            ]
+        )
+        ->autoconfigure(false);
 
 //    COMPILER PASS REQUIRED AS WELL
 //    $services
@@ -1141,14 +1141,14 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
     $services->alias('silverback.repository.user', UserRepositoryInterface::class);
 
-//    $services
-//        ->set(UserResourceMetadataFactory::class)
-//        ->decorate('api_platform.metadata.resource.metadata_factory')
-//        ->args(
-//            [
-//                new Reference(UserResourceMetadataFactory::class . '.inner'),
-//            ]
-//        );
+    $services
+        ->set(UserResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
+        ->args(
+            [
+                new Reference(UserResourceMetadataCollectionFactory::class . '.inner'),
+            ]
+        );
 
     $services
         ->set(UuidNormalizer::class)

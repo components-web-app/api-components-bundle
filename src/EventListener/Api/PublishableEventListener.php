@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
@@ -39,7 +39,7 @@ final class PublishableEventListener
 
     private PublishableStatusChecker $publishableStatusChecker;
     private ValidatorInterface $validator;
-    private PublishableAnnotationReader $publishableAnnotationReader;
+    private PublishableAttributeReader $publishableAnnotationReader;
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
     {

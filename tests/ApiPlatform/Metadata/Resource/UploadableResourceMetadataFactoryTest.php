@@ -23,8 +23,8 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderInterface;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataCollectionFactory;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 
 class UploadableResourceMetadataFactoryTest extends TestCase
@@ -42,7 +42,7 @@ class UploadableResourceMetadataFactoryTest extends TestCase
      */
     private $registryMock;
     /**
-     * @var UploadableAnnotationReaderInterface|MockObject
+     * @var UploadableAttributeReaderInterface|MockObject
      */
     private $uploadableHelper;
     /**
@@ -50,17 +50,17 @@ class UploadableResourceMetadataFactoryTest extends TestCase
      */
     private $pathSegmentNameGenerator;
 
-    private UploadableResourceMetadataFactory $factory;
+    private UploadableResourceMetadataCollectionFactory $factory;
 
     protected function setUp(): void
     {
         $this->decoratedMock = $this->createMock(ResourceMetadataFactoryInterface::class);
         $this->readerMock = $this->createMock(Reader::class);
         $this->registryMock = $this->createMock(ManagerRegistry::class);
-        $this->uploadableHelper = $this->createMock(UploadableAnnotationReaderInterface::class);
+        $this->uploadableHelper = $this->createMock(UploadableAttributeReaderInterface::class);
         $this->pathSegmentNameGenerator = $this->createMock(PathSegmentNameGeneratorInterface::class);
 
-        $this->factory = new UploadableResourceMetadataFactory($this->decoratedMock, $this->uploadableHelper, $this->pathSegmentNameGenerator);
+        $this->factory = new UploadableResourceMetadataCollectionFactory($this->decoratedMock, $this->uploadableHelper, $this->pathSegmentNameGenerator);
     }
 
     public function test_create_returns_original_if_not_uploadable(): void

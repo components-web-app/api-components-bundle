@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\AnnotationReader;
+namespace Silverback\ApiComponentsBundle\AttributeReader;
 
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -19,7 +19,7 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 /**
  * @author Daniel West <daniel@silveback.is>
  */
-interface UploadableAnnotationReaderInterface extends AnnotationReaderInterface
+interface UploadableAttributeReaderInterface extends AttributeReaderInterface
 {
     public function getConfiguration($class): Uploadable;
 
