@@ -29,13 +29,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(mercure=true)
- * @ApiFilter(OrderFilter::class, properties={"createdAt", "reference"}, arguments={"orderParameterName"="order"})
- * @ApiFilter(OrSearchFilter::class, properties={"reference"="ipartial", "uiComponent"="ipartial"})
- * @UniqueEntity(fields={"reference"}, message="There is already a Layout with that reference.")
  */
+#[Silverback\Timestamped]
+#[ApiResource(mercure: true)]
+#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['reference' => 'ipartial', 'uiComponent' => 'ipartial'])]
+#[UniqueEntity(fields: ['reference'], message: 'There is already a Layout with that reference.')]
 class Layout
 {
     use IdTrait;

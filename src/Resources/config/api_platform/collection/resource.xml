@@ -4,6 +4,5 @@
            https://api-platform.com/schema/metadata/resources-3.0.xsd">
     <resource class="Silverback\ApiComponentsBundle\Entity\Component\Collection"
               output="Silverback\ApiComponentsBundle\Entity\Component\Collection"
-              routePrefix="/component"
     />
 </resources>

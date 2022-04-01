@@ -25,59 +25,58 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(
- *     mercure=true,
- *     normalizationContext={ "groups"={"ComponentCollection:read"} },
- *     denormalizationContext={ "groups"={"ComponentCollection:write"} }
- * )
- * @UniqueEntity(fields={"reference"}, message="There is already a ComponentCollection resource with that reference.")
  */
+#[Silverback\Timestamped]
+#[ApiResource(
+    denormalizationContext: ['groups' => ['ComponentCollection:write']],
+    mercure: true,
+    normalizationContext: ['groups' => ['ComponentCollection:read']]
+)]
+#[UniqueEntity(fields: ['reference'], message: 'There is already a ComponentCollection resource with that reference.')]
 class ComponentCollection
 {
     use IdTrait;
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank(message="The reference cannot be blank.")
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     * #[Assert\NotBlank(message="The reference cannot be blank.")]
+     * #[Groups({"ComponentCollection:read", "ComponentCollection:write"})].
      */
     public ?string $reference = null;
 
     /**
-     * @Assert\NotBlank(message="The location cannot be blank.")
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     * #[Assert\NotBlank(message="The location cannot be blank.")]
+     * #[Groups({"ComponentCollection:read", "ComponentCollection:write"})].
      */
     public ?string $location = null;
 
     /**
      * @var Collection|Layout[]
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     *                          #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
     public Collection $layouts;
 
     /**
      * @var Collection|Page[]
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     *                        #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
     public Collection $pages;
 
     /**
      * @var Collection|AbstractComponent[]
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     *                                     #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
     public Collection $components;
 
     /**
      * @var Collection|ComponentPosition[]
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     *                                     #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
     public Collection $componentPositions;
 
     /**
      * @var string[]|null
-     * @Groups({"ComponentCollection:read", "ComponentCollection:write"})
+     *                    #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
     public ?array $allowedComponents = null;
 

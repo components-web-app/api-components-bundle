@@ -21,6 +21,8 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
  * Adds a /me endpoint.
  *
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @deprecated
  */
 class UserResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {

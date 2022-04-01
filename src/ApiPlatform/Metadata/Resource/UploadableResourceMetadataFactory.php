@@ -24,6 +24,8 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReaderIn
  * Configures API Platform metadata for file resources.
  *
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @deprecated
  */
 class UploadableResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {

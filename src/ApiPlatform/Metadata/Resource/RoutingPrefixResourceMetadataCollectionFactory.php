@@ -13,24 +13,25 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInterface
+class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    private ResourceMetadataFactoryInterface $decorated;
+    private ResourceMetadataCollectionFactoryInterface $decorated;
 
-    public function __construct(ResourceMetadataFactoryInterface $decorated)
+    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated)
     {
         $this->decorated = $decorated;
     }
 
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): ResourceMetadataCollection
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
 
@@ -55,25 +56,21 @@ class RoutingPrefixResourceMetadataFactory implements ResourceMetadataFactoryInt
             return $resourceMetadata;
         }
 
-        return $this->prefixRoute($routePrefixParts, $resourceMetadata);
+        return $this->prefixRoute($resourceClass, $routePrefixParts, $resourceMetadata);
     }
 
-    private function prefixRoute(array $routePrefixParts, ResourceMetadata $resourceMetadata): ResourceMetadata
+    private function prefixRoute(string $resourceClass, array $routePrefixParts, ResourceMetadataCollection $resourceMetadata): ResourceMetadataCollection
     {
-        if ($currentRoutePrefix = $resourceMetadata->getAttribute('route_prefix')) {
-            $routePrefixParts[] = trim($currentRoutePrefix, '/');
+        $resources = [];
+        /** @var ApiResource $resourceMetadatum */
+        foreach ($resourceMetadata as $resourceMetadatum) {
+            if ($currentRoutePrefix = $resourceMetadatum->getRoutePrefix()) {
+                $routePrefixParts[] = trim($currentRoutePrefix, '/');
+            }
+            $newRoutePrefix = '/' . implode('/', $routePrefixParts);
+            $resources[] = $resourceMetadatum->withRoutePrefix($newRoutePrefix);
         }
-        $newRoutePrefix = '/' . implode('/', $routePrefixParts);
 
-        $attributes = $resourceMetadata->getAttributes() ?: [];
-
-        return $resourceMetadata->withAttributes(
-            array_merge(
-                $attributes,
-                [
-                    'route_prefix' => $newRoutePrefix,
-                ]
-            )
-        );
+        return new ResourceMetadataCollection($resourceClass, $resources);
     }
 }

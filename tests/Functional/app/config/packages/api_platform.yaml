@@ -1,11 +1,10 @@
 api_platform:
     version: 1.0.0
-    mapping:
-        paths:
-            - '%kernel.project_dir%/../TestBundle/Entity'
+#    mapping:
+#        paths:
+#            - '%kernel.project_dir%/../TestBundle/Entity'
     patch_formats:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
-    # breaks my or search filter...
     metadata_backward_compatibility_layer: false

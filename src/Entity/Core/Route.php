@@ -28,63 +28,69 @@ use Symfony\Component\Validator\Constraints as Assert;
  * fetching a component will be restricted based on the route it is within.
  *
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(
- *     mercure=true,
- *     collectionOperations={
- *         "get",
- *         "post",
- *         "generate"={ "method"="POST", "path"="/routes/generate", "validation_groups"={ "Route:generate:write" } }
- *     },
- *     itemOperations={
- *         "get"={ "requirements"={"id"="(?!.+\/redirects$).+"}, "security"="is_granted('read_route', object)" },
- *         "delete"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "put"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "patch"={ "requirements"={"id"="(.+)"}, "security"="is_granted('read_route', object)" },
- *         "redirects"={
- *             "method"="GET",
- *             "path"="/routes/{id}/redirects",
- *             "requirements"={"id"="(.+)"},
- *             "security"="is_granted('read_route', object)",
- *             "normalization_context"={ "groups"={"Route:redirect:read"} },
- *             "defaults"={ "_api_item_operation_name"="route_redirects" }
- *         }
- *     }
- * )
- * @Assert\Expression(
- *     "!(this.getPage() == null & this.getPageData() == null & this.getRedirect() == null)",
- *     message="Please specify either page, pageData or redirect.",
- *     groups={"Route:generate:write", "Default"}
- * )
- * @Assert\Expression(
- *     "!(this.getPage() != null & this.getPageData() != null)",
- *     message="Please specify either page or pageData, not both.",
- *     groups={"Route:generate:write", "Default"}
- * )
- * @UniqueEntity("name", message="This route name is already in use.")
- * @UniqueEntity("path", message="This path is already in use.")
  */
+#[Assert\Expression(
+    '!(this.getPage() == null & this.getPageData() == null & this.getRedirect() == null)',
+    message: 'Please specify either page, pageData or redirect.',
+    groups: ['Route:generate:write', 'Default']
+)]
+#[Assert\Expression(
+    '!(this.getPage() != null & this.getPageData() != null)',
+    message: 'Please specify either page or pageData, not both.',
+    groups: ['Route:generate:write', 'Default']
+)]
+#[UniqueEntity('name', 'This route name is already in use.')]
+#[UniqueEntity('path', 'This path is already in use.')]
+#[ApiResource(
+    collectionOperations: [
+        'get' => ['method' => 'get'],
+        'post' => ['method' => 'post'],
+        'generate' => [
+            'method' => 'POST',
+            'path' => '/routes/generate',
+            'validation_groups' => ['Route:generate:write'],
+        ],
+    ],
+    itemOperations: [
+        'get' => [
+            'requirements' => [
+                'id' => "(?!.+\/redirects$).+",
+            ],
+            'security' => "is_granted('read_route', object)",
+        ],
+        'delete' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
+        'put' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
+        'patch' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
+        'redirects' => [
+            'method' => 'GET',
+            'path' => '/routes/{id}/redirects',
+            'requirements' => ['id' => '(.+)'],
+            'security' => "is_granted('read_route', object)",
+            'normalization_context' => ['groups' => ['Route:redirect:read']],
+            'defaults' => ['_api_item_operation_name' => 'route_redirects'],
+        ],
+    ],
+    mercure: true
+)]
+#[Silverback\Timestamped]
 class Route
 {
     use IdTrait;
     use TimestampedTrait;
 
     /**
-     * @Assert\NotBlank
      * @Groups({"Route:redirect:read"})
      */
+    #[Assert\NotBlank]
     private string $path = '';
 
-    /**
-     * @Assert\NotNull
-     */
+    #[Assert\NotNull]
     private string $name;
 
     private ?Route $redirect = null;
 
     /**
-     * @Groups({"Route:redirect:read"})
+     * Groups({"Route:redirect:read"}).
      */
     private Collection $redirectedFrom;
 

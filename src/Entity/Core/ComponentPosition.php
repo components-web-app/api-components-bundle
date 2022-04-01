@@ -24,24 +24,23 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(mercure=true, attributes={"order"={"sortValue"="ASC"}})
- * @AcbAssert\ComponentPosition
- * @Assert\Expression(
- *     "!(this.component == null & this.pageDataProperty == null)",
- *     message="Please specify either a component or pageDataProperty.",
- * )
  */
+#[Silverback\Timestamped]
+#[ApiResource(mercure: true, attributes: ['order' => ['sortValue' => 'ASC']])]
+#[AcbAssert\ComponentPosition]
+#[Assert\Expression(
+    '!(this.component == null & this.pageDataProperty == null)',
+    message: 'Please specify either a component or pageDataProperty.',
+)]
 class ComponentPosition
 {
     use IdTrait;
     use TimestampedTrait;
 
     /**
-     * @Assert\NotNull
      * @Groups({"ComponentPosition:read", "ComponentPosition:write", "AbstractComponent:cwa_resource:write"})
      */
+    #[Assert\NotNull]
     public ?ComponentCollection $componentCollection = null;
 
     /**
@@ -55,9 +54,9 @@ class ComponentPosition
     public ?string $pageDataProperty = null;
 
     /**
-     * @Assert\NotNull
      * @Groups({"ComponentPosition:read", "ComponentPosition:write"})
      */
+    #[Assert\NotNull]
     public ?int $sortValue = null;
 
     /**

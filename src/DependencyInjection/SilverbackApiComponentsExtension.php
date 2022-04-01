@@ -267,29 +267,29 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         );
     }
 
+    private function appendMappingPaths(&$mappingPaths, $srcBase, $name): void
+    {
+        $configBasePath = $srcBase . '/Resources/config/api_platform';
+        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, $name);
+        $propertiesPath = sprintf('%s/%s/properties.xml', $configBasePath, $name);
+        if (file_exists($propertiesPath)) {
+            $mappingPaths[] = $propertiesPath;
+        }
+    }
+
     private function prependApiPlatformConfig(ContainerBuilder $container, array $config): void
     {
         $srcBase = __DIR__ . '/..';
-        $configBasePath = $srcBase . '/Resources/config/api_platform';
-
-        $mappingPaths = [$srcBase . '/Entity/Core'];
-        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, 'uploadable');
-        $mappingPaths[] = sprintf('%s/%s/properties.xml', $configBasePath, 'uploadable');
-        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, 'page_data_metadata');
-        $mappingPaths[] = sprintf('%s/%s/properties.xml', $configBasePath, 'page_data_metadata');
-
+        // $mappingPaths = [$srcBase . '/Entity/Core'];
+        $this->appendMappingPaths($mappingPaths, $srcBase, 'uploadable');
+        $this->appendMappingPaths($mappingPaths, $srcBase, 'page_data_metadata');
         foreach ($config['enabled_components'] as $component => $is_enabled) {
             if (true === $is_enabled) {
-                $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, $component);
-                $propertiesPath = sprintf('%s/%s/properties.xml', $configBasePath, $component);
-                if (file_exists($propertiesPath)) {
-                    $mappingPaths[] = $propertiesPath;
-                }
+                $this->appendMappingPaths($mappingPaths, $srcBase, $component);
             }
         }
 
         $websiteName = $config['website_name'];
-
         $container->prependExtensionConfig(
             'api_platform',
             [

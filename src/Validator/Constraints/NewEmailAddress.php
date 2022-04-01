@@ -18,6 +18,7 @@ use Symfony\Component\Validator\Constraint;
 /**
  * @Annotation
  */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 class NewEmailAddress extends Constraint
 {
     public string $message = 'Your new email address should be different.';

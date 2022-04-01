@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraint;
  * @author Daniel West <daniel@silverback.is>
  * @Annotation
  */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 class ComponentPosition extends Constraint
 {
     public string $message = 'The IRI `{{ iri }}` is not permitted to be added to the collection `{{ reference }}`. Allowed IRIs: {{ allowed }}';

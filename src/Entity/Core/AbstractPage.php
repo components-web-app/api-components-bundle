@@ -21,12 +21,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 /**
  * @author Daniel West <daniel@silverback.is>
  *
- * @Silverback\Timestamped
- *
- * @UniqueEntity("route", message="The route must be unique.")
- *
  * @internal
  */
+#[Silverback\Timestamped]
+#[UniqueEntity('route', message: 'The route must be unique.')]
 abstract class AbstractPage implements RoutableInterface
 {
     use IdTrait;

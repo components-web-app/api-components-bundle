@@ -21,12 +21,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  * API Platform does not know that it will be a resource and will make it an object, not an IRI. (same notes as AbstractComponent).
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(collectionOperations={}, itemOperations={ "GET" })
  */
+#[ApiResource(collectionOperations: [], itemOperations: ['GET'])]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     /**
-     * @Assert\NotBlank(message="Please select a page template")
+     * #[Assert\NotBlank(message="Please select a page template")].
      */
     public Page $page;
 }

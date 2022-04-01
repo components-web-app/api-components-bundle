@@ -33,7 +33,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentProper
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentationNormalizer;
@@ -816,22 +816,22 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('security.voter');
 
     $services
-        ->set(RoutingPrefixResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(RoutingPrefixResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+                new Reference(RoutingPrefixResourceMetadataCollectionFactory::class . '.inner'),
             ]
         );
 
-    $services
-        ->set(RoutableResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args(
-            [
-                new Reference(RoutableResourceMetadataFactory::class . '.inner'),
-            ]
-        );
+//    $services
+//        ->set(RoutableResourceMetadataFactory::class)
+//        ->decorate('api_platform.metadata.resource.metadata_factory')
+//        ->args(
+//            [
+//                new Reference(RoutableResourceMetadataFactory::class . '.inner'),
+//            ]
+//        );
 
     $services
         ->set(SerializeFormatResolver::class)
@@ -978,17 +978,17 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
 
-    $services
-        ->set(UploadableResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args(
-            [
-                new Reference(UploadableResourceMetadataFactory::class . '.inner'),
-                new Reference(UploadableAnnotationReader::class),
-                new Reference('api_platform.path_segment_name_generator'),
-            ]
-        )
-        ->autoconfigure(false);
+//    $services
+//        ->set(UploadableResourceMetadataFactory::class)
+//        ->decorate('api_platform.metadata.resource.metadata_factory')
+//        ->args(
+//            [
+//                new Reference(UploadableResourceMetadataFactory::class . '.inner'),
+//                new Reference(UploadableAnnotationReader::class),
+//                new Reference('api_platform.path_segment_name_generator'),
+//            ]
+//        )
+//        ->autoconfigure(false);
 
 //    COMPILER PASS REQUIRED AS WELL
 //    $services
@@ -1141,14 +1141,14 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
     $services->alias('silverback.repository.user', UserRepositoryInterface::class);
 
-    $services
-        ->set(UserResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
-        ->args(
-            [
-                new Reference(UserResourceMetadataFactory::class . '.inner'),
-            ]
-        );
+//    $services
+//        ->set(UserResourceMetadataFactory::class)
+//        ->decorate('api_platform.metadata.resource.metadata_factory')
+//        ->args(
+//            [
+//                new Reference(UserResourceMetadataFactory::class . '.inner'),
+//            ]
+//        );
 
     $services
         ->set(UuidNormalizer::class)
@@ -1201,7 +1201,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.metadata.api.component_resource_metadata_factory')
         ->class(ComponentResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
                 new Reference('silverback.metadata.api.component_resource_metadata_factory.inner'),

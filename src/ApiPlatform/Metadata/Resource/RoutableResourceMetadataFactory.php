@@ -20,6 +20,8 @@ use Silverback\ApiComponentsBundle\Security\Voter\AbstractRoutableVoter;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
+ * @deprecated
  */
 class RoutableResourceMetadataFactory implements ResourceMetadataFactoryInterface
 {
