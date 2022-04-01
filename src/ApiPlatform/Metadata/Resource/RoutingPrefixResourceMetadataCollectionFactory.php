@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -63,12 +65,22 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
     {
         $resources = [];
         /** @var ApiResource $resourceMetadatum */
-        foreach ($resourceMetadata as $resourceMetadatum) {
+        foreach ($resourceMetadata as $i => $resourceMetadatum) {
             if ($currentRoutePrefix = $resourceMetadatum->getRoutePrefix()) {
                 $routePrefixParts[] = trim($currentRoutePrefix, '/');
             }
             $newRoutePrefix = '/' . implode('/', $routePrefixParts);
-            $resources[] = $resourceMetadatum->withRoutePrefix($newRoutePrefix);
+            $resources[$i] = $resourceMetadatum->withRoutePrefix($newRoutePrefix);
+            $newOperations = [];
+            $oldOperations = $resourceMetadatum->getOperations();
+            /**
+             * @var string    $key
+             * @var Operation $oldOperation
+             */
+            foreach ($oldOperations as $key => $oldOperation) {
+                $newOperations[$key] = $oldOperation->withRoutePrefix($newRoutePrefix);
+            }
+            $resources[$i] = $resources[$i]->withOperations(new Operations($newOperations));
         }
 
         return new ResourceMetadataCollection($resourceClass, $resources);

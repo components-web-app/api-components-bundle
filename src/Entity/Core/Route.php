@@ -59,8 +59,8 @@ const SECURITY = "is_granted('read_route', object)";
 #[Put(requirements: REQUIREMENTS, security: SECURITY)]
 #[Patch(requirements: REQUIREMENTS, security: SECURITY)]
 #[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: SECURITY)]
-#[Post(uriTemplate: '/routes/generate', validationContext: ['groups' => ['Route:generate:write']], name: 'generate')]
-#[Get(uriTemplate: '/routes/{id}/redirects', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY, name: 'redirects')]
+#[Post(uriTemplate: '/routes/generate.{_format}', validationContext: ['groups' => ['Route:generate:write']], name: 'generate')]
+#[Get(uriTemplate: '/routes/{id}/redirects.{_format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY, name: 'redirects')]
 #[Silverback\Timestamped]
 class Route
 {

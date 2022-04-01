@@ -42,24 +42,23 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
             return $resourceMetadata;
         }
 
-        return $resourceMetadata;
-//        $newResources = [];
-//        /** @var ApiResource $resourceMetadatum */
-//        foreach ($resourceMetadata as $resourceMetadatum) {
-//            $newOperations = [];
-//            $operations = $resourceMetadatum->getOperations();
-//            if ($operations) {
-//                /** @var Operation $operation */
-//                foreach ($operations as $operation) {
-//                    if (!$operation->getSecurity()) {
-//                        $operation = $operation->withSecurity(sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
-//                    }
-//                    $newOperations[] = $operation;
-//                }
-//            }
-//            $newResources[] = $resourceMetadatum->withOperations(new Operations($newOperations));
-//        }
+        $newResources = [];
+        /** @var ApiResource $resourceMetadatum */
+        foreach ($resourceMetadata as $resourceMetadatum) {
+            $newOperations = [];
+            $operations = $resourceMetadatum->getOperations();
+            if ($operations) {
+                /** @var Operation $operation */
+                foreach ($operations as $i => $operation) {
+                    if (!$operation->getSecurity()) {
+                        $operation = $operation->withSecurity(sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
+                    }
+                    $newOperations[$i] = $operation;
+                }
+            }
+            $newResources[] = $resourceMetadatum->withOperations(new Operations($newOperations));
+        }
 
-//        return new ResourceMetadataCollection($resourceClass, $newResources);
+        return new ResourceMetadataCollection($resourceClass, $newResources);
     }
 }

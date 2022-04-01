@@ -343,9 +343,8 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
     /**
      * Not needed - we use bcrypt.
-     *
-     * @ApiProperty(readable=false, writable=false)
      */
+    #[ApiProperty(readable: false, writable: false)]
     public function getSalt(): ?string
     {
         return null;
