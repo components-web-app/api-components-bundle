@@ -10,7 +10,7 @@ doctrine:
         mappings:
             TestBundle:
                 is_bundle: false
-                type: annotation
+                type: attribute
                 dir: '%kernel.project_dir%/../TestBundle/Entity'
                 prefix: 'Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity'
                 alias: TestBundle

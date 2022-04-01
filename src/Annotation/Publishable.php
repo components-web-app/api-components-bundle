@@ -19,18 +19,28 @@ namespace Silverback\ApiComponentsBundle\Annotation;
  * @Annotation
  * @Target("CLASS")
  */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 final class Publishable
 {
-    public string $fieldName = 'publishedAt';
+    public string $fieldName;
 
-    public ?string $isGranted = null;
+    public ?string $isGranted;
 
-    public string $associationName = 'publishedResource';
+    public string $associationName;
 
-    public string $reverseAssociationName = 'draftResource';
+    public string $reverseAssociationName;
 
     /**
      * @var string[]
      */
-    public ?array $validationGroups = null;
+    public ?array $validationGroups;
+
+    public function __construct(string $fieldName = 'publishedAt', ?string $isGranted = null, string $associationName = 'publishedResource', string $reverseAssociationName = 'draftResource', ?array $validationGroups = null)
+    {
+        $this->fieldName = $fieldName;
+        $this->isGranted = $isGranted;
+        $this->associationName = $associationName;
+        $this->reverseAssociationName = $reverseAssociationName;
+        $this->validationGroups = $validationGroups;
+    }
 }

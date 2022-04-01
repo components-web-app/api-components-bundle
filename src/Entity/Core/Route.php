@@ -13,7 +13,13 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
@@ -22,6 +28,9 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+
+const REQUIREMENTS = ['id' => '(.+)'];
+const SECURITY = "is_granted('read_route', object)";
 
 /**
  * Although a user will be able to get the routes and the tree of data down to getting the ID for a component
@@ -42,36 +51,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity('name', 'This route name is already in use.')]
 #[UniqueEntity('path', 'This path is already in use.')]
 #[ApiResource(
-    collectionOperations: [
-        'get' => ['method' => 'get'],
-        'post' => ['method' => 'post'],
-        'generate' => [
-            'method' => 'POST',
-            'path' => '/routes/generate',
-            'validation_groups' => ['Route:generate:write'],
-        ],
-    ],
-    itemOperations: [
-        'get' => [
-            'requirements' => [
-                'id' => "(?!.+\/redirects$).+",
-            ],
-            'security' => "is_granted('read_route', object)",
-        ],
-        'delete' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
-        'put' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
-        'patch' => ['requirements' => ['id' => '(.+)'], 'security' => "is_granted('read_route', object)"],
-        'redirects' => [
-            'method' => 'GET',
-            'path' => '/routes/{id}/redirects',
-            'requirements' => ['id' => '(.+)'],
-            'security' => "is_granted('read_route', object)",
-            'normalization_context' => ['groups' => ['Route:redirect:read']],
-            'defaults' => ['_api_item_operation_name' => 'route_redirects'],
-        ],
-    ],
     mercure: true
 )]
+#[Post]
+#[GetCollection]
+#[Delete(requirements: REQUIREMENTS, security: SECURITY)]
+#[Put(requirements: REQUIREMENTS, security: SECURITY)]
+#[Patch(requirements: REQUIREMENTS, security: SECURITY)]
+#[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: SECURITY)]
+#[Post(uriTemplate: '/routes/generate', validationContext: ['groups' => ['Route:generate:write']], name: 'generate')]
+#[Get(uriTemplate: '/routes/{id}/redirects', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY, name: 'redirects')]
 #[Silverback\Timestamped]
 class Route
 {

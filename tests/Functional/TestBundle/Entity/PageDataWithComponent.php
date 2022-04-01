@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
- * @ORM\Entity
  */
+#[ApiResource]
+#[ORM\Entity]
 class PageDataWithComponent extends AbstractPageData
 {
     /**

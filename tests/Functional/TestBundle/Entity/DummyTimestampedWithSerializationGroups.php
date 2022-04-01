@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -21,11 +21,10 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(normalizationContext={"groups"={"some_other_group:read"}})
- * @ORM\Entity
  */
+#[Silverback\Timestamped]
+#[ApiResource(normalizationContext: ['groups' => ['some_other_group:read']])]
+#[ORM\Entity]
 class DummyTimestampedWithSerializationGroups
 {
     use IdTrait;

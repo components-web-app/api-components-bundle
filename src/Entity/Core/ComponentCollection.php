@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
@@ -28,9 +28,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[Silverback\Timestamped]
 #[ApiResource(
+    normalizationContext: ['groups' => ['ComponentCollection:read']],
     denormalizationContext: ['groups' => ['ComponentCollection:write']],
-    mercure: true,
-    normalizationContext: ['groups' => ['ComponentCollection:read']]
+    mercure: true
 )]
 #[UniqueEntity(fields: ['reference'], message: 'There is already a ComponentCollection resource with that reference.')]
 class ComponentCollection
@@ -38,46 +38,42 @@ class ComponentCollection
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * #[Assert\NotBlank(message="The reference cannot be blank.")]
-     * #[Groups({"ComponentCollection:read", "ComponentCollection:write"})].
-     */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Assert\NotBlank(message: 'The reference cannot be blank.')]
     public ?string $reference = null;
 
-    /**
-     * #[Assert\NotBlank(message="The location cannot be blank.")]
-     * #[Groups({"ComponentCollection:read", "ComponentCollection:write"})].
-     */
+    #[Assert\NotBlank(message: 'The location cannot be blank.')]
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public ?string $location = null;
 
     /**
      * @var Collection|Layout[]
-     *                          #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public Collection $layouts;
 
     /**
      * @var Collection|Page[]
-     *                        #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public Collection $pages;
 
     /**
      * @var Collection|AbstractComponent[]
-     *                                     #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public Collection $components;
 
     /**
      * @var Collection|ComponentPosition[]
-     *                                     #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public Collection $componentPositions;
 
     /**
      * @var string[]|null
-     *                    #[Groups({"ComponentCollection:read", "ComponentCollection:write"})]
      */
+    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
     public ?array $allowedComponents = null;
 
     public function __construct()

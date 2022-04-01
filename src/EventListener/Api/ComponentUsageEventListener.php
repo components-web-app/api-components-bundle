@@ -40,7 +40,7 @@ class ComponentUsageEventListener
         if (
             empty($data) ||
             !$data instanceof ComponentInterface ||
-            !str_ends_with($operationName, 'get_usage_item')
+            'get_usage' !== $operationName
         ) {
             return;
         }

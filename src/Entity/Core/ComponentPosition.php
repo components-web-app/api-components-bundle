@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  */
 #[Silverback\Timestamped]
-#[ApiResource(mercure: true, attributes: ['order' => ['sortValue' => 'ASC']])]
+#[ApiResource(mercure: true, order: ['sortValue' => 'ASC'])]
 #[AcbAssert\ComponentPosition]
 #[Assert\Expression(
     '!(this.component == null & this.pageDataProperty == null)',

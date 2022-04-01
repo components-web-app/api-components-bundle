@@ -22,7 +22,13 @@ namespace Silverback\ApiComponentsBundle\Annotation;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class Timestamped
 {
-    public string $createdAtField = 'createdAt';
+    public string $createdAtField;
 
-    public string $modifiedAtField = 'modifiedAt';
+    public string $modifiedAtField;
+
+    public function __construct(string $createdAtField = 'createdAt', string $modifiedAtField = 'modifiedAt')
+    {
+        $this->createdAtField = $createdAtField;
+        $this->modifiedAtField = $modifiedAtField;
+    }
 }

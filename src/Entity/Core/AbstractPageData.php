@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 
 /**
  * We must define this as an API resource, otherwise when serializing and the relation is to this class,
@@ -22,7 +22,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource(collectionOperations: [], itemOperations: ['GET'])]
+#[ApiResource(operations: [
+    'get' => new Get(),
+])]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     /**

@@ -1,8 +1,8 @@
 api_platform:
     version: 1.0.0
-#    mapping:
-#        paths:
-#            - '%kernel.project_dir%/../TestBundle/Entity'
+    mapping:
+        paths:
+            - '%kernel.project_dir%/../TestBundle/Entity'
     patch_formats:
         json: ['application/merge-patch+json']
     swagger:

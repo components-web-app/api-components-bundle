@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -22,10 +22,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @Silverback\Publishable
- * @ApiResource
- * @ORM\Entity
  */
+#[Silverback\Publishable]
+#[ApiResource]
+#[ORM\Entity]
 class DummyPublishableWithValidation
 {
     use IdTrait;

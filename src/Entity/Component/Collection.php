@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Component;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
+use ApiPlatform\Metadata\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
@@ -21,31 +21,22 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @ORM\Entity
  */
+#[ORM\Entity]
 class Collection extends AbstractComponent
 {
-    /**
-     * @ORM\Column(nullable=false)
-     * @Assert\NotNull(message="The resource iri for a collection component is required")
-     * @AcbAssert\ResourceIri
-     */
+    #[ORM\Column(nullable: false)]
+    #[Assert\NotNull(message: 'The resource iri for a collection component is required')]
+    #[AcbAssert\ResourceIri]
     private ?string $resourceIri;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(nullable: true, type: 'integer')]
     private ?int $perPage = null;
 
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
+    #[ORM\Column(nullable: true, type: 'json')]
     private ?array $defaultQueryParameters = null;
 
-    /**
-     * @ApiProperty(writable=false)
-     */
+    #[ApiProperty(writable: false)]
     private ?array $collection = null;
 
     public function getResourceIri(): ?string

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,11 +22,10 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped(createdAtField="customCreatedAt", modifiedAtField="customModifiedAt")
- * @ApiResource
- * @ORM\Entity
  */
+#[Silverback\Timestamped(createdAtField: 'customCreatedAt', modifiedAtField: 'customModifiedAt')]
+#[ApiResource]
+#[ORM\Entity]
 class DummyCustomTimestamped
 {
     use IdTrait;

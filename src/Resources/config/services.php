@@ -32,7 +32,7 @@ use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
@@ -824,14 +824,14 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
 
-//    $services
-//        ->set(RoutableResourceMetadataFactory::class)
-//        ->decorate('api_platform.metadata.resource.metadata_factory')
-//        ->args(
-//            [
-//                new Reference(RoutableResourceMetadataFactory::class . '.inner'),
-//            ]
-//        );
+    $services
+        ->set(RoutableResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
+        ->args(
+            [
+                new Reference(RoutableResourceMetadataCollectionFactory::class . '.inner'),
+            ]
+        );
 
     $services
         ->set(SerializeFormatResolver::class)

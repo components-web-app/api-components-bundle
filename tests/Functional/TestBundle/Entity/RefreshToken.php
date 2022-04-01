@@ -19,8 +19,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
- * @ORM\Entity
  */
+#[ORM\Entity]
 class RefreshToken extends AbstractRefreshToken
 {
     /**
