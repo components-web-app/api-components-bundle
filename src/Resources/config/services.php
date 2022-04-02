@@ -1180,7 +1180,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('doctrine'),
-                new Reference('api_platform.metadata.resource.metadata_factory'),
+                new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
         );
 

@@ -71,8 +71,10 @@ class ComponentUsageMetadataFactory
 
     private function getPageDataTotal(ComponentInterface $component): int
     {
+        /** @var \Generator $pageDataLocations */
         $pageDataLocations = $this->pageDataProvider->findPageDataComponentMetadata($component);
         $pageDataCount = 0;
+
         foreach ($pageDataLocations as $pageDataComponentMetadata) {
             $componentInDataCount = 0;
             foreach ($pageDataComponentMetadata->getPageDataResources() as $pageDataResource) {

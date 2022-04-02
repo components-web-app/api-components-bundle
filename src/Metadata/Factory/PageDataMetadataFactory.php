@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Metadata\Factory;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
@@ -27,11 +28,11 @@ use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
 class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
 {
     private ManagerRegistry $registry;
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
+    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
 
     public function __construct(
         ManagerRegistry $registry,
-        ResourceMetadataFactoryInterface $resourceMetadataFactory
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory
     ) {
         $this->registry = $registry;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -76,7 +77,10 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
         $metadata = new PageDataMetadata($resourceClass);
         foreach ($assocFields as $assocField) {
             $targetClass = $classMetadata->getAssociationTargetClass($assocField);
-            $relationName = $this->resourceMetadataFactory->create($targetClass)->getShortName();
+            $metadataCollection = $this->resourceMetadataFactory->create($targetClass);
+            /** @var ApiResource $apiResource */
+            $apiResource = $metadataCollection[0];
+            $relationName = $apiResource->getShortName();
             $metadata->addProperty(new PageDataPropertyMetadata($assocField, $relationName));
         }
 
