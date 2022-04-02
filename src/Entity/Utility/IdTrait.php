@@ -32,7 +32,7 @@ trait IdTrait
     #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
-    #[ApiProperty(readable: false)]
+    #[ApiProperty(readable: false, identifier: true)]
     protected ?UuidInterface $id = null;
 
     public function getId(): ?UuidInterface

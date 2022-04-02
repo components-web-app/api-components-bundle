@@ -109,6 +109,7 @@ use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactor
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
+use Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer\UuidUriVariableTransformer;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -1276,4 +1277,13 @@ return static function (ContainerConfigurator $configurator) {
         ->class(VersionedDocumentationNormalizer::class)
         ->decorate('api_platform.hydra.normalizer.documentation')
         ->args([new Reference('silverback.hydra.normalizer.versioned_documentation.inner')]);
+
+    $services
+        ->set(UuidUriVariableTransformer::class)
+        ->decorate('api_platform.ramsey_uuid.uri_variables.transformer.uuid')
+        ->args(
+            [
+                new Reference(UuidUriVariableTransformer::class . '.inner'),
+            ]
+        );
 };
