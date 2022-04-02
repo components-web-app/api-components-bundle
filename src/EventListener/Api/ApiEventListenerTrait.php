@@ -27,7 +27,7 @@ trait ApiEventListenerTrait
         $data = $request->attributes->get('data');
         $normalizationContext = $request->attributes->get('_api_normalization_context');
         $class = null;
-        if ($normalizationContext) {
+        if ($normalizationContext && isset($normalizationContext['resource_class'])) {
             $class = $normalizationContext['resource_class'];
         }
         if (!$class && $data) {

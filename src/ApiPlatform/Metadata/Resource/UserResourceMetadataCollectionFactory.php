@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -45,7 +45,11 @@ class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectio
         foreach ($resourceMetadata as $resourceMetadatum) {
             $operations = $resourceMetadatum->getOperations();
             if ($operations) {
-                $operations->add('me', (new Operation(Operation::METHOD_GET, '/me.{_format}'))->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")'));
+                foreach ($operations as $operation) {
+                    if ($operation instanceof Get) {
+                        $operations->add('me', $operation->withUriTemplate('/me.{_format}')->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")'));
+                    }
+                }
             }
             $newResources[] = $resourceMetadatum;
         }
