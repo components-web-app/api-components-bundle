@@ -25,6 +25,13 @@ abstract class AbstractRoutableVoter extends Voter
 
     protected function supports(string $attribute, $subject): bool
     {
-        return self::READ_ROUTABLE === $attribute && $subject instanceof RoutableInterface;
+        if (self::READ_ROUTABLE !== $attribute) {
+            return false;
+        }
+        if (!$subject instanceof RoutableInterface) {
+            throw new \InvalidArgumentException(sprintf('$subject must be of type `%s`', RoutableInterface::class));
+        }
+
+        return true;
     }
 }

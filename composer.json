@@ -23,7 +23,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.9",
         "imagine/imagine": "dev-develop as 1.3.0",
-        "lexik/jwt-authentication-bundle": "2.x-dev",
+        "lexik/jwt-authentication-bundle": "^2.14",
         "liip/imagine-bundle": "^2.7",
         "nelmio/cors-bundle": "^2.2",
         "ocramius/package-versions": "^2.1",
