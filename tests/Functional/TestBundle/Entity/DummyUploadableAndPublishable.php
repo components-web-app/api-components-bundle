@@ -34,8 +34,6 @@ class DummyUploadableAndPublishable
     use PublishableTrait;
     use UploadableTrait;
 
-    /**
-     * @Silverback\UploadableField(adapter="local")
-     */
+    #[Silverback\UploadableField(adapter: 'local')]
     public ?File $file = null;
 }

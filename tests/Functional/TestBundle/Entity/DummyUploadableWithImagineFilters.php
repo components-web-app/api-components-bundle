@@ -33,9 +33,7 @@ class DummyUploadableWithImagineFilters implements ImagineFiltersInterface
     use IdTrait;
     use UploadableTrait;
 
-    /**
-     * @Silverback\UploadableField(adapter="local")
-     */
+    #[Silverback\UploadableField(adapter: 'local')]
     public ?File $file = null;
 
     public function getImagineFilters(string $property, ?Request $request): array

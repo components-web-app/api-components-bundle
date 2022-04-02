@@ -31,8 +31,6 @@ class DummyUploadable
     use IdTrait;
     use UploadableTrait;
 
-    /**
-     * @Silverback\UploadableField(adapter="local")
-     */
+    #[Silverback\UploadableField(adapter: 'local')]
     public ?File $file = null;
 }

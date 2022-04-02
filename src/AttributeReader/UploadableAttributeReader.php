@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\AttributeReader;
 
-use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -29,10 +28,10 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
 {
     private bool $imagineBundleEnabled;
 
-    public function __construct(Reader $reader, ManagerRegistry $managerRegistry, bool $imagineBundleEnabled)
+    public function __construct(ManagerRegistry $managerRegistry, bool $imagineBundleEnabled)
     {
         $this->imagineBundleEnabled = $imagineBundleEnabled;
-        parent::__construct($reader, $managerRegistry);
+        parent::__construct($managerRegistry);
     }
 
     public function isConfigured(object|string $class): bool
@@ -67,17 +66,18 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
 
     public function getPropertyConfiguration(\ReflectionProperty $property): UploadableField
     {
-        /** @var UploadableField|null $annotation */
-        $annotation = $this->reader->getPropertyAnnotation($property, UploadableField::class);
-        if (!$annotation instanceof UploadableField) {
+        $attributes = $property->getAttributes(UploadableField::class);
+        if (!\count($attributes)) {
             throw new InvalidArgumentException(sprintf('%s::%s does not have %s annotation', $property->getDeclaringClass()->getName(), $property->getName(), UploadableField::class));
         }
+        /** @var UploadableField $attribute */
+        $attribute = $attributes[0]->newInstance();
 
-        if (!$this->imagineBundleEnabled && null !== $annotation->imagineFilters && \count($annotation->imagineFilters)) {
+        if (!$this->imagineBundleEnabled && null !== $attribute->imagineFilters && \count($attribute->imagineFilters)) {
             throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s::$%s', $property->class, $property->getName()));
         }
 
-        return $annotation;
+        return $attribute;
     }
 
     /**     *

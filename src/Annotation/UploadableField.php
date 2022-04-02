@@ -15,21 +15,26 @@ namespace Silverback\ApiComponentsBundle\Annotation;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
- *
- * @Annotation
- * @Target("PROPERTY")
  */
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class UploadableField
 {
-    public string $property = 'filename';
+    public string $property;
 
-    public ?string $prefix = null;
+    public ?string $prefix;
 
-    public ?array $imagineFilters = [];
+    public ?array $imagineFilters;
 
     // Nice to have - feature to configure the IRI in the output media objects for this field
     // public string $iri = 'http://schema.org/MediaObject';
 
-    /** @required */
     public ?string $adapter;
+
+    public function __construct(string $adapter, string $property = 'filename', ?string $prefix = null, ?array $imagineFilters = [])
+    {
+        $this->property = $property;
+        $this->prefix = $prefix;
+        $this->imagineFilters = $imagineFilters;
+        $this->adapter = $adapter;
+    }
 }

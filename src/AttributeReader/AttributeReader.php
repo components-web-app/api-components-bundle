@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\AttributeReader;
 
-use Doctrine\Common\Annotations\Reader;
 use Doctrine\Persistence\ManagerRegistry;
 use JetBrains\PhpStorm\Pure;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -27,13 +26,10 @@ abstract class AttributeReader implements AttributeReaderInterface
 {
     use ClassMetadataTrait;
 
-    protected Reader $reader;
-
     private array $configurationCache = [];
 
-    public function __construct(Reader $reader, ManagerRegistry $managerRegistry)
+    public function __construct(ManagerRegistry $managerRegistry)
     {
-        $this->reader = $reader;
         $this->initRegistry($managerRegistry);
     }
 

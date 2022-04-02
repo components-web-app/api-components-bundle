@@ -12,9 +12,7 @@ To set an entity component as timestamped, use the following annotation and trai
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 
-/**
- * @Silverback\Timestamped
- */
+ #[Silverback\Timestamped]
 class Foo
 {
     use TimestampedTrait;
@@ -25,9 +23,7 @@ Default field for the created timestamp is`createdAt` and the modified timestamp
 ```php
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
-/**
- * @Silverback\Timestamped(createdAtField="customCreatedAt", modifiedAtField="customModifiedAt")
- */
+ #[Silverback\Timestamped(createdAtField: 'customCreatedAt', modifiedAtField: 'customModifiedAt')]
 class Foo
 {
     // If not set, the Doctrine mapping is automatically configured with type="datetime_immutable" not nullable

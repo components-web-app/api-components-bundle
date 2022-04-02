@@ -207,7 +207,6 @@ return static function (ContainerConfigurator $configurator) {
         ->abstract()
         ->args(
             [
-                new Reference('annotations.reader'),
                 new Reference('doctrine'),
             ]
         );
@@ -637,12 +636,7 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(PublishableLoader::class)
-        ->args(
-            [
-                new Reference('annotations.reader'),
-            ]
-        );
+        ->set(PublishableLoader::class);
 
     $services
         ->set('silverback.security.jwt_manager')
@@ -892,12 +886,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'));
 
     $services
-        ->set(TimestampedLoader::class)
-        ->args(
-            [
-                new Reference('annotations.reader'),
-            ]
-        );
+        ->set(TimestampedLoader::class);
 
     $services
         ->set(TimestampedValidatorMappingLoader::class)
@@ -973,7 +962,6 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableLoader::class)
         ->args(
             [
-                new Reference('annotations.reader'),
                 new Reference(UploadableAttributeReader::class),
             ]
         );

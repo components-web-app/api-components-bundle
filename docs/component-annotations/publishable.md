@@ -12,9 +12,7 @@ The easiest way to configure an entity resource as publishable, use the followin
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
-/**
- * @Silverback\Publishable
- */
+#[Silverback\Publishable]
 class Foo
 {
     use PublishableTrait;
@@ -30,9 +28,7 @@ To customize these properties, you can update the annotation and your class:
 ```php
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
-/**
- * @Silverback\Publishable(fieldName="publicationDate", associationName="originalResource", reverseAssociationName="newResource")
- */
+#[Silverback\Publishable(fieldName: 'publicationDate', associationName: 'originalResource', reverseAssociationName: 'newResource')]
 class Foo
 {
     // If not set, the Doctrine mapping is automatically configured with type="date" nullable
@@ -103,25 +99,21 @@ published resource, configure it as following:
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
-/**
- * @Silverback\Publishable
- */
+#[Silverback\Publishable]
 class Foo
 {
     use PublishableTrait;
 
     /**
      * This constraint will be applied on draft and published resources.
-     *
-     * @Assert\NotBlank
      */
+    #[Assert\NotBlank]
     public string $name = '';
 
     /**
      * This constraint will be applied on published resources only.
-     *
-     * @Assert\NotBlank(groups={"Foo:published"})
      */
+    #[Assert\NotBlank(groups: ['Foo:published'])]
     public string $description = '';
 }
 ```
@@ -132,26 +124,22 @@ You can define a custom validation group for published resources:
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
-/**
- * @Silverback\Publishable(validationGroups={"custom_validation_group"})
- */
+#[Silverback\Publishable(validationGroups: ['custom_validation_group'])]
 class Foo
 {
     use PublishableTrait;
 
     /**
      * This constraint will be applied on draft and published resources.
-     *
-     * @Assert\NotBlank
      */
+    #[Assert\NotBlank]
     public string $name = '';
 
     /**
      * This constraint will be applied on published resources only.
      * The "Foo:published" validation does not exist anymore.
-     *
-     * @Assert\NotBlank(groups={"custom_validation_group"})
      */
+    #[Assert\NotBlank(groups: ['custom_validation_group'])]
     public string $description = '';
 }
 ```

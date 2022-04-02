@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\MappingLoader;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
@@ -27,23 +26,18 @@ final class PublishableLoader implements LoaderInterface
 {
     public const GROUP_NAME = 'published';
 
-    private AnnotationReader $reader;
-
-    public function __construct(AnnotationReader $reader)
-    {
-        $this->reader = $reader;
-    }
-
     /**
      * {@inheritdoc}
      */
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        /** @var Publishable $configuration */
-        if (!$configuration = $this->reader->getClassAnnotation($reflectionClass, Publishable::class)) {
+        $attributes = $reflectionClass->getAttributes(Publishable::class);
+        if (!\count($attributes)) {
             return true;
         }
+        /** @var Publishable $configuration */
+        $configuration = $attributes[0]->newInstance();
 
         $allAttributesMetadata = $classMetadata->getAttributesMetadata();
         $shortClassName = $reflectionClass->getShortName();

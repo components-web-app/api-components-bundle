@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\MappingLoader;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Silverback\ApiComponentsBundle\Annotation\Uploadable;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
@@ -28,12 +27,10 @@ final class UploadableLoader implements LoaderInterface
 {
     public const GROUP_NAME = 'uploadable';
 
-    private AnnotationReader $reader;
     private UploadableAttributeReader $annotationReader;
 
-    public function __construct(AnnotationReader $reader, UploadableAttributeReader $annotationReader)
+    public function __construct(UploadableAttributeReader $annotationReader)
     {
-        $this->reader = $reader;
         $this->annotationReader = $annotationReader;
     }
 
@@ -43,7 +40,8 @@ final class UploadableLoader implements LoaderInterface
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
         $reflectionClass = $classMetadata->getReflectionClass();
-        if (!$this->reader->getClassAnnotation($reflectionClass, Uploadable::class)) {
+        $attributes = $reflectionClass->getAttributes(Uploadable::class);
+        if (!\count($attributes)) {
             return true;
         }
 
