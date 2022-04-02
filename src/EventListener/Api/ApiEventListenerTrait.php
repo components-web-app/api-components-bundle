@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use ApiPlatform\Metadata\Operation;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -21,15 +22,16 @@ use Symfony\Component\HttpFoundation\Request;
  */
 trait ApiEventListenerTrait
 {
-    #[ArrayShape(['data' => 'mixed', 'class' => 'string'])]
+    #[ArrayShape(['data' => 'mixed', 'class' => 'string', 'operation' => Operation::class])]
     private function getAttributes(Request $request): array
     {
+        $operation = $request->attributes->get('_api_operation');
         $data = $request->attributes->get('data');
-        $normalizationContext = $request->attributes->get('_api_normalization_context');
+//        $normalizationContext = $request->attributes->get('_api_normalization_context');
         $class = null;
-        if ($normalizationContext && isset($normalizationContext['resource_class'])) {
-            $class = $normalizationContext['resource_class'];
-        }
+//        if ($normalizationContext && isset($normalizationContext['resource_class'])) {
+//            $class = $normalizationContext['resource_class'];
+//        }
         if (!$class && $data) {
             $class = \get_class($data);
         }
@@ -37,6 +39,7 @@ trait ApiEventListenerTrait
         return [
             'data' => $data,
             'class' => $class,
+            'operation' => $operation,
         ];
     }
 }

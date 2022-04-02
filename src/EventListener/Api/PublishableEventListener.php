@@ -57,7 +57,8 @@ final class PublishableEventListener
         if (
             empty($attributes['data']) ||
             !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            $request->isMethod(Request::METHOD_DELETE)
+            $request->isMethod(Request::METHOD_DELETE) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
@@ -73,7 +74,8 @@ final class PublishableEventListener
         if (
             empty($attributes['data']) ||
             !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            !$request->isMethod(Request::METHOD_GET)
+            !$request->isMethod(Request::METHOD_GET) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
@@ -107,12 +109,18 @@ final class PublishableEventListener
     public function onPostRespond(ResponseEvent $event): void
     {
         $request = $event->getRequest();
-        /** @var PublishableTrait|null $attributes['data'] */
+
         $attributes = $this->getAttributes($request);
 
+        /**
+         * @var PublishableTrait|null $data
+         */
+        $data = $attributes['data'];
+
         if (
-            null === $attributes['data'] ||
-            !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            null === $data ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
@@ -120,7 +128,7 @@ final class PublishableEventListener
 
         $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
         $classMetadata = $this->getClassMetadata($attributes['class']);
-        $draftResource = $classMetadata->getFieldValue($attributes['data'], $configuration->reverseAssociationName) ?? $attributes['data'];
+        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
         // Add Expires HTTP header
         /** @var \DateTime|null $publishedAt */
@@ -141,7 +149,7 @@ final class PublishableEventListener
 
         // Force validation from querystring, and/or add validate-to-publish custom HTTP header
         try {
-            $this->validator->validate($attributes['data'], [PublishableValidator::PUBLISHED_KEY => true]);
+            $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 1);
         } catch (ValidationException $exception) {
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
