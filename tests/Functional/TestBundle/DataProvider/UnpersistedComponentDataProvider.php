@@ -13,18 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider;
 
-use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
-use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
+use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnpersistedComponent;
 
-class UnpersistedComponentDataProvider implements ItemDataProviderInterface, RestrictedDataProviderInterface
+class UnpersistedComponentDataProvider implements ProviderInterface
 {
-    public function getItem(string $resourceClass, $id, string $operationName = null, array $context = []): DummyUnpersistedComponent
+    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = [])
     {
         return new DummyUnpersistedComponent();
     }
 
-    public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
+    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
     {
         return DummyUnpersistedComponent::class === $resourceClass;
     }
