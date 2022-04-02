@@ -21,11 +21,9 @@ use Silverback\ApiComponentsBundle\Annotation\Publishable;
 final class PublishableAttributeReader extends AttributeReader
 {
     /**
-     * @param object|string $class
-     *
      * @throws \ReflectionException
      */
-    public function getConfiguration($class): Publishable
+    public function getConfiguration(object|string $class): Publishable
     {
         $publishable = $this->getClassAttributeConfiguration($class, Publishable::class);
         if (!$publishable instanceof Publishable) {

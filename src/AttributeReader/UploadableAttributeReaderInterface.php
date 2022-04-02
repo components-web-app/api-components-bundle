@@ -21,11 +21,11 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
  */
 interface UploadableAttributeReaderInterface extends AttributeReaderInterface
 {
-    public function getConfiguration($class): Uploadable;
+    public function getConfiguration(object|string $class): Uploadable;
 
     public function isFieldConfigured(\ReflectionProperty $property): bool;
 
     public function getPropertyConfiguration(\ReflectionProperty $property): UploadableField;
 
-    public function getConfiguredProperties($data, bool $skipUploadableCheck = false): iterable;
+    public function getConfiguredProperties(object|string $data, bool $skipUploadableCheck = false): iterable;
 }

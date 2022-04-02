@@ -32,6 +32,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 final class PublishableEventListener
 {
+    use ApiEventListenerTrait;
     use ClassMetadataTrait;
 
     public const VALID_TO_PUBLISH_HEADER = 'valid-to-publish';
@@ -52,52 +53,52 @@ final class PublishableEventListener
     public function onPreWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
         }
 
-        $publishable = $this->checkMergeDraftIntoPublished($request, $data);
+        $publishable = $this->checkMergeDraftIntoPublished($request, $attributes['data']);
         $event->setControllerResult($publishable);
     }
 
     public function onPostRead(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             !$request->isMethod(Request::METHOD_GET)
         ) {
             return;
         }
 
-        $this->checkMergeDraftIntoPublished($request, $data, true);
+        $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
     }
 
     public function onPostDeserialize(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
 
         // User cannot change the publication date of the original resource
         if (
             true === $this->publishableStatusChecker->isPublishedRequest($request) &&
-            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($data, $configuration->fieldName)
+            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
         ) {
             throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
         }
@@ -106,19 +107,20 @@ final class PublishableEventListener
     public function onPostRespond(ResponseEvent $event): void
     {
         $request = $event->getRequest();
-        /** @var PublishableTrait|null $data */
-        $data = $request->attributes->get('data');
+        /** @var PublishableTrait|null $attributes['data'] */
+        $attributes = $this->getAttributes($request);
+
         if (
-            null === $data ||
-            !$this->publishableAnnotationReader->isConfigured($data)
+            null === $attributes['data'] ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class'])
         ) {
             return;
         }
         $response = $event->getResponse();
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
-        $classMetadata = $this->getClassMetadata($data);
-        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
+        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
+        $classMetadata = $this->getClassMetadata($attributes['class']);
+        $draftResource = $classMetadata->getFieldValue($attributes['data'], $configuration->reverseAssociationName) ?? $attributes['data'];
 
         // Add Expires HTTP header
         /** @var \DateTime|null $publishedAt */
@@ -127,7 +129,7 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if (!$this->publishableStatusChecker->isGranted($data)) {
+        if (!$this->publishableStatusChecker->isGranted($attributes['class'])) {
             return;
         }
 
@@ -139,7 +141,7 @@ final class PublishableEventListener
 
         // Force validation from querystring, and/or add validate-to-publish custom HTTP header
         try {
-            $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
+            $this->validator->validate($attributes['data'], [PublishableValidator::PUBLISHED_KEY => true]);
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 1);
         } catch (ValidationException $exception) {
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);

@@ -20,10 +20,7 @@ use Silverback\ApiComponentsBundle\Annotation\Timestamped;
  */
 final class TimestampedAttributeReader extends AttributeReader
 {
-    /**
-     * @param object|string $class
-     */
-    public function getConfiguration($class): Timestamped
+    public function getConfiguration(object|string $class): Timestamped
     {
         $timestamped = $this->getClassAttributeConfiguration($class, Timestamped::class);
         if (!$timestamped instanceof Timestamped) {

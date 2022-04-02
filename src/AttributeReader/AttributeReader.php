@@ -37,12 +37,9 @@ abstract class AttributeReader implements AttributeReaderInterface
         $this->initRegistry($managerRegistry);
     }
 
-    abstract public function getConfiguration($class);
+    abstract public function getConfiguration(object|string $class);
 
-    /**
-     * @param object|string $class
-     */
-    public function isConfigured($class): bool
+    public function isConfigured(object|string $class): bool
     {
         try {
             $this->getConfiguration($class);
@@ -82,7 +79,7 @@ abstract class AttributeReader implements AttributeReaderInterface
         }
 
         $attributes = $this->findAttributeConfiguration($class, $annotationClass);
-        if (!count($attributes)) {
+        if (!\count($attributes)) {
             return null;
         }
 
@@ -97,6 +94,7 @@ abstract class AttributeReader implements AttributeReaderInterface
      * @param string|object $class
      *
      * @throws \ReflectionException
+     *
      * @return \ReflectionAttribute[]
      */
     private function findAttributeConfiguration($class, string $annotationClass): array
@@ -104,11 +102,11 @@ abstract class AttributeReader implements AttributeReaderInterface
         $reflection = new \ReflectionClass($class);
         $attributes = $reflection->getAttributes($annotationClass);
 
-        if (!count($attributes)) {
+        if (!\count($attributes)) {
             $attributes = $this->getConfigurationFromParentClasses($reflection, $annotationClass);
-            if (!count($attributes)) {
+            if (!\count($attributes)) {
                 $attributes = $this->getConfigurationFromTraits($reflection, $annotationClass);
-                if (!count($attributes)) {
+                if (!\count($attributes)) {
                     throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
                 }
             }
@@ -146,7 +144,7 @@ abstract class AttributeReader implements AttributeReaderInterface
         $traits = $reflection->getTraits();
         foreach ($traits as $trait) {
             $attributes = $trait->getAttributes($annotationClass);
-            if (count($attributes)) {
+            if (\count($attributes)) {
                 break;
             }
         }

@@ -29,7 +29,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
     paginationMaximumItemsPerPage: 40
 )]
 #[Get]
-#[GetCollection(paginationMaximumItemsPerPage: 40)]
+#[GetCollection]
 #[ORM\Entity]
 class DummyResourceWithPagination
 {

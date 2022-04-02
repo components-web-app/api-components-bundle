@@ -31,8 +31,7 @@ class DummyPublishableComponent extends AbstractComponent
 
     /**
      * @var string a reference for this component
-     *
-     * @ORM\Column
      */
+    #[Orm\Column]
     public string $reference = '';
 }

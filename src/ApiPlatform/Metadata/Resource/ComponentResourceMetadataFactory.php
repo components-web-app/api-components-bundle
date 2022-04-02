@@ -56,8 +56,19 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
 
             $operations = $resourceMetadatum->getOperations();
             if ($operations) {
-                $operation = new Operation(Operation::METHOD_GET, $usagePath);
-                $operations->add('get_usage', $operation->withSerialize(true));
+                $copyOperation = null;
+                /** @var Operation $operation */
+                foreach ($operations as $operation) {
+                    $uriVariables = $operation->getUriVariables();
+                    if ($uriVariables) {
+                        $copyOperation = $operation;
+                        break;
+                    }
+                }
+                if ($copyOperation) {
+                    $usageOperation = $copyOperation->withUriTemplate($usagePath);
+                    $operations->add('_api_' . $usagePath . '_get_usage', $usageOperation);
+                }
             }
         }
 

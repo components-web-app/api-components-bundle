@@ -19,10 +19,7 @@ namespace Silverback\ApiComponentsBundle\AttributeReader;
  */
 interface AttributeReaderInterface
 {
-    public function getConfiguration($class);
+    public function getConfiguration(object|string $class);
 
-    /**
-     * @param object|string $class
-     */
-    public function isConfigured($class): bool;
+    public function isConfigured(object|string $class): bool;
 }
