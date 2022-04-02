@@ -14,7 +14,8 @@
     >
         <jsonldContext>
             <values>
-                <value name="iri">http://schema.org/contentUrl</value>
+                <value name="@id">http://schema.org/contentUrl</value>
+                <value name="@type">@id</value>
             </values>
         </jsonldContext>
     </property>
@@ -24,7 +25,8 @@
     >
         <jsonldContext>
             <values>
-                <value name="iri">http://schema.org/contentSize</value>
+                <value name="@id">http://schema.org/contentSize</value>
+                <value name="@type">@id</value>
             </values>
         </jsonldContext>
     </property>
@@ -34,7 +36,8 @@
     >
         <jsonldContext>
             <values>
-                <value name="iri">http://schema.org/encodingFormat</value>
+                <value name="@id">http://schema.org/encodingFormat</value>
+                <value name="@type">@id</value>
             </values>
         </jsonldContext>
     </property>
@@ -44,7 +47,8 @@
     >
         <jsonldContext>
             <values>
-                <value name="iri">http://schema.org/width</value>
+                <value name="@id">http://schema.org/width</value>
+                <value name="@type">@id</value>
             </values>
         </jsonldContext>
     </property>
@@ -54,7 +58,8 @@
     >
         <jsonldContext>
             <values>
-                <value name="iri">http://schema.org/height</value>
+                <value name="@id">http://schema.org/height</value>
+                <value name="@type">@id</value>
             </values>
         </jsonldContext>
     </property>
