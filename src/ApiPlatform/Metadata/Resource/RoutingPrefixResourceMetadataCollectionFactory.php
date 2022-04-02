@@ -46,9 +46,7 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
             // underscores for core resources
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
-            $acbNamespace = 'Silverback\ApiComponentsBundle\\';
-
-            if (str_starts_with($namespace, $acbNamespace)) {
+            if (preg_match("/Silverback\\\\ApiComponentsBundle\\\\(?!Test)[\w]+/", $namespace)) {
                 $routePrefixParts[] = '_';
             }
         }
