@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -52,9 +51,8 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
                 /** @var Operation $operation */
                 foreach ($operations as $i => $operation) {
                     if (
-                        !($operation instanceof GetCollection) &&
-                        !$operation->getSecurity() &&
-                        Operation::METHOD_POST !== $operation->getMethod()) {
+                        !$operation->isCollection() &&
+                        !$operation->getSecurity()) {
                         $operation = $operation->withSecurity(sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
                     }
                     $newOperations[$i] = $operation;

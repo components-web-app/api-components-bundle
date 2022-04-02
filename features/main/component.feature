@@ -28,6 +28,7 @@ Feature: Components
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
+    And the JSON node "@context" should be equal to "/contexts/DummyComponent"
     And the JSON node "uiComponent" should be equal to "AnotherComponent"
     And the JSON node "uiClassNames[0]" should be equal to "my-class"
 

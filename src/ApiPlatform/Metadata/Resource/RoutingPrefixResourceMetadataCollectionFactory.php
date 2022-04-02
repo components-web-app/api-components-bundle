@@ -38,7 +38,6 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
         $resourceMetadata = $this->decorated->create($resourceClass);
 
         $routePrefixParts = [];
-
         if (is_subclass_of($resourceClass, AbstractComponent::class)) {
             $routePrefixParts[] = 'component';
         } elseif (is_subclass_of($resourceClass, AbstractPageData::class)) {
@@ -47,7 +46,7 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
             // underscores for core resources
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
-            $acbNamespace = 'Silverback\ApiComponentsBundle\Entity\\';
+            $acbNamespace = 'Silverback\ApiComponentsBundle\\';
 
             if (str_starts_with($namespace, $acbNamespace)) {
                 $routePrefixParts[] = '_';
