@@ -51,6 +51,7 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
                 /** @var Operation $operation */
                 foreach ($operations as $i => $operation) {
                     if (
+                        Operation::METHOD_POST !== $operation->getMethod() &&
                         !$operation->isCollection() &&
                         !$operation->getSecurity()) {
                         $operation = $operation->withSecurity(sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
