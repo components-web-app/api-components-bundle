@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DataProvider\Item;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
@@ -26,7 +26,7 @@ class RouteDataProviderTest extends TestCase
     {
         $repository = $this->createMock(RouteRepository::class);
         $defaultProvider = $this->createMock(ItemDataProviderInterface::class);
-        $provider = new RouteDataProvider($repository, $defaultProvider);
+        $provider = new RouteStateProvider($repository, $defaultProvider);
 
         $this->assertTrue($provider->supports(Route::class));
         $this->assertFalse($provider->supports(__CLASS__));
@@ -46,7 +46,7 @@ class RouteDataProviderTest extends TestCase
             ->with('abcd')
             ->willReturn($route = new Route());
 
-        $provider = new RouteDataProvider($repository, $defaultProvider);
+        $provider = new RouteStateProvider($repository, $defaultProvider);
         $this->assertEquals($route, $provider->getItem(Route::class, 'abcd'));
     }
 
@@ -64,7 +64,7 @@ class RouteDataProviderTest extends TestCase
             ->expects($this->never())
             ->method('findOneByIdOrPath');
 
-        $provider = new RouteDataProvider($repository, $defaultProvider);
+        $provider = new RouteStateProvider($repository, $defaultProvider);
         $this->assertEquals($route, $provider->getItem(Route::class, $uuid, 'post', ['blah' => 'abc']));
     }
 }

@@ -40,10 +40,10 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
-use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
-use Silverback\ApiComponentsBundle\DataProvider\Item\UserDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -725,15 +725,15 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(RouteDataProvider::class)
+        ->set(RouteStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
-                new Reference('api_platform.item_data_provider'),
+                new Reference('api_platform.state_provider'),
             ]
         )
         ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+        ->tag('api_platform.state_provider');
 
     $services
         ->set('silverback.event_listener.api.route_event_listener')
@@ -1013,14 +1013,14 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(UserDataProvider::class)
+        ->set(UserStateProvider::class)
         ->args(
             [
                 new Reference('silverback.repository.user'),
             ]
         )
         ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+        ->tag('api_platform.state_provider');
 
     $services
         ->set(UserEnabledEmailFactory::class)
