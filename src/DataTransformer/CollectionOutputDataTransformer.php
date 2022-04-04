@@ -45,7 +45,6 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     private NormalizerInterface $itemNormalizer;
     private SerializeFormatResolver $serializeFormatResolver;
     private string $itemsPerPageParameterName;
-    private string $paginationEnabledParameterName;
     private ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory;
 
     public function __construct(
@@ -56,10 +55,8 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         NormalizerInterface $itemNormalizer,
         SerializeFormatResolver $serializeFormatResolver,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
-        string $itemsPerPageParameterName,
-        string $paginationEnabledParameterName
-    )
-    {
+        string $itemsPerPageParameterName
+    ) {
         $this->resourceRouteFinder = $resourceRouteFinder;
         $this->provider = $provider;
         $this->requestStack = $requestStack;
@@ -67,7 +64,6 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         $this->itemNormalizer = $itemNormalizer;
         $this->serializeFormatResolver = $serializeFormatResolver;
         $this->itemsPerPageParameterName = $itemsPerPageParameterName;
-        $this->paginationEnabledParameterName = $paginationEnabledParameterName;
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
     }
 
