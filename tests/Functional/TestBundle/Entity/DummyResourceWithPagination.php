@@ -22,14 +22,14 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource(
+#[ApiResource]
+#[Get]
+#[GetCollection(
     paginationClientEnabled: true,
     paginationClientItemsPerPage: true,
     paginationItemsPerPage: 10,
     paginationMaximumItemsPerPage: 40
 )]
-#[Get]
-#[GetCollection]
 #[ORM\Entity]
 class DummyResourceWithPagination
 {

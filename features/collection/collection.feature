@@ -77,6 +77,7 @@ Feature: A Collection component resource
       | total  | postfix           |
       | 10     |                   |
       | 20     | ?perPage=20       |
+# can be reintroduced when https://github.com/api-platform/core/pull/4702 is merged
 #      | 40     | ?perPage=110      |
       | 120    | ?pagination=false |
       | 0      | ?perPage=0        |
@@ -92,6 +93,7 @@ Feature: A Collection component resource
       | total  | postfix           |
       | 10     |                   |
       | 20     | ?perPage=20       |
+# can be reintroduced when https://github.com/api-platform/core/pull/4702 is merged
 #      | 40     | ?perPage=110      |
       | 120    | ?pagination=false |
       | 0      | ?perPage=0        |
