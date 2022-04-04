@@ -96,7 +96,7 @@ final class DoctrineContext implements Context
      */
     public static function clearAppCache(): void
     {
-        exec('php tests/Functional/app/console cache:clear --env=test --no-warmup');
+        exec('php tests/Functional/app/bin/console cache:clear --env=test --no-warmup');
     }
 
     /**

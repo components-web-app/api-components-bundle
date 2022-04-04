@@ -175,7 +175,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
@@ -325,7 +325,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
@@ -436,7 +436,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
@@ -516,7 +516,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat
@@ -619,7 +619,7 @@ jobs:
           run: |
             mkdir -p /tmp/api-platform/core/var
             ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/console cache:clear --ansi
+            tests/Functional/app/bin/console cache:clear --ansi
       -   name: Run PHPUnit tests
           run: |
             mkdir -p build/logs/phpunit
@@ -720,7 +720,7 @@ jobs:
           run: |
             mkdir -p /tmp/api-platform/core/var
             ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/console cache:clear --ansi
+            tests/Functional/app/bin/console cache:clear --ansi
       -   name: Run Behat tests
           run: |
             mkdir -p build/logs/behat
