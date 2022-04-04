@@ -42,7 +42,7 @@ class UserEventListener
         if (
             empty($resourceClass) ||
             !is_a($resourceClass, AbstractUser::class, true) ||
-            'me' !== $request->attributes->get('_api_item_operation_name')
+            'me' !== $request->attributes->get('_api_operation_name')
         ) {
             return;
         }

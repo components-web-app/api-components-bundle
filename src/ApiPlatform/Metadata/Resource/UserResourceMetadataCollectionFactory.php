@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -47,7 +48,14 @@ class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectio
             if ($operations) {
                 foreach ($operations as $operation) {
                     if ($operation instanceof Get) {
-                        $operations->add('me', $operation->withUriTemplate('/me.{_format}')->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")'));
+                        $newOperation = new Operation(Operation::METHOD_GET, '/me.{_format}', $operation->getShortName());
+                        $operations->add(
+                            'me',
+                            $newOperation
+                                ->withName('me')
+                                ->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")')
+                                ->withClass($operation->getClass())
+                        );
                     }
                 }
             }

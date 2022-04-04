@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,21 +25,29 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 class UserStateProvider implements ProviderInterface
 {
     private UserRepositoryInterface $userRepository;
+    private RequestStack $requestStack;
 
-    public function __construct(UserRepositoryInterface $userRepository)
+    public function __construct(UserRepositoryInterface $userRepository, RequestStack $requestStack)
     {
         $this->userRepository = $userRepository;
+        $this->requestStack = $requestStack;
     }
 
     public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = [])
     {
-        return $this->userRepository->loadUserByIdentifier($uriVariables['id']);
+        $request = $this->requestStack->getCurrentRequest();
+        if (!$request || !($id = $request->attributes->get('id'))) {
+            return null;
+        }
+
+        return $this->userRepository->loadUserByIdentifier($id);
     }
 
     public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
     {
         /** @var Operation */
         $operation = $context['operation'];
+
         return 'me' === $operationName && !$operation->isCollection() &&
             is_a($resourceClass, AbstractUser::class, true);
     }

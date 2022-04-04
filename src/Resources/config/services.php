@@ -1018,6 +1018,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.repository.user'),
+                new Reference('request_stack'),
             ]
         )
         ->autoconfigure(false)
