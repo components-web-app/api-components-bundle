@@ -27,13 +27,14 @@ trait ApiEventListenerTrait
     {
         $operation = $request->attributes->get('_api_operation');
         $data = $request->attributes->get('data');
-//        $normalizationContext = $request->attributes->get('_api_normalization_context');
         $class = null;
-//        if ($normalizationContext && isset($normalizationContext['resource_class'])) {
-//            $class = $normalizationContext['resource_class'];
-//        }
-        if (!$class && $data) {
+        if (\is_object($data)) {
             $class = \get_class($data);
+        } else {
+            $normalizationContext = $request->attributes->get('_api_normalization_context');
+            if ($normalizationContext && isset($normalizationContext['resource_class'])) {
+                $class = $normalizationContext['resource_class'];
+            }
         }
 
         return [

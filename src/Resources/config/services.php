@@ -260,11 +260,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ApiResourceRouteFinder::class),
-                new Reference('api_platform.collection_data_provider'),
+                new Reference('api_platform.state_provider'),
                 new Reference(RequestStack::class),
                 new Reference(SerializerContextBuilderInterface::class),
                 new Reference(NormalizerInterface::class),
                 new Reference(SerializeFormatResolver::class),
+                new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
         )
         ->tag('api_platform.data_transformer');

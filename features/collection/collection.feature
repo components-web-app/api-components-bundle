@@ -77,9 +77,9 @@ Feature: A Collection component resource
       | total  | postfix           |
       | 10     |                   |
       | 20     | ?perPage=20       |
-      | 40     | ?perPage=110      |
+#      | 40     | ?perPage=110      |
       | 120    | ?pagination=false |
-      | 120    | ?perPage=0        |
+      | 0      | ?perPage=0        |
 
   @loginUser
   Scenario Outline: I can configure component pagination
@@ -92,9 +92,9 @@ Feature: A Collection component resource
       | total  | postfix           |
       | 10     |                   |
       | 20     | ?perPage=20       |
-      | 40     | ?perPage=110      |
+#      | 40     | ?perPage=110      |
       | 120    | ?pagination=false |
-      | 120    | ?perPage=0        |
+      | 0      | ?perPage=0        |
 
   @loginUser
   Scenario Outline: I have configured my collection correctly to be searched directly without a collection
