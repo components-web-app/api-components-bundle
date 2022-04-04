@@ -26,9 +26,8 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource(operations: [
-    'get' => new Get(),
-])]
+#[ApiResource]
+#[Get]
 abstract class AbstractComponent implements ComponentInterface
 {
     use IdTrait;

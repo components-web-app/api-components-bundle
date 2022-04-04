@@ -22,9 +22,8 @@ use ApiPlatform\Metadata\Get;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource(operations: [
-    'get' => new Get(),
-])]
+#[ApiResource]
+#[Get]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     /**
