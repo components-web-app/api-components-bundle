@@ -8,11 +8,9 @@
                 <value name="jsonld_embed_context">true</value>
             </values>
         </normalizationContext>
-        <hydraContext>
-            <values>
-                <value name="iri">http://schema.org/MediaObject</value>
-            </values>
-        </hydraContext>
+        <types>
+            <type>http://schema.org/MediaObject</type>
+        </types>
         <!-- only have a get operation and no collection as without any operations we will get errors -->
         <operations>
             <operation class="ApiPlatform\Metadata\Get" />

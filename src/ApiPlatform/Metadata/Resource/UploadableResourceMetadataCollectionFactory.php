@@ -13,15 +13,23 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
+use JetBrains\PhpStorm\Pure;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 
 /**
  * Configures API Platform metadata for file resources.
+ * POST /resource_short_name/upload (multipart/form-data)
+ * POST /resource_short_name/{id}/upload (multipart/form-data)
+ * GET  /resource_short_name/{id}/download/{property} (download file).
  *
  * @author Daniel West <daniel@silverback.is>
  */
@@ -46,80 +54,107 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
         }
 
         $fields = $this->uploadableFileManager->getConfiguredProperties($resourceClass, false);
+        $openApiRequestMultipartProperties = [];
+        foreach ($fields as $field => $configuration) {
+            $openApiRequestMultipartProperties[$field] = [
+                'type' => 'string',
+                'format' => 'binary',
+            ];
+        }
+
+        /** @var ApiResource $resourceMetadatum */
+        foreach ($resourceMetadata as $resourceMetadatum) {
+            $resourceShortName = $resourceMetadatum->getShortName();
+            $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
+            $operations = $resourceMetadatum->getOperations();
+            if (!$operations) {
+                continue;
+            }
+            /** @var Operation $operation */
+            foreach ($operations as $operation) {
+                if ($operation instanceof Post) {
+                    $postUploadOperation = static::generatePostOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
+                    $operations->add(self::generateOperationName($postUploadOperation), $postUploadOperation);
+                }
+                if ($operation instanceof Get) {
+                    $uploadItemOperation = self::generateUploadItemOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
+                    $operations->add(self::generateOperationName($uploadItemOperation), $uploadItemOperation);
+
+                    $downloadItemOperation = self::generateDownloadItemOperation($operation, $pathSegmentName);
+                    $operations->add(self::generateOperationName($downloadItemOperation), $downloadItemOperation);
+                }
+            }
+        }
+
         return $resourceMetadata;
-
-
-
-//        $properties = [];
-//        foreach ($fields as $field => $configuration) {
-//            $properties[$field] = [
-//                'type' => 'string',
-//                'format' => 'binary',
-//            ];
-//        }
-//        $resourceShortName = $resourceMetadata->getShortName();
-//        $pathSegmentName = $this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
-//        $resourceMetadata = $this->getCollectionPostResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
-//
-//        return $this->getItemPutResourceMetadata($resourceMetadata, $properties, $pathSegmentName);
     }
 
-    private function getCollectionPostResourceMetadata(ResourceMetadataCollection $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadataCollection
+    #[Pure]
+    private static function generateOperationName(Operation $operation): string
     {
-        $path = sprintf('/%s/upload', $pathSegmentName);
-
-        $collectionOperations = $resourceMetadata->getCollectionOperations() ?? [];
-        $collectionOperations['post_upload'] = array_merge(['method' => 'POST'], $this->getUploadOperationConfiguration($properties, $path));
-
-        return $resourceMetadata->withCollectionOperations($collectionOperations);
+        return sprintf(
+            '_api_%s_%s%s',
+            $operation->getUriTemplate(),
+            strtolower($operation->getMethod()),
+            $operation->isCollection() ? '_collection' : ''
+        );
     }
 
-    private function getItemPutResourceMetadata(ResourceMetadataCollection $resourceMetadata, array $properties, string $pathSegmentName): ResourceMetadataCollection
+    #[Pure]
+    private static function configurePostOperation(Operation $postOperation, array $openApiRequestMultipartProperties): Operation
     {
-        $uploadPath = sprintf('/%s/{id}/upload', $pathSegmentName);
-
-        $itemOperations = $resourceMetadata->getItemOperations() ?? [];
-        $putProperties = $this->getUploadOperationConfiguration($properties, $uploadPath);
-        // Symfony will not read the file bag unless it is POST due to HTTP spec
-        // we were adding the put and patch item ops before - do not re-introduce.
-        $itemOperations['post_upload'] = array_merge(['method' => 'POST'], $putProperties);
-
-        $downloadPath = sprintf('/%s/{id}/download/{property}', $pathSegmentName);
-        $itemOperations['download'] = $this->getDownloadOperationConfiguration($downloadPath);
-
-        return $resourceMetadata->withItemOperations($itemOperations);
-    }
-
-    private function getDownloadOperationConfiguration(string $path): array
-    {
-        return [
-            'method' => 'GET',
-            'stateless' => null,
-            'controller' => DownloadAction::class,
-            'path' => $path,
-            'serialize' => false,
-        ];
-    }
-
-    private function getUploadOperationConfiguration(array $properties, string $path): array
-    {
-        return [
-            'stateless' => null,
-            'controller' => UploadAction::class,
-            'path' => $path,
-            'deserialize' => false,
-            'openapi_context' => [
+        return $postOperation
+            ->withController(UploadAction::class)
+            ->withDeserialize(false)
+            ->withStateless(null)
+            ->withOpenapiContext([
                 'requestBody' => [
                     'content' => [
                         'multipart/form-data' => [
                             'schema' => [
                                 'type' => 'object',
-                                'properties' => $properties,
+                                'properties' => $openApiRequestMultipartProperties,
                             ],
                         ],
                     ],
                 ],
-            ],
-        ];
+            ]);
+    }
+
+    #[Pure]
+    private static function generatePostOperation(Post $defaultOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
+    {
+        $path = sprintf('/%s/upload', $pathSegmentName);
+        $newPost = $defaultOperation
+            ->withUriTemplate($path)
+            ->withShortName($defaultOperation->getShortName())
+            ->withRoutePrefix($defaultOperation->getRoutePrefix() ?? '');
+
+        return self::configurePostOperation($newPost, $openApiRequestMultipartProperties);
+    }
+
+    #[Pure]
+    private static function generateUploadItemOperation(Get $getOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
+    {
+        $path = sprintf('/%s/{id}/upload', $pathSegmentName);
+        $newUploadPost = $getOperation
+            ->withUriTemplate($path)
+            ->withMethod(Operation::METHOD_POST)
+            ->withShortName($getOperation->getShortName())
+            ->withRoutePrefix($getOperation->getRoutePrefix() ?? '');
+
+        return self::configurePostOperation($newUploadPost, $openApiRequestMultipartProperties);
+    }
+
+    #[Pure]
+    private static function generateDownloadItemOperation(Get $getOperation, string $pathSegmentName): Operation
+    {
+        $downloadPath = sprintf('/%s/{id}/download/{property}', $pathSegmentName);
+
+        return $getOperation
+            ->withUriTemplate($downloadPath)
+            ->withStateless(null)
+            ->withController(DownloadAction::class)
+            ->withSerialize(false);
     }
 }

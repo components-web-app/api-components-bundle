@@ -12,56 +12,41 @@
               name="contentUrl"
               writable="false"
     >
-        <jsonldContext>
-            <values>
-                <value name="@id">http://schema.org/contentUrl</value>
-                <value name="@type">@id</value>
-            </values>
-        </jsonldContext>
+        <types>
+            <type>http://schema.org/contentUrl</type>
+        </types>
     </property>
     <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
               name="formattedFileSize"
               writable="false"
     >
-        <jsonldContext>
-            <values>
-                <value name="@id">http://schema.org/contentSize</value>
-                <value name="@type">@id</value>
-            </values>
-        </jsonldContext>
+        <types>
+            <type>http://schema.org/contentSize</type>
+        </types>
     </property>
     <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
               name="mimeType"
               writable="false"
     >
-        <jsonldContext>
-            <values>
-                <value name="@id">http://schema.org/encodingFormat</value>
-                <value name="@type">@id</value>
-            </values>
-        </jsonldContext>
+        <types>
+            <type>http://schema.org/encodingFormat</type>
+        </types>
     </property>
     <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
               name="width"
               writable="false"
     >
-        <jsonldContext>
-            <values>
-                <value name="@id">http://schema.org/width</value>
-                <value name="@type">@id</value>
-            </values>
-        </jsonldContext>
+        <types>
+            <type>http://schema.org/width</type>
+        </types>
     </property>
     <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
               name="height"
               writable="false"
     >
-        <jsonldContext>
-            <values>
-                <value name="@id">http://schema.org/height</value>
-                <value name="@type">@id</value>
-            </values>
-        </jsonldContext>
+        <types>
+            <type>http://schema.org/height</type>
+        </types>
     </property>
     <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
               name="fileSize"
