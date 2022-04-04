@@ -109,7 +109,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "root-dir": "tests/app",
+            "root-dir": "tests/Functional/app",
             "require": "^5.4 || ^6"
         }
     },
