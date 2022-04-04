@@ -111,7 +111,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         if ($requestFilters) {
             // not += because we want to overwrite with an empty string if provided in querystring.
             // e.g. a default search value could be overridden by no search value
-            $filters = [...$filters, ...$requestFilters];
+            $filters = array_merge($filters, $requestFilters);
         }
         $collectionContext['filters'] = $filters;
 
