@@ -20,14 +20,14 @@
   <php>
     <ini name="error_reporting" value="-1"/>
     <ini name="memory_limit" value="-1"/>
-    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=2"/>
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=2&amp;max[direct]=0"/>
     <server name="KERNEL_DIR" value="tests/Functional/app/"/>
     <server name="KERNEL_CLASS" value="AppKernel"/>
     <server name="APP_ENV" value="test" force="true"/>
     <server name="LEGACY" value="0"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
     <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
-    <server name="SYMFONY_PHPUNIT_VERSION" value="9.1"/>
+    <server name="SYMFONY_PHPUNIT_VERSION" value="9.5"/>
   </php>
   <logging>
     <junit outputFile="/tmp/infection/phpunit.junit.xml"/>

@@ -33,7 +33,7 @@ class PageDataMetadataStateProvider implements ProviderInterface
         $this->pageDataMetadataProvider = $pageDataMetadataProvider;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = [])
+    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
     {
         /** @var Operation */
         $operation = $context['operation'];

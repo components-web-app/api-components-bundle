@@ -34,7 +34,7 @@ class RouteStateProvider implements ProviderInterface
         $this->defaultProvider = $defaultProvider;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = [])
+    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
     {
         $id = $uriVariables['id'];
 

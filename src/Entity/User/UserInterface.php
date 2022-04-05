@@ -94,7 +94,7 @@ interface UserInterface extends Serializable, BaseUserInterface
      */
     public function unserialize($serialized): void;
 
-    public function getSalt();
+    public function getSalt(): ?string;
 
     public function eraseCredentials(): void;
 }
