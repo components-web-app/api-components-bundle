@@ -20,7 +20,7 @@
   <php>
     <ini name="error_reporting" value="-1"/>
     <ini name="memory_limit" value="-1"/>
-    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=10&amp;max[direct]=10&amp;max[total]=20&amp;verbose=1"/>
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="baselineFile=./tests/allowed.json&amp;max[self]=10&amp;max[direct]=10&amp;max[total]=10&amp;verbose=1"/>
     <server name="KERNEL_DIR" value="tests/Functional/app/"/>
     <server name="KERNEL_CLASS" value="AppKernel"/>
     <server name="APP_ENV" value="test" force="true"/>

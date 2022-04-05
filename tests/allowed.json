@@ -1,0 +1,12 @@
+[
+    {
+        "location": "Silverback\\ApiComponentsBundle\\Tests\\Serializer\\PersistedNormalizerTest::setUp",
+        "message": "The \"ApiPlatform\\Util\\ClassInfoTrait\" trait is considered internal. It may change without further notice. You should not use it from \"Silverback\\ApiComponentsBundle\\Serializer\\Normalizer\\PersistedNormalizer\".",
+        "count": 1
+    },
+    {
+        "location": "Silverback\\ApiComponentsBundle\\Tests\\Validator\\Constraints\\NewEmailAddressValidatorTest::setUp",
+        "message": "The \"ApiPlatform\\Util\\ClassInfoTrait\" trait is considered internal. It may change without further notice. You should not use it from \"Silverback\\ApiComponentsBundle\\Utility\\ClassMetadataTrait\".",
+        "count": 1
+    }
+]
