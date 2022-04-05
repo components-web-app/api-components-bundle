@@ -20,7 +20,7 @@
   <php>
     <ini name="error_reporting" value="-1"/>
     <ini name="memory_limit" value="-1"/>
-    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=2&amp;max[direct]=0"/>
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=10&amp;max[direct]=10&amp;max[total]=20&amp;verbose=1"/>
     <server name="KERNEL_DIR" value="tests/Functional/app/"/>
     <server name="KERNEL_CLASS" value="AppKernel"/>
     <server name="APP_ENV" value="test" force="true"/>
@@ -38,6 +38,13 @@
     </testsuite>
   </testsuites>
   <listeners>
-    <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+      <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener">
+          <arguments>
+              <array>
+                  <!-- set this option to 0 to disable the DebugClassLoader integration -->
+                  <!--<element key="debug-class-loader"><integer>0</integer></element> -->
+              </array>
+          </arguments>
+      </listener>
   </listeners>
 </phpunit>
