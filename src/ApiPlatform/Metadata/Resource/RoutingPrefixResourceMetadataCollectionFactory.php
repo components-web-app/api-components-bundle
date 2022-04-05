@@ -63,10 +63,11 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
         $resources = [];
         /** @var ApiResource $resourceMetadatum */
         foreach ($resourceMetadata as $i => $resourceMetadatum) {
+            $finalRoutePrefixParts = [...$routePrefixParts];
             if ($currentRoutePrefix = $resourceMetadatum->getRoutePrefix()) {
-                $routePrefixParts[] = trim($currentRoutePrefix, '/');
+                $finalRoutePrefixParts[] = trim($currentRoutePrefix, '/');
             }
-            $newRoutePrefix = '/' . implode('/', $routePrefixParts);
+            $newRoutePrefix = '/' . implode('/', $finalRoutePrefixParts);
             $resources[$i] = $resourceMetadatum->withRoutePrefix($newRoutePrefix);
             $newOperations = [];
             $oldOperations = $resourceMetadatum->getOperations();
@@ -75,7 +76,14 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
              * @var Operation $oldOperation
              */
             foreach ($oldOperations as $key => $oldOperation) {
-                $newOperations[$key] = $oldOperation->withRoutePrefix($newRoutePrefix);
+                $subRoutePrefixParts = [...$routePrefixParts];
+                if ($currentRoutePrefix = $oldOperation->getRoutePrefix()) {
+                    $subRoutePrefixParts[] = trim($currentRoutePrefix, '/');
+                    $subRoutePrefix = '/' . implode('/', $subRoutePrefixParts);
+                } else {
+                    $subRoutePrefix = $newRoutePrefix;
+                }
+                $newOperations[$key] = $oldOperation->withRoutePrefix($subRoutePrefix);
             }
             $resources[$i] = $resources[$i]->withOperations(new Operations($newOperations));
         }
