@@ -1,0 +1,8 @@
+mercure:
+    hubs:
+        default:
+            url: 'https://internal/.well-known/mercure'
+            public_url: 'https://internal/.well-known/mercure'
+            jwt:
+                secret: 'TEST_SECRET'
+                publish: '*'

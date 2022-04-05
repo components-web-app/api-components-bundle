@@ -25,17 +25,16 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
  */
 trait UiTrait
 {
-    /** @ORM\Column(nullable=true) */
+    #[Orm\Column(nullable: true)]
     public ?string $uiComponent = null;
 
-    /** @ORM\Column(type="json", nullable=true) */
+    #[Orm\Column(type: 'json', nullable: true)]
     public ?array $uiClassNames = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=ComponentCollection::class)
-     *
+    /**     *
      * @var Collection|ComponentCollection[]
      */
+    #[Orm\ManyToMany(targetEntity: ComponentCollection::class)]
     private Collection $componentCollections;
 
     public function __construct()

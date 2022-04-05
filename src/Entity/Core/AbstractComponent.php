@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -24,8 +25,9 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
  * API Platform does not know that it will be a resource and will make it an object, not an IRI.
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(collectionOperations={}, itemOperations={ "GET" })
  */
+#[ApiResource]
+#[Get]
 abstract class AbstractComponent implements ComponentInterface
 {
     use IdTrait;

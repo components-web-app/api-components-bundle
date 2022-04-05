@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Component;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
+use ApiPlatform\Metadata\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -25,20 +25,17 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ORM\Entity
  */
+#[Silverback\Timestamped]
+#[ORM\Entity]
 class Form extends AbstractComponent
 {
     use TimestampedTrait;
 
-    /**
-     * @ORM\Column(nullable=false)
-     */
+    #[ORM\Column(nullable: false)]
     public string $formType;
 
-    /** @ApiProperty(writable=false) */
+    #[ApiProperty(writable: false)]
     public ?FormView $formView = null;
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void

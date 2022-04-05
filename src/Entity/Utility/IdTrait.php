@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
+use ApiPlatform\Metadata\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Ramsey\Uuid\UuidInterface;
@@ -27,13 +27,12 @@ trait IdTrait
 {
     /**
      * Must allow return `null` for lowest dependencies.
-     *
-     * @ORM\Id
-     * @ORM\Column(type="uuid", unique=true, nullable=false)
-     * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
-     * @ApiProperty(readable=false)
      */
+    #[Orm\Id]
+    #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
+    #[ApiProperty(readable: false, identifier: true)]
     protected ?UuidInterface $id = null;
 
     public function getId(): ?UuidInterface

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -23,10 +23,12 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
  */
 final class UploadableEventListener
 {
-    private UploadableAnnotationReader $uploadableAnnotationReader;
+    use ApiEventListenerTrait;
+
+    private UploadableAttributeReader $uploadableAnnotationReader;
     private UploadableFileManager $uploadableFileManager;
 
-    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
+    public function __construct(UploadableAttributeReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
     {
         $this->uploadableAnnotationReader = $uploadableAnnotationReader;
         $this->uploadableFileManager = $uploadableFileManager;
@@ -35,10 +37,12 @@ final class UploadableEventListener
     public function onPreWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attr = $this->getAttributes($request);
+        $data = $attr['data'];
+        $class = $attr['class'];
         if (
             empty($data) ||
-            !$this->uploadableAnnotationReader->isConfigured($data) ||
+            !$this->uploadableAnnotationReader->isConfigured($class) ||
             $request->isMethod(Request::METHOD_GET)
         ) {
             return;
@@ -55,10 +59,12 @@ final class UploadableEventListener
     public function onPostWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attr = $this->getAttributes($request);
+        $data = $attr['data'];
+        $class = $attr['class'];
         if (
             empty($data) ||
-            !$this->uploadableAnnotationReader->isConfigured($data) ||
+            !$this->uploadableAnnotationReader->isConfigured($class) ||
             $request->isMethod(Request::METHOD_GET) ||
             $request->isMethod(Request::METHOD_DELETE)
         ) {

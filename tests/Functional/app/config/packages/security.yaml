@@ -33,10 +33,10 @@ security:
         main:
             pattern:   ^/
             stateless: true
+            jwt: ~
             provider: jwt_database_chain
             logout:
                 path: /logout
-            jwt: ~
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
     access_control:

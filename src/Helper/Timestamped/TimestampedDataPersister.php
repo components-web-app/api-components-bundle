@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Helper\Timestamped;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
 /**
@@ -24,9 +24,9 @@ class TimestampedDataPersister
 {
     use ClassMetadataTrait;
 
-    private TimestampedAnnotationReader $annotationReader;
+    private TimestampedAttributeReader $annotationReader;
 
-    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $annotationReader)
+    public function __construct(ManagerRegistry $registry, TimestampedAttributeReader $annotationReader)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;

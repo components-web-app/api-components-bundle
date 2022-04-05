@@ -13,19 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use Ramsey\Uuid\Uuid;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
  */
+#[ApiResource]
 class DummyUnpersistedComponent
 {
-    /**
-     * @ApiProperty(identifier=true)
-     */
+    #[ApiProperty(identifier: true)]
     private string $id;
 
     public function __construct()
@@ -33,9 +31,7 @@ class DummyUnpersistedComponent
         $this->id = Uuid::uuid4()->getHex()->toString();
     }
 
-    /**
-     * @ApiProperty(readable=false)
-     */
+    #[ApiProperty(readable: false)]
     public function getId(): string
     {
         return $this->id;

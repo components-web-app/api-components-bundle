@@ -10,7 +10,7 @@ Feature: Page data metadata
   Scenario: I can get all page data metadata
     When I send a "GET" request to "/_/page_data_metadatas"
     Then the response status code should be 200
-    And the JSON node "@context" should be equal to "/contexts/PageDataMetadata"
+    And the JSON node "@context.properties" should be equal to "PageDataMetadata/properties"
     And the JSON node "hydra:member" should have 4 elements
     # the order is not consistent... and doesn't really need to be - if no cache vs if cached
 #    And the JSON node "hydra:member[0].properties" should have 0 element

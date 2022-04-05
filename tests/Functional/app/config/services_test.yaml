@@ -6,8 +6,8 @@ services:
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
 
-    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\DataProvider\UnpersistedComponentDataProvider:
-        tags: [ 'api_platform.item_data_provider' ]
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentDataProvider:
+        tags: [ 'api_platform.state_provider' ]
 
     app.imagine.cache.resolver.local:
         class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
@@ -23,3 +23,8 @@ services:
         class: Monolog\Formatter\LineFormatter
         calls:
             - [includeStacktraces]
+    
+    mercure.hub.default:
+        class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub
+        arguments:
+            $factory: '@mercure.hub.default.jwt.factory'

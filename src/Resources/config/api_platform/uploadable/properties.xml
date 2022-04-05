@@ -1,0 +1,59 @@
+<properties xmlns="https://api-platform.com/schema/metadata/properties-3.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://api-platform.com/schema/metadata/properties-3.0
+           https://api-platform.com/schema/metadata/properties-3.0.xsd">
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="id"
+              readable="false"
+              writable="false"
+              identifier="true"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="contentUrl"
+              writable="false"
+    >
+        <types>
+            <type>http://schema.org/contentUrl</type>
+        </types>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="formattedFileSize"
+              writable="false"
+    >
+        <types>
+            <type>http://schema.org/contentSize</type>
+        </types>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="mimeType"
+              writable="false"
+    >
+        <types>
+            <type>http://schema.org/encodingFormat</type>
+        </types>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="width"
+              writable="false"
+    >
+        <types>
+            <type>http://schema.org/width</type>
+        </types>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="height"
+              writable="false"
+    >
+        <types>
+            <type>http://schema.org/height</type>
+        </types>
+    </property>
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="fileSize"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject"
+              name="imagineFilter"
+              writable="false"
+    />
+</properties>

@@ -13,9 +13,9 @@ Feature: Components
     Given there is a DummyComponent in PageData and a Position
     When I send a "GET" request to the resource "dummy_component" and the postfix "/usage"
     Then the response status code should be 200
-    And the JSON node "total" should be equal to 2
     And the JSON node "positionCount" should be equal to 1
     And the JSON node "pageDataCount" should be equal to 1
+    And the JSON node "total" should be equal to 2
 
   @loginUser
   Scenario: I can create a component
@@ -28,6 +28,7 @@ Feature: Components
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
+    And the JSON node "@context" should be equal to "/contexts/DummyComponent"
     And the JSON node "uiComponent" should be equal to "AnotherComponent"
     And the JSON node "uiClassNames[0]" should be equal to "my-class"
 

@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
@@ -29,13 +29,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @ApiResource(mercure=true)
- * @ApiFilter(OrderFilter::class, properties={"createdAt", "reference"}, arguments={"orderParameterName"="order"})
- * @ApiFilter(OrSearchFilter::class, properties={"reference"="ipartial", "uiComponent"="ipartial"})
- * @UniqueEntity(fields={"reference"}, message="There is already a Layout with that reference.")
  */
+#[Silverback\Timestamped]
+#[ApiResource(mercure: true)]
+#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['reference' => 'ipartial', 'uiComponent' => 'ipartial'])]
+#[UniqueEntity(fields: ['reference'], message: 'There is already a Layout with that reference.')]
 class Layout
 {
     use IdTrait;

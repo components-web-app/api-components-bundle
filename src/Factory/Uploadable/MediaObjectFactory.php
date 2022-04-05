@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToReadFile;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
@@ -40,7 +40,7 @@ class MediaObjectFactory
     use ClassMetadataTrait;
 
     private FileInfoCacheManager $fileInfoCacheManager;
-    private UploadableAnnotationReader $annotationReader;
+    private UploadableAttributeReader $annotationReader;
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
     private RequestStack $requestStack;
@@ -48,7 +48,7 @@ class MediaObjectFactory
     private UrlHelper $urlHelper;
     private ?FilterService $filterService;
 
-    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheManager $fileInfoCacheManager, UploadableAnnotationReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
+    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheManager $fileInfoCacheManager, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
     {
         $this->initRegistry($managerRegistry);
         $this->fileInfoCacheManager = $fileInfoCacheManager;

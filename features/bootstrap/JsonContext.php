@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
-use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Constraint\ArraySubset;
+use ApiPlatform\Symfony\Bundle\Test\Constraint\ArraySubset;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;

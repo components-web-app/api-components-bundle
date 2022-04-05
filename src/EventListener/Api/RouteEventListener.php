@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use ApiPlatform\Metadata\Operation;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -38,11 +39,11 @@ class RouteEventListener
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        $operationName = $request->attributes->get('_api_collection_operation_name');
+        $operationName = $request->attributes->get('_api_operation_name');
         if (
             empty($data) ||
             !$data instanceof Route ||
-            'generate' !== $operationName
+            '_api_/routes/generate.{_format}_post' !== $operationName
         ) {
             return;
         }
@@ -54,11 +55,12 @@ class RouteEventListener
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        $operationName = $request->attributes->get('_api_item_operation_name');
+        /** @var Operation $operation */
+        $operation = $request->attributes->get('_api_operation');
         if (
             empty($data) ||
             !$data instanceof Route ||
-            !\in_array($operationName, ['put', 'patch'], true)
+            !\in_array($operation->getMethod(), [Operation::METHOD_PUT, Operation::METHOD_PATCH], true)
         ) {
             return;
         }

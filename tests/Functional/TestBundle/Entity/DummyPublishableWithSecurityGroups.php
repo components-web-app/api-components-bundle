@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -21,18 +21,17 @@ use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @Silverback\Publishable(isGranted="is_granted('ROLE_USER')")
- * @ApiResource
- * @ORM\Entity
  */
+#[Silverback\Publishable(isGranted: "is_granted('ROLE_USER')")]
+#[ApiResource]
+#[ORM\Entity]
 class DummyPublishableWithSecurityGroups extends AbstractComponent
 {
     use PublishableTrait;
 
     /**
      * @var string a reference for this component
-     *
-     * @ORM\Column
      */
+    #[Orm\Column]
     public string $reference = '';
 }

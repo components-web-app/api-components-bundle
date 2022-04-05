@@ -13,28 +13,28 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
+
+const USER_SECURITY = "is_granted('ROLE_SUPER_ADMIN') or object == user";
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(
- *     collectionOperations={
- *         "get"={"security"="is_granted('ROLE_SUPER_ADMIN')"}
- *     },
- *     itemOperations={
- *         "get"={"security"="is_granted('ROLE_SUPER_ADMIN') or object == user"},
- *         "put"={"security"="is_granted('ROLE_SUPER_ADMIN') or object == user"},
- *         "patch"={"security"="is_granted('ROLE_SUPER_ADMIN') or object == user"},
- *         "delete"={"security"="is_granted('ROLE_SUPER_ADMIN')"}
- *     }
- * )
- * @ORM\Entity
- * @ORM\Table(name="`user`")
  */
+#[ApiResource]
+#[GetCollection(security: "is_granted('ROLE_SUPER_ADMIN')")]
+#[Get(security: USER_SECURITY)]
+#[Put(security: USER_SECURITY)]
+#[Patch(security: USER_SECURITY)]
+#[Delete(security: USER_SECURITY)]
+#[ORM\Entity]
+#[ORM\Table(name: '`user`')]
 class User extends AbstractUser
 {
 //    public static function loadValidatorMetadata(ClassMetadata $metadata): void

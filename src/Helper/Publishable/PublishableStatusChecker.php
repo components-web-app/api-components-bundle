@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Helper\Publishable;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +29,11 @@ class PublishableStatusChecker
 {
     use ClassMetadataTrait;
 
-    private PublishableAnnotationReader $annotationReader;
+    private PublishableAttributeReader $annotationReader;
     private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
-    public function __construct(ManagerRegistry $registry, PublishableAnnotationReader $annotationReader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
+    public function __construct(ManagerRegistry $registry, PublishableAttributeReader $annotationReader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
@@ -78,7 +78,7 @@ class PublishableStatusChecker
         return $request->query->getBoolean('published', false);
     }
 
-    public function getAnnotationReader(): PublishableAnnotationReader
+    public function getAnnotationReader(): PublishableAttributeReader
     {
         return $this->annotationReader;
     }

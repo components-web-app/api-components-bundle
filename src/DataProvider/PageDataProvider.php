@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\EntityManager;
@@ -36,7 +38,7 @@ class PageDataProvider
     private RequestStack $requestStack;
     private RouteRepository $routeRepository;
     private IriConverterInterface $iriConverter;
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
+    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
     private PageDataMetadataProvider $pageDataMetadataProvider;
     private ManagerRegistry $managerRegistry;
 
@@ -44,7 +46,7 @@ class PageDataProvider
         RequestStack $requestStack,
         RouteRepository $routeRepository,
         IriConverterInterface $iriConverter,
-        ResourceMetadataFactoryInterface $resourceMetadataFactory,
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         PageDataMetadataProvider $pageDataMetadataProvider,
         ManagerRegistry $managerRegistry
     ) {
@@ -167,9 +169,20 @@ class PageDataProvider
             if (!$em) {
                 return null;
             }
-            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
+            if ($classMetadata = $em->getClassMetadata($resourceClass)) {
+                $resourceClass = $classMetadata->getName();
+            }
         }
 
-        return $this->resourceMetadataFactory->create($resourceClass)->getShortName();
+        /** @var ResourceMetadataCollection $metadatas */
+        $metadatas = $this->resourceMetadataFactory->create($resourceClass);
+        /** @var ApiResource $metadata */
+        foreach ($metadatas as $metadata) {
+            if ($shortName = $metadata->getShortName()) {
+                return $shortName;
+            }
+        }
+
+        return null;
     }
 }

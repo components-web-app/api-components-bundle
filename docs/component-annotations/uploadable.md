@@ -106,14 +106,12 @@ The easiest way to configure an entity resource be an uploadable file is to use 
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 
-/**
- * @Silverback\Uploadable()
- */
+ #[Silverback\Uploadable]
 class File
 {
     use UploadableTrait;
 
-    /** @Silverback\UploadableField(adapter="local") */
+    #[Silverback\UploadableField(adapter: "local")]
     public ?File $file;
 ```
 
@@ -128,14 +126,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 
-/**
- * @Silverback\Uploadable()
- */
+ #[Silverback\Uploadable]
 class File
 {
     use UploadableTrait;
     
-    /** @Silverback\UploadableField(adapter="local", imagineFilters={"thumbnail", "thumbnail_square"}) */
+    #[Silverback\UploadableField(adapter: "local", imageineFilters: ['thumbnail', 'thumbnail_square'])]
     public ?File $file;
 ```
 
@@ -149,14 +145,12 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * @Silverback\Uploadable()
- */
+ #[Silverback\Uploadable]
 class File implements ImagineFiltersInterface
 {
     use UploadableTrait;
     
-    /** @Silverback\UploadableField(adapter="local") */
+    #[Silverback\UploadableField(adapter: "local")]
     public ?File $file;
 
     public function getImagineFilters(string $property, ?Request $request): array

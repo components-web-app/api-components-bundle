@@ -137,22 +137,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource
- * @ORM\Entity
  */
+#[ApiResource]
+#[Orm\Entity]
 class HtmlComponent extends AbstractComponent
 {
     /**
-     * @ORM\Column(nullable=false)
      * @Assert\NotBlank()
      */
+     #[Orm\Column(nullable: false)]
     public string $html;
 }
 ```

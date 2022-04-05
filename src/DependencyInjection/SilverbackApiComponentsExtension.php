@@ -15,7 +15,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Exception;
 use Ramsey\Uuid\Doctrine\UuidType;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -125,7 +125,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setMailerServiceArguments($container, $config);
 
         $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
-        $definition = $container->getDefinition(UploadableAnnotationReader::class);
+        $definition = $container->getDefinition(UploadableAttributeReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {
@@ -267,22 +267,29 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         );
     }
 
+    private function appendMappingPaths(&$mappingPaths, $srcBase, $name): void
+    {
+        $configBasePath = $srcBase . '/Resources/config/api_platform';
+        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, $name);
+        $propertiesPath = sprintf('%s/%s/properties.xml', $configBasePath, $name);
+        if (file_exists($propertiesPath)) {
+            $mappingPaths[] = $propertiesPath;
+        }
+    }
+
     private function prependApiPlatformConfig(ContainerBuilder $container, array $config): void
     {
         $srcBase = __DIR__ . '/..';
-        $configBasePath = $srcBase . '/Resources/config/api_platform';
-
-        $mappingPaths = [$srcBase . '/Entity/Core'];
-        $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'uploadable');
-        $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, 'page_data_metadata');
-        foreach ($config['enabled_components'] as $key => $enabled_component) {
-            if (true === $enabled_component) {
-                $mappingPaths[] = sprintf('%s/%s.xml', $configBasePath, $key);
+        // $mappingPaths = [$srcBase . '/Entity/Core'];
+        $this->appendMappingPaths($mappingPaths, $srcBase, 'uploadable');
+        $this->appendMappingPaths($mappingPaths, $srcBase, 'page_data_metadata');
+        foreach ($config['enabled_components'] as $component => $is_enabled) {
+            if (true === $is_enabled) {
+                $this->appendMappingPaths($mappingPaths, $srcBase, $component);
             }
         }
 
         $websiteName = $config['website_name'];
-
         $container->prependExtensionConfig(
             'api_platform',
             [

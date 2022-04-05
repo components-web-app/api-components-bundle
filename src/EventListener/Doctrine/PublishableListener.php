@@ -16,16 +16,16 @@ namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class PublishableListener
 {
-    private PublishableAnnotationReader $publishableStatusChecker;
+    private PublishableAttributeReader $publishableStatusChecker;
 
-    public function __construct(PublishableAnnotationReader $publishableStatusChecker)
+    public function __construct(PublishableAttributeReader $publishableStatusChecker)
     {
         $this->publishableStatusChecker = $publishableStatusChecker;
     }

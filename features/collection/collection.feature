@@ -68,6 +68,20 @@ Feature: A Collection component resource
     And the JSON node "collection.hydra:member" should have "3" elements
 
   @loginUser
+  Scenario Outline: Pagination parameter is configured
+    Given there are 120 DummyResourceWithPagination resources
+    When I send a "GET" request to "/dummy_resource_with_paginations<postfix>"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "<total>" elements
+    Examples:
+      | total  | postfix           |
+      | 10     |                   |
+      | 20     | ?perPage=20       |
+      | 40     | ?perPage=110      |
+      | 120    | ?pagination=false |
+      | 0      | ?perPage=0        |
+
+  @loginUser
   Scenario Outline: I can configure component pagination
     Given there are 120 DummyResourceWithPagination resources
     And there is a Collection resource with the resource IRI "/dummy_resource_with_paginations"
@@ -80,7 +94,22 @@ Feature: A Collection component resource
       | 20     | ?perPage=20       |
       | 40     | ?perPage=110      |
       | 120    | ?pagination=false |
-      | 120    | ?perPage=0        |
+      | 0      | ?perPage=0        |
+
+  @loginUser
+  Scenario Outline: I have configured my collection correctly to be searched directly without a collection
+    Given there are 80 DummyResourceWithFilters resources
+    When I send a "GET" request to "/dummy_resource_with_filters<postfix>"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "<total>" elements
+    Examples:
+      | total | postfix                      |
+      | 17    | ?reference=1                 |
+      | 17    | ?pagination=false&reference=1|
+      | 30    | ?reference=                  |
+      | 80    | ?pagination=false&reference= |
+      | 20    | ?perPage=20&reference=       |
+      | 1     | ?reference=10                |
 
   @loginUser
   Scenario Outline: I can have default querystring parameters and filters

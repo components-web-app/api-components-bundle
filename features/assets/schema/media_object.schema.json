@@ -71,73 +71,45 @@
         },
         "contentUrl": {
           "$id": "#/properties/@context/properties/contentUrl",
-          "type": "string",
-          "title": "The Contenturl Schema",
+          "title": "The ContentUrl Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "http://schema.org/contentUrl"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "fileSize": {
           "$id": "#/properties/@context/properties/fileSize",
-          "type": "string",
           "title": "The FileSize Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "MediaObject/fileSize"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "formattedFileSize": {
           "$id": "#/properties/@context/properties/fileSize",
-          "type": "string",
           "title": "The formattedFileSize Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "http://schema.org/contentSize"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "mimeType": {
           "$id": "#/properties/@context/properties/mimeType",
-          "type": "string",
           "title": "The Mimetype Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "http://schema.org/encodingFormat"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "width": {
           "$id": "#/properties/@context/properties/width",
-          "type": "string",
           "title": "The Width Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "http://schema.org/width"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "height": {
           "$id": "#/properties/@context/properties/height",
-          "type": "string",
           "title": "The Height Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "http://schema.org/height"
-          ]
+          "$ref": "context_property.schema.json"
         },
         "imagineFilter": {
           "$id": "#/properties/@context/properties/imagineFilter",
-          "type": "string",
           "title": "The Imaginefilter Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": [
-            "MediaObject/imagineFilter"
-          ]
+          "$ref": "context_property.schema.json"
         }
       }
     },

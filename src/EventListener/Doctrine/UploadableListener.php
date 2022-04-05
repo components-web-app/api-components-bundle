@@ -16,16 +16,16 @@ namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
 final class UploadableListener
 {
-    private UploadableAnnotationReader $uploadableAnnotationReader;
+    private UploadableAttributeReader $uploadableAnnotationReader;
 
-    public function __construct(UploadableAnnotationReader $uploadableAnnotationReader)
+    public function __construct(UploadableAttributeReader $uploadableAnnotationReader)
     {
         $this->uploadableAnnotationReader = $uploadableAnnotationReader;
     }

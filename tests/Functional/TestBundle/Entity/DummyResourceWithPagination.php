@@ -13,24 +13,24 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @ApiResource(
- *     collectionOperations={ "get"={"pagination_maximum_items_per_page"=40} },
- *     attributes={
- *         "pagination_maximum_items_per_page"=40,
- *         "pagination_items_per_page"=10,
- *         "pagination_client_items_per_page"=true,
- *         "pagination_client_enabled"=true,
- *     }
- * )
- * @ORM\Entity
  */
+#[ApiResource]
+#[Get]
+#[GetCollection(
+    paginationClientEnabled: true,
+    paginationClientItemsPerPage: true,
+    paginationItemsPerPage: 10,
+    paginationMaximumItemsPerPage: 40
+)]
+#[ORM\Entity]
 class DummyResourceWithPagination
 {
     use IdTrait;

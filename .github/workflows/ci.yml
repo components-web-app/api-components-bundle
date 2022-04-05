@@ -175,7 +175,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
@@ -183,9 +183,9 @@ jobs:
         run: |
           mkdir -p build/logs/phpunit
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/simple-phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml --colors=always
           else
-            vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
           fi
       - name: Upload test artifacts
         if: always()
@@ -325,7 +325,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
@@ -436,11 +436,11 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v1
@@ -516,7 +516,7 @@ jobs:
         run: |
           mkdir -p /tmp/api-component/core/var
           ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/console cache:clear --ansi
+          tests/Functional/app/bin/console cache:clear --ansi
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat
@@ -619,11 +619,11 @@ jobs:
           run: |
             mkdir -p /tmp/api-platform/core/var
             ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/console cache:clear --ansi
+            tests/Functional/app/bin/console cache:clear --ansi
       -   name: Run PHPUnit tests
           run: |
             mkdir -p build/logs/phpunit
-            vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
       -   name: Upload test artifacts
           if: always()
           uses: actions/upload-artifact@v1
@@ -720,7 +720,7 @@ jobs:
           run: |
             mkdir -p /tmp/api-platform/core/var
             ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/console cache:clear --ansi
+            tests/Functional/app/bin/console cache:clear --ansi
       -   name: Run Behat tests
           run: |
             mkdir -p build/logs/behat

@@ -1,7 +1,7 @@
 doctrine:
     dbal:
         driver: 'pdo_sqlite'
-        path: '%kernel.cache_dir%/db.sqlite'
+        path: '%kernel.cache_dir%/../../db.sqlite'
         charset:  'UTF8'
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'
@@ -10,7 +10,7 @@ doctrine:
         mappings:
             TestBundle:
                 is_bundle: false
-                type: annotation
+                type: attribute
                 dir: '%kernel.project_dir%/../TestBundle/Entity'
                 prefix: 'Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity'
                 alias: TestBundle

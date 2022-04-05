@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Api\ResourceClassResolverInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -154,7 +154,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
                 new Reference(TimestampedDataPersister::class),
             ]
         )
@@ -166,7 +166,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(MediaObjectFactory::class),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(ManagerRegistry::class),
                 new Reference(UploadableFileManager::class),
             ]

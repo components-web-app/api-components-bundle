@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -21,18 +21,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @Silverback\Publishable(fieldName="customPublishedAt", associationName="customPublishedResource", reverseAssociationName="customDraftResource")
- * @ApiResource
- * @ORM\Entity
  */
+#[Silverback\Publishable(fieldName: 'customPublishedAt', associationName: 'customPublishedResource', reverseAssociationName: 'customDraftResource')]
+#[ApiResource]
+#[ORM\Entity]
 class DummyPublishableCustomComponent extends AbstractComponent
 {
     /**
      * @var string a reference for this component
      *
-     * @ORM\Column
      * @Assert\NotBlank(groups={"PublishableComponent:published"})
      */
+    #[Orm\Column]
     public string $reference = '';
 
     private ?\DateTimeInterface $customPublishedAt = null;

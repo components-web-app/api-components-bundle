@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
@@ -96,7 +96,7 @@ final class DoctrineContext implements Context
      */
     public static function clearAppCache(): void
     {
-        exec('php tests/Functional/app/console cache:clear --env=test --no-warmup');
+        exec('php tests/Functional/app/bin/console cache:clear --env=test --no-warmup');
     }
 
     /**

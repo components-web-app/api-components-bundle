@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
@@ -32,6 +32,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 final class PublishableEventListener
 {
+    use ApiEventListenerTrait;
     use ClassMetadataTrait;
 
     public const VALID_TO_PUBLISH_HEADER = 'valid-to-publish';
@@ -39,7 +40,7 @@ final class PublishableEventListener
 
     private PublishableStatusChecker $publishableStatusChecker;
     private ValidatorInterface $validator;
-    private PublishableAnnotationReader $publishableAnnotationReader;
+    private PublishableAttributeReader $publishableAnnotationReader;
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
     {
@@ -52,52 +53,54 @@ final class PublishableEventListener
     public function onPreWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
-            $request->isMethod(Request::METHOD_DELETE)
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
+            $request->isMethod(Request::METHOD_DELETE) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
 
-        $publishable = $this->checkMergeDraftIntoPublished($request, $data);
+        $publishable = $this->checkMergeDraftIntoPublished($request, $attributes['data']);
         $event->setControllerResult($publishable);
     }
 
     public function onPostRead(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
-            !$request->isMethod(Request::METHOD_GET)
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
+            !$request->isMethod(Request::METHOD_GET) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
 
-        $this->checkMergeDraftIntoPublished($request, $data, true);
+        $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
     }
 
     public function onPostDeserialize(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $data = $request->attributes->get('data');
+        $attributes = $this->getAttributes($request);
         if (
-            empty($data) ||
-            !$this->publishableAnnotationReader->isConfigured($data) ||
+            empty($attributes['data']) ||
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
 
         // User cannot change the publication date of the original resource
         if (
             true === $this->publishableStatusChecker->isPublishedRequest($request) &&
-            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($data, $configuration->fieldName)
+            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
         ) {
             throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
         }
@@ -106,18 +109,25 @@ final class PublishableEventListener
     public function onPostRespond(ResponseEvent $event): void
     {
         $request = $event->getRequest();
-        /** @var PublishableTrait|null $data */
-        $data = $request->attributes->get('data');
+
+        $attributes = $this->getAttributes($request);
+
+        /**
+         * @var PublishableTrait|null $data
+         */
+        $data = $attributes['data'];
+
         if (
             null === $data ||
-            !$this->publishableAnnotationReader->isConfigured($data)
+            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
+            $attributes['operation']->isCollection()
         ) {
             return;
         }
         $response = $event->getResponse();
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
-        $classMetadata = $this->getClassMetadata($data);
+        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
+        $classMetadata = $this->getClassMetadata($attributes['class']);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
         // Add Expires HTTP header
@@ -127,7 +137,7 @@ final class PublishableEventListener
             $response->setExpires($publishedAt);
         }
 
-        if (!$this->publishableStatusChecker->isGranted($data)) {
+        if (!$this->publishableStatusChecker->isGranted($attributes['class'])) {
             return;
         }
 

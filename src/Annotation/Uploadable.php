@@ -19,6 +19,7 @@ namespace Silverback\ApiComponentsBundle\Annotation;
  * @Annotation
  * @Target("CLASS")
  */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 final class Uploadable
 {
 }

@@ -15,16 +15,16 @@ namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class TimestampedListener
 {
-    private TimestampedAnnotationReader $annotationReader;
+    private TimestampedAttributeReader $annotationReader;
 
-    public function __construct(TimestampedAnnotationReader $annotationReader)
+    public function __construct(TimestampedAttributeReader $annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }

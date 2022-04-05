@@ -13,18 +13,22 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataTransformer;
 
-use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
-use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Exception\InvalidIdentifierException;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\Util\AttributesExtractor;
 use ApiPlatform\Util\RequestParser;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
@@ -32,25 +36,35 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class CollectionOutputDataTransformer implements DataTransformerInterface
 {
+    use UriVariablesResolverTrait;
+
     private ApiResourceRouteFinder $resourceRouteFinder;
-    private CollectionDataProviderInterface $collectionDataProvider;
+    private ProviderInterface $provider;
     private RequestStack $requestStack;
     private SerializerContextBuilderInterface $serializerContextBuilder;
     private NormalizerInterface $itemNormalizer;
     private SerializeFormatResolver $serializeFormatResolver;
     private string $itemsPerPageParameterName;
-    private string $paginationEnabledParameterName;
+    private ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory;
 
-    public function __construct(ApiResourceRouteFinder $resourceRouteFinder, CollectionDataProviderInterface $collectionDataProvider, RequestStack $requestStack, SerializerContextBuilderInterface $serializerContextBuilder, NormalizerInterface $itemNormalizer, SerializeFormatResolver $serializeFormatResolver, string $itemsPerPageParameterName, string $paginationEnabledParameterName)
-    {
+    public function __construct(
+        ApiResourceRouteFinder $resourceRouteFinder,
+        ProviderInterface $provider,
+        RequestStack $requestStack,
+        SerializerContextBuilderInterface $serializerContextBuilder,
+        NormalizerInterface $itemNormalizer,
+        SerializeFormatResolver $serializeFormatResolver,
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
+        string $itemsPerPageParameterName
+    ) {
         $this->resourceRouteFinder = $resourceRouteFinder;
-        $this->collectionDataProvider = $collectionDataProvider;
+        $this->provider = $provider;
         $this->requestStack = $requestStack;
         $this->serializerContextBuilder = $serializerContextBuilder;
         $this->itemNormalizer = $itemNormalizer;
         $this->serializeFormatResolver = $serializeFormatResolver;
         $this->itemsPerPageParameterName = $itemsPerPageParameterName;
-        $this->paginationEnabledParameterName = $paginationEnabledParameterName;
+        $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
     }
 
     public function supportsTransformation($data, string $to, array $context = []): bool
@@ -59,46 +73,59 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
     }
 
     /**
-     * @param Collection $object
+     * @param object|Collection $object
      */
     public function transform($object, string $to, array $context = []): Collection
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
         $request = $this->requestStack->getMainRequest();
+        if (!$request) {
+            return $object;
+        }
+        // Fetch the collection with computed context
+        $resourceClass = $attributes['resource_class'];
 
-        if (!$this->collectionDataProvider instanceof ContextAwareCollectionDataProviderInterface) {
-            $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name']);
-        } else {
-            $filters = [];
-            if ($perPage = $object->getPerPage()) {
-                $filters[$this->itemsPerPageParameterName] = $perPage;
-            }
-            if ($request) {
-                if ($requestFilters = $this->getFilters($object, $request)) {
-                    $filters = array_merge($filters, $requestFilters);
-                }
-            }
-
-            if (isset($filters[$this->itemsPerPageParameterName]) && $filters[$this->itemsPerPageParameterName] <= 0) {
-                $filters[$this->paginationEnabledParameterName] = false;
-            }
-
-            $collectionContext = ['filters' => $filters];
-            if ($request) {
-                // Comment copied from ApiPlatform\Core\EventListener\ReadListener
-                // Builtin data providers are able to use the serialization context to automatically add join clauses
-                $normalizationContext = $this->serializerContextBuilder->createFromRequest(
-                    $request,
-                    true,
-                    $attributes
-                );
-                $collectionContext += $normalizationContext;
-            }
-
-            $collectionData = $this->collectionDataProvider->getCollection($attributes['resource_class'], Request::METHOD_GET, $collectionContext);
+        // $operationName = $request->attributes->get('_api_operation_name') ?? $request->attributes->get('_api_subresource_operation_name');
+        // ->getOperation($operationName)
+        $getCollectionOperation = $this->findGetCollectionOperation($resourceClass);
+        if (!$getCollectionOperation) {
+            return $object;
         }
 
+        // Build context
+        $collectionContext = ['operation' => $getCollectionOperation];
+
+        // Build filters
+        $filters = [];
+        if (($perPage = $object->getPerPage()) !== null) {
+            $filters[$this->itemsPerPageParameterName] = $perPage;
+        }
+        if (($defaultQueryParams = $object->getDefaultQueryParameters()) !== null) {
+            $filters += $defaultQueryParams;
+        }
+        if (null === $requestFilters = $request->attributes->get('_api_filters')) {
+            $queryString = RequestParser::getQueryString($request);
+            $requestFilters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
+        }
+        if ($requestFilters) {
+            // not += because we want to overwrite with an empty string if provided in querystring.
+            // e.g. a default search value could be overridden by no search value
+            $filters = array_merge($filters, $requestFilters);
+        }
+        $collectionContext['filters'] = $filters;
+
+        // Compose context for provider
+        $collectionContext += $normalizationContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
+
+        try {
+            $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
+            $collectionData = $this->provider->provide($resourceClass, $uriVariables, $getCollectionOperation->getName(), $collectionContext);
+        } catch (InvalidIdentifierException $e) {
+            throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
+        }
+
+        // Normalize the collection into an array
         // Pagination disabled
         if (\is_array($collectionData)) {
             $collection = $collectionData;
@@ -106,40 +133,34 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             if (!$collectionData instanceof \Traversable) {
                 throw new OutOfBoundsException('$collectionData should be Traversable');
             }
-            $collection = iterator_count($collectionData) ? $collectionData : null;
+            $collection = iterator_count($collectionData) ? $collectionData : [];
         }
+        $format = $this->serializeFormatResolver->getFormatFromRequest($request);
+        $normalizedCollection = $this->itemNormalizer->normalize($collection, $format, $normalizationContext);
 
-        $format = $request ? $this->serializeFormatResolver->getFormatFromRequest($request) : null;
-        $normalizerContext = [
-            'resource_class' => $attributes['resource_class'],
-            'request_uri' => $object->getResourceIri(),
-            'jsonld_has_context' => false,
-            'api_sub_level' => null,
-            'subresource_operation_name' => Request::METHOD_GET,
-            'groups' => $context['groups'],
-        ];
-        $normalizedCollection = $this->itemNormalizer->normalize($collection, $format, $normalizerContext);
-
+        // Update the original collection resource
         $object->setCollection($normalizedCollection);
 
         return $object;
     }
 
-    private function getFilters(Collection $object, Request $request): ?array
+    private function findGetCollectionOperation(string $resourceClass): ?Operation
     {
-        if ($queryParams = $object->getDefaultQueryParameters()) {
-            $request = clone $request;
-            foreach ($queryParams as $defaultKey => $defaultValue) {
-                if ($request->query->has($defaultKey)) {
-                    continue;
+        $metadata = $this->resourceMetadataCollectionFactory->create($resourceClass);
+        $it = $metadata->getIterator();
+        /** @var ApiResource $apiResource */
+        foreach ($it as $apiResource) {
+            $operations = $apiResource->getOperations();
+            if ($operations) {
+                /** @var Operation $operation */
+                foreach ($operations as $operation) {
+                    if ($operation->isCollection() && Operation::METHOD_GET === $operation->getMethod()) {
+                        return $operation;
+                    }
                 }
-                $request->query->set($defaultKey, $defaultValue);
             }
-            $request->server->set('QUERY_STRING', http_build_query($request->query->all()));
         }
 
-        $queryString = RequestParser::getQueryString($request);
-
-        return $queryString ? RequestParser::parseRequestParams($queryString) : null;
+        return null;
     }
 }

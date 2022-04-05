@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
@@ -25,26 +25,25 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
-use Silverback\ApiComponentsBundle\AnnotationReader\AnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\PublishableAnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
-use Silverback\ApiComponentsBundle\AnnotationReader\UploadableAnnotationReader;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataFactory;
-use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataCollectionFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataCollectionFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentationNormalizer;
+use Silverback\ApiComponentsBundle\AttributeReader\AttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
-use Silverback\ApiComponentsBundle\DataProvider\Collection\PageDataMetadataCollectionProvider;
-use Silverback\ApiComponentsBundle\DataProvider\Item\PageDataMetadataItemProvider;
-use Silverback\ApiComponentsBundle\DataProvider\Item\RouteDataProvider;
-use Silverback\ApiComponentsBundle\DataProvider\Item\UserDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
 use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -110,6 +109,7 @@ use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactor
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
+use Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer\UuidUriVariableTransformer;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -203,11 +203,10 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(AnnotationReader::class)
+        ->set(AttributeReader::class)
         ->abstract()
         ->args(
             [
-                new Reference('annotations.reader'),
                 new Reference('doctrine'),
             ]
         );
@@ -261,11 +260,12 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ApiResourceRouteFinder::class),
-                new Reference('api_platform.collection_data_provider'),
+                new Reference('api_platform.state_provider'),
                 new Reference(RequestStack::class),
                 new Reference(SerializerContextBuilderInterface::class),
                 new Reference(NormalizerInterface::class),
                 new Reference(SerializeFormatResolver::class),
+                new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
         )
         ->tag('api_platform.data_transformer');
@@ -332,7 +332,7 @@ return static function (ContainerConfigurator $configurator) {
             'init',
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
                 new Reference('silverback.helper.timestamped_data_persister'),
                 new Reference(UserEventListener::class),
                 new Reference(NormalizerInterface::class),
@@ -474,7 +474,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(ManagerRegistry::class),
                 new Reference(FileInfoCacheManager::class),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(RequestStack::class),
@@ -569,8 +569,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
-        ->set(PublishableAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(PublishableAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(PublishableContextBuilder::class)
@@ -602,7 +602,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(PublishableAnnotationReader::class),
+                new Reference(PublishableAttributeReader::class),
                 new Reference(AuthorizationCheckerInterface::class),
                 '', // injected with dependency injection
             ]
@@ -610,7 +610,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableListener::class)
-        ->args([new Reference(PublishableAnnotationReader::class)])
+        ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     // High priority for item because of queryBuilder reset
@@ -637,12 +637,7 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(PublishableLoader::class)
-        ->args(
-            [
-                new Reference('annotations.reader'),
-            ]
-        );
+        ->set(PublishableLoader::class);
 
     $services
         ->set('silverback.security.jwt_manager')
@@ -732,15 +727,15 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(RouteDataProvider::class)
+        ->set(RouteStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
-                new Reference('api_platform.item_data_provider'),
+                new Reference('api_platform.state_provider'),
             ]
         )
         ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+        ->tag('api_platform.state_provider');
 
     $services
         ->set('silverback.event_listener.api.route_event_listener')
@@ -816,20 +811,20 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('security.voter');
 
     $services
-        ->set(RoutingPrefixResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(RoutingPrefixResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(RoutingPrefixResourceMetadataFactory::class . '.inner'),
+                new Reference(RoutingPrefixResourceMetadataCollectionFactory::class . '.inner'),
             ]
         );
 
     $services
-        ->set(RoutableResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(RoutableResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(RoutableResourceMetadataFactory::class . '.inner'),
+                new Reference(RoutableResourceMetadataCollectionFactory::class . '.inner'),
             ]
         );
 
@@ -852,8 +847,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services
-        ->set(TimestampedAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(TimestampedAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(TimestampedContextBuilder::class)
@@ -871,7 +866,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
     $services->alias(TimestampedDataPersister::class, 'silverback.helper.timestamped_data_persister');
@@ -886,24 +881,19 @@ return static function (ContainerConfigurator $configurator) {
         ->set(TimestampedListener::class)
         ->args(
             [
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'));
 
     $services
-        ->set(TimestampedLoader::class)
-        ->args(
-            [
-                new Reference('annotations.reader'),
-            ]
-        );
+        ->set(TimestampedLoader::class);
 
     $services
         ->set(TimestampedValidatorMappingLoader::class)
         ->args(
             [
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
 
@@ -913,7 +903,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(TimestampedValidator::class . '.inner'),
-                new Reference(TimestampedAnnotationReader::class),
+                new Reference(TimestampedAttributeReader::class),
             ]
         );
 
@@ -922,8 +912,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services
-        ->set(UploadableAnnotationReader::class)
-        ->parent(AnnotationReader::class);
+        ->set(UploadableAttributeReader::class)
+        ->parent(AttributeReader::class);
 
     $services
         ->set(UploadableContextBuilder::class)
@@ -939,7 +929,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableEventListener::class)
         ->args(
             [
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(UploadableFileManager::class),
             ]
         )
@@ -951,7 +941,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(FileInfoCacheManager::class),
@@ -964,7 +954,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableListener::class)
         ->args(
             [
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
@@ -973,18 +963,17 @@ return static function (ContainerConfigurator $configurator) {
         ->set(UploadableLoader::class)
         ->args(
             [
-                new Reference('annotations.reader'),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableAttributeReader::class),
             ]
         );
 
     $services
-        ->set(UploadableResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(UploadableResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(UploadableResourceMetadataFactory::class . '.inner'),
-                new Reference(UploadableAnnotationReader::class),
+                new Reference(UploadableResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference(UploadableAttributeReader::class),
                 new Reference('api_platform.path_segment_name_generator'),
             ]
         )
@@ -1026,14 +1015,15 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(UserDataProvider::class)
+        ->set(UserStateProvider::class)
         ->args(
             [
                 new Reference('silverback.repository.user'),
+                new Reference('request_stack'),
             ]
         )
         ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
+        ->tag('api_platform.state_provider');
 
     $services
         ->set(UserEnabledEmailFactory::class)
@@ -1142,11 +1132,11 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.repository.user', UserRepositoryInterface::class);
 
     $services
-        ->set(UserResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->set(UserResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(UserResourceMetadataFactory::class . '.inner'),
+                new Reference(UserResourceMetadataCollectionFactory::class . '.inner'),
             ]
         );
 
@@ -1180,7 +1170,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('doctrine'),
-                new Reference('api_platform.metadata.resource.metadata_factory'),
+                new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
         );
 
@@ -1201,7 +1191,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.metadata.api.component_resource_metadata_factory')
         ->class(ComponentResourceMetadataFactory::class)
-        ->decorate('api_platform.metadata.resource.metadata_factory')
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
                 new Reference('silverback.metadata.api.component_resource_metadata_factory.inner'),
@@ -1263,24 +1253,15 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(PageDataMetadataItemProvider::class)
+        ->set(PageDataMetadataStateProvider::class)
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),
-            ]
-        )
-        ->autoconfigure(false)
-        ->tag('api_platform.item_data_provider', ['priority' => 1]);
-
-    $services
-        ->set(PageDataMetadataCollectionProvider::class)
-        ->args(
-            [
                 new Reference('silverback.metadata_provider.page_data'),
             ]
         )
         ->autoconfigure(false)
-        ->tag('api_platform.collection_data_provider', ['priority' => 1]);
+        ->tag('api_platform.state_provider');
 
     $services
         ->set('silverback.security.voter.component_voter')
@@ -1298,4 +1279,13 @@ return static function (ContainerConfigurator $configurator) {
         ->class(VersionedDocumentationNormalizer::class)
         ->decorate('api_platform.hydra.normalizer.documentation')
         ->args([new Reference('silverback.hydra.normalizer.versioned_documentation.inner')]);
+
+    $services
+        ->set(UuidUriVariableTransformer::class)
+        ->decorate('api_platform.ramsey_uuid.uri_variables.transformer.uuid')
+        ->args(
+            [
+                new Reference(UuidUriVariableTransformer::class . '.inner'),
+            ]
+        );
 };

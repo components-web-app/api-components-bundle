@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator;
 
 use ApiPlatform\Validator\ValidatorInterface;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 
 /**
  * Builds and add validation group for timestamped resources.
@@ -24,9 +24,9 @@ use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
 final class TimestampedValidator implements ValidatorInterface
 {
     private ValidatorInterface $decorated;
-    private TimestampedAnnotationReader $annotationReader;
+    private TimestampedAttributeReader $annotationReader;
 
-    public function __construct(ValidatorInterface $decorated, TimestampedAnnotationReader $annotationReader)
+    public function __construct(ValidatorInterface $decorated, TimestampedAttributeReader $annotationReader)
     {
         $this->decorated = $decorated;
         $this->annotationReader = $annotationReader;

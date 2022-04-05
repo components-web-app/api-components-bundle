@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\User;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
+use ApiPlatform\Metadata\ApiProperty;
 use DateTime;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Ramsey\Uuid\Uuid;
@@ -30,127 +30,91 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Silverback\Timestamped
- * @UniqueEntity(fields={"username"}, errorPath="username", message="Sorry, that user already exists in the database.")
- * @UniqueEntity(fields={"emailAddress"}, errorPath="emailAddress", message="Sorry, that email address already exists in the database.")
- * @AcbAssert\NewEmailAddress(groups={"User:emailAddress", "Default"})
  */
+#[Silverback\Timestamped]
+#[UniqueEntity(fields: ['username'], message: 'Sorry, that user already exists in the database.', errorPath: 'username')]
+#[UniqueEntity(fields: ['emailAddress'], message: 'Sorry, that email address already exists in the database.', errorPath: 'emailAddress')]
+#[AcbAssert\NewEmailAddress(groups: ['User:emailAddress', 'Default'])]
 abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticatedUserInterface, JWTUserInterface
 {
     use IdTrait;
     use TimestampedTrait;
 
-    /**
-     * @Assert\NotBlank(groups={"Default"}, message="Please enter a username.")
-     * @Groups({"User:superAdmin", "User:output", "Form:cwa_resource:read"})
-     */
+    #[Assert\NotBlank(message: 'Please enter a username.', groups: ['Default'])]
+    #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $username;
 
-    /**
-     * @Assert\NotBlank(groups={"Default"})
-     * @Assert\Email
-     * @Groups({"User:superAdmin", "User:output", "Form:cwa_resource:read"})
-     */
+    #[Assert\NotBlank(groups: ['Default'])]
+    #[Assert\Email]
+    #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $emailAddress;
 
-    /**
-     * @Groups({"User:superAdmin", "User:output", "Form:cwa_resource:read"})
-     */
+    #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected array $roles;
 
-    /**
-     * @Groups({"User:superAdmin"})
-     */
+    #[Groups(['User:superAdmin'])]
     protected bool $enabled;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     protected string $password;
 
-    /**
-     * @ApiProperty(readable=false)
-     * @Assert\NotBlank(message="Please enter your desired password.", groups={"User:password:create"})
-     * @Assert\Length(max="4096", min="6", maxMessage="Your password cannot be over 4096 characters", minMessage="Your password must be more than 6 characters long.", groups={"User:password:create"})
-     * @Groups({"User:input"})
-     */
+    #[Assert\NotBlank(message: 'Please enter your desired password.', groups: ['User:password:create'])]
+    #[Assert\Length(min: 6, max: 4096, minMessage: 'Your password must be more than 6 characters long.', maxMessage: 'Your password cannot be over 4096 characters', groups: ['User:password:create'])]
+    #[ApiProperty(readable: false)]
+    #[Groups(['User:input'])]
     protected ?string $plainPassword = null;
 
     /**
      * Random string sent to the user email address in order to verify it.
-     *
-     * @ApiProperty(readable=false, writable=false)
      */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?string $newPasswordConfirmationToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewPasswordConfirmationToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?DateTime $passwordRequestedAt = null;
 
-    /**
-     * @ApiProperty(readable=false)
-     * @UserPassword(message="You have not entered your current password correctly. Please try again.", groups={"User:password:change"})
-     * @Groups({"User:input"})
-     */
+    #[UserPassword(message: 'You have not entered your current password correctly. Please try again.', groups: ['User:password:change'])]
+    #[ApiProperty(readable: false)]
+    #[Groups(['User:input'])]
     protected ?string $oldPassword = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?DateTime $passwordUpdatedAt = null;
 
-    /**
-     * @Assert\NotBlank(groups={"User:emailAddress", "Default"}, allowNull=true)
-     * @Assert\Email
-     * @Groups({"User:input", "User:output", "User:emailAddress", "Form:cwa_resource:read:role_user"})
-     */
+    #[Assert\NotBlank(allowNull: true, groups: ['User:emailAddress', 'Default'])]
+    #[Assert\Email]
+    #[Groups(['User:input', 'User:output', 'User:emailAddress', 'Form:cwa_resource:read:role_user'])]
     protected ?string $newEmailAddress = null;
 
     /**
      * Random string sent to the user's new email address in order to verify it.
-     *
-     * @ApiProperty(readable=false, writable=false)
      */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?string $newEmailConfirmationToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     * @Groups({"User:output"})
-     */
+    #[ApiProperty(readable: false, writable: false)]
+    #[Groups(['User:output'])]
     protected ?DateTime $newEmailAddressChangeRequestedAt = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewEmailConfirmationToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     protected bool $emailAddressVerified = false;
 
     /**
      * Random string sent to previous email address when email is changed to permit email restore and password change.
-     *
-     * @ApiProperty(readable=false, writable=false)
      */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?string $emailAddressVerifyToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     public ?string $plainEmailAddressVerifyToken = null;
 
-    /**
-     * @ApiProperty(readable=false, writable=false)
-     */
+    #[ApiProperty(readable: false, writable: false)]
     protected ?DateTime $emailLastUpdatedAt = null;
 
     /**
@@ -379,9 +343,8 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
     /**
      * Not needed - we use bcrypt.
-     *
-     * @ApiProperty(readable=false, writable=false)
      */
+    #[ApiProperty(readable: false, writable: false)]
     public function getSalt(): ?string
     {
         return null;

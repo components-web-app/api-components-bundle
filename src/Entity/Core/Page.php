@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -23,27 +23,21 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(mercure=true)
- * @ApiFilter(OrderFilter::class, properties={"createdAt", "reference"}, arguments={"orderParameterName"="order"})
- * @ApiFilter(OrSearchFilter::class, properties={"title"="ipartial", "reference"="ipartial", "isTemplate"="exact", "uiComponent"="ipartial", "layout.reference"="ipartial"})
  */
+#[ApiResource(mercure: true)]
+#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['title' => 'ipartial', 'reference' => 'ipartial', 'isTemplate' => 'exact', 'uiComponent' => 'ipartial', 'layout.reference' => 'ipartial'])]
 class Page extends AbstractPage
 {
     use UiTrait;
 
-    /**
-     * @Assert\NotBlank(message="Please specify a layout.")
-     */
+    #[Assert\NotBlank(message: 'Please specify a layout.')]
     public ?Layout $layout;
 
-    /**
-     * @Assert\NotBlank(message="Please enter a reference.")
-     */
+    #[Assert\NotBlank(message: 'Please enter a reference.')]
     public string $reference;
 
-    /**
-     * @Assert\NotNull(message="Please specify if this page is a template or not.")
-     */
+    #[Assert\NotNull(message: 'Please specify if this page is a template or not.')]
     public bool $isTemplate;
 
     public function __construct()

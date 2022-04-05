@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Form;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
@@ -32,7 +32,7 @@ abstract class EntityPersistFormListener
 {
     use ClassMetadataTrait;
 
-    private ?TimestampedAnnotationReader $timestampedAnnotationReader;
+    private ?TimestampedAttributeReader $timestampedAnnotationReader;
     private ?TimestampedDataPersister $timestampedDataPersister;
     private ?UserEventListener $userEventListener;
     /** @var NormalizerInterface|DenormalizerInterface|null */
@@ -51,7 +51,7 @@ abstract class EntityPersistFormListener
 
     public function init(
         ManagerRegistry $registry,
-        TimestampedAnnotationReader $timestampedAnnotationReader,
+        TimestampedAttributeReader $timestampedAnnotationReader,
         TimestampedDataPersister $timestampedDataPersister,
         UserEventListener $userEventListener,
         NormalizerInterface $normalizer,

@@ -13,20 +13,21 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 
 /**
  * We must define this as an API resource, otherwise when serializing and the relation is to this class,
  * API Platform does not know that it will be a resource and will make it an object, not an IRI. (same notes as AbstractComponent).
  *
  * @author Daniel West <daniel@silverback.is>
- * @ApiResource(collectionOperations={}, itemOperations={ "GET" })
  */
+#[ApiResource]
+#[Get]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     /**
-     * @Assert\NotBlank(message="Please select a page template")
+     * #[Assert\NotBlank(message="Please select a page template")].
      */
     public Page $page;
 }

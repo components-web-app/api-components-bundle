@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AnnotationReader\TimestampedAnnotationReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -34,10 +34,10 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Context
 
     private const ALREADY_CALLED = 'TIMESTAMPED_NORMALIZER_ALREADY_CALLED';
 
-    private TimestampedAnnotationReader $annotationReader;
+    private TimestampedAttributeReader $annotationReader;
     private TimestampedDataPersister $timestampedDataPersister;
 
-    public function __construct(ManagerRegistry $registry, TimestampedAnnotationReader $annotationReader, TimestampedDataPersister $timestampedDataPersister)
+    public function __construct(ManagerRegistry $registry, TimestampedAttributeReader $annotationReader, TimestampedDataPersister $timestampedDataPersister)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
