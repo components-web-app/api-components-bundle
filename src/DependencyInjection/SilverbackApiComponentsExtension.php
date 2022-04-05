@@ -280,7 +280,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
     private function prependApiPlatformConfig(ContainerBuilder $container, array $config): void
     {
         $srcBase = __DIR__ . '/..';
-        // $mappingPaths = [$srcBase . '/Entity/Core'];
+        $mappingPaths = [$srcBase . '/Entity/Core'];
         $this->appendMappingPaths($mappingPaths, $srcBase, 'uploadable');
         $this->appendMappingPaths($mappingPaths, $srcBase, 'page_data_metadata');
         foreach ($config['enabled_components'] as $component => $is_enabled) {

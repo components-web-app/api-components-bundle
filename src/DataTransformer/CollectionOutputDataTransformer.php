@@ -86,8 +86,6 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         // Fetch the collection with computed context
         $resourceClass = $attributes['resource_class'];
 
-        // $operationName = $request->attributes->get('_api_operation_name') ?? $request->attributes->get('_api_subresource_operation_name');
-        // ->getOperation($operationName)
         $getCollectionOperation = $this->findGetCollectionOperation($resourceClass);
         if (!$getCollectionOperation) {
             return $object;
