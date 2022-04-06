@@ -42,6 +42,13 @@ Feature: A Collection component resource
     When I send a "DELETE" request to the resource "collection"
     Then the response status code should be 204
 
+  @loginUser
+  Scenario: I can get a collection and the default pagination is enabled
+    Given there are 2 DummyComponent resources
+    And there is a Collection resource
+    When I send a "DELETE" request to the resource "dummy_component_0"
+    Then the response status code should be 204
+    And the resource "collection" should be purged from the cache
 
   @loginUser
   Scenario: I can get a collection and the default pagination is enabled

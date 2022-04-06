@@ -5,6 +5,12 @@ services:
 
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
+        
+    Silverback\ApiComponentsBundle\Features\Bootstrap\HttpClientContext:
+        autowire: false
+        arguments:
+            $varnishHttpClient: '@http_client'
+            
 
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentDataProvider:
         tags: [ 'api_platform.state_provider' ]
@@ -28,3 +34,12 @@ services:
         class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub
         arguments:
             $factory: '@mercure.hub.default.jwt.factory'
+    
+    # TODO: REMOVE when API Platform is using Symfony http client and work out mocking that instead
+    # TODO: In tests the debug client should automatically be used with API Platform v3 using symfony not guzzle
+#    api_platform.http_cache.purger.varnish.xkey:
+#        arguments:
+#            $clients: [ '@http_client' ]
+            
+    # Test service to provide responses to the mock http client
+    Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback: ~

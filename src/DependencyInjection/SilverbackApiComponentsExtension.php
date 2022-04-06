@@ -228,20 +228,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_components.form_type');
 
-        // these won't work because they are not services...
-//        $container->registerForAutoconfiguration(ComponentInterface::class)
-//            ->addTag('silverback_api_components.entity.component');
-//
-//        $container->registerForAutoconfiguration(PageDataInterface::class)
-//            ->addTag('silverback_api_components.entity.page_data');
-
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
         $loader->load('services_normalizers.php');
-
-        if ($container->hasDefinition('api_platform.http_cache.purger')) {
-            $loader->load('services_doctrine_cache.php');
-        }
     }
 
     public function prepend(ContainerBuilder $container): void

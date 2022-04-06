@@ -2,6 +2,7 @@ default:
   suites:
     default:
       contexts:
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\HttpClientContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\DoctrineContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\JsonContext': ~
         - 'Behat\MinkExtension\Context\MinkContext': ~
@@ -34,6 +35,7 @@ default-coverage:
     default: &default-coverage-suite
       contexts:
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CoverageContext': ~
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\HttpClientContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\DoctrineContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\JsonContext': ~
         - 'Behat\MinkExtension\Context\MinkContext': ~

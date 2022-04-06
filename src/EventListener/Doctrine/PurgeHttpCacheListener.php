@@ -41,7 +41,7 @@ class PurgeHttpCacheListener
     /**
      * Purges tags collected during this request, and clears the tag list.
      *
-     * @see \ApiPlatform\Core\Bridge\Doctrine\EventListener\PurgeHttpCacheListener
+     * @see \ApiPlatform\Doctrine\EventListener\PurgeHttpCacheListener
      */
     public function postFlush(): void
     {
@@ -54,7 +54,7 @@ class PurgeHttpCacheListener
     }
 
     /**
-     * @see \ApiPlatform\Core\Bridge\Doctrine\EventListener\PurgeHttpCacheListener
+     * @see \ApiPlatform\Doctrine\EventListener\PurgeHttpCacheListener
      */
     public function addTagsFor($value): void
     {
@@ -78,7 +78,7 @@ class PurgeHttpCacheListener
     }
 
     /**
-     * @see \ApiPlatform\Core\Bridge\Doctrine\EventListener\PurgeHttpCacheListener
+     * @see \ApiPlatform\Doctrine\EventListener\PurgeHttpCacheListener
      */
     private function addTagForItem($value): void
     {

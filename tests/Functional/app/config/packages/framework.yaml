@@ -13,3 +13,5 @@ framework:
         collect: true
     router:
         utf8: true
+    http_client:
+        mock_response_factory: Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback

@@ -7,4 +7,14 @@ api_platform:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
+    http_cache:
+        invalidation:
+            # purger: 'api_platform.http_cache.purger.varnish'
+            enabled: true
+            varnish_urls: [ 'http://test' ]
+            xkey:
+                enabled: true
+                glue: ', '
+            http_tags: false
+        public: true
     metadata_backward_compatibility_layer: false

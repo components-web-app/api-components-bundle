@@ -27,6 +27,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Mime\Header\Headers;
 
@@ -53,7 +54,7 @@ class ProfilerContext implements Context
     public function iShouldNotReceiveAnyEmails()
     {
         /** @var MessageDataCollector $collector */
-        $collector = $this->client->getProfile()->getCollector('mailer');
+        $collector = $this->getProfile()->getCollector('mailer');
         $messages = $collector->getEvents()->getMessages();
         Assert::assertCount(0, $messages);
     }
@@ -64,7 +65,7 @@ class ProfilerContext implements Context
     public function iShouldGetAnEmail(string $emailType, string $emailAddress = 'user@example.com')
     {
         /** @var MessageDataCollector $collector */
-        $collector = $this->client->getProfile()->getCollector('mailer');
+        $collector = $this->getProfile()->getCollector('mailer');
         $messages = $collector->getEvents()->getMessages();
         Assert::assertCount(1, $messages);
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
@@ -169,5 +170,15 @@ class ProfilerContext implements Context
     {
         Assert::assertEquals('Your password has been changed', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(PasswordChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+    }
+
+    private function getProfile(): HttpProfile
+    {
+        $profile = $this->client->getProfile();
+        if (!$profile) {
+            throw new \Exception('No client profile exists');
+        }
+
+        return $profile;
     }
 }

@@ -31,4 +31,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.iri_converter'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush]);
+
+    // Todo: Remove alias when https://github.com/api-platform/core/pull/4695 is merged.
+    $services
+        ->alias('api_platform.http_cache.purger', 'api_platform.http_cache.purger.varnish.xkey');
 };

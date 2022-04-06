@@ -54,6 +54,7 @@ class CollectionContext implements Context
         for ($i = 0; $i < $number; ++$i) {
             $component = new DummyComponent();
             $this->manager->persist($component);
+            $this->restContext->resources['dummy_component_' . $i] = $this->iriConverter->getIriFromItem($component);
         }
         $this->manager->flush();
     }
