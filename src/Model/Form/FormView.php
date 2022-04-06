@@ -160,7 +160,7 @@ class FormView
         return $this->form;
     }
 
-    public function setForm(FormInterface $form)
+    public function setForm(FormInterface $form): self
     {
         $this->init($form->createView(), $form, true);
 
