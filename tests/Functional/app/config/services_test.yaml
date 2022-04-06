@@ -5,12 +5,6 @@ services:
 
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
-        
-    Silverback\ApiComponentsBundle\Features\Bootstrap\HttpClientContext:
-        autowire: false
-        arguments:
-            $varnishHttpClient: '@http_client'
-            
 
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentDataProvider:
         tags: [ 'api_platform.state_provider' ]

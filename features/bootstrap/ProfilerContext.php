@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -27,9 +28,11 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Mime\Header\Headers;
+use Symfony\Component\VarDumper\Cloner\Data;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -37,6 +40,7 @@ use Symfony\Component\Mime\Header\Headers;
 class ProfilerContext implements Context
 {
     private ?AbstractBrowser $client;
+    private ?RestContext $restContext;
 
     /**
      * @BeforeScenario
@@ -45,7 +49,34 @@ class ProfilerContext implements Context
     {
         /** @var MinkContext $mink */
         $mink = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->client = $mink->getSession()->getDriver()->getClient();
+    }
+
+    /**
+     * @Then the resource :resource_name should be purged from the cache
+     */
+    public function theResourceShouldBePurgedFromTheCache(string $resourceName)
+    {
+        $expectedIri = $this->restContext->resources[$resourceName];
+        /** @var HttpClientDataCollector $collector */
+        $collector = $this->getProfile()->getCollector('http_client');
+        $purged = [];
+        foreach ($collector->getClients() as $clientName => $clientInfo) {
+            foreach ($clientInfo['traces'] as $trace) {
+                /** @var Data $data */
+                $data = $trace['options']->getValue()['normalized_headers'];
+                $xkeyHeaders = $data->getValue()['xkey']->getValue();
+                foreach ($xkeyHeaders as $xkeyHeader) {
+                    $iri = preg_replace('/^xkey\: /', '', $xkeyHeader->getValue());
+                    $purged[] = $iri;
+                    if ($iri === $expectedIri) {
+                        return true;
+                    }
+                }
+            }
+        }
+        throw new ExpectationException(sprintf('The resource %s was not found in any xkey headers sent to be purged. IRIs that were purged were `%s`', $expectedIri, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
     }
 
     /**
