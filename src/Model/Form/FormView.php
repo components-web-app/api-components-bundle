@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\Model\Form;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
-use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -71,9 +70,9 @@ class FormView
     #[Groups(['Form:cwa_resource:read'])]
     private bool $methodRendered;
 
-    private Form $form;
+    private FormInterface $form;
 
-    public function __construct(Form $form, ?SymfonyFormView $formView = null, bool $children = true)
+    public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)
     {
         $isRoot = !$formView;
         if (!$formView) {
@@ -82,7 +81,7 @@ class FormView
         $this->init($formView, $form, $children, $isRoot);
     }
 
-    private function init(SymfonyFormView $formView, Form $form, bool $children = true, bool $isRoot = false): void
+    private function init(SymfonyFormView $formView, FormInterface $form, bool $children = true, bool $isRoot = false): void
     {
         $this->form = $form;
         $this->rendered = $formView->isRendered();
