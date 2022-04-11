@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * We must define this as an API resource, otherwise when serializing and the relation is to this class,
@@ -26,8 +27,6 @@ use ApiPlatform\Metadata\Get;
 #[Get]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
-    /**
-     * #[Assert\NotBlank(message="Please select a page template")].
-     */
+    #[Assert\NotBlank(message: 'Please select a page template')]
     public Page $page;
 }
