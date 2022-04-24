@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataTransformer;
 
-use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 

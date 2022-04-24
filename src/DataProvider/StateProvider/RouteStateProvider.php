@@ -34,13 +34,13 @@ class RouteStateProvider implements ProviderInterface
         $this->defaultProvider = $defaultProvider;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $id = $uriVariables['id'];
 
         $context[self::ALREADY_CALLED] = true;
         if (!\is_string($id)) {
-            return $this->defaultProvider->provide($resourceClass, $uriVariables, $operationName, $context);
+            return $this->defaultProvider->provide($operation, $uriVariables, $context);
         }
 
         return $this->routeRepository->findOneByIdOrPath($id);

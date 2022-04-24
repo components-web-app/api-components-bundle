@@ -233,7 +233,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services_normalizers.php');
 
         // Todo: revert to checking for service id api_platform.http_cache.purger when https://github.com/api-platform/core/pull/4695 is merged
-        // dump($container->hasDefinition('api_platform.http_cache.purger.varnish.xkey'));
+        // dump($container->hasDefinition('api_platform.http_cache.purger'));
         // if ($container->hasDefinition('api_platform.http_cache.purger.varnish.xkey')) {
         $loader->load('services_doctrine_orm_http_cache_purger.php');
         // }

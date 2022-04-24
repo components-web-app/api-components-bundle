@@ -33,7 +33,7 @@ class UserStateProvider implements ProviderInterface
         $this->requestStack = $requestStack;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $request = $this->requestStack->getCurrentRequest();
         if (!$request || !($id = $request->attributes->get('id'))) {

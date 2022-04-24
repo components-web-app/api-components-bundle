@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataTransformer;
 
-use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Exception\InvalidIdentifierException;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Operation;
