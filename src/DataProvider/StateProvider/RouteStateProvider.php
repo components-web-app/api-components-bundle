@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -34,13 +35,13 @@ class RouteStateProvider implements ProviderInterface
         $this->defaultProvider = $defaultProvider;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $id = $uriVariables['id'];
 
         $context[self::ALREADY_CALLED] = true;
         if (!\is_string($id)) {
-            return $this->defaultProvider->provide($resourceClass, $uriVariables, $operationName, $context);
+            return $this->defaultProvider->provide($operation, $uriVariables, $context);
         }
 
         return $this->routeRepository->findOneByIdOrPath($id);
@@ -51,6 +52,6 @@ class RouteStateProvider implements ProviderInterface
         /** @var Operation */
         $operation = $context['operation'];
 
-        return Route::class === $resourceClass && !$operation->isCollection() && !isset($context[self::ALREADY_CALLED]);
+        return Route::class === $resourceClass && !$operation instanceof CollectionOperationInterface && !isset($context[self::ALREADY_CALLED]);
     }
 }

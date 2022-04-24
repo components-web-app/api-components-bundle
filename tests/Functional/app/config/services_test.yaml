@@ -6,7 +6,7 @@ services:
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
 
-    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentDataProvider:
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentStateProvider:
         tags: [ 'api_platform.state_provider' ]
 
     app.imagine.cache.resolver.local:

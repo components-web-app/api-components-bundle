@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataTransformer;
 
-use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Exception\InvalidIdentifierException;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
@@ -152,7 +154,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             if ($operations) {
                 /** @var Operation $operation */
                 foreach ($operations as $operation) {
-                    if ($operation->isCollection() && Operation::METHOD_GET === $operation->getMethod()) {
+                    if ($operation instanceof CollectionOperationInterface && HttpOperation::METHOD_GET === $operation->getMethod()) {
                         return $operation;
                     }
                 }

@@ -267,8 +267,8 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(SerializeFormatResolver::class),
                 new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
-        )
-        ->tag('api_platform.data_transformer');
+        );
+    // ->tag('api_platform.data_transformer');
 
     $services
         ->set('silverback.helper.component_position_sort_value')
@@ -418,8 +418,8 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(FormViewFactory::class),
             ]
-        )
-        ->tag('api_platform.data_transformer');
+        );
+    // ->tag('api_platform.data_transformer');
 
     $services
         ->set(FormTypeClassValidator::class)

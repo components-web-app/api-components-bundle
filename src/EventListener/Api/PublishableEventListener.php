@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -58,7 +59,7 @@ final class PublishableEventListener
             empty($attributes['data']) ||
             !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             $request->isMethod(Request::METHOD_DELETE) ||
-            $attributes['operation']->isCollection()
+            $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
@@ -75,7 +76,7 @@ final class PublishableEventListener
             empty($attributes['data']) ||
             !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
             !$request->isMethod(Request::METHOD_GET) ||
-            $attributes['operation']->isCollection()
+            $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
@@ -120,7 +121,7 @@ final class PublishableEventListener
         if (
             null === $data ||
             !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            $attributes['operation']->isCollection()
+            $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
