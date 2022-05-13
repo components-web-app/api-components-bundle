@@ -44,8 +44,6 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
-use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
-use Silverback\ApiComponentsBundle\DataTransformer\FormOutputDataTransformer;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -54,8 +52,9 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\FormSubmitEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedComponentEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
@@ -255,7 +254,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
     $services
-        ->set(CollectionOutputDataTransformer::class)
+        ->set(CollectionApiEventListener::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -267,8 +266,8 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(SerializeFormatResolver::class),
                 new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             ]
-        );
-    // ->tag('api_platform.data_transformer');
+        )
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize']);
 
     $services
         ->set('silverback.helper.component_position_sort_value')
@@ -391,12 +390,13 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(FormSubmitEventListener::class)
+        ->set(FormApiEventListener::class)
         ->args(
             [
                 new Reference(FormSubmitHelper::class),
                 new Reference(SerializeFormatResolver::class),
                 new Reference(SerializerInterface::class),
+                new Reference(FormViewFactory::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])
@@ -410,16 +410,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(EventDispatcherInterface::class),
             ]
         );
-
-    $services
-        ->set(FormOutputDataTransformer::class)
-        ->autoconfigure(false)
-        ->args(
-            [
-                new Reference(FormViewFactory::class),
-            ]
-        );
-    // ->tag('api_platform.data_transformer');
 
     $services
         ->set(FormTypeClassValidator::class)

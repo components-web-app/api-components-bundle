@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use GuzzleHttp\Client;
-use Silverback\ApiComponentsBundle\DataTransformer\CollectionOutputDataTransformer;
+use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -31,7 +31,7 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
     {
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
 
-        $container->getDefinition(CollectionOutputDataTransformer::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
+        $container->getDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
 
         // Todo: revert to checking for service id api_platform.http_cache.purger when https://github.com/api-platform/core/pull/4695 is merged
         if (!$container->hasDefinition('api_platform.http_cache.purger.varnish.xkey')) {

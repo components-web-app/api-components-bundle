@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
-use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -36,20 +35,12 @@ class UserStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
+        // is_a($resourceClass, AbstractUser::class, true)
         $request = $this->requestStack->getCurrentRequest();
         if (!$request || !($id = $request->attributes->get('id'))) {
             return null;
         }
 
         return $this->userRepository->loadUserByIdentifier($id);
-    }
-
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        /** @var Operation */
-        $operation = $context['operation'];
-
-        return 'me' === $operationName && !$operation instanceof CollectionOperationInterface &&
-            is_a($resourceClass, AbstractUser::class, true);
     }
 }

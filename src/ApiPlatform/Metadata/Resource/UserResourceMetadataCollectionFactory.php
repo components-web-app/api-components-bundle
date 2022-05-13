@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 
 /**
@@ -56,6 +57,7 @@ class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectio
                                 ->withName('me')
                                 ->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")')
                                 ->withClass($operation->getClass())
+                                ->withProvider(UserStateProvider::class)
                         );
                     }
                 }

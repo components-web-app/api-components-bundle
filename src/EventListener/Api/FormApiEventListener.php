@@ -14,34 +14,48 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
+use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class FormSubmitEventListener
+class FormApiEventListener
 {
     private FormSubmitHelper $formSubmitHelper;
     private SerializeFormatResolver $serializeFormatResolver;
     private SerializerInterface $serializer;
+    private FormViewFactory $formViewFactory;
 
     public function __construct(
         FormSubmitHelper $formSubmitHelper,
         SerializeFormatResolver $serializeFormatResolver,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        FormViewFactory $formViewFactory
     ) {
+        if (!$serializer instanceof DecoderInterface) {
+            throw new \InvalidArgumentException(sprintf('$serializer must be also be an instance of %s', DecoderInterface::class));
+        }
         $this->formSubmitHelper = $formSubmitHelper;
         $this->serializeFormatResolver = $serializeFormatResolver;
         $this->serializer = $serializer;
+        $this->formViewFactory = $formViewFactory;
     }
 
     public function onPreSerialize(ViewEvent $event): void
+    {
+        $this->decorateOutput($event);
+        $this->handleFormData($event);
+    }
+
+    private function handleFormData(ViewEvent $event): void
     {
         $request = $event->getRequest();
         if (!$data = $this->getData($request)) {
@@ -68,6 +82,19 @@ class FormSubmitEventListener
         if (!$data instanceof Response) {
             $request->attributes->set('data', $data);
         }
+    }
+
+    private function decorateOutput(ViewEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$data instanceof Form
+        ) {
+            return;
+        }
+        $data->formView = $this->formViewFactory->create($data);
     }
 
     public function onPostRespond(ResponseEvent $event): void

@@ -24,7 +24,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
  */
 class RouteStateProvider implements ProviderInterface
 {
-    private const ALREADY_CALLED = 'ROUTE_DATA_PROVIDER_ALREADY_CALLED';
+    private const ALREADY_CALLED = 'ROUTE_STATE_PROVIDER_ALREADY_CALLED';
 
     private RouteRepository $routeRepository;
     private ProviderInterface $defaultProvider;
