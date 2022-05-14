@@ -236,7 +236,7 @@ final class DoctrineContext implements Context
     public function theUserHasTheNewPasswordConfirmationToken(string $token, string $dateTime): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
         $user->setNewPasswordConfirmationToken($this->passwordHasher->hashPassword($user, $token))->setPasswordRequestedAt(new \DateTime($dateTime));
         $this->manager->flush();
     }
@@ -247,7 +247,7 @@ final class DoctrineContext implements Context
     public function theUserIsDisabled(): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
         $user->setEnabled(false);
         $this->manager->flush();
     }
@@ -258,7 +258,7 @@ final class DoctrineContext implements Context
     public function theUserEmailIsNotVerified(?string $verificationToken = null): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
         $user->setEmailAddressVerified(false);
         if ($verificationToken) {
             $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $verificationToken));
@@ -272,7 +272,7 @@ final class DoctrineContext implements Context
     public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
     {
         /** @var User $user */
-        $user = $this->iriConverter->getItemFromIri($this->restContext->resources['user']);
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
         $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $verificationToken));
         $this->manager->flush();
     }
@@ -383,7 +383,7 @@ final class DoctrineContext implements Context
     public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent): void
     {
         /** @var ComponentCollection $collection */
-        $collection = $this->iriConverter->getItemFromIri($this->restContext->resources['component_collection']);
+        $collection = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_collection']);
         if ('' !== $allowedComponent) {
             $collection->allowedComponents = [$allowedComponent];
         }
@@ -698,7 +698,7 @@ final class DoctrineContext implements Context
      */
     public function theIsAComponentInARouteWithPath(string $resource, string $path): void
     {
-        $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$resource]);
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]);
         if (!$component instanceof AbstractComponent) {
             throw new \RuntimeException(sprintf('The resource named `%s` is not a component', $resource));
         }
@@ -738,7 +738,7 @@ final class DoctrineContext implements Context
     {
         $repo = $this->manager->getRepository(RefreshToken::class);
         $tokens = $repo->findBy([
-            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+            'user' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']),
         ]);
         foreach ($tokens as $token) {
             $this->manager->remove($token);
@@ -746,7 +746,7 @@ final class DoctrineContext implements Context
 
         $refreshToken = new RefreshToken();
         $refreshToken
-            ->setUser($this->iriConverter->getItemFromIri($this->restContext->resources['login_user']))
+            ->setUser($this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']))
             ->setCreatedAt(new \DateTime())
             ->setExpiresAt(new \DateTime($expiresAt));
         $this->manager->persist($refreshToken);
@@ -761,7 +761,7 @@ final class DoctrineContext implements Context
     {
         $token = $this->jwtEncoder->encode([
             'exp' => (new \DateTime('-1 second'))->getTimestamp(),
-            'username' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user'])->getUsername(),
+            'username' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user'])->getUsername(),
         ]);
         $this->minkContext->getSession()->setCookie('api_components', $token);
         $this->baseRestContext->iAddHeaderEqualTo('Authorization', '');
@@ -802,7 +802,7 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         try {
             $iri = $this->restContext->resources[$name];
-            $this->iriConverter->getItemFromIri($iri);
+            $this->iriConverter->getResourceFromIri($iri);
             throw new ExpectationException(sprintf('The resource %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
         } catch (ItemNotFoundException $exception) {
         }
@@ -816,7 +816,7 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repo = $this->manager->getRepository(RefreshToken::class);
         $token = $repo->findOneBy([
-            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+            'user' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']),
         ]);
         if (!$token->isExpired()) {
             throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
@@ -831,7 +831,7 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repo = $this->manager->getRepository(RefreshToken::class);
         $tokens = $repo->findBy([
-            'user' => $this->iriConverter->getItemFromIri($this->restContext->resources['login_user']),
+            'user' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']),
         ]);
         foreach ($tokens as $token) {
             if (!$token->isExpired()) {
@@ -848,7 +848,7 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         try {
             $iri = $this->restContext->resources[$name];
-            $this->iriConverter->getItemFromIri($iri);
+            $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
