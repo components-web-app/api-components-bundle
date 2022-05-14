@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -86,8 +85,8 @@ class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 
     public function test_append_prefix_to_user_defined(): void
     {
-        $operation1 = (new Get('', 'op'))->withRoutePrefix('/custom_prefix_op');
-        $operation2 = (new GetCollection());
+        $operation1 = (new HttpOperation(HttpOperation::METHOD_GET, ''))->withShortName('op')->withRoutePrefix('/custom_prefix_op');
+        $operation2 = (new HttpOperation());
         $operations = new Operations([$operation1, $operation2]);
         $apiResource = (new ApiResource())
             ->withOperations($operations)
