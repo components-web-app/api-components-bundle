@@ -13,18 +13,14 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider;
 
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnpersistedComponent;
 
-class UnpersistedComponentDataProvider implements ProviderInterface
+class UnpersistedComponentStateProvider implements ProviderInterface
 {
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): DummyUnpersistedComponent
     {
         return new DummyUnpersistedComponent();
-    }
-
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        return DummyUnpersistedComponent::class === $resourceClass;
     }
 }

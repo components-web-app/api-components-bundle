@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
@@ -57,7 +57,7 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
             $operations = $resourceMetadatum->getOperations();
             if ($operations) {
                 $copyOperation = null;
-                /** @var Operation $operation */
+                /** @var HttpOperation $operation */
                 foreach ($operations as $operation) {
                     $uriVariables = $operation->getUriVariables();
                     if ($uriVariables) {

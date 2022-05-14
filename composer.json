@@ -1,5 +1,5 @@
 {
-    "name": "silverbackis/api-components-bundle",
+    "name": "components-web-app/api-components-bundle",
     "type": "symfony-bundle",
     "description": "Creates a flexible API for a website's structure, reusable components and common functionality.",
     "license": "MIT",
@@ -7,6 +7,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/silverbackdan/contexts"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/silverbackdan/core"
         }
     ],
     "require": {
@@ -16,7 +20,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "api-platform/core": "^3.0|^2.7.x-dev",
+        "api-platform/core": "dev-fix/xml-provider",
         "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/dbal": "^2.13.8",

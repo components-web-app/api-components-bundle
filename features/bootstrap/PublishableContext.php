@@ -121,7 +121,7 @@ final class PublishableContext implements Context
      */
     public function thereIsADraftFor(string $publishedComponent, ?string $publishDate = null): void
     {
-        $component = $this->iriConverter->getItemFromIri($this->restContext->resources[$publishedComponent]);
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$publishedComponent]);
         if (!$component instanceof DummyPublishableComponent) {
             throw new \RuntimeException(sprintf('The resource named `%s` is not a DummyPublishableComponent', $publishedComponent));
         }
@@ -147,13 +147,13 @@ final class PublishableContext implements Context
         $position = new ComponentPosition();
         $position
             ->setComponentCollection($collection)
-            ->setComponent($this->iriConverter->getItemFromIri($this->restContext->resources[$resource]))
+            ->setComponent($this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]))
             ->setSortValue(1)
             ->setCreatedAt(new \DateTimeImmutable())
             ->setModifiedAt(new \DateTime());
         $this->manager->persist($position);
         $this->manager->flush();
-        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($position);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($position);
     }
 
     /**
@@ -223,7 +223,7 @@ final class PublishableContext implements Context
 
         $this->resources[] = $resource;
         $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
-        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromResource($resource);
 
         return $resource;
     }
@@ -335,7 +335,7 @@ final class PublishableContext implements Context
         $this->resources[] = $resource;
 
         $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
-        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromItem($resource);
+        $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromResource($resource);
 
         return $resource;
     }
@@ -344,7 +344,7 @@ final class PublishableContext implements Context
     {
         return array_map(
             function (DummyPublishableComponent $component) {
-                return $this->iriConverter->getIriFromItem($component);
+                return $this->iriConverter->getIriFromResource($component);
             },
             $resources
         );

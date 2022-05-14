@@ -48,6 +48,6 @@ class FormViewFactory
 
     private function getFormAction(Form $form): string
     {
-        return $this->urlHelper->getAbsoluteUrl($this->iriConverter->getIriFromItem($form) . '/submit');
+        return $this->urlHelper->getAbsoluteUrl($this->iriConverter->getIriFromResource($form) . '/submit');
     }
 }

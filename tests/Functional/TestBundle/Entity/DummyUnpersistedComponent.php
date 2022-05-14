@@ -16,11 +16,12 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentStateProvider;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource]
+#[ApiResource(provider: UnpersistedComponentStateProvider::class)]
 class DummyUnpersistedComponent
 {
     #[ApiProperty(identifier: true)]

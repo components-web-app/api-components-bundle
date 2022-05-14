@@ -11,11 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\DataTransformer;
+namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use ApiPlatform\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Exception\InvalidIdentifierException;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
@@ -28,13 +29,14 @@ use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class CollectionOutputDataTransformer implements DataTransformerInterface
+class CollectionApiEventListener
 {
     use UriVariablesResolverTrait;
 
@@ -72,10 +74,20 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $data instanceof Collection && Collection::class === $to;
     }
 
-    /**
-     * @param object|Collection $object
-     */
-    public function transform($object, string $to, array $context = []): Collection
+    public function onPreSerialize(ViewEvent $event)
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        if (
+            empty($data) ||
+            !$data instanceof Collection
+        ) {
+            return;
+        }
+        $this->transform($data);
+    }
+
+    private function transform(Collection $object): Collection
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
@@ -118,7 +130,8 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
 
         try {
             $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
-            $collectionData = $this->provider->provide($resourceClass, $uriVariables, $getCollectionOperation->getName(), $collectionContext);
+            // Operation $operation, array $uriVariables = [], array $context = []
+            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
         } catch (InvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
@@ -142,7 +155,7 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
         return $object;
     }
 
-    private function findGetCollectionOperation(string $resourceClass): ?Operation
+    private function findGetCollectionOperation(string $resourceClass): ?HttpOperation
     {
         $metadata = $this->resourceMetadataCollectionFactory->create($resourceClass);
         $it = $metadata->getIterator();
@@ -152,7 +165,11 @@ class CollectionOutputDataTransformer implements DataTransformerInterface
             if ($operations) {
                 /** @var Operation $operation */
                 foreach ($operations as $operation) {
-                    if ($operation->isCollection() && Operation::METHOD_GET === $operation->getMethod()) {
+                    if (
+                        $operation instanceof CollectionOperationInterface &&
+                        $operation instanceof HttpOperation &&
+                        HttpOperation::METHOD_GET === $operation->getMethod()
+                    ) {
                         return $operation;
                     }
                 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -60,7 +61,7 @@ class RouteEventListener
         if (
             empty($data) ||
             !$data instanceof Route ||
-            !\in_array($operation->getMethod(), [Operation::METHOD_PUT, Operation::METHOD_PATCH], true)
+            !\in_array($operation->getMethod(), [HttpOperation::METHOD_PUT, HttpOperation::METHOD_PATCH], true)
         ) {
             return;
         }

@@ -41,16 +41,16 @@ class ProfilerContext implements Context
 {
     private ?AbstractBrowser $client;
     private ?RestContext $restContext;
+    private ?MinkContext $minkContext;
 
     /**
      * @BeforeScenario
      */
     public function getContexts(BeforeScenarioScope $scope)
     {
-        /** @var MinkContext $mink */
-        $mink = $scope->getEnvironment()->getContext(MinkContext::class);
+        $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
-        $this->client = $mink->getSession()->getDriver()->getClient();
+        $this->client = $this->minkContext->getSession()->getDriver()->getClient();
     }
 
     /**

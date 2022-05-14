@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
-use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 
 /**
@@ -33,20 +33,12 @@ class PageDataMetadataStateProvider implements ProviderInterface
         $this->pageDataMetadataProvider = $pageDataMetadataProvider;
     }
 
-    public function provide(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        /** @var Operation */
-        $operation = $context['operation'];
-
-        if ($operation->isCollection()) {
+        if ($operation instanceof CollectionOperationInterface) {
             return $this->pageDataMetadataProvider->createAll();
         }
 
         return $this->pageDataMetadataFactory->create($uriVariables['resourceClass']);
-    }
-
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        return PageDataMetadata::class === $resourceClass;
     }
 }

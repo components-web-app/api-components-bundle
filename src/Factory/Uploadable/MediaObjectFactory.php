@@ -68,7 +68,7 @@ class MediaObjectFactory
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
 
-        $resourceId = $this->iriConverter->getIriFromItem($object);
+        $resourceId = $this->iriConverter->getIriFromResource($object);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);

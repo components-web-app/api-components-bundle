@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -96,7 +98,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
             '_api_%s_%s%s',
             $operation->getUriTemplate(),
             strtolower($operation->getMethod()),
-            $operation->isCollection() ? '_collection' : ''
+            $operation instanceof CollectionOperationInterface ? '_collection' : ''
         );
     }
 
@@ -139,7 +141,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
         $path = sprintf('/%s/{id}/upload', $pathSegmentName);
         $newUploadPost = $getOperation
             ->withUriTemplate($path)
-            ->withMethod(Operation::METHOD_POST)
+            ->withMethod(HttpOperation::METHOD_POST)
             ->withShortName($getOperation->getShortName())
             ->withRoutePrefix($getOperation->getRoutePrefix() ?? '');
 

@@ -65,7 +65,7 @@ class UploadsContext implements Context
     {
         if (isset($this->restContext->resources['dummy_uploadable'])) {
             try {
-                $this->uploadableHelper->deleteFiles($this->iriConverter->getItemFromIri($this->restContext->resources['dummy_uploadable']));
+                $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources['dummy_uploadable']));
             } catch (ItemNotFoundException $e) {
                 // we may heva just deleted this resource 'dummy_uploadable'
             }
@@ -82,7 +82,7 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
     }
 
     /**
@@ -96,7 +96,7 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
     }
 
     /**
@@ -145,7 +145,7 @@ class UploadsContext implements Context
         try {
             $iri = $this->restContext->resources[$name];
             /* @var UploadableTrait $item */
-            return $this->iriConverter->getItemFromIri($iri);
+            return $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
             throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }

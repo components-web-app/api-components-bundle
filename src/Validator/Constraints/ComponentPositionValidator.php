@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\Metadata\GetCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
 use Symfony\Component\Validator\Constraint;
@@ -46,7 +48,8 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        $iri = $this->iriConverter->getIriFromResourceClass(\get_class($component));
+        $resourceClass = \get_class($component);
+        $iri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
 
         if ($allowedComponents = $collection->allowedComponents) {
             if (!\in_array($iri, $allowedComponents, true)) {

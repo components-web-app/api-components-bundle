@@ -14,8 +14,14 @@
             </values>
         </defaults>
         <operations>
-            <operation class="ApiPlatform\Metadata\Get" />
-            <operation class="ApiPlatform\Metadata\GetCollection" />
+            <operation
+                class="ApiPlatform\Metadata\Get"
+                provider="Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider"
+            />
+            <operation
+                class="ApiPlatform\Metadata\GetCollection"
+                provider="Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider"
+            />
         </operations>
     </resource>
 </resources>

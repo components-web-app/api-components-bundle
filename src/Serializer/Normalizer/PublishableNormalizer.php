@@ -85,7 +85,7 @@ final class PublishableNormalizer implements ContextAwareNormalizerInterface, Ca
         $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
         if (isset($context[self::ASSOCIATION]) && $context[self::ASSOCIATION] === $object) {
-            return $this->iriConverter->getIriFromItem($object);
+            return $this->iriConverter->getIriFromResource($object);
         }
 
         $type = \get_class($object);
