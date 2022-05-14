@@ -1,5 +1,6 @@
 {
     "name": "components-web-app/api-components-bundle",
+    "version": "1.0.0",
     "type": "symfony-bundle",
     "description": "Creates a flexible API for a website's structure, reusable components and common functionality.",
     "license": "MIT",
