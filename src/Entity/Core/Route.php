@@ -23,6 +23,7 @@ use ApiPlatform\Metadata\Put;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -51,7 +52,8 @@ const SECURITY = "is_granted('read_route', object)";
 #[UniqueEntity('name', 'This route name is already in use.')]
 #[UniqueEntity('path', 'This path is already in use.')]
 #[ApiResource(
-    mercure: true
+    mercure: true,
+    provider: RouteStateProvider::class
 )]
 #[Post]
 #[GetCollection]

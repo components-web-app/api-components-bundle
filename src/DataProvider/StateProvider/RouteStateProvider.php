@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
@@ -24,8 +25,6 @@ use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
  */
 class RouteStateProvider implements ProviderInterface
 {
-    private const ALREADY_CALLED = 'ROUTE_STATE_PROVIDER_ALREADY_CALLED';
-
     private RouteRepository $routeRepository;
     private ProviderInterface $defaultProvider;
 
@@ -37,21 +36,14 @@ class RouteStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
+        if ($operation instanceof CollectionOperationInterface) {
+            return $this->defaultProvider->provide($operation->withProvider(CollectionProvider::class), $uriVariables, $context);
+        }
         $id = $uriVariables['id'];
-
-        $context[self::ALREADY_CALLED] = true;
         if (!\is_string($id)) {
-            return $this->defaultProvider->provide($operation, $uriVariables, $context);
+            return $this->defaultProvider->provide($operation->withProvider(ItemProvider::class), $uriVariables, $context);
         }
 
         return $this->routeRepository->findOneByIdOrPath($id);
-    }
-
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        /** @var Operation */
-        $operation = $context['operation'];
-
-        return Route::class === $resourceClass && !$operation instanceof CollectionOperationInterface && !isset($context[self::ALREADY_CALLED]);
     }
 }

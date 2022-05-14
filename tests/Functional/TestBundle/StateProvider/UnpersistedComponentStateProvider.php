@@ -19,11 +19,6 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnper
 
 class UnpersistedComponentStateProvider implements ProviderInterface
 {
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        return DummyUnpersistedComponent::class === $resourceClass;
-    }
-
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): DummyUnpersistedComponent
     {
         return new DummyUnpersistedComponent();
