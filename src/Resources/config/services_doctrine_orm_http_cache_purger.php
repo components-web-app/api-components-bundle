@@ -24,6 +24,9 @@ use Symfony\Component\DependencyInjection\Reference;
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
+    // TODO: API Platform will have this service ID soon.
+    $services->alias('api_platform.http_cache.purger', 'api_platform.http_cache.purger.varnish.xkey');
+
     $services
         ->set(PurgeHttpCacheListener::class)
         ->args([
