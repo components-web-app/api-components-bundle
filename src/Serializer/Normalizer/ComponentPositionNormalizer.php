@@ -108,7 +108,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         $context[self::ALREADY_CALLED] = true;
 
-        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $object->component ? $this->iriConverter->getIriFromItem($object->component) : null;
+        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $object->component ? $this->iriConverter->getIriFromResource($object->component) : null;
         $object = $this->normalizeForPageData($object);
 
         $component = $object->component;

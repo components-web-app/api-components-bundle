@@ -17,7 +17,6 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
-use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 
 /**
@@ -41,10 +40,5 @@ class PageDataMetadataStateProvider implements ProviderInterface
         }
 
         return $this->pageDataMetadataFactory->create($uriVariables['resourceClass']);
-    }
-
-    public function supports(string $resourceClass, array $uriVariables = [], ?string $operationName = null, array $context = []): bool
-    {
-        return PageDataMetadata::class === $resourceClass;
     }
 }

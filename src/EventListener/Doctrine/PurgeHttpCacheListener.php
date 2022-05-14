@@ -15,10 +15,12 @@ namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\ResourceClassResolverInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Exception\InvalidArgumentException;
 use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\HttpCache\PurgerInterface;
+use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -43,7 +45,7 @@ class PurgeHttpCacheListener
     private PurgerInterface $purger;
     private IriConverterInterface $iriConverter;
     private ResourceClassResolverInterface $resourceClassResolver;
-    private array $resourceClasses = [];
+    private array $resourceIris = [];
     private array $tags = [];
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
@@ -117,21 +119,21 @@ class PurgeHttpCacheListener
 
     private function purgeCollectionResources(): void
     {
-        if (empty($this->resourceClasses)) {
+        if (empty($this->resourceIris)) {
             return;
         }
 
         $collectionIris = [];
-        foreach ($this->resourceClasses as $resourceIri) {
+        foreach ($this->resourceIris as $resourceIri) {
             $collections = $this->collectionRepository->findBy([
                 'resourceIri' => $resourceIri,
             ]);
             foreach ($collections as $collection) {
-                $collectionIris[] = $this->iriConverter->getIriFromItem($collection);
+                $collectionIris[] = $this->iriConverter->getIriFromResource($collection);
             }
         }
 
-        $this->resourceClasses = [];
+        $this->resourceIris = [];
         if (empty($collectionIris)) {
             return;
         }
@@ -152,9 +154,10 @@ class PurgeHttpCacheListener
     private function addResourceClass($entity): void
     {
         try {
-            $resourceClass = $this->iriConverter->getIriFromResourceClass($this->resourceClassResolver->getResourceClass($entity));
-            if (!\in_array($resourceClass, $this->resourceClasses, true)) {
-                $this->resourceClasses[] = $resourceClass;
+            $resourceClass = $this->resourceClassResolver->getResourceClass($entity);
+            $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
+            if (!\in_array($resourceIri, $this->resourceIris, true)) {
+                $this->resourceIris[] = $resourceIri;
             }
         } catch (OperationNotFoundException|InvalidArgumentException $e) {
         }
@@ -165,7 +168,14 @@ class PurgeHttpCacheListener
         $associationMappings = $this->getAssociationMappings($em, $entity);
         foreach (array_keys($associationMappings) as $property) {
             if ($this->propertyAccessor->isReadable($entity, $property)) {
-                $this->addResourceClass($this->propertyAccessor->getValue($entity, $property));
+                $value = $this->propertyAccessor->getValue($entity, $property);
+                if ($value instanceof PersistentCollection) {
+                    foreach ($value as $item) {
+                        $this->addResourceClass($item);
+                    }
+                } else {
+                    $this->addResourceClass($value);
+                }
             }
         }
     }
@@ -205,7 +215,7 @@ class PurgeHttpCacheListener
     private function addTagForItem($value): void
     {
         try {
-            $iri = $this->iriConverter->getIriFromItem($value);
+            $iri = $this->iriConverter->getIriFromResource($value);
             $this->tags[$iri] = $iri;
         } catch (InvalidArgumentException $e) {
         } catch (RuntimeException $e) {

@@ -138,7 +138,7 @@ final class DoctrineContext implements Context
         } else {
             $this->minkContext->getSession()->setCookie('api_components', $token);
         }
-        $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromItem($user);
+        $this->restContext->resources['login_user'] = $this->iriConverter->getIriFromResource($user);
         $this->manager->clear();
     }
 
@@ -208,7 +208,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($form, true);
         $this->manager->persist($form);
         $this->manager->flush();
-        $this->restContext->resources[$type . '_form'] = $this->iriConverter->getIriFromItem($form);
+        $this->restContext->resources[$type . '_form'] = $this->iriConverter->getIriFromResource($form);
     }
 
     /**
@@ -227,7 +227,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($user, true);
         $this->manager->persist($user);
         $this->manager->flush();
-        $this->restContext->resources['user'] = $this->iriConverter->getIriFromItem($user);
+        $this->restContext->resources['user'] = $this->iriConverter->getIriFromResource($user);
     }
 
     /**
@@ -285,7 +285,7 @@ final class DoctrineContext implements Context
         $component = new DummyComponent();
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->resources['dummy_component'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_component'] = $this->iriConverter->getIriFromResource($component);
 
         return $component;
     }
@@ -299,7 +299,7 @@ final class DoctrineContext implements Context
         $component = new DummyPublishableComponent();
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->resources['dummy_publishable_component'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_publishable_component'] = $this->iriConverter->getIriFromResource($component);
 
         return $component;
     }
@@ -312,7 +312,7 @@ final class DoctrineContext implements Context
         $component = new RestrictedComponent();
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->resources['restricted_component'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['restricted_component'] = $this->iriConverter->getIriFromResource($component);
     }
 
     /**
@@ -325,7 +325,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($component, true);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromResource($component);
     }
 
     /**
@@ -338,7 +338,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($component, true);
         $this->manager->persist($component);
         $this->manager->flush();
-        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromItem($component);
+        $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromResource($component);
     }
 
     /**
@@ -367,12 +367,12 @@ final class DoctrineContext implements Context
             $position->componentCollection = $componentCollection;
             $position->component = $component;
             $this->manager->persist($position);
-            $this->restContext->resources['component_' . $x] = $this->iriConverter->getIriFromItem($component);
-            $this->restContext->resources['position_' . $x] = $this->iriConverter->getIriFromItem($position);
+            $this->restContext->resources['component_' . $x] = $this->iriConverter->getIriFromResource($component);
+            $this->restContext->resources['position_' . $x] = $this->iriConverter->getIriFromResource($position);
         }
         $this->manager->flush();
 
-        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromItem($componentCollection);
+        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromResource($componentCollection);
 
         return $componentCollection;
     }
@@ -403,7 +403,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $this->manager->flush();
-        $this->restContext->resources['page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
 
         return $page;
     }
@@ -420,7 +420,7 @@ final class DoctrineContext implements Context
                 ->setName(sprintf('/route-%s', $x));
             $this->timestampedHelper->persistTimestampedFields($route, true);
             $this->manager->persist($route);
-            $this->restContext->resources['route_' . $x] = $this->iriConverter->getIriFromItem($route);
+            $this->restContext->resources['route_' . $x] = $this->iriConverter->getIriFromResource($route);
         }
         $this->manager->flush();
     }
@@ -445,8 +445,8 @@ final class DoctrineContext implements Context
         $route->setPage($page);
         $this->manager->flush();
 
-        $this->restContext->resources['route'] = $this->iriConverter->getIriFromItem($route);
-        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($route);
+        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromResource($page);
     }
 
     /**
@@ -486,9 +486,9 @@ final class DoctrineContext implements Context
         $finalRoute->setPage($page);
         $this->manager->flush();
 
-        $this->restContext->resources['final_route'] = $this->iriConverter->getIriFromItem($finalRoute);
-        $this->restContext->resources['route'] = $this->iriConverter->getIriFromItem($route);
-        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromItem($page);
+        $this->restContext->resources['final_route'] = $this->iriConverter->getIriFromResource($finalRoute);
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($route);
+        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromResource($page);
     }
 
     /**
@@ -501,7 +501,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($layout, true);
         $this->manager->persist($layout);
         $this->manager->flush();
-        $this->restContext->resources['layout'] = $this->iriConverter->getIriFromItem($layout);
+        $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);
     }
 
     /**
@@ -519,7 +519,7 @@ final class DoctrineContext implements Context
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
-        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
         $this->manager->flush();
     }
 
@@ -540,7 +540,7 @@ final class DoctrineContext implements Context
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
-        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
 
         $page = new Page();
         $page->isTemplate = true;
@@ -554,7 +554,7 @@ final class DoctrineContext implements Context
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
-        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
 
         if ($path) {
             $route = new Route();
@@ -592,7 +592,7 @@ final class DoctrineContext implements Context
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
-        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromItem($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
 
         $componentPosition = new ComponentPosition();
         $componentPosition->component = $dummyComponent;
@@ -600,7 +600,7 @@ final class DoctrineContext implements Context
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
-        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
 
         $this->manager->flush();
     }
@@ -726,7 +726,7 @@ final class DoctrineContext implements Context
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
-        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromItem($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
 
         $this->manager->flush();
     }

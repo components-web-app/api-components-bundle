@@ -82,7 +82,7 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
     }
 
     /**
@@ -96,7 +96,7 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromItem($object);
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
     }
 
     /**
