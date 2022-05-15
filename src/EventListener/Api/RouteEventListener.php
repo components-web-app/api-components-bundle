@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Metadata\HttpOperation;
-use ApiPlatform\Metadata\Operation;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -56,7 +55,7 @@ class RouteEventListener
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
-        /** @var Operation $operation */
+        /** @var HttpOperation $operation */
         $operation = $request->attributes->get('_api_operation');
         if (
             empty($data) ||

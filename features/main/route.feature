@@ -94,3 +94,9 @@ Feature: Route resources
     And the JSON node "redirectedFrom[0]" should exist
     And the JSON node "redirectedFrom[0].redirectedFrom" should exist
     And the JSON node "redirectedFrom[0].redirectedFrom[0].path" should be equal to the string "/redirect1"
+
+  Scenario: A resource with a relation to a route should return the path instead of the IRI
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to the resource "page_data"
+    Then the response status code should be 200
+    And the JSON node "route" should be equal to the string "/_/routes//my-route"

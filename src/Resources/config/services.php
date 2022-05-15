@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
@@ -1278,4 +1279,12 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UuidUriVariableTransformer::class . '.inner'),
             ]
         );
+
+    $services
+        ->set(IriConverter::class)
+        ->decorate('api_platform.iri_converter')
+        ->args([
+            new Reference(IriConverter::class . '.inner'),
+        ]);
+    $services->alias('silverback.iri_converter', IriConverter::class);
 };
