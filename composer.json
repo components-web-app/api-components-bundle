@@ -7,10 +7,6 @@
         {
             "type": "vcs",
             "url": "https://github.com/silverbackdan/contexts"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/silverbackdan/core"
         }
     ],
     "require": {
@@ -20,7 +16,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "api-platform/core": "dev-fix/xml-provider",
+        "api-platform/core": "3.0.x-dev",
         "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/dbal": "^2.13.8",
