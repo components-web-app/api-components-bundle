@@ -16,7 +16,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "api-platform/core": "3.0.x-dev",
+        "api-platform/core": "2.7.x-dev",
         "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/dbal": "^2.13.8",
@@ -123,6 +123,7 @@
     },
     "conflict": {
         "willdurand/negotiation": "^2",
-        "symfony/proxy-manager-bridge": "<5.4"
+        "symfony/proxy-manager-bridge": "<5.4",
+        "symfony/serializer": "^6.1"
     }
 }

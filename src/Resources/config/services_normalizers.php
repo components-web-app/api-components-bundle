@@ -55,7 +55,7 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.openapi.factory')
         ->args([
             new Reference('silverback.api_components_bundle.open_api.factory.inner'),
-            new Reference('api_platform.metadata.resource.metadata_factory.short_name'),
+            new Reference('api_platform.metadata.resource.metadata_collection_factory'),
         ]);
 
     $services

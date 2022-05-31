@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1189,7 +1189,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.path_segment_name_generator'),
             ]
         );
-    $services->alias(ResourceMetadataFactoryInterface::class, 'silverback.metadata.api.component_resource_metadata_factory');
+    // $services->alias(ResourceMetadataCollectionFactoryInterface::class, 'silverback.metadata.api.component_resource_metadata_factory');
 
     $services
         ->set('silverback.metadata_factory.component_usage')

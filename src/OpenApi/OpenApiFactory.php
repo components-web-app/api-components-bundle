@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\OpenApi;
 
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\OpenApi;
@@ -30,9 +30,9 @@ use Symfony\Component\Form\Forms;
 class OpenApiFactory implements OpenApiFactoryInterface
 {
     private OpenApiFactoryInterface $decorated;
-    private ResourceMetadataFactoryInterface $resourceMetadataFactory;
+    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
 
-    public function __construct(OpenApiFactoryInterface $decorated, ResourceMetadataFactoryInterface $resourceMetadataFactory)
+    public function __construct(OpenApiFactoryInterface $decorated, ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory)
     {
         $this->decorated = $decorated;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -44,7 +44,9 @@ class OpenApiFactory implements OpenApiFactoryInterface
         foreach ($resourceClassNames as $resourceClassName) {
             try {
                 $metadata = $this->resourceMetadataFactory->create($resourceClassName);
-                $shortNames[] = $metadata->getShortName();
+                foreach ($metadata as $metadatum) {
+                    $shortNames[] = $metadatum->getShortName();
+                }
             } catch (ResourceClassNotFoundException $exception) {
                 // the component may not be enabled
             }
