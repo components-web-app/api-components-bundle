@@ -24,7 +24,11 @@ use ApiPlatform\Metadata\Operation;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 /**
  *  ApiPlatform\Doctrine\Orm\Filter\SearchFilter but using 'or' instead of 'and'
@@ -34,6 +38,14 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
     use SearchFilterTrait;
 
     public const DOCTRINE_INTEGER_TYPE = Types::INTEGER;
+
+    public function __construct(ManagerRegistry $managerRegistry, IriConverterInterface $iriConverter, PropertyAccessorInterface $propertyAccessor = null, LoggerInterface $logger = null, array $properties = null, NameConverterInterface $nameConverter = null)
+    {
+        parent::__construct($managerRegistry, $logger, $properties, $nameConverter);
+
+        $this->iriConverter = $iriConverter;
+        $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
+    }
 
     /**
      * {@inheritdoc}
