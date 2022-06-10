@@ -25,9 +25,9 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class VersionedDocumentationNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
-    private DocumentationNormalizer $decorated;
+    private NormalizerInterface|DocumentationNormalizer $decorated;
 
-    public function __construct(DocumentationNormalizer $decorated)
+    public function __construct(NormalizerInterface|DocumentationNormalizer $decorated)
     {
         $this->decorated = $decorated;
     }

@@ -81,9 +81,9 @@ abstract class AbstractPage implements RoutableInterface
         return $this->nested;
     }
 
-    public function setNested(bool $nested): self
+    public function setNested(?bool $nested): self
     {
-        $this->nested = $nested;
+        $this->nested = $nested ?? false;
 
         return $this;
     }
