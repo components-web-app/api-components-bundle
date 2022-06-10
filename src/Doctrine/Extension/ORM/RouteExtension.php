@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
-use ApiPlatform\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Symfony\Security\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -22,7 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RouteExtension implements ContextAwareQueryCollectionExtensionInterface
+class RouteExtension implements QueryCollectionExtensionInterface
 {
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
@@ -33,7 +34,7 @@ class RouteExtension implements ContextAwareQueryCollectionExtensionInterface
         $this->resourceAccessChecker = $resourceAccessChecker;
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
     {
         if (!$this->config || Route::class !== $resourceClass) {
             return;

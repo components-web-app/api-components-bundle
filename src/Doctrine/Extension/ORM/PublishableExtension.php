@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
-use ApiPlatform\Doctrine\Orm\Extension\ContextAwareQueryCollectionExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -27,7 +28,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableExtension implements QueryItemExtensionInterface, ContextAwareQueryCollectionExtensionInterface
+final class PublishableExtension implements QueryItemExtensionInterface, QueryCollectionExtensionInterface
 {
     private PublishableStatusChecker $publishableStatusChecker;
     private RequestStack $requestStack;
@@ -40,7 +41,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         $this->registry = $registry;
     }
 
-    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, string $operationName = null, array $context = []): void
+    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, Operation $operation = null, array $context = []): void
     {
         $configuration = $this->getConfiguration($resourceClass);
 
@@ -81,7 +82,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, Context
         $queryBuilder->setMaxResults(1);
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, string $operationName = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
     {
         if (!$configuration = $this->getConfiguration($resourceClass)) {
             return;
