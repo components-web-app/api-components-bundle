@@ -13,15 +13,14 @@ use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
  */
 #[ApiResource]
 #[ORM\Entity]
-#[ORM\Table(name: "`dummy_user`")]
-#[ApiFilter(OrSearchFilter::class, properties: [ 'username' => 'ipartial', 'emailAddress' => 'ipartial' ])]
+#[ApiFilter(OrSearchFilter::class, properties: [ 'field1' => 'ipartial', 'field2' => 'ipartial' ])]
 class DummyOrSearchFilterable
 {
     use IdTrait;
 
     #[Orm\Column]
-    protected ?string $username;
+    public ?string $field1 = null;
 
     #[Orm\Column]
-    protected ?string $emailAddress;
+    public ?string $field2 = null;
 }

@@ -524,6 +524,17 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the component position has a dummy component
+     */
+    public function theComponentPositionHasAStaticComponent()
+    {
+        /** @var ComponentPosition $componentPosition */
+        $componentPosition = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_position']);
+        $dummyComponent = $this->thereIsADummyComponent();
+        $componentPosition->setComponent($dummyComponent);
+    }
+
+    /**
      * @Given there is a PageData resource with the route path :route
      */
     public function thereIsAPageDataResourceWithRoutePath(?string $path): void

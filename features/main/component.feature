@@ -74,6 +74,21 @@ Feature: Components
     | component_position |
 
   @loginAdmin
+  Scenario: When deleting a component the component position should NOT be deleted if it has a dynamic reference
+    Given there is a PageData resource with the route path '/anything'
+    And the component position has a dummy component
+    When I send a "DELETE" request to the resource "dummy_component"
+    Then the response status code should be 204
+    And the resource component_position should exist
+
+  @loginAdmin
+  Scenario: When deleting a component the component position should be deleted if it does not have a dynamic reference
+    Given there is a DummyComponent in PageData and a Position
+    When I send a "DELETE" request to the resource "dummy_component"
+    Then the response status code should be 204
+    And the resource component_position should not exist
+
+  @loginAdmin
   Scenario: An orphaned component is deleted
     Given there is a PageData resource with the route path "/"
     When I send a "DELETE" request to the resource "page_data"
