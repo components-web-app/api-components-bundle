@@ -58,6 +58,7 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex
         run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
       - name: Install PHP-CS-Fixer
@@ -161,6 +162,7 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
@@ -311,6 +313,7 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
@@ -422,6 +425,7 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
@@ -502,6 +506,7 @@ jobs:
         continue-on-error: true
       - name: Install Symfony Flex & Configure Symfony Version
         run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --prefer-dist --no-progress --ansi \
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
@@ -589,6 +594,7 @@ jobs:
           continue-on-error: true
       -   name: Install Symfony Flex
           run: |
+            composer global config --no-plugins allow-plugins.symfony/flex true
             composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
       -   name: Allow unstable project dependencies
@@ -690,6 +696,7 @@ jobs:
           continue-on-error: true
       -   name: Install Symfony Flex
           run: |
+            composer global config --no-plugins allow-plugins.symfony/flex true
             composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
       -   name: Allow unstable project dependencies

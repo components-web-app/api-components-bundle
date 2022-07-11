@@ -92,7 +92,8 @@
         },
         "sort-packages": true,
         "allow-plugins": {
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/flex": true
         }
     },
     "autoload": {
