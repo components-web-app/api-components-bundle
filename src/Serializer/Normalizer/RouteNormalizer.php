@@ -40,7 +40,7 @@ class RouteNormalizer implements ContextAwareNormalizerInterface, CacheableSuppo
         $finalRoute = $object;
 
         $redirectedRoutes = [$finalRoute->getId()];
-        while (($nextRedirect = $finalRoute->getRedirect())) {
+        while ($nextRedirect = $finalRoute->getRedirect()) {
             if (\in_array($nextRedirect->getId(), $redirectedRoutes, true)) {
                 throw new CircularReferenceException(sprintf('The redirect routes result in a circular reference: %s', implode(' -> ', $redirectedRoutes)));
             }

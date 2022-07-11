@@ -31,7 +31,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 /**
- *  ApiPlatform\Doctrine\Orm\Filter\SearchFilter but using 'or' instead of 'and'
+ *  ApiPlatform\Doctrine\Orm\Filter\SearchFilter but using 'or' instead of 'and'.
  */
 final class OrSearchFilter extends AbstractFilter implements SearchFilterInterface
 {

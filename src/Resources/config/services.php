@@ -171,6 +171,7 @@ use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service_locator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
@@ -1310,9 +1311,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('doctrine'),
             new Reference('api_platform.iri_converter'),
             new Reference('api_platform.property_accessor'),
-            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
+            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ])
-        ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE))
-    ;
+        ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
 };
