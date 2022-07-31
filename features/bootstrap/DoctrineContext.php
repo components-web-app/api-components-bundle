@@ -17,6 +17,7 @@ use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Exception\ItemNotFoundException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
@@ -569,7 +570,21 @@ final class DoctrineContext implements Context
         $this->manager->flush();
     }
 
-    public function abstractThereIsADummyComponentInPageDataAndAPosition(?AbstractComponent $dummyComponent = null): void
+    /**
+     * @When I patch the PageData with the property :property and resource :resource
+     */
+    public function iPatchPageDataWithThePropertyAndResource(string $property, string $resource)
+    {
+        $iri = $this->restContext->resources[$resource];
+        $this->restContext->iSendARequestToTheResourceWithBody(
+            'PUT',
+            'page_data',
+            null,
+            new PyStringNode([sprintf('{ "%s": "%s" }', $property, $iri)], 0)
+        );
+    }
+
+    public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent, bool $setPageData = true): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
@@ -584,14 +599,14 @@ final class DoctrineContext implements Context
         $this->manager->persist($page);
 
         $pageData = new PageDataWithComponent();
-        if ($dummyComponent) {
+        if ($setPageData) {
             if ($dummyComponent instanceof DummyComponent) {
                 $pageData->component = $dummyComponent;
             } elseif ($dummyComponent instanceof DummyPublishableComponent) {
                 $pageData->publishableComponent = $dummyComponent;
             }
-            $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);
         }
+        $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);
 
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
@@ -599,7 +614,7 @@ final class DoctrineContext implements Context
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
 
         $componentPosition = new ComponentPosition();
-        if ($dummyComponent) {
+        if ($setPageData) {
             $componentPosition->component = $dummyComponent;
         } else {
             $componentPosition->pageDataProperty = 'component';
@@ -622,11 +637,11 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a PageData and a Position
+     * @Given there is a DummyComponent in a Position with an empty PageData
      */
     public function thereIsAPageDataAndAPosition()
     {
-        $this->abstractThereIsADummyComponentInPageDataAndAPosition();
+        $this->abstractThereIsADummyComponentInPageDataAndAPosition($this->thereIsADummyComponent(), false);
     }
 
     /**

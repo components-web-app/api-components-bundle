@@ -30,6 +30,7 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -48,8 +49,10 @@ class PurgeHttpCacheListener
     private ResourceClassResolverInterface $resourceClassResolver;
     private array $resourceIris = [];
     private array $tags = [];
+    private array $pageDataPropertiesChanged = [];
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
+    private ObjectRepository|EntityRepository $positionRepository;
 
     public function __construct(PurgerInterface $purger, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ManagerRegistry $entityManager)
     {
@@ -59,6 +62,7 @@ class PurgeHttpCacheListener
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
 
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
+        $this->positionRepository = $entityManager->getRepository(ComponentPosition::class);
     }
 
     /**
@@ -76,8 +80,12 @@ class PurgeHttpCacheListener
         $changeSet = $eventArgs->getEntityChangeSet();
         $associationMappings = $this->getAssociationMappings($eventArgs->getEntityManager(), $eventArgs->getObject());
 
-        foreach ($changeSet as $key => $value) {
-            if (!isset($associationMappings[$key])) {
+        if ($object instanceof PageDataInterface) {
+            $this->pageDataPropertiesChanged = array_keys($changeSet);
+        }
+
+        foreach ($changeSet as $field => $value) {
+            if (!isset($associationMappings[$field])) {
                 continue;
             }
 
@@ -114,8 +122,23 @@ class PurgeHttpCacheListener
      */
     public function postFlush(): void
     {
+        $this->purgePositionsWithPageDataProperties();
         $this->purgeCollectionResources();
         $this->purgeTags();
+    }
+
+    private function purgePositionsWithPageDataProperties(): void
+    {
+        foreach ($this->pageDataPropertiesChanged as $pageDataProperty) {
+            $positions = $this->positionRepository->findBy([
+                'pageDataProperty' => $pageDataProperty,
+            ]);
+            $positionIris = [];
+            foreach ($positions as $position) {
+                $positionIris[] = $this->iriConverter->getIriFromResource($position);
+            }
+            $this->purger->purge($positionIris);
+        }
     }
 
     private function purgeCollectionResources(): void
@@ -131,9 +154,6 @@ class PurgeHttpCacheListener
             ]);
             foreach ($collections as $collection) {
                 $collectionIris[] = $this->iriConverter->getIriFromResource($collection);
-            }
-
-            if ($resourceIri instanceof PageDataInterface) {
             }
         }
 
@@ -157,6 +177,10 @@ class PurgeHttpCacheListener
 
     private function addResourceClass($entity): void
     {
+        if (null === $entity) {
+            return;
+        }
+
         try {
             $resourceClass = $this->resourceClassResolver->getResourceClass($entity);
             $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
