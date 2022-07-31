@@ -525,6 +525,17 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the component position has the dynamic reference :ref
+     */
+    public function theComponentPositionHasTheDynamicReference(string $ref)
+    {
+        /** @var ComponentPosition $componentPosition */
+        $componentPosition = $this->iriConverter->getResourceFromIri($this->restContext->resources['position_0']);
+        $componentPosition->setPageDataProperty($ref);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a PageData resource with the route path :route
      */
     public function thereIsAPageDataResourceWithRoutePath(?string $path): void

@@ -37,9 +37,9 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
-    private SymfonyDataUriNormalizer $decorated;
+    private NormalizerInterface|SymfonyDataUriNormalizer $decorated;
 
-    public function __construct(SymfonyDataUriNormalizer $decorated)
+    public function __construct(NormalizerInterface|SymfonyDataUriNormalizer $decorated)
     {
         $this->decorated = $decorated;
     }

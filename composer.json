@@ -7,10 +7,6 @@
         {
             "type": "vcs",
             "url": "https://github.com/silverbackdan/contexts"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/silverbackdan/core"
         }
     ],
     "require": {
@@ -20,7 +16,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "api-platform/core": "dev-fix/xml-provider",
+        "api-platform/core": "^2.7.0-beta.4",
         "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/dbal": "^2.13.8",
@@ -96,7 +92,8 @@
         },
         "sort-packages": true,
         "allow-plugins": {
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/flex": true
         }
     },
     "autoload": {
@@ -127,6 +124,7 @@
     },
     "conflict": {
         "willdurand/negotiation": "^2",
-        "symfony/proxy-manager-bridge": "<5.4"
+        "symfony/proxy-manager-bridge": "<5.4",
+        "symfony/serializer": "6.1.0"
     }
 }

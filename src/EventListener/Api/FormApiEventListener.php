@@ -100,7 +100,7 @@ class FormApiEventListener
     public function onPostRespond(ResponseEvent $event): void
     {
         $request = $event->getRequest();
-        if ((!$data = $this->getData($request))) {
+        if (!$data = $this->getData($request)) {
             return;
         }
 

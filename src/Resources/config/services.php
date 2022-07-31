@@ -84,6 +84,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -146,6 +147,7 @@ use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as 
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -169,6 +171,7 @@ use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service_locator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
@@ -1287,4 +1290,29 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverter::class . '.inner'),
         ]);
     $services->alias('silverback.iri_converter', IriConverter::class);
+
+    /*
+     * <service id="api_platform.doctrine.orm.search_filter" class="ApiPlatform\Doctrine\Orm\Filter\SearchFilter" public="false" abstract="true">
+            <argument type="service" id="doctrine" />
+            <argument type="service" id="api_platform.iri_converter" />
+            <argument type="service" id="api_platform.property_accessor" />
+            <argument type="service" id="logger" on-invalid="ignore" />
+            <argument key="$nameConverter" type="service" id="api_platform.name_converter" on-invalid="ignore" />
+        </service>
+        <service id="ApiPlatform\Doctrine\Orm\Filter\SearchFilter" alias="api_platform.doctrine.orm.search_filter" />
+     */
+
+    $services
+        ->set('silverback.doctrine.orm.or_search_filter')
+        ->class(OrSearchFilter::class)
+        ->private()
+        ->abstract()
+        ->args([
+            new Reference('doctrine'),
+            new Reference('api_platform.iri_converter'),
+            new Reference('api_platform.property_accessor'),
+            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+        ])
+        ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
+    $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
 };
