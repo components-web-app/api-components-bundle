@@ -37,3 +37,23 @@ Feature: Dynamic pages
     When I send a "GET" request to the resource "component_position"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "component_position.schema.json"
+
+  @loginAdmin
+  Scenario: When a dynamic component is deleted, related component positions should be purged from the cache
+    Given there is a DummyComponent in PageData and a Position
+    When I send a "DELETE" request to the resource "page_data_component"
+    Then the response status code should be 204
+    And the resource "component_position" should be purged from the cache
+
+  @loginAdmin
+  Scenario: When a dynamic component is added, related component positions should be purged from the cache
+    Given there is a PageData and a Position
+    When I send a "POST" request to "/component/dummy_components" with body:
+    """
+    {
+      "uiComponent": "AnotherComponent",
+      "uiClassNames": ["my-class"]
+    }
+    """
+    Then the response status code should be 201
+    And the resource "component_position" should be purged from the cache

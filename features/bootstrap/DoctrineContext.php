@@ -569,7 +569,7 @@ final class DoctrineContext implements Context
         $this->manager->flush();
     }
 
-    public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent): void
+    public function abstractThereIsADummyComponentInPageDataAndAPosition(?AbstractComponent $dummyComponent = null): void
     {
         $componentCollection = new ComponentCollection();
         $componentCollection->reference = 'test';
@@ -584,18 +584,26 @@ final class DoctrineContext implements Context
         $this->manager->persist($page);
 
         $pageData = new PageDataWithComponent();
-        if ($dummyComponent instanceof DummyComponent) {
-            $pageData->component = $dummyComponent;
-        } elseif ($dummyComponent instanceof DummyPublishableComponent) {
-            $pageData->publishableComponent = $dummyComponent;
+        if ($dummyComponent) {
+            if ($dummyComponent instanceof DummyComponent) {
+                $pageData->component = $dummyComponent;
+            } elseif ($dummyComponent instanceof DummyPublishableComponent) {
+                $pageData->publishableComponent = $dummyComponent;
+            }
+            $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);
         }
+
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
 
         $componentPosition = new ComponentPosition();
-        $componentPosition->component = $dummyComponent;
+        if ($dummyComponent) {
+            $componentPosition->component = $dummyComponent;
+        } else {
+            $componentPosition->pageDataProperty = 'component';
+        }
         $componentPosition->componentCollection = $componentCollection;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -611,6 +619,14 @@ final class DoctrineContext implements Context
     public function thereIsADummyComponentInPageDataAndAPosition()
     {
         $this->abstractThereIsADummyComponentInPageDataAndAPosition($this->thereIsADummyComponent());
+    }
+
+    /**
+     * @Given there is a PageData and a Position
+     */
+    public function thereIsAPageDataAndAPosition()
+    {
+        $this->abstractThereIsADummyComponentInPageDataAndAPosition();
     }
 
     /**

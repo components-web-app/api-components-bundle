@@ -69,9 +69,12 @@ class ProfilerContext implements Context
                 $xkeyHeaders = $data->getValue()['xkey']->getValue();
                 foreach ($xkeyHeaders as $xkeyHeader) {
                     $iri = preg_replace('/^xkey\: /', '', $xkeyHeader->getValue());
-                    $purged[] = $iri;
-                    if ($iri === $expectedIri) {
-                        return true;
+                    $iris = explode(' ', $iri);
+                    array_push($purged, ...$iris);
+                    foreach ($iris as $purgedIri) {
+                        if ($purgedIri === $expectedIri) {
+                            return true;
+                        }
                     }
                 }
             }

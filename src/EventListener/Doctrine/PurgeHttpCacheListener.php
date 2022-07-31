@@ -30,6 +30,7 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
+use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
@@ -130,6 +131,9 @@ class PurgeHttpCacheListener
             ]);
             foreach ($collections as $collection) {
                 $collectionIris[] = $this->iriConverter->getIriFromResource($collection);
+            }
+
+            if ($resourceIri instanceof PageDataInterface) {
             }
         }
 
