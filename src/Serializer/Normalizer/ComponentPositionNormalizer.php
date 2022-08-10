@@ -108,19 +108,28 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
 
         $context[self::ALREADY_CALLED] = true;
 
-        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $object->component ? $this->iriConverter->getIriFromResource($object->component) : null;
-        $object = $this->normalizeForPageData($object);
+        $staticComponent = $object->component ? $this->getPublishableComponent($object->component) : null;
+        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $staticComponent ? $this->iriConverter->getIriFromResource($staticComponent) : null;
 
-        $component = $object->component;
+        $object = $this->normalizeForPageData($object);
+        if ($object->component !== $staticComponent) {
+            $component = $object->component;
+            $object->setComponent($this->getPublishableComponent($component));
+        }
+
+        return $this->normalizer->normalize($object, $format, $context);
+    }
+
+    private function getPublishableComponent($component)
+    {
         if (
             $component &&
             $this->publishableStatusChecker->getAnnotationReader()->isConfigured($component) &&
             $this->publishableStatusChecker->isGranted($component)
         ) {
-            $object->setComponent($this->normalizePublishableComponent($component));
+            return $this->normalizePublishableComponent($component);
         }
-
-        return $this->normalizer->normalize($object, $format, $context);
+        return $component;
     }
 
     private function normalizePublishableComponent(AbstractComponent $component)
