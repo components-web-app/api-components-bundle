@@ -27,7 +27,7 @@
     <server name="LEGACY" value="0"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
     <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
-    <server name="SYMFONY_PHPUNIT_VERSION" value="9.5"/>
+    <server name="SYMFONY_PHPUNIT_VERSION" value="9.5.2"/>
   </php>
   <logging>
     <junit outputFile="/tmp/infection/phpunit.junit.xml"/>
