@@ -79,7 +79,7 @@
         "symfony/maker-bundle": "^1.0",
         "symfony/mercure-bundle": "^0.3.4",
         "symfony/monolog-bundle": "^3.5",
-        "symfony/phpunit-bridge": "^5.4 || ^6 || dev-master",
+        "symfony/phpunit-bridge": "^6 || dev-master",
         "symfony/stopwatch": "^5.4 || ^6",
         "symfony/web-profiler-bundle": "^5.4 || ^6"
     },
