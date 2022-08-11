@@ -62,6 +62,8 @@ Feature: API Resources which can have files uploaded
 
   # GET
 
+  # See issue: https://github.com/api-platform/core/issues/4825
+  # possibly deprecated
   @loginUser @wip
   Scenario: I can get an image media resource with imagine filters configured
     Given there is a DummyUploadableWithImagineFilters
