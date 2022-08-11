@@ -62,7 +62,7 @@ Feature: API Resources which can have files uploaded
 
   # GET
 
-  @loginUser
+  @loginUser @wip
   Scenario: I can get an image media resource with imagine filters configured
     Given there is a DummyUploadableWithImagineFilters
     When I send a "GET" request to the resource "dummy_uploadable"

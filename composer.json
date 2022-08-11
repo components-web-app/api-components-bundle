@@ -125,6 +125,7 @@
     "conflict": {
         "willdurand/negotiation": "^2",
         "symfony/proxy-manager-bridge": "<5.4",
-        "symfony/serializer": "6.1.0"
+        "symfony/serializer": "6.1.0",
+        "doctrine/orm": "<2.13"
     }
 }
