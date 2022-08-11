@@ -444,7 +444,7 @@ jobs:
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+          vendor/bin/phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v1
