@@ -69,7 +69,6 @@
         "phpstan/phpstan-doctrine": "^0.12.7",
         "phpstan/phpstan-phpunit": "^0.12.4",
         "phpstan/phpstan-symfony": "^0.12.4",
-        "phpunit/phpunit": "^9.5.2",
         "roave/security-advisories": "dev-master",
         "symfony/browser-kit": "^5.4 || ^6",
         "symfony/css-selector": "^5.4 || ^6",
