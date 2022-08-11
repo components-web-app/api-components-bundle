@@ -129,6 +129,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, C
         ) {
             return $this->normalizePublishableComponent($component);
         }
+
         return $component;
     }
 

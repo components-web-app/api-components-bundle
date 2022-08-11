@@ -57,6 +57,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedComponentEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\PositionRemoveEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -1233,6 +1234,16 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.metadata_factory.page_data'),
                 new Reference('silverback.metadata_factory.component_usage'),
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+
+    $services
+        ->set('silverback.event_listener.api.position_remove')
+        ->class(PositionRemoveEventListener::class)
+        ->args(
+            [
                 new Reference(ManagerRegistry::class),
             ]
         )
