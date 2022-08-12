@@ -24,7 +24,7 @@ use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException as SymfonyUserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
@@ -108,7 +108,7 @@ final class JWTManager implements JWTTokenManagerInterface
         $identity = $payload[$idClaim];
         try {
             $user = $this->userProvider->loadUserByIdentifier($identity);
-        } catch (UsernameNotFoundException $e) {
+        } catch (SymfonyUserNotFoundException $e) {
             throw new UserNotFoundException($idClaim, $identity);
         }
 
@@ -126,7 +126,7 @@ final class JWTManager implements JWTTokenManagerInterface
 
     private function resolveCurrentRefreshToken(UserInterface $user): ?RefreshToken
     {
-        // the refresh token could have just ben expired and is being refreshed by another request
+        // the refresh token could have just been expired and is being refreshed by another request
         $refreshToken = $this->storage->findOneByUser($user);
         if (!$refreshToken || $refreshToken->isExpired()) {
             return null;

@@ -107,7 +107,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $definition->setArgument('$cookieProvider', $cookieProvider);
         }
 
-        $definition = $container->getDefinition('silverback.security.jwt_invalid_event_listener');
+        $definition = $container->getDefinition('silverback.security.jwt_clear_token_listener');
         $definition->setArgument('$cookieProvider', $cookieProvider);
 
         $definition = $container->getDefinition('silverback.security.jwt_manager');

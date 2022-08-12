@@ -71,8 +71,8 @@ use Silverback\ApiComponentsBundle\EventListener\Form\User\NewEmailAddressListen
 use Silverback\ApiComponentsBundle\EventListener\Form\User\PasswordUpdateListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\UserRegisterListener;
 use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTInvalidEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -664,13 +664,14 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(JWTEventListener::class, 'silverback.security.jwt_event_listener');
 
     $services
-        ->set('silverback.security.jwt_invalid_event_listener')
-        ->class(JWTInvalidEventListener::class)
+        ->set('silverback.security.jwt_clear_token_listener')
+        ->class(JWTClearTokenListener::class)
         ->args([
             '', // injected in dependency injection
         ])
-        ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid']);
-    $services->alias(JWTInvalidEventListener::class, 'silverback.security.jwt_invalid_event_listener');
+        ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid'])
+        ->tag('kernel.event_listener', ['event' => Events::JWT_EXPIRED, 'method' => 'onJwtExpired']);
+    $services->alias(JWTClearTokenListener::class, 'silverback.security.jwt_clear_token_listener');
 
     $services
         ->set('silverback.security.logout_listener')

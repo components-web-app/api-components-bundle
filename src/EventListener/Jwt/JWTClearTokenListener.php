@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTExpiredEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTInvalidEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class JWTInvalidEventListener
+class JWTClearTokenListener
 {
     private JWTCookieProvider $cookieProvider;
 
@@ -31,7 +33,16 @@ class JWTInvalidEventListener
 
     public function onJwtInvalid(JWTInvalidEvent $event): void
     {
-        $response = $event->getResponse();
+        $this->clearJwtCookie($event->getResponse());
+    }
+
+    public function onJwtExpired(JWTExpiredEvent $event): void
+    {
+        $this->clearJwtCookie($event->getResponse());
+    }
+
+    private function clearJwtCookie(Response $response): void
+    {
         $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
     }
 }
