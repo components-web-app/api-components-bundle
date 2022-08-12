@@ -177,8 +177,13 @@ class ComponentCollection
         return $this;
     }
 
-    public function setAllowedComponents(iterable $allowedComponents): self
+    public function setAllowedComponents(?iterable $allowedComponents): self
     {
+        if (!$allowedComponents) {
+            $this->allowedComponents = null;
+
+            return $this;
+        }
         $this->allowedComponents = [];
         foreach ($allowedComponents as $componentIri) {
             $this->addAllowedComponent($componentIri);
