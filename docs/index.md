@@ -24,6 +24,10 @@ The teams behind these packages are fantastic, be sure to __buy them a beer__ if
 
 > __Want a free and easy way to show your thanks for packages you use? Use the [`symfony/thanks`](https://github.com/symfony/thanks) composer package - share the love :heart:, share the stars :star:__
 
+## Sponsors
+
+[![Blackfire](./images/blackfire-io_secondary_horizontal_transparent.png)](https://blackfire.io/)
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
