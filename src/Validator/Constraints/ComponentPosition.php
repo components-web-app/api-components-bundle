@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Constraint;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
  * @Annotation
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]

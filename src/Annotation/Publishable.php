@@ -17,6 +17,7 @@ namespace Silverback\ApiComponentsBundle\Annotation;
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  *
  * @Annotation
+ *
  * @Target("CLASS")
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]

@@ -54,6 +54,7 @@ class RestContext implements Context
 
     /**
      * @AfterScenario
+     *
      * @restartBrowser
      */
     public function restartBrowser(): void
@@ -87,6 +88,7 @@ class RestContext implements Context
 
     /**
      * @Transform /^(now)$/
+     *
      * @BeforeScenario @saveNow
      */
     public function getCachedNow(): string

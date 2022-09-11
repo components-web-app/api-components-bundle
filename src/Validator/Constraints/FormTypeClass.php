@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraint;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
  * @Annotation
  */
 class FormTypeClass extends Constraint

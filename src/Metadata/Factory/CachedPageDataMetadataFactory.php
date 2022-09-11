@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ *
  * @description Based on API Platform CachedResourceMetadataFactory by Teoh Han Hui <teohhanhui@gmail.com>
  */
 class CachedPageDataMetadataFactory implements PageDataMetadataFactoryInterface
