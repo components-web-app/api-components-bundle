@@ -19,6 +19,8 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
+use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -227,6 +229,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
     {
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_components.form_type');
+
+        $container->registerForAutoconfiguration(FormSuccessEventListenerInterface::class)
+            ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');

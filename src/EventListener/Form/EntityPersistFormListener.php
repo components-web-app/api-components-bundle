@@ -28,7 +28,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class EntityPersistFormListener
+abstract class EntityPersistFormListener implements FormSuccessEventListenerInterface
 {
     use ClassMetadataTrait;
 
@@ -68,7 +68,7 @@ abstract class EntityPersistFormListener
         $this->userDataProcessor = $userDataProcessor;
     }
 
-    public function __invoke(FormSuccessEvent $event)
+    public function __invoke(FormSuccessEvent $event): void
     {
         // This is not a sub-request because forms have greater permissions to create entitites with whatever properties wanted.
 
