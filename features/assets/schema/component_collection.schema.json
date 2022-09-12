@@ -11,7 +11,7 @@
         "persisted": true
       },
       "createdAt": "2020-05-10T14:07:56+00:00",
-      "@context": "/contexts/ComponentCollection",
+      "@context": "/contexts/ComponentGroup",
       "@id": "/_/component_groups/a5d4682c-92c7-11ea-8abf-acde48001122",
       "layouts": [],
       "components": [],
@@ -19,7 +19,7 @@
       "location": "collection_location",
       "componentPositions": [],
       "pages": [],
-      "@type": "ComponentCollection",
+      "@type": "ComponentGroup",
       "modifiedAt": "2020-05-10T14:07:56+00:00"
     }
   ],
@@ -46,7 +46,7 @@
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "examples": [
-        "/contexts/ComponentCollection"
+        "/contexts/ComponentGroup"
       ]
     },
     "@id": {
@@ -66,7 +66,7 @@
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "examples": [
-        "ComponentCollection"
+        "ComponentGroup"
       ]
     },
     "reference": {
