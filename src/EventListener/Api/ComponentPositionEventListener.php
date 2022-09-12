@@ -17,12 +17,13 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PositionRemoveEventListener
+class ComponentPositionEventListener
 {
     private ManagerRegistry $registry;
 
@@ -33,8 +34,33 @@ class PositionRemoveEventListener
 
     public function onPreWrite(ViewEvent $event): void
     {
+        $this->removeEmptyPositions($event);
+    }
+
+    public function onPostRespond(ResponseEvent $event): void
+    {
+        $this->addVaryHeader($event);
+    }
+
+    private function addVaryHeader(ResponseEvent $event): void
+    {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
+        $method = $request->getMethod();
+        if (!$data instanceof ComponentPosition || Request::METHOD_GET !== $method) {
+            return;
+        }
+        if ($data->getPageDataProperty()) {
+            $response = $event->getResponse();
+            $response->setVary('path', false);
+        }
+    }
+
+    private function removeEmptyPositions(ViewEvent $event): void
+    {
+        $request = $event->getRequest();
+        $data = $request->attributes->get('data');
+        // if we are deleting a component - check the positions for deletion as well
         if (!$data instanceof AbstractComponent || !$request->isMethod(Request::METHOD_DELETE)) {
             return;
         }

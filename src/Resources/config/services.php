@@ -54,10 +54,10 @@ use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedComponentEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\PositionRemoveEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -1242,13 +1242,14 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set('silverback.event_listener.api.position_remove')
-        ->class(PositionRemoveEventListener::class)
+        ->class(ComponentPositionEventListener::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
             ]
         )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
 
     $services
         ->set('silverback.metadata_provider.page_data')
