@@ -39,7 +39,7 @@ class ComponentPositionValidator extends ConstraintValidator
      */
     public function validate($componentPosition, Constraint $constraint): void
     {
-        $collection = $componentPosition->componentCollection;
+        $collection = $componentPosition->componentGroup;
         if (!$collection) {
             return;
         }

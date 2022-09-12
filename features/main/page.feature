@@ -9,17 +9,17 @@ Feature: Page resources
 
   @loginUser
   Scenario Outline: I can create a page
-    Given there is a ComponentCollection with 0 components
+    Given there is a ComponentGroup with 0 components
     And there is a Layout
     And there are 2 Routes
     When I send a "POST" request to "/_/pages" with data:
-      | route    | parentRoute      | layout    | componentCollection   | reference   | title   | metaDescription   | nested    | uiComponent   | isTemplate   |
-      | <route>  | <parentRoute>    | <layout>  | <componentCollection> | <reference> | <title> | <metaDescription> | <nested>  | <uiComponent> | <isTemplate> |
+      | route    | parentRoute      | layout    | ComponentGroup   | reference   | title   | metaDescription   | nested    | uiComponent   | isTemplate   |
+      | <route>  | <parentRoute>    | <layout>  | <ComponentGroup> | <reference> | <title> | <metaDescription> | <nested>  | <uiComponent> | <isTemplate> |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
     Examples:
-      | route              | parentRoute            | layout             | componentCollection            | reference | title     | metaDescription | nested | uiComponent      | isTemplate |
-      | resource[route_0]  | resource[route_1]      | resource[layout]   | resource[component_collection] | home      | Home page | my meta         | false  | myComponent      | true       |
+      | route              | parentRoute            | layout             | ComponentGroup            | reference | title     | metaDescription | nested | uiComponent      | isTemplate |
+      | resource[route_0]  | resource[route_1]      | resource[layout]   | resource[component_group] | home      | Home page | my meta         | false  | myComponent      | true       |
       | null               | null                   | resource[layout]   | null                           | home      | null      | null            | true   | myComponent      | false      |
 
   @loginUser

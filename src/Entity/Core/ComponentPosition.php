@@ -39,7 +39,7 @@ class ComponentPosition
 
     #[Assert\NotNull]
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
-    public ?ComponentCollection $componentCollection = null;
+    public ?ComponentGroup $componentGroup = null;
 
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write'])]
     public ?AbstractComponent $component = null;
@@ -56,12 +56,12 @@ class ComponentPosition
      */
     public function getSortCollection(): ?Collection
     {
-        return $this->componentCollection ? $this->componentCollection->componentPositions : null;
+        return $this->componentGroup ? $this->componentGroup->componentPositions : null;
     }
 
-    public function setComponentCollection(ComponentCollection $componentCollection): self
+    public function setComponentGroup(ComponentGroup $componentGroup): self
     {
-        $this->componentCollection = $componentCollection;
+        $this->componentGroup = $componentGroup;
 
         return $this;
     }

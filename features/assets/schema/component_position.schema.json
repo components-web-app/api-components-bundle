@@ -15,7 +15,7 @@
           "@context": "/contexts/ComponentPosition",
           "@id": "/_/component_positions/61ffe5b8-a023-11ea-9f5f-acde48001122",
           "@type": "ComponentPosition",
-          "componentCollection": "/_/component_collections/61ffe1da-a023-11ea-af3c-acde48001122",
+          "componentGroup": "/_/component_groups/61ffe1da-a023-11ea-af3c-acde48001122",
           "component": "/component/dummy_components/61ffe41e-a023-11ea-b865-acde48001122",
           "sortValue": 0,
           "createdAt": "2020-05-27T14:07:21+00:00",
@@ -29,7 +29,7 @@
         "@context",
         "@id",
         "@type",
-        "componentCollection",
+        "componentGroup",
         "component",
         "sortValue"
       ],
@@ -65,14 +65,14 @@
             "ComponentPosition"
           ]
         },
-        "componentCollection": {
-          "$id": "#/properties/componentCollection",
+        "componentGroup": {
+          "$id": "#/properties/ComponentGroup",
           "type": "string",
-          "title": "The componentCollection schema",
+          "title": "The ComponentGroup schema",
           "description": "An explanation about the purpose of this instance.",
           "default": "",
           "examples": [
-            "/_/component_collections/61ffe1da-a023-11ea-af3c-acde48001122"
+            "/_/component_groups/61ffe1da-a023-11ea-af3c-acde48001122"
           ]
         },
         "component": {

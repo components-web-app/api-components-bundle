@@ -42,7 +42,7 @@ class Page extends AbstractPage
 
     public function __construct()
     {
-        $this->initComponentCollections();
+        $this->initComponentGroups();
     }
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void

@@ -20,7 +20,7 @@ The main principle of this data structure is to allow you to configure which UI 
 ### The Resource Structure
 1. As an API user you will request a `Route` resource which will have a `Page` resource.
 1. The `Page` resource will use a `Layout` resource which can be used across multiple pages.
-1. Both `Page` and `Layout` resources will contain (possibly more than one) `ComponentCollection` resource(s) to group your components into.
+1. Both `Page` and `Layout` resources will contain (possibly more than one) `ComponentGroup` resource(s) to group your components into.
 1. Within the collection you will have many `ComponentPosition` resources which define which component is displayed within it, and the order in which to display it.
 1. You will create the component resources by extending `AbstractComponent`.
 
@@ -45,15 +45,15 @@ You will have made this API resource which is very easy, as we will show later, 
 ### What is a ComponentPosition resource?
 You can locate a component within Component Collections (which we will talk about in a moment). This is simply a resource that determines collection(s) the component is rendered, and the position within it.
 
-### What is a ComponentCollection resource?
+### What is a ComponentGroup resource?
 This is simply a group of ComponentPosition resources. A collection must have a reference so that the front-end application knows which collection to place where within the structure of a given page or layout.
 
-For example, in a layout you may have a ComponentCollection which you can create with the reference `header` so your UI component can be configured to render a Navigation component within a header area.
+For example, in a layout you may have a ComponentGroup which you can create with the reference `header` so your UI component can be configured to render a Navigation component within a header area.
 
 ### What is a Page resource?
-This is a structure for the main area of a page. This should not include a layout which is re-used across multiple pages. Component groups will be located within a page. For example the page may display a 2-column layout and there would be a ComponentCollection for each column. You could give the collections the references `left-column` and `right-column` in this instance. The page must specify which UI component to use.
+This is a structure for the main area of a page. This should not include a layout which is re-used across multiple pages. Component groups will be located within a page. For example the page may display a 2-column layout and there would be a ComponentGroup for each column. You could give the collections the references `left-column` and `right-column` in this instance. The page must specify which UI component to use.
 
 ### What is a Layout resource?
-This is very similar to a `Page` where it will primarily define which UI component to use for the layout which will be re-used across multiple pages. It will usually also contain `ComponentCollection` resources.
+This is very similar to a `Page` where it will primarily define which UI component to use for the layout which will be re-used across multiple pages. It will usually also contain `ComponentGroup` resources.
 
 
