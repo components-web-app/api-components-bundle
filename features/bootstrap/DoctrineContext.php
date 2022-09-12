@@ -373,7 +373,7 @@ final class DoctrineContext implements Context
         }
         $this->manager->flush();
 
-        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromResource($componentGroup);
+        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
 
         return $componentGroup;
     }
@@ -384,7 +384,7 @@ final class DoctrineContext implements Context
     public function theComponentGroupHasTheAllowedComponents(string $allowedComponent): void
     {
         /** @var ComponentGroup $collection */
-        $collection = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_collection']);
+        $collection = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_group']);
         if ('' !== $allowedComponent) {
             $collection->allowedComponents = [$allowedComponent];
         }
