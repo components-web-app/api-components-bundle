@@ -40,7 +40,7 @@ abstract class AbstractComponent implements ComponentInterface
 
     public function __construct()
     {
-        $this->initComponentCollections();
+        $this->initComponentGroups();
         $this->componentPositions = new ArrayCollection();
     }
 

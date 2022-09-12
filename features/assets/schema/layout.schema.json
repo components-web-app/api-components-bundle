@@ -13,7 +13,7 @@
         "createdAt",
         "modifiedAt",
         "uiComponent",
-        "componentCollections"
+        "componentGroups"
       ],
       "properties": {
         "@context": {
@@ -57,7 +57,7 @@
             "type": "string"
           }
         },
-        "componentCollections": {
+        "componentGroups": {
           "type": "array",
           "items": {
             "type": "string",

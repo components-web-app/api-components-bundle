@@ -53,7 +53,7 @@ class Layout
 
     public function __construct()
     {
-        $this->initComponentCollections();
+        $this->initComponentGroups();
         $this->pages = new ArrayCollection();
     }
 

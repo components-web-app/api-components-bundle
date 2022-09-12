@@ -41,7 +41,7 @@ You should get a 201 HTTP response with the new resource
   "createdAt": "2020-05-26T15:55:01+00:00",
   "modifiedAt": "2020-05-26T15:55:01+00:00",
   "uiComponent": "PrimaryLayout",
-  "componentCollections": [],
+  "componentGroups": [],
   "_metadata": {
     "persisted": true
   }
@@ -50,7 +50,7 @@ You should get a 201 HTTP response with the new resource
 
 ## Create a Page
 
-The page will define a UI component which will display `ComponentCollection` resources wherever you have configured it to do so in your front-end application. For example, the page could be a 2-column layout and there would be a `ComponentCollection` for each column. It must also define which layout it uses and a reference.
+The page will define a UI component which will display `ComponentGroup` resources wherever you have configured it to do so in your front-end application. For example, the page could be a 2-column layout and there would be a `ComponentGroup` for each column. It must also define which layout it uses and a reference.
 
 Let's create the page. Send a JSON POST request to the endpoint `/_/pages`:
 ```json
@@ -75,7 +75,7 @@ You should get a 201 HTTP response with the new resource
   "createdAt": "2020-05-26T15:55:36+00:00",
   "modifiedAt": "2020-05-26T15:55:36+00:00",
   "uiComponent": "ExamplePageTemplateComponent",
-  "componentCollections": [],
+  "componentGroups": [],
   "nested": true,
   "title": "My Demo Page",
   "metaDescription": "Once upon a time I was learning how to create my resources for an API Component Bundle project.",
@@ -85,11 +85,11 @@ You should get a 201 HTTP response with the new resource
 }
 ```
 
-## Create a ComponentCollection
+## Create a ComponentGroup
 
-The UI component in the front-end application will be looking for a `ComponentCollection` resource with a given reference so that it knows which collection of components to display where. In this example we will assume the UI component will only be expecting 1 ComponentCollection resource with the reference `main_body`.
+The UI component in the front-end application will be looking for a `ComponentGroup` resource with a given reference so that it knows which collection of components to display where. In this example we will assume the UI component will only be expecting 1 `ComponentGroup` resource with the reference `main_body`.
 
-Let's create this resource by sending a POST request to the endpoint `/_/component_collections`
+Let's create this resource by sending a POST request to the endpoint `/_/component_groups`
 
 ```json
 {
@@ -104,9 +104,9 @@ You should get an HTTP 201 response with the resource
 
 ```json
 {
-  "@context": "/contexts/ComponentCollection",
-  "@id": "/_/component_collections/6866c422-9f69-11ea-a2d3-acde48001122",
-  "@type": "ComponentCollection",
+  "@context": "/contexts/ComponentGroup",
+  "@id": "/_/component_groups/6866c422-9f69-11ea-a2d3-acde48001122",
+  "@type": "ComponentGroup",
   "reference": "main_body",
   "layouts": [],
   "pages": [],
@@ -165,7 +165,7 @@ You will have made all your components in the API before your front-end applicat
 
 ### Add the component to your page
 
-Let's create this component resource now. You could add the component and then add the `ComponentPosition` resource to place it within the ComponentCollection. However in the example below we will add the resource and position it in the same request.
+Let's create this component resource now. You could add the component and then add the `ComponentPosition` resource to place it within the ComponentGroup. However, in the example below we will add the resource and position it in the same request.
 
 You will notice all components you create are prefixed with `/component`.
 
@@ -176,7 +176,7 @@ Send your JSON request to the endpoint `/component/html_components`:
   "html": "<p>Hello Covid World</p>",
   "componentPositions": [
     {
-      "componentCollection": "/_/component_collections/6866c422-9f69-11ea-a2d3-acde48001122"
+      "componentGroup": "/_/component_groups/6866c422-9f69-11ea-a2d3-acde48001122"
     }
   ],
   "uiComponent": "HtmlComponent"
@@ -192,7 +192,7 @@ You will receive a 201 HTTP response with the resource
   "@type": "HtmlComponent",
   "html": "<p>Hello Covid World</p>",
   "uiComponent": "HtmlComponent",
-  "componentCollections": [],
+  "componentGroups": [],
   "_metadata": {
     "persisted": true
   }
@@ -201,7 +201,7 @@ You will receive a 201 HTTP response with the resource
 
 ## Create a Route
 
-Finally you will want your page to be accessible via a route/path.
+Finally, you will want your page to be accessible via a route/path.
 
 
 Send your JSON POST request to `/_/routes`

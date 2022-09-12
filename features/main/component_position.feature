@@ -9,47 +9,47 @@ Feature: Component positions
 
   @loginUser
   Scenario: Create a new component position resource
-    Given there is a ComponentCollection with 0 components
+    Given there is a ComponentGroup with 0 components
     And there is a DummyComponent
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentCollection             | component                  |
-      | resource[component_collection] | resource[dummy_component] |
+      | componentGroup             | component                  |
+      | resource[component_group] | resource[dummy_component] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_position.schema.json"
 
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection and a component that must be specifically defined as being allowed to pass validation
-    Given there is a ComponentCollection with 0 components
-    And the ComponentCollection has the allowedComponent "<allowedComponent>"
+    Given there is a ComponentGroup with 0 components
+    And the ComponentGroup has the allowedComponent "<allowedComponent>"
     And there is a DummyComponent
     And there is a RestrictedComponent
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentCollection   | component   |
-      | <componentCollection> | <component> |
+      | componentGroup   | component   |
+      | <componentGroup> | <component> |
     Then the response status code should be <status>
     Examples:
-      | component                       | componentCollection             | status | allowedComponent                 |
-      | resource[dummy_component]       | resource[component_collection]  | 422    | /component/restricted_components |
-      | resource[restricted_component]  | resource[component_collection]  | 201    | /component/restricted_components |
-      | resource[restricted_component]  | resource[component_collection]  | 422    |                                  |
-      | resource[dummy_component]       | resource[component_collection]  | 201    |                                  |
+      | component                       | componentGroup                  | status | allowedComponent                 |
+      | resource[dummy_component]       | resource[component_group]  | 422    | /component/restricted_components |
+      | resource[restricted_component]  | resource[component_group]  | 201    | /component/restricted_components |
+      | resource[restricted_component]  | resource[component_group]  | 422    |                                  |
+      | resource[dummy_component]       | resource[component_group]  | 201    |                                  |
 
   @loginUser
   Scenario: ComponentPosition sortValue auto-increments
-    Given there is a ComponentCollection with 1 components
+    Given there is a ComponentGroup with 1 components
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentCollection             | component              |
-      | resource[component_collection] | resource[component_0] |
+      | componentGroup                 | component              |
+      | resource[component_group] | resource[component_0] |
     Then the response status code should be 201
     And the JSON node "sortValue" should be equal to the number 1
     And the JSON should be valid according to the schema file "component_position.schema.json"
 
   @loginUser
   Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
-    Given there is a ComponentCollection with 3 components
+    Given there is a ComponentGroup with 3 components
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentCollection             | component              | sortValue   |
-      | resource[component_collection]  | resource[component_0]  | 1           |
+      | componentGroup                  | component              | sortValue   |
+      | resource[component_group]  | resource[component_0]  | 1           |
     Then the response status code should be 201
     And the JSON node "sortValue" should be equal to the number 1
     And I add "Content-Type" header equal to "application/ld+json"
@@ -71,11 +71,11 @@ Feature: Component positions
 
   @loginUser
   Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
-    Given there is a ComponentCollection with 4 components
+    Given there is a ComponentGroup with 4 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_2" with data:
-      | componentCollection             | component              | sortValue   |
-      | resource[component_collection]  | resource[component_0]  | 3           |
+      | componentGroup                  | component              | sortValue   |
+      | resource[component_group]  | resource[component_0]  | 3           |
     Then the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 3
 
@@ -100,11 +100,11 @@ Feature: Component positions
 
   @loginUser
   Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
-    Given there is a ComponentCollection with 4 components
+    Given there is a ComponentGroup with 4 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_2" with data:
-      | componentCollection             | component              | sortValue   |
-      | resource[component_collection]  | resource[component_0]  | 1           |
+      | componentGroup                  | component              | sortValue   |
+      | resource[component_group]  | resource[component_0]  | 1           |
     Then the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 1
 

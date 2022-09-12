@@ -10,13 +10,13 @@
         <field name="uiComponent" type="string" column="ui_component" precision="0" scale="0" nullable="true"/>
         <field name="uiClassNames" type="json" column="ui_class_names" precision="0" scale="0" nullable="true"/>
         <one-to-many field="pages" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Page" mapped-by="layout" fetch="LAZY"/>
-        <many-to-many field="componentCollections" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection" inversed-by="layouts" fetch="LAZY">
-            <join-table name="layout_component_collection">
+        <many-to-many field="componentCollections" target-entity="Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup" inversed-by="layouts" fetch="LAZY">
+            <join-table name="layout_component_group">
                 <join-columns>
                     <join-column name="layout_id" referenced-column-name="id" on-delete="CASCADE"/>
                 </join-columns>
                 <inverse-join-columns>
-                    <join-column name="component_collection_id" referenced-column-name="id" on-delete="CASCADE"/>
+                    <join-column name="component_group_id" referenced-column-name="id" on-delete="CASCADE"/>
                 </inverse-join-columns>
             </join-table>
         </many-to-many>

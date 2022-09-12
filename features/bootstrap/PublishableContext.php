@@ -24,7 +24,7 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
@@ -136,7 +136,7 @@ final class PublishableContext implements Context
      */
     public function thereIsAComponentPositionWithTheResource(string $resource)
     {
-        $collection = new ComponentCollection();
+        $collection = new ComponentGroup();
         $collection
             ->setReference('dummy_collection')
             ->setLocation('nowhere')
@@ -146,7 +146,7 @@ final class PublishableContext implements Context
 
         $position = new ComponentPosition();
         $position
-            ->setComponentCollection($collection)
+            ->setComponentGroup($collection)
             ->setComponent($this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]))
             ->setSortValue(1)
             ->setCreatedAt(new \DateTimeImmutable())

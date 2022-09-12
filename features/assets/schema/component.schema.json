@@ -12,7 +12,7 @@
       "_metadata": {
         "persisted": true
       },
-      "componentCollections": [],
+      "componentGroups": [],
       "@context": "/contexts/DummyComponent",
       "@id": "/component/dummy_components/89acb20e-92c6-11ea-9c43-acde48001122"
     }
@@ -22,7 +22,7 @@
     "@id",
     "@type",
     "componentPositions",
-    "componentCollections",
+    "componentGroups",
     "_metadata"
   ],
   "additionalProperties": true,
@@ -73,10 +73,10 @@
         }
       ]
     },
-    "componentCollections": {
-      "$id": "#/properties/componentCollections",
+    "componentGroups": {
+      "$id": "#/properties/ComponentGroups",
       "type": "array",
-      "title": "The componentCollections schema",
+      "title": "The ComponentGroups schema",
       "description": "An explanation about the purpose of this instance.",
       "default": [],
       "examples": [
@@ -85,7 +85,7 @@
       "additionalItems": true,
       "items": [
         {
-          "$id": "#/properties/componentCollections/items"
+          "$id": "#/properties/ComponentGroups/items"
         }
       ]
     },

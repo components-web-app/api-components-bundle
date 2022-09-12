@@ -26,7 +26,7 @@ Resource Endpoint: `/_/layouts`
   "reference": "primary",
   "uiComponent": "PrimaryLayout",
   "classNames": ["has-border"],
-  "componentCollections": [ "/_/components_collections/abcd-1234" ]
+  "componentGroups": [ "/_/component_groups/abcd-1234" ]
 }
 ```
 
@@ -48,13 +48,13 @@ Resource endpoint: `/_/pages`
   "parentRoute": "/_/route/abcd-4567",
   "nested": false,
   "layout": "/_/layouts/abcd-1234",
-  "componentCollections": [ "/_/components_collections/abcd-1234" ]
+  "componentGroups": [ "/_/component_groups/abcd-1234" ]
 }
 ```
 
-## ComponentCollection
+## ComponentGroup
 
-Resource endpoint: `/_/component_collections`
+Resource endpoint: `/_/component_groups`
 
 ##### Sample post request
 {: .no_toc }
@@ -82,7 +82,7 @@ You would normally create this resource at the same time as creating your compon
 
 ```json
 {
-  "componentCollection": "/_/component_collections/abcd-1234",
+  "componentGroup": "/_/component_groups/abcd-1234",
   "component": "/components/heroes/efgh-4567",
   "sortValue": 1
 }

@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Utility;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -32,37 +32,37 @@ trait UiTrait
     public ?array $uiClassNames = null;
 
     /**     *
-     * @var Collection|ComponentCollection[]
+     * @var Collection|ComponentGroup[]
      */
-    #[Orm\ManyToMany(targetEntity: ComponentCollection::class)]
-    private Collection $componentCollections;
+    #[Orm\ManyToMany(targetEntity: ComponentGroup::class)]
+    private Collection $componentGroups;
 
     public function __construct()
     {
-        $this->initComponentCollections();
+        $this->initComponentGroups();
     }
 
-    private function initComponentCollections(): void
+    private function initComponentGroups(): void
     {
-        $this->componentCollections = new ArrayCollection();
+        $this->componentGroups = new ArrayCollection();
     }
 
     /**
-     * @return Collection|ComponentCollection[]
+     * @return Collection|ComponentGroup[]
      */
-    public function getComponentCollections()
+    public function getComponentGroups()
     {
-        return $this->componentCollections;
+        return $this->componentGroups;
     }
 
     /**
      * @return static
      */
-    public function setComponentCollections(iterable $componentCollections)
+    public function setComponentGroups(iterable $componentGroups)
     {
-        $this->componentCollections = new ArrayCollection();
-        foreach ($componentCollections as $componentCollection) {
-            $this->addComponentCollection($componentCollection);
+        $this->componentGroups = new ArrayCollection();
+        foreach ($componentGroups as $componentGroup) {
+            $this->addComponentGroup($componentGroup);
         }
 
         return $this;
@@ -71,10 +71,10 @@ trait UiTrait
     /**
      * @return static
      */
-    public function addComponentCollection(ComponentCollection $componentCollection)
+    public function addComponentGroup(ComponentGroup $componentGroup)
     {
-        if (!$this->componentCollections->contains($componentCollection)) {
-            $this->componentCollections->add($componentCollection);
+        if (!$this->componentGroups->contains($componentGroup)) {
+            $this->componentGroups->add($componentGroup);
         }
 
         return $this;
@@ -83,10 +83,10 @@ trait UiTrait
     /**
      * @return static
      */
-    public function removeComponentCollection(ComponentCollection $componentCollection)
+    public function removeComponentGroup(ComponentGroup $componentGroup)
     {
-        if ($this->componentCollections->contains($componentCollection)) {
-            $this->componentCollections->remove($componentCollection);
+        if ($this->componentGroups->contains($componentGroup)) {
+            $this->componentGroups->remove($componentGroup);
         }
 
         return $this;

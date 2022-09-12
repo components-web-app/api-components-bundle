@@ -30,7 +30,7 @@ use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentCollection;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
@@ -343,20 +343,20 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given /^there is a ComponentCollection with (\d+) components(?:| and the ID "([^"]+)")$/
+     * @Given /^there is a ComponentGroup with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentCollectionWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentCollection
+    public function thereIsAComponentGroupWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentGroup
     {
-        $componentCollection = new ComponentCollection();
-        $componentCollection->reference = $collectionReference;
-        $componentCollection->location = $collectionReference;
-        $componentCollection->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
-        $this->manager->persist($componentCollection);
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = $collectionReference;
+        $componentGroup->location = $collectionReference;
+        $componentGroup->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->manager->persist($componentGroup);
         if ($id) {
-            $reflection = new \ReflectionClass($componentCollection);
+            $reflection = new \ReflectionClass($componentGroup);
             $reflectionProp = $reflection->getProperty('id');
             $reflectionProp->setAccessible(true);
-            $reflectionProp->setValue($componentCollection, Uuid::fromString($id));
+            $reflectionProp->setValue($componentGroup, Uuid::fromString($id));
         }
 
         for ($x = 0; $x < $count; ++$x) {
@@ -365,7 +365,7 @@ final class DoctrineContext implements Context
             $position = new ComponentPosition();
             $position->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
             $position->sortValue = $x;
-            $position->componentCollection = $componentCollection;
+            $position->componentGroup = $componentGroup;
             $position->component = $component;
             $this->manager->persist($position);
             $this->restContext->resources['component_' . $x] = $this->iriConverter->getIriFromResource($component);
@@ -373,17 +373,17 @@ final class DoctrineContext implements Context
         }
         $this->manager->flush();
 
-        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromResource($componentCollection);
+        $this->restContext->resources['component_collection'] = $this->iriConverter->getIriFromResource($componentGroup);
 
-        return $componentCollection;
+        return $componentGroup;
     }
 
     /**
-     * @Given the ComponentCollection has the allowedComponent :allowedComponent
+     * @Given the ComponentGroup has the allowedComponent :allowedComponent
      */
-    public function theComponentCollectionHasTheAllowedComponents(string $allowedComponent): void
+    public function theComponentGroupHasTheAllowedComponents(string $allowedComponent): void
     {
-        /** @var ComponentCollection $collection */
+        /** @var ComponentGroup $collection */
         $collection = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_collection']);
         if ('' !== $allowedComponent) {
             $collection->allowedComponents = [$allowedComponent];
@@ -540,15 +540,15 @@ final class DoctrineContext implements Context
      */
     public function thereIsAPageDataResourceWithRoutePath(?string $path): void
     {
-        $componentCollection = new ComponentCollection();
-        $componentCollection->reference = 'test';
-        $componentCollection->location = 'test';
-        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
-        $this->manager->persist($componentCollection);
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'component';
-        $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
@@ -597,11 +597,11 @@ final class DoctrineContext implements Context
 
     public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent, bool $setPageData = true): void
     {
-        $componentCollection = new ComponentCollection();
-        $componentCollection->reference = 'test';
-        $componentCollection->location = 'test';
-        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
-        $this->manager->persist($componentCollection);
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
 
         $page = new Page();
         $page->isTemplate = true;
@@ -630,7 +630,7 @@ final class DoctrineContext implements Context
         } else {
             $componentPosition->pageDataProperty = 'component';
         }
-        $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
@@ -670,8 +670,8 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($route, true);
         $this->manager->persist($route);
 
-        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1);
-        $page->addComponentCollection($componentCollection);
+        $componentGroup = $this->thereIsAComponentGroupWithComponents(1);
+        $page->addComponentGroup($componentGroup);
 
         $this->manager->persist($page);
         $this->manager->flush();
@@ -699,8 +699,8 @@ final class DoctrineContext implements Context
             $this->manager->persist($route);
         }
 
-        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1, null, 'page_data_cc');
-        $page->addComponentCollection($componentCollection);
+        $componentGroup = $this->thereIsAComponentGroupWithComponents(1, null, 'page_data_cc');
+        $page->addComponentGroup($componentGroup);
 
         $this->manager->persist($page);
         $this->manager->flush();
@@ -728,8 +728,8 @@ final class DoctrineContext implements Context
             $this->manager->persist($route);
         }
 
-        $componentCollection = $this->thereIsAComponentCollectionWithComponents(1, null, 'restricted_page_data_cc');
-        $page->addComponentCollection($componentCollection);
+        $componentGroup = $this->thereIsAComponentGroupWithComponents(1, null, 'restricted_page_data_cc');
+        $page->addComponentGroup($componentGroup);
 
         $this->manager->persist($page);
         $this->manager->flush();
@@ -755,16 +755,16 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($route, true);
         $this->manager->persist($route);
 
-        $componentCollection = new ComponentCollection();
-        $componentCollection->reference = 'test';
-        $componentCollection->location = 'test';
-        $this->timestampedHelper->persistTimestampedFields($componentCollection, true);
-        $this->manager->persist($componentCollection);
-        $page->addComponentCollection($componentCollection);
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $page->addComponentGroup($componentGroup);
 
         $componentPosition = new ComponentPosition();
         $componentPosition->component = $component;
-        $componentPosition->componentCollection = $componentCollection;
+        $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);

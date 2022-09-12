@@ -9,7 +9,7 @@
     "formType",
     "formView",
     "componentPositions",
-    "componentCollections"
+    "componentGroups"
   ],
   "properties": {
     "@context": {
@@ -74,10 +74,10 @@
         "2020-04-07T11:48:08+00:00"
       ]
     },
-    "componentCollections": {
-      "$id": "#/properties/componentCollections",
+    "componentGroups": {
+      "$id": "#/properties/ComponentGroups",
       "type": "array",
-      "title": "The componentCollections Schema",
+      "title": "The ComponentGroups Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": []
     },

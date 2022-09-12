@@ -28,52 +28,52 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[Silverback\Timestamped]
 #[ApiResource(
-    normalizationContext: ['groups' => ['ComponentCollection:read']],
-    denormalizationContext: ['groups' => ['ComponentCollection:write']],
+    normalizationContext: ['groups' => ['ComponentGroup:read']],
+    denormalizationContext: ['groups' => ['ComponentGroup:write']],
     mercure: true
 )]
-#[UniqueEntity(fields: ['reference'], message: 'There is already a ComponentCollection resource with that reference.')]
-class ComponentCollection
+#[UniqueEntity(fields: ['reference'], message: 'There is already a ComponentGroup resource with that reference.')]
+class ComponentGroup
 {
     use IdTrait;
     use TimestampedTrait;
 
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     #[Assert\NotBlank(message: 'The reference cannot be blank.')]
     public ?string $reference = null;
 
     #[Assert\NotBlank(message: 'The location cannot be blank.')]
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public ?string $location = null;
 
     /**
      * @var Collection|Layout[]
      */
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $layouts;
 
     /**
      * @var Collection|Page[]
      */
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $pages;
 
     /**
      * @var Collection|AbstractComponent[]
      */
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $components;
 
     /**
      * @var Collection|ComponentPosition[]
      */
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $componentPositions;
 
     /**
      * @var string[]|null
      */
-    #[Groups(['ComponentCollection:read', 'ComponentCollection:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public ?array $allowedComponents = null;
 
     public function __construct()
@@ -112,7 +112,7 @@ class ComponentCollection
     {
         if (!$this->layouts->contains($layout)) {
             $this->layouts->add($layout);
-            $layout->addComponentCollection($this);
+            $layout->addComponentGroup($this);
         }
 
         return $this;
@@ -132,7 +132,7 @@ class ComponentCollection
     {
         if (!$this->pages->contains($page)) {
             $this->pages->add($page);
-            $page->addComponentCollection($this);
+            $page->addComponentGroup($this);
         }
 
         return $this;
@@ -152,7 +152,7 @@ class ComponentCollection
     {
         if (!$this->components->contains($component)) {
             $this->components->add($component);
-            $component->addComponentCollection($this);
+            $component->addComponentGroup($this);
         }
 
         return $this;

@@ -148,11 +148,11 @@ class ComponentVoter extends Voter
         }
 
         foreach ($componentPositions as $componentPosition) {
-            $componentCollection = $componentPosition->componentCollection;
-            foreach ($componentCollection->components as $parentComponent) {
+            $componentGroup = $componentPosition->componentGroup;
+            foreach ($componentGroup->components as $parentComponent) {
                 yield from $this->getComponentPages($parentComponent);
             }
-            yield from $componentCollection->pages;
+            yield from $componentGroup->pages;
         }
     }
 

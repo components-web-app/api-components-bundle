@@ -34,13 +34,13 @@ Feature: Components
 
   @loginUser
   Scenario: I can create a component and the ComponentPosition at the same time
-    Given there is a ComponentCollection with 0 components and the ID "41c57f7a-9f69-11ea-8188-acde48001122"
+    Given there is a ComponentGroup with 0 components and the ID "41c57f7a-9f69-11ea-8188-acde48001122"
     When I send a "POST" request to "/component/dummy_components" with body:
     """
     {
       "componentPositions": [
         {
-          "componentCollection": "/_/component_collections/41c57f7a-9f69-11ea-8188-acde48001122"
+          "componentGroup": "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122"
         }
       ]
     }
@@ -53,7 +53,7 @@ Feature: Components
     And I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to the resource "new_component_position"
     And the JSON should be valid according to the schema file "component_position.schema.json"
-    And the JSON node "componentCollection" should be equal to the string "/_/component_collections/41c57f7a-9f69-11ea-8188-acde48001122"
+    And the JSON node "componentGroup" should be equal to the string "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122"
     And the JSON node "component" should be equal to the IRI of the resource "new_component"
 
   @loginUser
@@ -75,7 +75,7 @@ Feature: Components
 
   @loginAdmin
   Scenario: When deleting a component the component position should NOT be deleted if it has a dynamic reference
-    Given there is a ComponentCollection with 1 components
+    Given there is a ComponentGroup with 1 components
     And the component position has the dynamic reference "ref"
     When I send a "DELETE" request to the resource "component_0"
     Then the response status code should be 204
@@ -83,7 +83,7 @@ Feature: Components
 
   @loginAdmin
   Scenario: When deleting a component the component position should be deleted if it does not have a dynamic reference
-    Given there is a ComponentCollection with 1 components
+    Given there is a ComponentGroup with 1 components
     When I send a "DELETE" request to the resource "component_0"
     Then the response status code should be 204
     And the resource position_0 should not exist
