@@ -548,7 +548,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6.x-dev'
+          - '6'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -618,7 +618,7 @@ jobs:
               version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
             fi
             version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
-            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure')
+            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure|debug|maker-bundle|monolog-bundle')
             ! echo "$symfony_packages" | grep -vE "$version_pattern"
           continue-on-error: true
       -   name: Clear test app cache
@@ -651,7 +651,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6.x-dev'
+          - '6'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -720,7 +720,7 @@ jobs:
               version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
             fi
             version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
-            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure')
+            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure|maker-bundle|monolog-bundle')
             ! echo "$symfony_packages" | grep -vE "$version_pattern"
           continue-on-error: true
       -   name: Clear test app cache
