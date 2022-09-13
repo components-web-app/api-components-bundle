@@ -548,7 +548,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6'
+          - '6.2'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -599,7 +599,7 @@ jobs:
               symfony/flex
       -   name: Allow unstable project dependencies
           run: |
-            jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
+            jq '. + {"minimum-stability": "dev", "prefer-stable": false}' composer.json | sponge composer.json
       -   name: Update project dependencies
           env:
             COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
@@ -651,7 +651,7 @@ jobs:
         php:
           - '8.1'
         symfony:
-          - '6'
+          - '6.2'
       fail-fast: false
     timeout-minutes: 20
     steps:
