@@ -629,6 +629,7 @@ jobs:
           run: |
             mkdir -p build/logs/phpunit
             vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+          continue-on-error: true
       -   name: Upload test artifacts
           if: always()
           uses: actions/upload-artifact@v1
@@ -716,6 +717,7 @@ jobs:
           run: |
             mkdir -p build/logs/behat
             php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
+          continue-on-error: true
       -   name: Upload test artifacts
           if: always()
           uses: actions/upload-artifact@v1
