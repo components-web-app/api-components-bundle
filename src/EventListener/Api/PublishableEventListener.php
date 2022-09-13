@@ -143,7 +143,7 @@ final class PublishableEventListener
         }
 
         if ($response->isClientError()) {
-            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '0');
 
             return;
         }
@@ -151,9 +151,9 @@ final class PublishableEventListener
         // Force validation from querystring, and/or add validate-to-publish custom HTTP header
         try {
             $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
-            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 1);
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '1');
         } catch (ValidationException $exception) {
-            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, 0);
+            $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '0');
 
             if (
                 true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false) &&
