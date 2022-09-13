@@ -53,7 +53,7 @@
     },
     "require-dev": {
         "behat/behat": "^3.8",
-        "behatch/contexts": "3.3.1",
+        "behatch/contexts": "dev-master",
         "doctrine/common": "^3.1",
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "friends-of-behat/mink": "^1.8",
