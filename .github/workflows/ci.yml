@@ -597,15 +597,14 @@ jobs:
             composer global config --no-plugins allow-plugins.symfony/flex true
             composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
-      -   name: Allow unstable project dependencies
-          run: |
-            jq '. + {"minimum-stability": "dev", "prefer-stable": false}' composer.json | sponge composer.json
       -   name: Update project dependencies
           env:
             COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
+            composer config minimum-stability dev  
+            composer config prefer-stable false
             composer update --no-progress --ansi
       -   name: Flag held back Symfony packages
           env:
@@ -699,15 +698,14 @@ jobs:
             composer global config --no-plugins allow-plugins.symfony/flex true
             composer global require --prefer-dist --no-progress --ansi \
               symfony/flex
-      -   name: Allow unstable project dependencies
-          run: |
-            jq '. + {"minimum-stability": "dev"}' composer.json | sponge composer.json
       -   name: Update project dependencies
           env:
             COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
           run: |
             mkdir -p /tmp/api-platform/core/vendor
             ln -s /tmp/api-platform/core/vendor vendor
+            composer config minimum-stability dev  
+            composer config prefer-stable false
             composer update --no-progress --ansi
       -   name: Flag held back Symfony packages
           env:
