@@ -29,7 +29,7 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
 
         $container->getDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
 
-        if (!$container->hasDefinition('api_platform.http_cache.purger')) {
+        if (!$container->hasAlias('api_platform.http_cache.purger')) {
             $container->removeDefinition(PurgeHttpCacheListener::class);
         }
     }

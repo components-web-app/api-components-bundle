@@ -236,10 +236,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
         $loader->load('services_normalizers.php');
-
-        if ($container->hasDefinition('api_platform.http_cache.purger')) {
-            $loader->load('services_doctrine_orm_http_cache_purger.php');
-        }
+        $loader->load('services_doctrine_orm_http_cache_purger.php');
     }
 
     public function prepend(ContainerBuilder $container): void

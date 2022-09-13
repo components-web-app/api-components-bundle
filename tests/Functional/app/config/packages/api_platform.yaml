@@ -9,7 +9,7 @@ api_platform:
         versions: [3]
     http_cache:
         invalidation:
-            # purger: 'api_platform.http_cache.purger.varnish'
+            purger: 'api_platform.http_cache.purger.varnish.xkey'
             enabled: true
             varnish_urls: [ 'http://test' ]
             xkey:
