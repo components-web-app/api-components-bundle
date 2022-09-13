@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\FlysystemCom
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\SerializerCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ValidatorCompilerPass;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -32,7 +33,8 @@ class SilverbackApiComponentsBundle extends Bundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new ApiPlatformCompilerPass());
+        // run before the doctrine listeners are parsed - we may be removing it
+        $container->addCompilerPass(new ApiPlatformCompilerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 1);
         $container->addCompilerPass(new SerializerCompilerPass());
         $container->addCompilerPass(new ValidatorCompilerPass());
         $container->addCompilerPass(new FlysystemCompilerPass());

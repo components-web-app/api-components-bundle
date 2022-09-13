@@ -25,7 +25,8 @@ return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
 
     $services
-        ->set(PurgeHttpCacheListener::class)
+        ->set('silverback.api_components.event_listener.doctrine.purge_http_cache_listener')
+        ->class(PurgeHttpCacheListener::class)
         ->args([
             new Reference('api_platform.http_cache.purger'),
             new Reference('api_platform.iri_converter'),
@@ -35,5 +36,5 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preUpdate])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
-    $services->alias('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', PurgeHttpCacheListener::class);
+    $services->alias(PurgeHttpCacheListener::class, 'silverback.api_components.event_listener.doctrine.purge_http_cache_listener');
 };
