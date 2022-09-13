@@ -707,20 +707,6 @@ jobs:
             composer config minimum-stability dev  
             composer config prefer-stable false
             composer update --no-progress --ansi
-      -   name: Flag held back Symfony packages
-          env:
-            symfony_version: ${{ matrix.symfony }}
-          run: |
-            version_pattern=$symfony_version.x-dev
-            if [ "${symfony_version%.4}" != "$symfony_version" ]; then
-              current_major=${symfony_version%.4}
-              next_major=$((current_major + 1))
-              version_pattern=$version_pattern'|v'$next_major.0.x-dev'|'dev-master
-            fi
-            version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
-            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure|maker-bundle|monolog-bundle')
-            ! echo "$symfony_packages" | grep -vE "$version_pattern"
-          continue-on-error: true
       -   name: Clear test app cache
           run: |
             mkdir -p /tmp/api-platform/core/var
