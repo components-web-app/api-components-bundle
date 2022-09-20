@@ -58,9 +58,9 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
         return $this->decorated->denormalize($data, $type, $format, $context);
     }
 
-    public function supportsDenormalization($data, $type, $format = null): bool
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return $this->decorated->supportsDenormalization($data, $type, $format);
+        return $this->decorated->supportsDenormalization($data, $type, $format, $context);
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
@@ -68,8 +68,8 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
         return $this->decorated->normalize($object, $format, $context);
     }
 
-    public function supportsNormalization($data, $format = null): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return $this->decorated->supportsNormalization($data, $format);
+        return $this->decorated->supportsNormalization($data, $format, $context);
     }
 }

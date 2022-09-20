@@ -52,8 +52,8 @@ class VersionedDocumentationNormalizer implements NormalizerInterface, Cacheable
         return $doc;
     }
 
-    public function supportsNormalization($data, string $format = null): bool
+    public function supportsNormalization($data, string $format = null, array $context = []): bool
     {
-        return $this->decorated->supportsNormalization($data, $format);
+        return $this->decorated->supportsNormalization($data, $format, $context);
     }
 }
