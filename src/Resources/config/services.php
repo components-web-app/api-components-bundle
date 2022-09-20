@@ -137,7 +137,6 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
-use Silverback\ApiComponentsBundle\Serializer\UuidNormalizer;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
@@ -1135,13 +1134,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UserResourceMetadataCollectionFactory::class . '.inner'),
             ]
         );
-
-    $services
-        ->set(UuidNormalizer::class)
-        ->decorate('api_platform.identifier.uuid_normalizer')
-        ->args([
-            new Reference(UuidNormalizer::class . '.inner'),
-        ]);
 
     $services
         ->set(VerifyEmailAddressAction::class)

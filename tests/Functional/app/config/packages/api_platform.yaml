@@ -15,4 +15,3 @@ api_platform:
             xkey:
                 glue: ', '
         public: true
-    metadata_backward_compatibility_layer: false
