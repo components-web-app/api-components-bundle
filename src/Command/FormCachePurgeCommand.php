@@ -15,8 +15,8 @@ namespace Silverback\ApiComponentsBundle\Command;
 
 use Silverback\ApiComponentsBundle\Event\CommandLogEvent;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -24,26 +24,17 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[AsCommand(name: 'silverback:api-components:form-cache-purge', description: 'Purges the varnish cache for forms. Sets the `modified` timestamp to the file last modified date')]
 class FormCachePurgeCommand extends Command
 {
     private FormCachePurger $formCachePurger;
     private EventDispatcherInterface $dispatcher;
 
-    public function __construct(FormCachePurger $formCachePurger, EventDispatcherInterface $dispatcher, ?string $name = null)
+    public function __construct(FormCachePurger $formCachePurger, EventDispatcherInterface $dispatcher)
     {
+        parent::__construct();
         $this->formCachePurger = $formCachePurger;
         $this->dispatcher = $dispatcher;
-        parent::__construct($name);
-    }
-
-    /**
-     * @throws InvalidArgumentException
-     */
-    protected function configure(): void
-    {
-        $this
-            ->setName('silverback:api-components:form-cache-purge')
-            ->setDescription('Purges the varnish cache for forms. Sets the `modified` timestamp to the file last modified date');
     }
 
     /**

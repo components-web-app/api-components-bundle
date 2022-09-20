@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Command;
 
 use Exception;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,9 +26,9 @@ use Symfony\Component\Console\Question\Question;
 /**
  * Based on FOSUserBundle: https://github.com/FriendsOfSymfony/FOSUserBundle/blob/master/Command/CreateUserCommand.php.
  */
+#[AsCommand(name: 'silverback:api-components:user:create')]
 class UserCreateCommand extends Command
 {
-    protected static $defaultName = 'silverback:api-components:user:create';
     private UserFactory $userFactory;
     private array $questions = [];
 
