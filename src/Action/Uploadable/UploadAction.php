@@ -21,13 +21,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadAction
 {
-    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager, PublishableStatusChecker $publishableStatusChecker, PublishableNormalizer $publishableNormalizer)
+    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager, PublishableStatusChecker $publishableStatusChecker, NormalizerInterface|PublishableNormalizer $publishableNormalizer)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
