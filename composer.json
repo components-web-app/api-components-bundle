@@ -70,7 +70,7 @@
         "phpstan/phpstan-doctrine": "^0.12.7",
         "phpstan/phpstan-phpunit": "^0.12.4",
         "phpstan/phpstan-symfony": "^0.12.4",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^9.5.24",
         "roave/security-advisories": "dev-master",
         "symfony/browser-kit": "^6.1",
         "symfony/css-selector": "^6.1",
@@ -128,6 +128,7 @@
         "symfony/proxy-manager-bridge": "<5.4",
         "symfony/serializer": "<=6.1.2",
         "symfony/web-link": "<=6.0",
+        "doctrine/collections": "<1.7",
         "doctrine/orm": "<2.13"
     }
 }
