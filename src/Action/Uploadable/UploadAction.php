@@ -28,7 +28,11 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class UploadAction
 {
-    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager, PublishableStatusChecker $publishableStatusChecker, NormalizerInterface|PublishableNormalizer $publishableNormalizer)
+    public function __construct(private NormalizerInterface|PublishableNormalizer $publishableNormalizer)
+    {
+    }
+
+    public function __invoke(?object $data, Request $request, UploadableFileManager $uploadableFileManager, PublishableStatusChecker $publishableStatusChecker)
     {
         $contentType = $request->headers->get('CONTENT_TYPE');
         if (null === $contentType) {
@@ -64,7 +68,7 @@ class UploadAction
                 !$publishableStatusChecker->isPublishedRequest($request) &&
                 $publishableStatusChecker->isActivePublishedAt($resource)
             ) {
-                $resource = $publishableNormalizer->createDraft($resource, $configuration, $resourceClass);
+                $resource = $this->publishableNormalizer->createDraft($resource, $configuration, $resourceClass);
             }
         }
 

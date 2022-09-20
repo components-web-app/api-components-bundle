@@ -136,6 +136,7 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
@@ -904,7 +905,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(UploadAction::class)
-        ->tag('controller.service_arguments');
+        ->tag('controller.service_arguments')
+        ->args([
+            '$publishableNormalizer' => new Reference(PublishableNormalizer::class),
+        ]);
 
     $services
         ->set(UploadableAttributeReader::class)
