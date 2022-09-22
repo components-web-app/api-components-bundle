@@ -93,7 +93,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $em = $this->getManagerFromType($type);
         $classMetadata = $this->getClassMetadataInfo($em, $type);
 
-        $context[MetadataNormalizer::METADATA_CONTEXT][$configuration->fieldName] = $classMetadata->getFieldValue($object, $configuration->fieldName);
+        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'] = [];
+        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'][$configuration->fieldName] = $classMetadata->getFieldValue($object, $configuration->fieldName);
         if (\is_object($assocObject = $classMetadata->getFieldValue($object, $configuration->associationName))) {
             $context[self::ASSOCIATION] = $assocObject;
         }
