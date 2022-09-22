@@ -105,7 +105,6 @@ Feature: Route resources
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to "/_/routes_manifest//my-route"
     Then the response status code should be 200
-    And the JSON should be equal to:
-    """
-    {}
-    """
+    And the JSON node "resource_iris[0]" should be equal to "/_/routes//my-route"
+    And the JSON node "resource_iris[1]" should contain "/page_data/page_data_with_components/"
+    And the JSON node "resource_iris[2]" should contain "/_/pages/"

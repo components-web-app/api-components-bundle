@@ -62,7 +62,9 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
 
         $operationName = $context['operation_name'] ?? null;
         if ('_api_/routes_manifest/{id}.{_format}_get' === $operationName) {
-            return $this->getResourceIrisFromArray($normalized);
+            return [
+                'resource_iris' => $this->getResourceIrisFromArray($normalized),
+            ];
         }
 
         return $normalized;
