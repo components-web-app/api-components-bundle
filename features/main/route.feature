@@ -101,6 +101,7 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON node "route" should be equal to the string "/_/routes//my-route"
 
+  # todo: improve these tests, probably add new command for checking by regex
   Scenario: I can get a manifest of all resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to "/_/routes_manifest//my-route"

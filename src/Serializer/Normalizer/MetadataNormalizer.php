@@ -68,7 +68,7 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $data = $this->normalizer->normalize($object, $format, $context);
 
-        if (isset($context['groups']) && !\in_array('Route:manifest:read', $context['groups'], true)) {
+        if (!isset($context['groups']) || !\in_array('Route:manifest:read', $context['groups'], true)) {
             $data[$this->metadataKey] = (array) $context[self::METADATA_CONTEXT];
         }
 

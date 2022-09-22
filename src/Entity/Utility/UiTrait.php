@@ -32,11 +32,12 @@ trait UiTrait
     #[Orm\Column(type: 'json', nullable: true)]
     public ?array $uiClassNames = null;
 
-    /**     *
+    /**
      * @var Collection|ComponentGroup[]
+     *                                  Todo: CHECK THIS FIX, dirrrrrrty for form serialization
      */
     #[Orm\ManyToMany(targetEntity: ComponentGroup::class)]
-    #[Groups(['Route:manifest:read'])]
+    #[Groups(['Route:manifest:read', 'AbstractComponent:cwa_resource:read'])]
     private Collection $componentGroups;
 
     public function __construct()
