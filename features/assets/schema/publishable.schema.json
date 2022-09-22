@@ -85,28 +85,40 @@
       "title": "The _metadata Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
-      "examples": [
-        {
+      "examples": {
+        "publishable": {
           "published": true
         }
-      ],
-      "required": [
-        "published"
-      ],
+      },
       "properties": {
-        "published": {
-          "$id": "#/_metadata",
-          "type": "boolean",
-          "title": "The published Schema",
+        "publishable": {
+          "$id": "#/_metadata/publishable",
+          "type": "object",
+          "title": "The _metadata/publishable Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": "",
-          "examples": [
-            false,
-            true
-          ]
-        },
-        "violation_list": {
-          "$ref": "validation_errors.schema.json"
+          "examples": {
+            "published": true
+          },
+          "required": [
+            "published"
+          ],
+          "properties": {
+            "published": {
+              "$id": "#/_metadata/publishable/published",
+              "type": "boolean",
+              "title": "The _metadata/publishable/published Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": "",
+              "examples": [
+                false,
+                true
+              ]
+            },
+            "violation_list": {
+              "$ref": "validation_errors.schema.json"
+            }
+          }
         }
       }
     }

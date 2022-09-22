@@ -82,7 +82,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $context[MetadataNormalizer::METADATA_CONTEXT]['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
+        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'] = [];
+        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable']['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
         if (isset($context[self::ASSOCIATION]) && $context[self::ASSOCIATION] === $object) {
             return $this->iriConverter->getIriFromResource($object);
@@ -93,8 +94,11 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $em = $this->getManagerFromType($type);
         $classMetadata = $this->getClassMetadataInfo($em, $type);
 
-        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'] = [];
-        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'][$configuration->fieldName] = $classMetadata->getFieldValue($object, $configuration->fieldName);
+        $publishedAtDateTime = $classMetadata->getFieldValue($object, $configuration->fieldName);
+        if ($publishedAtDateTime instanceof \DateTimeInterface) {
+            $publishedAtDateTime = $publishedAtDateTime->format(\DateTimeInterface::RFC3339_EXTENDED);
+        }
+        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'][$configuration->fieldName] = $publishedAtDateTime;
         if (\is_object($assocObject = $classMetadata->getFieldValue($object, $configuration->associationName))) {
             $context[self::ASSOCIATION] = $assocObject;
         }
