@@ -67,7 +67,7 @@ class ComponentGroup
     /**
      * @var Collection|ComponentPosition[]
      */
-    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Route:manifest:read'])]
     public Collection $componentPositions;
 
     /**

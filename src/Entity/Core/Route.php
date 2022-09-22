@@ -61,8 +61,10 @@ const SECURITY = "is_granted('read_route', object)";
 #[Put(requirements: REQUIREMENTS, security: SECURITY)]
 #[Patch(requirements: REQUIREMENTS, security: SECURITY)]
 #[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: SECURITY)]
-#[Post(uriTemplate: '/routes/generate.{_format}', validationContext: ['groups' => ['Route:generate:write']], name: 'generate')]
-#[Get(uriTemplate: '/routes/{id}/redirects.{_format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY, name: 'redirects')]
+// Custom endpoints
+#[Post(uriTemplate: '/routes/generate.{_format}', validationContext: ['groups' => ['Route:generate:write']])]
+#[Get(uriTemplate: '/routes/{id}/redirects.{_format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY)]
+#[Get(uriTemplate: '/routes_manifest/{id}.{_format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: SECURITY)]
 #[Silverback\Timestamped]
 class Route
 {
@@ -81,8 +83,10 @@ class Route
     #[Groups(['Route:redirect:read'])]
     private Collection $redirectedFrom;
 
+    #[Groups(['Route:manifest:read'])]
     private ?Page $page = null;
 
+    #[Groups(['Route:manifest:read'])]
     private ?AbstractPageData $pageData = null;
 
     public function __construct()

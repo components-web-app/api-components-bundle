@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -28,5 +29,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     #[Assert\NotBlank(message: 'Please select a page template')]
+    #[Groups(['Route:manifest:read'])]
     public Page $page;
 }

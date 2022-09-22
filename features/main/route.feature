@@ -100,3 +100,12 @@ Feature: Route resources
     When I send a "GET" request to the resource "page_data"
     Then the response status code should be 200
     And the JSON node "route" should be equal to the string "/_/routes//my-route"
+
+  Scenario: I can get a manifest of all resources that should be loaded for a route
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to "/_/routes_manifest//my-route"
+    Then the response status code should be 200
+    And the JSON should be equal to:
+    """
+    {}
+    """
