@@ -35,8 +35,7 @@ final class CwaResourceLoader implements LoaderInterface
         $reflectionClass = $classMetadata->getReflectionClass();
         $reflectionClassName = $reflectionClass->getName();
         if (
-            AbstractComponent::class !== $reflectionClassName &&
-            AbstractPageData::class !== $reflectionClassName &&
+            !$this->isCoreClassName($reflectionClassName) &&
             !$reflectionClass->isSubclassOf(AbstractComponent::class) &&
             !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
             return true;
@@ -48,15 +47,31 @@ final class CwaResourceLoader implements LoaderInterface
         $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
         foreach ($allAttributesMetadata as $attributeMetadatum) {
-            if ('id' === $attributeMetadatum->getName()) {
+            $name = $attributeMetadatum->getName();
+            if ('id' === $name) {
                 continue;
             }
-            if (empty($attributeMetadatum->getGroups())) {
+
+            try {
+                $reflectionProperty = $reflectionClass->getProperty($name);
+                $className = $reflectionProperty->getDeclaringClass()->getName();
+                $isCoreClassName = $this->isCoreClassName($className);
+            } catch (\ReflectionException $e) {
+                // may not be a property - could be a method
+                $isCoreClassName = false;
+            }
+            if ($isCoreClassName || empty($attributeMetadatum->getGroups())) {
                 $attributeMetadatum->addGroup($readGroup);
                 $attributeMetadatum->addGroup($writeGroup);
             }
         }
 
         return true;
+    }
+
+    private function isCoreClassName(string $className): bool
+    {
+        return AbstractComponent::class === $className ||
+            AbstractPageData::class === $className;
     }
 }

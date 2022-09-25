@@ -40,7 +40,10 @@ final class CwaResourceContextBuilder implements SerializerContextBuilderInterfa
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (!is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true) && !is_a($resourceClass = $context['resource_class'], AbstractPageData::class, true)) {
+        if (
+            !is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true) &&
+            !is_a($resourceClass, AbstractPageData::class, true)
+        ) {
             return $context;
         }
 
