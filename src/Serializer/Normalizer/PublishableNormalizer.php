@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -51,43 +52,31 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
     private const ASSOCIATION = 'PUBLISHABLE_ASSOCIATION';
 
-    private PublishableStatusChecker $publishableStatusChecker;
-    private ManagerRegistry $registry;
-    private RequestStack $requestStack;
-    private ValidatorInterface $validator;
     private PropertyAccessor $propertyAccessor;
-    private IriConverterInterface $iriConverter;
-    private ?PurgeHttpCacheListener $purgeHttpCacheListener;
-    private UploadableFileManager $uploadableFileManager;
 
     public function __construct(
-        PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry $registry,
-        RequestStack $requestStack,
-        ValidatorInterface $validator,
-        IriConverterInterface $iriConverter,
-        UploadableFileManager $uploadableFileManager,
-        ?PurgeHttpCacheListener $purgeHttpCacheListener = null
+        private PublishableStatusChecker $publishableStatusChecker,
+        private ManagerRegistry $registry,
+        private RequestStack $requestStack,
+        private ValidatorInterface $validator,
+        private IriConverterInterface $iriConverter,
+        private UploadableFileManager $uploadableFileManager,
+        private ResourceMetadataInterface $resourceMetadata,
+        private ?PurgeHttpCacheListener $purgeHttpCacheListener = null
     ) {
-        $this->publishableStatusChecker = $publishableStatusChecker;
-        $this->registry = $registry;
-        $this->requestStack = $requestStack;
-        $this->validator = $validator;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->iriConverter = $iriConverter;
-        $this->purgeHttpCacheListener = $purgeHttpCacheListener;
-        $this->uploadableFileManager = $uploadableFileManager;
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'] = [];
-        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable']['published'] = $this->publishableStatusChecker->isActivePublishedAt($object);
 
         if (isset($context[self::ASSOCIATION]) && $context[self::ASSOCIATION] === $object) {
             return $this->iriConverter->getIriFromResource($object);
         }
+
+        $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
+        $this->resourceMetadata->setPublishable($isPublished);
 
         $type = \get_class($object);
         $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
@@ -98,11 +87,15 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         if ($publishedAtDateTime instanceof \DateTimeInterface) {
             $publishedAtDateTime = $publishedAtDateTime->format(\DateTimeInterface::RFC3339_EXTENDED);
         }
-        $context[MetadataNormalizer::METADATA_CONTEXT]['publishable'][$configuration->fieldName] = $publishedAtDateTime;
+
+        // using static name 'publishedAt' for predictable API and easy metadata object instead of dynamic $configuration->fieldName
+        if ($publishedAtDateTime) {
+            $this->resourceMetadata->setPublishable($isPublished, $publishedAtDateTime);
+        }
+
         if (\is_object($assocObject = $classMetadata->getFieldValue($object, $configuration->associationName))) {
             $context[self::ASSOCIATION] = $assocObject;
-        }
-        if (\is_object($reverseAssocObject = $classMetadata->getFieldValue($object, $configuration->reverseAssociationName))) {
+        } elseif (\is_object($reverseAssocObject = $classMetadata->getFieldValue($object, $configuration->reverseAssociationName))) {
             $context[self::ASSOCIATION] = $reverseAssocObject;
         }
 
@@ -111,7 +104,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {
-                $context[MetadataNormalizer::METADATA_CONTEXT]['violation_list'] = $this->normalizer->normalize($exception->getConstraintViolationList(), $format);
+                $this->resourceMetadata->setViolationList($exception->getConstraintViolationList());
             }
         }
 

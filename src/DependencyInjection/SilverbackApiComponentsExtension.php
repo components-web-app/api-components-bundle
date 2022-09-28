@@ -278,6 +278,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $mappingPaths = [$srcBase . '/Entity/Core'];
         $this->appendMappingPaths($mappingPaths, $srcBase, 'uploadable');
         $this->appendMappingPaths($mappingPaths, $srcBase, 'page_data_metadata');
+        $this->appendMappingPaths($mappingPaths, $srcBase, 'resource_metadata');
         foreach ($config['enabled_components'] as $component => $is_enabled) {
             if (true === $is_enabled) {
                 $this->appendMappingPaths($mappingPaths, $srcBase, $component);

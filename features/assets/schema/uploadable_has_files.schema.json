@@ -7,7 +7,7 @@
       "properties": {
         "_metadata": {
           "required": [
-            "media_objects"
+            "mediaObjects"
           ]
         }
       }

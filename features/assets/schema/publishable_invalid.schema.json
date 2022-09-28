@@ -7,7 +7,7 @@
       "properties": {
         "_metadata": {
           "required": [
-            "violation_list"
+            "violationList"
           ]
         }
       }

@@ -15,7 +15,7 @@ Feature: Soft validation on draft resources
     Then the response status code should be <statusCode>
     And the JSON should be valid according to the schema file "<schema>"
     And the header "valid-to-publish" should be equal to "<validToPublish>"
-    And the JSON node "_metadata.violation_list.violations[0]" should exist
+    And the JSON node "_metadata.violationList.violations[0]" should exist
     Examples:
       | postfix                  | schema                          | statusCode | validToPublish |
       |                          | publishable_invalid.schema.json | 200        | 0              |
@@ -28,7 +28,7 @@ Feature: Soft validation on draft resources
     Then the response status code should be <statusCode>
     And the JSON should be valid according to the schema file "<schema>"
     And the header "valid-to-publish" should not exist
-    And the JSON node "_metadata.violation_list" should not exist
+    And the JSON node "_metadata.violationList" should not exist
     Examples:
       | postfix                  | schema                        | statusCode |
       |                          | publishable_valid.schema.json | 200        |
@@ -86,7 +86,7 @@ Feature: Soft validation on draft resources
     Then the response status code should be <httpStatus>
     And the header "valid-to-publish" should be equal to "<validToPublish>"
     And the JSON should be valid according to the schema file "<schema>"
-    And the JSON node "_metadata.violation_list.violations[0]" should not exist
+    And the JSON node "_metadata.violationList.violations[0]" should not exist
     Examples:
       | publishedAt | data          | httpStatus | validToPublish | postfix                  | schema                        |
       | null        | invalid_draft | 422        | 0              | validate_published=false | validation_errors.schema.json |

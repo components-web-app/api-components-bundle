@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -33,19 +34,19 @@ final class PageDataNormalizer implements NormalizerInterface, CacheableSupports
     private const ALREADY_CALLED = 'PAGE_DATA_NORMALIZER_ALREADY_CALLED';
 
     private PropertyAccessor $propertyAccessor;
-    private PageDataMetadataFactoryInterface $pageDataMetadataFactory;
 
-    public function __construct(PageDataMetadataFactoryInterface $pageDataMetadataFactory)
-    {
+    public function __construct(
+        private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
+        private ResourceMetadataInterface $resourceMetadata
+    ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->pageDataMetadataFactory = $pageDataMetadataFactory;
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
         $metadata = $this->pageDataMetadataFactory->create(\get_class($object));
-        $context[MetadataNormalizer::METADATA_CONTEXT]['page_data_metadata'] = $this->normalizer->normalize($metadata, $format, $context);
+        $this->resourceMetadata->setPageDataMetadata($metadata);
 
         return $this->normalizer->normalize($object, $format, $context);
     }

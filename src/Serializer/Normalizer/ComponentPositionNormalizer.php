@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -48,27 +49,15 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
 
     private const ALREADY_CALLED = 'COMPONENT_POSITION_NORMALIZER_ALREADY_CALLED';
 
-    private PageDataProvider $pageDataProvider;
-    private ComponentPositionSortValueHelper $componentPositionSortValueHelper;
-    private RequestStack $requestStack;
-    private PublishableStatusChecker $publishableStatusChecker;
-    private ManagerRegistry $registry;
-    private IriConverterInterface $iriConverter;
-
     public function __construct(
-        PageDataProvider $pageDataProvider,
-        ComponentPositionSortValueHelper $componentPositionSortValueHelper,
-        RequestStack $requestStack,
-        PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry $registry,
-        IriConverterInterface $iriConverter
+        private PageDataProvider $pageDataProvider,
+        private ComponentPositionSortValueHelper $componentPositionSortValueHelper,
+        private RequestStack $requestStack,
+        private PublishableStatusChecker $publishableStatusChecker,
+        private ManagerRegistry $registry,
+        private IriConverterInterface $iriConverter,
+        private ResourceMetadataInterface $resourceMetadata
     ) {
-        $this->pageDataProvider = $pageDataProvider;
-        $this->componentPositionSortValueHelper = $componentPositionSortValueHelper;
-        $this->requestStack = $requestStack;
-        $this->publishableStatusChecker = $publishableStatusChecker;
-        $this->registry = $registry;
-        $this->iriConverter = $iriConverter;
     }
 
     public function hasCacheableSupportsMethod(): bool
@@ -109,7 +98,9 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         $context[self::ALREADY_CALLED] = true;
 
         $staticComponent = $object->component ? $this->getPublishableComponent($object->component) : null;
-        $context[MetadataNormalizer::METADATA_CONTEXT]['static_component'] = $staticComponent ? $this->iriConverter->getIriFromResource($staticComponent) : null;
+        if ($staticComponent) {
+            $this->resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($staticComponent));
+        }
 
         $object = $this->normalizeForPageData($object);
         if ($object->component !== $staticComponent) {

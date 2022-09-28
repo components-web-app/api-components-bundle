@@ -13,8 +13,7 @@
     "contentUrl",
     "fileSize",
     "formattedFileSize",
-    "mimeType",
-    "_metadata"
+    "mimeType"
   ],
   "properties": {
     "@context": {
@@ -202,34 +201,6 @@
       "examples": [
         "filter_name"
       ]
-    },
-    "_metadata": {
-      "$id": "#/properties/_metadata",
-      "type": "object",
-      "title": "The _metadata Schema",
-      "description": "An explanation about the purpose of this instance.",
-      "default": {},
-      "examples": [
-        {
-          "persisted": false
-        }
-      ],
-      "additionalProperties": true,
-      "required": [
-        "persisted"
-      ],
-      "properties": {
-        "persisted": {
-          "$id": "#/properties/_metadata/properties/persisted",
-          "type": "boolean",
-          "title": "The Persisted Schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": false,
-          "examples": [
-            false
-          ]
-        }
-      }
     }
   }
 }
