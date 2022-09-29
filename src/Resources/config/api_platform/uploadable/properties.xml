@@ -12,11 +12,6 @@
               name="contentUrl"
               writable="false"
     >
-        <jsonSchemaContext>
-            <values>
-                <value>http://schema.org/contentUrl</value>
-            </values>
-        </jsonSchemaContext>
         <types>
             <type>http://schema.org/contentUrl</type>
         </types>

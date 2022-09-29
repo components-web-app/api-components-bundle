@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -28,15 +29,12 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
 {
     use NormalizerAwareTrait;
 
-    public const METADATA_CONTEXT = 'silverback_api_components_bundle_metadata';
-    private const ALREADY_CALLED = 'METADATA_NORMALIZER_ALREADY_CALLED';
+    public const ALREADY_CALLED = 'METADATA_NORMALIZER_ALREADY_CALLED';
 
-    private string $metadataKey;
     private PropertyAccessor $propertyAccessor;
 
-    public function __construct(string $metadataKey)
+    public function __construct(private string $metadataKey, private ResourceMetadataInterface $resourceMetadata)
     {
-        $this->metadataKey = $metadataKey;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
@@ -51,7 +49,7 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
             return false;
         }
         if (!isset($context[self::ALREADY_CALLED])) {
-            $context[self::ALREADY_CALLED] = [];
+            return false;
         }
         try {
             $id = $this->propertyAccessor->getValue($data, 'id');
@@ -60,14 +58,26 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
         }
 
         return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            isset($context[self::METADATA_CONTEXT]);
+            $this->resourceMetadata->isInit();
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
+        $metadataContext = $context;
+        unset($metadataContext['operation'], $metadataContext['operation_name'], $metadataContext['resource_class']);
+        if (isset($metadataContext['groups'])) {
+            $metadataContext['groups'][] = 'cwa_resource:metadata';
+        } else {
+            $metadataContext['groups'] = ['cwa_resource:metadata'];
+        }
+        $metadata = $this->resourceMetadata->getResourceMetadata();
+        $metadataContext['resource_class'] = $metadata ? \get_class($metadata) : null;
+
+        $metadata = $this->normalizer->normalize($metadata, $format, $metadataContext);
         $data = $this->normalizer->normalize($object, $format, $context);
-        $data[$this->metadataKey] = (array) $context[self::METADATA_CONTEXT];
+
+        $data[$this->metadataKey] = empty($metadata) ? null : $metadata;
 
         return $data;
     }

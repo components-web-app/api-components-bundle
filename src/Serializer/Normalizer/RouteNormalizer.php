@@ -60,7 +60,29 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
             $normalized['redirectPath'] = $finalRoute->getPath();
         }
 
+        $operationName = $context['operation_name'] ?? null;
+        if ('_api_/routes_manifest/{id}.{_format}_get' === $operationName) {
+            return [
+                'resource_iris' => $this->getResourceIrisFromArray($normalized),
+            ];
+        }
+
         return $normalized;
+    }
+
+    private function getResourceIrisFromArray(array $resource): array
+    {
+        $iris = [];
+        if (isset($resource['@id'])) {
+            $iris[] = $resource['@id'];
+        }
+        foreach ($resource as $resourceValue) {
+            if (\is_array($resourceValue) && isset($resourceValue['@id'])) {
+                array_push($iris, ...$this->getResourceIrisFromArray($resourceValue));
+            }
+        }
+
+        return $iris;
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool

@@ -1,0 +1,33 @@
+<properties xmlns="https://api-platform.com/schema/metadata/properties-3.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://api-platform.com/schema/metadata/properties-3.0
+           https://api-platform.com/schema/metadata/properties-3.0.xsd">
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="pageDataMetadata"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="staticComponent"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="collection"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="persisted"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="publishable"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="violationList"
+              writable="false"
+    />
+    <property resource="Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata"
+              name="mediaObjects"
+              writable="false"
+    />
+</properties>

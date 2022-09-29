@@ -64,25 +64,25 @@ Feature: API Resources which can have files uploaded
 
   # See issue: https://github.com/api-platform/core/issues/4825
   # possibly deprecated
-  @loginUser @wip
+  @loginUser
   Scenario: I can get an image media resource with imagine filters configured
     Given there is a DummyUploadableWithImagineFilters
     When I send a "GET" request to the resource "dummy_uploadable"
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
-    And the JSON node "_metadata.media_objects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
-    And the JSON node "_metadata.media_objects.file[0].@type" should be equal to the string "http://schema.org/MediaObject"
-    And the JSON node "_metadata.media_objects.file[0].@context.formattedFileSize" should be equal to the string "http://schema.org/contentSize"
-    And the JSON node "_metadata.media_objects.file[0].@context.contentUrl" should be equal to the string "http://schema.org/contentUrl"
-    And the JSON node "_metadata.media_objects.file[0].@context.mimeType" should be equal to the string "http://schema.org/encodingFormat"
-    And the JSON node "_metadata.media_objects.file[0].@context.width" should be equal to the string "http://schema.org/width"
-    And the JSON node "_metadata.media_objects.file[0].@context.height" should be equal to the string "http://schema.org/height"
-    And the JSON node "_metadata.media_objects.file[0].imagineFilter" should not exist
-    And the JSON node "_metadata.media_objects.file[1].imagineFilter" should be equal to the string "thumbnail"
-    And the JSON node "_metadata.media_objects.file[1].width" should be equal to the number "350"
-    And the JSON node "_metadata.media_objects.file[1].height" should be equal to the number "500"
-    And the JSON node "_metadata.media_objects.file[1].mimeType" should be equal to the string "image/png"
-    And the JSON node "_metadata.media_objects.file[2].imagineFilter" should be equal to the string "square_thumbnail"
+    And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
+    And the JSON node "_metadata.mediaObjects.file[0].@type" should be equal to the string "http://schema.org/MediaObject"
+#    And the JSON node "_metadata.mediaObjects.file[0].@context.formattedFileSize" should be equal to the string "http://schema.org/contentSize"
+#    And the JSON node "_metadata.mediaObjects.file[0].@context.contentUrl" should be equal to the string "http://schema.org/contentUrl"
+#    And the JSON node "_metadata.mediaObjects.file[0].@context.mimeType" should be equal to the string "http://schema.org/encodingFormat"
+#    And the JSON node "_metadata.mediaObjects.file[0].@context.width" should be equal to the string "http://schema.org/width"
+#    And the JSON node "_metadata.mediaObjects.file[0].@context.height" should be equal to the string "http://schema.org/height"
+    And the JSON node "_metadata.mediaObjects.file[0].imagineFilter" should not exist
+    And the JSON node "_metadata.mediaObjects.file[1].imagineFilter" should be equal to the string "thumbnail"
+    And the JSON node "_metadata.mediaObjects.file[1].width" should be equal to the number "350"
+    And the JSON node "_metadata.mediaObjects.file[1].height" should be equal to the number "500"
+    And the JSON node "_metadata.mediaObjects.file[1].mimeType" should be equal to the string "image/png"
+    And the JSON node "_metadata.mediaObjects.file[2].imagineFilter" should be equal to the string "square_thumbnail"
 
   @loginUser
   Scenario: I get get the endpoint of the default media object
@@ -124,7 +124,7 @@ Feature: API Resources which can have files uploaded
       | file | @image.png |
     Then the response status code should be 201
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
-    And the JSON node "_metadata.published" should be false
+    And the JSON node "_metadata.publishable.published" should be false
 
   @loginAdmin
   Scenario: When I publish an uploadable component, the file should still exist and media object returned
@@ -135,7 +135,7 @@ Feature: API Resources which can have files uploaded
       | now           |
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
-    And the JSON node "_metadata.published" should be true
+    And the JSON node "_metadata.publishable.published" should be true
 
   # DELETE
 
@@ -148,7 +148,7 @@ Feature: API Resources which can have files uploaded
       | null   |
     Then the response status code should be 200
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_no_files.schema.json"
-    And the JSON node "_metadata.published" should be false
+    And the JSON node "_metadata.publishable.published" should be false
     And the resource dummy_uploadable should have an uploaded file
 
   @loginAdmin

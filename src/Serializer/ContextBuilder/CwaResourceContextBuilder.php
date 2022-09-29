@@ -17,6 +17,8 @@ use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataBuilder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Security;
@@ -26,21 +28,25 @@ use Symfony\Component\Security\Core\Security;
  */
 final class CwaResourceContextBuilder implements SerializerContextBuilderInterface
 {
-    private SerializerContextBuilderInterface $decorated;
-    private RoleHierarchyInterface $roleHierarchy;
-    private Security $security;
-
-    public function __construct(SerializerContextBuilderInterface $decorated, RoleHierarchyInterface $roleHierarchy, Security $security)
-    {
-        $this->decorated = $decorated;
-        $this->roleHierarchy = $roleHierarchy;
-        $this->security = $security;
+    public function __construct(
+        private SerializerContextBuilderInterface $decorated,
+        private RoleHierarchyInterface $roleHierarchy,
+        private Security $security,
+        private ResourceMetadataBuilder $resourceMetadataProvider
+    ) {
     }
 
     public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
-        if (!is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true) && !is_a($resourceClass = $context['resource_class'], AbstractPageData::class, true)) {
+        if (!isset($context['groups']) || !\in_array('Route:manifest:read', $context['groups'], true)) {
+            $this->resourceMetadataProvider->init();
+            $context[MetadataNormalizer::ALREADY_CALLED] = [];
+        }
+        if (
+            !is_a($resourceClass = $context['resource_class'], AbstractComponent::class, true) &&
+            !is_a($resourceClass, AbstractPageData::class, true)
+        ) {
             return $context;
         }
 

@@ -42,6 +42,7 @@ final class SerializeFormatResolver implements SerializeFormatResolverInterface
 
     public function getFormatFromRequest(Request $request): string
     {
-        return $request->getRequestFormat(null) ?: $request->getContentType() ?: $this->defaultFormat;
+        // Symfony 6.2 deprecated getContentType in favor of getContentTypeFormat
+        return $request->getRequestFormat(null) ?: $request?->getContentTypeFormat() ?: $request?->getContentType() ?: $this->defaultFormat;
     }
 }

@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use ApiPlatform\Api\ResourceClassResolverInterface;
 use ApiPlatform\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -35,23 +36,20 @@ class PersistedNormalizer implements NormalizerInterface, CacheableSupportsMetho
 
     private const ALREADY_CALLED = 'PERSISTED_NORMALIZER_ALREADY_CALLED';
 
-    private EntityManagerInterface $entityManager;
-    private ResourceClassResolverInterface $resourceClassResolver;
     private PropertyAccessor $propertyAccessor;
 
     public function __construct(
-        EntityManagerInterface $entityManager,
-        ResourceClassResolverInterface $resourceClassResolver
+        private EntityManagerInterface $entityManager,
+        private ResourceClassResolverInterface $resourceClassResolver,
+        private ResourceMetadataInterface $resourceMetadata
     ) {
-        $this->entityManager = $entityManager;
-        $this->resourceClassResolver = $resourceClassResolver;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $context[MetadataNormalizer::METADATA_CONTEXT]['persisted'] = $this->entityManager->contains($object);
+        $this->resourceMetadata->setPersisted($this->entityManager->contains($object));
 
         return $this->normalizer->normalize($object, $format, $context);
     }

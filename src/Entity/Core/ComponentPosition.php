@@ -41,7 +41,7 @@ class ComponentPosition
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
     public ?ComponentGroup $componentGroup = null;
 
-    #[Groups(['ComponentPosition:read', 'ComponentPosition:write'])]
+    #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'Route:manifest:read'])]
     public ?AbstractComponent $component = null;
 
     #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]

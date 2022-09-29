@@ -17,6 +17,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -31,10 +32,11 @@ trait UiTrait
     #[Orm\Column(type: 'json', nullable: true)]
     public ?array $uiClassNames = null;
 
-    /**     *
+    /**
      * @var Collection|ComponentGroup[]
      */
     #[Orm\ManyToMany(targetEntity: ComponentGroup::class)]
+    #[Groups(['Route:manifest:read'])]
     private Collection $componentGroups;
 
     public function __construct()

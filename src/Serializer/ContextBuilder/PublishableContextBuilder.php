@@ -39,6 +39,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         if (
             empty($resourceClass = $context['resource_class']) ||
             empty($context['groups']) ||
+            \in_array('Route:manifest:read', $context['groups'], true) ||
             !$this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass)
         ) {
             return $context;

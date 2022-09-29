@@ -53,15 +53,15 @@
         }
       ],
       "properties": {
-        "media_objects": {
-          "$id": "#/properties/media_objects",
+        "mediaObjects": {
+          "$id": "#/properties/mediaObjects",
           "type": "object",
           "required": [
             "file"
           ],
           "patternProperties": {
             "^.*": {
-              "$id": "#/properties/media_objects/filename",
+              "$id": "#/properties/mediaObjects/filename",
               "type": "array",
               "minItems": 1,
               "title": "The media_objects Schema",

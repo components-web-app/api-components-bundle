@@ -33,7 +33,7 @@ final class TimestampedContextBuilder implements SerializerContextBuilderInterfa
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
 
-        if (empty($resourceClass = $context['resource_class']) || empty($context['groups'])) {
+        if (empty($resourceClass = $context['resource_class']) || empty($context['groups']) || \in_array('Route:manifest:read', $context['groups'], true)) {
             return $context;
         }
 

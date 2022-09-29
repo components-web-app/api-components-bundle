@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
@@ -137,6 +136,7 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataBuilder;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
@@ -246,6 +246,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(CwaResourceContextBuilder::class . '.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
+                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
             ]
         )
         ->autoconfigure(false);
@@ -1324,4 +1325,8 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
+
+    $services
+        ->set('silverback.serializer.resource_metadata.resource_metadata_builder')
+        ->class(ResourceMetadataBuilder::class);
 };

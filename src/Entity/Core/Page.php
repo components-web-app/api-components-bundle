@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
@@ -32,6 +33,7 @@ class Page extends AbstractPage
     use UiTrait;
 
     #[Assert\NotBlank(message: 'Please specify a layout.')]
+    #[Groups(['Route:manifest:read'])]
     public ?Layout $layout;
 
     #[Assert\NotBlank(message: 'Please enter a reference.')]

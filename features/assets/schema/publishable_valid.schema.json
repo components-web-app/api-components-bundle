@@ -8,7 +8,7 @@
         "_metadata": {
           "not": {
             "required": [
-              "violation_list"
+              "violationList"
             ]
           }
         }

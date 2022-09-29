@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Util\ClassInfoTrait;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -36,7 +37,7 @@ class CollectionNormalizer implements NormalizerInterface, CacheableSupportsMeth
 
     private PropertyAccessor $propertyAccessor;
 
-    public function __construct()
+    public function __construct(private ResourceMetadataInterface $resourceMetadata)
     {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -44,7 +45,7 @@ class CollectionNormalizer implements NormalizerInterface, CacheableSupportsMeth
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $context[MetadataNormalizer::METADATA_CONTEXT]['collection'] = true;
+        $this->resourceMetadata->setCollection(true);
 
         return $this->normalizer->normalize($object, $format, $context);
     }

@@ -8,7 +8,7 @@
         "_metadata": {
           "not": {
             "required": [
-              "media_objects"
+              "mediaObjects"
             ]
           }
         }
