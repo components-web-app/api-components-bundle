@@ -77,8 +77,21 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
             $iris[] = $resource['@id'];
         }
         foreach ($resource as $resourceValue) {
-            if (\is_array($resourceValue) && isset($resourceValue['@id'])) {
-                array_push($iris, ...$this->getResourceIrisFromArray($resourceValue));
+            // may be a string or simple
+            // may be an array representing a resource
+            // may be an array of any other values
+            // may be an array of arrays
+            if (\is_array($resourceValue)) {
+                // check if the array is representing a new resource
+                if (isset($resourceValue['@id'])) {
+                    array_push($iris, ...$this->getResourceIrisFromArray($resourceValue));
+                }
+                // check if the array contains more resources
+                foreach ($resourceValue as $nestedValue) {
+                    if (isset($nestedValue['@id'])) {
+                        array_push($iris, ...$this->getResourceIrisFromArray($nestedValue));
+                    }
+                }
             }
         }
 
