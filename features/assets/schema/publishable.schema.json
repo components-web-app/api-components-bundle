@@ -8,16 +8,6 @@
     "@type",
     "_metadata"
   ],
-  "if": {
-    "properties": {
-      "published": {
-        "const": true
-      }
-    },
-    "required": [
-      "publishedAt"
-    ]
-  },
   "properties": {
     "@context": {
       "$id": "#/@context",
@@ -84,25 +74,40 @@
       "type": "object",
       "title": "The _metadata Schema",
       "description": "An explanation about the purpose of this instance.",
-      "default": "",
-      "examples": {
-        "publishable": {
-          "published": true
+      "examples": [
+        {
+          "publishable": {
+            "published": true,
+            "publishedAt": "2020-04-07T09:38:49+00:00",
+            "violationList": []
+          }
         }
-      },
+      ],
       "properties": {
         "publishable": {
           "$id": "#/_metadata/publishable",
           "type": "object",
           "title": "The _metadata/publishable Schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": "",
-          "examples": {
-            "published": true
-          },
+          "examples": [
+            {
+              "published": true,
+              "publishedAt": "2020-04-07T09:38:49+00:00"
+            }
+          ],
           "required": [
             "published"
           ],
+          "if": {
+            "properties": {
+              "published": {
+                "const": true
+              }
+            },
+            "required": [
+              "publishedAt"
+            ]
+          },
           "properties": {
             "published": {
               "$id": "#/_metadata/publishable/published",
@@ -115,10 +120,20 @@
                 true
               ]
             },
-            "violationList": {
-              "$ref": "validation_errors.schema.json"
+            "publishedAt": {
+              "$id": "#/_metadata/publishable/publishedAt",
+              "type": "string",
+              "title": "The Modified Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": "",
+              "examples": [
+                "2020-04-07T09:38:49+00:00"
+              ]
             }
           }
+        },
+        "violationList": {
+          "$ref": "validation_errors.schema.json"
         }
       }
     }
