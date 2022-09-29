@@ -1191,7 +1191,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.path_segment_name_generator'),
             ]
         );
-    $services->alias(ResourceMetadataFactoryInterface::class, 'silverback.metadata.api.component_resource_metadata_factory');
+    $services->alias(ComponentResourceMetadataFactory::class, 'silverback.metadata.api.component_resource_metadata_factory');
 
     $services
         ->set('silverback.metadata_factory.component_usage')
