@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +27,7 @@ use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\PublishableIriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
@@ -73,6 +76,7 @@ use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Mercure\AddMercureTokenListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
@@ -105,6 +109,7 @@ use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Mercure\PublishableAwareHub;
 use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
@@ -608,6 +613,31 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PublishableListener::class)
         ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+
+    $services
+        ->set(AddMercureTokenListener::class)
+        ->args(
+            [
+                new Reference('mercure.hub.default.jwt.factory'),
+                new Reference(ResourceNameCollectionFactoryInterface::class),
+                new Reference(ResourceMetadataCollectionFactoryInterface::class),
+                new Reference(PublishableStatusChecker::class),
+                new Reference('router.request_context'),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'method' => 'onKernelResponse']);
+
+    $services
+        ->set(PublishableAwareHub::class)
+        ->decorate('mercure.hub.default')
+        ->args(
+            [
+                new Reference(PublishableAwareHub::class . '.inner'),
+                new Reference(PublishableStatusChecker::class),
+                new Reference(IriConverterInterface::class),
+            ]
+        )
+        ->tag('mercure.hub');
 
     // High priority for item because of queryBuilder reset
     $services
@@ -1300,6 +1330,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverter::class . '.inner'),
         ]);
     $services->alias('silverback.iri_converter', IriConverter::class);
+
+    $services
+        ->set(PublishableIriConverter::class)
+        ->decorate('api_platform.iri_converter')
+        ->args([
+            new Reference(IriConverter::class . '.inner'),
+            new Reference(PublishableStatusChecker::class),
+        ]);
 
     /*
      * <service id="api_platform.doctrine.orm.search_filter" class="ApiPlatform\Doctrine\Orm\Filter\SearchFilter" public="false" abstract="true">
