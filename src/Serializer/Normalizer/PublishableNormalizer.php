@@ -20,10 +20,12 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -62,7 +64,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         private IriConverterInterface $iriConverter,
         private UploadableFileManager $uploadableFileManager,
         private ResourceMetadataInterface $resourceMetadata,
-        private ?PurgeHttpCacheListener $purgeHttpCacheListener = null
+        private ?PurgeHttpCacheListener $purgeHttpCacheListener = null,
+        private ?MercureResourcePublisher $mercureResourcePublisher = null
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -238,6 +241,16 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         // Clear the cache of the published resource because it should now also return an associated draft
         if ($this->purgeHttpCacheListener) {
             $this->purgeHttpCacheListener->addTagsFor($object);
+        }
+
+        if ($this->mercureResourcePublisher) {
+            $this->mercureResourcePublisher->publishResourceUpdate($object);
+
+            if ($object instanceof AbstractComponent) {
+                foreach ($object->getComponentPositions() as $componentPosition) {
+                    $this->mercureResourcePublisher->publishResourceUpdate($componentPosition);
+                }
+            }
         }
 
         return $draft;

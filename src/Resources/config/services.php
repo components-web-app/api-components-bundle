@@ -110,6 +110,7 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mercure\PublishableAwareHub;
+use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactory;
@@ -1367,4 +1368,12 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.serializer.resource_metadata.resource_metadata_builder')
         ->class(ResourceMetadataBuilder::class);
+
+    $services->set(MercureResourcePublisher::class)
+             ->args([
+                 new Reference('mercure.hub.default'),
+                 new Reference('api_platform.iri_converter'),
+                 new Reference('api_platform.metadata.resource.metadata_collection_factory'),
+             ])
+             ->call('setSerializer', [new Reference('serializer')]);
 };
