@@ -5,8 +5,8 @@
     "license": "MIT",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/silverbackdan/contexts"
+            "type": "git",
+            "url": "git@github.com:silverbackdan/contexts.git"
         }
     ],
     "require": {
