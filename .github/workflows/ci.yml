@@ -67,7 +67,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         env:
             GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
-            GD_LIBS: libgd-dev libjpeg-turbo-dev libxslt-dev libpng-dev freetype-dev
+            GD_LIBS: libjpeg-dev libpng-dev
             GD_PATH: ext/gd
         with:
           php-version: ${{ matrix.php }}
@@ -75,18 +75,6 @@ jobs:
           extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
           coverage: pcov
           ini-values: memory_limit=-1
-#      - name: Install system packages
-#        run: |
-#          apk add \
-#            bash \
-#            unzip \
-#            libxslt-dev \
-#            libpng-dev \
-#            libjpeg-turbo-dev \
-#            freetype-dev \
-#            gnupg \
-#            git \
-#            openssh
       - name: Get composer cache directory
         id: composercache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -149,11 +137,6 @@ jobs:
   behat:
     name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
@@ -173,45 +156,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install system packages
-        run: |
-          apk add \
-            bash \
-            unzip \
-            libxslt-dev \
-            libpng-dev \
-            libjpeg-turbo-dev \
-            freetype-dev \
-            git \
-            openssh\
-      - name: Install pcov PHP extension
-        if: matrix.coverage
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         env:
-          BUILD_DIR: /var/tmp/build/ext-pcov-${{ env.EXT_PCOV_VERSION }}
-          SRC_DIR: /usr/src/php/ext/pcov
-        run: |
-          apk add \
-            $PHPIZE_DEPS
-          mkdir -p "$SRC_DIR" "$BUILD_DIR"
-          cd "$SRC_DIR"
-          curl -fsSL "https://pecl.php.net/get/pcov-$EXT_PCOV_VERSION.tgz" | tar -zx --strip-components 1
-          phpize
-          cd "$BUILD_DIR"
-          "$SRC_DIR"/configure --config-cache
-          make -j"$(nproc)"
-          make -j"$(nproc)" install
-          docker-php-ext-enable pcov
-      - name: Install exif PHP extension
-        run: |
-          docker-php-ext-install exif xsl
-      - name: Install php image extensions
-        run: |
-          docker-php-ext-configure gd --with-freetype --with-jpeg
-          docker-php-ext-install gd
-      - name: Disable PHP memory limit
-        run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      - name: Install Composer
-        run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
+            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
+            GD_LIBS: libjpeg-dev libpng-dev
+            GD_PATH: ext/gd
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
+          coverage: pcov
+          ini-values: memory_limit=-1
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -224,12 +180,6 @@ jobs:
           restore-keys: |
             composer-php${{ matrix.php }}-
         continue-on-error: true
-      - name: Install Symfony Flex & Configure Symfony Version
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --prefer-dist --no-progress --ansi \
-            symfony/flex
-          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: composer update --no-progress --ansi
       - name: Clear test app cache
@@ -270,15 +220,6 @@ jobs:
           flags: behat
           fail_ci_if_error: true
         continue-on-error: true
-#      - name: Upload coverage results to Codeclimate
-#        if: matrix.coverage
-#        uses: paambaati/codeclimate-action@v2.5.6
-#        env:
-#          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-#        with:
-#          coverageCommand: echo 'PHPUnit already run...'
-#          coverageLocations: build/logs/behat/clover.xml:clover
-#        continue-on-error: true
 
   phpunit-lowest-deps:
     name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
