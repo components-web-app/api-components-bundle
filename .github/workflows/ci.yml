@@ -183,10 +183,7 @@ jobs:
       - name: Update project dependencies
         run: composer update --no-progress --ansi
       - name: Clear test app cache
-        run: |
-          mkdir -p /tmp/api-component/core/var
-          ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/bin/console cache:clear --ansi
+        run: tests/Functional/app/bin/console cache:clear --ansi
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
@@ -224,11 +221,6 @@ jobs:
   phpunit-lowest-deps:
     name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     strategy:
       matrix:
         php:
@@ -240,27 +232,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install system packages
-        run: |
-          apk add \
-            unzip \
-            libxslt-dev \
-            libpng-dev \
-            libjpeg-turbo-dev \
-            freetype-dev \
-            git \
-            openssh\
-      - name: Install exif PHP extension
-        run: |
-          docker-php-ext-install exif xsl
-      - name: Install php image extensions
-        run: |
-          docker-php-ext-configure gd --with-freetype --with-jpeg
-          docker-php-ext-install gd
-      - name: Disable PHP memory limit
-        run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      - name: Install Composer
-        run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        env:
+            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
+            GD_LIBS: libjpeg-dev libpng-dev
+            GD_PATH: ext/gd
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
+          coverage: none
+          ini-values: memory_limit=-1
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -273,19 +256,10 @@ jobs:
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
         continue-on-error: true
-      - name: Install Symfony Flex & Configure Symfony Version
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --prefer-dist --no-progress --ansi \
-            symfony/flex
-          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
-        run: |
-          mkdir -p /tmp/api-component/core/var
-          ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/bin/console cache:clear --ansi
+        run: tests/Functional/app/bin/console cache:clear --ansi
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
@@ -301,11 +275,6 @@ jobs:
   behat-lowest-deps:
     name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     strategy:
       matrix:
         php:
@@ -317,31 +286,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install system packages
-        run: |
-          apk add \
-              unzip \
-              libxslt-dev \
-              libpng-dev \
-              libjpeg-turbo-dev \
-              freetype-dev \
-              git \
-              openssh\
-      - name: Install exif PHP extension
-        run: |
-          docker-php-ext-install exif xsl
-      - name: Install php image extensions
-        run: |
-          docker-php-ext-configure gd --with-freetype --with-jpeg
-          docker-php-ext-install gd
-      - name: Disable PHP memory limit
-        run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      - name: Install Composer
-        run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        env:
+            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
+            GD_LIBS: libjpeg-dev libpng-dev
+            GD_PATH: ext/gd
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
+          coverage: none
+          ini-values: memory_limit=-1
+      -   name: Get Composer Cache Directory
+          id: composer-cache
+          run: |
+            echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Restore composer cache
         uses: actions/cache@v1
         with:
@@ -350,19 +310,10 @@ jobs:
           restore-keys: |
             composer-lowest-deps-php${{ matrix.php }}-
         continue-on-error: true
-      - name: Install Symfony Flex & Configure Symfony Version
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --prefer-dist --no-progress --ansi \
-            symfony/flex
-          composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
         run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
-        run: |
-          mkdir -p /tmp/api-component/core/var
-          ln -s /tmp/api-component/core/var tests/Functional/app/var
-          tests/Functional/app/bin/console cache:clear --ansi
+        run: tests/Functional/app/bin/console cache:clear --ansi
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat
@@ -375,15 +326,9 @@ jobs:
           path: build/logs/behat
         continue-on-error: true
 
-
   phpunit-symfony-next:
     name: PHPUnit (Symfony NEXT ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     strategy:
       matrix:
         php:
@@ -393,97 +338,71 @@ jobs:
       fail-fast: false
     timeout-minutes: 20
     steps:
-      -   name: Checkout
-          uses: actions/checkout@v1
-      -   name: Install system packages
-          run: |
-            apk add \
-                jq \
-                moreutils \
-                bash \
-                unzip \
-                libxslt-dev \
-                libpng-dev \
-                libjpeg-turbo-dev \
-                freetype-dev \
-                gnupg \
-                git \
-                openssh\
-      -   name: Install exif PHP extension
-          run: |
-            docker-php-ext-install exif xsl
-      -   name: Install php image extensions
-          run: |
-            docker-php-ext-configure gd --with-freetype --with-jpeg
-            docker-php-ext-install gd
-      -   name: Disable PHP memory limit
-          run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      -   name: Install Composer
-          run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      -   name: Get Composer Cache Directory
-          id: composer-cache
-          run: |
-            echo "::set-output name=dir::$(composer config cache-files-dir)"
-      -   name: Restore composer cache
-          uses: actions/cache@v1
-          with:
-            path: ${{ steps.composer-cache.outputs.dir }}
-            key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
-            restore-keys: |
-              composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
-              composer-php${{ matrix.php }}-
-              composer-
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        env:
+            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
+            GD_LIBS: libjpeg-dev libpng-dev
+            GD_PATH: ext/gd
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
+          coverage: none
+          ini-values: memory_limit=-1
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
+            composer-php${{ matrix.php }}-
+            composer-
           continue-on-error: true
-      -   name: Install Symfony Flex
-          run: |
-            composer global config --no-plugins allow-plugins.symfony/flex true
-            composer global require --prefer-dist --no-progress --ansi \
-              symfony/flex
-      -   name: Update project dependencies
-          run: |
-            composer config minimum-stability dev  
-            composer config prefer-stable false
-            composer update --no-progress --ansi
-      -   name: Flag held back Symfony packages
-          env:
-            symfony_version: ${{ matrix.symfony }}
-          run: |
-            version_pattern=$symfony_version.x-dev
-            if [ "${symfony_version%.4}" != "$symfony_version" ]; then
-              current_major=${symfony_version%.4}
-              next_major=$((current_major + 1))
-              version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
-            fi
-            version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
-            symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure|debug|maker-bundle|monolog-bundle')
-            ! echo "$symfony_packages" | grep -vE "$version_pattern"
-          continue-on-error: true
-      -   name: Clear test app cache
-          run: |
-            mkdir -p /tmp/api-platform/core/var
-            ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/bin/console cache:clear --ansi
-      -   name: Run PHPUnit tests
-          run: |
-            mkdir -p build/logs/phpunit
-            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
-          continue-on-error: true
-      -   name: Upload test artifacts
-          if: always()
-          uses: actions/upload-artifact@v1
-          with:
-            name: phpunit-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
-            path: build/logs/phpunit
-          continue-on-error: true
+      - name: Update project dependencies
+        run: |
+          composer config minimum-stability dev  
+          composer config prefer-stable false
+          composer update --no-progress --ansi
+      - name: Flag held back Symfony packages
+        env:
+          symfony_version: ${{ matrix.symfony }}
+        run: |
+          version_pattern=$symfony_version.x-dev
+          if [ "${symfony_version%.4}" != "$symfony_version" ]; then
+            current_major=${symfony_version%.4}
+            next_major=$((current_major + 1))
+            version_pattern=$version_pattern'|'$next_major.0.x-dev'|'dev-master
+          fi
+          version_pattern=$(echo "$version_pattern" | sed -r 's/\./\\./g')
+          symfony_packages=$(composer show symfony/* | tr -s ' ' '\t' | cut -f1-2 | grep -vE 'polyfill|contracts|mercure|debug|maker-bundle|monolog-bundle')
+          ! echo "$symfony_packages" | grep -vE "$version_pattern"
+        continue-on-error: true
+      - name: Clear test app cache
+        run: tests/Functional/app/bin/console cache:clear --ansi
+      - name: Run PHPUnit tests
+        run: |
+          mkdir -p build/logs/phpunit
+          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+        continue-on-error: true
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: phpunit-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
+          path: build/logs/phpunit
+        continue-on-error: true
 
   behat-symfony-next:
     name: Behat (Symfony NEXT ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     strategy:
       matrix:
         php:
@@ -493,70 +412,50 @@ jobs:
       fail-fast: false
     timeout-minutes: 20
     steps:
-      -   name: Checkout
-          uses: actions/checkout@v1
-      -   name: Install system packages
-          run: |
-            apk add \
-                jq \
-                moreutils \
-                bash \
-                unzip \
-                libxslt-dev \
-                libpng-dev \
-                libjpeg-turbo-dev \
-                freetype-dev \
-                git \
-                openssh\
-      -   name: Install exif PHP extension
-          run: |
-            docker-php-ext-install exif xsl
-      -   name: Install php image extensions
-          run: |
-            docker-php-ext-configure gd --with-freetype --with-jpeg
-            docker-php-ext-install gd
-      -   name: Disable PHP memory limit
-          run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      -   name: Install Composer
-          run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      -   name: Get Composer Cache Directory
-          id: composer-cache
-          run: |
-            echo "::set-output name=dir::$(composer config cache-files-dir)"
-      -   name: Restore composer cache
-          uses: actions/cache@v1
-          with:
-            path: ${{ steps.composer-cache.outputs.dir }}
-            key: composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-${{ github.sha }}
-            restore-keys: |
-              composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
-              composer-php${{ matrix.php }}-
-              composer-
-          continue-on-error: true
-      -   name: Install Symfony Flex
-          run: |
-            composer global config --no-plugins allow-plugins.symfony/flex true
-            composer global require --prefer-dist --no-progress --ansi \
-              symfony/flex
-      -   name: Update project dependencies
-          run: |
-            composer config minimum-stability dev  
-            composer config prefer-stable false
-            composer update --no-progress --ansi
-      -   name: Clear test app cache
-          run: |
-            mkdir -p /tmp/api-platform/core/var
-            ln -s /tmp/api-platform/core/var tests/Functional/app/var
-            tests/Functional/app/bin/console cache:clear --ansi
-      -   name: Run Behat tests
-          run: |
-            mkdir -p build/logs/behat
-            php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
-          continue-on-error: true
-      -   name: Upload test artifacts
-          if: always()
-          uses: actions/upload-artifact@v1
-          with:
-            name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
-            path: build/logs/behat
-          continue-on-error: true
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        env:
+            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
+            GD_LIBS: libjpeg-dev libpng-dev
+            GD_PATH: ext/gd
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, gd-php/php-src@PHP-${{ matrix.php }}, exif, xsl
+          coverage: none
+          ini-values: memory_limit=-1
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Restore composer cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-${{ github.sha }}
+          restore-keys: |
+            composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
+            composer-php${{ matrix.php }}-
+            composer-
+        continue-on-error: true
+      - name: Update project dependencies
+        run: |
+          composer config minimum-stability dev  
+          composer config prefer-stable false
+          composer update --no-progress --ansi
+      - name: Clear test app cache
+        run: tests/Functional/app/bin/console cache:clear --ansi
+      - name: Run Behat tests
+        run: |
+          mkdir -p build/logs/behat
+          php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
+        continue-on-error: true
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
+          path: build/logs/behat
+        continue-on-error: true
