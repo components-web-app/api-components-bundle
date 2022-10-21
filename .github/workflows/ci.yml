@@ -21,11 +21,6 @@ jobs:
   php-cs-fixer:
     name: PHP-CS-Fixer (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
-    container:
-      image: php:${{ matrix.php }}-alpine
-      options: >-
-        --tmpfs /tmp:exec
-        --tmpfs /var/tmp:exec
     strategy:
       matrix:
         php:
@@ -38,49 +33,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install system packages
-        run: |
-          apk add \
-            unzip \
-            openssh\
-      - name: Disable PHP memory limit
-        run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
-      - name: Install Composer
-        run: wget -qO - https://raw.githubusercontent.com/composer/getcomposer.org/$COMPOSER_INSTALLER_COMMIT/web/installer | php -- --install-dir=/usr/local/bin --filename=composer --quiet
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Restore composer cache
-        uses: actions/cache@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-cs-fixer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            composer-cs-fixer-php${{ matrix.php }}-
-        continue-on-error: true
-      - name: Install Symfony Flex
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --prefer-dist --no-progress --ansi \
-            symfony/flex
-      - name: Install PHP-CS-Fixer
-        run: |
-          composer global require --prefer-dist --no-progress --ansi \
-            friendsofphp/php-cs-fixer:"${PHP_CS_FIXER_VERSION}"
-      - name: Cache PHP-CS-Fixer results
-        uses: actions/cache@v1
-        with:
-          path: /var/cache/php-cs-fixer
-          key: php-cs-fixer-php${{ matrix.php }}-${{ github.sha }}
-          restore-keys: |
-            php-cs-fixer-php${{ matrix.php }}-
-        continue-on-error: true
+          php-version: ${{ matrix.php }}
+          extensions: intl, bcmath, curl, openssl, mbstring
+          ini-values: memory_limit=-1
+          tools: pecl, composer, php-cs-fixer
+          coverage: none
       - name: Run PHP-CS-Fixer fix
-        run: |
-          export PATH="$PATH:$HOME/.composer/vendor/bin"
-          mkdir -p /var/cache/php-cs-fixer
-          php-cs-fixer fix --dry-run --diff --cache-file=/var/cache/php-cs-fixer/.php_cs.cache --ansi
+        run: php-cs-fixer fix --dry-run --diff --ansi
 
   phpunit:
     name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
@@ -120,7 +82,7 @@ jobs:
             freetype-dev \
             gnupg \
             git \
-            openssh\
+            openssh
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
