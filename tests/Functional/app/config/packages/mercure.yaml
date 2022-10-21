@@ -4,5 +4,5 @@ mercure:
             url: 'https://internal/.well-known/mercure'
             public_url: 'https://internal/.well-known/mercure'
             jwt:
-                secret: 'TEST_SECRET'
+                secret: 'ab0a54cf2375ab2368d97166b94e108c'
                 publish: '*'
