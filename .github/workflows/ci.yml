@@ -42,6 +42,7 @@ jobs:
         run: |
           apk add \
             unzip \
+            openssh\
       - name: Disable PHP memory limit
         run: echo 'memory_limit=-1' >> /usr/local/etc/php/php.ini
       - name: Install Composer
@@ -118,7 +119,8 @@ jobs:
             libjpeg-turbo-dev \
             freetype-dev \
             gnupg \
-            git
+            git \
+            openssh\
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -261,7 +263,8 @@ jobs:
             libpng-dev \
             libjpeg-turbo-dev \
             freetype-dev \
-            git
+            git \
+            openssh\
       - name: Install pcov PHP extension
         if: matrix.coverage
         env:
@@ -385,7 +388,8 @@ jobs:
             libpng-dev \
             libjpeg-turbo-dev \
             freetype-dev \
-            git
+            git \
+            openssh\
       - name: Install exif PHP extension
         run: |
           docker-php-ext-install exif xsl
@@ -461,7 +465,8 @@ jobs:
               libpng-dev \
               libjpeg-turbo-dev \
               freetype-dev \
-              git
+              git \
+              openssh\
       - name: Install exif PHP extension
         run: |
           docker-php-ext-install exif xsl
@@ -542,7 +547,8 @@ jobs:
                 libjpeg-turbo-dev \
                 freetype-dev \
                 gnupg \
-                git
+                git \
+                openssh\
       -   name: Install exif PHP extension
           run: |
             docker-php-ext-install exif xsl
@@ -640,7 +646,8 @@ jobs:
                 libpng-dev \
                 libjpeg-turbo-dev \
                 freetype-dev \
-                git
+                git \
+                openssh\
       -   name: Install exif PHP extension
           run: |
             docker-php-ext-install exif xsl

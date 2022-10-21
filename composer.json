@@ -3,6 +3,14 @@
     "type": "symfony-bundle",
     "description": "Creates a flexible API for a website's structure, reusable components and common functionality.",
     "license": "MIT",
+    "homepage": "https://cwa.rocks",
+    "authors": [
+        {
+            "name": "Daniel West",
+            "email": "daniel@silverback.is",
+            "homepage": "https://silverback.is"
+        }
+    ],
     "repositories": [
         {
             "type": "git",
