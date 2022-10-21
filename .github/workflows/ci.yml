@@ -15,7 +15,7 @@ env:
   EXT_PCOV_VERSION: '1.0.6'
   INFECTION_VERSION: '0.23.0'
   COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   php-cs-fixer:
