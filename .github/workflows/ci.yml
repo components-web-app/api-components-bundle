@@ -166,10 +166,7 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
-        run: |
-          mkdir -p /tmp/api-component/core/vendor
-          ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --ansi
+        run: composer update --no-progress --ansi
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -312,10 +309,7 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
-        run: |
-          mkdir -p /tmp/api-component/core/vendor
-          ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --ansi
+        run: composer update --no-progress --ansi
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -422,10 +416,7 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
-        run: |
-          mkdir -p /tmp/api-component/core/vendor
-          ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --ansi --prefer-stable --prefer-lowest
+        run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -501,10 +492,7 @@ jobs:
             symfony/flex
           composer config extra.symfony.require "${{ matrix.symfony }}"
       - name: Update project dependencies
-        run: |
-          mkdir -p /tmp/api-component/core/vendor
-          ln -s /tmp/api-component/core/vendor vendor
-          composer update --no-progress --ansi --prefer-stable --prefer-lowest
+        run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: |
           mkdir -p /tmp/api-component/core/var
@@ -587,8 +575,6 @@ jobs:
               symfony/flex
       -   name: Update project dependencies
           run: |
-            mkdir -p /tmp/api-platform/core/vendor
-            ln -s /tmp/api-platform/core/vendor vendor
             composer config minimum-stability dev  
             composer config prefer-stable false
             composer update --no-progress --ansi
@@ -687,8 +673,6 @@ jobs:
               symfony/flex
       -   name: Update project dependencies
           run: |
-            mkdir -p /tmp/api-platform/core/vendor
-            ln -s /tmp/api-platform/core/vendor vendor
             composer config minimum-stability dev  
             composer config prefer-stable false
             composer update --no-progress --ansi
