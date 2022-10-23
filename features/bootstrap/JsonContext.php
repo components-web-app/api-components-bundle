@@ -21,6 +21,7 @@ use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Json\Json;
 use Behatch\Json\JsonInspector;
 use Behatch\Json\JsonSchema;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpFoundation\Cookie;
 
@@ -29,10 +30,12 @@ class JsonContext implements Context
     private JsonInspector $inspector;
     private ?BehatchJsonContext $jsonContext;
     private ?RestContext $restContext;
+    private JWSProviderInterface $jwsProvider;
 
-    public function __construct()
+    public function __construct(JWSProviderInterface $jwsProvider)
     {
         $this->inspector = new JsonInspector('javascript');
+        $this->jwsProvider = $jwsProvider;
     }
 
     /**
@@ -157,6 +160,40 @@ class JsonContext implements Context
             }
         }
         throw new \Exception(sprintf('The cookie "%s" was not found in the response headers.', $name));
+    }
+
+    private function getMercureCookieDraftTopics(): array
+    {
+        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
+        $setCookieHeaders = $responseHeaders['set-cookie'];
+        foreach ($setCookieHeaders as $setCookieHeader) {
+            $cookie = Cookie::fromString($setCookieHeader);
+            $realName = $cookie->getName();
+            if ($realName === 'mercureAuthorization') {
+                $token = $this->jwsProvider->load($cookie->getValue());
+                $payload = $token->getPayload();
+                return array_filter($payload['mercure']['subscribe'], static function($topic) {
+                    return str_ends_with($topic, '?draft=1');
+                });
+            }
+        }
+        return [];
+    }
+
+    /**
+     * @Then the mercure cookie should not contain draft resource topics
+     */
+    public function theMercureCookieShouldNotContainDraftResources()
+    {
+        Assert::assertCount(0, $this->getMercureCookieDraftTopics(), 'The cookie allows a user to be subscribed to draft resources');
+    }
+
+    /**
+     * @Then the mercure cookie should contain draft resource topics
+     */
+    public function theMercureCookieShouldContainDraftResources()
+    {
+        Assert::assertGreaterThan(0, $this->getMercureCookieDraftTopics(), 'The cookie does not allow a user to subscribe to any draft resources');
     }
 
     /**
