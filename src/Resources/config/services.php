@@ -1334,9 +1334,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableIriConverter::class)
-        ->decorate('api_platform.iri_converter')
         ->args([
-            new Reference(IriConverter::class . '.inner'),
+            new Reference('api_platform.iri_converter'),
             new Reference(PublishableStatusChecker::class),
         ]);
 

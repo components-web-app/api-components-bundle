@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\PublishableIriConverter;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -32,5 +34,8 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         if (!$container->hasAlias('api_platform.http_cache.purger')) {
             $container->removeDefinition($purgeListener);
         }
+
+        $mercurePublishListener = $container->getDefinition('api_platform.doctrine.orm.listener.mercure.publish');
+        $mercurePublishListener->replaceArgument(1, new Reference(PublishableIriConverter::class));
     }
 }
