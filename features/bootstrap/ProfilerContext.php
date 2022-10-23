@@ -92,6 +92,9 @@ class ProfilerContext implements Context
         foreach ($messageObjects as $messageObject) {
             $iri = $messageObject->getTopics()[0];
             if (str_ends_with($iri, '?draft=1')) {
+                if (!$messageObject->isPrivate()) {
+                    throw new ExpectationException('Draft resource messages must be private', $this->minkContext->getSession()->getDriver());
+                }
                 ++$draftCount;
             }
         }

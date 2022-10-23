@@ -27,7 +27,7 @@ use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
-use Silverback\ApiComponentsBundle\ApiPlatform\Api\PublishableIriConverter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
@@ -630,7 +630,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableAwareHub::class)
-        ->decorate('mercure.hub.default')
+        ->decorate('mercure.hub.default', null, -1)
         ->args(
             [
                 new Reference(PublishableAwareHub::class . '.inner'),
@@ -1333,7 +1333,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.iri_converter', IriConverter::class);
 
     $services
-        ->set(PublishableIriConverter::class)
+        ->set(MercureIriConverter::class)
         ->args([
             new Reference('api_platform.iri_converter'),
             new Reference(PublishableStatusChecker::class),
@@ -1371,7 +1371,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->set(MercureResourcePublisher::class)
              ->args([
                  new Reference('mercure.hub.default'),
-                 new Reference('api_platform.iri_converter'),
+                 new Reference(MercureIriConverter::class),
                  new Reference('api_platform.metadata.resource.metadata_collection_factory'),
              ])
              ->call('setSerializer', [new Reference('serializer')]);

@@ -22,6 +22,9 @@ use Symfony\Component\Mercure\Update;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 
+/**
+ * @description A class that can be used to publish new mercure messages outside of the scope of API Platform which publishes on doctrine changes
+ */
 class MercureResourcePublisher implements SerializerAwareInterface
 {
     use ResourceClassInfoTrait;

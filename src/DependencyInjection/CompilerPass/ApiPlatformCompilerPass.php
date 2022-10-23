@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentsBundle\ApiPlatform\Api\PublishableIriConverter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -36,6 +36,6 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         }
 
         $mercurePublishListener = $container->getDefinition('api_platform.doctrine.orm.listener.mercure.publish');
-        $mercurePublishListener->replaceArgument(1, new Reference(PublishableIriConverter::class));
+        $mercurePublishListener->replaceArgument(1, new Reference(MercureIriConverter::class));
     }
 }

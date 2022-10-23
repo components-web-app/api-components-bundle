@@ -21,6 +21,9 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Component\Mercure\Update;
 
+/**
+ * @description Force draft resources to be private updates
+ */
 class PublishableAwareHub implements HubInterface
 {
     public function __construct(private HubInterface $decorated, private PublishableStatusChecker $publishableStatusChecker, private IriConverterInterface $iriConverter)
@@ -49,7 +52,7 @@ class PublishableAwareHub implements HubInterface
 
     public function publish(Update $update): string
     {
-        if ($update->getData() && $data = json_decode($update->getData(), associative: true)) {
+        if ($update->getData() && $data = json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR)) {
             try {
                 $resource = $this->iriConverter->getResourceFromIri($data['@id']);
             } catch (ItemNotFoundException $e) {

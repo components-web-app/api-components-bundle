@@ -34,7 +34,16 @@ class HubStub implements HubInterface
 
     public function publish(Update $update): string
     {
-        return 'id';
+        $postData = [
+            'topic' => $update->getTopics(),
+            'data' => $update->getData(),
+            'private' => $update->isPrivate() ? 'on' : null,
+            'id' => $update->getId(),
+            'type' => $update->getType(),
+            'retry' => $update->getRetry(),
+        ];
+
+        return json_encode($postData);
     }
 
     public function getUrl(): string

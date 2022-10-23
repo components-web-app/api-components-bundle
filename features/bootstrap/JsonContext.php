@@ -147,9 +147,16 @@ class JsonContext implements Context
      */
     public function theResponseShouldHaveACookie(string $name): void
     {
-        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
-        $realName = $cookie->getName();
-        Assert::assertEquals($realName, $name, sprintf('The cookie "%s" was not found in the response headers.', $name));
+        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
+        $setCookieHeaders = $responseHeaders['set-cookie'];
+        foreach ($setCookieHeaders as $setCookieHeader) {
+            $cookie = Cookie::fromString($setCookieHeader);
+            $realName = $cookie->getName();
+            if ($realName === $name) {
+                return;
+            }
+        }
+        throw new \Exception(sprintf('The cookie "%s" was not found in the response headers.', $name));
     }
 
     /**
