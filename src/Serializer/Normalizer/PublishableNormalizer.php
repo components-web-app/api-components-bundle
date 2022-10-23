@@ -53,6 +53,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
     private const ASSOCIATION = 'PUBLISHABLE_ASSOCIATION';
+    public const DRAFT_CREATED = 'DRAFT_CREATED';
 
     private PropertyAccessor $propertyAccessor;
 
@@ -172,8 +173,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
 
         // Any field has been modified: create a draft
         $draft = $this->createDraft($object, $configuration, $type);
-
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
+        $context[self::DRAFT_CREATED] = true;
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
     }

@@ -47,7 +47,6 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
-    public const UPLOADABLE_TO_DELETE = 'cwa_uploadable_to_delete';
 
     private PropertyAccessor $propertyAccessor;
 
@@ -92,8 +91,10 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
 
             // Value is empty: set it to null. Might be blank string
             if (empty($value)) {
-                $fieldConfig = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
-                $this->uploadableFileManager->addDeletedField($fieldConfig->property);
+                if (!isset($context[PublishableNormalizer::DRAFT_CREATED])) {
+                    $fieldConfig = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
+                    $this->uploadableFileManager->addDeletedField($fieldConfig->property);
+                }
                 $data[$fieldName] = null;
                 continue;
             }

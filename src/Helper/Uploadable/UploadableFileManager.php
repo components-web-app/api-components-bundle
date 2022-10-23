@@ -129,10 +129,11 @@ class UploadableFileManager
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            // this is null if null is submitted as the value and null if not submitted
+            // this is null if null is submitted as the value.. also null if not submitted
             /** @var File|UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
+                // so we need to know if it was a deleted field from the denormalizer
                 if ($this->deletedFields->contains($fieldConfiguration->property)) {
                     // this will not have been updated yet, original database value - string file path
                     $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
