@@ -23,7 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
  * @author Daniel West <daniel@silverback.is>
  */
 #[Silverback\Publishable]
-#[ApiResource]
+#[ApiResource(mercure: true)]
 #[ORM\Entity]
 class DummyPublishableComponent extends AbstractComponent
 {
