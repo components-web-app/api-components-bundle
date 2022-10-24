@@ -25,7 +25,7 @@ class ResourceMetadataProvider
         }
         $this->metadatas[$hash] = [
             'resource' => $object,
-            'metadata' => new ResourceMetadata()
+            'metadata' => new ResourceMetadata(),
         ];
 
         return $this->metadatas[$hash]['metadata'];

@@ -76,7 +76,7 @@ class UploadableFileManager
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $configuredProperties = $this->annotationReader->getConfiguredProperties($oldObject, false);
-        foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
+        foreach ($configuredProperties as $fieldConfiguration) {
             if ($propertyAccessor->getValue($oldObject, $fieldConfiguration->property)) {
                 $newPath = $this->copyFilepath($oldObject, $fieldConfiguration);
                 $propertyAccessor->setValue($newObject, $fieldConfiguration->property, $newPath);
@@ -129,7 +129,7 @@ class UploadableFileManager
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            // this is null if null is submitted as the value.. also null if not submitted
+            // this is null if null is submitted as the value... also null if not submitted
             /** @var File|UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {

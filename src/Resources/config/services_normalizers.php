@@ -25,7 +25,6 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
-use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
@@ -41,9 +40,9 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 
@@ -139,8 +138,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(IriConverterInterface::class),
                 new Reference(UploadableFileManager::class),
                 new Reference(ResourceMetadataProvider::class),
-                new Reference('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-                new Reference(MercureResourcePublisher::class),
+                new Reference(EventDispatcherInterface::class),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
 

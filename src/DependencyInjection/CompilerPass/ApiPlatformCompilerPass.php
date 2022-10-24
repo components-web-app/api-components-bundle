@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
-use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -31,11 +29,20 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         $container->getDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
         $purgeListener = 'silverback.api_components.event_listener.doctrine.purge_http_cache_listener';
 
-        if (!$container->hasAlias('api_platform.http_cache.purger')) {
+        if ($container->hasAlias('api_platform.http_cache.purger')) {
+            // we have implemented fully custom logic
+            $container->removeDefinition('api_platform.doctrine.listener.http_cache.purge');
+        } else {
             $container->removeDefinition($purgeListener);
         }
 
-        $mercurePublishListener = $container->getDefinition('api_platform.doctrine.orm.listener.mercure.publish');
-        $mercurePublishListener->replaceArgument(1, new Reference(MercureIriConverter::class));
+        $publishListener = 'silverback.api_components.event_listener.doctrine.mercure_publish_listener';
+        $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
+        if ($container->hasDefinition($apiPlatformMercurePublishListener)) {
+            // we have implemented fully custom logic
+            $container->removeDefinition($apiPlatformMercurePublishListener);
+        } else {
+            $container->removeDefinition($publishListener);
+        }
     }
 }

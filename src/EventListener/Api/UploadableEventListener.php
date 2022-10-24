@@ -52,7 +52,6 @@ final class UploadableEventListener
 
             return;
         }
-
         $this->uploadableFileManager->persistFiles($data);
     }
 

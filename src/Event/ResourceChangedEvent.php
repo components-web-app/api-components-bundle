@@ -11,17 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
+namespace Silverback\ApiComponentsBundle\Event;
+
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
- * Purges desired resources on when doctrine is flushed from the proxy cache.
- * Will purge resources with related mapping too.
- *
  * @author Daniel West <daniel@silverback.is>
- *
- * @experimental
  */
-class PurgeHttpCacheListener implements DoctrineResourceFlushListenerInterface
+class ResourceChangedEvent extends Event
 {
-    use DoctrineResourceFlushTrait;
+    public function __construct(private readonly object $resource)
+    {
+    }
+
+    public function getResource(): object
+    {
+        return $this->resource;
+    }
 }

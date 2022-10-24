@@ -13,15 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-/**
- * Purges desired resources on when doctrine is flushed from the proxy cache.
- * Will purge resources with related mapping too.
- *
- * @author Daniel West <daniel@silverback.is>
- *
- * @experimental
- */
-class PurgeHttpCacheListener implements DoctrineResourceFlushListenerInterface
+class PublishMercureUpdatesListener implements DoctrineResourceFlushListenerInterface
 {
     use DoctrineResourceFlushTrait;
 }

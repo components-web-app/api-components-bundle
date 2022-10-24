@@ -20,14 +20,13 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
+use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
-use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -57,15 +56,14 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
     private PropertyAccessor $propertyAccessor;
 
     public function __construct(
-        private PublishableStatusChecker $publishableStatusChecker,
-        private ManagerRegistry $registry,
-        private RequestStack $requestStack,
-        private ValidatorInterface $validator,
-        private IriConverterInterface $iriConverter,
-        private UploadableFileManager $uploadableFileManager,
-        private ResourceMetadataProvider $resourceMetadataProvider,
-        private ?PurgeHttpCacheListener $purgeHttpCacheListener = null,
-        private ?MercureResourcePublisher $mercureResourcePublisher = null
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        private readonly ManagerRegistry $registry,
+        private readonly RequestStack $requestStack,
+        private readonly ValidatorInterface $validator,
+        private readonly IriConverterInterface $iriConverter,
+        private readonly UploadableFileManager $uploadableFileManager,
+        private readonly ResourceMetadataProvider $resourceMetadataProvider,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -240,19 +238,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $em->persist($draft);
 
         // Clear the cache of the published resource because it should now also return an associated draft
-        if ($this->purgeHttpCacheListener) {
-            $this->purgeHttpCacheListener->addTagsFor($object);
-        }
-
-        if ($this->mercureResourcePublisher) {
-            $this->mercureResourcePublisher->publishResourceUpdate($object);
-
-            if ($object instanceof AbstractComponent) {
-                foreach ($object->getComponentPositions() as $componentPosition) {
-                    $this->mercureResourcePublisher->publishResourceUpdate($componentPosition);
-                }
-            }
-        }
+        $event = new ResourceChangedEvent($object);
+        $this->eventDispatcher->dispatch($event);
 
         return $draft;
     }
