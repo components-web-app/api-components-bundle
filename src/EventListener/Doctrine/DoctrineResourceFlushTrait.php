@@ -14,6 +14,10 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\ResourceClassResolverInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -35,11 +39,13 @@ trait DoctrineResourceFlushTrait
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
     private ObjectRepository|EntityRepository $positionRepository;
+    private array $resourceIris = [];
 
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         ManagerRegistry $entityManager,
         private readonly ResourceChangedPropagatorInterface $resourceChangedPropagator,
+        private readonly ResourceClassResolverInterface $resourceClassResolver
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
@@ -159,6 +165,7 @@ trait DoctrineResourceFlushTrait
         if (!$resource) {
             return;
         }
+        $this->addResourceIris([$resource]);
         $this->resourceChangedPropagator?->collectItem($resource);
         if ($gatherRelated && $em) {
             $this->gatherRelationResourceClasses($em, $resource);
@@ -167,11 +174,27 @@ trait DoctrineResourceFlushTrait
 
     private function addResourcesToPurge(array $resources): void
     {
+        $this->addResourceIris($resources);
         $this->resourceChangedPropagator->collectItems($resources);
+    }
+
+    private function addResourceIris(array $resources): void
+    {
+        foreach ($resources as $resource) {
+            try {
+                $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
+                $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
+
+                if (!\in_array($resourceIri, $this->resourceIris, true)) {
+                    $this->resourceIris[] = $resourceIri;
+                }
+            } catch (InvalidArgumentException $e) {}
+        }
     }
 
     private function purgeResources(): void
     {
         $this->resourceChangedPropagator->propagate();
+        $this->resourceIris = [];
     }
 }

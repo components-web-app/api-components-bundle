@@ -32,6 +32,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.iri_converter'),
             new Reference(ManagerRegistry::class),
             new Reference('silverback.api_components.http_cache.purger'),
+            new Reference('api_platform.resource_class_resolver'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preUpdate])
