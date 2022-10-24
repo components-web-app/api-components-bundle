@@ -38,17 +38,14 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
     public function collectResource($entity): void
     {
-        $this->collectItem($entity);
+        // this is not needed for Mercure.
+        // this clears cache for endpoints getting collections etc.
+        // Mercure will only update for individual items
     }
 
-    public function collectItems($value): void
+    public function collectItems($items): void
     {
         // TODO: Implement collectItems() method.
-    }
-
-    public function collectItem($value): void
-    {
-        // TODO: Implement collectItem() method.
     }
 
     public function propagate(): void

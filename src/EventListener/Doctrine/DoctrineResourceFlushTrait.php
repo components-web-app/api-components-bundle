@@ -166,7 +166,7 @@ trait DoctrineResourceFlushTrait
             return;
         }
         $this->addResourceIris([$resource]);
-        $this->resourceChangedPropagator?->collectItem($resource);
+        $this->resourceChangedPropagator->collectItems([$resource]);
         if ($gatherRelated && $em) {
             $this->gatherRelationResourceClasses($em, $resource);
         }
@@ -182,13 +182,16 @@ trait DoctrineResourceFlushTrait
     {
         foreach ($resources as $resource) {
             try {
+                $this->resourceChangedPropagator->collectResource($resource);
+
                 $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
                 $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
 
                 if (!\in_array($resourceIri, $this->resourceIris, true)) {
                     $this->resourceIris[] = $resourceIri;
                 }
-            } catch (InvalidArgumentException $e) {}
+            } catch (InvalidArgumentException $e) {
+            }
         }
     }
 

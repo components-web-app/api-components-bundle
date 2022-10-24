@@ -48,34 +48,33 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         }
     }
 
-    public function collectItems($value): void
+    public function collectItems($items): void
     {
-        if (!$value) {
+        if (!$items) {
             return;
         }
 
-        if (!is_iterable($value)) {
-            $this->collectItem($value);
+        if (!is_iterable($items)) {
+            $this->collectItem($items);
 
             return;
         }
 
-        if ($value instanceof PersistentCollection) {
-            $value = clone $value;
+        if ($items instanceof PersistentCollection) {
+            $items = clone $items;
         }
 
-        foreach ($value as $v) {
-            $this->collectItem($v);
+        foreach ($items as $i) {
+            $this->collectItem($i);
         }
     }
 
-    public function collectItem($value): void
+    private function collectItem($item): void
     {
         try {
-            $iri = $this->iriConverter->getIriFromResource($value);
+            $iri = $this->iriConverter->getIriFromResource($item);
             $this->collectIri([$iri]);
-        } catch (InvalidArgumentException $e) {
-        } catch (RuntimeException $e) {
+        } catch (InvalidArgumentException|RuntimeException $e) {
         }
     }
 

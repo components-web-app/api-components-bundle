@@ -17,9 +17,7 @@ interface ResourceChangedPropagatorInterface
 {
     public function collectResource($entity): void;
 
-    public function collectItems($value): void;
-
-    public function collectItem($value): void;
+    public function collectItems($items): void;
 
     public function propagate(): void;
 }
