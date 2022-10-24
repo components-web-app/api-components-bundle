@@ -22,7 +22,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -50,13 +50,13 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
     private const ALREADY_CALLED = 'COMPONENT_POSITION_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
-        private PageDataProvider $pageDataProvider,
-        private ComponentPositionSortValueHelper $componentPositionSortValueHelper,
-        private RequestStack $requestStack,
-        private PublishableStatusChecker $publishableStatusChecker,
-        private ManagerRegistry $registry,
-        private IriConverterInterface $iriConverter,
-        private ResourceMetadataInterface $resourceMetadata
+        private readonly PageDataProvider $pageDataProvider,
+        private readonly ComponentPositionSortValueHelper $componentPositionSortValueHelper,
+        private readonly RequestStack $requestStack,
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        private readonly ManagerRegistry $registry,
+        private readonly IriConverterInterface $iriConverter,
+        private readonly ResourceMetadataProvider $resourceMetadataProvider
     ) {
     }
 
@@ -99,7 +99,8 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
 
         $staticComponent = $object->component ? $this->getPublishableComponent($object->component) : null;
         if ($staticComponent) {
-            $this->resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($staticComponent));
+            $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+            $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($staticComponent));
         }
 
         $object = $this->normalizeForPageData($object);

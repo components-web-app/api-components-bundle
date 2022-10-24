@@ -40,11 +40,6 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?array $mediaObjects = null;
 
-    public function isInit(): bool
-    {
-        return true;
-    }
-
     public function getResourceMetadata(): ?ResourceMetadataInterface
     {
         return $this;

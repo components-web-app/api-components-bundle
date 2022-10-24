@@ -169,14 +169,16 @@ class JsonContext implements Context
         foreach ($setCookieHeaders as $setCookieHeader) {
             $cookie = Cookie::fromString($setCookieHeader);
             $realName = $cookie->getName();
-            if ($realName === 'mercureAuthorization') {
+            if ('mercureAuthorization' === $realName) {
                 $token = $this->jwsProvider->load($cookie->getValue());
                 $payload = $token->getPayload();
-                return array_filter($payload['mercure']['subscribe'], static function($topic) {
+
+                return array_filter($payload['mercure']['subscribe'], static function ($topic) {
                     return str_ends_with($topic, '?draft=1');
                 });
             }
         }
+
         return [];
     }
 

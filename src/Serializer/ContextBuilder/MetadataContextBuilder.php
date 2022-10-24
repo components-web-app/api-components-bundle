@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class UploadableContextBuilder implements SerializerContextBuilderInterface
+final class MetadataContextBuilder implements SerializerContextBuilderInterface
 {
     private SerializerContextBuilderInterface $decorated;
 

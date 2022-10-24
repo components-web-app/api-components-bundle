@@ -39,6 +39,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -74,7 +75,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set(CollectionNormalizer::class)
         ->autoconfigure(false)
         ->args([
-            new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+            new Reference(ResourceMetadataProvider::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -88,7 +89,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PublishableStatusChecker::class),
             new Reference(ManagerRegistry::class),
             new Reference('api_platform.iri_converter'),
-            new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+            new Reference(ResourceMetadataProvider::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -109,7 +110,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 '', // set in dependency injection
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+                new Reference(ResourceMetadataProvider::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -500]);
@@ -121,7 +122,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(EntityManagerInterface::class),
                 new Reference(ResourceClassResolverInterface::class),
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+                new Reference(ResourceMetadataProvider::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
@@ -137,7 +138,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.validator'),
                 new Reference(IriConverterInterface::class),
                 new Reference(UploadableFileManager::class),
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+                new Reference(ResourceMetadataProvider::class),
                 new Reference('silverback.api_components.event_listener.doctrine.purge_http_cache_listener', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
                 new Reference(MercureResourcePublisher::class),
             ]
@@ -149,7 +150,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
+                new Reference(ResourceMetadataProvider::class),
             ]
         )->tag('serializer.normalizer', ['priority' => -499]);
 
@@ -178,8 +179,8 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(MediaObjectFactory::class),
                 new Reference(UploadableAttributeReader::class),
                 new Reference(UploadableFileManager::class),
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
                 new Reference(ManagerRegistry::class),
+                new Reference(ResourceMetadataProvider::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);

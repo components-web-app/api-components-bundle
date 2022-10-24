@@ -26,7 +26,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -53,7 +53,6 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
     private const ASSOCIATION = 'PUBLISHABLE_ASSOCIATION';
-    public const DRAFT_CREATED = 'DRAFT_CREATED';
 
     private PropertyAccessor $propertyAccessor;
 
@@ -64,7 +63,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         private ValidatorInterface $validator,
         private IriConverterInterface $iriConverter,
         private UploadableFileManager $uploadableFileManager,
-        private ResourceMetadataInterface $resourceMetadata,
+        private ResourceMetadataProvider $resourceMetadataProvider,
         private ?PurgeHttpCacheListener $purgeHttpCacheListener = null,
         private ?MercureResourcePublisher $mercureResourcePublisher = null
     ) {
@@ -80,7 +79,9 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         }
 
         $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
-        $this->resourceMetadata->setPublishable($isPublished);
+
+        $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+        $resourceMetadata->setPublishable($isPublished);
 
         $type = \get_class($object);
         $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
@@ -94,7 +95,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
 
         // using static name 'publishedAt' for predictable API and easy metadata object instead of dynamic $configuration->fieldName
         if ($publishedAtDateTime) {
-            $this->resourceMetadata->setPublishable($isPublished, $publishedAtDateTime);
+            $resourceMetadata->setPublishable($isPublished, $publishedAtDateTime);
         }
 
         if (\is_object($assocObject = $classMetadata->getFieldValue($object, $configuration->associationName))) {
@@ -108,7 +109,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {
-                $this->resourceMetadata->setViolationList($exception->getConstraintViolationList());
+                $resourceMetadata->setViolationList($exception->getConstraintViolationList());
             }
         }
 
@@ -174,7 +175,6 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         // Any field has been modified: create a draft
         $draft = $this->createDraft($object, $configuration, $type);
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
-        $context[self::DRAFT_CREATED] = true;
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
     }
