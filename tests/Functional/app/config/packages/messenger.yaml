@@ -1,3 +1,10 @@
 framework:
     messenger:
         default_bus: messenger.bus.default
+        buses:
+            messenger.bus.default:
+                default_middleware: allow_no_handlers
+        transports:
+            async_priority_normal: 'in-memory://'
+        routing:
+            'Symfony\Component\Mailer\Messenger\SendEmailMessage': async_priority_normal

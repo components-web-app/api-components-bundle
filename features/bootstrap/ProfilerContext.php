@@ -150,7 +150,9 @@ class ProfilerContext implements Context
     {
         /** @var MessageDataCollector $collector */
         $collector = $this->getProfile()->getCollector('mailer');
+        /** @var TemplatedEmail[] $messages */
         $messages = $collector->getEvents()->getMessages();
+
         Assert::assertCount(1, $messages);
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
 
