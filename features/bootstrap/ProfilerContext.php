@@ -158,6 +158,7 @@ class ProfilerContext implements Context
 
         /** @var TemplatedEmail $email */
         $context = $email->getContext();
+        Assert::assertArrayHasKey('website_name', $context);
         Assert::assertEquals('New Website', $context['website_name']);
         Assert::assertInstanceOf(User::class, $context['user']);
 
