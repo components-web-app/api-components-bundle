@@ -24,7 +24,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-simplexml": "*",
-        "api-platform/core": "^3.0",
+        "api-platform/core": "^3.0.3",
         "cocur/slugify": "^4.1",
         "doctrine/annotations": "^1.7.0",
         "doctrine/dbal": "^3.4",

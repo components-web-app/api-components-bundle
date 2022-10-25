@@ -70,8 +70,7 @@ class AddMercureTokenListener
             $refl = new \ReflectionClass($operation->getClass());
             $isPublishable = \count($refl->getAttributes(Publishable::class));
 
-            // TODO: the str_replace thing should be fixed inside API Platform (will be available in next patch)
-            $uriTemplate = $this->buildAbsoluteUriTemplate() . $operation->getRoutePrefix() . str_replace('.{_format}', '{._format}', $operation->getUriTemplate());
+            $uriTemplate = $this->buildAbsoluteUriTemplate() . $operation->getRoutePrefix() . $operation->getUriTemplate();
 
             if (!$isPublishable) {
                 $subscribeIris[] = $uriTemplate;
