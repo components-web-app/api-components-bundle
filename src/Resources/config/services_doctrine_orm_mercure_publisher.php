@@ -20,6 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishMercureUpdatesListener;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Mercure\HubRegistry;
@@ -49,7 +50,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MercureIriConverter::class),
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             new Reference('api_platform.resource_class_resolver'),
-            '%api_platform.formats%'
+            '%api_platform.formats%',
+            new Reference('messenger.default_bus', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
         ])
         ->call('setSerializer', [new Reference('serializer')]);
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');

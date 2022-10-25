@@ -29,6 +29,7 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class MercureResourcePublisher implements SerializerAwareInterface, ResourceChangedPropagatorInterface
 {
@@ -59,7 +60,8 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
         private readonly array $formats,
-        ?ExpressionLanguage $expressionLanguage = null
+        ?ExpressionLanguage $expressionLanguage = null,
+        MessageBusInterface $messageBus = null
     ) {
         $this->reset();
         $this->resourceClassResolver = $resourceClassResolver;
@@ -239,10 +241,10 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $updates = [$this->buildUpdate($iri, $data, $options)];
 
         foreach ($updates as $update) {
-//            if ($options['enable_async_update'] && $this->messageBus) {
-//                $this->dispatch($update);
-//                continue;
-//            }
+            if ($options['enable_async_update'] && $this->messageBus) {
+                $this->dispatch($update);
+                continue;
+            }
 
             $this->hubRegistry->getHub($options['hub'] ?? null)->publish($update);
         }
