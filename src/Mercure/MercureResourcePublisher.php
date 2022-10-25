@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Mercure;
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use ApiPlatform\Util\ResourceClassInfoTrait;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\Mercure\HubInterface;
@@ -25,6 +26,7 @@ use Symfony\Component\Serializer\SerializerAwareTrait;
 
 class MercureResourcePublisher implements SerializerAwareInterface, ResourceChangedPropagatorInterface
 {
+    use DispatchTrait;
     use ResourceClassInfoTrait;
     use SerializerAwareTrait;
 

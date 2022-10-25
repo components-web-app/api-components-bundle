@@ -48,7 +48,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MercureIriConverter::class),
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
         ])
-        // ->call('setSerializer', [new Reference('serializer')])
-;
+        ->call('setSerializer', [new Reference('serializer')])
+    ;
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');
 };
