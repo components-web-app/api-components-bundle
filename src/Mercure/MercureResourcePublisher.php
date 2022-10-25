@@ -19,12 +19,15 @@ use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Exception\InvalidArgumentException;
 use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
+use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use ApiPlatform\Util\ResourceClassInfoTrait;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -57,10 +60,12 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     public function __construct(
         private readonly HubRegistry $hubRegistry,
         private readonly IriConverterInterface $iriConverter,
+        private readonly array $formats,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
-        private readonly array $formats,
         MessageBusInterface $messageBus = null,
+        private readonly ?GraphQlSubscriptionManagerInterface $graphQlSubscriptionManager = null,
+        private readonly ?GraphQlMercureSubscriptionIriGeneratorInterface $graphQlMercureSubscriptionIriGenerator = null,
         ?ExpressionLanguage $expressionLanguage = null
     ) {
         $this->reset();
@@ -241,7 +246,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             }
         }
 
-        $updates = [$this->buildUpdate($iri, $data, $options)];
+        $updates = array_merge([$this->buildUpdate($iri, $data, $options)], $this->getGraphQlSubscriptionUpdates($object, $options, $type));
 
         foreach ($updates as $update) {
             if ($options['enable_async_update'] && $this->messageBus) {
@@ -251,6 +256,29 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
             $this->hubRegistry->getHub($options['hub'] ?? null)->publish($update);
         }
+    }
+
+    /**
+     * @return Update[]
+     */
+    private function getGraphQlSubscriptionUpdates(object $object, array $options, string $type): array
+    {
+        if ('update' !== $type || !$this->graphQlSubscriptionManager || !$this->graphQlMercureSubscriptionIriGenerator) {
+            return [];
+        }
+
+        $payloads = $this->graphQlSubscriptionManager->getPushPayloads($object);
+
+        $updates = [];
+        foreach ($payloads as [$subscriptionId, $data]) {
+            $updates[] = $this->buildUpdate(
+                $this->graphQlMercureSubscriptionIriGenerator->generateTopicIri($subscriptionId),
+                (string) (new JsonResponse($data))->getContent(),
+                $options
+            );
+        }
+
+        return $updates;
     }
 
     /**
