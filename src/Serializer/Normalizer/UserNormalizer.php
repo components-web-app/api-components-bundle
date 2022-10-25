@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
-use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
