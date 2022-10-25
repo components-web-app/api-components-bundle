@@ -60,12 +60,13 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
         private readonly array $formats,
-        ?ExpressionLanguage $expressionLanguage = null,
-        MessageBusInterface $messageBus = null
+        MessageBusInterface $messageBus = null,
+        ?ExpressionLanguage $expressionLanguage = null
     ) {
         $this->reset();
         $this->resourceClassResolver = $resourceClassResolver;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+        $this->messageBus = $messageBus;
         $this->expressionLanguage = $expressionLanguage ?? (class_exists(ExpressionLanguage::class) ? new ExpressionLanguage() : null);
         if ($this->expressionLanguage) {
             $rawurlencode = ExpressionFunction::fromPhp('rawurlencode', 'escape');
