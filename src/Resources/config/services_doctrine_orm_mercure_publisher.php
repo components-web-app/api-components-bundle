@@ -51,7 +51,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             new Reference('api_platform.resource_class_resolver'),
             '%api_platform.formats%',
-            new Reference('messenger.default_bus', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
+            new Reference('messenger.default_bus', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            new Reference('api_platform.graphql.subscription.subscription_manager', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            new Reference('api_platform.graphql.subscription.mercure_iri_generator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ])
         ->call('setSerializer', [new Reference('serializer')]);
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');

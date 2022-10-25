@@ -27,9 +27,9 @@ use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class MercureResourcePublisher implements SerializerAwareInterface, ResourceChangedPropagatorInterface
 {
@@ -183,6 +183,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
                 'iri' => $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL),
             ];
             $this->deletedObjects[$deletedObject] = $objectData;
+
             return;
         }
 
@@ -216,6 +217,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $iri = $options['topics'] ?? $objectData['iri'];
         /** @var string $data */
         $data = json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
+
         return [$iri, $data];
     }
 

@@ -149,7 +149,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         }
         try {
             $pageData = $this->pageDataProvider->getPageData();
-        } catch(UnprocessableEntityHttpException $e) {
+        } catch (UnprocessableEntityHttpException $e) {
             // when serializing for mercure, we do not need the path header
             return $object;
         }
