@@ -63,7 +63,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         private readonly array $formats,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
-        MessageBusInterface $messageBus = null,
+        ?MessageBusInterface $messageBus = null,
         private readonly ?GraphQlSubscriptionManagerInterface $graphQlSubscriptionManager = null,
         private readonly ?GraphQlMercureSubscriptionIriGeneratorInterface $graphQlMercureSubscriptionIriGenerator = null,
         ?ExpressionLanguage $expressionLanguage = null
