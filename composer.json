@@ -137,6 +137,7 @@
         "willdurand/negotiation": "^2",
         "symfony/proxy-manager-bridge": "<5.4",
         "symfony/serializer": "<=6.1.2",
+        "symfony/var-exporter": "<6.1",
         "symfony/web-link": "<=6.0",
         "doctrine/collections": "<1.7",
         "doctrine/orm": "<2.13"
