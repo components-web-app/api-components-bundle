@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSor
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
@@ -98,8 +99,9 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         $context[self::ALREADY_CALLED] = true;
 
         $staticComponent = $object->component ? $this->getPublishableComponent($object->component) : null;
+        $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+
         if ($staticComponent) {
-            $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
             $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($staticComponent));
         }
 
@@ -107,6 +109,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         if ($object->component !== $staticComponent) {
             $component = $object->component;
             $object->setComponent($this->getPublishableComponent($component));
+            $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
         }
 
         return $this->normalizer->normalize($object, $format, $context);
@@ -144,7 +147,13 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         if (!$object->pageDataProperty || !$this->requestStack->getCurrentRequest()) {
             return $object;
         }
-        $pageData = $this->pageDataProvider->getPageData();
+        try {
+            $pageData = $this->pageDataProvider->getPageData();
+        } catch(UnprocessableEntityHttpException $e) {
+            // when serializing for mercure, we do not need the path header
+            return $object;
+        }
+
         if (!$pageData) {
             return $object;
         }

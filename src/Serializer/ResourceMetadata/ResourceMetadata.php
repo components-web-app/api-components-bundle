@@ -19,11 +19,17 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ResourceMetadata implements ResourceMetadataInterface
 {
+    // for page data
     #[Groups('cwa_resource:metadata')]
     private ?PageDataMetadata $pageDataMetadata = null;
 
+    // for component position
     #[Groups('cwa_resource:metadata')]
     private ?string $staticComponent = null;
+
+    // for component position
+    #[Groups('cwa_resource:metadata')]
+    private ?string $pageDataPath = null;
 
     #[Groups('cwa_resource:metadata')]
     private ?bool $collection = null;
@@ -63,6 +69,16 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setStaticComponent(string $staticComponentIri): void
     {
         $this->staticComponent = $staticComponentIri;
+    }
+
+    public function getPageDataPath(): ?string
+    {
+        return $this->pageDataPath;
+    }
+
+    public function setPageDataPath(?string $pageDataPath): void
+    {
+        $this->pageDataPath = $pageDataPath;
     }
 
     public function getCollection(): ?bool
