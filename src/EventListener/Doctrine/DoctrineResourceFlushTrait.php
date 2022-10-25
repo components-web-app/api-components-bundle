@@ -25,6 +25,7 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -58,7 +59,7 @@ trait DoctrineResourceFlushTrait
         $this->collectUpdatedResource($object, 'updated');
 
         $changeSet = $eventArgs->getEntityChangeSet();
-        $associationMappings = $this->getAssociationMappings($eventArgs->getEntityManager(), $eventArgs->getObject());
+        $associationMappings = $this->getAssociationMappings($eventArgs->getObjectManager(), $eventArgs->getObject());
 
         if ($object instanceof PageDataInterface) {
             $this->pageDataPropertiesChanged = array_keys($changeSet);
@@ -99,7 +100,7 @@ trait DoctrineResourceFlushTrait
         $this->purgeResources();
     }
 
-    private function gatherRelationResourceClasses(EntityManagerInterface $em, $entity): void
+    private function gatherRelationResourceClasses(ObjectManager $em, $entity): void
     {
         $associationMappings = $this->getAssociationMappings($em, $entity);
         foreach (array_keys($associationMappings) as $property) {
@@ -155,12 +156,12 @@ trait DoctrineResourceFlushTrait
         return $collectionResources;
     }
 
-    private function getAssociationMappings(EntityManagerInterface $em, $entity): array
+    private function getAssociationMappings(ObjectManager $em, $entity): array
     {
         return $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
     }
 
-    private function collectUpdatedResource($resource, string $type, ?EntityManagerInterface $em = null, bool $gatherRelated = false): void
+    private function collectUpdatedResource($resource, string $type, ?ObjectManager $em = null, bool $gatherRelated = false): void
     {
         if (!$resource) {
             return;
