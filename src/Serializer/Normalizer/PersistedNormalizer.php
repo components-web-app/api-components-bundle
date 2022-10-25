@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use ApiPlatform\Api\ResourceClassResolverInterface;
 use ApiPlatform\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -41,7 +41,7 @@ class PersistedNormalizer implements NormalizerInterface, CacheableSupportsMetho
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ResourceClassResolverInterface $resourceClassResolver,
-        private ResourceMetadataInterface $resourceMetadata
+        private ResourceMetadataProvider $resourceMetadataProvider
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -49,7 +49,9 @@ class PersistedNormalizer implements NormalizerInterface, CacheableSupportsMetho
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $this->resourceMetadata->setPersisted($this->entityManager->contains($object));
+
+        $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+        $resourceMetadata->setPersisted($this->entityManager->contains($object));
 
         return $this->normalizer->normalize($object, $format, $context);
     }

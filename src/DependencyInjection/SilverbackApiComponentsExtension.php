@@ -42,6 +42,7 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
@@ -230,6 +231,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $container->registerForAutoconfiguration(FormTypeInterface::class)
             ->addTag('silverback_api_components.form_type');
 
+        $container->registerForAutoconfiguration(ResourceChangedPropagatorInterface::class)
+            ->addTag('silverback_api_components.resource_changed_propagator');
+
         $container->registerForAutoconfiguration(FormSuccessEventListenerInterface::class)
             ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
 
@@ -237,6 +241,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services.php');
         $loader->load('services_normalizers.php');
         $loader->load('services_doctrine_orm_http_cache_purger.php');
+        $loader->load('services_doctrine_orm_mercure_publisher.php');
     }
 
     public function prepend(ContainerBuilder $container): void

@@ -22,8 +22,9 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
@@ -50,13 +51,13 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
     private const ALREADY_CALLED = 'COMPONENT_POSITION_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
-        private PageDataProvider $pageDataProvider,
-        private ComponentPositionSortValueHelper $componentPositionSortValueHelper,
-        private RequestStack $requestStack,
-        private PublishableStatusChecker $publishableStatusChecker,
-        private ManagerRegistry $registry,
-        private IriConverterInterface $iriConverter,
-        private ResourceMetadataInterface $resourceMetadata
+        private readonly PageDataProvider $pageDataProvider,
+        private readonly ComponentPositionSortValueHelper $componentPositionSortValueHelper,
+        private readonly RequestStack $requestStack,
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        private readonly ManagerRegistry $registry,
+        private readonly IriConverterInterface $iriConverter,
+        private readonly ResourceMetadataProvider $resourceMetadataProvider
     ) {
     }
 
@@ -97,15 +98,19 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
 
         $context[self::ALREADY_CALLED] = true;
 
-        $staticComponent = $object->component ? $this->getPublishableComponent($object->component) : null;
-        if ($staticComponent) {
-            $this->resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($staticComponent));
-        }
+        $staticComponent = $object->component;
+        $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
 
         $object = $this->normalizeForPageData($object);
         if ($object->component !== $staticComponent) {
-            $component = $object->component;
-            $object->setComponent($this->getPublishableComponent($component));
+            $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
+        }
+
+        if ($object->component) {
+            $object->component = $this->getPublishableComponent($object->component);
+        }
+        if ($staticComponent) {
+            $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($this->getPublishableComponent($staticComponent)));
         }
 
         return $this->normalizer->normalize($object, $format, $context);
@@ -143,7 +148,13 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         if (!$object->pageDataProperty || !$this->requestStack->getCurrentRequest()) {
             return $object;
         }
-        $pageData = $this->pageDataProvider->getPageData();
+        try {
+            $pageData = $this->pageDataProvider->getPageData();
+        } catch (UnprocessableEntityHttpException $e) {
+            // when serializing for mercure, we do not need the path header
+            return $object;
+        }
+
         if (!$pageData) {
             return $object;
         }

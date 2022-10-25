@@ -27,10 +27,12 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\VarDumper\Cloner\Data;
 
@@ -51,6 +53,54 @@ class ProfilerContext implements Context
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->client = $this->minkContext->getSession()->getDriver()->getClient();
+    }
+
+    /**
+     * @return Update[]
+     */
+    private function getMercureMessageObjects(): array
+    {
+        $objects = [];
+        /** @var MercureDataCollector $collector */
+        $collector = $this->getProfile()->getCollector('mercure');
+        $hubs = $collector->getHubs();
+        foreach ($hubs['default']['messages'] as $message) {
+            $objects[] = $message['object'];
+        }
+
+        return $objects;
+    }
+
+    /**
+     * @Then there should be :count mercure messages
+     */
+    public function thereShouldBeAPublishedMercureUpdatePublished(int $count)
+    {
+        $messageObjects = $this->getMercureMessageObjects();
+        if (\count($messageObjects) !== $count) {
+            throw new ExpectationException(sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then there should be :count mercure messages for draft resources
+     */
+    public function thereShouldMercureMessagesForDraftResources(int $count)
+    {
+        $messageObjects = $this->getMercureMessageObjects();
+        $draftCount = 0;
+        foreach ($messageObjects as $messageObject) {
+            $iri = $messageObject->getTopics()[0];
+            if (str_ends_with($iri, '?draft=1')) {
+                if (!$messageObject->isPrivate()) {
+                    throw new ExpectationException('Draft resource messages must be private', $this->minkContext->getSession()->getDriver());
+                }
+                ++$draftCount;
+            }
+        }
+        if ($draftCount !== $count) {
+            throw new ExpectationException(sprintf('%d draft updates were published but %d were expected', $draftCount, $count), $this->minkContext->getSession()->getDriver());
+        }
     }
 
     /**
@@ -100,7 +150,9 @@ class ProfilerContext implements Context
     {
         /** @var MessageDataCollector $collector */
         $collector = $this->getProfile()->getCollector('mailer');
+        /** @var TemplatedEmail[] $messages */
         $messages = $collector->getEvents()->getMessages();
+
         Assert::assertCount(1, $messages);
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
 

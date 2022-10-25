@@ -21,7 +21,7 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PublishableIriConverter implements IriConverterInterface
+class MercureIriConverter implements IriConverterInterface
 {
     public function __construct(private IriConverterInterface $decorated, private PublishableStatusChecker $publishableStatusChecker)
     {

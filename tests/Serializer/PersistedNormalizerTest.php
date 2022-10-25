@@ -18,7 +18,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Traversable;
@@ -47,7 +49,7 @@ class PersistedNormalizerTest extends TestCase
     {
         $this->entityManagerMock = $this->createMock(EntityManagerInterface::class);
         $this->resourceClassResolverMock = $this->createMock(ResourceClassResolverInterface::class);
-        $this->resourceMetadataMock = $this->createMock(ResourceMetadataInterface::class);
+        $this->resourceMetadataMock = $this->createMock(ResourceMetadataProvider::class);
         $this->normalizerMock = $this->createMock(NormalizerInterface::class);
         $this->apiNormalizer = new PersistedNormalizer($this->entityManagerMock, $this->resourceClassResolverMock, $this->resourceMetadataMock);
         $this->apiNormalizer->setNormalizer($this->normalizerMock);
@@ -129,12 +131,15 @@ class PersistedNormalizerTest extends TestCase
             ->with($dummyComponent)
             ->willReturn(true);
 
+        $resourceMetadata = new ResourceMetadata();
         $this->resourceMetadataMock
             ->expects(self::once())
-            ->method('setPersisted')
-            ->with(true);
+            ->method('findResourceMetadata')
+            ->with($dummyComponent)
+            ->willReturn($resourceMetadata);
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['default_context_param' => 'default_value', 'silverback_api_components_bundle_metadata' => ['persisted' => true]]);
+        self::assertTrue($resourceMetadata->getPersisted());
         self::assertEquals('anything', $result);
     }
 

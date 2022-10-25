@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -47,7 +47,6 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'UPLOADABLE_NORMALIZER_ALREADY_CALLED';
-    public const UPLOADABLE_TO_DELETE = 'cwa_uploadable_to_delete';
 
     private PropertyAccessor $propertyAccessor;
 
@@ -55,8 +54,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
         private MediaObjectFactory $mediaObjectFactory,
         private UploadableAttributeReader $annotationReader,
         private UploadableFileManager $uploadableFileManager,
-        private ResourceMetadataInterface $resourceMetadata,
         ManagerRegistry $registry,
+        private ResourceMetadataProvider $resourceMetadataProvider
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->initRegistry($registry);
@@ -143,7 +142,9 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
                     'skip_null_values' => $context['skip_null_values'] ?? false,
                 ]
             );
-            $this->resourceMetadata->setMediaObjects($mediaObjects);
+
+            $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+            $resourceMetadata->setMediaObjects($mediaObjects);
         }
 
         $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true);

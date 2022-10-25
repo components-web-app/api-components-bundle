@@ -47,6 +47,7 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON should be valid according to the schema file "publishable.schema.json"
     And the JSON node publishedAt should not exist
     And the JSON node "_metadata.publishable.published" should be false
+    And there should be 1 mercure messages for draft resources
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published
@@ -70,6 +71,8 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 201
     And the JSON node publishedAt should exist
     And the JSON node "_metadata.publishable.published" should be true
+    And there should be 1 mercure messages
+    And there should be 0 mercure messages for draft resources
 
   @loginUser
   Scenario Outline: As a user with draft access to a specific resource, when I create a resource, I should be able to set the publishedAt date to specify if it is draft/published

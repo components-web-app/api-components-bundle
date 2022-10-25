@@ -27,7 +27,7 @@ use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
-use Silverback\ApiComponentsBundle\ApiPlatform\Api\PublishableIriConverter;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
@@ -55,6 +55,7 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
@@ -77,6 +78,7 @@ use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mercure\AddMercureTokenListener;
+use Silverback\ApiComponentsBundle\EventListener\ResourceChangedEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
@@ -141,7 +143,7 @@ use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\TimestampedLoader;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\UploadableLoader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
-use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataBuilder;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
@@ -251,7 +253,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(CwaResourceContextBuilder::class . '.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
-                new Reference('silverback.serializer.resource_metadata.resource_metadata_builder'),
             ]
         )
         ->autoconfigure(false);
@@ -629,7 +630,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PublishableAwareHub::class)
-        ->decorate('mercure.hub.default')
+        ->decorate('mercure.hub.default', null, -1)
         ->args(
             [
                 new Reference(PublishableAwareHub::class . '.inner'),
@@ -752,6 +753,18 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.repository.user'),
             ]
         );
+
+    $services
+        ->set(ResourceChangedEventListener::class)
+        ->tag('kernel.event_listener', ['event' => ResourceChangedEvent::class])
+        ->args(
+            [
+                '$resourceChangedPropagators' => new TaggedIteratorArgument('silverback_api_components.resource_changed_propagator'),
+            ]
+        );
+
+    $services
+        ->set(ResourceMetadataProvider::class);
 
     $services
         ->set(RouteStateProvider::class)
@@ -1332,23 +1345,11 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.iri_converter', IriConverter::class);
 
     $services
-        ->set(PublishableIriConverter::class)
-        ->decorate('api_platform.iri_converter')
+        ->set(MercureIriConverter::class)
         ->args([
-            new Reference(IriConverter::class . '.inner'),
+            new Reference('api_platform.iri_converter'),
             new Reference(PublishableStatusChecker::class),
         ]);
-
-    /*
-     * <service id="api_platform.doctrine.orm.search_filter" class="ApiPlatform\Doctrine\Orm\Filter\SearchFilter" public="false" abstract="true">
-            <argument type="service" id="doctrine" />
-            <argument type="service" id="api_platform.iri_converter" />
-            <argument type="service" id="api_platform.property_accessor" />
-            <argument type="service" id="logger" on-invalid="ignore" />
-            <argument key="$nameConverter" type="service" id="api_platform.name_converter" on-invalid="ignore" />
-        </service>
-        <service id="ApiPlatform\Doctrine\Orm\Filter\SearchFilter" alias="api_platform.doctrine.orm.search_filter" />
-     */
 
     $services
         ->set('silverback.doctrine.orm.or_search_filter')
@@ -1363,8 +1364,4 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
-
-    $services
-        ->set('silverback.serializer.resource_metadata.resource_metadata_builder')
-        ->class(ResourceMetadataBuilder::class);
 };

@@ -18,8 +18,6 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 interface ResourceMetadataInterface
 {
-    public function isInit(): bool;
-
     public function getResourceMetadata(): ?self;
 
     public function getPageDataMetadata(): ?PageDataMetadata;

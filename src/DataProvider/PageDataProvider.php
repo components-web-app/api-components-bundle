@@ -58,7 +58,7 @@ class PageDataProvider
         $this->managerRegistry = $managerRegistry;
     }
 
-    private function getOriginalRequestPath(): ?string
+    public function getOriginalRequestPath(): ?string
     {
         $request = $this->requestStack->getCurrentRequest();
         if (!$request) {
