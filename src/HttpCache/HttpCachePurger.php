@@ -25,16 +25,17 @@ use Doctrine\ORM\PersistentCollection;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface
 {
-    private array $tags = [];
+    private array $tags;
 
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly PurgerInterface $httpCachePurger,
     ) {
+        $this->reset();
     }
 
-    public function collectResource($entity): void
+    public function collectResource($entity, ?string $type = null): void
     {
         if (null === $entity) {
             return;
@@ -48,7 +49,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         }
     }
 
-    public function collectItems($items): void
+    public function collectItems($items, ?string $type = null): void
     {
         if (!$items) {
             return;
@@ -94,6 +95,11 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         }
 
         $this->httpCachePurger->purge(array_values($this->tags));
+        $this->reset();
+    }
+
+    public function reset(): void
+    {
         $this->tags = [];
     }
 }

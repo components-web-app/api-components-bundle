@@ -48,6 +48,7 @@ Feature: Dynamic pages
   @loginAdmin
   Scenario: When a dynamic component is added, related component positions should be purged from the cache
     Given there is a DummyComponent in a Position with an empty PageData
+    And I add "path" header equal to "/page-data"
     When I patch the PageData with the property "component" and resource "page_data_component"
     Then the response status code should be 200
     And the resource "component_position" should be purged from the cache

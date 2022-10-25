@@ -238,7 +238,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $em->persist($draft);
 
         // Clear the cache of the published resource because it should now also return an associated draft
-        $event = new ResourceChangedEvent($object);
+        $event = new ResourceChangedEvent($object, 'updated');
         $this->eventDispatcher->dispatch($event);
 
         return $draft;

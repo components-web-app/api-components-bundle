@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishMercureUpdatesL
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Mercure\HubRegistry;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -44,11 +45,12 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.mercure.resource_publisher')
         ->class(MercureResourcePublisher::class)
         ->args([
-            new Reference('mercure.hub.default'),
+            new Reference(HubRegistry::class),
             new Reference(MercureIriConverter::class),
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
+            new Reference('api_platform.resource_class_resolver'),
+            '%api_platform.formats%'
         ])
-        ->call('setSerializer', [new Reference('serializer')])
-    ;
+        ->call('setSerializer', [new Reference('serializer')]);
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');
 };

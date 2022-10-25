@@ -20,12 +20,17 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class ResourceChangedEvent extends Event
 {
-    public function __construct(private readonly object $resource)
+    public function __construct(private readonly object $resource, string $type)
     {
     }
 
     public function getResource(): object
     {
         return $this->resource;
+    }
+
+    public function getType(): string
+    {
+        return $this->getType();
     }
 }

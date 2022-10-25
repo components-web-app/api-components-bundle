@@ -55,7 +55,7 @@ trait DoctrineResourceFlushTrait
     public function preUpdate(PreUpdateEventArgs $eventArgs): void
     {
         $object = $eventArgs->getObject();
-        $this->collectUpdatedResource($object);
+        $this->collectUpdatedResource($object, 'updated');
 
         $changeSet = $eventArgs->getEntityChangeSet();
         $associationMappings = $this->getAssociationMappings($eventArgs->getEntityManager(), $eventArgs->getObject());
@@ -69,8 +69,8 @@ trait DoctrineResourceFlushTrait
                 continue;
             }
 
-            $this->collectUpdatedResource($value[0]);
-            $this->collectUpdatedResource($value[1]);
+            $this->collectUpdatedResource($value[0], 'updated');
+            $this->collectUpdatedResource($value[1], 'updated');
         }
     }
 
@@ -80,22 +80,22 @@ trait DoctrineResourceFlushTrait
         $uow = $em->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            $this->collectUpdatedResource($entity, $em, true);
+            $this->collectUpdatedResource($entity, 'created', $em, true);
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            $this->collectUpdatedResource($entity, $em, true);
+            $this->collectUpdatedResource($entity, 'updated', $em, true);
         }
 
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
-            $this->collectUpdatedResource($entity, $em, true);
+            $this->collectUpdatedResource($entity, 'deleted', $em, true);
         }
     }
 
     public function postFlush(): void
     {
-        $this->addResourcesToPurge($this->gatherResourcesForPositionsWithPageDataProperties());
-        $this->addResourcesToPurge($this->gatherIrisForCollectionResources());
+        $this->addResourcesToPurge($this->gatherResourcesForPositionsWithPageDataProperties(), 'updated');
+        $this->addResourcesToPurge($this->gatherIrisForCollectionResources(), 'updated');
         $this->purgeResources();
     }
 
@@ -107,10 +107,10 @@ trait DoctrineResourceFlushTrait
                 $value = $this->propertyAccessor->getValue($entity, $property);
                 if ($value instanceof PersistentCollection) {
                     foreach ($value as $item) {
-                        $this->collectUpdatedResource($item);
+                        $this->collectUpdatedResource($item, 'updated');
                     }
                 } else {
-                    $this->collectUpdatedResource($value);
+                    $this->collectUpdatedResource($value, 'updated');
                 }
             }
         }
@@ -160,29 +160,29 @@ trait DoctrineResourceFlushTrait
         return $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
     }
 
-    private function collectUpdatedResource($resource, ?EntityManagerInterface $em = null, bool $gatherRelated = false): void
+    private function collectUpdatedResource($resource, string $type, ?EntityManagerInterface $em = null, bool $gatherRelated = false): void
     {
         if (!$resource) {
             return;
         }
-        $this->addResourceIris([$resource]);
-        $this->resourceChangedPropagator->collectItems([$resource]);
+        $this->addResourceIris([$resource], $type);
+        $this->resourceChangedPropagator->collectItems([$resource], $type);
         if ($gatherRelated && $em) {
             $this->gatherRelationResourceClasses($em, $resource);
         }
     }
 
-    private function addResourcesToPurge(array $resources): void
+    private function addResourcesToPurge(array $resources, string $type): void
     {
-        $this->addResourceIris($resources);
-        $this->resourceChangedPropagator->collectItems($resources);
+        $this->addResourceIris($resources, $type);
+        $this->resourceChangedPropagator->collectItems($resources, $type);
     }
 
-    private function addResourceIris(array $resources): void
+    private function addResourceIris(array $resources, string $type): void
     {
         foreach ($resources as $resource) {
             try {
-                $this->resourceChangedPropagator->collectResource($resource);
+                $this->resourceChangedPropagator->collectResource($resource, $type);
 
                 $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
                 $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));

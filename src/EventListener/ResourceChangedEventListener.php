@@ -26,7 +26,7 @@ class ResourceChangedEventListener
     {
         /** @var ResourceChangedPropagatorInterface $resourceChangedPropagator */
         foreach ($this->resourceChangedPropagators as $resourceChangedPropagator) {
-            $resourceChangedPropagator->collectItem($event->getResource());
+            $resourceChangedPropagator->collectItems([$event->getResource()], $event->getType());
         }
     }
 }
