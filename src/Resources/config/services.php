@@ -168,6 +168,7 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -619,11 +620,12 @@ return static function (ContainerConfigurator $configurator) {
         ->set(AddMercureTokenListener::class)
         ->args(
             [
-                new Reference('mercure.hub.default.jwt.factory'),
                 new Reference(ResourceNameCollectionFactoryInterface::class),
                 new Reference(ResourceMetadataCollectionFactoryInterface::class),
                 new Reference(PublishableStatusChecker::class),
                 new Reference('router.request_context'),
+                new Reference(Authorization::class),
+                '', // injected with dependency injection
             ]
         )
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'method' => 'onKernelResponse']);

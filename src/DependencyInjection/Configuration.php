@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -33,6 +34,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('metadata_key')->defaultValue('_metadata')->end()
             ->end();
 
+        $this->addMercureNode($rootNode);
         $this->addRouteSecurityNode($rootNode);
         $this->addRoutableSecurityNode($rootNode);
         $this->addRefreshTokenNode($rootNode);
@@ -41,6 +43,30 @@ class Configuration implements ConfigurationInterface
         $this->addUserNode($rootNode);
 
         return $treeBuilder;
+    }
+
+    private function addMercureNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('mercure')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('hub_name')->defaultNull()->end()
+                        ->arrayNode('cookie')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                 ->scalarNode('samesite')->defaultValue(Cookie::SAMESITE_STRICT)
+                                    ->validate()
+                                        ->ifNotInArray([Cookie::SAMESITE_STRICT, Cookie::SAMESITE_LAX, Cookie::SAMESITE_NONE])
+                                        ->thenInvalid('Invalid Mercure cookie samesite value %s')
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     private function addRouteSecurityNode(ArrayNodeDefinition $rootNode): void

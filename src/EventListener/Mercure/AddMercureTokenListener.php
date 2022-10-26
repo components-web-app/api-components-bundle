@@ -22,15 +22,22 @@ use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
+use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Routing\RequestContext;
 
 class AddMercureTokenListener
 {
     use CorsTrait;
 
-    public function __construct(private TokenFactoryInterface $tokenFactory, private ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, private ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, private PublishableStatusChecker $publishableStatusChecker, private RequestContext $requestContext)
-    {
+    public function __construct(
+        private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        private readonly RequestContext $requestContext,
+        private readonly Authorization $mercureAuthorization,
+        private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
+        private readonly ?string $hubName = null
+    ) {
     }
 
     /**
@@ -47,47 +54,66 @@ class AddMercureTokenListener
 
         $subscribeIris = [];
         $response = $event->getResponse();
-
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
-            $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
-
-            try {
-                $operation = $resourceMetadataCollection->getOperation(forceCollection: false, httpOperation: true);
-            } catch (OperationNotFoundException $e) {
-                continue;
+            if ($resourceIris = $this->getSubscribeIrisForResource($resourceClass)) {
+                $subscribeIris[] = $resourceIris;
             }
+        }
+        $subscribeIris = array_merge([], ...$subscribeIris);
 
-            if (!$operation instanceof HttpOperation) {
-                continue;
-            }
+        // Todo: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
+        // May also be able to await a mercure bundle update to set the cookie samesite in mercure configs
+        $cookie = $this->mercureAuthorization->createCookie($request, $request, $subscribeIris, [], $this->hubName);
+        $cookie->withSameSite($this->cookieSameSite);
+        $response->headers->setCookie($cookie);
+    }
 
-            $mercure = $operation->getMercure();
-
-            if (!$mercure) {
-                continue;
-            }
-
-            $refl = new \ReflectionClass($operation->getClass());
-            $isPublishable = \count($refl->getAttributes(Publishable::class));
-
-            $uriTemplate = $this->buildAbsoluteUriTemplate() . $operation->getRoutePrefix() . $operation->getUriTemplate();
-
-            if (!$isPublishable) {
-                $subscribeIris[] = $uriTemplate;
-                continue;
-            }
-
-            // Note that `?draft=1` is also hard coded into the PublishableIriConverter, probably make this configurable somewhere
-            if ($this->publishableStatusChecker->isGranted($operation->getClass())) {
-                $subscribeIris[] = $uriTemplate . '?draft=1';
-                $subscribeIris[] = $uriTemplate;
-                continue;
-            }
-
-            $subscribeIris[] = $uriTemplate;
+    private function getSubscribeIrisForResource(string $resourceClass): ?array
+    {
+        $operation = $this->getMercureResourceOperation($resourceClass);
+        if (!$operation) {
+            return null;
         }
 
-        $response->headers->setCookie(Cookie::create('mercureAuthorization', $this->tokenFactory->create($subscribeIris, [])));
+        $refl = new \ReflectionClass($operation->getClass());
+        $isPublishable = \count($refl->getAttributes(Publishable::class));
+
+        $uriTemplate = $this->buildAbsoluteUriTemplate() . $operation->getRoutePrefix() . $operation->getUriTemplate();
+        $subscribeIris = [$uriTemplate];
+
+        if (!$isPublishable) {
+            return $subscribeIris;
+        }
+
+        // Note that `?draft=1` is also hard coded into the PublishableIriConverter, probably make this configurable somewhere
+        if ($this->publishableStatusChecker->isGranted($operation->getClass())) {
+            $subscribeIris[] = $uriTemplate . '?draft=1';
+        }
+
+        return $subscribeIris;
+    }
+
+    private function getMercureResourceOperation(string $resourceClass): ?HttpOperation
+    {
+        $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
+
+        try {
+            $operation = $resourceMetadataCollection->getOperation(forceCollection: false, httpOperation: true);
+        } catch (OperationNotFoundException $e) {
+            return null;
+        }
+
+        if (!$operation instanceof HttpOperation) {
+            return null;
+        }
+
+        $mercure = $operation->getMercure();
+
+        if (!$mercure) {
+            return null;
+        }
+
+        return $operation;
     }
 
     /**

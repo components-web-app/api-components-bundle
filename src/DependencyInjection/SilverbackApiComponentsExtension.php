@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
+use Silverback\ApiComponentsBundle\EventListener\Mercure\AddMercureTokenListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -151,6 +152,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition(RoutableVoter::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
+
+        $definition = $container->getDefinition(AddMercureTokenListener::class);
+        $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
+        $definition->setArgument('$hubName', $config['mercure']['hub_name']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void
