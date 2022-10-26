@@ -45,4 +45,67 @@ Feature: Layout resources
     When I send a "DELETE" request to the resource "layout"
     Then the response status code should be 204
 
-  # Todo: Order by and search filter tests needed to ensure it is implemented
+  @loginUser
+  Scenario: The layout resources can be filtered by reference
+    Given there is a Layout with the reference "primary"
+    And there is a Layout with the reference "secondary"
+    When I send a "GET" request to "/_/layouts"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+
+  @loginUser
+  Scenario: The layout resources can be filtered by reference
+    Given there is a Layout with the reference "primary"
+    And there is a Layout with the reference "secondary"
+    When I send a "GET" request to "/_/layouts?reference=primary"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" element
+
+  @loginUser
+  Scenario: The layout resources can be ordered ascending by reference
+    Given there is a Layout with the reference "1"
+    And there is a Layout with the reference "2"
+    When I send a "GET" request to "/_/layouts?order[reference]=asc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "1"
+    And the JSON node "hydra:member[1].reference" should be equal to "2"
+
+  @loginUser
+  Scenario: The layout resources can be ordered descending by reference
+    Given there is a Layout with the reference "1"
+    And there is a Layout with the reference "2"
+    When I send a "GET" request to "/_/layouts?order[reference]=desc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "2"
+    And the JSON node "hydra:member[1].reference" should be equal to "1"
+
+  @loginUser
+  Scenario: The layout resources can be ordered ascending by createdAt
+    Given there is a Layout with the reference "layout_1" and with createdAt "now"
+    And there is a Layout with the reference "layout_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/layouts?order[createdAt]=asc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "layout_1"
+    And the JSON node "hydra:member[1].reference" should be equal to "layout_2"
+
+  @loginUser
+  Scenario: The layout resources can be ordered descending by createdAt
+    Given there is a Layout with the reference "layout_1" and with createdAt "now"
+    And there is a Layout with the reference "layout_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/layouts?order[createdAt]=desc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "layout_2"
+    And the JSON node "hydra:member[1].reference" should be equal to "layout_1"
+
+  @loginUser
+  Scenario: The layout resources can be filtered by ui components
+    Given there is a Layout with the reference "primary" and with the uiComponent "PrimaryLayout"
+    And there is a Layout with the reference "secondary" and with the uiComponent "SecondaryLayout"
+    When I send a "GET" request to "/_/layouts?uiComponent=PrimaryLayout"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "primary"
