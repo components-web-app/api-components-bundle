@@ -46,12 +46,17 @@ Feature: Layout resources
     Then the response status code should be 204
 
   @loginUser
-  Scenario: The layout resources can be filtered
+  Scenario: The layout resources can be filtered by reference
     Given there is a Layout with the reference "primary"
     And there is a Layout with the reference "secondary"
     When I send a "GET" request to "/_/layouts"
     Then the response status code should be 200
     And the JSON node "hydra:member" should have "2" elements
+
+  @loginUser
+  Scenario: The layout resources can be filtered by reference
+    Given there is a Layout with the reference "primary"
+    And there is a Layout with the reference "secondary"
     When I send a "GET" request to "/_/layouts?reference=primary"
     Then the response status code should be 200
     And the JSON node "hydra:member" should have "1" element
