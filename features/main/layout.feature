@@ -61,4 +61,24 @@ Feature: Layout resources
     Then the response status code should be 200
     And the JSON node "hydra:member" should have "1" element
 
+  @loginUser
+  Scenario: The layout resources can be ordered ascending by reference
+    Given there is a Layout with the reference "1"
+    And there is a Layout with the reference "2"
+    When I send a "GET" request to "/_/layouts?order[reference]=asc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "1"
+    And the JSON node "hydra:member[1].reference" should be equal to "2"
+
+  @loginUser
+  Scenario: The layout resources can be ordered descending by reference
+    Given there is a Layout with the reference "1"
+    And there is a Layout with the reference "2"
+    When I send a "GET" request to "/_/layouts?order[reference]=desc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "2"
+    And the JSON node "hydra:member[1].reference" should be equal to "1"
+
   # Todo: Order by and search filter tests needed to ensure it is implemented
