@@ -48,12 +48,12 @@ class HubStub implements HubInterface
 
     public function getUrl(): string
     {
-        return 'https://internal/.well-known/mercure';
+        return 'https://example.com/.well-known/mercure';
     }
 
     public function getPublicUrl(): string
     {
-        return 'https://internal/.well-known/mercure';
+        return 'https://example.com/.well-known/mercure';
     }
 
     public function getProvider(): TokenProviderInterface
