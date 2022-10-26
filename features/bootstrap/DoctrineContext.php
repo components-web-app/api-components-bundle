@@ -493,13 +493,16 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given /^there is a Layout(?: with the reference "([^"]*)"|)$/
+     * @Given /^there is a Layout(?: with the reference "([^"]+)")*[ and]*(?: with createdAt "([^"]+)")*$/
      */
-    public function thereIsALayout(string $reference = 'no-reference'): void
+    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null): void
     {
         $layout = new Layout();
         $layout->reference = $reference;
-        $this->timestampedHelper->persistTimestampedFields($layout, true);
+        if (null !== $createdAt) {
+            $layout->setCreatedAt(new \DateTimeImmutable($createdAt));
+        }
+        $this->timestampedHelper->persistTimestampedFields($layout, $createdAt === null);
         $this->manager->persist($layout);
         $this->manager->flush();
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);

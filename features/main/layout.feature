@@ -81,4 +81,24 @@ Feature: Layout resources
     And the JSON node "hydra:member[0].reference" should be equal to "2"
     And the JSON node "hydra:member[1].reference" should be equal to "1"
 
+  @loginUser
+  Scenario: The layout resources can be ordered ascending by createdAt
+    Given there is a Layout with the reference "layout_1" and with createdAt "now"
+    And there is a Layout with the reference "layout_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/layouts?order[createdAt]=asc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "layout_1"
+    And the JSON node "hydra:member[1].reference" should be equal to "layout_2"
+
+  @loginUser
+  Scenario: The layout resources can be ordered descending by createdAt
+    Given there is a Layout with the reference "layout_1" and with createdAt "now"
+    And there is a Layout with the reference "layout_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/layouts?order[createdAt]=desc"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "2" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "layout_2"
+    And the JSON node "hydra:member[1].reference" should be equal to "layout_1"
+
   # Todo: Order by and search filter tests needed to ensure it is implemented
