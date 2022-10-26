@@ -101,4 +101,11 @@ Feature: Layout resources
     And the JSON node "hydra:member[0].reference" should be equal to "layout_2"
     And the JSON node "hydra:member[1].reference" should be equal to "layout_1"
 
-  # Todo: Order by and search filter tests needed to ensure it is implemented
+  @loginUser
+  Scenario: The layout resources can be filtered by ui components
+    Given there is a Layout with the reference "primary" and with the uiComponent "PrimaryLayout"
+    And there is a Layout with the reference "secondary" and with the uiComponent "SecondaryLayout"
+    When I send a "GET" request to "/_/layouts?uiComponent=PrimaryLayout"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "primary"

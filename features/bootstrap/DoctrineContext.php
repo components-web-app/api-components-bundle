@@ -493,12 +493,13 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given /^there is a Layout(?: with the reference "([^"]+)")*[ and]*(?: with createdAt "([^"]+)")*$/
+     * @Given /^there is a Layout(?: with the reference "([^"]+)")*[ and]*(?: with createdAt "([^"]+)")*(?: with the uiComponent "([^"]+)")*$/
      */
-    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null): void
+    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null, ?string $uiComponent = null): void
     {
         $layout = new Layout();
         $layout->reference = $reference;
+        $layout->uiComponent = $uiComponent;
         if (null !== $createdAt) {
             $layout->setCreatedAt(new \DateTimeImmutable($createdAt));
         }
