@@ -63,7 +63,7 @@ class AddMercureTokenListener
 
         // Todo: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
         // May also be able to await a mercure bundle update to set the cookie samesite in mercure configs
-        $cookie = $this->mercureAuthorization->createCookie($request, $request, $subscribeIris, [], $this->hubName);
+        $cookie = $this->mercureAuthorization->createCookie($request, $subscribeIris, [], [], $this->hubName);
         $cookie->withSameSite($this->cookieSameSite);
         $response->headers->setCookie($cookie);
     }
