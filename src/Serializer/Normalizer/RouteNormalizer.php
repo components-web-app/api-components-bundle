@@ -70,11 +70,10 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
         return $normalized;
     }
 
-    private function getResourceIrisFromArray(array $resource): array
+    private function getResourceIrisFromArray(array $resource, array $iris = []): array
     {
-        $iris = [];
         $resourceId = $resource['@id'] ?? null;
-        if ($resourceId && !str_starts_with($resource['@id'] ?? null, '/.well-known/')) {
+        if ($resourceId && !str_starts_with($resource['@id'] ?? null, '/.well-known/') && !in_array($resourceId, $iris, true)) {
             $iris[] = $resourceId;
         }
         foreach ($resource as $resourceKey => $resourceValue) {
@@ -88,12 +87,12 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
             if (\is_array($resourceValue)) {
                 // check if the array is representing a new resource
                 if (isset($resourceValue['@id'])) {
-                    array_push($iris, ...$this->getResourceIrisFromArray($resourceValue));
+                    $iris = $this->getResourceIrisFromArray($resourceValue, $iris);
                 }
                 // check if the array contains more resources
                 foreach ($resourceValue as $nestedValue) {
                     if (isset($nestedValue['@id'])) {
-                        array_push($iris, ...$this->getResourceIrisFromArray($nestedValue));
+                        $iris = $this->getResourceIrisFromArray($nestedValue, $iris);
                     }
                 }
             }
