@@ -44,6 +44,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
@@ -153,7 +154,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition(RoutableVoter::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
-        $definition = $container->getDefinition(AddMercureTokenListener::class);
+        $definition = $container->getDefinition(MercureAuthorization::class);
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
     }

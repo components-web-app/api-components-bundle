@@ -111,6 +111,7 @@ use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Mercure\PublishableAwareHub;
 use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
@@ -617,7 +618,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
     $services
-        ->set(AddMercureTokenListener::class)
+        ->set(MercureAuthorization::class)
         ->args(
             [
                 new Reference(ResourceNameCollectionFactoryInterface::class),
@@ -625,7 +626,16 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('router.request_context'),
                 new Reference(Authorization::class),
+                new Reference('request_stack'),
                 '', // injected with dependency injection
+            ]
+        );
+
+    $services
+        ->set(AddMercureTokenListener::class)
+        ->args(
+            [
+                new Reference(MercureAuthorization::class)
             ]
         )
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'method' => 'onKernelResponse']);
