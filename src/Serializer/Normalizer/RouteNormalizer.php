@@ -73,10 +73,14 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
     private function getResourceIrisFromArray(array $resource): array
     {
         $iris = [];
-        if (isset($resource['@id'])) {
-            $iris[] = $resource['@id'];
+        $resourceId = $resource['@id'] ?? null;
+        if ($resourceId && !str_starts_with($resource['@id'] ?? null, '/.well-known/')) {
+            $iris[] = $resourceId;
         }
-        foreach ($resource as $resourceValue) {
+        foreach ($resource as $resourceKey => $resourceValue) {
+            if ($resourceKey === '_metadata') {
+                continue;
+            }
             // may be a string or simple
             // may be an array representing a resource
             // may be an array of any other values
