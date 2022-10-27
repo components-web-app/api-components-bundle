@@ -47,13 +47,17 @@ class AddMercureTokenListener
     public function onKernelResponse(ResponseEvent $event): void
     {
         $request = $event->getRequest();
+        $response = $event->getResponse();
+        // $cookies = $response->headers->getCookies();
+
+        /** @var ?HttpOperation $operation */
+        $operation = $request->attributes->get('_api_operation');
         // Prevent issues with NelmioCorsBundle
-        if ($this->isPreflightRequest($request) || $request->attributes->get('_api_item_operation_name') !== 'me') {
+        if (!$operation || $this->isPreflightRequest($request) || $operation->getName() !== 'me') {
             return;
         }
 
         $subscribeIris = [];
-        $response = $event->getResponse();
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
             if ($resourceIris = $this->getSubscribeIrisForResource($resourceClass)) {
                 $subscribeIris[] = $resourceIris;
@@ -64,7 +68,12 @@ class AddMercureTokenListener
         // Todo: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
         // May also be able to await a mercure bundle update to set the cookie samesite in mercure configs
         $cookie = $this->mercureAuthorization->createCookie($request, $subscribeIris, [], [], $this->hubName);
-        $cookie = $cookie->withSameSite($this->cookieSameSite);
+        $cookie = $cookie
+            ->withSameSite($this->cookieSameSite)
+            ->withExpires(time() + (10 * 365 * 24 * 60 * 60))
+        ;
+
+        $response = $event->getResponse();
         $response->headers->setCookie($cookie);
     }
 
