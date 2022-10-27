@@ -48,7 +48,7 @@ class AddMercureTokenListener
     {
         $request = $event->getRequest();
         // Prevent issues with NelmioCorsBundle
-        if ($this->isPreflightRequest($request) || $request->attributes->get('_api_item_operation_name') !== 'route_resources') {
+        if ($this->isPreflightRequest($request) || $request->attributes->get('_api_item_operation_name') !== 'me') {
             return;
         }
 
