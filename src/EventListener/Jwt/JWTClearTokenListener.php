@@ -27,7 +27,8 @@ class JWTClearTokenListener
     public function __construct(
         private readonly JWTCookieProvider $cookieProvider,
         private readonly MercureAuthorization $mercureAuthorization
-    ) {}
+    ) {
+    }
 
     public function onJwtInvalid(JWTInvalidEvent $event): void
     {

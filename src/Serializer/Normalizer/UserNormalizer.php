@@ -42,8 +42,8 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
         private readonly RoleHierarchy $roleHierarchy,
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
         private readonly MercureAuthorization $mercureAuthorization
-    )
-    {}
+    ) {
+    }
 
     public function hasCacheableSupportsMethod(): bool
     {

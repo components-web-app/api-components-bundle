@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentsBundle\Mercure;
 
 use ApiPlatform\Exception\OperationNotFoundException;
@@ -33,6 +44,7 @@ class MercureAuthorization
         // Todo: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
         // May also be able to await a mercure bundle update to set the cookie samesite in mercure configs
         $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), $subscribeTopics, [], [], $this->hubName);
+
         return $cookie
             ->withSameSite($this->cookieSameSite)
             ->withExpires(time() + (10 * 365 * 24 * 60 * 60));
@@ -51,6 +63,7 @@ class MercureAuthorization
                 $subscribeIris[] = $resourceIris;
             }
         }
+
         return array_merge([], ...$subscribeIris);
     }
 

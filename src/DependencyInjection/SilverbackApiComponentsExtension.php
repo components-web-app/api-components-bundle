@@ -21,7 +21,6 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
-use Silverback\ApiComponentsBundle\EventListener\Mercure\AddMercureTokenListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;

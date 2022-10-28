@@ -33,8 +33,8 @@ final class JWTEventListener
         private readonly RoleHierarchy $roleHierarchy,
         private readonly JWTCookieProvider $cookieProvider,
         private readonly MercureAuthorization $mercureAuthorization
-    )
-    {}
+    ) {
+    }
 
     public function onJWTCreated(JWTCreatedEvent $event): void
     {

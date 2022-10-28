@@ -503,7 +503,7 @@ final class DoctrineContext implements Context
         if (null !== $createdAt) {
             $layout->setCreatedAt(new \DateTimeImmutable($createdAt));
         }
-        $this->timestampedHelper->persistTimestampedFields($layout, $createdAt === null);
+        $this->timestampedHelper->persistTimestampedFields($layout, null === $createdAt);
         $this->manager->persist($layout);
         $this->manager->flush();
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);

@@ -28,7 +28,8 @@ class LogoutListener
         private readonly RefreshTokenStorageInterface $storage,
         private readonly JWTCookieProvider $cookieProvider,
         private readonly MercureAuthorization $mercureAuthorization
-    ){}
+    ) {
+    }
 
     public function __invoke(LogoutEvent $event): void
     {
