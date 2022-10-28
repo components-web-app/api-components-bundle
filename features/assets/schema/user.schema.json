@@ -12,7 +12,8 @@
   ],
   "not": {
     "required": [
-      "plainPassword"
+      "plainPassword",
+      "_metadata"
     ]
   },
   "properties": {
@@ -122,6 +123,34 @@
       "examples": [
         "2020-04-07T09:38:48+00:00"
       ]
+    },
+    "_metadata": {
+      "$id": "#/properties/_metadata",
+      "type": "object",
+      "title": "The _metadata schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "persisted": true
+        }
+      ],
+      "required": [
+        "mercureSubscribeTopics"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "mercureSubscribeTopics": {
+          "$id": "#/properties/_metadata/properties/mercureSubscribeTopics",
+          "type": "array",
+          "title": "The persisted schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            ["http://example.com:80/_/routes/{id}.{_format}"]
+          ]
+        }
+      }
     }
   }
 }

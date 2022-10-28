@@ -56,6 +56,24 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And 1 refresh token should exist
+    And the response should have a "mercureAuthorization" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And the mercure cookie should not contain draft resource topics
+
+  Scenario: A successful login
+    Given there is a user with the username "admin" password "password" and role "ROLE_ADMIN"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "admin",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the response should be empty
+    And the response should have a "mercureAuthorization" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And the mercure cookie should contain draft resource topics
 
   @loginUser
   Scenario: Expired JWT tokens should be refreshed
@@ -65,6 +83,8 @@ Feature: Prevent disabled users from logging in
     Then the response status code should be 200
     And the refresh token should be expired
     And the response should have a "api_components" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And the response should have a "mercureAuthorization" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And 2 refresh tokens should exist
 
@@ -85,6 +105,9 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "mercureAuthorization" cookie
+    And the response should have a "mercureAuthorization" cookie with max age less than 2
+    And the response should have a "mercureAuthorization" cookie with the value "x.x.x"
 
   @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
@@ -94,3 +117,6 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "mercureAuthorization" cookie
+    And the response should have a "mercureAuthorization" cookie with max age less than 2
+    And the response should have a "mercureAuthorization" cookie with the value "x.x.x"

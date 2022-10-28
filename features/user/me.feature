@@ -12,6 +12,7 @@ Feature: Add a /me endpoint
     When I send a "GET" request to "/me"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "user.schema.json"
+    And the JSON node "_metadata.mercureSubscribeTopics[0]" should be equal to "http://example.com:80/_/component_groups/{id}.{_format}"
 
   Scenario: I can retrieve the current logged in user object
     When I send a "GET" request to "/me"

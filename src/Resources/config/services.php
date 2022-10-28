@@ -693,6 +693,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(MercureAuthorization::class),
             ]
         )
+        ->tag('kernel.event_listener', ['event' => Events::AUTHENTICATION_SUCCESS, 'method' => 'onJWTAuthenticationSuccess'])
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'onJWTCreated'])
         ->tag('kernel.event_listener', ['event' => JWTRefreshedEvent::class, 'method' => 'onJWTRefreshed'])
         ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);

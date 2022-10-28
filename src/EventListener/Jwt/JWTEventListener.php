@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -34,6 +35,12 @@ final class JWTEventListener
         private readonly JWTCookieProvider $cookieProvider,
         private readonly MercureAuthorization $mercureAuthorization
     ) {
+    }
+
+    public function onJWTAuthenticationSuccess(AuthenticationSuccessEvent $event): void
+    {
+        $responseHeaders = $event->getResponse()->headers;
+        $responseHeaders->setCookie($this->mercureAuthorization->getAuthorizationCookie());
     }
 
     public function onJWTCreated(JWTCreatedEvent $event): void
