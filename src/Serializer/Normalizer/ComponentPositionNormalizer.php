@@ -102,7 +102,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
 
         $object = $this->normalizeForPageData($object);
-        if ($object->component !== $staticComponent) {
+        if ($object->pageDataProperty) {
             $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
         }
 
