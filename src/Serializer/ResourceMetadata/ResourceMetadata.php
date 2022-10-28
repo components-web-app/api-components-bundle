@@ -46,6 +46,9 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?array $mediaObjects = null;
 
+    #[Groups('cwa_resource:metadata')]
+    private ?array $mercureSubscribeTopics = null;
+
     public function getResourceMetadata(): ?ResourceMetadataInterface
     {
         return $this;
@@ -135,5 +138,15 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setMediaObjects(array $mediaObjects): void
     {
         $this->mediaObjects = $mediaObjects;
+    }
+
+    public function getMercureSubscribeTopics(): ?array
+    {
+        return $this->mercureSubscribeTopics;
+    }
+
+    public function setMercureSubscribeTopics(?array $mercureSubscribeTopics): void
+    {
+        $this->mercureSubscribeTopics = $mercureSubscribeTopics;
     }
 }

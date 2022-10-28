@@ -15,6 +15,8 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -35,14 +37,13 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
 
     private const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
 
-    private UserDataProcessor $userDataProcessor;
-    private RoleHierarchy $roleHierarchy;
-
-    public function __construct(UserDataProcessor $userDataProcessor, RoleHierarchy $roleHierarchy)
-    {
-        $this->userDataProcessor = $userDataProcessor;
-        $this->roleHierarchy = $roleHierarchy;
-    }
+    public function __construct(
+        private readonly UserDataProcessor $userDataProcessor,
+        private readonly RoleHierarchy $roleHierarchy,
+        private readonly ResourceMetadataProvider $resourceMetadataProvider,
+        private readonly MercureAuthorization $mercureAuthorization
+    )
+    {}
 
     public function hasCacheableSupportsMethod(): bool
     {
@@ -87,6 +88,10 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
 
         $rolesAsEntities = $object->getRoles();
         $object->setRoles($this->roleHierarchy->getReachableRoleNames($rolesAsEntities));
+
+        $subscribeTopics = $this->mercureAuthorization->getSubscribeTopics();
+        $metadata = $this->resourceMetadataProvider->findResourceMetadata($object);
+        $metadata->setMercureSubscribeTopics($subscribeTopics);
 
         return $this->normalizer->normalize($object, $format, $context);
     }
