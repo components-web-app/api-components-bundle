@@ -191,6 +191,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(UserDataProcessor::class),
                 new Reference(RoleHierarchyInterface::class),
+                new Reference(ResourceMetadataProvider::class),
                 new Reference(MercureAuthorization::class),
             ]
         )
