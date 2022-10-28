@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTExpiredEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTInvalidEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -23,13 +24,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class JWTClearTokenListener
 {
-    private JWTCookieProvider $cookieProvider;
-
     public function __construct(
-        JWTCookieProvider $cookieProvider
-    ) {
-        $this->cookieProvider = $cookieProvider;
-    }
+        private readonly JWTCookieProvider $cookieProvider,
+        private readonly MercureAuthorization $mercureAuthorization
+    ) {}
 
     public function onJwtInvalid(JWTInvalidEvent $event): void
     {
@@ -44,5 +42,6 @@ class JWTClearTokenListener
     private function clearJwtCookie(Response $response): void
     {
         $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
+        $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
     }
 }

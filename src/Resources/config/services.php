@@ -77,7 +77,6 @@ use Silverback\ApiComponentsBundle\EventListener\Imagine\ImagineEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Mercure\AddMercureTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\ResourceChangedEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -632,15 +631,6 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(AddMercureTokenListener::class)
-        ->args(
-            [
-                new Reference(MercureAuthorization::class)
-            ]
-        )
-        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'method' => 'onKernelResponse']);
-
-    $services
         ->set(PublishableAwareHub::class)
         ->decorate('mercure.hub.default', null, -1)
         ->args(
@@ -700,6 +690,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('security.role_hierarchy'),
                 '', // injected in dependency injection
+                new Reference(MercureAuthorization::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'onJWTCreated'])
@@ -712,6 +703,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(JWTClearTokenListener::class)
         ->args([
             '', // injected in dependency injection
+            new Reference(MercureAuthorization::class),
         ])
         ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid'])
         ->tag('kernel.event_listener', ['event' => Events::JWT_EXPIRED, 'method' => 'onJwtExpired']);
@@ -724,6 +716,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 '', // injected in dependency injection
                 '', // injected in dependency injection
+                new Reference(MercureAuthorization::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);

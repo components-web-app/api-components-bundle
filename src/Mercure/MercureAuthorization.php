@@ -27,7 +27,7 @@ class MercureAuthorization
     ) {
     }
 
-    public function createAuthorizationCookie(): Cookie
+    public function getAuthorizationCookie(): Cookie
     {
         $subscribeTopics = $this->getSubscribeTopics();
         // Todo: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
@@ -36,6 +36,11 @@ class MercureAuthorization
         return $cookie
             ->withSameSite($this->cookieSameSite)
             ->withExpires(time() + (10 * 365 * 24 * 60 * 60));
+    }
+
+    public function getClearAuthorizationCookie(): Cookie
+    {
+        return $this->getAuthorizationCookie()->withExpires(1);
     }
 
     public function getSubscribeTopics(): array

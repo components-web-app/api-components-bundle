@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
@@ -190,6 +191,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(UserDataProcessor::class),
                 new Reference(RoleHierarchyInterface::class),
+                new Reference(MercureAuthorization::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);

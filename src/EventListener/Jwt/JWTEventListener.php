@@ -17,6 +17,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
+use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 
@@ -26,15 +27,14 @@ use Symfony\Component\Security\Core\Role\RoleHierarchy;
  */
 final class JWTEventListener
 {
-    private RoleHierarchy $roleHierarchy;
-    private JWTCookieProvider $cookieProvider;
     private ?string $token = null;
 
-    public function __construct(RoleHierarchy $roleHierarchy, JWTCookieProvider $cookieProvider)
-    {
-        $this->cookieProvider = $cookieProvider;
-        $this->roleHierarchy = $roleHierarchy;
-    }
+    public function __construct(
+        private readonly RoleHierarchy $roleHierarchy,
+        private readonly JWTCookieProvider $cookieProvider,
+        private readonly MercureAuthorization $mercureAuthorization
+    )
+    {}
 
     public function onJWTCreated(JWTCreatedEvent $event): void
     {
@@ -59,7 +59,9 @@ final class JWTEventListener
     public function onKernelResponse(ResponseEvent $event): void
     {
         if (!empty($this->token)) {
-            $event->getResponse()->headers->setCookie($this->cookieProvider->createCookie($this->token));
+            $responseHeaders = $event->getResponse()->headers;
+            $responseHeaders->setCookie($this->cookieProvider->createCookie($this->token));
+            $responseHeaders->setCookie($this->mercureAuthorization->getAuthorizationCookie());
         }
     }
 }
