@@ -31,6 +31,10 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?string $pageDataPath = null;
 
+    // for component position
+    #[Groups('cwa_resource:metadata')]
+    private ?bool $isDynamicPosition = null;
+
     #[Groups('cwa_resource:metadata')]
     private ?bool $collection = null;
 
@@ -82,6 +86,16 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setPageDataPath(?string $pageDataPath): void
     {
         $this->pageDataPath = $pageDataPath;
+    }
+
+    public function getIsDynamicPosition(): ?bool
+    {
+        return $this->isDynamicPosition;
+    }
+
+    public function setIsDynamicPosition(?bool $isDynamicPosition): void
+    {
+        $this->isDynamicPosition = $isDynamicPosition;
     }
 
     public function getCollection(): ?bool

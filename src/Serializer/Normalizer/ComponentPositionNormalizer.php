@@ -103,7 +103,14 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
 
         $object = $this->normalizeForPageData($object);
         if ($object->pageDataProperty) {
-            $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
+            $resourceMetadata->setIsDynamicPosition(true);
+            try {
+                $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
+            } catch (UnprocessableEntityHttpException $e) {
+                // the path header may not exist
+            }
+        } else {
+            $resourceMetadata->setIsDynamicPosition(false);
         }
 
         if ($object->component) {
