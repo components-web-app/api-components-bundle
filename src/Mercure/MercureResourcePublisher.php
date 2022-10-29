@@ -22,12 +22,14 @@ use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
 use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use ApiPlatform\Util\ResourceClassInfoTrait;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -60,6 +62,8 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     public function __construct(
         private readonly HubRegistry $hubRegistry,
         private readonly IriConverterInterface $iriConverter,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        private readonly RequestStack $requestStack,
         private readonly array $formats,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
@@ -235,7 +239,12 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             [$iri, $data] = self::getDeletedIriAndData($objectData);
         } else {
             $resourceClass = $this->getObjectClass($object);
+
+
+            $request = $this->requestStack->getCurrentRequest();
+            $baseContext = $request ? $this->serializerContextBuilder->createFromRequest($request, true) : [];
             $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getNormalizationContext() ?? [];
+            $context = array_merge($baseContext, $context);
             try {
                 $iri = $options['topics'] ?? $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
                 $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);

@@ -15,6 +15,7 @@ declare(strict_types=1);
  * @author Daniel West <daniel@silverback.is>
  */
 
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\Events as DoctrineEvents;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
@@ -48,6 +49,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(HubRegistry::class),
             new Reference(MercureIriConverter::class),
+            new Reference(SerializerContextBuilderInterface::class),
+            new Reference('request_stack'),
             '%api_platform.formats%',
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             new Reference('api_platform.resource_class_resolver'),

@@ -29,6 +29,7 @@ Feature: Timestamped resources
     And the JSON should be valid according to the schema file "timestamped.schema.json"
     And the JSON node "createdAt" should be now
     And the JSON node "modifiedAt" should be now
+    And the Mercure message should contain timestamped fields
 
   @loginUser
   Scenario: Use custom timestamped fields

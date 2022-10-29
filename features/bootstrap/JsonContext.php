@@ -277,8 +277,8 @@ class JsonContext implements Context
         return $this->jsonContext->getSession()->getPage()->getContent();
     }
 
-    public function getJsonAsArray(): array
+    public function getJsonAsArray(string $content = null): array
     {
-        return json_decode($this->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        return json_decode($content ?? $this->getContent(), true, 512, \JSON_THROW_ON_ERROR);
     }
 }

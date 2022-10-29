@@ -23,7 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
  * @author Daniel West <daniel@silverback.is>
  */
 #[Silverback\Timestamped]
-#[ApiResource]
+#[ApiResource(mercure: true)]
 #[ORM\Entity]
 class DummyTimestamped
 {

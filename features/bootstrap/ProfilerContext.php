@@ -44,6 +44,7 @@ class ProfilerContext implements Context
     private ?AbstractBrowser $client;
     private ?RestContext $restContext;
     private ?MinkContext $minkContext;
+    private ?JsonContext $jsonContext;
 
     /**
      * @BeforeScenario
@@ -52,6 +53,7 @@ class ProfilerContext implements Context
     {
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
         $this->client = $this->minkContext->getSession()->getDriver()->getClient();
     }
 
@@ -80,6 +82,20 @@ class ProfilerContext implements Context
         if (\count($messageObjects) !== $count) {
             throw new ExpectationException(sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
         }
+        return $messageObjects;
+    }
+
+    /**
+     * @Then the Mercure message should contain timestamped fields
+     */
+    public function theMercureMessageShouldContainTimestampedFields()
+    {
+        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(1);
+        $update = $messageObjects[0];
+        $messageData = $update->getData();
+        $messageArray = $this->jsonContext->getJsonAsArray($messageData);
+        Assert::assertArrayHasKey('createdAt', $messageArray);
+        Assert::assertArrayHasKey('modifiedAt', $messageArray);
     }
 
     /**

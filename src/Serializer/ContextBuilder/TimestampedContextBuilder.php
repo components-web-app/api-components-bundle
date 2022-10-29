@@ -43,7 +43,7 @@ final class TimestampedContextBuilder implements SerializerContextBuilderInterfa
         } else {
             $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), TimestampedLoader::GROUP_NAME);
         }
-
+dump($resourceClass, $context['groups']);
         return $context;
     }
 }
