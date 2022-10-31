@@ -29,10 +29,12 @@ use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 
@@ -240,11 +242,13 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         } else {
             $resourceClass = $this->getObjectClass($object);
 
-
-            $request = $this->requestStack->getCurrentRequest();
-            $baseContext = $request ? $this->serializerContextBuilder->createFromRequest($request, true) : [];
-            $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getNormalizationContext() ?? [];
-            $context = array_merge($baseContext, $context);
+            $request = new Request();
+            $attributes = [
+                'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
+                'resource_class' => $resourceClass
+            ];
+            $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
+            $context = array_merge($baseContext, $options['normalization_context'] ?? []);
             try {
                 $iri = $options['topics'] ?? $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
                 $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);

@@ -13,9 +13,10 @@ Feature: Component positions
     And there is a DummyComponent
     When I send a "POST" request to "/_/component_positions" with data:
       | componentGroup             | component                  |
-      | resource[component_group] | resource[dummy_component] |
+      | resource[component_group]  | resource[dummy_component] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the Mercure message for component group should contain timestamped fields
 
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection and a component that must be specifically defined as being allowed to pass validation

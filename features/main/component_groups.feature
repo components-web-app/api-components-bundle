@@ -29,6 +29,7 @@ Feature: ComponentGroup resource
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_group.schema.json"
+    And the JSON node "createdAt" should exist
 
   @loginUser
   Scenario: When I delete a component collection resource, locations are also deleted but components are not

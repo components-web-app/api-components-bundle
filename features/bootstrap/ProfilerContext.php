@@ -99,6 +99,19 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Then the Mercure message for component group should contain timestamped fields
+     */
+    public function theMercureMessageForComponentGroupShouldContainTimestampedFields()
+    {
+        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(2);
+        $update = $messageObjects[1];
+        $messageData = $update->getData();
+        $messageArray = $this->jsonContext->getJsonAsArray($messageData);
+        Assert::assertArrayHasKey('createdAt', $messageArray);
+        Assert::assertArrayHasKey('modifiedAt', $messageArray);
+    }
+
+    /**
      * @Then there should be :count mercure messages for draft resources
      */
     public function thereShouldMercureMessagesForDraftResources(int $count)
