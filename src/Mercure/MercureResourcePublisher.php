@@ -34,7 +34,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 
@@ -245,7 +244,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             $request = new Request();
             $attributes = [
                 'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
-                'resource_class' => $resourceClass
+                'resource_class' => $resourceClass,
             ];
             $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
             $context = array_merge($baseContext, $options['normalization_context'] ?? []);

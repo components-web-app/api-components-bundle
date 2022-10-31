@@ -82,6 +82,7 @@ class ProfilerContext implements Context
         if (\count($messageObjects) !== $count) {
             throw new ExpectationException(sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
         }
+
         return $messageObjects;
     }
 
