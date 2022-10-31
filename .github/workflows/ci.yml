@@ -365,7 +365,7 @@ jobs:
             composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
             composer-php${{ matrix.php }}-
             composer-
-          continue-on-error: true
+        continue-on-error: true
       - name: Update project dependencies
         run: |
           composer config minimum-stability dev  
