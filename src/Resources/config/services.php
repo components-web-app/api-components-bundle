@@ -133,6 +133,7 @@ use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
+use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentPositionContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\TimestampedContextBuilder;
@@ -248,6 +249,18 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(CwaResourceContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args(
+            [
+                new Reference(CwaResourceContextBuilder::class . '.inner'),
+                new Reference(RoleHierarchyInterface::class),
+                new Reference(Security::class),
+            ]
+        )
+        ->autoconfigure(false);
+
+    $services
+        ->set(ComponentPositionContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
