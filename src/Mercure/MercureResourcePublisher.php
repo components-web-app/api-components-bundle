@@ -241,7 +241,10 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         } else {
             $resourceClass = $this->getObjectClass($object);
 
-            $request = new Request();
+            $request = $this->requestStack->getCurrentRequest();
+            if (!$request) {
+                $request = new Request();
+            }
             $attributes = [
                 'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
                 'resource_class' => $resourceClass,
