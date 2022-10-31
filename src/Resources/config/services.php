@@ -264,7 +264,7 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(CwaResourceContextBuilder::class . '.inner'),
+                new Reference(ComponentPositionContextBuilder::class . '.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
             ]
