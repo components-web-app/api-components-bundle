@@ -235,15 +235,13 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     private function publishUpdate(object $object, array $objectData, string $type): void
     {
         $options = $objectData['mercureOptions'];
-
-        if ($object instanceof \stdClass) {
-            [$iri, $data] = self::getDeletedIriAndData($objectData);
-        } else {
+        [$iri, $data] = self::getDeletedIriAndData($objectData);
+        if (!$object instanceof \stdClass) {
             $resourceClass = $this->getObjectClass($object);
 
             $request = $this->requestStack->getCurrentRequest();
             if (!$request) {
-                $request = new Request();
+                $request = Request::create($iri);
             }
             $attributes = [
                 'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
@@ -256,7 +254,6 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
                 $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);
             } catch (InvalidArgumentException) {
                 // the object may have been deleted at the database level with delete cascades...
-                [$iri, $data] = self::getDeletedIriAndData($objectData);
                 $type = 'delete';
             }
         }
