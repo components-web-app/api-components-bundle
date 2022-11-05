@@ -13,20 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
-use DateTime;
-use DateTimeImmutable;
-
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 trait TimestampedTrait
 {
-    public ?DateTimeImmutable $createdAt = null;
+    public ?\DateTimeImmutable $createdAt = null;
 
-    public ?DateTime $modifiedAt = null;
+    public ?\DateTime $modifiedAt = null;
 
     /** @return static */
-    public function setCreatedAt(DateTimeImmutable $createdAt)
+    public function setCreatedAt(\DateTimeImmutable $createdAt)
     {
         if (!$this->createdAt) {
             $this->createdAt = $createdAt;
@@ -35,20 +32,20 @@ trait TimestampedTrait
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
     /** @return static */
-    public function setModifiedAt(DateTime $modifiedAt)
+    public function setModifiedAt(\DateTime $modifiedAt)
     {
         $this->modifiedAt = $modifiedAt;
 
         return $this;
     }
 
-    public function getModifiedAt(): ?DateTime
+    public function getModifiedAt(): ?\DateTime
     {
         return $this->modifiedAt;
     }

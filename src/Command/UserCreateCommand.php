@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Command;
 
-use Exception;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -139,7 +138,7 @@ class UserCreateCommand extends Command
     {
         return static function (string $string) use ($label) {
             if (empty($string)) {
-                throw new Exception($label . ' can not be empty');
+                throw new \Exception($label . ' can not be empty');
             }
 
             return $string;

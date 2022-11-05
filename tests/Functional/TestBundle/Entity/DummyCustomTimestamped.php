@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -30,11 +28,11 @@ class DummyCustomTimestamped
 {
     use IdTrait;
 
-    private ?DateTimeImmutable $customCreatedAt = null;
+    private ?\DateTimeImmutable $customCreatedAt = null;
 
-    public ?DateTime $customModifiedAt = null;
+    public ?\DateTime $customModifiedAt = null;
 
-    public function setCustomCreatedAt(DateTimeImmutable $customCreatedAt): self
+    public function setCustomCreatedAt(\DateTimeImmutable $customCreatedAt): self
     {
         if (!$this->customCreatedAt) {
             $this->customCreatedAt = $customCreatedAt;
@@ -43,19 +41,19 @@ class DummyCustomTimestamped
         return $this;
     }
 
-    public function getCustomCreatedAt(): ?DateTimeImmutable
+    public function getCustomCreatedAt(): ?\DateTimeImmutable
     {
         return $this->customCreatedAt;
     }
 
-    public function setCustomModifiedAt(DateTime $customModifiedAt): self
+    public function setCustomModifiedAt(\DateTime $customModifiedAt): self
     {
         $this->customModifiedAt = $customModifiedAt;
 
         return $this;
     }
 
-    public function getCustomModifiedAt(): ?DateTime
+    public function getCustomModifiedAt(): ?\DateTime
     {
         return $this->customModifiedAt;
     }

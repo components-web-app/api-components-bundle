@@ -23,7 +23,6 @@ use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Traversable;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -54,7 +53,7 @@ class CollectionNormalizer implements NormalizerInterface, CacheableSupportsMeth
 
     public function supportsNormalization($data, $format = null, $context = []): bool
     {
-        if (!\is_object($data) || $data instanceof Traversable) {
+        if (!\is_object($data) || $data instanceof \Traversable) {
             return false;
         }
 

@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\User;
 
-use Serializable;
 use Symfony\Component\Security\Core\User\UserInterface as BaseUserInterface;
 
-interface UserInterface extends Serializable, BaseUserInterface
+interface UserInterface extends \Serializable, BaseUserInterface
 {
     public function getId(): ?int;
 

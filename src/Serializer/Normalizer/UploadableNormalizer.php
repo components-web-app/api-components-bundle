@@ -34,7 +34,6 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Traversable;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -110,7 +109,7 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        if (!\is_object($data) || $data instanceof Traversable) {
+        if (!\is_object($data) || $data instanceof \Traversable) {
             return false;
         }
 

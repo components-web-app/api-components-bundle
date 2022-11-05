@@ -17,7 +17,6 @@ use PHPUnit\Framework\TestCase;
 use ProxyManager\Configuration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\Proxy\ProxyInterface;
-use ReflectionException;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -43,7 +42,7 @@ class ClassNameValidatorTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function test_validate(): void
     {
@@ -52,7 +51,7 @@ class ClassNameValidatorTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function test_class_same_validation_success(): void
     {
@@ -63,7 +62,7 @@ class ClassNameValidatorTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function test_class_same_validation_invalid_classname(): void
     {

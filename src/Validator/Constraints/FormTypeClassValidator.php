@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
-use ReflectionException;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Validator\ClassNameValidator;
 use Symfony\Component\Validator\Constraint;
@@ -31,7 +30,7 @@ class FormTypeClassValidator extends ConstraintValidator
         $this->formTypes = $formTypes;
     }
 
-    /** @throws ReflectionException */
+    /** @throws \ReflectionException */
     public function validate($value, Constraint $constraint): void
     {
         if (!$value) {

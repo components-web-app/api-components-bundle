@@ -49,7 +49,7 @@ class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectio
             if ($operations) {
                 foreach ($operations as $operation) {
                     if ($operation instanceof Get) {
-                        $newOperation = (new HttpOperation(HttpOperation::METHOD_GET, '/me.{_format}'))
+                        $newOperation = (new HttpOperation(HttpOperation::METHOD_GET, '/me{._format}'))
                             ->withShortName($operation->getShortName());
                         $operations->add(
                             'me',

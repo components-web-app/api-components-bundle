@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Helper\Form;
 
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use ReflectionClass;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Event\CommandLogEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -63,8 +61,8 @@ class FormCachePurger implements CacheClearerInterface
     private function updateFormTimestamp(Form $form): void
     {
         $formClass = $form->formType;
-        $reflector = new ReflectionClass($formClass);
-        $dateTime = new DateTime();
+        $reflector = new \ReflectionClass($formClass);
+        $dateTime = new \DateTime();
         $timestamp = filemtime($reflector->getFileName());
 
         $this->dispatcher->dispatch(new CommandLogEvent(sprintf('<info>Checking timestamp for %s</info>', $formClass)));

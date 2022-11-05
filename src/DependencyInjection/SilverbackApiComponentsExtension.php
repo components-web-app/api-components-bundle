@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
-use Exception;
 use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
@@ -64,7 +63,7 @@ use Symfony\Component\Security\Http\Event\LogoutEvent;
 class SilverbackApiComponentsExtension extends Extension implements PrependExtensionInterface
 {
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
@@ -229,7 +228,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     private function loadServiceConfig(ContainerBuilder $container): void
     {

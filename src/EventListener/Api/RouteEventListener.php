@@ -43,7 +43,7 @@ class RouteEventListener
         if (
             empty($data) ||
             !$data instanceof Route ||
-            '_api_/routes/generate.{_format}_post' !== $operationName
+            '_api_/routes/generate{._format}_post' !== $operationName
         ) {
             return;
         }

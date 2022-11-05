@@ -23,7 +23,6 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataI
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Traversable;
 
 class PersistedNormalizerTest extends TestCase
 {
@@ -70,7 +69,7 @@ class PersistedNormalizerTest extends TestCase
         self::assertFalse($this->apiNormalizer->supportsNormalization(new DummyComponent(), $format, ['PERSISTED_NORMALIZER_ALREADY_CALLED' => [null]]));
         self::assertFalse($this->apiNormalizer->supportsNormalization([], $format, []));
         self::assertFalse($this->apiNormalizer->supportsNormalization('string', $format, []));
-        $traversable = $this->createMock(Traversable::class);
+        $traversable = $this->createMock(\Traversable::class);
         self::assertFalse($this->apiNormalizer->supportsNormalization($traversable, $format, []));
     }
 

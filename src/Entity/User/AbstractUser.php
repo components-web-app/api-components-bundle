@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Entity\User;
 
 use ApiPlatform\Metadata\ApiProperty;
-use DateTime;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
@@ -74,7 +73,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public ?string $plainNewPasswordConfirmationToken = null;
 
     #[ApiProperty(readable: false, writable: false)]
-    protected ?DateTime $passwordRequestedAt = null;
+    protected ?\DateTime $passwordRequestedAt = null;
 
     #[UserPassword(message: 'You have not entered your current password correctly. Please try again.', groups: ['User:password:change'])]
     #[ApiProperty(readable: false)]
@@ -82,7 +81,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     protected ?string $oldPassword = null;
 
     #[ApiProperty(readable: false, writable: false)]
-    protected ?DateTime $passwordUpdatedAt = null;
+    protected ?\DateTime $passwordUpdatedAt = null;
 
     #[Assert\NotBlank(allowNull: true, groups: ['User:emailAddress', 'Default'])]
     #[Assert\Email]
@@ -97,7 +96,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
     #[ApiProperty(readable: false, writable: false)]
     #[Groups(['User:output'])]
-    protected ?DateTime $newEmailAddressChangeRequestedAt = null;
+    protected ?\DateTime $newEmailAddressChangeRequestedAt = null;
 
     #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewEmailConfirmationToken = null;
@@ -115,7 +114,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public ?string $plainEmailAddressVerifyToken = null;
 
     #[ApiProperty(readable: false, writable: false)]
-    protected ?DateTime $emailLastUpdatedAt = null;
+    protected ?\DateTime $emailLastUpdatedAt = null;
 
     /**
      * `final` to make `createFromPayload` safe. Could instead make an interface? Or abstract and force child to define constructor?
@@ -221,12 +220,12 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
         return $this;
     }
 
-    public function getPasswordRequestedAt(): ?DateTime
+    public function getPasswordRequestedAt(): ?\DateTime
     {
         return $this->passwordRequestedAt;
     }
 
-    public function setPasswordRequestedAt(?DateTime $passwordRequestedAt): self
+    public function setPasswordRequestedAt(?\DateTime $passwordRequestedAt): self
     {
         $this->passwordRequestedAt = $passwordRequestedAt;
 
@@ -272,7 +271,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
         return $this;
     }
 
-    public function getNewEmailAddressChangeRequestedAt(): ?DateTime
+    public function getNewEmailAddressChangeRequestedAt(): ?\DateTime
     {
         return $this->newEmailAddressChangeRequestedAt;
     }
@@ -303,7 +302,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     {
         $lastRequest = $this->getPasswordRequestedAt();
 
-        return $lastRequest instanceof DateTime &&
+        return $lastRequest instanceof \DateTime &&
             $lastRequest->getTimestamp() + $ttl > time();
     }
 

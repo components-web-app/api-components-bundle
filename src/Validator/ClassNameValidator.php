@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Validator;
 
 use ProxyManager\Proxy\LazyLoadingInterface;
-use ReflectionClass;
-use ReflectionException;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 
 /**
@@ -23,7 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
  */
 class ClassNameValidator
 {
-    /** @throws ReflectionException */
+    /** @throws \ReflectionException */
     public static function validate(string $className, iterable $validClasses): bool
     {
         foreach ($validClasses as $validClass) {
@@ -35,7 +33,7 @@ class ClassNameValidator
         return false;
     }
 
-    /** @throws ReflectionException */
+    /** @throws \ReflectionException */
     public static function isClassSame(string $className, object $validClass): bool
     {
         if (!class_exists($className) && !interface_exists($className)) {
@@ -49,11 +47,11 @@ class ClassNameValidator
         return self::isClassSameLazy($className, $validClass) ?: ($validClass instanceof $className);
     }
 
-    /** @throws ReflectionException */
+    /** @throws \ReflectionException */
     private static function isClassSameLazy(string $className, $validClass): bool
     {
         if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
-            $reflection = new ReflectionClass($validClass);
+            $reflection = new \ReflectionClass($validClass);
 
             return $reflection->isSubclassOf($className);
         }
