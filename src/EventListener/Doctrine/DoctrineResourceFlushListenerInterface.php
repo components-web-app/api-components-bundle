@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 
 /**
@@ -30,5 +31,5 @@ interface DoctrineResourceFlushListenerInterface
 
     public function onFlush(OnFlushEventArgs $eventArgs): void;
 
-    public function postFlush(): void;
+    public function postFlush(PostFlushEventArgs $eventArgs): void;
 }

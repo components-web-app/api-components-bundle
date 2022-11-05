@@ -21,6 +21,7 @@ use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
@@ -40,6 +41,7 @@ trait DoctrineResourceFlushTrait
     private ObjectRepository|EntityRepository $collectionRepository;
     private ObjectRepository|EntityRepository $positionRepository;
     private array $resourceIris = [];
+    private array $gatherRelatedForEntities = [];
 
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
@@ -78,22 +80,29 @@ trait DoctrineResourceFlushTrait
     {
         $em = $eventArgs->getObjectManager();
         $uow = $em->getUnitOfWork();
+        $this->gatherRelatedForEntities = [];
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            $this->collectUpdatedResource($entity, 'created', $em, true);
+            $this->collectUpdatedResource($entity, 'created');
+            $this->gatherRelatedForEntities[] = $entity;
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            $this->collectUpdatedResource($entity, 'updated', $em, true);
+            $this->collectUpdatedResource($entity, 'updated');
+            $this->gatherRelatedForEntities[] = $entity;
         }
 
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
-            $this->collectUpdatedResource($entity, 'deleted', $em, true);
+            $this->collectUpdatedResource($entity, 'deleted');
+            $this->gatherRelatedForEntities[] = $entity;
         }
     }
 
-    public function postFlush(): void
+    public function postFlush(PostFlushEventArgs $eventArgs): void
     {
+        foreach ($this->gatherRelatedForEntities as $object) {
+            $this->gatherRelationResourceClasses($eventArgs->getObjectManager(), $object);
+        }
         $this->addResourcesToPurge($this->gatherResourcesForPositionsWithPageDataProperties(), 'updated');
         $this->addResourcesToPurge($this->gatherIrisForCollectionResources(), 'updated');
         $this->purgeResources();
@@ -105,11 +114,25 @@ trait DoctrineResourceFlushTrait
         foreach (array_keys($associationMappings) as $property) {
             if ($this->propertyAccessor->isReadable($entity, $property)) {
                 $value = $this->propertyAccessor->getValue($entity, $property);
+                if (!$value) {
+                    return;
+                }
+
                 if ($value instanceof PersistentCollection) {
                     foreach ($value as $item) {
-                        $this->collectUpdatedResource($item, 'updated');
+                        if (!$item) {
+                            continue;
+                        }
+                        if ($em->contains($item)) {
+                            $em->refresh($item);
+                            $this->collectUpdatedResource($item, 'updated');
+                        }
                     }
-                } else {
+                    return;
+                }
+
+                if ($em->contains($value)) {
+                    $em->refresh($value);
                     $this->collectUpdatedResource($value, 'updated');
                 }
             }
@@ -160,16 +183,13 @@ trait DoctrineResourceFlushTrait
         return $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
     }
 
-    private function collectUpdatedResource($resource, string $type, ?ObjectManager $em = null, bool $gatherRelated = false): void
+    private function collectUpdatedResource($resource, string $type): void
     {
         if (!$resource) {
             return;
         }
         $this->addResourceIris([$resource], $type);
         $this->resourceChangedPropagator->collectItems([$resource], $type);
-        if ($gatherRelated && $em) {
-            $this->gatherRelationResourceClasses($em, $resource);
-        }
     }
 
     private function addResourcesToPurge(array $resources, string $type): void

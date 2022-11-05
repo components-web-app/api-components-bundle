@@ -17,6 +17,7 @@ Feature: Component positions
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_position.schema.json"
     And the Mercure message for component group should contain timestamped fields
+    And the Mercure message for component group should contain 1 component position
 
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection and a component that must be specifically defined as being allowed to pass validation

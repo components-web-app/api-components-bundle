@@ -99,17 +99,31 @@ class ProfilerContext implements Context
         Assert::assertArrayHasKey('modifiedAt', $messageArray);
     }
 
+    private function getMercureComponentGroupMessage()
+    {
+        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(2);
+        $update = $messageObjects[1];
+        $messageData = $update->getData();
+        return $this->jsonContext->getJsonAsArray($messageData);
+    }
+
     /**
      * @Then the Mercure message for component group should contain timestamped fields
      */
     public function theMercureMessageForComponentGroupShouldContainTimestampedFields()
     {
-        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(2);
-        $update = $messageObjects[1];
-        $messageData = $update->getData();
-        $messageArray = $this->jsonContext->getJsonAsArray($messageData);
+        $messageArray = $this->getMercureComponentGroupMessage();
         Assert::assertArrayHasKey('createdAt', $messageArray);
         Assert::assertArrayHasKey('modifiedAt', $messageArray);
+    }
+
+    /**
+     * @Then the Mercure message for component group should contain :count component position
+     */
+    public function theMercureMessageForTheComponentGroupShouldContainCompontnPosition(int $count)
+    {
+        $messageArray = $this->getMercureComponentGroupMessage();
+        Assert::assertCount($count, $messageArray['componentPositions']);
     }
 
     /**
