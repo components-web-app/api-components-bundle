@@ -43,6 +43,17 @@ Feature: Dynamic pages
     Given there is a DummyComponent in PageData and a Position
     When I send a "DELETE" request to the resource "page_data_component"
     Then the response status code should be 204
+    And the resource "component_position" should exist
+    And the resource "page_data_component" should be purged from the cache
+    And the resource "component_position" should be purged from the cache
+
+  @loginAdmin
+  Scenario: When a dynamic component is deleted, and exists only in page data, the dynamic position should be cleared from the cache
+    Given there is a DummyComponent in PageData
+    When I send a "DELETE" request to the resource "page_data_component"
+    Then the response status code should be 204
+    And the resource "component_position" should exist
+    And the resource "page_data_component" should be purged from the cache
     And the resource "component_position" should be purged from the cache
 
   @loginAdmin
@@ -50,4 +61,5 @@ Feature: Dynamic pages
     Given there is a DummyComponent in a Position with an empty PageData
     When I patch the PageData with the property "component" and resource "page_data_component"
     Then the response status code should be 200
+    And the resource "component_position" should exist
     And the resource "component_position" should be purged from the cache

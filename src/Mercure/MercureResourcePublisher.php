@@ -105,6 +105,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         if (!is_iterable($item)) {
             $this->storeObjectToPublish($item, $property);
+
             return;
         }
 
@@ -132,6 +133,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             $this->createdObjects->detach($object);
             $this->updatedObjects->detach($object);
             $this->deletedObjects[$object] = $objectData;
+
             return;
         }
 
@@ -205,6 +207,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
             $options['topics'] = $topics;
         }
+
         return $options;
     }
 
@@ -254,7 +257,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             return json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
         };
 
-        if ($type === 'delete') {
+        if ('delete' === $type) {
             $data = $getDeletedObjectData();
         } else {
             try {

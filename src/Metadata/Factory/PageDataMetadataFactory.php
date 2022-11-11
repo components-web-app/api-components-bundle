@@ -27,15 +27,10 @@ use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
  */
 class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
 {
-    private ManagerRegistry $registry;
-    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
-
     public function __construct(
-        ManagerRegistry $registry,
-        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory
+        private readonly ManagerRegistry $registry,
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory
     ) {
-        $this->registry = $registry;
-        $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
     /**

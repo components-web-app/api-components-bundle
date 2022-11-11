@@ -599,7 +599,7 @@ final class DoctrineContext implements Context
         );
     }
 
-    public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent, bool $setPageData = true): void
+    public function abstractThereIsADummyComponentInPageDataAndAPosition(AbstractComponent $dummyComponent, bool $setPageData = true, bool $inPosition = true): void
     {
         $componentGroup = new ComponentGroup();
         $componentGroup->reference = 'test';
@@ -614,11 +614,14 @@ final class DoctrineContext implements Context
         $this->manager->persist($page);
 
         $pageData = new PageDataWithComponent();
+        $componentPosition = new ComponentPosition();
         if ($setPageData) {
             if ($dummyComponent instanceof DummyComponent) {
                 $pageData->component = $dummyComponent;
+                $componentPosition->pageDataProperty = 'component';
             } elseif ($dummyComponent instanceof DummyPublishableComponent) {
                 $pageData->publishableComponent = $dummyComponent;
+                $componentPosition->pageDataProperty = 'publishableComponent';
             }
         }
         $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);
@@ -628,16 +631,14 @@ final class DoctrineContext implements Context
         $this->manager->persist($pageData);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
 
-        $componentPosition = new ComponentPosition();
-        if ($setPageData) {
+        if ($inPosition) {
             $componentPosition->component = $dummyComponent;
-        } else {
-            $componentPosition->pageDataProperty = 'component';
         }
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
+
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
 
         $this->manager->flush();
@@ -649,6 +650,14 @@ final class DoctrineContext implements Context
     public function thereIsADummyComponentInPageDataAndAPosition()
     {
         $this->abstractThereIsADummyComponentInPageDataAndAPosition($this->thereIsADummyComponent());
+    }
+
+    /**
+     * @Given there is a DummyComponent in PageData
+     */
+    public function thereIsADummyComponentInPageData()
+    {
+        $this->abstractThereIsADummyComponentInPageDataAndAPosition($this->thereIsADummyComponent(), true, false);
     }
 
     /**

@@ -39,6 +39,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     {
         if (!is_iterable($item)) {
             $this->collectResource($item);
+
             return;
         }
 

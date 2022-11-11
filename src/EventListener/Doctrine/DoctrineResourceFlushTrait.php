@@ -86,7 +86,7 @@ trait DoctrineResourceFlushTrait
     {
         foreach ($this->updatedResources as $updatedResource) {
             $data = $this->updatedResources[$updatedResource];
-            if ($om->contains($updatedResource)) {
+            if ('deleted' !== $data['type'] && $om->contains($updatedResource)) {
                 $om->refresh($updatedResource);
                 $this->resourceChangedPropagator->add($updatedResource, $data['type']);
             }
@@ -136,7 +136,7 @@ trait DoctrineResourceFlushTrait
     private function gatherAllAssociatedEntities(object $entity, array $associationMappings): void
     {
         foreach (array_keys($associationMappings) as $property) {
-            if (!$associationMappings[$property]['inversedBy'] ||
+            if (
                 !$this->propertyAccessor->isReadable($entity, $property) ||
                 !$assocEntity = $this->propertyAccessor->getValue($entity, $property)
             ) {
@@ -163,6 +163,7 @@ trait DoctrineResourceFlushTrait
             return;
         }
         $this->addResourceIrisFromObject($resource, $type);
+        $this->resourceChangedPropagator->add($resource, $type);
     }
 
     private function addResourceIrisFromObject($resource, string $type): void
@@ -180,13 +181,13 @@ trait DoctrineResourceFlushTrait
             return;
         }
 
-
         // collect get collection iris for clearing the collection components in the cache later
         if (!isset($this->updatedCollectionClassToIriMapping[$resourceClass])) {
             try {
                 $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
                 $this->updatedCollectionClassToIriMapping[$resourceClass] = $collectionIri;
-            }catch (InvalidArgumentException $e) {}
+            } catch (InvalidArgumentException $e) {
+            }
         }
 
         // keep a record of all the resources we are triggering updates for related from the database changes

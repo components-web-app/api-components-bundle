@@ -24,13 +24,8 @@ use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
  */
 class PageDataMetadataStateProvider implements ProviderInterface
 {
-    private PageDataMetadataFactoryInterface $pageDataMetadataFactory;
-    private PageDataMetadataProvider $pageDataMetadataProvider;
-
-    public function __construct(PageDataMetadataFactoryInterface $pageDataMetadataFactory, PageDataMetadataProvider $pageDataMetadataProvider)
+    public function __construct(private readonly PageDataMetadataFactoryInterface $pageDataMetadataFactory, private readonly PageDataMetadataProvider $pageDataMetadataProvider)
     {
-        $this->pageDataMetadataFactory = $pageDataMetadataFactory;
-        $this->pageDataMetadataProvider = $pageDataMetadataProvider;
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
