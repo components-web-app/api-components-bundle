@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 
 /**
  * Purges desired resources on when doctrine is flushed from the proxy cache.
@@ -27,8 +26,6 @@ use Doctrine\ORM\Event\PreUpdateEventArgs;
  */
 interface DoctrineResourceFlushListenerInterface
 {
-    public function preUpdate(PreUpdateEventArgs $eventArgs): void;
-
     public function onFlush(OnFlushEventArgs $eventArgs): void;
 
     public function postFlush(PostFlushEventArgs $eventArgs): void;

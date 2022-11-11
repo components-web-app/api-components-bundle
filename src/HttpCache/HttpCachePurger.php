@@ -35,7 +35,23 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         $this->reset();
     }
 
-    public function collectResource($entity, ?string $type = null): void
+    public function add(object $item, ?string $type = null): void
+    {
+        if (!is_iterable($item)) {
+            $this->collectResource($item);
+            return;
+        }
+
+        if ($item instanceof PersistentCollection) {
+            $item = clone $item;
+        }
+
+        foreach ($item as $i) {
+            $this->collectResource($i);
+        }
+    }
+
+    public function collectResource($entity): void
     {
         if (null === $entity) {
             return;
@@ -43,30 +59,14 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
 
         try {
             $resourceClass = $this->resourceClassResolver->getResourceClass($entity);
+
+            // collect cache of any collections being fetched
             $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
-            $this->collectIri([$resourceIri]);
+            $this->collectIri($resourceIri);
+
+            // clear cache of anything containing this item
+            $this->collectItem($entity);
         } catch (OperationNotFoundException|InvalidArgumentException $e) {
-        }
-    }
-
-    public function collectItems($items, ?string $type = null): void
-    {
-        if (!$items) {
-            return;
-        }
-
-        if (!is_iterable($items)) {
-            $this->collectItem($items);
-
-            return;
-        }
-
-        if ($items instanceof PersistentCollection) {
-            $items = clone $items;
-        }
-
-        foreach ($items as $i) {
-            $this->collectItem($i);
         }
     }
 
@@ -74,17 +74,15 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     {
         try {
             $iri = $this->iriConverter->getIriFromResource($item);
-            $this->collectIri([$iri]);
+            $this->collectIri($iri);
         } catch (InvalidArgumentException|RuntimeException $e) {
         }
     }
 
-    private function collectIri(array $iris): void
+    private function collectIri($iri): void
     {
-        foreach ($iris as $iri) {
-            if (!\in_array($iri, $this->tags, true)) {
-                $this->tags[$iri] = $iri;
-            }
+        if (!\in_array($iri, $this->tags, true)) {
+            $this->tags[$iri] = $iri;
         }
     }
 

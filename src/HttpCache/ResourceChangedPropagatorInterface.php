@@ -15,9 +15,7 @@ namespace Silverback\ApiComponentsBundle\HttpCache;
 
 interface ResourceChangedPropagatorInterface
 {
-    public function collectResource($entity, ?string $type = null): void;
-
-    public function collectItems($items, ?string $type = null): void;
+    public function add(object $item, ?string $type = null): void;
 
     public function propagate(): void;
 

@@ -25,6 +25,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use ApiPlatform\Util\ResourceClassInfoTrait;
+use Doctrine\ORM\PersistentCollection;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -95,40 +96,58 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $this->deletedObjects = new \SplObjectStorage();
     }
 
-    public function collectResource($entity, ?string $type = null): void
-    {
-        // this is not needed for Mercure.
-        // this clears cache for endpoints getting collections etc.
-        // Mercure will only update for individual items
-    }
-
-    public function collectItems($items, ?string $type = null): void
+    public function add(object $item, ?string $type = null): void
     {
         $property = sprintf('%sObjects', $type);
         if (!isset($this->{$property})) {
             throw new \InvalidArgumentException(sprintf('Cannot collect Mercure resource with type %s : the property %s does not exist.', $type, $property));
         }
 
-        foreach ($items as $item) {
+        if (!is_iterable($item)) {
             $this->storeObjectToPublish($item, $property);
+            return;
+        }
+
+        if ($item instanceof PersistentCollection) {
+            $item = clone $item;
+        }
+
+        foreach ($item as $i) {
+            $this->storeObjectToPublish($i, $property);
         }
     }
 
-    /**
-     * @throws \ApiPlatform\Exception\ResourceClassNotFoundException
-     *
-     * @description See: ApiPlatform\Doctrine\EventListener\PublishMercureUpdatesListener
-     */
     private function storeObjectToPublish(object $object, string $property): void
     {
-        if (null === $resourceClass = $this->getResourceClass($object)) {
+        $options = $this->getObjectMercureOptions($object);
+        if (null === $options) {
             return;
+        }
+
+        $id = $this->iriConverter->getIriFromResource($object);
+        $iri = $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
+        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options)];
+
+        if ('deletedObjects' === $property) {
+            $this->createdObjects->detach($object);
+            $this->updatedObjects->detach($object);
+            $this->deletedObjects[$object] = $objectData;
+            return;
+        }
+
+        $this->{$property}[$object] = $objectData;
+    }
+
+    private function getObjectMercureOptions(object $object): ?array
+    {
+        if (null === $resourceClass = $this->getResourceClass($object)) {
+            return null;
         }
 
         try {
             $options = $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getMercure() ?? false;
         } catch (OperationNotFoundException) {
-            return;
+            return null;
         }
 
         if (\is_string($options)) {
@@ -140,11 +159,11 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         }
 
         if (false === $options) {
-            return;
+            return null;
         }
 
         if (true === $options) {
-            $options = [];
+            return [];
         }
 
         if (!\is_array($options)) {
@@ -157,12 +176,17 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             }
         }
 
+        return $options;
+    }
+
+    private function normalizeMercureOptions(array $options): array
+    {
         $options['enable_async_update'] ??= true;
 
         if ($options['topics'] ?? false) {
             $topics = [];
             foreach ((array) $options['topics'] as $topic) {
-                if (!\is_string($topic)) {
+                if (!\is_string($topic) || !str_starts_with($topic, '@=')) {
                     $topics[] = $topic;
                     continue;
                 }
@@ -181,24 +205,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
             $options['topics'] = $topics;
         }
-
-        $id = $this->iriConverter->getIriFromResource($object);
-        $iri = $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
-        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $options];
-
-        if ('deletedObjects' === $property) {
-            $this->createdObjects->detach($object);
-            $this->updatedObjects->detach($object);
-            $deletedObject = (object) [
-                'id' => $this->iriConverter->getIriFromResource($object),
-                'iri' => $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL),
-            ];
-            $this->deletedObjects[$deletedObject] = $objectData;
-
-            return;
-        }
-
-        $this->{$property}[$object] = $objectData;
+        return $options;
     }
 
     public function propagate(): void
@@ -220,41 +227,42 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         }
     }
 
-    private static function getDeletedIriAndData(array $objectData): array
+    private function getObjectData(object $object, string $iri)
     {
-        // By convention, if the object has been deleted, we send only its IRI.
-        // This may change in the feature, because it's not JSON Merge Patch compliant,
-        // and I'm not a fond of this approach.
-        $iri = $options['topics'] ?? $objectData['iri'];
-        /** @var string $data */
-        $data = json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
+        $resourceClass = $this->getObjectClass($object);
 
-        return [$iri, $data];
+        $request = $this->requestStack->getCurrentRequest();
+        if (!$request) {
+            $request = Request::create($iri);
+        }
+        $attributes = [
+            'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
+            'resource_class' => $resourceClass,
+        ];
+        $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
+        $context = array_merge($baseContext, $options['normalization_context'] ?? []);
+
+        return $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);
     }
 
     private function publishUpdate(object $object, array $objectData, string $type): void
     {
         $options = $objectData['mercureOptions'];
-        [$iri, $data] = self::getDeletedIriAndData($objectData);
-        if (!$object instanceof \stdClass) {
-            $resourceClass = $this->getObjectClass($object);
+        $iri = $options['topics'] ?? $objectData['iri'];
 
-            $request = $this->requestStack->getCurrentRequest();
-            if (!$request) {
-                $request = Request::create($iri);
-            }
-            $attributes = [
-                'operation' => $this->resourceMetadataFactory->create($resourceClass)->getOperation(),
-                'resource_class' => $resourceClass,
-            ];
-            $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
-            $context = array_merge($baseContext, $options['normalization_context'] ?? []);
+        $getDeletedObjectData = static function () use ($objectData) {
+            return json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
+        };
+
+        if ($type === 'delete') {
+            $data = $getDeletedObjectData();
+        } else {
             try {
-                $iri = $options['topics'] ?? $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
-                $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);
+                $data = $this->getObjectData($object, $iri);
             } catch (InvalidArgumentException) {
                 // the object may have been deleted at the database level with delete cascades...
                 $type = 'delete';
+                $data = $getDeletedObjectData();
             }
         }
 

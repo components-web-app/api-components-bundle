@@ -104,6 +104,7 @@ class ProfilerContext implements Context
         $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(2);
         $update = $messageObjects[1];
         $messageData = $update->getData();
+
         return $this->jsonContext->getJsonAsArray($messageData);
     }
 

@@ -22,8 +22,8 @@ use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\PersistentCollection;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
@@ -36,12 +36,13 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 trait DoctrineResourceFlushTrait
 {
-    private array $pageDataPropertiesChanged = [];
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
     private ObjectRepository|EntityRepository $positionRepository;
-    private array $resourceIris = [];
-    private array $gatherRelatedForEntities = [];
+
+    private \SplObjectStorage $updatedResources;
+    private array $pageDataPropertiesChanged = [];
+    private array $updatedCollectionClassToIriMapping = [];
 
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
@@ -52,135 +53,108 @@ trait DoctrineResourceFlushTrait
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
         $this->positionRepository = $entityManager->getRepository(ComponentPosition::class);
-    }
-
-    public function preUpdate(PreUpdateEventArgs $eventArgs): void
-    {
-        $object = $eventArgs->getObject();
-        $this->collectUpdatedResource($object, 'updated');
-
-        $changeSet = $eventArgs->getEntityChangeSet();
-        $associationMappings = $this->getAssociationMappings($eventArgs->getObjectManager(), $eventArgs->getObject());
-
-        if ($object instanceof PageDataInterface) {
-            $this->pageDataPropertiesChanged = array_keys($changeSet);
-        }
-
-        foreach ($changeSet as $field => $value) {
-            if (!isset($associationMappings[$field])) {
-                continue;
-            }
-
-            $this->collectUpdatedResource($value[0], 'updated');
-            $this->collectUpdatedResource($value[1], 'updated');
-        }
+        $this->reset();
     }
 
     public function onFlush(OnFlushEventArgs $eventArgs): void
     {
         $em = $eventArgs->getObjectManager();
         $uow = $em->getUnitOfWork();
-        $this->gatherRelatedForEntities = [];
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            $this->collectUpdatedResource($entity, 'created');
-            $this->gatherRelatedForEntities[] = $entity;
+            $this->gatherResourceAndAssociated($entity, 'created', $em, $uow);
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            $this->collectUpdatedResource($entity, 'updated');
-            $this->gatherRelatedForEntities[] = $entity;
+            $this->gatherResourceAndAssociated($entity, 'updated', $em, $uow);
         }
 
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
-            $this->collectUpdatedResource($entity, 'deleted');
-            $this->gatherRelatedForEntities[] = $entity;
+            $this->gatherResourceAndAssociated($entity, 'deleted', $em, $uow);
         }
     }
 
     public function postFlush(PostFlushEventArgs $eventArgs): void
     {
-        foreach ($this->gatherRelatedForEntities as $object) {
-            $this->gatherRelationResourceClasses($eventArgs->getObjectManager(), $object);
-        }
-        $this->addResourcesToPurge($this->gatherResourcesForPositionsWithPageDataProperties(), 'updated');
-        $this->addResourcesToPurge($this->gatherIrisForCollectionResources(), 'updated');
+        $this->refreshUpdatedEntities($eventArgs->getObjectManager());
+        $this->collectDynamicComponentPositionResources();
+        $this->collectRelatedCollectionComponentResources();
         $this->purgeResources();
     }
 
-    private function gatherRelationResourceClasses(ObjectManager $em, $entity): void
+    private function refreshUpdatedEntities(ObjectManager $om): void
     {
-        $associationMappings = $this->getAssociationMappings($em, $entity);
+        foreach ($this->updatedResources as $updatedResource) {
+            $data = $this->updatedResources[$updatedResource];
+            if ($om->contains($updatedResource)) {
+                $om->refresh($updatedResource);
+                $this->resourceChangedPropagator->add($updatedResource, $data['type']);
+            }
+        }
+    }
+
+    private function gatherResourceAndAssociated(object $entity, string $type, ObjectManager $em, UnitOfWork $uow): void
+    {
+        $changeSet = $uow->getEntityChangeSet($entity);
+        $this->collectUpdatedResource($entity, $type);
+
+        $associationMappings = $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
+
+        if ($entity instanceof PageDataInterface) {
+            $this->pageDataPropertiesChanged = array_keys($changeSet);
+        }
+
+        if ('updated' === $type) {
+            $this->gatherUpdatedAssociatedEntities($associationMappings, $changeSet);
+
+            return;
+        }
+
+        // created and deleted - full entity change, all properties to check
+        // catch any related resources that may have changed backwards relation or database cascades
+        $this->gatherAllAssociatedEntities($entity, $associationMappings);
+    }
+
+    private function gatherUpdatedAssociatedEntities(array $associationMappings, array $changeSet): void
+    {
+        foreach ($changeSet as $field => $values) {
+            // detect whether changed field was an association
+            if (!isset($associationMappings[$field])) {
+                continue;
+            }
+
+            if (isset($associationMappings[$field]['inversedBy'])) {
+                $notNullValues = array_filter($values);
+                foreach ($notNullValues as $entityInverseValuesUpdated) {
+                    // note: the resource may get removed if orphaned
+                    $this->collectUpdatedResource($entityInverseValuesUpdated, 'updated');
+                }
+            }
+        }
+    }
+
+    private function gatherAllAssociatedEntities(object $entity, array $associationMappings): void
+    {
         foreach (array_keys($associationMappings) as $property) {
-            if ($this->propertyAccessor->isReadable($entity, $property)) {
-                $value = $this->propertyAccessor->getValue($entity, $property);
-                if (!$value) {
-                    return;
-                }
+            if (!$associationMappings[$property]['inversedBy'] ||
+                !$this->propertyAccessor->isReadable($entity, $property) ||
+                !$assocEntity = $this->propertyAccessor->getValue($entity, $property)
+            ) {
+                continue;
+            }
 
-                if ($value instanceof PersistentCollection) {
-                    foreach ($value as $item) {
-                        if (!$item) {
-                            continue;
-                        }
-                        if ($em->contains($item)) {
-                            $em->refresh($item);
-                            $this->collectUpdatedResource($item, 'updated');
-                        }
+            if ($assocEntity instanceof PersistentCollection) {
+                foreach ($assocEntity as $oneToManyEntity) {
+                    if (!$oneToManyEntity) {
+                        continue;
                     }
-                    return;
+                    $this->collectUpdatedResource($oneToManyEntity, 'updated');
                 }
 
-                if ($em->contains($value)) {
-                    $em->refresh($value);
-                    $this->collectUpdatedResource($value, 'updated');
-                }
+                return;
             }
+            $this->collectUpdatedResource($assocEntity, 'updated');
         }
-    }
-
-    private function gatherResourcesForPositionsWithPageDataProperties(): array
-    {
-        $positionResources = [];
-        foreach ($this->pageDataPropertiesChanged as $pageDataProperty) {
-            $positions = $this->positionRepository->findBy([
-                'pageDataProperty' => $pageDataProperty,
-            ]);
-            foreach ($positions as $position) {
-                $positionResources[] = $position;
-            }
-        }
-
-        return $positionResources;
-    }
-
-    private function gatherIrisForCollectionResources(): array
-    {
-        if (empty($this->resourceIris)) {
-            return [];
-        }
-
-        $collectionResources = [];
-        foreach ($this->resourceIris as $resourceIri) {
-            $collections = $this->collectionRepository->findBy([
-                'resourceIri' => $resourceIri,
-            ]);
-            foreach ($collections as $collection) {
-                $collectionResources[] = $collection;
-            }
-        }
-
-        $this->resourceIris = [];
-        if (empty($collectionResources)) {
-            return [];
-        }
-
-        return $collectionResources;
-    }
-
-    private function getAssociationMappings(ObjectManager $em, $entity): array
-    {
-        return $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
     }
 
     private function collectUpdatedResource($resource, string $type): void
@@ -188,29 +162,68 @@ trait DoctrineResourceFlushTrait
         if (!$resource) {
             return;
         }
-        $this->addResourceIris([$resource], $type);
-        $this->resourceChangedPropagator->collectItems([$resource], $type);
+        $this->addResourceIrisFromObject($resource, $type);
     }
 
-    private function addResourcesToPurge(array $resources, string $type): void
+    private function addResourceIrisFromObject($resource, string $type): void
     {
-        $this->addResourceIris($resources, $type);
-        $this->resourceChangedPropagator->collectItems($resources, $type);
-    }
+        if (
+            isset($this->updatedResources[$resource]) &&
+            $this->updatedResources[$resource]['type'] === $type
+        ) {
+            return;
+        }
 
-    private function addResourceIris(array $resources, string $type): void
-    {
-        foreach ($resources as $resource) {
+        try {
+            $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
+        } catch (InvalidArgumentException $e) {
+            return;
+        }
+
+
+        // collect get collection iris for clearing the collection components in the cache later
+        if (!isset($this->updatedCollectionClassToIriMapping[$resourceClass])) {
             try {
-                $this->resourceChangedPropagator->collectResource($resource, $type);
+                $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
+                $this->updatedCollectionClassToIriMapping[$resourceClass] = $collectionIri;
+            }catch (InvalidArgumentException $e) {}
+        }
 
-                $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
-                $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
+        // keep a record of all the resources we are triggering updates for related from the database changes
+        $resourceIri = $this->iriConverter->getIriFromResource($resource);
 
-                if (!\in_array($resourceIri, $this->resourceIris, true)) {
-                    $this->resourceIris[] = $resourceIri;
-                }
-            } catch (InvalidArgumentException $e) {
+        $this->updatedResources[$resource] = [
+            'iri' => $resourceIri,
+            'type' => $type,
+        ];
+    }
+
+    private function collectDynamicComponentPositionResources(): void
+    {
+        foreach ($this->pageDataPropertiesChanged as $pageDataProperty) {
+            $positions = $this->positionRepository->findBy([
+                'pageDataProperty' => $pageDataProperty,
+            ]);
+            foreach ($positions as $position) {
+                $this->collectUpdatedResource($position, 'updated');
+                $this->resourceChangedPropagator->add($position, 'updated');
+            }
+        }
+    }
+
+    private function collectRelatedCollectionComponentResources(): void
+    {
+        if (empty($this->updatedCollectionClassToIriMapping)) {
+            return;
+        }
+
+        foreach ($this->updatedCollectionClassToIriMapping as $resourceIri) {
+            $collections = $this->collectionRepository->findBy([
+                'resourceIri' => $resourceIri,
+            ]);
+            foreach ($collections as $collection) {
+                $this->collectUpdatedResource($collection, 'updated');
+                $this->resourceChangedPropagator->add($collection, 'updated');
             }
         }
     }
@@ -218,6 +231,13 @@ trait DoctrineResourceFlushTrait
     private function purgeResources(): void
     {
         $this->resourceChangedPropagator->propagate();
-        $this->resourceIris = [];
+        $this->reset();
+    }
+
+    private function reset(): void
+    {
+        $this->updatedResources = new \SplObjectStorage();
+        $this->pageDataPropertiesChanged = [];
+        $this->updatedCollectionClassToIriMapping = [];
     }
 }

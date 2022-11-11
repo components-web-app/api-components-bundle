@@ -39,7 +39,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.resource_class_resolver'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preUpdate])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
     $services->alias(PublishMercureUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.mercure_publish_listener');
 
