@@ -16,13 +16,8 @@ declare(strict_types=1);
  */
 
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
-use Doctrine\ORM\Events as DoctrineEvents;
-use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
-use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishMercureUpdatesListener;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
-use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -30,21 +25,6 @@ use Symfony\Component\Mercure\HubRegistry;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
-
-    $services
-        ->set('silverback.api_components.event_listener.doctrine.mercure_publish_listener')
-        ->class(PublishMercureUpdatesListener::class)
-        ->args([
-            new Reference('api_platform.iri_converter'),
-            new Reference(ManagerRegistry::class),
-            new Reference('silverback.api_components.mercure.resource_publisher'),
-            new Reference('api_platform.resource_class_resolver'),
-            new Reference(PageDataProvider::class),
-            new Reference('silverback.doctrine.repository.component_position')
-        ])
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
-    $services->alias(PublishMercureUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.mercure_publish_listener');
 
     $services
         ->set('silverback.api_components.mercure.resource_publisher')
@@ -61,6 +41,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.graphql.subscription.subscription_manager', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             new Reference('api_platform.graphql.subscription.mercure_iri_generator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ])
-        ->call('setSerializer', [new Reference('serializer')]);
+        ->call('setSerializer', [new Reference('serializer')])
+        ->tag('silverback_api_components.resource_changed_propagator');
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');
 };

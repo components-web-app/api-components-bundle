@@ -19,6 +19,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Events as DoctrineEvents;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
@@ -65,6 +66,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
@@ -1383,4 +1385,19 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
+
+    $services
+        ->set('silverback.api_components.event_listener.doctrine.propagate_updates_listener')
+        ->class(PropagateUpdatesListener::class)
+        ->args([
+            new Reference('api_platform.iri_converter'),
+            new Reference(ManagerRegistry::class),
+            new TaggedIteratorArgument('silverback_api_components.resource_changed_propagator'),
+            new Reference('api_platform.resource_class_resolver'),
+            new Reference(PageDataProvider::class),
+            new Reference('silverback.doctrine.repository.component_position')
+        ])
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
+    $services->alias(PropagateUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.propagate_updates_listener');
 };

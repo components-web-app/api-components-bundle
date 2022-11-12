@@ -1,16 +1,5 @@
 <?php
 
-/*
- * This file is part of the Silverback API Components Bundle Project
- *
- * (c) Daniel West <daniel@silverback.is>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use ApiPlatform\Api\IriConverterInterface;
@@ -35,7 +24,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
-trait DoctrineResourceFlushTrait
+class PropagateUpdatesListener
 {
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
@@ -43,10 +32,18 @@ trait DoctrineResourceFlushTrait
     private array $pageDataPropertiesChanged = [];
     private array $updatedCollectionClassToIriMapping = [];
 
+    /**
+     * @param IriConverterInterface $iriConverter
+     * @param ManagerRegistry $entityManager
+     * @param iterable|ResourceChangedPropagatorInterface[] $resourceChangedPropagators
+     * @param ResourceClassResolverInterface $resourceClassResolver
+     * @param PageDataProvider $pageDataProvider
+     * @param ComponentPositionRepository $positionRepository
+     */
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         ManagerRegistry $entityManager,
-        private readonly ResourceChangedPropagatorInterface $resourceChangedPropagator,
+        private readonly iterable $resourceChangedPropagators,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly PageDataProvider $pageDataProvider,
         private readonly ComponentPositionRepository $positionRepository
@@ -93,7 +90,7 @@ trait DoctrineResourceFlushTrait
                 if (count($pageDataResources)) {
                     foreach ($pageDataResources as $pageDataResource) {
                         $this->collectUpdatedResource($pageDataResource, 'updated');
-                        $this->resourceChangedPropagator->add($pageDataResource, 'updated');
+                        $this->addToPropagators($pageDataResource, 'updated');
                     }
 
                     $pageDataComponentProperties = $pageDataComponentMetadatum->getProperties();
@@ -109,7 +106,7 @@ trait DoctrineResourceFlushTrait
             $data = $this->updatedResources[$updatedResource];
             if ('deleted' !== $data['type'] && $om->contains($updatedResource)) {
                 $om->refresh($updatedResource);
-                $this->resourceChangedPropagator->add($updatedResource, $data['type']);
+                $this->addToPropagators($updatedResource, $data['type']);
             }
         }
     }
@@ -184,7 +181,7 @@ trait DoctrineResourceFlushTrait
             return;
         }
         $this->addResourceIrisFromObject($resource, $type);
-        $this->resourceChangedPropagator->add($resource, $type);
+        $this->addToPropagators($resource, $type);
     }
 
     private function addResourceIrisFromObject($resource, string $type): void
@@ -233,7 +230,7 @@ trait DoctrineResourceFlushTrait
 
         foreach ($positions as $position) {
             $this->collectUpdatedResource($position, 'updated');
-            $this->resourceChangedPropagator->add($position, 'updated');
+            $this->addToPropagators($position, 'updated');
         }
     }
 
@@ -249,15 +246,25 @@ trait DoctrineResourceFlushTrait
             ]);
             foreach ($collections as $collection) {
                 $this->collectUpdatedResource($collection, 'updated');
-                $this->resourceChangedPropagator->add($collection, 'updated');
+                $this->addToPropagators($collection, 'updated');
             }
         }
     }
 
     private function purgeResources(): void
     {
-        $this->resourceChangedPropagator->propagate();
+        foreach ($this->resourceChangedPropagators as $resourceChangedPropagator) {
+            $resourceChangedPropagator->propagate();
+        }
+
         $this->reset();
+    }
+
+    private function addToPropagators(object $item, string $type): void
+    {
+        foreach ($this->resourceChangedPropagators as $resourceChangedPropagator) {
+            $resourceChangedPropagator->add($item, $type);
+        }
     }
 
     private function reset(): void

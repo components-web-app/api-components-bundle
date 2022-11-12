@@ -27,22 +27,16 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
 
         $container->getDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
-        $purgeListener = 'silverback.api_components.event_listener.doctrine.purge_http_cache_listener';
 
         if ($container->hasAlias('api_platform.http_cache.purger')) {
             // we have implemented fully custom logic
             $container->removeDefinition('api_platform.doctrine.listener.http_cache.purge');
-        } else {
-            $container->removeDefinition($purgeListener);
         }
 
-        $publishListener = 'silverback.api_components.event_listener.doctrine.mercure_publish_listener';
         $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
         if ($container->hasDefinition($apiPlatformMercurePublishListener)) {
             // we have implemented fully custom logic
             $container->removeDefinition($apiPlatformMercurePublishListener);
-        } else {
-            $container->removeDefinition($publishListener);
         }
     }
 }
