@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use ApiPlatform\Api\IriConverterInterface;
@@ -8,11 +19,9 @@ use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;
-use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,7 +29,6 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
-use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -36,12 +44,7 @@ class PropagateUpdatesListener
     private array $updatedCollectionClassToIriMapping = [];
 
     /**
-     * @param IriConverterInterface $iriConverter
-     * @param ManagerRegistry $entityManager
      * @param iterable|ResourceChangedPropagatorInterface[] $resourceChangedPropagators
-     * @param ResourceClassResolverInterface $resourceClassResolver
-     * @param PageDataProvider $pageDataProvider
-     * @param ComponentPositionRepository $positionRepository
      */
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
@@ -90,7 +93,7 @@ class PropagateUpdatesListener
             $pageDataComponentMetadata = $this->pageDataProvider->findPageDataComponentMetadata($updatedResource);
             foreach ($pageDataComponentMetadata as $pageDataComponentMetadatum) {
                 $pageDataResources = $pageDataComponentMetadatum->getPageDataResources();
-                if (count($pageDataResources)) {
+                if (\count($pageDataResources)) {
                     foreach ($pageDataResources as $pageDataResource) {
                         $this->collectUpdatedResource($pageDataResource, 'updated');
                         $this->addToPropagators($pageDataResource, 'updated');
@@ -191,7 +194,7 @@ class PropagateUpdatesListener
     {
         if (
             isset($this->updatedResources[$resource]) &&
-            $type !== 'deleted'
+            'deleted' !== $type
         ) {
             return;
         }
@@ -226,7 +229,7 @@ class PropagateUpdatesListener
         if (!$pageDataPropertiesChanged) {
             $pageDataPropertiesChanged = $this->pageDataPropertiesChanged;
         }
-        if (0 === count($pageDataPropertiesChanged)) {
+        if (0 === \count($pageDataPropertiesChanged)) {
             return;
         }
         $positions = $this->positionRepository->findByPageDataProperties($pageDataPropertiesChanged);

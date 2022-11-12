@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Api;
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
-use Doctrine\ORM\EntityNotFoundException;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
@@ -33,13 +32,6 @@ class IriConverter implements IriConverterInterface
         return $this->decorated->getResourceFromIri($iri, $context, $operation);
     }
 
-    /**
-     * @param $resource
-     * @param int $referenceType
-     * @param Operation|null $operation
-     * @param array $context
-     * @return string|null
-     */
     public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
         if ($resource instanceof Route && ($path = $resource->getPath())) {

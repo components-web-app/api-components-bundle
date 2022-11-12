@@ -25,7 +25,6 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use ApiPlatform\Util\ResourceClassInfoTrait;
-use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;

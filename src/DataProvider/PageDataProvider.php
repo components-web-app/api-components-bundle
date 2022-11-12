@@ -22,7 +22,6 @@ use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Metadata\PageDataComponentMetadata;
 use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;

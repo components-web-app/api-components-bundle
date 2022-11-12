@@ -18,7 +18,6 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
@@ -76,6 +75,7 @@ class ProfilerContext implements Context
 
     /**
      * @Then there should be :count mercure messages
+     *
      * @return Update[]
      */
     public function thereShouldBeAPublishedMercureUpdatePublished(?int $count = null)
@@ -107,7 +107,7 @@ class ProfilerContext implements Context
         foreach ($messageObjects as $messageObject) {
             $messageData = $messageObject->getData();
             $messageAsArray = $this->jsonContext->getJsonAsArray($messageData);
-            if($messageAsArray['@context'] === '/contexts/ComponentGroup') {
+            if ('/contexts/ComponentGroup' === $messageAsArray['@context']) {
                 return $messageAsArray;
             }
         }

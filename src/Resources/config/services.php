@@ -1389,8 +1389,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(SqlLiteForeignKeyEnabler::class)
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preFlush])
-    ;
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preFlush]);
 
     $services
         ->set('silverback.api_components.event_listener.doctrine.propagate_updates_listener')
@@ -1401,7 +1400,7 @@ return static function (ContainerConfigurator $configurator) {
             new TaggedIteratorArgument('silverback_api_components.resource_changed_propagator'),
             new Reference('api_platform.resource_class_resolver'),
             new Reference(PageDataProvider::class),
-            new Reference('silverback.doctrine.repository.component_position')
+            new Reference('silverback.doctrine.repository.component_position'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
