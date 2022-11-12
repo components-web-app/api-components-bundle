@@ -17,8 +17,10 @@ declare(strict_types=1);
 
 use Doctrine\ORM\Events as DoctrineEvents;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PurgeHttpCacheListener;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
+use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -33,6 +35,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference('silverback.api_components.http_cache.purger'),
             new Reference('api_platform.resource_class_resolver'),
+            new Reference('silverback.metadata_provider.page_data'),
+            new Reference(PageDataProvider::class),
+            new Reference('silverback.doctrine.repository.component_position')
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);

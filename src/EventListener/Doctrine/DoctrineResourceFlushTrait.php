@@ -27,10 +27,13 @@ use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
+use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
+use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
@@ -38,8 +41,6 @@ trait DoctrineResourceFlushTrait
 {
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
-    private ObjectRepository|EntityRepository $positionRepository;
-
     private \SplObjectStorage $updatedResources;
     private array $pageDataPropertiesChanged = [];
     private array $updatedCollectionClassToIriMapping = [];
@@ -48,11 +49,13 @@ trait DoctrineResourceFlushTrait
         private readonly IriConverterInterface $iriConverter,
         ManagerRegistry $entityManager,
         private readonly ResourceChangedPropagatorInterface $resourceChangedPropagator,
-        private readonly ResourceClassResolverInterface $resourceClassResolver
+        private readonly ResourceClassResolverInterface $resourceClassResolver,
+        private readonly PageDataMetadataProvider $pageDataMetadataProvider,
+        private readonly PageDataProvider $pageDataProvider,
+        private readonly ComponentPositionRepository $positionRepository
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
-        $this->positionRepository = $entityManager->getRepository(ComponentPosition::class);
         $this->reset();
     }
 
@@ -72,6 +75,8 @@ trait DoctrineResourceFlushTrait
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
             $this->gatherResourceAndAssociated($entity, 'deleted', $em, $uow);
         }
+
+        $this->collectUpdatedPageDataAndPositions();
     }
 
     public function postFlush(PostFlushEventArgs $eventArgs): void
@@ -80,6 +85,25 @@ trait DoctrineResourceFlushTrait
         $this->collectDynamicComponentPositionResources();
         $this->collectRelatedCollectionComponentResources();
         $this->purgeResources();
+    }
+
+    private function collectUpdatedPageDataAndPositions(): void
+    {
+        foreach ($this->updatedResources as $updatedResource) {
+            $pageDataComponentMetadata = $this->pageDataProvider->findPageDataComponentMetadata($updatedResource);
+            foreach ($pageDataComponentMetadata as $pageDataComponentMetadatum) {
+                $pageDataResources = $pageDataComponentMetadatum->getPageDataResources();
+                if (count($pageDataResources)) {
+                    foreach ($pageDataResources as $pageDataResource) {
+                        $this->collectUpdatedResource($pageDataResource, 'updated');
+                        $this->resourceChangedPropagator->add($pageDataResource, 'updated');
+                    }
+
+                    $pageDataComponentProperties = $pageDataComponentMetadatum->getProperties();
+                    $this->collectDynamicComponentPositionResources($pageDataComponentProperties->toArray());
+                }
+            }
+        }
     }
 
     private function refreshUpdatedEntities(ObjectManager $om): void
@@ -196,19 +220,19 @@ trait DoctrineResourceFlushTrait
         $this->updatedResources[$resource] = [
             'iri' => $resourceIri,
             'type' => $type,
+            'resourceClass' => $resourceClass,
         ];
     }
 
-    private function collectDynamicComponentPositionResources(): void
+    private function collectDynamicComponentPositionResources(array $pageDataPropertiesChanged = null): void
     {
-        foreach ($this->pageDataPropertiesChanged as $pageDataProperty) {
-            $positions = $this->positionRepository->findBy([
-                'pageDataProperty' => $pageDataProperty,
-            ]);
-            foreach ($positions as $position) {
-                $this->collectUpdatedResource($position, 'updated');
-                $this->resourceChangedPropagator->add($position, 'updated');
-            }
+        if (!$pageDataPropertiesChanged) {
+            $pageDataPropertiesChanged = $this->pageDataPropertiesChanged;
+        }
+        $positions = $this->positionRepository->findByPageDataProperties($pageDataPropertiesChanged);
+        foreach ($positions as $position) {
+            $this->collectUpdatedResource($position, 'updated');
+            $this->resourceChangedPropagator->add($position, 'updated');
         }
     }
 

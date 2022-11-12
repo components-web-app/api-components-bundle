@@ -44,6 +44,7 @@ Feature: Dynamic pages
     When I send a "DELETE" request to the resource "page_data_component"
     Then the response status code should be 204
     And the resource "component_position" should exist
+    And the resource "page_data" should be purged from the cache
     And the resource "page_data_component" should be purged from the cache
     And the resource "component_position" should be purged from the cache
 
@@ -53,6 +54,7 @@ Feature: Dynamic pages
     When I send a "DELETE" request to the resource "page_data_component"
     Then the response status code should be 204
     And the resource "component_position" should exist
+    And the resource "page_data" should be purged from the cache
     And the resource "page_data_component" should be purged from the cache
     And the resource "component_position" should be purged from the cache
 

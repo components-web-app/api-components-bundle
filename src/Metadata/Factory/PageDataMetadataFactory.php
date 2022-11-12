@@ -76,7 +76,7 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
             /** @var ApiResource $apiResource */
             $apiResource = $metadataCollection[0];
             $relationName = $apiResource->getShortName();
-            $metadata->addProperty(new PageDataPropertyMetadata($assocField, $relationName));
+            $metadata->addProperty(new PageDataPropertyMetadata($assocField, $targetClass, $relationName));
         }
 
         return $metadata;

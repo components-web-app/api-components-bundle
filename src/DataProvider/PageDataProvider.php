@@ -35,27 +35,14 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 class PageDataProvider
 {
-    private RequestStack $requestStack;
-    private RouteRepository $routeRepository;
-    private IriConverterInterface $iriConverter;
-    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
-    private PageDataMetadataProvider $pageDataMetadataProvider;
-    private ManagerRegistry $managerRegistry;
-
     public function __construct(
-        RequestStack $requestStack,
-        RouteRepository $routeRepository,
-        IriConverterInterface $iriConverter,
-        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
-        PageDataMetadataProvider $pageDataMetadataProvider,
-        ManagerRegistry $managerRegistry
+        private readonly RequestStack $requestStack,
+        private readonly RouteRepository $routeRepository,
+        private readonly IriConverterInterface $iriConverter,
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
+        private readonly PageDataMetadataProvider $pageDataMetadataProvider,
+        private readonly ManagerRegistry $managerRegistry
     ) {
-        $this->requestStack = $requestStack;
-        $this->routeRepository = $routeRepository;
-        $this->iriConverter = $iriConverter;
-        $this->resourceMetadataFactory = $resourceMetadataFactory;
-        $this->pageDataMetadataProvider = $pageDataMetadataProvider;
-        $this->managerRegistry = $managerRegistry;
     }
 
     public function getOriginalRequestPath(): ?string
@@ -92,7 +79,7 @@ class PageDataProvider
         return $route->getPageData();
     }
 
-    public function findPageDataComponentMetadata(ComponentInterface $component): iterable
+    public function findPageDataComponentMetadata(object $component): iterable
     {
         $resourceShortName = $this->getComponentShortName($component);
         if (!$resourceShortName) {
@@ -126,7 +113,7 @@ class PageDataProvider
         return $qb->getQuery()->getResult() ?: [];
     }
 
-    private function findPageDataResourcesByPropertiesAndComponent(string $pageDataClassName, ArrayCollection $properties, ComponentInterface $component): ?PageDataComponentMetadata
+    private function findPageDataResourcesByPropertiesAndComponent(string $pageDataClassName, ArrayCollection $properties, object $component): ?PageDataComponentMetadata
     {
         $em = $this->managerRegistry->getManagerForClass($pageDataClassName);
         if (!$em instanceof EntityManager) {
@@ -161,7 +148,7 @@ class PageDataProvider
         return $pageDataLocations;
     }
 
-    private function getComponentShortName(ComponentInterface $component): ?string
+    private function getComponentShortName(object $component): ?string
     {
         $resourceClass = \get_class($component);
         if ($component instanceof Proxy) {

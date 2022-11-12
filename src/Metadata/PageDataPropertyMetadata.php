@@ -25,18 +25,26 @@ class PageDataPropertyMetadata
     #[Groups(['AbstractPageData:cwa_resource:read'])]
     private string $property;
 
+    private string $componentClass;
+
     #[Groups(['AbstractPageData:cwa_resource:read'])]
     private string $componentShortName;
 
-    public function __construct(string $property, string $componentClass)
+    public function __construct(string $property, string $componentClass, string $componentShortName)
     {
         $this->property = $property;
-        $this->componentShortName = $componentClass;
+        $this->componentClass = $componentClass;
+        $this->componentShortName = $componentShortName;
     }
 
     public function getProperty(): string
     {
         return $this->property;
+    }
+
+    public function getComponentClass(): string
+    {
+        return $this->componentClass;
     }
 
     public function getComponentShortName(): string
