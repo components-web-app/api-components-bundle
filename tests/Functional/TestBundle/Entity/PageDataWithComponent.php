@@ -25,8 +25,10 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 class PageDataWithComponent extends AbstractPageData
 {
     #[ORM\ManyToOne(targetEntity: DummyComponent::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     public ?DummyComponent $component = null;
 
     #[ORM\ManyToOne(targetEntity: DummyPublishableComponent::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     public ?DummyPublishableComponent $publishableComponent = null;
 }
