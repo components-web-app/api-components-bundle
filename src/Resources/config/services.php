@@ -68,6 +68,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
@@ -1385,6 +1386,11 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
+
+    $services
+        ->set(SqlLiteForeignKeyEnabler::class)
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preFlush])
+    ;
 
     $services
         ->set('silverback.api_components.event_listener.doctrine.propagate_updates_listener')
