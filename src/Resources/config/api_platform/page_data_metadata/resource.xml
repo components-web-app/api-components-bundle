@@ -6,6 +6,11 @@
         <normalizationContext>
             <values>
                 <value name="jsonld_embed_context">true</value>
+                <value name="groups">
+                    <values>
+                        <value>PageDataMetadata:cwa_resource:read</value>
+                    </values>
+                </value>
             </values>
         </normalizationContext>
         <defaults>

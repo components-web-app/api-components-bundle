@@ -35,7 +35,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference('silverback.api_components.http_cache.purger'),
             new Reference('api_platform.resource_class_resolver'),
-            new Reference('silverback.metadata_provider.page_data'),
             new Reference(PageDataProvider::class),
             new Reference('silverback.doctrine.repository.component_position')
         ])

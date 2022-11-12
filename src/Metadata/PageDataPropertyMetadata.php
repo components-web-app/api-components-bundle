@@ -22,12 +22,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class PageDataPropertyMetadata
 {
-    #[Groups(['AbstractPageData:cwa_resource:read'])]
+    #[Groups(['AbstractPageData:cwa_resource:read', 'PageDataMetadata:cwa_resource:read'])]
     private string $property;
 
     private string $componentClass;
 
-    #[Groups(['AbstractPageData:cwa_resource:read'])]
+    #[Groups(['AbstractPageData:cwa_resource:read', 'PageDataMetadata:cwa_resource:read'])]
     private string $componentShortName;
 
     public function __construct(string $property, string $componentClass, string $componentShortName)

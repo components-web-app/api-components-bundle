@@ -42,11 +42,11 @@ class ComponentPositionRepository extends ServiceEntityRepository
 
     public function findByPageDataProperties(array $properties): array
     {
-        $qb = $this->createQueryBuilder('pd');
+        $qb = $this->createQueryBuilder('cp');
         $expr = $qb->expr();
         foreach ($properties as $index => $property) {
             $key = sprintf(':positionName%d', $index);
-            $qb->orWhere($expr->eq('pd.pageDataProperty', $key));
+            $qb->orWhere($expr->eq('cp.pageDataProperty', $key));
             $qb->setParameter($key, $property);
         }
 

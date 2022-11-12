@@ -618,12 +618,17 @@ final class DoctrineContext implements Context
         if ($setPageData) {
             if ($dummyComponent instanceof DummyComponent) {
                 $pageData->component = $dummyComponent;
-                $componentPosition->pageDataProperty = 'component';
             } elseif ($dummyComponent instanceof DummyPublishableComponent) {
                 $pageData->publishableComponent = $dummyComponent;
-                $componentPosition->pageDataProperty = 'publishableComponent';
             }
         }
+
+        if ($dummyComponent instanceof DummyComponent) {
+            $componentPosition->pageDataProperty = 'component';
+        } elseif ($dummyComponent instanceof DummyPublishableComponent) {
+            $componentPosition->pageDataProperty = 'publishableComponent';
+        }
+
         $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);
 
         $pageData->page = $page;

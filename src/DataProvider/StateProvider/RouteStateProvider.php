@@ -39,7 +39,7 @@ class RouteStateProvider implements ProviderInterface
         if ($operation instanceof CollectionOperationInterface) {
             return $this->defaultProvider->provide($operation->withProvider(CollectionProvider::class), $uriVariables, $context);
         }
-
+        
         $id = $uriVariables['id'];
         if (!\is_string($id)) {
             return $this->defaultProvider->provide($operation->withProvider(ItemProvider::class), $uriVariables, $context);

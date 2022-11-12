@@ -18,6 +18,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
@@ -75,11 +76,12 @@ class ProfilerContext implements Context
 
     /**
      * @Then there should be :count mercure messages
+     * @return Update[]
      */
-    public function thereShouldBeAPublishedMercureUpdatePublished(int $count)
+    public function thereShouldBeAPublishedMercureUpdatePublished(?int $count = null)
     {
         $messageObjects = $this->getMercureMessageObjects();
-        if (\count($messageObjects) !== $count) {
+        if (null !== $count && \count($messageObjects) !== $count) {
             throw new ExpectationException(sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
         }
 
@@ -101,11 +103,15 @@ class ProfilerContext implements Context
 
     private function getMercureComponentGroupMessage()
     {
-        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished(2);
-        $update = $messageObjects[1];
-        $messageData = $update->getData();
-
-        return $this->jsonContext->getJsonAsArray($messageData);
+        $messageObjects = $this->thereShouldBeAPublishedMercureUpdatePublished();
+        foreach ($messageObjects as $messageObject) {
+            $messageData = $messageObject->getData();
+            $messageAsArray = $this->jsonContext->getJsonAsArray($messageData);
+            if($messageAsArray['@context'] === '/contexts/ComponentGroup') {
+                return $messageAsArray;
+            }
+        }
+        throw new ExpectationException(sprintf('%d updates were published but no ComponentGroup was found', \count($messageObjects)), $this->minkContext->getSession()->getDriver());
     }
 
     /**

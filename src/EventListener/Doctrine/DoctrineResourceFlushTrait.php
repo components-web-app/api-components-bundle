@@ -29,10 +29,8 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
-use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -50,7 +48,6 @@ trait DoctrineResourceFlushTrait
         ManagerRegistry $entityManager,
         private readonly ResourceChangedPropagatorInterface $resourceChangedPropagator,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
-        private readonly PageDataMetadataProvider $pageDataMetadataProvider,
         private readonly PageDataProvider $pageDataProvider,
         private readonly ComponentPositionRepository $positionRepository
     ) {
@@ -194,7 +191,7 @@ trait DoctrineResourceFlushTrait
     {
         if (
             isset($this->updatedResources[$resource]) &&
-            $this->updatedResources[$resource]['type'] === $type
+            $type !== 'deleted'
         ) {
             return;
         }
@@ -229,7 +226,11 @@ trait DoctrineResourceFlushTrait
         if (!$pageDataPropertiesChanged) {
             $pageDataPropertiesChanged = $this->pageDataPropertiesChanged;
         }
+        if (0 === count($pageDataPropertiesChanged)) {
+            return;
+        }
         $positions = $this->positionRepository->findByPageDataProperties($pageDataPropertiesChanged);
+
         foreach ($positions as $position) {
             $this->collectUpdatedResource($position, 'updated');
             $this->resourceChangedPropagator->add($position, 'updated');
