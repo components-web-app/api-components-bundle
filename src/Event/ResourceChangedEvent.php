@@ -20,7 +20,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class ResourceChangedEvent extends Event
 {
-    public function __construct(private readonly object $resource, string $type)
+    public function __construct(private readonly object $resource, private readonly string $type)
     {
     }
 
@@ -31,6 +31,6 @@ class ResourceChangedEvent extends Event
 
     public function getType(): string
     {
-        return $this->getType();
+        return $this->type;
     }
 }
