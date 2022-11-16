@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use League\Flysystem\Filesystem;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -33,13 +34,16 @@ class FlysystemCompilerPass implements CompilerPassInterface
                 $definition = new Definition();
                 $definition
                     ->setClass(Filesystem::class)
-                    ->setFactory([new Reference(FilesystemProvider::class), 'getFilesystem'])
+                    ->setFactory([new Reference(FilesystemFactory::class), 'create'])
                     ->setArguments([
                         $attributes['alias'],
                         $attributes['config'] ?? []
                     ]);
                 $serviceName = sprintf('api_components.filesystem.%s', $attributes['alias']);
-                $container->setDefinition($serviceName, $definition)->addTag(FilesystemProvider::FILESYSTEM_TAG, [ 'alias' => $attributes['alias'] ]);
+                $container
+                    ->setDefinition($serviceName, $definition)
+                    ->addTag(FilesystemProvider::FILESYSTEM_TAG, [ 'alias' => $attributes['alias'] ])
+                ;
             }
         }
     }

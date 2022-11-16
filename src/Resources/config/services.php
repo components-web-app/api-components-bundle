@@ -93,6 +93,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -387,8 +388,12 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
 
     $services
-        ->set(FilesystemProvider::class)
+        ->set(FilesystemFactory::class)
         ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
+
+    $services
+        ->set(FilesystemProvider::class)
+        ->args([tagged_locator(FilesystemProvider::FILESYSTEM_TAG, 'alias')]);
 
     $services
         ->set(FlysystemDataLoader::class)

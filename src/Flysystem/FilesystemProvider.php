@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Flysystem;
 
 use League\Flysystem\Filesystem;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
@@ -24,23 +26,17 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_components.filesystem_adapter';
-    public const FILESYSTEM_TAG = 'silverback.api_components.filesystem_adapter';
+    public const FILESYSTEM_TAG = 'silverback.api_components.filesystem';
 
-    private array $filesystems = [];
-
-    public function __construct(private readonly ServiceLocator $adapters)
+    public function __construct(private readonly ServiceLocator $filesystems)
     {}
 
     /**
-     * @throws RuntimeException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    private function createFilesystem(string $name, array $config = []): Filesystem
+    public function getFilesystem(string $name): ?Filesystem
     {
-        return $this->filesystems[$name] = new Filesystem($this->adapters->get($name), $config);
-    }
-
-    public function getFilesystem(string $name, array $config = []): ?Filesystem
-    {
-        return $this->filesystems[$name] ?? $this->createFilesystem($name,$config);
+        return $this->filesystems->get($name);
     }
 }
