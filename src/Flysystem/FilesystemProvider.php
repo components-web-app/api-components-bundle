@@ -25,18 +25,14 @@ class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_components.filesystem_adapter';
 
-    private ServiceLocator $adapters;
-
-    public function __construct(ServiceLocator $adapters)
-    {
-        $this->adapters = $adapters;
-    }
+    public function __construct(private readonly ServiceLocator $adapters)
+    {}
 
     /**
      * @throws RuntimeException
      */
-    public function getFilesystem(string $name): Filesystem
+    public function getFilesystem(string $name, array $config = []): Filesystem
     {
-        return new Filesystem($this->adapters->get($name));
+        return new Filesystem($this->adapters->get($name), $config);
     }
 }
