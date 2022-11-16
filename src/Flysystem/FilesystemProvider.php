@@ -24,6 +24,9 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 class FilesystemProvider
 {
     public const FILESYSTEM_ADAPTER_TAG = 'silverback.api_components.filesystem_adapter';
+    public const FILESYSTEM_TAG = 'silverback.api_components.filesystem_adapter';
+
+    private array $filesystems = [];
 
     public function __construct(private readonly ServiceLocator $adapters)
     {}
@@ -31,8 +34,13 @@ class FilesystemProvider
     /**
      * @throws RuntimeException
      */
-    public function getFilesystem(string $name, array $config = []): Filesystem
+    private function createFilesystem(string $name, array $config = []): Filesystem
     {
-        return new Filesystem($this->adapters->get($name), $config);
+        return $this->filesystems[$name] = new Filesystem($this->adapters->get($name), $config);
+    }
+
+    public function getFilesystem(string $name, array $config = []): ?Filesystem
+    {
+        return $this->filesystems[$name] ?? $this->createFilesystem($name,$config);
     }
 }

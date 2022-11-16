@@ -39,7 +39,7 @@ class FlysystemCompilerPass implements CompilerPassInterface
                         $attributes['config'] ?? []
                     ]);
                 $serviceName = sprintf('api_components.filesystem.%s', $attributes['alias']);
-                $container->setDefinition($serviceName, $definition);
+                $container->setDefinition($serviceName, $definition)->addTag(FilesystemProvider::FILESYSTEM_TAG, [ 'alias' => $attributes['alias'] ]);
             }
         }
     }
