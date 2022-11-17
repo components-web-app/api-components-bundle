@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -135,22 +136,18 @@ class UploadableFileManager
             if (!$file) {
                 // so we need to know if it was a deleted field from the denormalizer
                 if ($this->deletedFields->contains($fieldConfiguration->property)) {
-                    // this will not have been updated yet, original database value - string file path
-                    $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-                    if ($currentFilepath) {
-                        $this->removeFilepath($object, $fieldConfiguration);
-                        // file path set to null
-                        $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
-                    }
+                    $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
+                    $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
                 }
                 continue;
             }
 
+            $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
 
             $path = $fieldConfiguration->prefix ?? '';
             $path .= $file->getFilename();
-            $stream = fopen($file->getRealPath(), 'r');
+            $stream = fopen($file->getRealPath(), 'rb');
             $filesystem->writeStream(
                 $path,
                 $stream,
@@ -169,10 +166,15 @@ class UploadableFileManager
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if ($currentFilepath) {
-                $this->removeFilepath($object, $fieldConfiguration);
-            }
+            $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
+        }
+    }
+
+    private function deleteFileForField(object $object, ClassMetadata $classMetadata, UploadableField $fieldConfiguration): void
+    {
+        $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        if ($currentFilepath) {
+            $this->removeFilepath($object, $fieldConfiguration);
         }
     }
 

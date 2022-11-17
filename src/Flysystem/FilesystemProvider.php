@@ -35,7 +35,7 @@ class FilesystemProvider
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function getFilesystem(string $name): ?Filesystem
+    public function getFilesystem(string $name): Filesystem
     {
         return $this->filesystems->get($name);
     }
