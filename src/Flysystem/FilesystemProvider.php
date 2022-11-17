@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\Flysystem;
 use League\Flysystem\Filesystem;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**
@@ -29,7 +28,8 @@ class FilesystemProvider
     public const FILESYSTEM_TAG = 'silverback.api_components.filesystem';
 
     public function __construct(private readonly ServiceLocator $filesystems)
-    {}
+    {
+    }
 
     /**
      * @throws ContainerExceptionInterface

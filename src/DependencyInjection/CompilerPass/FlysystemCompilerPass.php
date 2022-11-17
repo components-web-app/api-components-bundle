@@ -37,13 +37,12 @@ class FlysystemCompilerPass implements CompilerPassInterface
                     ->setFactory([new Reference(FilesystemFactory::class), 'create'])
                     ->setArguments([
                         $attributes['alias'],
-                        $attributes['config'] ?? []
+                        $attributes['config'] ?? [],
                     ]);
                 $serviceName = sprintf('api_components.filesystem.%s', $attributes['alias']);
                 $container
                     ->setDefinition($serviceName, $definition)
-                    ->addTag(FilesystemProvider::FILESYSTEM_TAG, [ 'alias' => $attributes['alias'] ])
-                ;
+                    ->addTag(FilesystemProvider::FILESYSTEM_TAG, ['alias' => $attributes['alias']]);
             }
         }
     }

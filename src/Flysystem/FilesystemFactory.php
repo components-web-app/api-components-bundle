@@ -23,7 +23,8 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 class FilesystemFactory
 {
     public function __construct(private readonly ServiceLocator $adapters)
-    {}
+    {
+    }
 
     /**
      * @throws RuntimeException

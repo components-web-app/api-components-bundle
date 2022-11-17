@@ -147,7 +147,7 @@ class UploadableFileManager
 
             $path = $fieldConfiguration->prefix ?? '';
             $path .= $file->getFilename();
-            $stream = fopen($file->getRealPath(), 'rb');
+            $stream = fopen($file->getRealPath(), 'r');
             $filesystem->writeStream(
                 $path,
                 $stream,
