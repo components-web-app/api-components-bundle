@@ -153,6 +153,9 @@ class UploadableFileManager
                 $stream,
                 [
                     'mimetype' => $file->getMimeType(),
+                    'metadata' => [
+                        'contentType' => $file->getMimeType()
+                    ]
                 ]
             );
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, $path);

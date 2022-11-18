@@ -106,7 +106,6 @@ class ComponentVoter extends Voter
 
     private function isRouteReachableResource(Route $route, Request $request): bool
     {
-        dump($route);
         $path = $this->iriConverter->getIriFromResource($route);
 
         return $this->isPathReachable($path, $request);
