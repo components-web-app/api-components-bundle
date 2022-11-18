@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -63,10 +64,11 @@ class ComponentVoter extends Voter
         if (!$request) {
             return true;
         }
+        // TODO: if the subject is publishable, we should also check if there is a published version and the pages that one is in.
+        // The draft will not be in any locations.
 
         $pagesGenerator = $this->getComponentPages($subject);
         $pages = iterator_to_array($pagesGenerator);
-
         // Check if accessible via any route
         $routes = $this->getComponentRoutesFromPages($pages);
         $routeCount = 0;
@@ -104,6 +106,7 @@ class ComponentVoter extends Voter
 
     private function isRouteReachableResource(Route $route, Request $request): bool
     {
+        dump($route);
         $path = $this->iriConverter->getIriFromResource($route);
 
         return $this->isPathReachable($path, $request);
@@ -118,13 +121,17 @@ class ComponentVoter extends Voter
 
     private function isPathReachable(string $path, Request $request): bool
     {
+        $serverVars = $request->server->all();
+        if (isset($serverVars['HTTP_ACCEPT'])) {
+            $serverVars['HTTP_ACCEPT'] = 'application/ld+json,application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
+        }
         $subRequest = Request::create(
             $path,
             Request::METHOD_GET,
             [],
             $request->cookies->all(),
             [],
-            $request->server->all(),
+            $serverVars,
             null
         );
 
@@ -133,6 +140,10 @@ class ComponentVoter extends Voter
 
             return true;
         } catch (\Exception $e) {
+            // unsupported format requested
+            if ($e instanceof NotEncodableValueException) {
+                return false;
+            }
             if (\in_array($e->getCode(), [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
                 return false;
             }
