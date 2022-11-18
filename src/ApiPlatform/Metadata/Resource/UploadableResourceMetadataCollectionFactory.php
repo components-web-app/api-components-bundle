@@ -80,10 +80,12 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
                 }
                 if ($operation instanceof Get) {
                     $uploadItemOperation = self::generateUploadItemOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
-                    $operations->add(self::generateOperationName($uploadItemOperation), $uploadItemOperation);
+                    $uploadName = self::generateOperationName($uploadItemOperation);
+                    $operations->add($uploadName, $uploadItemOperation->withName($uploadName));
 
                     $downloadItemOperation = self::generateDownloadItemOperation($operation, $pathSegmentName);
-                    $operations->add(self::generateOperationName($downloadItemOperation), $downloadItemOperation);
+                    $downloadName = self::generateOperationName($downloadItemOperation);
+                    $operations->add($downloadName, $downloadItemOperation->withName($downloadName));
                 }
             }
         }
@@ -157,6 +159,8 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
             ->withUriTemplate($downloadPath)
             ->withStateless(null)
             ->withController(DownloadAction::class)
-            ->withSerialize(false);
+            ->withSerialize(false)
+            ->withShortName($getOperation->getShortName())
+            ->withRoutePrefix($getOperation->getRoutePrefix() ?? '');
     }
 }
