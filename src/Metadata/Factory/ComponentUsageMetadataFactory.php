@@ -50,7 +50,7 @@ class ComponentUsageMetadataFactory
 
     public function create(ComponentInterface $component): ComponentUsageMetadata
     {
-        $annotationReader = $this->publishableStatusChecker->getAnnotationReader();
+        $annotationReader = $this->publishableStatusChecker->getAttributeReader();
         if ($annotationReader->isConfigured($component) && !$this->publishableStatusChecker->isActivePublishedAt($component)) {
             // get the published component to run checks against
             $configuration = $annotationReader->getConfiguration($component);

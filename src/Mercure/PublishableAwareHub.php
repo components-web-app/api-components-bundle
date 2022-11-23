@@ -59,7 +59,7 @@ class PublishableAwareHub implements HubInterface
                 return $this->decorated->publish($update);
             }
 
-            if ($this->publishableStatusChecker->getAnnotationReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
+            if ($this->publishableStatusChecker->getAttributeReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
                 $update = new Update(topics: $update->getTopics(), data: $update->getData(), private: true, id: $update->getId(), type: $update->getType(), retry: $update->getRetry());
             }
         }

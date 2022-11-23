@@ -133,10 +133,10 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
 
     private function getConfiguration(string $resourceClass): ?Publishable
     {
-        if (!$this->publishableStatusChecker->getAnnotationReader()->isConfigured($resourceClass)) {
+        if (!$this->publishableStatusChecker->getAttributeReader()->isConfigured($resourceClass)) {
             return null;
         }
 
-        return $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($resourceClass);
+        return $this->publishableStatusChecker->getAttributeReader()->getConfiguration($resourceClass);
     }
 }

@@ -29,15 +29,15 @@ class PublishableStatusChecker
 {
     use ClassMetadataTrait;
 
-    private PublishableAttributeReader $annotationReader;
-    private AuthorizationCheckerInterface $authorizationChecker;
     private string $permission;
 
-    public function __construct(ManagerRegistry $registry, PublishableAttributeReader $annotationReader, AuthorizationCheckerInterface $authorizationChecker, string $permission)
-    {
+    public function __construct(
+        ManagerRegistry                                $registry,
+        private readonly PublishableAttributeReader    $attributeReader,
+        private readonly AuthorizationCheckerInterface $authorizationChecker,
+        string                                         $permission
+    ) {
         $this->initRegistry($registry);
-        $this->annotationReader = $annotationReader;
-        $this->authorizationChecker = $authorizationChecker;
         $this->permission = $permission;
     }
 
@@ -47,7 +47,7 @@ class PublishableStatusChecker
     public function isGranted($class): bool
     {
         try {
-            return $this->authorizationChecker->isGranted(new Expression($this->annotationReader->getConfiguration($class)->isGranted ?? $this->permission));
+            return $this->authorizationChecker->isGranted(new Expression($this->attributeReader->getConfiguration($class)->isGranted ?? $this->permission));
         } catch (AuthenticationCredentialsNotFoundException $e) {
             return false;
         }
@@ -55,22 +55,22 @@ class PublishableStatusChecker
 
     public function isActivePublishedAt(object $object): bool
     {
-        if (!$this->annotationReader->isConfigured($object)) {
+        if (!$this->attributeReader->isConfigured($object)) {
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        $value = $this->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
+        $value = $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
 
         return null !== $value && new \DateTimeImmutable() >= $value;
     }
 
     public function hasPublicationDate(object $object): bool
     {
-        if (!$this->annotationReader->isConfigured($object)) {
+        if (!$this->attributeReader->isConfigured($object)) {
             throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
         }
 
-        return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->annotationReader->getConfiguration($object)->fieldName);
+        return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
     }
 
     public function isPublishedRequest(Request $request): bool
@@ -78,8 +78,8 @@ class PublishableStatusChecker
         return $request->query->getBoolean('published', false);
     }
 
-    public function getAnnotationReader(): PublishableAttributeReader
+    public function getAttributeReader(): PublishableAttributeReader
     {
-        return $this->annotationReader;
+        return $this->attributeReader;
     }
 }

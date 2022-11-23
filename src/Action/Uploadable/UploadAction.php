@@ -54,7 +54,7 @@ class UploadAction
          * if it IS currently published
          * if the user DOES have permission.
          */
-        $publishableAnnotationReader = $publishableStatusChecker->getAnnotationReader();
+        $publishableAnnotationReader = $publishableStatusChecker->getAttributeReader();
         if ($publishableAnnotationReader->isConfigured($resource)) {
             $configuration = $publishableAnnotationReader->getConfiguration($resource);
             $isGranted = $publishableStatusChecker->isGranted($resource);

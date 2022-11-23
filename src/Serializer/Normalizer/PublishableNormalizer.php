@@ -82,7 +82,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $resourceMetadata->setPublishable($isPublished);
 
         $type = \get_class($object);
-        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
+        $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
         $em = $this->getManagerFromType($type);
         $classMetadata = $this->getClassMetadataInfo($em, $type);
 
@@ -129,7 +129,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         }
 
         return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            $this->publishableStatusChecker->getAnnotationReader()->isConfigured($data);
+            $this->publishableStatusChecker->getAttributeReader()->isConfigured($data);
     }
 
     /**
@@ -138,7 +138,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
     public function denormalize($data, $type, $format = null, array $context = []): mixed
     {
         $context[self::ALREADY_CALLED] = true;
-        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type);
+        $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
@@ -249,7 +249,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAnnotationReader()->isConfigured($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type);
     }
 
     public function hasCacheableSupportsMethod(): bool

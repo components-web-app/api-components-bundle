@@ -40,7 +40,7 @@ class MercureIriConverter implements IriConverterInterface
             return $iri;
         }
 
-        if ($this->publishableStatusChecker->getAnnotationReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
+        if ($this->publishableStatusChecker->getAttributeReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
             $iri .= '?draft=1';
         }
 

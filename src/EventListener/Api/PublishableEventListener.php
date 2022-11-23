@@ -45,7 +45,7 @@ final class PublishableEventListener
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
     {
-        $this->publishableAnnotationReader = $publishableStatusChecker->getAnnotationReader();
+        $this->publishableAnnotationReader = $publishableStatusChecker->getAttributeReader();
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->initRegistry($registry);
         $this->validator = $validator;

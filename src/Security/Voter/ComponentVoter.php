@@ -14,10 +14,14 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Security\Voter;
 
 use ApiPlatform\Api\IriConverterInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,23 +35,19 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class ComponentVoter extends Voter
 {
+    use ClassMetadataTrait;
+
     public const READ_COMPONENT = 'read_component';
 
-    private PageDataProvider $pageDataProvider;
-    private IriConverterInterface $iriConverter;
-    private HttpKernelInterface $httpKernel;
-    private RequestStack $requestStack;
-
     public function __construct(
-        PageDataProvider $pageDataProvider,
-        IriConverterInterface $iriConverter,
-        HttpKernelInterface $httpKernel,
-        RequestStack $requestStack
+        private readonly PageDataProvider $pageDataProvider,
+        private readonly IriConverterInterface $iriConverter,
+        private readonly HttpKernelInterface $httpKernel,
+        private readonly RequestStack $requestStack,
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        ManagerRegistry $registry
     ) {
-        $this->pageDataProvider = $pageDataProvider;
-        $this->iriConverter = $iriConverter;
-        $this->httpKernel = $httpKernel;
-        $this->requestStack = $requestStack;
+        $this->initRegistry($registry);
     }
 
     protected function supports($attribute, $subject): bool
@@ -64,24 +64,47 @@ class ComponentVoter extends Voter
         if (!$request) {
             return true;
         }
-        // TODO: if the subject is publishable, we should also check if there is a published version and the pages that one is in.
-        // The draft will not be in any locations.
+
+        $subject = $this->getPublishedSubject($subject);
 
         $pagesGenerator = $this->getComponentPages($subject);
         $pages = iterator_to_array($pagesGenerator);
-        // Check if accessible via any route
-        $routes = $this->getComponentRoutesFromPages($pages);
-        $routeCount = 0;
-        foreach ($routes as $route) {
-            ++$routeCount;
-            if ($this->isRouteReachableResource($route, $request)) {
+
+        // 1. Check if accessible via any route
+        $routeVoteResult = $this->voteByRoute($pages, $request);
+        if ($routeVoteResult) {
+            return true;
+        }
+
+        // 2. as a page data property
+        $pageDataResult = $this->voteByPageData($subject, $request);
+        if ($pageDataResult) {
+            return true;
+        }
+
+        // 3. as a component in the page template being used by page data
+        $pageTemplateResult = $this->voteByPageTemplate($pages, $request);
+        if ($pageTemplateResult) {
+            return true;
+        }
+
+        // vote is ok if all sub votes abstain
+        return null === $routeVoteResult && null === $pageDataResult && null === $pageTemplateResult;
+    }
+
+    private function voteByPageTemplate($pages, Request $request): ?bool
+    {
+        $pageDataByPagesComponentUsedIn = $this->pageDataProvider->findPageDataResourcesByPages($pages);
+        foreach ($pageDataByPagesComponentUsedIn as $pageData) {
+            if ($this->isPageDataReachableResource($pageData, $request)) {
                 return true;
             }
         }
+        return \count($pageDataByPagesComponentUsedIn) ? false : null;
+    }
 
-        // check if accessible via any page data
-
-        // 1. as a page data property
+    private function voteByPageData($subject, Request $request): ?bool
+    {
         $pageData = $this->pageDataProvider->findPageDataComponentMetadata($subject);
         $pageDataCount = 0;
         foreach ($pageData as $pageDatum) {
@@ -92,16 +115,37 @@ class ComponentVoter extends Voter
                 }
             }
         }
+        return $pageDataCount ? false : null;
+    }
 
-        // 2. as a component in the page template being used by page data
-        $pageDataByPagesComponentUsedIn = $this->pageDataProvider->findPageDataResourcesByPages($pages);
-        foreach ($pageDataByPagesComponentUsedIn as $pageData) {
-            if ($this->isPageDataReachableResource($pageData, $request)) {
+    private function voteByRoute($pages, Request $request): ?bool
+    {
+        $routes = $this->getComponentRoutesFromPages($pages);
+        $routeCount = 0;
+        foreach ($routes as $route) {
+            ++$routeCount;
+            if ($this->isRouteReachableResource($route, $request)) {
                 return true;
             }
         }
+        return $routeCount ? false : null;
+    }
 
-        return !$routeCount && !$pageDataCount && !\count($pageDataByPagesComponentUsedIn);
+
+    private function getPublishedSubject($subject)
+    {
+        // is a draft publishable. If a published version is available we should be checking the published version to see if it is in an accessible location
+        $publishableAttributeReader = $this->publishableStatusChecker->getAttributeReader();
+        if ($publishableAttributeReader->isConfigured($subject) && !$this->publishableStatusChecker->isActivePublishedAt($subject)) {
+            $configuration = $publishableAttributeReader->getConfiguration($subject);
+            $classMetadata = $this->getClassMetadata($subject);
+
+            $publishedResourceAssociation = $classMetadata->getFieldValue($subject, $configuration->associationName);
+            if ($publishedResourceAssociation) {
+                return $publishedResourceAssociation;
+            }
+        }
+        return $subject;
     }
 
     private function isRouteReachableResource(Route $route, Request $request): bool
@@ -150,7 +194,7 @@ class ComponentVoter extends Voter
         }
     }
 
-    private function getComponentPages(AbstractComponent $component): iterable
+    private function getComponentPages(AbstractComponent $component): \Traversable
     {
         $componentPositions = $component->getComponentPositions();
         if (!\count($componentPositions)) {

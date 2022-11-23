@@ -127,7 +127,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
     {
         if (
             $component &&
-            $this->publishableStatusChecker->getAnnotationReader()->isConfigured($component) &&
+            $this->publishableStatusChecker->getAttributeReader()->isConfigured($component) &&
             $this->publishableStatusChecker->isGranted($component)
         ) {
             return $this->normalizePublishableComponent($component);
@@ -138,7 +138,7 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
 
     private function normalizePublishableComponent(AbstractComponent $component)
     {
-        $configuration = $this->publishableStatusChecker->getAnnotationReader()->getConfiguration($type = \get_class($component));
+        $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type = \get_class($component));
         $em = $this->registry->getManagerForClass(\get_class($component));
         if (!$em) {
             throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
