@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Security\Voter;
 
 use ApiPlatform\Api\IriConverterInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -100,6 +99,7 @@ class ComponentVoter extends Voter
                 return true;
             }
         }
+
         return \count($pageDataByPagesComponentUsedIn) ? false : null;
     }
 
@@ -115,6 +115,7 @@ class ComponentVoter extends Voter
                 }
             }
         }
+
         return $pageDataCount ? false : null;
     }
 
@@ -128,9 +129,9 @@ class ComponentVoter extends Voter
                 return true;
             }
         }
+
         return $routeCount ? false : null;
     }
-
 
     private function getPublishedSubject($subject)
     {
@@ -145,6 +146,7 @@ class ComponentVoter extends Voter
                 return $publishedResourceAssociation;
             }
         }
+
         return $subject;
     }
 

@@ -1346,7 +1346,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('http_kernel'),
             new Reference('request_stack'),
             new Reference(PublishableStatusChecker::class),
-            new Reference('doctrine')
+            new Reference('doctrine'),
         ])
         ->tag('security.voter');
 
