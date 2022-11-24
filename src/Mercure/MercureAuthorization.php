@@ -41,9 +41,7 @@ class MercureAuthorization
     public function getAuthorizationCookie(): Cookie
     {
         $subscribeTopics = $this->getSubscribeTopics();
-        // TODO: await merge of https://github.com/symfony/mercure/pull/93 to remove ability to publish any updates and set to  null
-        // May also be able to await a mercure bundle update to set the cookie samesite in mercure configs
-        $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), $subscribeTopics, [], [], $this->hubName);
+        $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), $subscribeTopics, null, [], $this->hubName);
 
         return $cookie
             ->withSameSite($this->cookieSameSite)
