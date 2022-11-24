@@ -120,7 +120,7 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
+    "prefer-stable": false,
     "extra": {
         "symfony": {
             "allow-contrib": false,

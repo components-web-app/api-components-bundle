@@ -32,6 +32,8 @@ use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
+use Symfony\Component\Mailer\DelayedEnvelope;
+use Symfony\Component\Mailer\Event\MessageEvents;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -201,8 +203,15 @@ class ProfilerContext implements Context
     {
         /** @var MessageDataCollector $collector */
         $collector = $this->getProfile()->getCollector('mailer');
+
+        $events = $collector->getEvents()->getEvents();
         /** @var TemplatedEmail[] $messages */
-        $messages = $collector->getEvents()->getMessages();
+        $messages = [];
+        foreach ($events as $event) {
+            if (!$event->isQueued()) {
+                $messages[] = $event->getMessage();
+            }
+        }
 
         Assert::assertCount(1, $messages);
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
