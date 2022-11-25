@@ -29,5 +29,9 @@ services:
         arguments:
             $factory: '@mercure.hub.default.jwt.factory'
             
+#    ->set('messenger.transport.in_memory.factory', InMemoryTransportFactory::class)
+#    ->tag('messenger.transport_factory')
+#    ->tag('kernel.reset', ['method' => 'reset'])        
+
     # Test service to provide responses to the mock http client
     Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback: ~
