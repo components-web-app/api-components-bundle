@@ -26,9 +26,11 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
@@ -45,6 +47,10 @@ class ProfilerContext implements Context
     private ?RestContext $restContext;
     private ?MinkContext $minkContext;
     private ?JsonContext $jsonContext;
+
+    public function __construct(private readonly ContainerInterface $driverContainer)
+    {
+    }
 
     /**
      * @BeforeScenario
@@ -199,11 +205,11 @@ class ProfilerContext implements Context
      */
     public function iShouldGetAnEmail(string $emailType, string $emailAddress = 'user@example.com')
     {
-        /** @var MessageDataCollector $collector */
-        $collector = $this->getProfile()->getCollector('mailer');
+        /** @var TemplatedEmailMessageEventSubscriber $templatedEmailMessageEventSubscriber */
+        $templatedEmailMessageEventSubscriber = $this->driverContainer->get(TemplatedEmailMessageEventSubscriber::class);
 
         /** @var TemplatedEmail[] $messages */
-        $messages = $collector->getEvents()->getMessages();
+        $messages = iterator_to_array($templatedEmailMessageEventSubscriber->getMessages());
 
 //        $events = $collector->getEvents()->getEvents();
 //        /** @var TemplatedEmail[] $messages */

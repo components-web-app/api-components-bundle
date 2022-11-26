@@ -35,3 +35,6 @@ services:
 
     # Test service to provide responses to the mock http client
     Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback: ~
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
