@@ -84,6 +84,8 @@ use Silverback\ApiComponentsBundle\EventListener\ResourceChangedEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\ApiUrlGenerator;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\PublicUrlGenerator;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\TemporaryUrlGenerator;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\UploadableUrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -1422,4 +1424,14 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UrlHelper::class),
         ])
         ->tag(UploadableUrlGeneratorInterface::TAG, ['alias' => 'api']);
+
+    $services
+        ->set('silverback.api_components.uploadable.url_generator.public')
+        ->class(PublicUrlGenerator::class)
+        ->tag(UploadableUrlGeneratorInterface::TAG, ['alias' => 'public']);
+
+    $services
+        ->set('silverback.api_components.uploadable.url_generator.temporary')
+        ->class(TemporaryUrlGenerator::class)
+        ->tag(UploadableUrlGeneratorInterface::TAG, ['alias' => 'temporary']);
 };

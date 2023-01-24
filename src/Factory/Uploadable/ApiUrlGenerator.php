@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
 use ApiPlatform\Api\IriConverterInterface;
+use League\Flysystem\Filesystem;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
@@ -23,7 +24,7 @@ class ApiUrlGenerator implements UploadableUrlGeneratorInterface
     {
     }
 
-    public function generateUrl(object $object, string $fileProperty): string
+    public function generateUrl(object $object, string $fileProperty, Filesystem $filesystem, string $path): string
     {
         $resourceId = $this->iriConverter->getIriFromResource($object);
         $converter = new CamelCaseToSnakeCaseNameConverter();

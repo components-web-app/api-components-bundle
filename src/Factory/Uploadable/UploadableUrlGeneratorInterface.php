@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
+use League\Flysystem\Filesystem;
+
 interface UploadableUrlGeneratorInterface
 {
     public const TAG = 'silveback.api_components.uploadable.url_generator';
 
-    public function generateUrl(object $object, string $fileProperty): string;
+    public function generateUrl(object $object, string $fileProperty, Filesystem $filesystem, string $path): string;
 }
