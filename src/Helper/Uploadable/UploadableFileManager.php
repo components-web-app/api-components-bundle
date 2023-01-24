@@ -205,7 +205,7 @@ class UploadableFileManager
         $response = new StreamedResponse();
         $response->setCallback(
             static function () use ($filesystem, $filePath) {
-                $outputStream = fopen('php://output', 'w');
+                $outputStream = fopen('php://output', 'wb');
                 $fileStream = $filesystem->readStream($filePath);
                 stream_copy_to_stream($fileStream, $outputStream);
             }

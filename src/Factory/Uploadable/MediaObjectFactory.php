@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
-use ApiPlatform\Api\IriConverterInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
@@ -29,8 +28,6 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\UrlHelper;
-use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -39,26 +36,17 @@ class MediaObjectFactory
 {
     use ClassMetadataTrait;
 
-    private FileInfoCacheManager $fileInfoCacheManager;
-    private UploadableAttributeReader $annotationReader;
-    private FilesystemProvider $filesystemProvider;
-    private FlysystemDataLoader $flysystemDataLoader;
-    private RequestStack $requestStack;
-    private IriConverterInterface $iriConverter;
-    private UrlHelper $urlHelper;
-    private ?FilterService $filterService;
-
-    public function __construct(ManagerRegistry $managerRegistry, FileInfoCacheManager $fileInfoCacheManager, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, RequestStack $requestStack, IriConverterInterface $iriConverter, UrlHelper $urlHelper, ?FilterService $filterService = null)
+    public function __construct(
+        ManagerRegistry $managerRegistry,
+        private readonly FileInfoCacheManager $fileInfoCacheManager,
+        private readonly UploadableAttributeReader $annotationReader,
+        private readonly FilesystemProvider $filesystemProvider,
+        private readonly FlysystemDataLoader $flysystemDataLoader,
+        private readonly RequestStack $requestStack,
+        private readonly ApiUrlGenerator $urlGenerator,
+        private readonly ?FilterService $filterService = null)
     {
         $this->initRegistry($managerRegistry);
-        $this->fileInfoCacheManager = $fileInfoCacheManager;
-        $this->annotationReader = $annotationReader;
-        $this->filesystemProvider = $filesystemProvider;
-        $this->flysystemDataLoader = $flysystemDataLoader;
-        $this->requestStack = $requestStack;
-        $this->iriConverter = $iriConverter;
-        $this->urlHelper = $urlHelper;
-        $this->filterService = $filterService;
     }
 
     public function createMediaObjects(object $object): ?ArrayCollection
@@ -68,9 +56,9 @@ class MediaObjectFactory
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
 
-        $resourceId = $this->iriConverter->getIriFromResource($object);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
+            // todo: we may need to look at the performance of this when getting the components. yes, the response is cached, but even first load on a page with lots of files, could be very bad
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
             $path = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if (!$path) {
@@ -80,8 +68,14 @@ class MediaObjectFactory
                 continue;
             }
 
-            $converter = new CamelCaseToSnakeCaseNameConverter();
-            $contentUrl = sprintf('%s/download/%s', $resourceId, $converter->normalize($fileProperty));
+            // todo: the content URL perhaps will just be a public URL from the source/CDN instead of via this API download action
+//            if ($filesystem instanceof PublicUrlGenerator) {
+//                // $filesystem->publicUrl();
+//            }
+//            if ($filesystem instanceof TemporaryUrlGenerator) {
+//                // $filesystem->temporaryUrl();
+//            }
+            $contentUrl = $this->urlGenerator->generateUrl($object, $fileProperty);
 
             // Populate the primary MediaObject
             try {
@@ -128,7 +122,7 @@ class MediaObjectFactory
     {
         $mediaObject = new MediaObject();
 
-        $mediaObject->contentUrl = $this->urlHelper->getAbsoluteUrl($contentUrl);
+        $mediaObject->contentUrl = $contentUrl;
         $mediaObject->imagineFilter = null;
 
         $fileInfo = $this->fileInfoCacheManager->resolveCache($filename);
@@ -138,13 +132,13 @@ class MediaObjectFactory
 
         $mediaObject->fileSize = $filesystem->fileSize($filename);
         $mediaObject->mimeType = $filesystem->mimeType($filename);
-        if (false !== strpos($mediaObject->mimeType, 'image/')) {
+        if (str_contains($mediaObject->mimeType, 'image/')) {
             $file = str_replace("\0", '', $filesystem->read($filename));
             if ('image/svg+xml' === $mediaObject->mimeType) {
-                $xmlget = simplexml_load_string($file);
-                $xmlattributes = $xmlget->attributes();
-                $mediaObject->width = (int) $xmlattributes->width;
-                $mediaObject->height = (int) $xmlattributes->height;
+                $xmlGet = simplexml_load_string($file);
+                $xmlAttributes = $xmlGet->attributes();
+                $mediaObject->width = $xmlAttributes ? (int) $xmlAttributes->width : null;
+                $mediaObject->height = $xmlAttributes ? (int) $xmlAttributes->height : null;
             } else {
                 [$mediaObject->width, $mediaObject->height] = @getimagesize($file);
             }
@@ -166,6 +160,9 @@ class MediaObjectFactory
         if ($fileInfo) {
             return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }
+
+        // todo: check why we are setting this, from imagine we should know this info I'm guessing
+        // todo: should we not save the info to cache as well as above?
         $mediaObject->width = $mediaObject->height = $mediaObject->fileSize = -1;
         $mediaObject->mimeType = '';
 

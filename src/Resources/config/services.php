@@ -82,6 +82,7 @@ use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\ResourceChangedEventListener;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\ApiUrlGenerator;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -502,8 +503,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(RequestStack::class),
-                new Reference(IriConverterInterface::class),
-                new Reference(UrlHelper::class),
+                new Reference('silverback.api_components.uploadable.url_generator.api'),
                 null, // populated in dependency injection
             ]
         );
@@ -1412,4 +1412,12 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
     $services->alias(PropagateUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.propagate_updates_listener');
+
+    $services
+        ->set('silverback.api_components.uploadable.url_generator.api')
+        ->class(ApiUrlGenerator::class)
+        ->args([
+            new Reference(IriConverterInterface::class),
+            new Reference(UrlHelper::class),
+        ]);
 };

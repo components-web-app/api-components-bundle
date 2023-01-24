@@ -70,8 +70,8 @@
         "friends-of-behat/mink-extension": "^2.4",
         "friends-of-behat/symfony-extension": "^2.3",
         "justinrainbow/json-schema": "^5.4",
-        "league/flysystem": "2.x-dev",
-        "league/flysystem-memory": "^2",
+        "league/flysystem": "^3.11",
+        "league/flysystem-memory": "^3.0.0",
         "monolog/monolog": "^3.0",
         "phpspec/prophecy": "^1.8",
         "phpstan/extension-installer": "^1.0",
@@ -141,6 +141,7 @@
         "symfony/var-exporter": "<6.1",
         "symfony/web-link": "<=6.0",
         "doctrine/collections": "<1.7",
-        "doctrine/orm": "<2.13"
+        "doctrine/orm": "<2.13",
+        "api-platform/core": "3.1.0"
     }
 }
