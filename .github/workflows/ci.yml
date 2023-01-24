@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - '!v1'
   pull_request:
     branches-ignore:
       - v1

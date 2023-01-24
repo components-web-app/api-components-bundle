@@ -22,11 +22,13 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -43,9 +45,9 @@ class MediaObjectFactory
         private readonly FilesystemProvider $filesystemProvider,
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,
-        private readonly ApiUrlGenerator $urlGenerator,
-        private readonly ?FilterService $filterService = null)
-    {
+        private readonly ServiceLocator $urlGenerators,
+        private readonly ?FilterService $filterService = null
+    ) {
         $this->initRegistry($managerRegistry);
     }
 
@@ -69,13 +71,15 @@ class MediaObjectFactory
             }
 
             // todo: the content URL perhaps will just be a public URL from the source/CDN instead of via this API download action
-//            if ($filesystem instanceof PublicUrlGenerator) {
-//                // $filesystem->publicUrl();
-//            }
 //            if ($filesystem instanceof TemporaryUrlGenerator) {
 //                // $filesystem->temporaryUrl();
 //            }
-            $contentUrl = $this->urlGenerator->generateUrl($object, $fileProperty);
+
+            $urlGenerator = $this->urlGenerators->get($fieldConfiguration->urlGenerator);
+            if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
+                throw new InvalidArgumentException(sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
+            }
+            $contentUrl = $urlGenerator->generateUrl($object, $fileProperty, $filesystem, $path);
 
             // Populate the primary MediaObject
             try {
