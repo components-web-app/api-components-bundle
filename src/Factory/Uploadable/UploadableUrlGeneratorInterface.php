@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
-interface UploadableUrlGenerator
+interface UploadableUrlGeneratorInterface
 {
+    public const TAG = 'silveback.api_components.uploadable.url_generator';
+
     public function generateUrl(object $object, string $fileProperty): string;
 }

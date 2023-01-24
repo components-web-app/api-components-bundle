@@ -17,7 +17,7 @@ use ApiPlatform\Api\IriConverterInterface;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
-class ApiUrlGenerator implements UploadableUrlGenerator
+class ApiUrlGenerator implements UploadableUrlGeneratorInterface
 {
     public function __construct(private readonly IriConverterInterface $iriConverter, private readonly UrlHelper $urlHelper)
     {

@@ -22,11 +22,13 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -43,10 +45,9 @@ class MediaObjectFactory
         private readonly FilesystemProvider $filesystemProvider,
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,
-        private readonly ApiUrlGenerator $urlGenerator,
+        private readonly ServiceLocator $urlGenerators,
         private readonly ?FilterService $filterService = null
-    )
-    {
+    ) {
         $this->initRegistry($managerRegistry);
     }
 
@@ -76,7 +77,12 @@ class MediaObjectFactory
 //            if ($filesystem instanceof TemporaryUrlGenerator) {
 //                // $filesystem->temporaryUrl();
 //            }
-            $contentUrl = $this->urlGenerator->generateUrl($object, $fileProperty);
+
+            $urlGenerator = $this->urlGenerators->get($fieldConfiguration->urlGenerator);
+            if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
+                throw new InvalidArgumentException(sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
+            }
+            $contentUrl = $urlGenerator->generateUrl($object, $fileProperty);
 
             // Populate the primary MediaObject
             try {
