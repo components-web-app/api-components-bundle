@@ -13,10 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
-use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
-use League\Flysystem\UrlGeneration\PublicUrlGenerator as FlysystemPublicUrlGenerator;
-use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 
 class PublicUrlGenerator implements UploadableUrlGeneratorInterface
 {
@@ -26,10 +23,6 @@ class PublicUrlGenerator implements UploadableUrlGeneratorInterface
 
     public function generateUrl(object $object, string $fileProperty, Filesystem $filesystem, string $path): string
     {
-        if (!$filesystem instanceof FlysystemPublicUrlGenerator) {
-            throw new InvalidArgumentException(sprintf('The public URL generator requires a filesystem implementing %s', FlysystemPublicUrlGenerator::class));
-        }
-
-        return $filesystem->publicUrl($path, new Config($this->config));
+        return $filesystem->publicUrl($path, $this->config);
     }
 }
