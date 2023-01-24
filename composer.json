@@ -142,6 +142,7 @@
         "symfony/web-link": "<=6.0",
         "doctrine/collections": "<1.7",
         "doctrine/orm": "<2.13",
-        "api-platform/core": "3.1.0"
+        "api-platform/core": "3.1.0",
+        "symfony/http-client": "6.2.5"
     }
 }

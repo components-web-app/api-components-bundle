@@ -169,7 +169,7 @@ class ProfilerContext implements Context
         /** @var HttpClientDataCollector $collector */
         $collector = $this->getProfile()->getCollector('http_client');
         $purged = [];
-        foreach ($collector->getClients() as $clientName => $clientInfo) {
+        foreach ($collector->getClients() as $clientInfo) {
             foreach ($clientInfo['traces'] as $trace) {
                 /** @var Data $data */
                 $data = $trace['options']->getValue()['normalized_headers'];
