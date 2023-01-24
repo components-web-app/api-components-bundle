@@ -20,11 +20,16 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 
 class PublicUrlGenerator implements UploadableUrlGeneratorInterface
 {
+    public function __construct(private readonly array $config = [])
+    {
+    }
+
     public function generateUrl(object $object, string $fileProperty, Filesystem $filesystem, string $path): string
     {
         if (!$filesystem instanceof FlysystemPublicUrlGenerator) {
             throw new InvalidArgumentException(sprintf('The public URL generator requires a filesystem implementing %s', FlysystemPublicUrlGenerator::class));
         }
-        return $filesystem->publicUrl($path, new Config([]));
+
+        return $filesystem->publicUrl($path, new Config($this->config));
     }
 }

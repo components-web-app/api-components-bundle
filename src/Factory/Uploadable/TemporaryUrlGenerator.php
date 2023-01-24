@@ -20,11 +20,16 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 
 class TemporaryUrlGenerator implements UploadableUrlGeneratorInterface
 {
+    public function __construct(private readonly array $config = [], private readonly string $expires = '+3 days')
+    {
+    }
+
     public function generateUrl(object $object, string $fileProperty, Filesystem $filesystem, string $path): string
     {
         if (!$filesystem instanceof FlysystemTemporaryUrlGenerator) {
             throw new InvalidArgumentException(sprintf('The public URL generator requires a filesystem implementing %s', FlysystemTemporaryUrlGenerator::class));
         }
-        return $filesystem->temporaryUrl($path, new \DateTime('+1 day'), new Config([]));
+
+        return $filesystem->temporaryUrl($path, new \DateTime($this->expires), new Config($this->config));
     }
 }
