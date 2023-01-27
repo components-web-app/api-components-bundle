@@ -70,11 +70,6 @@ class MediaObjectFactory
                 continue;
             }
 
-            // todo: the content URL perhaps will just be a public URL from the source/CDN instead of via this API download action
-//            if ($filesystem instanceof TemporaryUrlGenerator) {
-//                // $filesystem->temporaryUrl();
-//            }
-
             $urlGenerator = $this->urlGenerators->get($fieldConfiguration->urlGenerator);
             if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
                 throw new InvalidArgumentException(sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
