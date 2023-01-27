@@ -1,5 +1,5 @@
 # API Components Bundle [WIP]
-[![SymfonyInsight](https://insight.symfony.com/projects/e03bfd9e-5f16-4e40-bce1-624f1b9246dc/big.svg)](https://insight.symfony.com/projects/e03bfd9e-5f16-4e40-bce1-624f1b9246dc)
+[![SymfonyInsight](https://insight.symfony.com/projects/d5fac2e0-7a02-4f41-8427-b4ed49092bd9/big.svg)](https://insight.symfony.com/projects/d5fac2e0-7a02-4f41-8427-b4ed49092bd9)
 
 [![CI](https://github.com/components-web-app/api-components-bundle/workflows/CI/badge.svg?branch=main)](https://github.com/components-web-app/api-components-bundle/actions?query=workflow%3ACI)
 [![Maintainability](https://api.codeclimate.com/v1/badges/6d388db1c65f6a76a41c/maintainability)](https://codeclimate.com/github/components-web-app/api-components-bundle/maintainability)
