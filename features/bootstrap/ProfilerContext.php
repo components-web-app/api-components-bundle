@@ -178,7 +178,7 @@ class ProfilerContext implements Context
                     $iri = preg_replace('/^xkey\: /', '', $xkeyHeader->getValue());
                     $iris = explode(' ', $iri);
                     array_push($purged, ...$iris);
-                    if (in_array($expectedIri, $iris, true)) {
+                    if (\in_array($expectedIri, $iris, true)) {
                         return true;
                     }
                 }
