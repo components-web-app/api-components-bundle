@@ -14,5 +14,5 @@ api_platform:
             enabled: true
             varnish_urls: [ 'http://test' ]
             xkey:
-                glue: ', '
+                glue: ' '
         public: true

@@ -178,10 +178,8 @@ class ProfilerContext implements Context
                     $iri = preg_replace('/^xkey\: /', '', $xkeyHeader->getValue());
                     $iris = explode(' ', $iri);
                     array_push($purged, ...$iris);
-                    foreach ($iris as $purgedIri) {
-                        if ($purgedIri === $expectedIri) {
-                            return true;
-                        }
+                    if (in_array($expectedIri, $iris, true)) {
+                        return true;
                     }
                 }
             }
