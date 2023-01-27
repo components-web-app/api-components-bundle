@@ -60,12 +60,13 @@ class MediaObjectFactory
 
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
             $propertyMediaObjects = [];
-            // todo: we may need to look at the performance of this when getting the components. yes, the response is cached, but even first load on a page with lots of files, could be very bad
+
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
             $path = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if (!$path) {
                 continue;
             }
+
             if (!$filesystem->fileExists($path)) {
                 continue;
             }
@@ -160,8 +161,6 @@ class MediaObjectFactory
             return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }
 
-        // todo: check why we are setting this, from imagine we should know this info I'm guessing
-        // todo: should we not save the info to cache as well as above?
         $mediaObject->width = $mediaObject->height = $mediaObject->fileSize = -1;
         $mediaObject->mimeType = '';
 
