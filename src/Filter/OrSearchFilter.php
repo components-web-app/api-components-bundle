@@ -39,8 +39,14 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
 
     public const DOCTRINE_INTEGER_TYPE = Types::INTEGER;
 
-    public function __construct(ManagerRegistry $managerRegistry, IriConverterInterface $iriConverter, PropertyAccessorInterface $propertyAccessor = null, LoggerInterface $logger = null, array $properties = null, NameConverterInterface $nameConverter = null)
-    {
+    public function __construct(
+        ManagerRegistry $managerRegistry,
+        IriConverterInterface $iriConverter,
+        PropertyAccessorInterface $propertyAccessor = null,
+        LoggerInterface $logger = null,
+        array $properties = null,
+        NameConverterInterface $nameConverter = null
+    ) {
         parent::__construct($managerRegistry, $logger, $properties, $nameConverter);
 
         $this->iriConverter = $iriConverter;
@@ -52,29 +58,15 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
      */
     protected function getType(string $doctrineType): string
     {
-        switch ($doctrineType) {
-            case Types::ARRAY:
-                return 'array';
-            case Types::BIGINT:
-            case Types::INTEGER:
-            case Types::SMALLINT:
-                return 'int';
-            case Types::BOOLEAN:
-                return 'bool';
-            case Types::DATE_MUTABLE:
-            case Types::TIME_MUTABLE:
-            case Types::DATETIME_MUTABLE:
-            case Types::DATETIMETZ_MUTABLE:
-            case Types::DATE_IMMUTABLE:
-            case Types::TIME_IMMUTABLE:
-            case Types::DATETIME_IMMUTABLE:
-            case Types::DATETIMETZ_IMMUTABLE:
-                return \DateTimeInterface::class;
-            case Types::FLOAT:
-                return 'float';
-        }
-
-        return 'string';
+        return match ($doctrineType) {
+            Types::ARRAY => 'array',
+            Types::JSON => 'json',
+            Types::BIGINT, Types::INTEGER, Types::SMALLINT => 'int',
+            Types::BOOLEAN => 'bool',
+            Types::DATE_MUTABLE, Types::TIME_MUTABLE, Types::DATETIME_MUTABLE, Types::DATETIMETZ_MUTABLE, Types::DATE_IMMUTABLE, Types::TIME_IMMUTABLE, Types::DATETIME_IMMUTABLE, Types::DATETIMETZ_IMMUTABLE => \DateTimeInterface::class,
+            Types::FLOAT => 'float',
+            default => 'string',
+        };
     }
 
     protected function getIriConverter(): IriConverterInterface
