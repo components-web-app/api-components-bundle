@@ -200,8 +200,9 @@ Feature: Access to unpublished/draft resources should be configurable
 
   # PUT
   @loginAdmin
-  Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource.
+  Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource. Draft resource should not have the component position.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
     When I send a "PUT" request to the resource "publishable_published" with body:
     """
     {
@@ -212,6 +213,8 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node publishedAt should not exist
     And the JSON node "_metadata.publishable.published" should be false
     And the JSON node "reference" should be equal to "updated"
+    And the JSON node "componentPositions[0]" should not exist
+    And the resource "publishable_published" should have 1 component positions
 
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.

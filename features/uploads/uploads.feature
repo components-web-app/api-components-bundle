@@ -169,7 +169,7 @@ Feature: API Resources which can have files uploaded
 
   @loginAdmin
   Scenario: When I publish a draft image where a published image exists, the component positions should be present on the newly published resource
-    And there is a DummyUploadableAndPublishable with a draft
+    Given there is a DummyUploadableAndPublishable with a draft
     And there is a ComponentPosition with the resource "dummy_uploadable"
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
@@ -177,3 +177,18 @@ Feature: API Resources which can have files uploaded
       | 1970-11-11T23:59:59+00:00  |
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should exist
+
+  @loginAdmin
+  Scenario Outline: When I upload a new file to a publishable uploadable, the new draft should not have a component position and the original image should still exist
+    Given there is a DummyUploadableAndPublishable
+    And the resource "dummy_uploadable" has a file "<existing_file>"
+    And there is a ComponentPosition with the resource "dummy_uploadable"
+    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+      | file               |
+      | base64(<new_file>) |
+    Examples:
+      | existing_file    | new_file      |
+      | existing.png     | image.png     |
+    Then the response status code should be 200
+    And the JSON node "componentPositions[0]" should not exist
+    And the resource "dummy_uploadable" should have 1 component positions

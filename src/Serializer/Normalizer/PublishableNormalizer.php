@@ -16,10 +16,12 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -228,12 +230,19 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         // Set draftResource on data if we have permission
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
 
+        // Clear any writable one-to-many fields, these should still reference the published component, such as component positions
+        // Doesn't matter usually it seems, but where we process uploadable, the one-to-many is not then reassigned later back to the publishable during normalization
+        foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
+            if (ClassMetadataInfo::ONE_TO_MANY === $mapping['type'] && $this->propertyAccessor->isWritable($draft, $fieldName)) {
+                $this->propertyAccessor->setValue($draft, $fieldName, new ArrayCollection());
+            }
+        }
+
         try {
             $this->uploadableFileManager->processClonedUploadable($object, $draft);
         } catch (\InvalidArgumentException $e) {
             // ok exception, it may not be uploadable...
         }
-
         // Add draft object to UnitOfWork
         $em->persist($draft);
 

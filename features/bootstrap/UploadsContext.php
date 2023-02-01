@@ -109,6 +109,16 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given the resource :resource has a file :file
+     */
+    public function theResourceHasAFile(string $resourceName, string $file)
+    {
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resourceName]);
+        $resource->setFilename($file);
+        $this->manager->flush();
+    }
+
+    /**
      * @When /^I request the download endpoint(?: with the postfix "(.+)")?$/
      */
     public function iRequestTheDownloadEndpoint(?string $postfix = null)
@@ -137,6 +147,15 @@ class UploadsContext implements Context
     {
         $item = $this->getUploadableResourceByName($name);
         Assert::assertNotNull($item->getFilename());
+    }
+
+    /**
+     * @Then the resource :name should have :count component positions
+     */
+    public function theResourceShouldHaveComponentPositions(string $name, int $count): void
+    {
+        $item = $this->getUploadableResourceByName($name);
+        Assert::assertCount($count, $item->getComponentPositions());
     }
 
     /**
