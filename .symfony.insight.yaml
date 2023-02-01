@@ -2,3 +2,6 @@ php_version: 8.1
 rules:
     doctrine.public_doctrine_property:
         enabled: false
+pre_composer_script: |
+    #!/bin/bash
+    rm composer.lock
