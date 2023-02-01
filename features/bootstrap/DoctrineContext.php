@@ -451,7 +451,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a Route :path with redirects to :redirectTo
+     * @Given there is a Route :path which redirects to :redirectTo
      */
     public function thereIsARouteWithRedirects(string $firstPath, string $redirectTo): void
     {

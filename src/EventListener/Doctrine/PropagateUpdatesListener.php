@@ -30,6 +30,7 @@ use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -174,8 +175,7 @@ class PropagateUpdatesListener
                     }
                     $this->collectUpdatedResource($oneToManyEntity, 'updated');
                 }
-
-                return;
+                continue;
             }
             $this->collectUpdatedResource($assocEntity, 'updated');
         }

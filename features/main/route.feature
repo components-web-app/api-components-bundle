@@ -85,8 +85,8 @@ Feature: Route resources
     And the JSON node "name" should be equal to the string "unnamed-page-1"
 
   @loginUser
-  Scenario: I can get all the redirects for a route in a single call
-    Given there is a Route "/redirect1" with redirects to "/unnamed-page"
+  Scenario: I can get all the redirects for a route in a single request
+    Given there is a Route "/redirect1" which redirects to "/unnamed-page"
     When I send a "GET" request to the resource "final_route" and the postfix "/redirects"
     Then the response status code should be 200
     And the JSON node "@id" should exist
@@ -108,3 +108,17 @@ Feature: Route resources
     And the JSON node "resource_iris[0]" should be equal to "/_/routes//my-route"
     And the JSON node "resource_iris[1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
     And the JSON node "resource_iris[2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+
+  @loginUser
+  Scenario: When I create a redirect route, the cache should be cleared for the route being redirected to
+    Given there is a Route "/my-route" with a page
+    When I send a "POST" request to "/_/routes" with body:
+    """
+    {
+      "name": "/redirect",
+      "path": "/redirect",
+      "redirect": "/_/routes//my-route"
+    }
+    """
+    Then the response status code should be 201
+    And the resource "route" should be purged from the cache

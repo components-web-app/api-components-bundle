@@ -1375,6 +1375,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverter::class . '.inner'),
         ]);
     $services->alias('silverback.iri_converter', IriConverter::class);
+    $services->alias(IriConverterInterface::class, IriConverter::class);
 
     $services
         ->set(MercureIriConverter::class)
