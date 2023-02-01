@@ -380,3 +380,6 @@ Feature: Access to unpublished/draft resources should be configurable
     | request_resource |
     | publishable_draft |
     | publishable_published |
+
+  Scenario: When I publish a draft component where there is an existing published component, the newly published draft should inherit the old published component positions
+
