@@ -143,7 +143,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $data = $this->unsetRestrictedData($type, $data, $configuration);
 
         $request = $this->requestStack->getMainRequest();
-        if ($request && true === $this->publishableStatusChecker->isPublishedRequest($request)) {
+        if ($request && true === $this->publishableStatusChecker->isRequestForPublished($request)) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 

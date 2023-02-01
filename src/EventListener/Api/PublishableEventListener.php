@@ -100,7 +100,7 @@ final class PublishableEventListener
 
         // User cannot change the publication date of the original resource
         if (
-            true === $this->publishableStatusChecker->isPublishedRequest($request) &&
+            true === $this->publishableStatusChecker->isRequestForPublished($request) &&
             $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
         ) {
             throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');

@@ -73,7 +73,7 @@ class PublishableStatusChecker
         return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
     }
 
-    public function isPublishedRequest(Request $request): bool
+    public function isRequestForPublished(Request $request): bool
     {
         return $request->query->getBoolean('published', false);
     }

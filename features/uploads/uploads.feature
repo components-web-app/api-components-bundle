@@ -130,7 +130,7 @@ Feature: API Resources which can have files uploaded
   Scenario: When I publish an uploadable component, the file should still exist and media object returned
     Given there is a draft DummyUploadableAndPublishable
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
       | publishedAt   |
       | now           |
     Then the response status code should be 200
@@ -166,3 +166,14 @@ Feature: API Resources which can have files uploaded
     Given there is a DummyUploadableWithImagineFilters
     When I send a "DELETE" request to the resource "dummy_uploadable"
     Then the response status code should be 204
+
+  @loginAdmin
+  Scenario: When I publish a draft image where a published image exists, the component positions should be present on the newly published resource
+    And there is a DummyUploadableAndPublishable with a draft
+    And there is a ComponentPosition with the resource "dummy_uploadable"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt                |
+      | 1970-11-11T23:59:59+00:00  |
+    Then the response status code should be 200
+    And the JSON node "componentPositions[0]" should exist

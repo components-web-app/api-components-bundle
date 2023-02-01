@@ -381,5 +381,15 @@ Feature: Access to unpublished/draft resources should be configurable
     | publishable_draft |
     | publishable_published |
 
+  @loginAdmin
   Scenario: When I publish a draft component where there is an existing published component, the newly published draft should inherit the old published component positions
-
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
+    When I send a "PUT" request to the resource "publishable_draft" with body:
+    """
+    {
+        "publishedAt": "1970-11-11T23:59:59+00:00"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "componentPositions[0]" should exist

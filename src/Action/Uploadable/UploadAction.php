@@ -65,7 +65,7 @@ class UploadAction
                 }
             } elseif (
                 $isGranted &&
-                !$publishableStatusChecker->isPublishedRequest($request) &&
+                !$publishableStatusChecker->isRequestForPublished($request) &&
                 $publishableStatusChecker->isActivePublishedAt($resource)
             ) {
                 $resource = $this->publishableNormalizer->createDraft($resource, $configuration, $resourceClass);

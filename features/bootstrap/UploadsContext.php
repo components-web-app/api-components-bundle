@@ -86,9 +86,9 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Given /^there is a( draft)? DummyUploadableAndPublishable?$/
+     * @Given /^there is a( draft)? DummyUploadableAndPublishable( with a draft)??$/
      */
-    public function thereIsADummyUploadableAndPublishable(bool $isDraft = false): void
+    public function thereIsADummyUploadableAndPublishable(bool $isDraft = false, bool $associatedDraft = false): DummyUploadableAndPublishable
     {
         $object = new DummyUploadableAndPublishable();
         $object->setPublishedAt($isDraft ? null : new \DateTime());
@@ -96,7 +96,16 @@ class UploadsContext implements Context
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
-        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
+        $key = $isDraft ? 'dummy_uploadable_draft' : 'dummy_uploadable';
+        $this->restContext->resources[$key] = $this->iriConverter->getIriFromResource($object);
+
+        if ($associatedDraft) {
+            $draftObject = $this->thereIsADummyUploadableAndPublishable(true, false);
+            $draftObject->setPublishedResource($object);
+            $this->manager->flush();
+        }
+
+        return $object;
     }
 
     /**
