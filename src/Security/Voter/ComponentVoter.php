@@ -93,6 +93,9 @@ class ComponentVoter extends Voter
 
     private function voteByPageTemplate($pages, Request $request): ?bool
     {
+        if (!count($pages)) {
+            return null;
+        }
         $pageDataByPagesComponentUsedIn = $this->pageDataProvider->findPageDataResourcesByPages($pages);
         foreach ($pageDataByPagesComponentUsedIn as $pageData) {
             if ($this->isPageDataReachableResource($pageData, $request)) {
@@ -205,6 +208,9 @@ class ComponentVoter extends Voter
 
         foreach ($componentPositions as $componentPosition) {
             $componentGroup = $componentPosition->componentGroup;
+            foreach ($componentGroup->layouts as $layout) {
+                yield from $layout->pages;
+            }
             foreach ($componentGroup->components as $parentComponent) {
                 yield from $this->getComponentPages($parentComponent);
             }
