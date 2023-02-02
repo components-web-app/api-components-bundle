@@ -93,7 +93,7 @@ class ComponentVoter extends Voter
 
     private function voteByPageTemplate($pages, Request $request): ?bool
     {
-        if (!count($pages)) {
+        if (!\count($pages)) {
             return null;
         }
         $pageDataByPagesComponentUsedIn = $this->pageDataProvider->findPageDataResourcesByPages($pages);
