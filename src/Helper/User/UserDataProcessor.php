@@ -54,7 +54,7 @@ class UserDataProcessor
 
     public function updatePasswordConfirmationToken(string $usernameQuery): ?AbstractUser
     {
-        $user = $this->userRepository->findOneBy(['username' => $usernameQuery]);
+        $user = $this->userRepository->loadUserByIdentifier($usernameQuery);
         if (!$user) {
             throw new InvalidArgumentException('Username not found');
         }
