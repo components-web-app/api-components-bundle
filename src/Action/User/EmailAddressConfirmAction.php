@@ -40,6 +40,12 @@ class EmailAddressConfirmAction
             return new Response(null, Response::HTTP_UNAUTHORIZED);
         }
 
-        return new Response(null, Response::HTTP_OK);
+        $response = new Response(null, Response::HTTP_OK);
+        $response->setCache([
+            'private' => true,
+            's_maxage' => 0,
+            'max_age' => 0
+        ]);
+        return $response;
     }
 }

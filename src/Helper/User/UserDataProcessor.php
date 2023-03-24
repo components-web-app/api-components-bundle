@@ -69,7 +69,6 @@ class UserDataProcessor
         }
         $user->setNewPasswordConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
         $user->plainNewPasswordConfirmationToken = $token;
-        $user->setPasswordRequestedAt(new \DateTime());
 
         return $user;
     }

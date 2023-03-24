@@ -138,9 +138,7 @@ abstract class AbstractUserEmailFactory
             ]
         );
 
-        $refererUrlResolver = $this->container->get(RefererUrlResolver::class);
-
-        return $refererUrlResolver->getAbsoluteUrl($path);
+        return $this->container->get(RefererUrlResolver::class)->getAbsoluteUrl($path);
     }
 
     private function getTokenPath(): string

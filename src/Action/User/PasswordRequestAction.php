@@ -50,8 +50,16 @@ class PasswordRequestAction
         if ($user) {
             $this->entityManager->flush();
             $this->mailer->sendPasswordResetEmail($user);
+            $user->setPasswordRequestedAt(new \DateTime());
+            $this->entityManager->flush();
         }
 
-        return new Response(null, Response::HTTP_OK);
+        $response = new Response(null, Response::HTTP_OK);
+        $response->setCache([
+            'private' => true,
+            's_maxage' => 0,
+            'max_age' => 0
+        ]);
+        return $response;
     }
 }
