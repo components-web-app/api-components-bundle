@@ -24,7 +24,7 @@ use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubs
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\Messenger\DispatchTrait;
-use ApiPlatform\Util\ResourceClassInfoTrait;
+use ApiPlatform\Metadata\Util\ResourceClassInfoTrait;
 use Doctrine\ORM\PersistentCollection;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
