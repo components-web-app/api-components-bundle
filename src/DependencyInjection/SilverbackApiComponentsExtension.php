@@ -317,11 +317,11 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                 ],
                 'swagger' => [
                     'api_keys' => [
-                        'API Token' => [
+                        'X-AUTH-TOKEN' => [
                             'name' => 'X-AUTH-TOKEN',
                             'type' => 'header',
                         ],
-                        'JWT (use prefix `Bearer`)' => [
+                        'Authorization' => [
                             'name' => 'Authorization',
                             'type' => 'header',
                         ],
