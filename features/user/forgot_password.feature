@@ -106,3 +106,20 @@ Feature: Forgot password system
       | a             | a              | Your password must be more than 6 characters long. |
       | mynewpassword |                | The password fields must match.                    |
       |               | mynewpassword  | The password fields must match.                    |
+
+  Scenario: I can reset my password successfully without a specific password update form component being required
+    Given there is a user with the username "username" password "password" and role "ROLE_USER"
+    And the user has the newPasswordConfirmationToken "abc123" requested at "now"
+    When I send a "POST" request to "/password/reset" with body:
+    """
+    {
+      "username": "username",
+      "newPasswordConfirmationToken": "abc123",
+      "plainPassword": {
+        "first": "mynewpassword",
+        "second": "mynewpassword"
+      }
+    }
+    """
+    Then the response status code should be 200
+    And I should get a "password_changed" email sent to the email address "test.user@example.com"

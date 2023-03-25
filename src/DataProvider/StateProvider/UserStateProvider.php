@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -35,7 +34,6 @@ class UserStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        // is_a($resourceClass, AbstractUser::class, true)
         $request = $this->requestStack->getCurrentRequest();
         if (!$request || !($id = $request->attributes->get('id'))) {
             return null;
