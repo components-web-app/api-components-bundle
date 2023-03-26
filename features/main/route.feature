@@ -34,7 +34,7 @@ Feature: Route resources
     Then the response status code should be 204
 
   Scenario: A route will output the nested redirect routes and data for the redirected page
-    Given there is a Route "/contact" with redirects to "/contact-new"
+    Given there is a Route "/contact" which redirects to "/contact-new"
     When I send a "GET" request to "/_/routes//contact"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "route.schema.json"

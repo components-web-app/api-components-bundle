@@ -44,4 +44,9 @@ class DummyPublishableWithValidation
      * @Assert\NotBlank(groups={"DummyPublishableWithValidation:published"})
      */
     public string $description = '';
+
+    /**
+     * @var string a reference for this component
+     */
+    public string $reference = '';
 }
