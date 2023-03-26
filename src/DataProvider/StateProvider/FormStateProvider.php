@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Ramsey\Uuid\Uuid;
@@ -30,6 +33,10 @@ class FormStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
+        if ($operation instanceof CollectionOperationInterface) {
+            return $this->defaultProvider->provide($operation->withProvider(CollectionProvider::class), $uriVariables, $context);
+        }
+
         $id = $uriVariables['id'];
         if ('password_reset' === $id) {
             $dummyFormComponent = new Form();
@@ -41,6 +48,6 @@ class FormStateProvider implements ProviderInterface
             return $dummyFormComponent;
         }
 
-        return $this->defaultProvider->provide($operation, $uriVariables, $context);
+        return $this->defaultProvider->provide($operation->withProvider(ItemProvider::class), $uriVariables, $context);
     }
 }
