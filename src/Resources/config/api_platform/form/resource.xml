@@ -18,7 +18,8 @@
                        deserialize="false"
                        validate="false"
                        write="false"
-                       serialize="true">
+                       serialize="true"
+                       provider="Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider">
                 <requirements>
                     <requirement property="id">[^/]+</requirement>
                 </requirements>

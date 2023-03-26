@@ -28,11 +28,11 @@ const USER_SECURITY = "is_granted('ROLE_SUPER_ADMIN') or object == user";
  * @author Daniel West <daniel@silverback.is>
  */
 #[ApiResource]
-#[GetCollection(security: "is_granted('ROLE_SUPER_ADMIN')")]
 #[Get(security: USER_SECURITY)]
 #[Put(security: USER_SECURITY)]
 #[Patch(security: USER_SECURITY)]
 #[Delete(security: USER_SECURITY)]
+#[GetCollection(security: "is_granted('ROLE_SUPER_ADMIN')")]
 #[ORM\Entity]
 #[ORM\Table(name: '`user`')]
 class User extends AbstractUser

@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
@@ -163,6 +164,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -184,7 +186,6 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -801,6 +802,16 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
+                new Reference('api_platform.state_provider'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
+
+    $services
+        ->set(FormStateProvider::class)
+        ->args(
+            [
                 new Reference('api_platform.state_provider'),
             ]
         )

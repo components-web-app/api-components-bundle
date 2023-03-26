@@ -111,7 +111,6 @@ class PasswordUpdateType extends AbstractType
                     'id' => 'password_update_form',
                     'novalidate' => 'novalidate',
                 ],
-                'action' => '/password/reset',
                 FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED => true,
                 'data_class' => $this->userClass,
                 'data' => $user,

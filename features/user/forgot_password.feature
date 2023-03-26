@@ -110,14 +110,16 @@ Feature: Forgot password system
   Scenario: I can reset my password successfully without a specific password update form component being required
     Given there is a user with the username "username" password "password" and role "ROLE_USER"
     And the user has the newPasswordConfirmationToken "abc123" requested at "now"
-    When I send a "POST" request to "/password/reset" with body:
+    When I send a "PATCH" request to "/component/forms/password_reset/submit" with body:
     """
     {
-      "username": "username",
-      "newPasswordConfirmationToken": "abc123",
-      "plainPassword": {
-        "first": "mynewpassword",
-        "second": "mynewpassword"
+      "password_update": {
+        "username": "username",
+        "newPasswordConfirmationToken": "abc123",
+        "plainPassword": {
+          "first": "mynewpassword",
+          "second": "mynewpassword"
+        }
       }
     }
     """

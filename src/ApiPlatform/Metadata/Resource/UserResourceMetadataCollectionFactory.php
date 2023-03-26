@@ -16,6 +16,8 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
@@ -28,11 +30,8 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
  */
 class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    private ResourceMetadataCollectionFactoryInterface $decorated;
-
-    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated)
+    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $decorated)
     {
-        $this->decorated = $decorated;
     }
 
     public function create(string $resourceClass): ResourceMetadataCollection
@@ -42,29 +41,45 @@ class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectio
             return $resourceMetadata;
         }
 
-        $newResources = [];
+        $input = [];
         /** @var ApiResource $resourceMetadatum */
         foreach ($resourceMetadata as $resourceMetadatum) {
             $operations = $resourceMetadatum->getOperations();
             if ($operations) {
-                foreach ($operations as $operation) {
-                    if ($operation instanceof Get) {
-                        $newOperation = (new HttpOperation(HttpOperation::METHOD_GET, '/me{._format}'))
-                            ->withShortName($operation->getShortName());
-                        $operations->add(
-                            'me',
-                            $newOperation
-                                ->withName('me')
-                                ->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")')
-                                ->withClass($operation->getClass())
-                                ->withProvider(UserStateProvider::class)
-                        );
+                $getOperation = $this->findGetOperation($operations);
+                if ($getOperation) {
+                    $newOperations = [
+                        $this->createMeOperation($getOperation),
+                    ];
+                    foreach ($newOperations as $newOperation) {
+                        $operations->add($newOperation->getName(), $newOperation);
                     }
                 }
             }
-            $newResources[] = $resourceMetadatum;
+            $input[] = $resourceMetadatum;
         }
 
-        return new ResourceMetadataCollection($resourceClass, $newResources);
+        return new ResourceMetadataCollection($resourceClass, $input);
+    }
+
+    private function findGetOperation(Operations $operations): ?Get
+    {
+        foreach ($operations as $operation) {
+            if ($operation instanceof Get) {
+                return $operation;
+            }
+        }
+
+        return null;
+    }
+
+    private function createMeOperation(Get $operation): Operation
+    {
+        return (new HttpOperation(HttpOperation::METHOD_GET, '/me{._format}'))
+            ->withName('me')
+            ->withShortName($operation->getShortName())
+            ->withClass($operation->getClass())
+            ->withSecurity('is_granted("IS_AUTHENTICATED_FULLY")')
+            ->withProvider(UserStateProvider::class);
     }
 }

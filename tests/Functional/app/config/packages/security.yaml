@@ -41,9 +41,9 @@ security:
             switch_user: true
     access_control:
         - { path: ^/token/refresh, roles: PUBLIC_ACCESS }
-        - { path: ^/password/(reset|update), roles: PUBLIC_ACCESS, methods: [POST] }
         # For a specific tests to ensure anonymous users can use publishable
         - { path: ^/component/dummy_publishable_components, roles: PUBLIC_ACCESS, methods: [POST] }
-        # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions
+        # The 2 options below prevents anonymous users from making changes to your API resources while allowing form submissions and password resets
+        - { path: ^/users/(.*)/password/reset, roles: PUBLIC_ACCESS, methods: [PUT] }
         - { path: ^/component/forms/(.*)/submit, roles: PUBLIC_ACCESS, methods: [POST, PATCH] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }

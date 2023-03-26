@@ -15,26 +15,26 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Security;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UserEventListener
 {
-    private UserMailer $userMailer;
-    private Security $security;
-
-    public function __construct(UserMailer $userMailer, Security $security)
-    {
-        $this->userMailer = $userMailer;
-        $this->security = $security;
+    public function __construct(
+        private readonly UserMailer $userMailer,
+        private readonly Security $security
+    ) {
     }
 
+    /**
+     * @description this is for the /me endpoint to ensure a user is found, supported and to set the id request attribute to be used in other services required for this route
+     */
     public function onPreRead(RequestEvent $event): void
     {
         $request = $event->getRequest();
@@ -57,8 +57,8 @@ class UserEventListener
 
         // the id cannot be trusted if the data was reloaded and the ID changed for any reason
         // technically the JWT token is still valid, but the id may not be found. So we don't
-        // want to give a user the impression of being unauthenticated when they are. Could be
-        // abused and attacked. So we will want to refresh the user's jwt token
+        // want to give a user the response of being unauthenticated when they are authenticated.
+        // Could be abused and attacked. So we will want to refresh the user's jwt token
         $request->attributes->set('id', $user->getUsername());
     }
 

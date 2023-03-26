@@ -18,9 +18,9 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Security;
 
 /**
  * This will NOT restrict access to components fetched as a collection. As recommended by API Platform best practices, that should
@@ -30,13 +30,10 @@ use Symfony\Component\Security\Core\Security;
  */
 final class DenyAccessListener
 {
-    private Security $security;
-    private RouteRepository $routeRepository;
-
-    public function __construct(Security $security, RouteRepository $routeRepository)
-    {
-        $this->security = $security;
-        $this->routeRepository = $routeRepository;
+    public function __construct(
+        private readonly Security $security,
+        private readonly RouteRepository $routeRepository
+    ) {
     }
 
     public function onPreDeserialize(RequestEvent $event): void
