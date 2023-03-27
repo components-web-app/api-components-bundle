@@ -17,34 +17,39 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class PasswordUpdateType extends AbstractType
 {
-    private RequestStack $requestStack;
-    private string $userClass;
-
-    public function __construct(RequestStack $requestStack, string $userClass)
-    {
-        $this->userClass = $userClass;
+    public function __construct(
+        private readonly RequestStack $requestStack,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly string $userClass,
+    ) {
         if (!is_subclass_of($this->userClass, AbstractUser::class)) {
             throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
-        $this->requestStack = $requestStack;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $prePrePopulatedUser = $this->getPrePopulatedUser();
         $builder
             ->add(
                 'username',
@@ -52,18 +57,20 @@ class PasswordUpdateType extends AbstractType
                 TextType::class,
                 [
                     'empty_data' => '',
+                    'data' => $prePrePopulatedUser?->getUsername(),
                     'attr' => [
                         'autocomplete' => 'username',
                     ],
                 ]
             )
             ->add(
-                'newPasswordConfirmationToken',
+                'plainNewPasswordConfirmationToken',
                 HiddenType::class,
                 [
+                    'data' => $prePrePopulatedUser?->plainNewPasswordConfirmationToken,
                     'attr' => [
                         'placeholder' => '',
-                    ],
+                    ]
                 ]
             )
             ->add(
@@ -92,18 +99,7 @@ class PasswordUpdateType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        /**
-         * @var AbstractUser
-         */
-        $user = new $this->userClass();
-
-        $request = $this->requestStack->getMainRequest();
-        if ($request) {
-            $query = $request->query;
-            $user->setUsername($query->get('username', ''));
-            $user->setNewPasswordConfirmationToken($query->get('token'));
-        }
-
+        $data = $this->getPrePopulatedUser();
         $resolver->setDefaults(
             [
                 'csrf_protection' => false,
@@ -113,9 +109,25 @@ class PasswordUpdateType extends AbstractType
                 ],
                 FormSubmitHelper::FORM_REALTIME_VALIDATE_DISABLED => true,
                 'data_class' => $this->userClass,
-                'data' => $user,
-                'validation_groups' => ['User:password:create'],
+                'empty_data' => function (FormInterface $form) {
+                    return $this->userRepository->findOneWithPasswordResetToken($form->get('username')->getData()) ?? $this->getPrePopulatedUser();
+                },
+                'validation_groups' => ['User:password:create']
             ]
         );
+    }
+
+    private function getPrePopulatedUser (): ?AbstractUser {
+        if (!$request = $this->requestStack->getMainRequest()) {
+            return null;
+        }
+        /**
+         * @var $user AbstractUser
+         */
+        $user = new $this->userClass();
+        $query = $request->query;
+        $user->setUsername($query->get('username', ''));
+        $user->plainNewPasswordConfirmationToken = $query->get('token');
+        return $user;
     }
 }

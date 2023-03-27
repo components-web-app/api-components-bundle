@@ -39,11 +39,11 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     use IdTrait;
     use TimestampedTrait;
 
-    #[Assert\NotBlank(message: 'Please enter a username.', groups: ['Default'])]
+    #[Assert\NotBlank(message: 'Please enter a username.', allowNull: false, groups: ['Default'])]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $username;
 
-    #[Assert\NotBlank(groups: ['Default'])]
+    #[Assert\NotBlank(message: 'Please enter your email address.', allowNull: false, groups: ['Default'])]
     #[Assert\Email]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $emailAddress;

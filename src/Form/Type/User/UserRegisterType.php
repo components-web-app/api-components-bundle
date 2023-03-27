@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Form\Type\User;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -51,6 +52,15 @@ class UserRegisterType extends AbstractType
                         'autocomplete' => 'username',
                     ],
                     'label' => 'Username',
+                ]
+            )
+            ->add(
+                'emailAddress',
+                EmailType::class,
+                [
+                    'label' => 'Email',
+                    'attr' => ['autocomplete' => 'email', 'placeholder' => ''],
+                    'empty_data' => '',
                 ]
             )
             ->add(

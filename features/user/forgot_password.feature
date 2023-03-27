@@ -28,7 +28,9 @@ Feature: Forgot password system
     Given there is a "password_update" form
     When I send a "GET" request to the resource "password_update_form" and the postfix "<postfix>"
     Then the response status code should be 200
+    And the JSON node "formView.children[0].vars.name" should be equal to "username"
     And the JSON node "formView.children[0].vars.value" should be equal to "<expectedUsername>"
+    And the JSON node "formView.children[1].vars.name" should be equal to "plainNewPasswordConfirmationToken"
     And the JSON node "formView.children[1].vars.value" should be equal to "<expectedToken>"
     Examples:
       | postfix                 | expectedUsername | expectedToken |
@@ -44,7 +46,7 @@ Feature: Forgot password system
     {
       "password_update": {
         "username": "username",
-        "newPasswordConfirmationToken": "abc123",
+        "plainNewPasswordConfirmationToken": "abc123",
         "plainPassword": {
           "first": "mynewpassword",
           "second": "mynewpassword"
@@ -52,8 +54,32 @@ Feature: Forgot password system
       }
     }
     """
-    Then the response status code should be 200
+    Then the response status code should be 201
     And I should get a "password_changed" email sent to the email address "test.user@example.com"
+
+  Scenario Outline: I cannot reset my password with an invalid token
+    Given there is a "password_update" form
+    And there is a user with the username "username" password "password" and role "ROLE_USER"
+    And the user has the newPasswordConfirmationToken "abc123" requested at "now"
+    When I send a "POST" request to the resource "password_update_form" and the postfix "/submit" with body:
+    """
+    {
+      "password_update": {
+        "username": "username",
+        "plainNewPasswordConfirmationToken": "INVALID",
+        "plainPassword": {
+          "first": "<password>",
+          "second": "<password>"
+        }
+      }
+    }
+    """
+    Then the response status code should be <statusCode>
+    And I should not receive any emails
+    Examples:
+      | password      | statusCode     |
+      | a             | 422            |
+      | mynewpassword | 404            |
 
   Scenario Outline: I cannot reset my password with invalid data
     Given there is a "password_update" form
@@ -64,7 +90,7 @@ Feature: Forgot password system
     {
       "password_update": {
         "username": "<username>",
-        "newPasswordConfirmationToken": "<token>",
+        "plainNewPasswordConfirmationToken": "<token>",
         "plainPassword": {
           "first": "mynewpassword",
           "second": "mynewpassword"
@@ -90,7 +116,7 @@ Feature: Forgot password system
     {
       "password_update": {
         "username": "username",
-        "newPasswordConfirmationToken": "abc123",
+        "plainNewPasswordConfirmationToken": "abc123",
         "plainPassword": {
           "first": "<passwordFirst>",
           "second": "<passwordSecond>"
@@ -110,12 +136,12 @@ Feature: Forgot password system
   Scenario: I can reset my password successfully without a specific password update form component being required
     Given there is a user with the username "username" password "password" and role "ROLE_USER"
     And the user has the newPasswordConfirmationToken "abc123" requested at "now"
-    When I send a "PATCH" request to "/component/forms/password_reset/submit" with body:
+    When I send a "POST" request to "/component/forms/password_reset/submit" with body:
     """
     {
       "password_update": {
         "username": "username",
-        "newPasswordConfirmationToken": "abc123",
+        "plainNewPasswordConfirmationToken": "abc123",
         "plainPassword": {
           "first": "mynewpassword",
           "second": "mynewpassword"
@@ -123,5 +149,6 @@ Feature: Forgot password system
       }
     }
     """
-    Then the response status code should be 200
+    Then the response status code should be 201
     And I should get a "password_changed" email sent to the email address "test.user@example.com"
+    And the JSON should be valid according to the schema file "form.schema.json"

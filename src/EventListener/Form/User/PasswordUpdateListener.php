@@ -15,7 +15,9 @@ namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
+use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -24,15 +26,10 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PasswordUpdateListener implements FormSuccessEventListenerInterface
-{
-    private UserDataProcessor $userDataProcessor;
-    private UserMailer $userMailer;
-
-    public function __construct(UserDataProcessor $userDataProcessor, UserMailer $userMailer)
+class PasswordUpdateListener extends EntityPersistFormListener {
+    public function __construct(private readonly UserDataProcessor $userDataProcessor)
     {
-        $this->userDataProcessor = $userDataProcessor;
-        $this->userMailer = $userMailer;
+        parent::__construct(PasswordUpdateType::class, AbstractUser::class, false);
     }
 
     public function __invoke(FormSuccessEvent $event): void
@@ -45,14 +42,13 @@ class PasswordUpdateListener implements FormSuccessEventListenerInterface
             return;
         }
 
-        $user = $this->userDataProcessor->passwordReset((string) $formDataUser->getUsername(), (string) $formDataUser->getNewPasswordConfirmationToken(), (string) $formDataUser->getPlainPassword());
+        $user = $this->userDataProcessor->passwordReset($formDataUser->getUsername(), (string) $formDataUser->plainNewPasswordConfirmationToken, (string) $formDataUser->getPlainPassword());
+
         if (!$user) {
             $event->result = new Response(null, Response::HTTP_NOT_FOUND);
-
             return;
         }
 
-        $this->userMailer->sendPasswordChangedEmail($user);
-        $event->result = new Response(null, Response::HTTP_OK);
+        parent::__invoke($event);
     }
 }

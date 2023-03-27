@@ -39,7 +39,7 @@ class FormViewFactory
     {
         $builder = $this->formFactory->createBuilder($form->formType);
 
-        if (!($currentAction = $builder->getAction()) || '' === $currentAction) {
+        if (!$builder->getAction()) {
             $builder->setAction($this->getFormAction($form));
         }
 

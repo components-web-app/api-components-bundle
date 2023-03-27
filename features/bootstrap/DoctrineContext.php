@@ -42,6 +42,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
@@ -125,7 +126,8 @@ final class DoctrineContext implements Context
         $user = new User();
         $user
             ->setRoles($roles)
-            ->setUsername('user@example.com')
+            ->setUsername('new_user')
+            ->setEmailAddress('user@example.com')
             ->setPassword($this->passwordHasher->hashPassword($user, 'password'))
             ->setEnabled(true)
             ->setEmailAddressVerified(true);
@@ -919,13 +921,10 @@ final class DoctrineContext implements Context
      */
     public function thePasswordShouldBeEqualTo(string $password, string $username): void
     {
+        /** @var UserRepositoryInterface $repository */
         $repository = $this->manager->getRepository(User::class);
         /** @var AbstractUser $user */
-        $user = $repository->findOneBy(
-            [
-                'username' => $username,
-            ]
-        );
+        $user = $repository->loadUserByIdentifier($username);
         Assert::assertTrue($this->passwordHasher->isPasswordValid($user, $password));
     }
 

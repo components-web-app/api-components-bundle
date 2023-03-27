@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -95,7 +96,9 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
             if (\count($oldData)) {
                 $normalized = $this->normalizer->normalize($oldData);
                 /** @var AbstractUser $oldUser */
-                $oldUser = $this->normalizer->denormalize($normalized, \get_class($data));
+                $oldUser = $this->normalizer->denormalize($normalized, \get_class($data), null, [
+                    UserNormalizer::ALREADY_CALLED => true
+                ]);
             }
 
             $this->userDataProcessor->processChanges($data, $oldUser);

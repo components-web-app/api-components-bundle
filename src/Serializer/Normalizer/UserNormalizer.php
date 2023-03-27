@@ -35,7 +35,8 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
-    private const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
+    // public so that EntityPersistFormListener can deserialize an old user for comparison and skip this normalizer from processing changes
+    public const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
         private readonly UserDataProcessor $userDataProcessor,
@@ -61,6 +62,7 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
 
         /** @var AbstractUser $oldObject */
         $oldObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
+
         if ($oldObject) {
             $oldObject = clone $oldObject;
         }

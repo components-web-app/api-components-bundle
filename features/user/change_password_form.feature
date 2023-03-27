@@ -89,5 +89,6 @@ Feature: Register process via a form
     """
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "user.schema.json"
-    And the JSON node "username" should be equal to "user@example.com"
+    And the JSON node "username" should be equal to "new_user"
+    And the JSON node "emailAddress" should be equal to "user@example.com"
     And the password should be "new_password" for username "user@example.com"

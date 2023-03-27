@@ -580,7 +580,8 @@ return static function (ContainerConfigurator $configurator) {
         ->set(PasswordUpdateType::class)
         ->args(
             [
-                new Reference(RequestStack::class),
+                new Reference('request_stack'),
+                new Reference('silverback.repository.user'),
                 '', // injected in dependency injection
             ]
         )
@@ -588,10 +589,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(PasswordUpdateListener::class)
+        ->parent(EntityPersistFormListener::class)
         ->args(
             [
                 new Reference(UserDataProcessor::class),
-                new Reference(UserMailer::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);

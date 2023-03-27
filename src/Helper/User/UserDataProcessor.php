@@ -26,30 +26,15 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
  */
 class UserDataProcessor
 {
-    private UserPasswordHasherInterface $passwordHasher;
-    private UserRepositoryInterface $userRepository;
-    private PasswordHasherFactoryInterface $passwordHasherFactory;
-    private bool $initialEmailVerifiedState;
-    private bool $verifyEmailOnRegister;
-    private bool $verifyEmailOnChange;
-    private int $tokenTtl;
-
     public function __construct(
-        UserPasswordHasherInterface $passwordHasher,
-        UserRepositoryInterface $userRepository,
-        PasswordHasherFactoryInterface $passwordHasherFactory,
-        bool $initialEmailVerifiedState,
-        bool $verifyEmailOnRegister,
-        bool $verifyEmailOnChange,
-        int $tokenTtl = 8600
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly PasswordHasherFactoryInterface $passwordHasherFactory,
+        private readonly bool $initialEmailVerifiedState,
+        private readonly bool $verifyEmailOnRegister,
+        private readonly bool $verifyEmailOnChange,
+        private readonly int $tokenTtl = 8600
     ) {
-        $this->passwordHasher = $passwordHasher;
-        $this->userRepository = $userRepository;
-        $this->passwordHasherFactory = $passwordHasherFactory;
-        $this->initialEmailVerifiedState = $initialEmailVerifiedState;
-        $this->verifyEmailOnRegister = $verifyEmailOnRegister;
-        $this->verifyEmailOnChange = $verifyEmailOnChange;
-        $this->tokenTtl = $tokenTtl;
     }
 
     public function updatePasswordConfirmationToken(string $usernameQuery): ?AbstractUser
@@ -120,15 +105,13 @@ class UserDataProcessor
         }
     }
 
-    private function hashPassword(AbstractUser $entity): bool
+    private function hashPassword(AbstractUser $entity): void
     {
         if (!$entity->getPlainPassword()) {
-            return false;
+            return;
         }
         $encoded = $this->passwordHasher->hashPassword($entity, $entity->getPlainPassword());
         $entity->setPassword($encoded);
         $entity->eraseCredentials();
-
-        return true;
     }
 }
