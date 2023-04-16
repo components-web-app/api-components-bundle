@@ -31,6 +31,10 @@ class FilesystemFactory
      */
     public function create(string $name, array $config = []): Filesystem
     {
-        return new Filesystem($this->adapters->get($name), $config);
+        return new Filesystem($this->getAdapter($name), $config);
+    }
+
+    public function getAdapter(string $name) {
+        return $this->adapters->get($name);
     }
 }

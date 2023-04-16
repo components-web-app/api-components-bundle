@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
@@ -46,6 +47,7 @@ class MediaObjectFactory
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,
         private readonly ServiceLocator $urlGenerators,
+        private readonly FilesystemFactory $filesystemFactory,
         private readonly ?FilterService $filterService = null
     ) {
         $this->initRegistry($managerRegistry);
@@ -71,7 +73,20 @@ class MediaObjectFactory
                 continue;
             }
 
-            $urlGenerator = $this->urlGenerators->get($fieldConfiguration->urlGenerator);
+            // todo: consultation on perhaps attributes which can be configured with environment variables or best way to achieve easier implementation
+            $urlGeneratorReference = $fieldConfiguration->urlGenerator ?? 'api';
+            $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
+            if ($urlGenerator !== 'api') {
+                $adapter = $this->filesystemFactory->getAdapter($fieldConfiguration->adapter);
+                if (
+                    ($urlGenerator instanceof TemporaryUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator)) ||
+                    ($urlGenerator instanceof PublicUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\PublicUrlGenerator))
+                ) {
+                    $urlGeneratorReference = 'api';
+                    $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
+                }
+            }
+
             if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
                 throw new InvalidArgumentException(sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
             }

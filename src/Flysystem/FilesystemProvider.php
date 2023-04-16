@@ -33,7 +33,6 @@ class FilesystemProvider
 
     /**
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
     public function getFilesystem(string $name): Filesystem
     {
