@@ -46,8 +46,8 @@ class MediaObjectFactory
         private readonly FilesystemProvider $filesystemProvider,
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,
-        private readonly ServiceLocator $urlGenerators,
         private readonly FilesystemFactory $filesystemFactory,
+        private readonly ServiceLocator $urlGenerators,
         private readonly ?FilterService $filterService = null
     ) {
         $this->initRegistry($managerRegistry);
