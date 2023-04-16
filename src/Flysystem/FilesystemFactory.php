@@ -34,7 +34,8 @@ class FilesystemFactory
         return new Filesystem($this->getAdapter($name), $config);
     }
 
-    public function getAdapter(string $name) {
+    public function getAdapter(string $name)
+    {
         return $this->adapters->get($name);
     }
 }

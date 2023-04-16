@@ -76,7 +76,7 @@ class MediaObjectFactory
             // todo: consultation on perhaps attributes which can be configured with environment variables or best way to achieve easier implementation
             $urlGeneratorReference = $fieldConfiguration->urlGenerator ?? 'api';
             $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
-            if ($urlGenerator !== 'api') {
+            if ('api' !== $urlGenerator) {
                 $adapter = $this->filesystemFactory->getAdapter($fieldConfiguration->adapter);
                 if (
                     ($urlGenerator instanceof TemporaryUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator)) ||

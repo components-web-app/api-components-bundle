@@ -24,13 +24,9 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -70,7 +66,7 @@ class PasswordUpdateType extends AbstractType
                     'data' => $prePrePopulatedUser?->plainNewPasswordConfirmationToken,
                     'attr' => [
                         'placeholder' => '',
-                    ]
+                    ],
                 ]
             )
             ->add(
@@ -112,22 +108,24 @@ class PasswordUpdateType extends AbstractType
                 'empty_data' => function (FormInterface $form) {
                     return $this->userRepository->findOneWithPasswordResetToken($form->get('username')->getData()) ?? $this->getPrePopulatedUser();
                 },
-                'validation_groups' => ['User:password:create']
+                'validation_groups' => ['User:password:create'],
             ]
         );
     }
 
-    private function getPrePopulatedUser (): ?AbstractUser {
+    private function getPrePopulatedUser(): ?AbstractUser
+    {
         if (!$request = $this->requestStack->getMainRequest()) {
             return null;
         }
         /**
-         * @var $user AbstractUser
+         * @var AbstractUser $user
          */
         $user = new $this->userClass();
         $query = $request->query;
         $user->setUsername($query->get('username', ''));
         $user->plainNewPasswordConfirmationToken = $query->get('token');
+
         return $user;
     }
 }

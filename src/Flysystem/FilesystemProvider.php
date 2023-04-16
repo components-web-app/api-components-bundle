@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Flysystem;
 
 use League\Flysystem\Filesystem;
 use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 /**

@@ -16,17 +16,15 @@ namespace Silverback\ApiComponentsBundle\EventListener\Form\User;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
-use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
-use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
-use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PasswordUpdateListener extends EntityPersistFormListener {
+class PasswordUpdateListener extends EntityPersistFormListener
+{
     public function __construct(private readonly UserDataProcessor $userDataProcessor)
     {
         parent::__construct(PasswordUpdateType::class, AbstractUser::class, false);
@@ -46,6 +44,7 @@ class PasswordUpdateListener extends EntityPersistFormListener {
 
         if (!$user) {
             $event->result = new Response(null, Response::HTTP_NOT_FOUND);
+
             return;
         }
 

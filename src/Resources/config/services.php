@@ -1065,12 +1065,12 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false);
 
-//    COMPILER PASS REQUIRED AS WELL
-//    $services
-//        ->set(UploadableLoader::class)
-//        ->args([
-//            new Reference(UploadableAnnotationReader::class),
-//        ]);
+    //    COMPILER PASS REQUIRED AS WELL
+    //    $services
+    //        ->set(UploadableLoader::class)
+    //        ->args([
+    //            new Reference(UploadableAnnotationReader::class),
+    //        ]);
 
     $services
         ->set(UserChecker::class)

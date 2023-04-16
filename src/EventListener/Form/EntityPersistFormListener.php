@@ -97,7 +97,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
                 $normalized = $this->normalizer->normalize($oldData);
                 /** @var AbstractUser $oldUser */
                 $oldUser = $this->normalizer->denormalize($normalized, \get_class($data), null, [
-                    UserNormalizer::ALREADY_CALLED => true
+                    UserNormalizer::ALREADY_CALLED => true,
                 ]);
             }
 

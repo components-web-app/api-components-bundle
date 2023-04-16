@@ -34,7 +34,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
-use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -210,11 +209,11 @@ class ProfilerContext implements Context
         /** @var TemplatedEmail[] $messages */
         $messages = iterator_to_array($templatedEmailMessageEventSubscriber->getMessages());
 
-        $subjects = array_map(static function(TemplatedEmail $email) {
+        $subjects = array_map(static function (TemplatedEmail $email) {
             return $email->getSubject();
         }, $messages);
 
-        Assert::assertCount(1, $messages, sprintf("%d messages were sent but only 1 was expected. Messages were sent with subjects '%s'", count($messages), implode("', '", $subjects)));
+        Assert::assertCount(1, $messages, sprintf("%d messages were sent but only 1 was expected. Messages were sent with subjects '%s'", \count($messages), implode("', '", $subjects)));
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
 
         /** @var TemplatedEmail $email */
