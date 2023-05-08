@@ -13,8 +13,8 @@
     ],
     "repositories": [
         {
-            "type": "git",
-            "url": "git@github.com:silverbackdan/contexts.git"
+            "type": "vcs",
+            "url": "https://github.com/silverbackdan/contexts"
         }
     ],
     "require": {
