@@ -85,6 +85,7 @@
         "symfony/css-selector": "^6.1",
         "symfony/debug": "^4",
         "symfony/dotenv": "^6.1",
+        "symfony/flex": "^2.2",
         "symfony/http-client": "^6.1",
         "symfony/maker-bundle": "^1.0",
         "symfony/mercure": "^0.6.2",
@@ -142,7 +143,7 @@
         "symfony/web-link": "<=6.0",
         "doctrine/collections": "<1.7",
         "doctrine/orm": "<2.13",
-        "api-platform/core": "3.1.0",
+        "api-platform/core": "3.1.0 || >=3.1.9 <=3.1.11",
         "symfony/http-client": "6.2.5",
         "symfony/http-kernel": "<6.2.6",
         "symfony/security-bundle": "<6.2.6"
