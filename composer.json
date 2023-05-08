@@ -85,7 +85,6 @@
         "symfony/css-selector": "^6.1",
         "symfony/debug": "^4",
         "symfony/dotenv": "^6.1",
-        "symfony/flex": "^2.2",
         "symfony/http-client": "^6.1",
         "symfony/maker-bundle": "^1.0",
         "symfony/mercure": "^0.6.2",
