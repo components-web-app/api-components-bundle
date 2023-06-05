@@ -38,11 +38,11 @@ final class TimestampedValidator implements ValidatorInterface
     public function validate($data, array $context = []): void
     {
         if (
-            \is_object($data) &&
-            $this->annotationReader->isConfigured($data)
+            \is_object($data)
+            && $this->annotationReader->isConfigured($data)
         ) {
             $context['groups'] = $context['groups'] ?? ['Default'];
-            $context['groups'][] = (new \ReflectionClass(\get_class($data)))->getShortName() . ':timestamped';
+            $context['groups'][] = (new \ReflectionClass($data::class))->getShortName() . ':timestamped';
         }
 
         $this->decorated->validate($data, $context);

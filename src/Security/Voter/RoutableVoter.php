@@ -71,6 +71,6 @@ final class RoutableVoter extends AbstractRoutableVoter
             }
         }
 
-        return $this->resourceAccessChecker->isGranted(\get_class($routable), $this->securityStr);
+        return $this->resourceAccessChecker->isGranted($routable::class, $this->securityStr);
     }
 }

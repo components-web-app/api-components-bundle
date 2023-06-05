@@ -46,7 +46,7 @@ abstract class AbstractUserEmailFactory
     protected ?RawMessage $message;
     private AbstractUser $user;
 
-    public function __construct(ContainerInterface $container, EventDispatcherInterface $eventDispatcher, string $subject, bool $enabled = true, ?string $defaultRedirectPath = null, ?string $redirectPathQueryKey = null, array $emailContext = [])
+    public function __construct(ContainerInterface $container, EventDispatcherInterface $eventDispatcher, string $subject, bool $enabled = true, string $defaultRedirectPath = null, string $redirectPathQueryKey = null, array $emailContext = [])
     {
         $this->container = $container;
         $this->eventDispatcher = $eventDispatcher;
@@ -127,7 +127,7 @@ abstract class AbstractUserEmailFactory
         return $event->getEmail();
     }
 
-    protected function getTokenUrl(string $token, string $username, ?string $newEmail = null): string
+    protected function getTokenUrl(string $token, string $username, string $newEmail = null): string
     {
         $path = $this->populatePathVariables(
             $this->getTokenPath(),

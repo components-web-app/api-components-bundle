@@ -53,9 +53,9 @@ final class UploadableLoader implements LoaderInterface
 
         foreach ($properties as $property) {
             if (
-                $this->annotationReader->isFieldConfigured($property) &&
-                ($attributeMetadata = ($allAttributesMetadata[$property->getName()] ?? null)) &&
-                empty($attributeMetadata->getGroups())
+                $this->annotationReader->isFieldConfigured($property)
+                && ($attributeMetadata = ($allAttributesMetadata[$property->getName()] ?? null))
+                && empty($attributeMetadata->getGroups())
             ) {
                 $attributeMetadata->addGroup($readGroup);
                 $attributeMetadata->addGroup($writeGroup);

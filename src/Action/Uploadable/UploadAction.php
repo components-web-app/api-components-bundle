@@ -64,9 +64,9 @@ class UploadAction
                     $accessor->setValue($resource, $configuration->fieldName, date('Y-m-d H:i:s'));
                 }
             } elseif (
-                $isGranted &&
-                !$publishableStatusChecker->isRequestForPublished($request) &&
-                $publishableStatusChecker->isActivePublishedAt($resource)
+                $isGranted
+                && !$publishableStatusChecker->isRequestForPublished($request)
+                && $publishableStatusChecker->isActivePublishedAt($resource)
             ) {
                 $resource = $this->publishableNormalizer->createDraft($resource, $configuration, $resourceClass);
             }

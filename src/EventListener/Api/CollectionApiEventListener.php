@@ -79,8 +79,8 @@ class CollectionApiEventListener
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
         if (
-            empty($data) ||
-            !$data instanceof Collection
+            empty($data)
+            || !$data instanceof Collection
         ) {
             return;
         }
@@ -166,9 +166,9 @@ class CollectionApiEventListener
                 /** @var Operation $operation */
                 foreach ($operations as $operation) {
                     if (
-                        $operation instanceof CollectionOperationInterface &&
-                        $operation instanceof HttpOperation &&
-                        HttpOperation::METHOD_GET === $operation->getMethod()
+                        $operation instanceof CollectionOperationInterface
+                        && $operation instanceof HttpOperation
+                        && HttpOperation::METHOD_GET === $operation->getMethod()
                     ) {
                         return $operation;
                     }

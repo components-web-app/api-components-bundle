@@ -84,7 +84,7 @@ class ProfilerContext implements Context
      *
      * @return Update[]
      */
-    public function thereShouldBeAPublishedMercureUpdatePublished(?int $count = null)
+    public function thereShouldBeAPublishedMercureUpdatePublished(int $count = null)
     {
         $messageObjects = $this->getMercureMessageObjects();
         if (null !== $count && \count($messageObjects) !== $count) {

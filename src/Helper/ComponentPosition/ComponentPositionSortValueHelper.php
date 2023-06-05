@@ -49,8 +49,8 @@ class ComponentPositionSortValueHelper
                         continue;
                     }
                     if (
-                        $existingComponentPosition->sortValue > $originalSortValue &&
-                        $existingComponentPosition->sortValue <= $moveTo
+                        $existingComponentPosition->sortValue > $originalSortValue
+                        && $existingComponentPosition->sortValue <= $moveTo
                     ) {
                         --$existingComponentPosition->sortValue;
                     }
@@ -65,8 +65,8 @@ class ComponentPositionSortValueHelper
                     continue;
                 }
                 if (
-                    $existingComponentPosition->sortValue < $originalSortValue &&
-                    $existingComponentPosition->sortValue >= $moveTo
+                    $existingComponentPosition->sortValue < $originalSortValue
+                    && $existingComponentPosition->sortValue >= $moveTo
                 ) {
                     ++$existingComponentPosition->sortValue;
                 }

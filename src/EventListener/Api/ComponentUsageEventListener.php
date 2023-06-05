@@ -38,9 +38,9 @@ class ComponentUsageEventListener
         $operationName = $request->attributes->get('_api_operation_name');
 
         if (
-            empty($data) ||
-            !$data instanceof ComponentInterface ||
-            !str_ends_with($operationName, '_get_usage')
+            empty($data)
+            || !$data instanceof ComponentInterface
+            || !str_ends_with($operationName, '_get_usage')
         ) {
             return;
         }

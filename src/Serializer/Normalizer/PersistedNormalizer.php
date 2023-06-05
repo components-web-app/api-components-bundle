@@ -70,8 +70,8 @@ class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterfa
             return false;
         }
 
-        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
+        return !\in_array($id, $context[self::ALREADY_CALLED], true)
+            && $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
     }
 
     public function getSupportedTypes(?string $format): array

@@ -149,7 +149,7 @@ class PageDataProvider
 
     private function getComponentShortName(object $component): ?string
     {
-        $resourceClass = \get_class($component);
+        $resourceClass = $component::class;
         if ($component instanceof Proxy) {
             $em = $this->managerRegistry->getManagerForClass($resourceClass);
             if (!$em) {

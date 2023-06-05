@@ -302,8 +302,8 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     {
         $lastRequest = $this->getPasswordRequestedAt();
 
-        return $lastRequest instanceof \DateTime &&
-            $lastRequest->getTimestamp() + $ttl > time();
+        return $lastRequest instanceof \DateTime
+            && $lastRequest->getTimestamp() + $ttl > time();
     }
 
     /** @see \Serializable::serialize() */

@@ -41,9 +41,9 @@ class RouteEventListener
         $data = $request->attributes->get('data');
         $operationName = $request->attributes->get('_api_operation_name');
         if (
-            empty($data) ||
-            !$data instanceof Route ||
-            '_api_/routes/generate{._format}_post' !== $operationName
+            empty($data)
+            || !$data instanceof Route
+            || '_api_/routes/generate{._format}_post' !== $operationName
         ) {
             return;
         }
@@ -58,9 +58,9 @@ class RouteEventListener
         /** @var HttpOperation $operation */
         $operation = $request->attributes->get('_api_operation');
         if (
-            empty($data) ||
-            !$data instanceof Route ||
-            !\in_array($operation->getMethod(), [HttpOperation::METHOD_PUT, HttpOperation::METHOD_PATCH], true)
+            empty($data)
+            || !$data instanceof Route
+            || !\in_array($operation->getMethod(), [HttpOperation::METHOD_PUT, HttpOperation::METHOD_PATCH], true)
         ) {
             return;
         }

@@ -45,7 +45,7 @@ final class PageDataNormalizer implements NormalizerInterface, CacheableSupports
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
-        $metadata = $this->pageDataMetadataFactory->create(\get_class($object));
+        $metadata = $this->pageDataMetadataFactory->create($object::class);
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPageDataMetadata($metadata);
@@ -67,8 +67,8 @@ final class PageDataNormalizer implements NormalizerInterface, CacheableSupports
             return false;
         }
 
-        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            is_a($data, AbstractPageData::class);
+        return !\in_array($id, $context[self::ALREADY_CALLED], true)
+            && is_a($data, AbstractPageData::class);
     }
 
     public function hasCacheableSupportsMethod(): bool

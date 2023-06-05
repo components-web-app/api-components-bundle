@@ -161,8 +161,8 @@ class PropagateUpdatesListener
     {
         foreach (array_keys($associationMappings) as $property) {
             if (
-                !$this->propertyAccessor->isReadable($entity, $property) ||
-                !$assocEntity = $this->propertyAccessor->getValue($entity, $property)
+                !$this->propertyAccessor->isReadable($entity, $property)
+                || !$assocEntity = $this->propertyAccessor->getValue($entity, $property)
             ) {
                 continue;
             }
@@ -192,8 +192,8 @@ class PropagateUpdatesListener
     private function addResourceIrisFromObject($resource, string $type): void
     {
         if (
-            isset($this->updatedResources[$resource]) &&
-            'deleted' !== $type
+            isset($this->updatedResources[$resource])
+            && 'deleted' !== $type
         ) {
             return;
         }

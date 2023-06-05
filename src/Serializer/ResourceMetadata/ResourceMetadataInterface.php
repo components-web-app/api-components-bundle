@@ -38,7 +38,7 @@ interface ResourceMetadataInterface
 
     public function getPublishable(): ?ResourcePublishableMetadata;
 
-    public function setPublishable(bool $published, ?string $publishedAt = null): void;
+    public function setPublishable(bool $published, string $publishedAt = null): void;
 
     public function getViolationList(): ?ConstraintViolationListInterface;
 

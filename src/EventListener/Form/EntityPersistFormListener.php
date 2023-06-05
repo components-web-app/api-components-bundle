@@ -74,8 +74,8 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         // This is not a sub-request because forms have greater permissions to create entitites with whatever properties wanted.
 
         if (
-            $this->formType !== $event->getForm()->formType ||
-            !is_a($data = $event->getFormData(), $this->dataClass, true)
+            $this->formType !== $event->getForm()->formType
+            || !is_a($data = $event->getFormData(), $this->dataClass, true)
         ) {
             return;
         }
@@ -96,7 +96,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
             if (\count($oldData)) {
                 $normalized = $this->normalizer->normalize($oldData);
                 /** @var AbstractUser $oldUser */
-                $oldUser = $this->normalizer->denormalize($normalized, \get_class($data), null, [
+                $oldUser = $this->normalizer->denormalize($normalized, $data::class, null, [
                     UserNormalizer::ALREADY_CALLED => true,
                 ]);
             }

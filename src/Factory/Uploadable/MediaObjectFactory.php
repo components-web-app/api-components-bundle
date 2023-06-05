@@ -79,8 +79,8 @@ class MediaObjectFactory
             if ('api' !== $urlGenerator) {
                 $adapter = $this->filesystemFactory->getAdapter($fieldConfiguration->adapter);
                 if (
-                    ($urlGenerator instanceof TemporaryUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator)) ||
-                    ($urlGenerator instanceof PublicUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\PublicUrlGenerator))
+                    ($urlGenerator instanceof TemporaryUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator))
+                    || ($urlGenerator instanceof PublicUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\PublicUrlGenerator))
                 ) {
                     $urlGeneratorReference = 'api';
                     $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);

@@ -211,7 +211,7 @@ class JsonContext implements Context
     /**
      * @Then /^the response should have a "(.+)" cookie with the value "(.+)?"$/
      */
-    public function theResponseShouldHaveACookieWithTheValue(string $name, ?string $value = null): void
+    public function theResponseShouldHaveACookieWithTheValue(string $name, string $value = null): void
     {
         $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
         $real = $cookie->getValue();

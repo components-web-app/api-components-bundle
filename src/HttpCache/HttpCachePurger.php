@@ -35,7 +35,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         $this->reset();
     }
 
-    public function add(object $item, ?string $type = null): void
+    public function add(object $item, string $type = null): void
     {
         if (!is_iterable($item)) {
             $this->collectResource($item);

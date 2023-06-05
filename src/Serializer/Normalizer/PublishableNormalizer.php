@@ -83,7 +83,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPublishable($isPublished);
 
-        $type = \get_class($object);
+        $type = $object::class;
         $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
         $em = $this->getManagerFromType($type);
         $classMetadata = $this->getClassMetadataInfo($em, $type);
@@ -130,8 +130,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
             return false;
         }
 
-        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            $this->publishableStatusChecker->getAttributeReader()->isConfigured($data);
+        return !\in_array($id, $context[self::ALREADY_CALLED], true)
+            && $this->publishableStatusChecker->getAttributeReader()->isConfigured($data);
     }
 
     /**
@@ -165,9 +165,9 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         // No field has been updated (after publishedAt verified and cleaned/unset if needed): nothing to do here anymore
         // or User doesn't have draft access: update the original object
         if (
-            empty($data) ||
-            !$this->publishableStatusChecker->isActivePublishedAt($object) ||
-            !$this->publishableStatusChecker->isGranted($type)
+            empty($data)
+            || !$this->publishableStatusChecker->isActivePublishedAt($object)
+            || !$this->publishableStatusChecker->isGranted($type)
         ) {
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
@@ -186,8 +186,8 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
 
             // User changed the publication date with an earlier one on a published resource: ignore it
             if (
-                $this->publishableStatusChecker->isActivePublishedAt($object) &&
-                new \DateTimeImmutable() >= $publicationDate
+                $this->publishableStatusChecker->isActivePublishedAt($object)
+                && new \DateTimeImmutable() >= $publicationDate
             ) {
                 unset($data[$configuration->fieldName]);
             }

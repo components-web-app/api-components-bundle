@@ -35,9 +35,9 @@ final class CwaResourceLoader implements LoaderInterface
         $reflectionClass = $classMetadata->getReflectionClass();
         $reflectionClassName = $reflectionClass->getName();
         if (
-            !$this->isCoreClassName($reflectionClassName) &&
-            !$reflectionClass->isSubclassOf(AbstractComponent::class) &&
-            !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
+            !$this->isCoreClassName($reflectionClassName)
+            && !$reflectionClass->isSubclassOf(AbstractComponent::class)
+            && !$reflectionClass->isSubclassOf(AbstractPageData::class)) {
             return true;
         }
 
@@ -71,7 +71,7 @@ final class CwaResourceLoader implements LoaderInterface
 
     private function isCoreClassName(string $className): bool
     {
-        return AbstractComponent::class === $className ||
-            AbstractPageData::class === $className;
+        return AbstractComponent::class === $className
+            || AbstractPageData::class === $className;
     }
 }

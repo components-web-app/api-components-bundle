@@ -40,7 +40,7 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
         if (!$isConfigured || $this->imagineBundleEnabled || !is_a($class, ImagineFiltersInterface::class)) {
             return $isConfigured;
         }
-        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', \is_string($class) ? $class : \get_class($class)));
+        throw new BadMethodCallException(sprintf('LiipImagineBundle is not enabled/installed so you should not configure Imagine filters on %s', \is_string($class) ? $class : $class::class));
     }
 
     public function getConfiguration(object|string $class): Uploadable
@@ -86,7 +86,7 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
     public function getConfiguredProperties(object|string $data, bool $skipUploadableCheck = false): \Generator
     {
         if (!$skipUploadableCheck && !$this->isConfigured($data)) {
-            throw new UnsupportedAnnotationException(sprintf('Cannot get field configuration for %s: is it not configured as Uploadable', \is_string($data) ? $data : \get_class($data)));
+            throw new UnsupportedAnnotationException(sprintf('Cannot get field configuration for %s: is it not configured as Uploadable', \is_string($data) ? $data : $data::class));
         }
 
         $found = false;
@@ -100,7 +100,7 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
             }
         }
         if (!$found) {
-            throw new UnsupportedAnnotationException(sprintf('No field configurations on your Uploadable component %s.', \is_string($data) ? $data : \get_class($data)));
+            throw new UnsupportedAnnotationException(sprintf('No field configurations on your Uploadable component %s.', \is_string($data) ? $data : $data::class));
         }
     }
 }

@@ -123,8 +123,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
             return false;
         }
 
-        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            $this->annotationReader->isConfigured($data);
+        return !\in_array($id, $context[self::ALREADY_CALLED], true)
+            && $this->annotationReader->isConfigured($data);
     }
 
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null

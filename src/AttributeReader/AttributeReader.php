@@ -61,7 +61,7 @@ abstract class AttributeReader implements AttributeReaderInterface
             return $class;
         }
 
-        return \get_class($class);
+        return $class::class;
     }
 
     /**
@@ -103,7 +103,7 @@ abstract class AttributeReader implements AttributeReaderInterface
             if (!\count($attributes)) {
                 $attributes = $this->getConfigurationFromTraits($reflection, $annotationClass);
                 if (!\count($attributes)) {
-                    throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? \get_class($class) : $class, $annotationClass));
+                    throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? $class::class : $class, $annotationClass));
                 }
             }
         }
@@ -121,8 +121,8 @@ abstract class AttributeReader implements AttributeReaderInterface
 
         $parentReflection = $reflection->getParentClass();
         while (
-            $parentReflection &&
-            !$attributes = $parentReflection->getAttributes($annotationClass)
+            $parentReflection
+            && !$attributes = $parentReflection->getAttributes($annotationClass)
         ) {
             $parentReflection = $parentReflection->getParentClass();
         }

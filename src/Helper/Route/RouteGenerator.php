@@ -57,9 +57,9 @@ class RouteGenerator implements RouteGeneratorInterface
         return $newRedirect;
     }
 
-    public function create(RoutableInterface $object, ?Route $route = null): Route
+    public function create(RoutableInterface $object, Route $route = null): Route
     {
-        $entityManager = $this->registry->getManagerForClass($className = \get_class($object));
+        $entityManager = $this->registry->getManagerForClass($className = $object::class);
         if (!$entityManager) {
             throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
         }

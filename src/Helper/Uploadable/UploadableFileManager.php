@@ -48,7 +48,7 @@ class UploadableFileManager
     private ?FilterService $filterService;
     private ArrayCollection $deletedFields;
 
-    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
+    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, FilterService $filterService = null)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
@@ -71,7 +71,7 @@ class UploadableFileManager
             throw new \InvalidArgumentException('The old object is not configured as uploadable');
         }
 
-        if (\get_class($oldObject) !== \get_class($newObject)) {
+        if ($oldObject::class !== $newObject::class) {
             throw new \InvalidArgumentException('The objects must be the same class');
         }
 

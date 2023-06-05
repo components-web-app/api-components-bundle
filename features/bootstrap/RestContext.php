@@ -160,7 +160,7 @@ class RestContext implements Context
     /**
      * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?:(?: and the postfix "([^"]*)"|)?(?: with body:|)|)$/i
      */
-    public function iSendARequestToTheResourceWithBody(string $method, string $resource, ?string $postfix = null, ?PyStringNode $body = null)
+    public function iSendARequestToTheResourceWithBody(string $method, string $resource, string $postfix = null, PyStringNode $body = null)
     {
         if (!isset($this->resources[$resource])) {
             throw new ExpectationException(sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
@@ -173,7 +173,7 @@ class RestContext implements Context
     /**
      * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?: and the postfix "([^"]*)"|)? with data:$/i
      */
-    public function iSendARequestToTheResourceWithData(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
+    public function iSendARequestToTheResourceWithData(string $method, string $component, TableNode $tableNode, string $postfix = null)
     {
         $data = $this->castTableNodeToArray($tableNode);
 
@@ -183,7 +183,7 @@ class RestContext implements Context
     /**
      * @When /^I send a "([^"]*)" request to the resource "([^"]*)"(?: and the postfix "([^"]*)"|)? with parameters:$/i
      */
-    public function iSendARequestToTheResourceWithParameters(string $method, string $component, TableNode $tableNode, ?string $postfix = null)
+    public function iSendARequestToTheResourceWithParameters(string $method, string $component, TableNode $tableNode, string $postfix = null)
     {
         $endpoint = $this->resources[$component] . ($postfix ?: '');
 

@@ -44,16 +44,16 @@ final class TimestampedLoader implements LoaderInterface
         $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
         $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->createdAtField] ?? null)) &&
-            empty($attributeMetadata->getGroups())
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->createdAtField] ?? null))
+            && empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
             $attributeMetadata->addGroup($writeGroup);
         }
 
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->modifiedAtField] ?? null)) &&
-            empty($attributeMetadata->getGroups())
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->modifiedAtField] ?? null))
+            && empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
             $attributeMetadata->addGroup($writeGroup);

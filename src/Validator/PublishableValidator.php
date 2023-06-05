@@ -40,11 +40,11 @@ final class PublishableValidator implements ValidatorInterface
     public function validate($data, array $context = []): void
     {
         if (
-            \is_object($data) &&
-            $this->publishableStatusChecker->getAttributeReader()->isConfigured($data) &&
-            ($this->publishableStatusChecker->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
+            \is_object($data)
+            && $this->publishableStatusChecker->getAttributeReader()->isConfigured($data)
+            && ($this->publishableStatusChecker->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
         ) {
-            $groups = [(new \ReflectionClass(\get_class($data)))->getShortName() . ':published'];
+            $groups = [(new \ReflectionClass($data::class))->getShortName() . ':published'];
             if (!empty($this->publishableStatusChecker->getAttributeReader()->getConfiguration($data)->validationGroups)) {
                 $groups = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($data)->validationGroups;
             }

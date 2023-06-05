@@ -85,9 +85,9 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
     {
         if (
-            null === $value ||
-            !$this->isPropertyEnabled($property, $resourceClass) ||
-            !$this->isPropertyMapped($property, $resourceClass, true)
+            null === $value
+            || !$this->isPropertyEnabled($property, $resourceClass)
+            || !$this->isPropertyMapped($property, $resourceClass, true)
         ) {
             return;
         }

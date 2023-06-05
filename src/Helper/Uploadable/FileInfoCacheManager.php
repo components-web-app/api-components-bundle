@@ -43,7 +43,7 @@ class FileInfoCacheManager
         $this->entityManager->flush();
     }
 
-    public function resolveCache(string $path, ?string $filter = null): ?FileInfo
+    public function resolveCache(string $path, string $filter = null): ?FileInfo
     {
         return $this->repository->findOneByPathAndFilter($path, $filter);
     }

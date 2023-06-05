@@ -40,7 +40,7 @@ class ClassNameValidator
             throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
         }
 
-        if (\get_class($validClass) === $className) {
+        if ($validClass::class === $className) {
             return true;
         }
 

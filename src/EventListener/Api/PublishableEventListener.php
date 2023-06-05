@@ -56,10 +56,10 @@ final class PublishableEventListener
         $request = $event->getRequest();
         $attributes = $this->getAttributes($request);
         if (
-            empty($attributes['data']) ||
-            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            $request->isMethod(Request::METHOD_DELETE) ||
-            $attributes['operation'] instanceof CollectionOperationInterface
+            empty($attributes['data'])
+            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || $request->isMethod(Request::METHOD_DELETE)
+            || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
@@ -73,10 +73,10 @@ final class PublishableEventListener
         $request = $event->getRequest();
         $attributes = $this->getAttributes($request);
         if (
-            empty($attributes['data']) ||
-            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            !$request->isMethod(Request::METHOD_GET) ||
-            $attributes['operation'] instanceof CollectionOperationInterface
+            empty($attributes['data'])
+            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !$request->isMethod(Request::METHOD_GET)
+            || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
@@ -89,9 +89,9 @@ final class PublishableEventListener
         $request = $event->getRequest();
         $attributes = $this->getAttributes($request);
         if (
-            empty($attributes['data']) ||
-            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
+            empty($attributes['data'])
+            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
@@ -100,8 +100,8 @@ final class PublishableEventListener
 
         // User cannot change the publication date of the original resource
         if (
-            true === $this->publishableStatusChecker->isRequestForPublished($request) &&
-            $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
+            true === $this->publishableStatusChecker->isRequestForPublished($request)
+            && $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
         ) {
             throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
         }
@@ -119,9 +119,9 @@ final class PublishableEventListener
         $data = $attributes['data'];
 
         if (
-            null === $data ||
-            !$this->publishableAnnotationReader->isConfigured($attributes['class']) ||
-            $attributes['operation'] instanceof CollectionOperationInterface
+            null === $data
+            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
@@ -156,8 +156,8 @@ final class PublishableEventListener
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '0');
 
             if (
-                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false) &&
-                \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true)
+                true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)
+                && \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true)
             ) {
                 throw $exception;
             }
@@ -181,8 +181,8 @@ final class PublishableEventListener
         $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
         $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
         if (
-            !$publishedResourceAssociation &&
-            (!$draftResourceAssociation || !$this->publishableStatusChecker->isActivePublishedAt($draftResourceAssociation))
+            !$publishedResourceAssociation
+            && (!$draftResourceAssociation || !$this->publishableStatusChecker->isActivePublishedAt($draftResourceAssociation))
         ) {
             return $data;
         }
@@ -192,7 +192,7 @@ final class PublishableEventListener
         // or a published resource which may have a draft that has an active publish date
         $entityManager = $this->getEntityManager($data);
 
-        $meta = $entityManager->getClassMetadata(\get_class($data));
+        $meta = $entityManager->getClassMetadata($data::class);
         $identifierFieldName = $meta->getSingleIdentifierFieldName();
 
         if ($publishedResourceAssociation) {

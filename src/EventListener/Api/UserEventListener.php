@@ -40,9 +40,9 @@ class UserEventListener
         $request = $event->getRequest();
         $resourceClass = $request->attributes->get('_api_resource_class');
         if (
-            empty($resourceClass) ||
-            !is_a($resourceClass, AbstractUser::class, true) ||
-            'me' !== $request->attributes->get('_api_operation_name')
+            empty($resourceClass)
+            || !is_a($resourceClass, AbstractUser::class, true)
+            || 'me' !== $request->attributes->get('_api_operation_name')
         ) {
             return;
         }
@@ -68,10 +68,10 @@ class UserEventListener
         $data = $request->attributes->get('data');
         $previousData = $request->attributes->get('previous_data');
         if (
-            empty($data) ||
-            !$data instanceof AbstractUser ||
-            $request->isMethod(Request::METHOD_GET) ||
-            $request->isMethod(Request::METHOD_DELETE)
+            empty($data)
+            || !$data instanceof AbstractUser
+            || $request->isMethod(Request::METHOD_GET)
+            || $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
         }

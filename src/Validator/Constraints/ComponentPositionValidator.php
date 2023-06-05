@@ -48,7 +48,7 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        $resourceClass = \get_class($component);
+        $resourceClass = $component::class;
         $iri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
 
         if ($allowedComponents = $collection->allowedComponents) {

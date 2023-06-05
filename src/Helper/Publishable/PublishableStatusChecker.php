@@ -56,7 +56,7 @@ class PublishableStatusChecker
     public function isActivePublishedAt(object $object): bool
     {
         if (!$this->attributeReader->isConfigured($object)) {
-            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
+            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', $object::class));
         }
 
         $value = $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
@@ -67,7 +67,7 @@ class PublishableStatusChecker
     public function hasPublicationDate(object $object): bool
     {
         if (!$this->attributeReader->isConfigured($object)) {
-            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', \get_class($object)));
+            throw new \InvalidArgumentException(sprintf('Object of class %s does not implement publishable configuration.', $object::class));
         }
 
         return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);

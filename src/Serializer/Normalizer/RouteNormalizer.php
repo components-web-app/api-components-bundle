@@ -74,10 +74,10 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
     {
         $resourceId = $resource['@id'] ?? null;
         if (
-            $resourceId &&
-            !str_starts_with($resource['@id'] ?? null, '/.well-known/') &&
-            '/_/resource_metadatas' !== $resourceId &&
-            !\in_array($resourceId, $iris, true)
+            $resourceId
+            && !str_starts_with($resource['@id'] ?? null, '/.well-known/')
+            && '/_/resource_metadatas' !== $resourceId
+            && !\in_array($resourceId, $iris, true)
         ) {
             $iris[] = $resourceId;
         }

@@ -37,10 +37,10 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
 
         if (
-            empty($resourceClass = $context['resource_class']) ||
-            empty($context['groups']) ||
-            \in_array('Route:manifest:read', $context['groups'], true) ||
-            !$this->publishableStatusChecker->getAttributeReader()->isConfigured($resourceClass)
+            empty($resourceClass = $context['resource_class'])
+            || empty($context['groups'])
+            || \in_array('Route:manifest:read', $context['groups'], true)
+            || !$this->publishableStatusChecker->getAttributeReader()->isConfigured($resourceClass)
         ) {
             return $context;
         }

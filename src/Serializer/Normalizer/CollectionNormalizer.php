@@ -67,8 +67,8 @@ class CollectionNormalizer implements NormalizerInterface, CacheableSupportsMeth
             return false;
         }
 
-        return !\in_array($id, $context[self::ALREADY_CALLED], true) &&
-            $data instanceof Collection;
+        return !\in_array($id, $context[self::ALREADY_CALLED], true)
+            && $data instanceof Collection;
     }
 
     public function hasCacheableSupportsMethod(): bool

@@ -26,7 +26,7 @@ class DownloadAction
     public function __invoke(object $data, string $property, Request $request, UploadableAttributeReader $annotationReader, UploadableFileManager $uploadableFileManager)
     {
         if (!$annotationReader->isConfigured($data)) {
-            throw new InvalidArgumentException(sprintf('%s is not an uploadable resource. It should not be configured to use %s.', \get_class($data), __CLASS__));
+            throw new InvalidArgumentException(sprintf('%s is not an uploadable resource. It should not be configured to use %s.', $data::class, __CLASS__));
         }
 
         return $uploadableFileManager->getFileResponse($data, $property, $request->query->getBoolean('download', false));

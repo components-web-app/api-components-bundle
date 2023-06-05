@@ -45,16 +45,16 @@ final class PublishableLoader implements LoaderInterface
         $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->fieldName] ?? null)) &&
-            !empty($attributeMetadata->getGroups())
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->fieldName] ?? null))
+            && !empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
             $attributeMetadata->addGroup($writeGroup);
         }
 
         if (
-            ($attributeMetadata = ($allAttributesMetadata[$configuration->associationName] ?? null)) &&
-            !empty($attributeMetadata->getGroups())
+            ($attributeMetadata = ($allAttributesMetadata[$configuration->associationName] ?? null))
+            && !empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
         }

@@ -23,7 +23,7 @@ class FormSuccessEvent extends Event
 {
     private Form $form;
 
-    public $result = null;
+    public $result;
 
     public function __construct(Form $form)
     {

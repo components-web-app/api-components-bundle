@@ -31,7 +31,7 @@ class RefererUrlResolver
 
     public function getAbsoluteUrl($path): string
     {
-        if (false !== strpos($path, '://') || 0 === strpos($path, '//')) {
+        if (str_contains($path, '://') || str_starts_with($path, '//')) {
             return $path;
         }
 

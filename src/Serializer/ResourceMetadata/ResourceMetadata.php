@@ -123,7 +123,7 @@ class ResourceMetadata implements ResourceMetadataInterface
         return $this->publishable;
     }
 
-    public function setPublishable(bool $published, ?string $publishedAt = null): void
+    public function setPublishable(bool $published, string $publishedAt = null): void
     {
         if ($this->publishable) {
             $this->publishable->published = $published;

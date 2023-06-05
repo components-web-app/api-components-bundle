@@ -41,7 +41,7 @@ class TablePrefixExtension
             return false;
         }
 
-        if (0 !== strpos($reflectionClass->getNamespaceName(), 'Silverback\ApiComponentsBundle\\')) {
+        if (!str_starts_with($reflectionClass->getNamespaceName(), 'Silverback\ApiComponentsBundle\\')) {
             return false;
         }
 

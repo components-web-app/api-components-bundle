@@ -34,8 +34,8 @@ class PasswordUpdateListener extends EntityPersistFormListener
     {
         $formDataUser = $event->getFormData();
         if (
-            !$formDataUser instanceof AbstractUser ||
-            PasswordUpdateType::class !== $event->getForm()->formType
+            !$formDataUser instanceof AbstractUser
+            || PasswordUpdateType::class !== $event->getForm()->formType
         ) {
             return;
         }

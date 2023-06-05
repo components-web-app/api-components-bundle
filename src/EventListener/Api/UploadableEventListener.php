@@ -41,9 +41,9 @@ final class UploadableEventListener
         $data = $attr['data'];
         $class = $attr['class'];
         if (
-            empty($data) ||
-            !$this->uploadableAnnotationReader->isConfigured($class) ||
-            $request->isMethod(Request::METHOD_GET)
+            empty($data)
+            || !$this->uploadableAnnotationReader->isConfigured($class)
+            || $request->isMethod(Request::METHOD_GET)
         ) {
             return;
         }
@@ -62,10 +62,10 @@ final class UploadableEventListener
         $data = $attr['data'];
         $class = $attr['class'];
         if (
-            empty($data) ||
-            !$this->uploadableAnnotationReader->isConfigured($class) ||
-            $request->isMethod(Request::METHOD_GET) ||
-            $request->isMethod(Request::METHOD_DELETE)
+            empty($data)
+            || !$this->uploadableAnnotationReader->isConfigured($class)
+            || $request->isMethod(Request::METHOD_GET)
+            || $request->isMethod(Request::METHOD_DELETE)
         ) {
             return;
         }

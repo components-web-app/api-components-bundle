@@ -45,7 +45,7 @@ class RouteVoter extends Voter
     {
         foreach ($this->config as $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
-            if (!$this->resourceAccessChecker->isGranted(\get_class($subject), $routeConfig['security']) && preg_match(sprintf('#%s#', $routeRegex), $subject->getPath())) {
+            if (!$this->resourceAccessChecker->isGranted($subject::class, $routeConfig['security']) && preg_match(sprintf('#%s#', $routeRegex), $subject->getPath())) {
                 return false;
             }
         }

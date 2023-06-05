@@ -75,7 +75,7 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
         }
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
-        $metadataContext['resource_class'] = \get_class($resourceMetadata);
+        $metadataContext['resource_class'] = $resourceMetadata::class;
 
         $normalizedResourceMetadata = $this->normalizer->normalize($resourceMetadata, $format, $metadataContext);
         $data = $this->normalizer->normalize($object, $format, $context);
