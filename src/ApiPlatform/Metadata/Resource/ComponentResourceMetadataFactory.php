@@ -17,7 +17,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 
 /**

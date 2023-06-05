@@ -21,7 +21,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use JetBrains\PhpStorm\Pure;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
