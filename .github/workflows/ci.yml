@@ -268,6 +268,8 @@ jobs:
         run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
         run: tests/Functional/app/bin/console cache:clear --ansi
+      - name: Disable deprecations helper
+        run: echo "SYMFONY_DEPRECATIONS_HELPER=disabled=1" >> $GITHUB_ENV
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
