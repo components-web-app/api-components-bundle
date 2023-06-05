@@ -99,12 +99,6 @@ class PersistedNormalizerTest extends TestCase
         self::assertTrue($this->apiNormalizer->supportsNormalization($dummyComponent, $format, []));
     }
 
-    public function test_has_cacheable_supports_method(): void
-    {
-        // context changes so will support the first time and not in future to prevent infinite loop
-        self::assertFalse($this->apiNormalizer->hasCacheableSupportsMethod());
-    }
-
     public function test_normalization_result_entity_is_persisted(): void
     {
         $dummyComponent = new DummyComponent();

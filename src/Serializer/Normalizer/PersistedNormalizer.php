@@ -20,7 +20,6 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataP
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -28,7 +27,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class PersistedNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
+class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
     use ClassInfoTrait;
     use NormalizerAwareTrait;
@@ -75,8 +74,12 @@ class PersistedNormalizer implements NormalizerInterface, CacheableSupportsMetho
             $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
     }
 
-    public function hasCacheableSupportsMethod(): bool
+    public function getSupportedTypes(?string $format): array
     {
-        return false;
+        return [
+            // 'object' => null, // Doesn't support any classes or interfaces
+            '*' => false, // Supports any other types, but the result is not cacheable
+            // MyCustomClass::class => true, // Supports MyCustomClass and result is cacheable
+        ];
     }
 }

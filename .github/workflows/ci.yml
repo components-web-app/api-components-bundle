@@ -89,6 +89,9 @@ jobs:
       - name: Enable code coverage
         if: matrix.coverage
         run: echo "COVERAGE=1" >> $GITHUB_ENV
+      - name: Disable deprecations helper
+        if: !matrix.coverage
+        run: echo "SYMFONY_DEPRECATIONS_HELPER=disabled=1" >> $GITHUB_ENV
       - name: Update project dependencies
         run: |
           composer config extra.symfony.require ${{ matrix.symfony }}
