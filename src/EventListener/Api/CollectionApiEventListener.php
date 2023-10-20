@@ -22,8 +22,8 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
+use ApiPlatform\State\Util\RequestParser;
 use ApiPlatform\Util\AttributesExtractor;
-use ApiPlatform\Util\RequestParser;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
