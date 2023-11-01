@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
       fail-fast: false
     timeout-minutes: 5
     steps:
@@ -49,13 +49,13 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '6.3'
         experimental:
             - false
         include:
-          - php: '8.1'
+          - php: '8.2'
             symfony: '6.3'
             experimental: false
             coverage: true
@@ -147,13 +147,13 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '6.3'
         experimental:
           - false
         include:
-          - php: '8.1'
+          - php: '8.2'
             symfony: '6.3'
             experimental: false
             coverage: true
@@ -231,7 +231,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '^6.3'
       fail-fast: false
@@ -286,7 +286,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '^6.3'
       fail-fast: false
@@ -339,7 +339,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '6.4'
       fail-fast: false
@@ -412,7 +412,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         symfony:
           - '6.4'
       fail-fast: false
