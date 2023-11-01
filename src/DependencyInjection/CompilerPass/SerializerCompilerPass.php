@@ -26,7 +26,7 @@ use Symfony\Component\DependencyInjection\Reference;
  */
 class SerializerCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         $definitions = ['serializer.mapping.chain_loader', 'serializer.mapping.cache_warmer'];
         foreach ($definitions as $definitonId) {
