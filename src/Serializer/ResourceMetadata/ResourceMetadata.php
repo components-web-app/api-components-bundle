@@ -45,7 +45,7 @@ class ResourceMetadata implements ResourceMetadataInterface
     private ?ResourcePublishableMetadata $publishable = null;
 
     #[Groups('cwa_resource:metadata')]
-    private ?ConstraintViolationListInterface $violationList;
+    private ?ConstraintViolationListInterface $violations;
 
     #[Groups('cwa_resource:metadata')]
     private ?array $mediaObjects = null;
@@ -134,14 +134,14 @@ class ResourceMetadata implements ResourceMetadataInterface
         $this->publishable = new ResourcePublishableMetadata($published, $publishedAt);
     }
 
-    public function getViolationList(): ?ConstraintViolationListInterface
+    public function getViolations(): ?ConstraintViolationListInterface
     {
-        return $this->violationList;
+        return $this->violations;
     }
 
-    public function setViolationList(?ConstraintViolationListInterface $violationList): void
+    public function setViolations(?ConstraintViolationListInterface $violations): void
     {
-        $this->violationList = $violationList;
+        $this->violations = $violations;
     }
 
     public function getMediaObjects(): ?array

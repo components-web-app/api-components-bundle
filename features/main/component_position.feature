@@ -30,7 +30,7 @@ Feature: Component positions
       | <componentGroup> | <component> |
     Then the response status code should be <status>
     Examples:
-      | component                       | componentGroup                  | status | allowedComponent                 |
+      | component                       | componentGroup             | status | allowedComponent                 |
       | resource[dummy_component]       | resource[component_group]  | 422    | /component/restricted_components |
       | resource[restricted_component]  | resource[component_group]  | 201    | /component/restricted_components |
       | resource[restricted_component]  | resource[component_group]  | 422    |                                  |

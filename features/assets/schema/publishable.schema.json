@@ -79,7 +79,7 @@
           "publishable": {
             "published": true,
             "publishedAt": "2020-04-07T09:38:49+00:00",
-            "violationList": []
+            "violations": []
           }
         }
       ],
@@ -132,7 +132,7 @@
             }
           }
         },
-        "violationList": {
+        "violations": {
           "$ref": "validation_errors.schema.json"
         }
       }

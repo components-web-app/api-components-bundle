@@ -109,7 +109,7 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {
-                $resourceMetadata->setViolationList($exception->getConstraintViolationList());
+                $resourceMetadata->setViolations($exception->getConstraintViolationList());
             }
         }
 

@@ -40,9 +40,9 @@ interface ResourceMetadataInterface
 
     public function setPublishable(bool $published, string $publishedAt = null): void;
 
-    public function getViolationList(): ?ConstraintViolationListInterface;
+    public function getViolations(): ?ConstraintViolationListInterface;
 
-    public function setViolationList(?ConstraintViolationListInterface $violationList): void;
+    public function setViolations(?ConstraintViolationListInterface $violationList): void;
 
     public function getMediaObjects(): ?array;
 

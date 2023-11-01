@@ -16,7 +16,7 @@ Feature: ComponentGroup resource
     }
     """
     Then the response status code should be 422
-    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
   @loginUser
   Scenario: I can create a component collection resource

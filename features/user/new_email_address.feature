@@ -105,7 +105,7 @@ Feature: Register process via a form
     Then the response status code should be 422
     And the JSON node "violations[0].propertyPath" should be equal to "newEmailAddress"
     And the JSON node "violations[0].message" should be equal to "This value should not be blank."
-    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
   @loginSuperAdmin
   Scenario: I can authenticate that I am not able to change my email address to a blank string

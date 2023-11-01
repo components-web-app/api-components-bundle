@@ -30,7 +30,7 @@ Feature: Layout resources
       | reference   | uiComponent    |
       | <reference> | <uiComponent>  |
     Then the response status code should be 422
-    And the JSON should be valid according to the schema file "validation_errors.schema.json"
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
     And the JSON node "violations[0].propertyPath" should be equal to "<propertyPath>"
     And the JSON node "violations[0].message" should be equal to "<message>"
     Examples:
