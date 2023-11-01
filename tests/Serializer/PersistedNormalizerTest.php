@@ -54,10 +54,10 @@ class PersistedNormalizerTest extends TestCase
         $this->apiNormalizer->setNormalizer($this->normalizerMock);
     }
 
-//    public function test_normalizer_is_called(): void
-//    {
-//
-//    }
+    //    public function test_normalizer_is_called(): void
+    //    {
+    //
+    //    }
 
     public function tests_does_not_support_normalization_never_reaching_resource_class_resolver(): void
     {

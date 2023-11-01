@@ -18,8 +18,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class ResourcePublishableMetadata
 {
     public function __construct(
-        #[Groups('cwa_resource:metadata')] public bool $published,
-        #[Groups('cwa_resource:metadata')] public ?string $publishedAt = null
+        #[Groups('cwa_resource:metadata')]
+        public bool $published,
+        #[Groups('cwa_resource:metadata')]
+        public ?string $publishedAt = null
     ) {
     }
 }

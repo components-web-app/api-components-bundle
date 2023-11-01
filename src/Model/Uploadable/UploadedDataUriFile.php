@@ -21,8 +21,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class UploadedDataUriFile extends UploadedFile
 {
     /**
-     * @param string $originalName
-     * @param null   $mimeType
+     * @param null $mimeType
      */
     public function __construct(DataUriFile $file, string $originalName = null, string $mimeType = null, int $error = null, bool $test = false)
     {

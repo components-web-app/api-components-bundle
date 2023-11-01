@@ -172,6 +172,7 @@ class UploadsContext implements Context
         $this->manager->clear();
         try {
             $iri = $this->restContext->resources[$name];
+
             /* @var UploadableTrait $item */
             return $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
