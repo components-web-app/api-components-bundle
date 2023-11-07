@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer;
 
 use ApiPlatform\Metadata\UriVariableTransformerInterface;
-use ApiPlatform\Exception\InvalidUriVariableException;
+use ApiPlatform\Metadata\Exception\InvalidUriVariableException;
 use ApiPlatform\RamseyUuid\UriVariableTransformer\UuidUriVariableTransformer as BaseUuidUriVariableTransformer;
 
 /**
