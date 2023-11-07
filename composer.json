@@ -54,7 +54,6 @@
         "symfony/proxy-manager-bridge": "^6.3",
         "symfony/security-bundle": "^6.3",
         "symfony/serializer": "^6.3",
-        "symfony/string": "^6.3",
         "symfony/twig-bundle": "^6.3",
         "symfony/validator": "^6.3",
         "twig/cssinliner-extra": "^3.0.3",
