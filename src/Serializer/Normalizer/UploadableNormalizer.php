@@ -27,7 +27,6 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -38,7 +37,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class UploadableNormalizer implements CacheableSupportsMethodInterface, DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
+final class UploadableNormalizer implements DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
 {
     use ClassMetadataTrait;
 
@@ -157,8 +156,8 @@ final class UploadableNormalizer implements CacheableSupportsMethodInterface, De
         return $this->normalizer->normalize($object, $format, $context);
     }
 
-    public function hasCacheableSupportsMethod(): bool
+    public function getSupportedTypes(?string $format): array
     {
-        return false;
+        return ['object' => false];
     }
 }

@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Api;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 

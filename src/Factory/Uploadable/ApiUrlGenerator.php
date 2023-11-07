@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 
-use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use League\Flysystem\Filesystem;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;

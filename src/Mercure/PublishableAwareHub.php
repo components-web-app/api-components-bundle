@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
-use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Exception\ItemNotFoundException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\Mercure\HubInterface;

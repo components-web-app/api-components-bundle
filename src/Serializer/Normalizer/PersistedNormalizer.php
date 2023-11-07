@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Metadata\Util\ClassInfoTrait;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
+use Silverback\ApiComponentsBundle\Utility\ClassInfoTrait;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,7 +21,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -34,7 +33,6 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -47,7 +45,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
+final class PublishableNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
@@ -261,11 +259,6 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type);
     }
 
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
-    }
-
     private function getManagerFromType(string $type): ObjectManager
     {
         $em = $this->registry->getManagerForClass($type);
@@ -284,5 +277,10 @@ final class PublishableNormalizer implements NormalizerInterface, CacheableSuppo
         }
 
         return $classMetadata;
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return ['object' => false];
     }
 }

@@ -29,10 +29,9 @@ class DummyPublishableCustomComponent extends AbstractComponent
 {
     /**
      * @var string a reference for this component
-     *
-     * @Assert\NotBlank(groups={"PublishableComponent:published"})
      */
-    #[Orm\Column]
+    #[Assert\NotBlank(groups: ['PublishableComponent:published'])]
+    #[ORM\Column]
     public string $reference = '';
 
     private ?\DateTimeInterface $customPublishedAt = null;

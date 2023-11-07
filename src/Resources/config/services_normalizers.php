@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;

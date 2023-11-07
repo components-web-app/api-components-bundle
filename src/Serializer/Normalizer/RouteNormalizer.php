@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -23,7 +22,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
+class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
     use NormalizerAwareTrait;
 
@@ -108,8 +107,8 @@ class RouteNormalizer implements NormalizerInterface, CacheableSupportsMethodInt
         return !isset($context[self::ALREADY_CALLED]) && $data instanceof Route;
     }
 
-    public function hasCacheableSupportsMethod(): bool
+    public function getSupportedTypes(?string $format): array
     {
-        return false;
+        return [Route::class => false];
     }
 }

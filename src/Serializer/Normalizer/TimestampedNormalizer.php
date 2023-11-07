@@ -18,7 +18,6 @@ use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -26,7 +25,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class TimestampedNormalizer implements CacheableSupportsMethodInterface, DenormalizerInterface, DenormalizerAwareInterface
+class TimestampedNormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
     use ClassMetadataTrait;
 
@@ -42,11 +41,6 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Denorma
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->timestampedDataPersister = $timestampedDataPersister;
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
     }
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
@@ -69,5 +63,11 @@ class TimestampedNormalizer implements CacheableSupportsMethodInterface, Denorma
         $this->timestampedDataPersister->persistTimestampedFields($object, $isNew);
 
         return $object;
+    }
+
+    // TODO: is this only for objects?
+    public function getSupportedTypes(?string $format): array
+    {
+        return ['*' => false];
     }
 }

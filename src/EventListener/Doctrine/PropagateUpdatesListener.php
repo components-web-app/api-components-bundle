@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;

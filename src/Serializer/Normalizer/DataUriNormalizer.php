@@ -15,7 +15,6 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer as SymfonyDataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
@@ -32,7 +31,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareInterface, CacheableSupportsMethodInterface, NormalizerInterface, DenormalizerInterface
+class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareInterface, NormalizerInterface, DenormalizerInterface
 {
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
@@ -42,11 +41,6 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
     public function __construct(NormalizerInterface|SymfonyDataUriNormalizer $decorated)
     {
         $this->decorated = $decorated;
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return $this->decorated->hasCacheableSupportsMethod();
     }
 
     public function denormalize($data, $type, $format = null, array $context = []): mixed
@@ -71,5 +65,10 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
         return $this->decorated->supportsNormalization($data, $format, $context);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return $this->decorated->getSupportedTypes($format);
     }
 }

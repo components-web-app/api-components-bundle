@@ -41,9 +41,8 @@ class Layout
     use TimestampedTrait;
     use UiTrait;
 
-    /**
-     * @Assert\NotBlank(message="Please enter a reference.")
-     */
+
+    #[Assert\NotBlank(message: "Please enter a reference.")]
     public string $reference;
 
     /**

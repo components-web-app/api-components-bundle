@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Utility;
 
-use ApiPlatform\Metadata\Util\ClassInfoTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMInvalidArgumentException;

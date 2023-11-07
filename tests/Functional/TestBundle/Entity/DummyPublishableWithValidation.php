@@ -33,16 +33,14 @@ class DummyPublishableWithValidation
 
     /**
      * This constraint will be applied on draft and published resources.
-     *
-     * @Assert\NotBlank
      */
+    #[Assert\NotBlank]
     public string $name = '';
 
     /**
      * This constraint will be applied on published resources only.
-     *
-     * @Assert\NotBlank(groups={"DummyPublishableWithValidation:published"})
      */
+     #[Assert\NotBlank(groups: ["DummyPublishableWithValidation:published"])]
     public string $description = '';
 
     /**
