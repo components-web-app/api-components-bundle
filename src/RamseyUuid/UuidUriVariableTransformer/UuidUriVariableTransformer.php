@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer;
 
+use ApiPlatform\Exception\InvalidUriVariableException as LegacyInvalidUriVariableException;
 use ApiPlatform\Metadata\Exception\InvalidUriVariableException;
 use ApiPlatform\Metadata\UriVariableTransformerInterface;
 use ApiPlatform\RamseyUuid\UriVariableTransformer\UuidUriVariableTransformer as BaseUuidUriVariableTransformer;
@@ -33,7 +34,7 @@ class UuidUriVariableTransformer implements UriVariableTransformerInterface
     {
         try {
             return $this->decorated->transform($value, $types, $context);
-        } catch (InvalidUriVariableException $exception) {
+        } catch (InvalidUriVariableException|LegacyInvalidUriVariableException $exception) {
             return $value;
         }
     }

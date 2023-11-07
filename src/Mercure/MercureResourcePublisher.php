@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
+use ApiPlatform\Exception\InvalidArgumentException as LegacyInvalidArgumentException;
+use ApiPlatform\Exception\OperationNotFoundException as LegacyOperationNotFoundException;
 use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
 use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
@@ -147,7 +149,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         try {
             $options = $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getMercure() ?? false;
-        } catch (OperationNotFoundException) {
+        } catch (OperationNotFoundException|LegacyOperationNotFoundException) {
             return null;
         }
 
@@ -261,7 +263,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         } else {
             try {
                 $data = $this->getObjectData($object, $iri);
-            } catch (InvalidArgumentException) {
+            } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
                 // the object may have been deleted at the database level with delete cascades...
                 $type = 'delete';
                 $data = $getDeletedObjectData();

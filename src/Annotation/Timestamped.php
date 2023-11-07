@@ -15,9 +15,6 @@ namespace Silverback\ApiComponentsBundle\Annotation;
 
 /**
  * @author Daniel West <daniel@silverback.is>
- *
- * @Annotation
- * @Target("CLASS")
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class Timestamped
