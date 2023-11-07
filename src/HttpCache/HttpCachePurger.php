@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\HttpCache;
 
-use ApiPlatform\Metadata\IriConverterInterface;
-use ApiPlatform\Metadata\ResourceClassResolverInterface;
-use ApiPlatform\Metadata\UrlGeneratorInterface;
+use ApiPlatform\HttpCache\PurgerInterface;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Exception\RuntimeException;
-use ApiPlatform\HttpCache\PurgerInterface;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\PersistentCollection;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface

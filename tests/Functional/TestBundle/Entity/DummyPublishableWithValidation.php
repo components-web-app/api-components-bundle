@@ -40,7 +40,7 @@ class DummyPublishableWithValidation
     /**
      * This constraint will be applied on published resources only.
      */
-     #[Assert\NotBlank(groups: ["DummyPublishableWithValidation:published"])]
+    #[Assert\NotBlank(groups: ['DummyPublishableWithValidation:published'])]
     public string $description = '';
 
     /**

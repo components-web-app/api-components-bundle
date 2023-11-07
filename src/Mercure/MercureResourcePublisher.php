@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
-use ApiPlatform\Metadata\IriConverterInterface;
-use ApiPlatform\Metadata\ResourceClassResolverInterface;
-use ApiPlatform\Metadata\UrlGeneratorInterface;
+use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
+use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Exception\RuntimeException;
-use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
-use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Doctrine\ORM\PersistentCollection;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;

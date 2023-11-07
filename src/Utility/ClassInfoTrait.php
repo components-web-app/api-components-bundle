@@ -1,9 +1,9 @@
 <?php
 
 /*
- * This file is part of the API Platform project.
+ * This file is part of the Silverback API Components Bundle Project
  *
- * (c) Kévin Dunglas <dunglas@gmail.com>
+ * (c) Daniel West <daniel@silverback.is>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -57,4 +57,3 @@ trait ClassInfoTrait
         );
     }
 }
-

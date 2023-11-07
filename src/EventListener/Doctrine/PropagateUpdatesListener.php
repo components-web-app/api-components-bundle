@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
-use ApiPlatform\Metadata\Exception\InvalidArgumentException;
-use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;

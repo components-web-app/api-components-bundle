@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Api;
 
 use ApiPlatform\Metadata\IriConverterInterface;
-use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 
 /**
