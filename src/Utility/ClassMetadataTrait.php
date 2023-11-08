@@ -30,9 +30,7 @@ trait ClassMetadataTrait
 
     protected ?ManagerRegistry $registry;
 
-    /**
-     * @required
-     */
+    #[\Symfony\Contracts\Service\Attribute\Required]
     protected function initRegistry(ManagerRegistry $registry): void
     {
         $this->registry = $registry;

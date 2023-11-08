@@ -1,14 +1,8 @@
 framework:
     fragments:
         enabled: true
-    annotations:
-        enabled: false
     test:     ~
     secret: 'silverbackNoSecret'
-    validation:
-        enable_annotations:            true
-    serializer:
-        enable_annotations:            true
     session:
         storage_factory_id: 'session.storage.factory.mock_file'
         cookie_secure: 'auto'
