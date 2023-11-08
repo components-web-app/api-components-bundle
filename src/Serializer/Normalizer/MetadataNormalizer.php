@@ -17,7 +17,6 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataP
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -25,7 +24,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface, NormalizerAwareInterface
+class MetadataNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
     use NormalizerAwareTrait;
 
@@ -36,11 +35,6 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
     public function __construct(private string $metadataKey, private readonly ResourceMetadataProvider $resourceMetadataProvider)
     {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
     }
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
@@ -83,5 +77,23 @@ class MetadataNormalizer implements NormalizerInterface, CacheableSupportsMethod
         $data[$this->metadataKey] = empty($normalizedResourceMetadata) ? null : $normalizedResourceMetadata;
 
         return $data;
+    }
+
+    /**
+     * Returns the types potentially supported by this normalizer.
+     *
+     * For each supported formats (if applicable), the supported types should be
+     * returned as keys, and each type should be mapped to a boolean indicating
+     * if the result of supportsNormalization() can be cached or not
+     * (a result cannot be cached when it depends on the context or on the data.)
+     * A null value means that the normalizer does not support the corresponding
+     * type.
+     *
+     * Use type "object" to match any classes or interfaces,
+     * and type "*" to match any types.
+     */
+    public function getSupportedTypes(?string $format): array
+    {
+        return ['object' => false];
     }
 }

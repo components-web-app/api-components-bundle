@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\DataProvider;
 
-use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\Common\Collections\ArrayCollection;

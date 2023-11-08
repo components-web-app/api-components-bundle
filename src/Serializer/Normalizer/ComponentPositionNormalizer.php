@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -30,7 +30,6 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -43,7 +42,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
+class ComponentPositionNormalizer implements DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
@@ -59,11 +58,6 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceMetadataProvider $resourceMetadataProvider
     ) {
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
     }
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
@@ -187,5 +181,10 @@ class ComponentPositionNormalizer implements CacheableSupportsMethodInterface, D
         $object->setComponent($component);
 
         return $object;
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [ComponentPosition::class => false];
     }
 }

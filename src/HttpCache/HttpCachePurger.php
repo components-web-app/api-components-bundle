@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\HttpCache;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Api\UrlGeneratorInterface;
-use ApiPlatform\Exception\InvalidArgumentException;
-use ApiPlatform\Exception\OperationNotFoundException;
-use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Exception\InvalidArgumentException as LegacyInvalidArgumentException;
+use ApiPlatform\Exception\OperationNotFoundException as LegacyOperationNotFoundException;
+use ApiPlatform\Exception\RuntimeException as LegacyRuntimeException;
 use ApiPlatform\HttpCache\PurgerInterface;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\OperationNotFoundException;
+use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\PersistentCollection;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface
@@ -67,7 +70,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
 
             // clear cache of anything containing this item
             $this->collectItem($entity);
-        } catch (OperationNotFoundException|InvalidArgumentException $e) {
+        } catch (OperationNotFoundException|InvalidArgumentException|LegacyOperationNotFoundException|LegacyInvalidArgumentException) {
         }
     }
 
@@ -76,7 +79,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         try {
             $iri = $this->iriConverter->getIriFromResource($item);
             $this->collectIri($iri);
-        } catch (InvalidArgumentException|RuntimeException $e) {
+        } catch (InvalidArgumentException|RuntimeException|LegacyInvalidArgumentException|LegacyRuntimeException) {
         }
     }
 

@@ -17,24 +17,18 @@ use ApiPlatform\Documentation\Documentation;
 use ApiPlatform\Hydra\Serializer\DocumentationNormalizer;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class VersionedDocumentationNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
+class VersionedDocumentationNormalizer implements NormalizerInterface
 {
     private NormalizerInterface|DocumentationNormalizer $decorated;
 
     public function __construct(NormalizerInterface|DocumentationNormalizer $decorated)
     {
         $this->decorated = $decorated;
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return $this->decorated->hasCacheableSupportsMethod();
     }
 
     /**
@@ -55,5 +49,10 @@ class VersionedDocumentationNormalizer implements NormalizerInterface, Cacheable
     public function supportsNormalization($data, string $format = null, array $context = []): bool
     {
         return $this->decorated->supportsNormalization($data, $format, $context);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return $this->decorated->getSupportedTypes($format);
     }
 }

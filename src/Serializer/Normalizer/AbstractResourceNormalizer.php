@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -22,7 +21,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class AbstractResourceNormalizer implements CacheableSupportsMethodInterface, DenormalizerInterface, DenormalizerAwareInterface
+class AbstractResourceNormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 
@@ -33,11 +32,6 @@ class AbstractResourceNormalizer implements CacheableSupportsMethodInterface, De
     public function __construct(ApiResourceRouteFinder $routeFinder)
     {
         $this->routeFinder = $routeFinder;
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
     }
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
@@ -64,5 +58,10 @@ class AbstractResourceNormalizer implements CacheableSupportsMethodInterface, De
         }
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return ['object' => false];
     }
 }

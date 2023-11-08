@@ -19,7 +19,6 @@ use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -30,7 +29,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
+class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
@@ -44,11 +43,6 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
         private readonly MercureAuthorization $mercureAuthorization
     ) {
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return false;
     }
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
@@ -96,5 +90,10 @@ class UserNormalizer implements CacheableSupportsMethodInterface, DenormalizerIn
         $metadata->setMercureSubscribeTopics($subscribeTopics);
 
         return $this->normalizer->normalize($object, $format, $context);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [AbstractUser::class => false];
     }
 }

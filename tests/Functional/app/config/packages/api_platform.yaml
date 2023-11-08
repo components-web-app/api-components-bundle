@@ -4,15 +4,21 @@ api_platform:
     mapping:
         paths:
             - '%kernel.project_dir%/../TestBundle/Entity'
+    formats:
+        jsonld: ['application/ld+json']
     patch_formats:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
+    keep_legacy_inflector: true
     http_cache:
         invalidation:
             purger: 'api_platform.http_cache.purger.varnish.xkey'
             enabled: true
-            varnish_urls: [ 'http://test' ]
-            xkey:
-                glue: ' '
+            urls: [ 'http://test' ]
         public: true
+    defaults:
+        cache_headers:
+            invalidation:
+                xkey:
+                    glue: ' '

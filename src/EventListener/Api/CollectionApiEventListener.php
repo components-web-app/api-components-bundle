@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
-use ApiPlatform\Exception\InvalidIdentifierException;
+use ApiPlatform\Exception\InvalidIdentifierException as LegacyInvalidIdentifierException;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\Exception\InvalidIdentifierException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -132,7 +133,7 @@ class CollectionApiEventListener
             $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
             // Operation $operation, array $uriVariables = [], array $context = []
             $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
-        } catch (InvalidIdentifierException $e) {
+        } catch (InvalidIdentifierException|LegacyInvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
 

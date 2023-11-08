@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\OpenApi;
 
-use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Exception\ResourceClassNotFoundException as LegacyResourceClassNotFoundException;
+use ApiPlatform\Metadata\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\PathItem;
@@ -47,7 +48,7 @@ class OpenApiFactory implements OpenApiFactoryInterface
                 foreach ($metadata as $metadatum) {
                     $shortNames[] = $metadatum->getShortName();
                 }
-            } catch (ResourceClassNotFoundException $exception) {
+            } catch (LegacyResourceClassNotFoundException|ResourceClassNotFoundException $exception) {
                 // the component may not be enabled
             }
         }

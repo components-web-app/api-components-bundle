@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
-use ApiPlatform\Exception\OperationNotFoundException;
+use ApiPlatform\Exception\OperationNotFoundException as LegacyOperationNotFoundException;
+use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
@@ -96,7 +97,7 @@ class MercureAuthorization
 
         try {
             $operation = $resourceMetadataCollection->getOperation(forceCollection: false, httpOperation: true);
-        } catch (OperationNotFoundException $e) {
+        } catch (OperationNotFoundException|LegacyOperationNotFoundException) {
             return null;
         }
 

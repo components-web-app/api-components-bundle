@@ -146,13 +146,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  */
 #[ApiResource]
-#[Orm\Entity]
+#[ORM\Entity]
 class HtmlComponent extends AbstractComponent
 {
-    /**
-     * @Assert\NotBlank()
-     */
-     #[Orm\Column(nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\Column(nullable: false)]
     public string $html;
 }
 ```

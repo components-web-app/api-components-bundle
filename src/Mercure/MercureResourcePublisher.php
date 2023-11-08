@@ -13,20 +13,21 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Api\UrlGeneratorInterface;
-use ApiPlatform\Exception\InvalidArgumentException;
-use ApiPlatform\Exception\OperationNotFoundException;
-use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Exception\InvalidArgumentException as LegacyInvalidArgumentException;
+use ApiPlatform\Exception\OperationNotFoundException as LegacyOperationNotFoundException;
 use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface as GraphQlMercureSubscriptionIriGeneratorInterface;
 use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface as GraphQlSubscriptionManagerInterface;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\OperationNotFoundException;
+use ApiPlatform\Metadata\Exception\RuntimeException;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Metadata\Util\ResourceClassInfoTrait;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
-use ApiPlatform\Symfony\Messenger\DispatchTrait;
 use Doctrine\ORM\PersistentCollection;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Utility\ResourceClassInfoTrait;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -148,7 +149,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         try {
             $options = $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getMercure() ?? false;
-        } catch (OperationNotFoundException) {
+        } catch (OperationNotFoundException|LegacyOperationNotFoundException) {
             return null;
         }
 
@@ -262,7 +263,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         } else {
             try {
                 $data = $this->getObjectData($object, $iri);
-            } catch (InvalidArgumentException) {
+            } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
                 // the object may have been deleted at the database level with delete cascades...
                 $type = 'delete';
                 $data = $getDeletedObjectData();

@@ -33,15 +33,13 @@ class DummyPublishableWithValidationCustomGroup
 
     /**
      * This constraint will be applied on draft and published resources.
-     *
-     * @Assert\NotBlank
      */
+    #[Assert\NotBlank]
     public string $name = '';
 
     /**
      * This constraint will be applied on published resources only.
-     *
-     * @Assert\NotBlank(groups={"custom_validation_group"})
      */
+    #[Assert\NotBlank(groups: ['custom_validation_group'])]
     public string $description = '';
 }

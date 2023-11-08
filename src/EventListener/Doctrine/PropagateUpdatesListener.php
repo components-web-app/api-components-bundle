@@ -13,11 +13,12 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-use ApiPlatform\Api\IriConverterInterface;
-use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException as LegacyInvalidArgumentException;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -200,7 +201,7 @@ class PropagateUpdatesListener
 
         try {
             $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
             return;
         }
 
@@ -209,7 +210,7 @@ class PropagateUpdatesListener
             try {
                 $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
                 $this->updatedCollectionClassToIriMapping[$resourceClass] = $collectionIri;
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
             }
         }
 
