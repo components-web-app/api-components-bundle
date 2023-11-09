@@ -6,6 +6,11 @@ api_platform:
             - '%kernel.project_dir%/../TestBundle/Entity'
     formats:
         jsonld: ['application/ld+json']
+    docs_formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+        jsonopenapi: ['application/vnd.openapi+json']
+        html: ['text/html']
     patch_formats:
         json: ['application/merge-patch+json']
     swagger:
@@ -17,7 +22,13 @@ api_platform:
             enabled: true
             urls: [ 'http://test' ]
         public: true
+    # tests break when using this but it's no big deal as 
+    # event listeners will always be available
+    # we do recommend using providers/processors instead
+    event_listeners_backward_compatibility_layer: true
     defaults:
+        extra_properties:
+            rfc_7807_compliant_errors: true
         cache_headers:
             invalidation:
                 xkey:

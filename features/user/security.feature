@@ -7,21 +7,23 @@ Feature: Prevent disabled users from logging in
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
-  Scenario: I can use a login form (it is a helper form so that styling and front-end functionality can remain the same)
-    Given there is a "login" form
-    When I send a "GET" request to the resource "login_form"
-    Then the response status code should be 200
-    And the JSON should be valid according to the schema file "form.schema.json"
-
-  Scenario: I cannot submit a login form back to the resource
-    Given there is a "login" form
-    When I send a "POST" request to the resource "login_form" and the postfix "/submit" with body:
+  Scenario: A successful user login
+    Given there is a user with the username "user" password "password" and role "ROLE_USER"
+    When I send a "POST" request to "/login" with body:
     """
     {
-      "user_login": {}
+      "username": "user",
+      "password": "password"
     }
     """
-    Then the response status code should be 404
+    Then the response status code should be 204
+    And the response should be empty
+    And the response should have a "api_components" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And 1 refresh token should exist
+    And the response should have a "mercureAuthorization" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And the mercure cookie should not contain draft resource topics
 
   Scenario: A disabled user is not able to login
     Given there is a user with the username "user" password "password" and role "ROLE_USER"
@@ -43,24 +45,6 @@ Feature: Prevent disabled users from logging in
     """
 
   Scenario: A successful login
-    Given there is a user with the username "user" password "password" and role "ROLE_USER"
-    When I send a "POST" request to "/login" with body:
-    """
-    {
-      "username": "user",
-      "password": "password"
-    }
-    """
-    Then the response status code should be 204
-    And the response should be empty
-    And the response should have a "api_components" cookie
-    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
-    And 1 refresh token should exist
-    And the response should have a "mercureAuthorization" cookie
-    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
-    And the mercure cookie should not contain draft resource topics
-
-  Scenario: A successful login
     Given there is a user with the username "admin" password "password" and role "ROLE_ADMIN"
     When I send a "POST" request to "/login" with body:
     """
@@ -74,6 +58,22 @@ Feature: Prevent disabled users from logging in
     And the response should have a "mercureAuthorization" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should contain draft resource topics
+
+  Scenario: I can use a login form (it is a helper form so that styling and front-end functionality can remain the same)
+    Given there is a "login" form
+    When I send a "GET" request to the resource "login_form"
+    Then the response status code should be 200
+    And the JSON should be valid according to the schema file "form.schema.json"
+
+  Scenario: I cannot submit a login form back to the resource
+    Given there is a "login" form
+    When I send a "POST" request to the resource "login_form" and the postfix "/submit" with body:
+    """
+    {
+      "user_login": {}
+    }
+    """
+    Then the response status code should be 404
 
   @loginUser
   Scenario: Expired JWT tokens should be refreshed

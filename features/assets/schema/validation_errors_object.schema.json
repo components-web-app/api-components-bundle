@@ -5,21 +5,12 @@
   "default": {},
   "additionalProperties": true,
   "required": [
-    "@context",
     "@type",
     "hydra:title",
     "hydra:description",
     "violations"
   ],
   "properties": {
-    "@context": {
-      "$id": "#/properties/@context",
-      "type": "string",
-      "title": "The @context Schema",
-      "description": "An explanation about the purpose of this instance.",
-      "default": "",
-      "const": "/contexts/ConstraintViolationList"
-    },
     "@type": {
       "$id": "#/properties/@type",
       "type": "string",
