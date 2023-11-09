@@ -33,7 +33,6 @@ Feature: Form component that defines a form type created in the application
      """
     Then the response status code should be <status>
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
     Examples:
       | name       | status |
@@ -57,7 +56,6 @@ Feature: Form component that defines a form type created in the application
      """
     Then the response status code should be <status>
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
     Examples:
       | name       | company | status |
@@ -94,7 +92,6 @@ Feature: Form component that defines a form type created in the application
      """
     Then the response status code should be <status>
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be valid according to the schema file "form.schema.json"
     Examples:
       | name       | company | status |
@@ -112,7 +109,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should be equal to "application/problem+json; charset=utf-8"
     And the JSON should be a superset of:
     """
     {

@@ -13,16 +13,6 @@ Feature: Prevent disabled users from logging in
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  Scenario: I cannot submit a login form back to the resource
-    Given there is a "login" form
-    When I send a "POST" request to the resource "login_form" and the postfix "/submit" with body:
-    """
-    {
-      "user_login": {}
-    }
-    """
-    Then the response status code should be 404
-
   Scenario: A disabled user is not able to login
     Given there is a user with the username "user" password "password" and role "ROLE_USER"
     And the user is disabled
@@ -120,3 +110,14 @@ Feature: Prevent disabled users from logging in
     And the response should have a "mercureAuthorization" cookie
     And the response should have a "mercureAuthorization" cookie with max age less than 2
     And the response should have a "mercureAuthorization" cookie with the value "x.x.x"
+
+  # TODO: fix this side effect if this scenario runs first, traced that back to an empty Authorization header
+  Scenario: I cannot submit a login form back to the resource
+    Given there is a "login" form
+    When I send a "POST" request to the resource "login_form" and the postfix "/submit" with body:
+    """
+    {
+      "user_login": {}
+    }
+    """
+    Then the response status code should be 404

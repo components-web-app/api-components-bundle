@@ -6,21 +6,12 @@
   "description": "The root schema comprises the entire JSON document.",
   "default": {},
   "required": [
-    "@context",
     "@type",
     "hydra:title",
     "hydra:description"
   ],
   "additionalProperties": true,
   "properties": {
-    "@context": {
-      "$id": "#/properties/@context",
-      "type": "string",
-      "title": "The @context schema",
-      "description": "An explanation about the purpose of this instance.",
-      "default": "",
-      "const": "/contexts/Error"
-    },
     "@type": {
       "$id": "#/properties/@type",
       "type": "string",
