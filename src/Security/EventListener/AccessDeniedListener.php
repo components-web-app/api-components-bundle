@@ -1,13 +1,22 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentsBundle\Security\EventListener;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Response\JWTAuthenticationFailureResponse;
 use Silverback\ApiComponentsBundle\EventListener\Api\ApiEventListenerTrait;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class AccessDeniedListener
 {
@@ -22,7 +31,10 @@ class AccessDeniedListener
     {
         $request = $event->getRequest();
         $attributes = $this->getAttributes($request);
-        if ($attributes['operation']->getName() !== 'me' || !($response = $event->getResponse()) instanceof JWTAuthenticationFailureResponse) {
+        if (
+            !($operation = $attributes['operation'] ?? null)
+            || 'me' !== $operation->getName()
+            || !($response = $event->getResponse()) instanceof JWTAuthenticationFailureResponse) {
             return;
         }
         $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());

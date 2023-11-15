@@ -755,7 +755,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(AccessDeniedListener::class)
         ->args(
             [
-                new Reference(MercureAuthorization::class)
+                new Reference(MercureAuthorization::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
