@@ -135,6 +135,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Silverback\ApiComponentsBundle\Security\EventListener\AccessDeniedListener;
 use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
@@ -748,6 +749,16 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => LogoutEvent::class]);
+
+    $services
+        ->set('silverback.security.access_denied_listener')
+        ->class(AccessDeniedListener::class)
+        ->args(
+            [
+                new Reference(MercureAuthorization::class)
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
 
     $services
         ->set('silverback.api_components.refresh_token.storage.doctrine', DoctrineRefreshTokenStorage::class)

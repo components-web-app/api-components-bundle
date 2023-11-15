@@ -65,6 +65,12 @@ Feature: Prevent disabled users from logging in
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should contain draft resource topics
 
+  Scenario: Non-authenticated user gets a mercure authorization cookie without draft access
+    When I send a "GET" request to "/me"
+    Then the response status code should be 401
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should not contain draft resource topics
+
   @loginUser
   Scenario: Expired JWT tokens should be refreshed
     Given my JWT token has expired
@@ -75,7 +81,6 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the response should have a "mercureAuthorization" cookie
-    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And 2 refresh tokens should exist
 
   @loginUser
@@ -96,8 +101,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "mercureAuthorization" cookie
-    And the response should have a "mercureAuthorization" cookie with max age less than 2
-    And the response should have a "mercureAuthorization" cookie with the value "x.x.x"
+    And the mercure cookie should not contain draft resource topics
 
   @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
@@ -108,8 +112,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "mercureAuthorization" cookie
-    And the response should have a "mercureAuthorization" cookie with max age less than 2
-    And the response should have a "mercureAuthorization" cookie with the value "x.x.x"
+    And the mercure cookie should not contain draft resource topics
 
   # TODO: fix this side effect if this scenario runs first, traced that back to an empty Authorization header
   Scenario: I cannot submit a login form back to the resource
