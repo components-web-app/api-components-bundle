@@ -342,6 +342,7 @@ jobs:
           - '8.2'
         symfony:
           - '6.4'
+          - '7.0'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -414,6 +415,7 @@ jobs:
           - '8.2'
         symfony:
           - '6.4'
+          - '7.0'
       fail-fast: false
     timeout-minutes: 20
     steps:
