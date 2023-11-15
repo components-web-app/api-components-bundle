@@ -150,16 +150,7 @@ class JsonContext implements Context
      */
     public function theResponseShouldHaveACookie(string $name): void
     {
-        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
-        $setCookieHeaders = $responseHeaders['set-cookie'];
-        foreach ($setCookieHeaders as $setCookieHeader) {
-            $cookie = Cookie::fromString($setCookieHeader);
-            $realName = $cookie->getName();
-            if ($realName === $name) {
-                return;
-            }
-        }
-        throw new \Exception(sprintf('The cookie "%s" was not found in the response headers.', $name));
+        $this->getCookieByName($name);
     }
 
     private function getMercureCookieDraftTopics(): array
@@ -198,12 +189,26 @@ class JsonContext implements Context
         Assert::assertGreaterThan(0, $this->getMercureCookieDraftTopics(), 'The cookie does not allow a user to subscribe to any draft resources');
     }
 
+    private function getCookieByName(string $name): Cookie
+    {
+        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
+        $setCookieHeaders = $responseHeaders['set-cookie'];
+        foreach ($setCookieHeaders as $setCookieHeader) {
+            $cookie = Cookie::fromString($setCookieHeader);
+            $realName = $cookie->getName();
+            if ($realName === $name) {
+                return $cookie;
+            }
+        }
+        throw new \Exception(sprintf('The cookie "%s" was not found in the response headers.', $name));
+    }
+
     /**
      * @Then the response should have a :name cookie with max age less than :seconds
      */
     public function theResponseShouldHaveACookieWithMaxAgeLessThan(string $name, int $seconds): void
     {
-        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
+        $cookie = $this->getCookieByName($name);
         $timeDiff = $cookie->getExpiresTime() - time();
         Assert::assertLessThan($seconds, $timeDiff, sprintf('The cookie "%s" expires in "%d" seconds. Expected less than "%d" seconds', $name, $timeDiff, $seconds));
     }
@@ -213,7 +218,7 @@ class JsonContext implements Context
      */
     public function theResponseShouldHaveACookieWithTheValue(string $name, string $value = null): void
     {
-        $cookie = Cookie::fromString($this->jsonContext->getSession()->getResponseHeader('set-cookie'));
+        $cookie = $this->getCookieByName($name);
         $real = $cookie->getValue();
         Assert::assertEquals($value, $real, sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
     }

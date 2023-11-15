@@ -51,7 +51,7 @@ class MercureAuthorization
 
     public function getClearAuthorizationCookie(): Cookie
     {
-        return $this->getAuthorizationCookie()->withExpires(1)->withValue('x.x.x');
+        return $this->getAuthorizationCookie();
     }
 
     public function getSubscribeTopics(): array
@@ -117,7 +117,7 @@ class MercureAuthorization
     /**
      * Mercure subscribe iris should be absolute
      * this code can also be found in Symfony's URL Generator
-     * but as we work without a symfony route here (and we would not want to do this as its not spec-compliant)
+     * but as we work without a symfony route here (and we would not want to do this as it's not spec-compliant)
      * we do it by hand.
      */
     private function buildAbsoluteUriTemplate(): string
