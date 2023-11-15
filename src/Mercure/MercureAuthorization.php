@@ -124,10 +124,9 @@ class MercureAuthorization
     {
         $scheme = $this->requestContext->getScheme();
         $host = $this->requestContext->getHost();
-        $port = $this->requestContext->isSecure() ? $this->requestContext->getHttpsPort() : $this->requestContext->getHttpPort();
-
-        if (80 !== $port || 443 !== $port) {
-            return sprintf('%s://%s:%d', $scheme, $host, $port);
+        $defaultPort = $this->requestContext->isSecure() ? $this->requestContext->getHttpsPort() : $this->requestContext->getHttpPort();
+        if (80 !== $defaultPort && 443 !== $defaultPort) {
+            return sprintf('%s://%s:%d', $scheme, $host, $defaultPort);
         }
 
         return sprintf('%s://%s', $scheme, $host);
