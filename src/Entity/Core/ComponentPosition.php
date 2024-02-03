@@ -48,7 +48,7 @@ class ComponentPosition
     public ?string $pageDataProperty = null;
 
     #[Assert\NotNull]
-    #[Groups(['ComponentPosition:read', 'ComponentPosition:write'])]
+    #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
     public ?int $sortValue = null;
 
     /**
