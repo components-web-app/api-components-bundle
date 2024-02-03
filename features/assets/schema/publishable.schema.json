@@ -133,7 +133,7 @@
           }
         },
         "violations": {
-          "$ref": "validation_errors.schema.json"
+          "$ref": "validation_errors_object.schema.json"
         }
       }
     }
