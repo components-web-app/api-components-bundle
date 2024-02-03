@@ -34,7 +34,7 @@ class RoutableExtension implements QueryCollectionExtensionInterface
         $this->resourceAccessChecker = $resourceAccessChecker;
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (!$this->securityStr) {
             return;

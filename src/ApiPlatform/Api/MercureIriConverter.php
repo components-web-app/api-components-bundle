@@ -27,12 +27,12 @@ class MercureIriConverter implements IriConverterInterface
     {
     }
 
-    public function getResourceFromIri(string $iri, array $context = [], Operation $operation = null): object
+    public function getResourceFromIri(string $iri, array $context = [], ?Operation $operation = null): object
     {
         return $this->decorated->getResourceFromIri($iri, $context, $operation);
     }
 
-    public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, Operation $operation = null, array $context = []): ?string
+    public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
         $iri = $this->decorated->getIriFromResource($resource, $referenceType, $operation, $context);
 

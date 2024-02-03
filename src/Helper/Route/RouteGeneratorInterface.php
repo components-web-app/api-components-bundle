@@ -21,7 +21,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
  */
 interface RouteGeneratorInterface
 {
-    public function create(RoutableInterface $object, Route $route = null): Route;
+    public function create(RoutableInterface $object, ?Route $route = null): Route;
 
     public function createRedirect(string $fromPath, Route $targetRoute): Route;
 }

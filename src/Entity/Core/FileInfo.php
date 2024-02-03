@@ -31,7 +31,7 @@ class FileInfo
     public ?int $height;
     public ?string $filter;
 
-    public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, string $filter = null)
+    public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, ?string $filter = null)
     {
         $this->path = $path;
         $this->mimeType = $mimeType;

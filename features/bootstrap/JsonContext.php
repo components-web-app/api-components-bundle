@@ -216,7 +216,7 @@ class JsonContext implements Context
     /**
      * @Then /^the response should have a "(.+)" cookie with the value "(.+)?"$/
      */
-    public function theResponseShouldHaveACookieWithTheValue(string $name, string $value = null): void
+    public function theResponseShouldHaveACookieWithTheValue(string $name, ?string $value = null): void
     {
         $cookie = $this->getCookieByName($name);
         $real = $cookie->getValue();
@@ -282,7 +282,7 @@ class JsonContext implements Context
         return $this->jsonContext->getSession()->getPage()->getContent();
     }
 
-    public function getJsonAsArray(string $content = null): array
+    public function getJsonAsArray(?string $content = null): array
     {
         return json_decode($content ?? $this->getContent(), true, 512, \JSON_THROW_ON_ERROR);
     }

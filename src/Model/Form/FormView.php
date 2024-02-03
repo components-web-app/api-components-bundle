@@ -72,7 +72,7 @@ class FormView
 
     private FormInterface $form;
 
-    public function __construct(FormInterface $form, SymfonyFormView $formView = null, bool $children = true)
+    public function __construct(FormInterface $form, ?SymfonyFormView $formView = null, bool $children = true)
     {
         $isRoot = !$formView;
         if (!$formView) {

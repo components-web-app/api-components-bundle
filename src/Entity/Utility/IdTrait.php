@@ -28,7 +28,7 @@ trait IdTrait
     /**
      * Must allow return `null` for lowest dependencies.
      */
-    #[Orm\Id]
+    #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]

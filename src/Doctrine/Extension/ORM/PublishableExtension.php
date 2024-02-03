@@ -41,7 +41,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         $this->registry = $registry;
     }
 
-    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, Operation $operation = null, array $context = []): void
+    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
     {
         $configuration = $this->getConfiguration($resourceClass);
 
@@ -82,7 +82,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         $queryBuilder->setMaxResults(1);
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (!$configuration = $this->getConfiguration($resourceClass)) {
             return;

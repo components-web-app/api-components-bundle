@@ -29,9 +29,9 @@ class DummyOrSearchFilterable
 {
     use IdTrait;
 
-    #[Orm\Column]
+    #[ORM\Column]
     public ?string $field1 = null;
 
-    #[Orm\Column]
+    #[ORM\Column]
     public ?string $field2 = null;
 }

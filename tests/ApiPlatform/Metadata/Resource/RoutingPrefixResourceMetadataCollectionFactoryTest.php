@@ -28,7 +28,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 {
-    private function getDecoratedMock(ResourceMetadataCollection $resourceMetadata = null)
+    private function getDecoratedMock(?ResourceMetadataCollection $resourceMetadata = null)
     {
         $mock = $this->createMock(ResourceMetadataCollectionFactoryInterface::class);
         $mock

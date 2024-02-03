@@ -107,7 +107,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a published resource with a draft(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsAPublicResourceWithADraftResourceAvailable(string $publishDate = null): void
+    public function thereIsAPublicResourceWithADraftResourceAvailable(?string $publishDate = null): void
     {
         $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
         $publishedRecently = $this->createPublishableComponent((new \DateTime())->modify('-10 seconds'));
@@ -119,7 +119,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a draft for "([^"]*)"(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsADraftFor(string $publishedComponent, string $publishDate = null): void
+    public function thereIsADraftFor(string $publishedComponent, ?string $publishDate = null): void
     {
         $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$publishedComponent]);
         if (!$component instanceof DummyPublishableComponent) {
@@ -167,7 +167,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsAPublishableResource(string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableComponent
+    public function thereIsAPublishableResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableComponent
     {
         $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft);
         $flush && $this->manager->flush();
@@ -178,7 +178,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a DummyPublishableWithSecurityGroups resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsADummyPublishableWithSecurityGroupsResource(string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithSecurityGroups
+    public function thereIsADummyPublishableWithSecurityGroupsResource(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithSecurityGroups
     {
         $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithSecurityGroups());
         $flush && $this->manager->flush();
@@ -189,7 +189,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a DummyPublishableWithValidation resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsADummyPublishableWithValidation(string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
+    public function thereIsADummyPublishableWithValidation(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
     {
         $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithValidation());
         $flush && $this->manager->flush();
@@ -200,7 +200,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a DummyPublishableWithValidationCustomGroup resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsADummyPublishableWithValidationCustomGroup(string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
+    public function thereIsADummyPublishableWithValidationCustomGroup(?string $publishDate = null, bool $flush = true, bool $forceDraft = false): DummyPublishableWithValidation
     {
         $object = $this->createPublishableComponent($publishDate ? new \DateTime($publishDate) : null, $forceDraft, new DummyPublishableWithValidationCustomGroup());
         $flush && $this->manager->flush();
@@ -211,7 +211,7 @@ final class PublishableContext implements Context
     /**
      * @Given /^there is a custom publishable resource(?: set to publish at "(.*)"|)$/
      */
-    public function thereIsACustomPublishableResource(string $publishDate = null, bool $flush = true): DummyPublishableCustomComponent
+    public function thereIsACustomPublishableResource(?string $publishDate = null, bool $flush = true): DummyPublishableCustomComponent
     {
         $publishedAt = $publishDate ? new \DateTime($publishDate) : null;
         $isPublished = null !== $publishedAt && $publishedAt <= new \DateTime();
@@ -325,7 +325,7 @@ final class PublishableContext implements Context
     /**
      * @return object|DummyPublishableComponent|DummyPublishableWithValidation|DummyPublishableWithValidationCustomGroup|DummyPublishableWithSecurityGroups
      */
-    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false, object $resource = null)
+    private function createPublishableComponent(?\DateTime $publishedAt, bool $forceDraft = false, ?object $resource = null)
     {
         $isPublished = !$forceDraft && (null !== $publishedAt && $publishedAt <= new \DateTime());
         $resource = $resource ?: new DummyPublishableComponent();

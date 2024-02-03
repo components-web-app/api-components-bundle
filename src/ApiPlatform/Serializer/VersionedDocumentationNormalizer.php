@@ -36,7 +36,7 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
      *
      * @throws ExceptionInterface
      */
-    public function normalize($object, string $format = null, array $context = []): array
+    public function normalize($object, ?string $format = null, array $context = []): array
     {
         $doc = $this->decorated->normalize($object, $format, $context);
         if ('' !== $object->getVersion()) {
@@ -46,7 +46,7 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
         return $doc;
     }
 
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $this->decorated->supportsNormalization($data, $format, $context);
     }

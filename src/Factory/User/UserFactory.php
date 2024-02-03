@@ -42,7 +42,7 @@ class UserFactory
         $this->userClass = $userClass;
     }
 
-    public function create(string $username, string $password, string $email = null, bool $inactive = false, bool $superAdmin = false, bool $admin = false, bool $overwrite = false): void
+    public function create(string $username, string $password, ?string $email = null, bool $inactive = false, bool $superAdmin = false, bool $admin = false, bool $overwrite = false): void
     {
         if (!$email) {
             $email = $username;

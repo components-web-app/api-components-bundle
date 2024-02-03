@@ -26,16 +26,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 trait UiTrait
 {
-    #[Orm\Column(nullable: true)]
+    #[ORM\Column(nullable: true)]
     public ?string $uiComponent = null;
 
-    #[Orm\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: 'json', nullable: true)]
     public ?array $uiClassNames = null;
 
     /**
      * @var Collection|ComponentGroup[]
      */
-    #[Orm\ManyToMany(targetEntity: ComponentGroup::class)]
+    #[ORM\ManyToMany(targetEntity: ComponentGroup::class)]
     #[Groups(['Route:manifest:read'])]
     private Collection $componentGroups;
 

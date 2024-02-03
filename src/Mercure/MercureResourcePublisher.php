@@ -70,10 +70,10 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         private readonly array $formats,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
-        MessageBusInterface $messageBus = null,
+        ?MessageBusInterface $messageBus = null,
         private readonly ?GraphQlSubscriptionManagerInterface $graphQlSubscriptionManager = null,
         private readonly ?GraphQlMercureSubscriptionIriGeneratorInterface $graphQlMercureSubscriptionIriGenerator = null,
-        ExpressionLanguage $expressionLanguage = null
+        ?ExpressionLanguage $expressionLanguage = null
     ) {
         $this->reset();
         $this->resourceClassResolver = $resourceClassResolver;
@@ -97,7 +97,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $this->deletedObjects = new \SplObjectStorage();
     }
 
-    public function add(object $item, string $type = null): void
+    public function add(object $item, ?string $type = null): void
     {
         $property = sprintf('%sObjects', $type);
         if (!isset($this->{$property})) {

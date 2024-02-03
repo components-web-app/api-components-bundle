@@ -224,7 +224,7 @@ class PropagateUpdatesListener
         ];
     }
 
-    private function collectDynamicComponentPositionResources(array $pageDataPropertiesChanged = null): void
+    private function collectDynamicComponentPositionResources(?array $pageDataPropertiesChanged = null): void
     {
         if (!$pageDataPropertiesChanged) {
             $pageDataPropertiesChanged = $this->pageDataPropertiesChanged;

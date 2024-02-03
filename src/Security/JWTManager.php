@@ -49,7 +49,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(UserInterface $user, RefreshToken $token = null): string
+    public function create(UserInterface $user, ?RefreshToken $token = null): string
     {
         try {
             if ($token) {

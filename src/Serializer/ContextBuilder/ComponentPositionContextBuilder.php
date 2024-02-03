@@ -35,7 +35,7 @@ final class ComponentPositionContextBuilder implements SerializerContextBuilderI
         $this->security = $security;
     }
 
-    public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
+    public function createFromRequest(Request $request, bool $normalization, ?array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
         if (ComponentPosition::class !== $context['resource_class']) {

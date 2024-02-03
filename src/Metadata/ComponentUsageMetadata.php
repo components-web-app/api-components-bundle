@@ -26,7 +26,7 @@ class ComponentUsageMetadata
     #[Groups(['AbstractComponent:cwa_resource:read'])]
     private int $pageDataCount;
 
-    public function __construct(int $positionCount = null, int $pageDataCount = null)
+    public function __construct(?int $positionCount = null, ?int $pageDataCount = null)
     {
         $this->positionCount = $positionCount;
         $this->pageDataCount = $pageDataCount;

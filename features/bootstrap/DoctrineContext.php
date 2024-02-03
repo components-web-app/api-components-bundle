@@ -258,7 +258,7 @@ final class DoctrineContext implements Context
     /**
      * @Given /^the user email is not verified(?: with the token "([^"]+)"|)$/
      */
-    public function theUserEmailIsNotVerified(string $verificationToken = null): void
+    public function theUserEmailIsNotVerified(?string $verificationToken = null): void
     {
         /** @var User $user */
         $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
@@ -347,7 +347,7 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a ComponentGroup with (\d+) components(?:| and the ID "([^"]+)")$/
      */
-    public function thereIsAComponentGroupWithComponents(int $count, string $id = null, string $collectionReference = 'collection'): ComponentGroup
+    public function thereIsAComponentGroupWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentGroup
     {
         $componentGroup = new ComponentGroup();
         $componentGroup->reference = $collectionReference;
@@ -500,7 +500,7 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a Layout(?: with the reference "([^"]+)")*[ and]*(?: with createdAt "([^"]+)")*(?: with the uiComponent "([^"]+)")*$/
      */
-    public function thereIsALayout(string $reference = 'no-reference', string $createdAt = null, string $uiComponent = null): void
+    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null, ?string $uiComponent = null): void
     {
         $layout = new Layout();
         $layout->reference = $reference;

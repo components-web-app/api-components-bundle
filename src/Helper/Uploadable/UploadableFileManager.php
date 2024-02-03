@@ -48,7 +48,7 @@ class UploadableFileManager
     private ?FilterService $filterService;
     private ArrayCollection $deletedFields;
 
-    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, FilterService $filterService = null)
+    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;

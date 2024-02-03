@@ -121,7 +121,7 @@ class UploadsContext implements Context
     /**
      * @When /^I request the download endpoint(?: with the postfix "(.+)")?$/
      */
-    public function iRequestTheDownloadEndpoint(string $postfix = null)
+    public function iRequestTheDownloadEndpoint(?string $postfix = null)
     {
         $endpoint = $this->restContext->resources['dummy_uploadable'] . '/download/file';
         if ($postfix) {

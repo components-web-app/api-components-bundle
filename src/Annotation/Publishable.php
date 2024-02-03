@@ -32,7 +32,7 @@ final class Publishable
      */
     public ?array $validationGroups;
 
-    public function __construct(string $fieldName = 'publishedAt', string $isGranted = null, string $associationName = 'publishedResource', string $reverseAssociationName = 'draftResource', array $validationGroups = null)
+    public function __construct(string $fieldName = 'publishedAt', ?string $isGranted = null, string $associationName = 'publishedResource', string $reverseAssociationName = 'draftResource', ?array $validationGroups = null)
     {
         $this->fieldName = $fieldName;
         $this->isGranted = $isGranted;

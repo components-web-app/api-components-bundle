@@ -32,6 +32,6 @@ class DummyPublishableWithSecurityGroups extends AbstractComponent
     /**
      * @var string a reference for this component
      */
-    #[Orm\Column]
+    #[ORM\Column]
     public string $reference = '';
 }

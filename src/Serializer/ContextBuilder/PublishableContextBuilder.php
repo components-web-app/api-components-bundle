@@ -32,7 +32,7 @@ final class PublishableContextBuilder implements SerializerContextBuilderInterfa
         $this->publishableStatusChecker = $publishableStatusChecker;
     }
 
-    public function createFromRequest(Request $request, bool $normalization, array $extractedAttributes = null): array
+    public function createFromRequest(Request $request, bool $normalization, ?array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
 
