@@ -34,13 +34,14 @@ Feature: Components
 
   @loginUser
   Scenario: I can create a component and the ComponentPosition at the same time
-    Given there is a ComponentGroup with 0 components and the ID "41c57f7a-9f69-11ea-8188-acde48001122"
+    Given there is a ComponentGroup with 3 components and the ID "41c57f7a-9f69-11ea-8188-acde48001122"
     When I send a "POST" request to "/component/dummy_components" with body:
     """
     {
       "componentPositions": [
         {
-          "componentGroup": "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122"
+          "componentGroup": "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122",
+          "sortValue": 1
         }
       ]
     }
@@ -55,6 +56,7 @@ Feature: Components
     And the JSON should be valid according to the schema file "component_position.schema.json"
     And the JSON node "componentGroup" should be equal to the string "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122"
     And the JSON node "component" should be equal to the IRI of the resource "new_component"
+    And the JSON node "sortValue" should be equal to the number 1
 
   @loginUser
   Scenario: I can delete a component

@@ -359,6 +359,9 @@ final class DoctrineContext implements Context
             $reflectionProp = $reflection->getProperty('id');
             $reflectionProp->setAccessible(true);
             $reflectionProp->setValue($componentGroup, Uuid::fromString($id));
+            $this->manager->flush();
+            $repo = $this->manager->getRepository(ComponentGroup::class);
+            $componentGroup = $repo->find($id);
         }
 
         for ($x = 0; $x < $count; ++$x) {
