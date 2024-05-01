@@ -75,7 +75,7 @@ class CollectionApiEventListener
         return $data instanceof Collection && Collection::class === $to;
     }
 
-    public function onPreSerialize(ViewEvent $event)
+    public function onPreSerialize(ViewEvent $event): void
     {
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
