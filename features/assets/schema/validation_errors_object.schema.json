@@ -5,9 +5,6 @@
   "default": {},
   "additionalProperties": true,
   "required": [
-    "@type",
-    "hydra:title",
-    "hydra:description",
     "violations"
   ],
   "properties": {
