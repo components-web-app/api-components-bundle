@@ -41,11 +41,11 @@ final class PublishableEventListener
 
     private PublishableStatusChecker $publishableStatusChecker;
     private ValidatorInterface $validator;
-    private PublishableAttributeReader $publishableAnnotationReader;
+    private PublishableAttributeReader $publishableAttributeReader;
 
     public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
     {
-        $this->publishableAnnotationReader = $publishableStatusChecker->getAttributeReader();
+        $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->initRegistry($registry);
         $this->validator = $validator;
@@ -57,7 +57,7 @@ final class PublishableEventListener
         $attributes = $this->getAttributes($request);
         if (
             empty($attributes['data'])
-            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || $request->isMethod(Request::METHOD_DELETE)
             || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
@@ -74,7 +74,7 @@ final class PublishableEventListener
         $attributes = $this->getAttributes($request);
         if (
             empty($attributes['data'])
-            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || !$request->isMethod(Request::METHOD_GET)
             || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
@@ -90,13 +90,13 @@ final class PublishableEventListener
         $attributes = $this->getAttributes($request);
         if (
             empty($attributes['data'])
-            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
         ) {
             return;
         }
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
+        $configuration = $this->publishableAttributeReader->getConfiguration($attributes['class']);
 
         // User cannot change the publication date of the original resource
         if (
@@ -120,14 +120,14 @@ final class PublishableEventListener
 
         if (
             null === $data
-            || !$this->publishableAnnotationReader->isConfigured($attributes['class'])
+            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
         }
         $response = $event->getResponse();
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($attributes['class']);
+        $configuration = $this->publishableAttributeReader->getConfiguration($attributes['class']);
         $classMetadata = $this->getClassMetadata($attributes['class']);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
@@ -175,7 +175,7 @@ final class PublishableEventListener
             return $data;
         }
 
-        $configuration = $this->publishableAnnotationReader->getConfiguration($data);
+        $configuration = $this->publishableAttributeReader->getConfiguration($data);
         $classMetadata = $this->getClassMetadata($data);
 
         $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);

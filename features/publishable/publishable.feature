@@ -396,3 +396,13 @@ Feature: Access to unpublished/draft resources should be configurable
     """
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should exist
+
+  @loginAdmin
+  Scenario: When deleting a component the component position should NOT be deleted if a draft component exists as well
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
+    When I send a "DELETE" request to the resource "publishable_published" and the postfix "?published=true"
+    Then the response status code should be 204
+    And the resource component_position should exist
+    And the resource publishable_draft should exist
+    And the resource publishable_published should not exist
