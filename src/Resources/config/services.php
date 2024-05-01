@@ -1340,7 +1340,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                new Reference(PublishableStatusChecker::class)
+                new Reference(PublishableStatusChecker::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])

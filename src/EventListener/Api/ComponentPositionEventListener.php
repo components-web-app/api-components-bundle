@@ -86,9 +86,9 @@ class ComponentPositionEventListener
             foreach ($positions as $position) {
                 $position->component = $draftResource;
             }
+
             return;
         }
-
 
         foreach ($positions as $position) {
             if (!$position->pageDataProperty) {
