@@ -79,15 +79,17 @@ class ComponentPositionEventListener
 
         // if there is a draft resource, that should now be the one assigned to the component position resources we should not delete the positions
         $className = $request->attributes->get('_api_resource_class');
-        $configuration = $this->publishableAttributeReader->getConfiguration($className);
-        $classMetadata = $this->getClassMetadata($className);
-        $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
-        if ($draftResource) {
-            foreach ($positions as $position) {
-                $position->component = $draftResource;
-            }
+        if ($this->publishableAttributeReader->isConfigured($className)) {
+            $configuration = $this->publishableAttributeReader->getConfiguration($className);
+            $classMetadata = $this->getClassMetadata($className);
+            $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
+            if ($draftResource) {
+                foreach ($positions as $position) {
+                    $position->component = $draftResource;
+                }
 
-            return;
+                return;
+            }
         }
 
         foreach ($positions as $position) {
