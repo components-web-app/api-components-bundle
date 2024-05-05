@@ -23,11 +23,9 @@ api_platform:
             enabled: true
             urls: [ 'http://test' ]
         public: true
-    # tests break when using this but it's no big deal as 
-    # event listeners will always be available
+    # tests break when not using this, but it's no big deal as 
+    # event listeners will always be available...
     # we do recommend using providers/processors instead
-    # event_listeners_backward_compatibility_layer: true
-    # for apip core 3.3.0 and remove above ^^
     use_symfony_listeners: true
     defaults:
         extra_properties:
