@@ -328,6 +328,14 @@ Feature: Access to unpublished/draft resources should be configurable
     And the resource "publishable_draft" should not exist
     And the resource "publishable_published" should exist
 
+  @loginAdmin
+  Scenario: As a user with draft access, I can delete a draft resource when it does not have a live variant using the published=false parameter.
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "DELETE" request to the resource "publishable_draft" and the postfix "?published=false"
+    Then the response status code should be 204
+    And the resource "publishable_draft" should not exist
+    And the resource "publishable_published" should exist
+
   @loginUser
   Scenario: As a user which does not normally have draft access, I can delete a component where security groups are configured to allow it
     Given there is a DummyPublishableWithSecurityGroups resource set to publish at "2999-12-31T23:59:59+00:00"
