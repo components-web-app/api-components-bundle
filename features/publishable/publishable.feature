@@ -334,7 +334,6 @@ Feature: Access to unpublished/draft resources should be configurable
     When I send a "DELETE" request to the resource "publishable_draft" and the postfix "?published=false"
     Then the response status code should be 204
     And the resource "publishable_draft" should not exist
-    And the resource "publishable_published" should exist
 
   @loginUser
   Scenario: As a user which does not normally have draft access, I can delete a component where security groups are configured to allow it

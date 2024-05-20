@@ -119,7 +119,9 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
 
     private function isDraftRequest(string $resourceClass, array $context): bool
     {
-        return $this->publishableStatusChecker->isGranted($resourceClass) && false === ($context['filters']['published'] ?? false);
+        $isPublishedAsBoolean = filter_var($context['filters']['published'] ?? false, \FILTER_VALIDATE_BOOLEAN);
+
+        return $this->publishableStatusChecker->isGranted($resourceClass) && !$isPublishedAsBoolean;
     }
 
     private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void
