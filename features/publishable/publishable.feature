@@ -219,7 +219,8 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, it should update and return the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_draft" with body:
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "publishable_published" with body:
     """
     {
         "reference": "updated"
@@ -228,6 +229,20 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the JSON node "publishedAt" should be equal to "2999-12-31T23:59:59+00:00"
     And the JSON node "reference" should be equal to "updated"
+
+  @loginAdmin
+  Scenario: As a user with draft access, when I update a published with no draft, it should update and return a draft resource.
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "publishable_published" with body:
+    """
+    {
+        "reference": "updated_again"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "publishedAt" should be null
+    And the JSON node "reference" should be equal to "updated_again"
 
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
