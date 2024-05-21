@@ -83,7 +83,8 @@ class ComponentPositionEventListener
             $configuration = $this->publishableAttributeReader->getConfiguration($className);
             $classMetadata = $this->getClassMetadata($className);
             $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
-            if ($draftResource) {
+
+            if ($draftResource && $data !== $draftResource) {
                 foreach ($positions as $position) {
                     $position->component = $draftResource;
                 }

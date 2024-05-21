@@ -413,3 +413,12 @@ Feature: Access to unpublished/draft resources should be configurable
     And the resource component_position should exist
     And the resource publishable_draft should exist
     And the resource publishable_published should not exist
+
+  @loginAdmin
+  Scenario: When deleting a component the component position should NOT be deleted if a draft component exists as well
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_draft"
+    When I send a "DELETE" request to the resource "publishable_draft" and the postfix "?published=false"
+    Then the response status code should be 204
+    And the resource component_position should not exist
+    And the resource publishable_draft should not exist
