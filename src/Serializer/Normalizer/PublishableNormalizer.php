@@ -173,15 +173,8 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
 
         // Any field has been modified: create a draft
         // if we sent 2 simultaneous requests then the initial sql query will have got the live version even if there is a draft now, so let's re-check before creating
-        $em = $this->getManagerFromType($type);
-        $em->refresh($object);
-        $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
-        $em = $this->getManagerFromType($type);
-        $classMetadata = $this->getClassMetadataInfo($em, $type);
-        $draft = $classMetadata->getFieldValue($object, $configuration->reverseAssociationName);
-        if (!$draft) {
-            $draft = $this->createDraft($object, $configuration, $type);
-        }
+        // todo: perhaps lock the database ona  request for each resource? Or when we come to create a draft and then refresh / re-lookup the published resource here knowing it'll wait until the lock is over
+        $draft = $this->createDraft($object, $configuration, $type);
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
@@ -253,9 +246,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         }
         // Add draft object to UnitOfWork
         $em->persist($draft);
-
-        // todo: perhaps we need to flush here so if we get another request before flushed, we do not get a duplicate key sql error trying to create a draft when one already exists
-        $em->flush($draft);
 
         // Clear the cache of the published resource because it should now also return an associated draft
         $event = new ResourceChangedEvent($object, 'updated');
