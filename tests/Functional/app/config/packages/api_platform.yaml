@@ -28,7 +28,7 @@ api_platform:
     # we do recommend using providers/processors instead
     use_symfony_listeners: true
     defaults:
-        standard_put: true
+        #standard_put: true
         extra_properties:
             rfc_7807_compliant_errors: true
         cache_headers:
