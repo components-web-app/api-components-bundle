@@ -149,6 +149,9 @@ class PropagateUpdatesListener
             }
 
             if (isset($associationMappings[$field]['inversedBy'])) {
+                if ($values instanceof PersistentCollection) {
+                    $values = $values->toArray();
+                }
                 $notNullValues = array_filter($values);
                 foreach ($notNullValues as $entityInverseValuesUpdated) {
                     // note: the resource may get removed if orphaned

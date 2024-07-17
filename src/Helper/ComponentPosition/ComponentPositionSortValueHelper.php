@@ -32,8 +32,11 @@ class ComponentPositionSortValueHelper
             return;
         }
 
+        // we are moving a that already existed with a sort value
         if (null !== $originalSortValue) {
             $moveTo = $componentPosition->sortValue;
+
+            // same position as original, do nothing
             if ($moveTo === $originalSortValue) {
                 return;
             }
@@ -42,8 +45,8 @@ class ComponentPositionSortValueHelper
                 return $posA->getId() === $posB->getId();
             };
 
+            // value increased
             if ($moveTo > $originalSortValue) {
-                // value increased
                 foreach ($sortCollection as $existingComponentPosition) {
                     if ($positionIsSame($existingComponentPosition, $componentPosition)) {
                         continue;
@@ -87,6 +90,7 @@ class ComponentPositionSortValueHelper
         }
 
         foreach ($sortCollection as $existingComponentPosition) {
+            // for every position after this one we push it up 1
             if ($existingComponentPosition->sortValue >= $componentPosition->sortValue) {
                 ++$existingComponentPosition->sortValue;
             }

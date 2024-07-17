@@ -174,6 +174,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         // Any field has been modified: create a draft
         // if we sent 2 simultaneous requests then the initial sql query will have got the live version even if there is a draft now, so let's re-check before creating
         // todo: perhaps lock the database ona  request for each resource? Or when we come to create a draft and then refresh / re-lookup the published resource here knowing it'll wait until the lock is over
+        // https://www.doctrine-project.org/projects/doctrine-orm/en/3.1/reference/transactions-and-concurrency.html
         $draft = $this->createDraft($object, $configuration, $type);
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
 

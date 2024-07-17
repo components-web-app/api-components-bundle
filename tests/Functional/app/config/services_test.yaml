@@ -13,7 +13,7 @@ services:
         class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
         arguments:
             $filesystem: "@api_components.filesystem.in_memory"
-            $rootUrl: ''
+            $rootUrl: '%router.request_context.scheme%://%router.request_context.host%'
             $cachePrefix: 'media/cache'
             $visibility: 'private'
         tags:

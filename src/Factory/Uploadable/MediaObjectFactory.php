@@ -98,7 +98,7 @@ class MediaObjectFactory
             } catch (UnableToReadFile $exception) {
             }
 
-            array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
+            array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty, $urlGenerator, $filesystem));
 
             $collection->set($fileProperty, $propertyMediaObjects);
         }
@@ -109,7 +109,7 @@ class MediaObjectFactory
     /**
      * @return MediaObject[]
      */
-    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty): array
+    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty, UploadableUrlGeneratorInterface $urlGenerator, Filesystem $filesystem): array
     {
         $mediaObjects = [];
         if (!$this->filterService) {
@@ -126,8 +126,8 @@ class MediaObjectFactory
         }
 
         foreach ($filters as $filter) {
-            $resolvedUrl = $this->filterService->getUrlOfFilteredImage($path, $filter);
-            $mediaObjects[] = $this->createFromImagine($resolvedUrl, $path, $filter);
+            $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
+            $mediaObjects[] = $this->createFromImagine($resolvedPath, $path, $filter);
         }
 
         return $mediaObjects;
