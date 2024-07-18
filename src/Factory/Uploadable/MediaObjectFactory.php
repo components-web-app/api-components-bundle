@@ -127,6 +127,7 @@ class MediaObjectFactory
 
         foreach ($filters as $filter) {
             $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
+
             $mediaObjects[] = $this->createFromImagine($resolvedPath, $path, $filter);
         }
 

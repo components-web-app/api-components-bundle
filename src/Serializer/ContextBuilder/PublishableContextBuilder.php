@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
-use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\PublishableLoader;
 use Symfony\Component\HttpFoundation\Request;

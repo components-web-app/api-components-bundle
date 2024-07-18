@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Resources\config;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Events as DoctrineEvents;

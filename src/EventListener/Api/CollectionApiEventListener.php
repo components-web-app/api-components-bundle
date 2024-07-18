@@ -20,7 +20,7 @@ use ApiPlatform\Metadata\Exception\InvalidIdentifierException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\State\Util\RequestParser;

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
-use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Serializer\MappingLoader\CwaResourceLoader;
