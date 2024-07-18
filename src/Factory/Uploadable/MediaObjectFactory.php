@@ -96,11 +96,15 @@ class MediaObjectFactory
 
             // Populate the primary MediaObject
             try {
-                $propertyMediaObjects[] = $this->create($filesystem, $path, $contentUrl);
+                $initialMediaObject = $this->create($filesystem, $path, $contentUrl);
+                $propertyMediaObjects[] = $initialMediaObject;
             } catch (UnableToReadFile $exception) {
+                continue;
             }
 
-            array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
+            if (!$this->isMediaObjectSvg($initialMediaObject)) {
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
+            }
 
             $collection->set($fileProperty, $propertyMediaObjects);
         }
@@ -127,12 +131,17 @@ class MediaObjectFactory
             array_push($filters, ...$object->getImagineFilters($fileProperty, $request));
         }
 
+        // only if not an svg
         foreach ($filters as $filter) {
             $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
             $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
         }
 
         return $mediaObjects;
+    }
+
+    private function isMediaObjectSvg (MediaObject $mediaObject): bool {
+        return 'image/svg+xml' === $mediaObject->mimeType;
     }
 
     private function create(Filesystem $filesystem, string $filename, string $contentUrl): MediaObject
@@ -151,7 +160,7 @@ class MediaObjectFactory
         $mediaObject->mimeType = $filesystem->mimeType($filename);
         if (str_contains($mediaObject->mimeType, 'image/')) {
             $file = str_replace("\0", '', $filesystem->read($filename));
-            if ('image/svg+xml' === $mediaObject->mimeType) {
+            if ($this->isMediaObjectSvg($mediaObject)) {
                 $xmlGet = simplexml_load_string($file);
                 $xmlAttributes = $xmlGet->attributes();
                 $mediaObject->width = $xmlAttributes ? (int) $xmlAttributes->width : null;
