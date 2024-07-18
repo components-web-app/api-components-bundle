@@ -140,7 +140,8 @@ class MediaObjectFactory
         return $mediaObjects;
     }
 
-    private function isMediaObjectSvg (MediaObject $mediaObject): bool {
+    private function isMediaObjectSvg(MediaObject $mediaObject): bool
+    {
         return 'image/svg+xml' === $mediaObject->mimeType;
     }
 
@@ -163,8 +164,14 @@ class MediaObjectFactory
             if ($this->isMediaObjectSvg($mediaObject)) {
                 $xmlGet = simplexml_load_string($file);
                 $xmlAttributes = $xmlGet->attributes();
-                $mediaObject->width = $xmlAttributes ? (int) $xmlAttributes->width : null;
-                $mediaObject->height = $xmlAttributes ? (int) $xmlAttributes->height : null;
+                if ($xmlAttributes) {
+                    if ($w = (int) $xmlAttributes->width) {
+                        $mediaObject->width = $w;
+                    }
+                    if ($h = (int) $xmlAttributes->height) {
+                        $mediaObject->height = $h;
+                    }
+                }
             } else {
                 [$mediaObject->width, $mediaObject->height] = @getimagesize($file);
             }
