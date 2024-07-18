@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UrlHelper;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -47,6 +48,7 @@ class MediaObjectFactory
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,
         private readonly FilesystemFactory $filesystemFactory,
+        private readonly UrlHelper $urlHelper,
         private readonly ServiceLocator $urlGenerators,
         private readonly ?FilterService $filterService = null
     ) {
@@ -98,7 +100,7 @@ class MediaObjectFactory
             } catch (UnableToReadFile $exception) {
             }
 
-            array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty, $urlGenerator, $filesystem));
+            array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
 
             $collection->set($fileProperty, $propertyMediaObjects);
         }
@@ -109,7 +111,7 @@ class MediaObjectFactory
     /**
      * @return MediaObject[]
      */
-    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty, UploadableUrlGeneratorInterface $urlGenerator, Filesystem $filesystem): array
+    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty): array
     {
         $mediaObjects = [];
         if (!$this->filterService) {
@@ -127,8 +129,7 @@ class MediaObjectFactory
 
         foreach ($filters as $filter) {
             $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
-
-            $mediaObjects[] = $this->createFromImagine($resolvedPath, $path, $filter);
+            $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
         }
 
         return $mediaObjects;

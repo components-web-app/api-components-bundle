@@ -509,6 +509,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(FlysystemDataLoader::class),
                 new Reference(RequestStack::class),
                 new Reference(FilesystemFactory::class),
+                new Reference(UrlHelper::class),
                 tagged_locator(UploadableUrlGeneratorInterface::TAG, 'alias'),
                 null, // populated in dependency injection
             ]
