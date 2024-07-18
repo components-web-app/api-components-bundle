@@ -15,7 +15,7 @@ declare(strict_types=1);
  * @author Daniel West <daniel@silverback.is>
  */
 
-use ApiPlatform\State\SerializerContextBuilderInterface;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Symfony\Component\DependencyInjection\ContainerInterface;
