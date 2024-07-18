@@ -160,8 +160,9 @@ class MediaObjectFactory
         $mediaObject->fileSize = $filesystem->fileSize($filename);
         $mediaObject->mimeType = $filesystem->mimeType($filename);
         if (str_contains($mediaObject->mimeType, 'image/')) {
-            $file = str_replace("\0", '', $filesystem->read($filename));
+            $fileRead = $filesystem->read($filename);
             if ($this->isMediaObjectSvg($mediaObject)) {
+                $file = str_replace("\0", '', $fileRead);
                 $xmlGet = simplexml_load_string($file);
                 $xmlAttributes = $xmlGet->attributes();
                 if ($xmlAttributes) {
@@ -173,7 +174,7 @@ class MediaObjectFactory
                     }
                 }
             } else {
-                [$mediaObject->width, $mediaObject->height] = @getimagesize($file);
+                [$mediaObject->width, $mediaObject->height] = getimagesizefromstring($fileRead);
             }
         }
 
