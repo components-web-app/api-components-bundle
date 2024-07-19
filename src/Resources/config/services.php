@@ -622,6 +622,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('doctrine'),
                 new Reference('api_platform.validator'),
+                new Reference(UploadableFileManager::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead'])

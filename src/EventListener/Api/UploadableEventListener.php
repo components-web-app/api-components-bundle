@@ -25,13 +25,11 @@ final class UploadableEventListener
 {
     use ApiEventListenerTrait;
 
-    private UploadableAttributeReader $uploadableAnnotationReader;
-    private UploadableFileManager $uploadableFileManager;
-
-    public function __construct(UploadableAttributeReader $uploadableAnnotationReader, UploadableFileManager $uploadableFileManager)
+    public function __construct(
+        private readonly UploadableAttributeReader $uploadableAttributeReader,
+        private readonly UploadableFileManager     $uploadableFileManager
+    )
     {
-        $this->uploadableAnnotationReader = $uploadableAnnotationReader;
-        $this->uploadableFileManager = $uploadableFileManager;
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -42,7 +40,7 @@ final class UploadableEventListener
         $class = $attr['class'];
         if (
             empty($data)
-            || !$this->uploadableAnnotationReader->isConfigured($class)
+            || !$this->uploadableAttributeReader->isConfigured($class)
             || $request->isMethod(Request::METHOD_GET)
         ) {
             return;
@@ -63,7 +61,7 @@ final class UploadableEventListener
         $class = $attr['class'];
         if (
             empty($data)
-            || !$this->uploadableAnnotationReader->isConfigured($class)
+            || !$this->uploadableAttributeReader->isConfigured($class)
             || $request->isMethod(Request::METHOD_GET)
             || $request->isMethod(Request::METHOD_DELETE)
         ) {

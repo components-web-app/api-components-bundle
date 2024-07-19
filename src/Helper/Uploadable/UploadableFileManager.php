@@ -48,7 +48,14 @@ class UploadableFileManager
     private ?FilterService $filterService;
     private ArrayCollection $deletedFields;
 
-    public function __construct(ManagerRegistry $registry, UploadableAttributeReader $annotationReader, FilesystemProvider $filesystemProvider, FlysystemDataLoader $flysystemDataLoader, FileInfoCacheManager $fileInfoCacheManager, ?CacheManager $imagineCacheManager, ?FilterService $filterService = null)
+    public function __construct(
+        ManagerRegistry $registry,
+        UploadableAttributeReader $annotationReader,
+        FilesystemProvider $filesystemProvider,
+        FlysystemDataLoader $flysystemDataLoader,
+        FileInfoCacheManager $fileInfoCacheManager,
+        ?CacheManager $imagineCacheManager,
+        ?FilterService $filterService = null)
     {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
@@ -165,6 +172,10 @@ class UploadableFileManager
 
     public function deleteFiles(object $object): void
     {
+        if (!$this->annotationReader->isConfigured($object)) {
+            throw new \InvalidArgumentException('The object passed to delete files is not configured');
+        }
+
         $classMetadata = $this->getClassMetadata($object);
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);

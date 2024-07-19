@@ -20,6 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,16 +40,16 @@ final class PublishableEventListener
     public const VALID_TO_PUBLISH_HEADER = 'valid-to-publish';
     public const VALID_PUBLISHED_QUERY = 'validate_published';
 
-    private PublishableStatusChecker $publishableStatusChecker;
-    private ValidatorInterface $validator;
     private PublishableAttributeReader $publishableAttributeReader;
 
-    public function __construct(PublishableStatusChecker $publishableStatusChecker, ManagerRegistry $registry, ValidatorInterface $validator)
-    {
+    public function __construct(
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        ManagerRegistry                           $registry,
+        private readonly ValidatorInterface $validator,
+        private readonly UploadableFileManager $uploadableFileManager
+    ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
-        $this->publishableStatusChecker = $publishableStatusChecker;
         $this->initRegistry($registry);
-        $this->validator = $validator;
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -223,6 +224,10 @@ final class PublishableEventListener
         $draftReflection = new \ReflectionClass($draftResource);
         $publishedReflection = new \ReflectionClass($publishedResource);
         $properties = $publishedReflection->getProperties();
+
+        try {
+            $this->uploadableFileManager->deleteFiles($publishedResource);
+        } catch (\InvalidArgumentException $e) {}
 
         foreach ($properties as $property) {
             $property->setAccessible(true);
