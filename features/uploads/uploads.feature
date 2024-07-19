@@ -192,3 +192,15 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should not exist
     And the resource "dummy_uploadable" should have 1 component positions
+
+  @loginAdmin
+  Scenario: When I upload an image to a published resource to create a draft, the published image data and filename should remain in tact
+    Given there is a DummyUploadableAndPublishable
+    And I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to the resource "dummy_uploadable" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.svg |
+    Then the response status code should be 201
+    And the JSON node "_metadata.publishable.published" should be false
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
+    And the resource "dummy_uploadable" should have an uploaded file
