@@ -36,11 +36,12 @@ class FileInfoCacheManager
 
     public function deleteCaches(array $paths, ?array $filters): void
     {
+        $this->entityManager->getConnection()->beginTransaction();
         $results = $this->repository->findByPathsAndFilters($paths, $filters);
         foreach ($results as $result) {
             $this->entityManager->remove($result);
         }
-        $this->entityManager->flush();
+        $this->entityManager->getConnection()->commit();
     }
 
     public function resolveCache(string $path, ?string $filter = null): ?FileInfo
