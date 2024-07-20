@@ -25,16 +25,18 @@ final class CacheManager extends ImagineCacheManager
 {
     public function store(BinaryInterface $binary, $path, $filter, $resolver = null): void
     {
+        parent::store($binary, $path, $filter, $resolver);
+        // when we dispatch the event, mercure processes may run, resulting in us fetching the resource, and then fetching
+        // the resource will request the image, look for a cache that isn't there and then call this again. SO must trigger after we actually have the cache saved
         $event = new ImagineStoreEvent($binary, $path, $filter);
         $this->dispatch($event, ImagineStoreEvent::class);
-        parent::store($binary, $path, $filter, $resolver);
     }
 
     public function remove($paths = null, $filters = null): void
     {
+        parent::remove($paths, $filters);
         $event = new ImagineRemoveEvent($paths, $filters);
         $this->dispatch($event, ImagineRemoveEvent::class);
-        parent::remove($paths, $filters);
     }
 
     private function dispatch($event, $eventName): void

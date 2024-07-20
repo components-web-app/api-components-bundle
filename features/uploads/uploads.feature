@@ -204,3 +204,12 @@ Feature: API Resources which can have files uploaded
     And the JSON node "_metadata.publishable.published" should be false
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
     And the resource "dummy_uploadable" should have an uploaded file
+
+  @loginAdmin
+  Scenario: When I upload to overwrite a draft, cache should overwrite properly
+    Given there is a DummyUploadableAndPublishable with a draft
+    And I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to the resource "dummy_uploadable_draft" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.svg |
+    Then the response status code should be 201
