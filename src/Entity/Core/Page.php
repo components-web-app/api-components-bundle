@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
@@ -27,7 +28,8 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  */
 #[ApiResource(mercure: true)]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
-#[ApiFilter(OrSearchFilter::class, properties: ['title' => 'ipartial', 'reference' => 'ipartial', 'isTemplate' => 'exact', 'uiComponent' => 'ipartial', 'layout.reference' => 'ipartial'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['title' => 'ipartial', 'reference' => 'ipartial', 'uiComponent' => 'ipartial', 'layout.reference' => 'ipartial'])]
+#[ApiFilter(SearchFilter::class, properties: ['isTemplate' => 'exact'])]
 class Page extends AbstractPage
 {
     use UiTrait;
