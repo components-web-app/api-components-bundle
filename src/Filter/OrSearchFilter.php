@@ -188,29 +188,69 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         switch ($strategy) {
             case null:
             case self::STRATEGY_EXACT:
-                $queryBuilder
-                    ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                if (is_array($value)) {
+                    foreach ($value as $i=>$v) {
+                        $queryBuilder
+                            ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter . $i))
+                            ->setParameter($valueParameter . $i, $v);
+                    }
+                } else {
+                    $queryBuilder
+                        ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter))
+                        ->setParameter($valueParameter, $value);
+                }
                 break;
             case self::STRATEGY_PARTIAL:
-                $queryBuilder
-                    ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                if (is_array($value)) {
+                    foreach ($value as $i=>$v) {
+                        $queryBuilder
+                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->setParameter($valueParameter . $i, $v);
+                    }
+                } else {
+                    $queryBuilder
+                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->setParameter($valueParameter, $value);
+                }
                 break;
             case self::STRATEGY_START:
-                $queryBuilder
-                    ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                if (is_array($value)) {
+                    foreach ($value as $i=>$v) {
+                        $queryBuilder
+                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->setParameter($valueParameter . $i, $v);
+                    }
+                } else {
+                    $queryBuilder
+                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->setParameter($valueParameter, $value);
+                }
                 break;
             case self::STRATEGY_END:
-                $queryBuilder
-                    ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                if (is_array($value)) {
+                    foreach ($value as $i=>$v) {
+                        $queryBuilder
+                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter . $i))
+                            ->setParameter($valueParameter . $i, $v);
+                    }
+                } else {
+                    $queryBuilder
+                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter))
+                        ->setParameter($valueParameter, $value);
+                }
                 break;
             case self::STRATEGY_WORD_START:
-                $queryBuilder
-                    ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                if (is_array($value)) {
+                    foreach ($value as $i=>$v) {
+                        $queryBuilder
+                            ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->setParameter($valueParameter . $i, $v);
+                    }
+                } else {
+                    $queryBuilder
+                        ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->setParameter($valueParameter, $value);
+                }
                 break;
             default:
                 throw new InvalidArgumentException(sprintf('strategy %s does not exist.', $strategy));
