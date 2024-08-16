@@ -33,6 +33,15 @@ Feature: Route resources
     When I send a "DELETE" request to the resource "route"
     Then the response status code should be 204
 
+  @loginUser
+  Scenario: I can delete a route which has a redirect
+    Given there is a Route "/contact" which redirects to "/contact-new"
+    When I send a "DELETE" request to the resource "final_route"
+    Then the response status code should be 204
+    And the resource "final_route" should not exist
+    And the resource "route" should not exist
+    And the resource "middle_route" should not exist
+
   Scenario: A route will output the nested redirect routes and data for the redirected page
     Given there is a Route "/contact" which redirects to "/contact-new"
     When I send a "GET" request to "/_/routes//contact"

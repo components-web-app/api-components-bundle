@@ -69,7 +69,7 @@ class RouteEventListener
             throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
         }
 
-        // create a redirect fro the old route
+        // create a redirect from the old route
         $previousRouteData = $request->attributes->get('previous_data');
         $previousPath = $previousRouteData->getPath();
         if ($previousPath !== $data->getPath()) {

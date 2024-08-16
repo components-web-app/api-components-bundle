@@ -40,6 +40,10 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
         $redirectedRoutes = [$finalRoute->getId()];
         while ($nextRedirect = $finalRoute->getRedirect()) {
+            // if a route has just been deleted which had other routes redirecting to it, then they will delete - but appear here as a redirect still without an ID for some reason
+            if (!$nextRedirect->getId()) {
+                break;
+            }
             if (\in_array($nextRedirect->getId(), $redirectedRoutes, true)) {
                 throw new CircularReferenceException(sprintf('The redirect routes result in a circular reference: %s', implode(' -> ', $redirectedRoutes)));
             }
