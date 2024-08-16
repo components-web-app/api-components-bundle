@@ -32,7 +32,7 @@ const USER_SECURITY = "is_granted('ROLE_SUPER_ADMIN') or object == user";
 #[Put(security: USER_SECURITY)]
 #[Patch(security: USER_SECURITY)]
 #[Delete(security: USER_SECURITY)]
-#[GetCollection(security: "is_granted('ROLE_SUPER_ADMIN')")]
+#[GetCollection(order: ['createdAt' => 'DESC'], security: "is_granted('ROLE_SUPER_ADMIN')")]
 #[ORM\Entity]
 #[ORM\Table(name: '`user`')]
 class User extends AbstractUser

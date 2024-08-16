@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource(mercure: true)]
+#[ApiResource(mercure: true, order: ['createdAt' => 'DESC'])]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(OrSearchFilter::class, properties: ['title' => 'ipartial', 'reference' => 'ipartial', 'uiComponent' => 'ipartial', 'layout.reference' => 'ipartial'])]
 #[ApiFilter(SearchFilter::class, properties: ['isTemplate' => 'exact'])]

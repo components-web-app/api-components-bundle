@@ -61,14 +61,14 @@ const SECURITY = "is_granted('read_route', object)";
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'path'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
-#[GetCollection]
+#[GetCollection(order: ['createdAt' => 'DESC'])]
 #[Delete(requirements: REQUIREMENTS, security: SECURITY)]
 #[Put(requirements: REQUIREMENTS, security: SECURITY)]
 #[Patch(requirements: REQUIREMENTS, security: SECURITY)]
 #[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: SECURITY)]
 // Custom endpoints
 #[Post(uriTemplate: '/routes/generate{._format}', validationContext: ['groups' => ['Route:generate:write']])]
-#[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY)]
+#[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY)]
 #[Get(uriTemplate: '/routes_manifest/{id}{._format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: SECURITY)]
 #[Silverback\Timestamped]
 class Route
