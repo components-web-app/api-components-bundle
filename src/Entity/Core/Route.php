@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -26,6 +28,7 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -55,6 +58,8 @@ const SECURITY = "is_granted('read_route', object)";
     mercure: true,
     provider: RouteStateProvider::class
 )]
+#[ApiFilter(OrderFilter::class, properties: ['path'], arguments: ['orderParameterName' => 'order'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
 #[GetCollection]
 #[Delete(requirements: REQUIREMENTS, security: SECURITY)]
