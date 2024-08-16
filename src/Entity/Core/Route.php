@@ -58,7 +58,7 @@ const SECURITY = "is_granted('read_route', object)";
     mercure: true,
     provider: RouteStateProvider::class
 )]
-#[ApiFilter(OrderFilter::class, properties: ['path'], arguments: ['orderParameterName' => 'order'])]
+#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'path'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
 #[GetCollection]
