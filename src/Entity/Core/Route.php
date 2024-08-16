@@ -79,6 +79,7 @@ class Route
     #[Groups(['Route:redirect:read'])]
     private string $name;
 
+    #[Groups(['Route:redirect:read'])]
     private ?Route $redirect = null;
 
     #[Groups(['Route:redirect:read'])]
