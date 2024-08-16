@@ -76,6 +76,7 @@ class Route
     private string $path = '';
 
     #[Assert\NotNull]
+    #[Groups(['Route:redirect:read'])]
     private string $name;
 
     private ?Route $redirect = null;
@@ -83,10 +84,10 @@ class Route
     #[Groups(['Route:redirect:read'])]
     private Collection $redirectedFrom;
 
-    #[Groups(['Route:manifest:read'])]
+    #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?Page $page = null;
 
-    #[Groups(['Route:manifest:read'])]
+    #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?AbstractPageData $pageData = null;
 
     public function __construct()
