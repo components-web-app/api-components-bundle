@@ -586,6 +586,7 @@ final class DoctrineContext implements Context
                 ->setPageData($pageData);
             $this->timestampedHelper->persistTimestampedFields($route, true);
             $this->manager->persist($route);
+            $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($route);
         }
 
         $this->manager->flush();

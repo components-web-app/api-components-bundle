@@ -104,6 +104,15 @@ Feature: Route resources
     And the JSON node "redirectedFrom[0].redirectedFrom" should exist
     And the JSON node "redirectedFrom[0].redirectedFrom[0].path" should be equal to the string "/redirect1"
 
+  @loginUser
+  Scenario: If I delete a route aware resource, the associated routes should also be deleted
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "DELETE" request to the resource "page_data"
+    Then the response status code should be 204
+    And the resource "page_data" should not exist
+    And the resource "page_data_route" should not exist
+
+
   Scenario: A resource with a relation to a route should return the path instead of the IRI
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to the resource "page_data"
