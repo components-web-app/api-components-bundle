@@ -16,7 +16,10 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,6 +68,19 @@ class OrphanedComponentEventListener
                 }
             }
         }
+        if ($data instanceof RoutableInterface) {
+            $route = $data->getRoute();
+            if ($route) {
+                $routeAssociations = 0;
+                $route->getPage() && $routeAssociations++;
+                $route->getPageData() && $routeAssociations++;
+                $route->getRedirect() && $routeAssociations++;
+                if ($routeAssociations <= 1) {
+                    $manager = $this->registry->getManagerForClass(Route::class);
+                    $manager?->remove($route);
+                }
+            }
+        }
     }
 
     private function removeOrphanedComponent(ComponentInterface $component, string $resourceClass): void
@@ -72,9 +88,7 @@ class OrphanedComponentEventListener
         $metadata = $this->usageMetadataFactory->create($component);
         if (1 === $metadata->getTotal()) {
             $manager = $this->registry->getManagerForClass($resourceClass);
-            if ($manager) {
-                $manager->remove($component);
-            }
+            $manager?->remove($component);
         }
     }
 }
