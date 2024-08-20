@@ -86,7 +86,7 @@ class UserCreateCommand extends Command
 
         $this->userFactory->create($username, $password, $email, $inactive, $superAdmin, $admin, $overwrite);
 
-        $output->writeln(sprintf('Created user: <comment>%s</comment>', $username));
+        $output->writeln(\sprintf('Created user: <comment>%s</comment>', $username));
 
         return 0;
     }

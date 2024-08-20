@@ -34,7 +34,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
     public function __construct(ManagerRegistry $registry, string $entityClass, int $passwordRequestTimeout, int $newEmailConfirmTimeout)
     {
         if (!is_subclass_of($entityClass, AbstractUser::class)) {
-            throw new InvalidArgumentException(sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(\sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractUser::class));
         }
         parent::__construct($registry, $entityClass);
         $this->passwordRequestTimeout = $passwordRequestTimeout;
@@ -53,7 +53,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
     public function findOneWithPasswordResetToken(string $username): ?AbstractUser
     {
         $minimumRequestDateTime = new \DateTime();
-        $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->passwordRequestTimeout));
+        $minimumRequestDateTime->modify(\sprintf('-%d seconds', $this->passwordRequestTimeout));
 
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.username) = :username')
@@ -68,7 +68,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
     public function findOneByUsernameAndNewEmailAddress(string $username, string $email): ?AbstractUser
     {
         $minimumRequestDateTime = new \DateTime();
-        $minimumRequestDateTime->modify(sprintf('-%d seconds', $this->newEmailConfirmTimeout));
+        $minimumRequestDateTime->modify(\sprintf('-%d seconds', $this->newEmailConfirmTimeout));
 
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.username) = :username')

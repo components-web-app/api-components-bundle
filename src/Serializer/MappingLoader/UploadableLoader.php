@@ -48,8 +48,8 @@ final class UploadableLoader implements LoaderInterface
         $properties = $reflectionClass->getProperties();
         $allAttributesMetadata = $classMetadata->getAttributesMetadata();
         $shortClassName = $reflectionClass->getShortName();
-        $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
-        $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
+        $readGroup = \sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
+        $writeGroup = \sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
         foreach ($properties as $property) {
             if (

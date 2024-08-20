@@ -26,7 +26,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
         $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull(
             $factory->create(
-                new class() extends AbstractUser {
+                new class extends AbstractUser {
                 }
             )
         );
@@ -34,7 +34,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
 
     public function test_exception_thrown_if_no_token(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user
             ->setUsername('username')
@@ -50,7 +50,7 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
 
     public function test_redirect_url_context_added_and_html_template_passed(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user
             ->setUsername('username')

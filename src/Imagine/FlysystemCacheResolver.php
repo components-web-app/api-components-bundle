@@ -45,7 +45,7 @@ class FlysystemCacheResolver implements ResolverInterface
 
     public function resolve($path, $filter): string
     {
-        return sprintf('%s/%s', rtrim($this->webRoot, '/'), ltrim($this->getFileUrl($path, $filter), '/'));
+        return \sprintf('%s/%s', rtrim($this->webRoot, '/'), ltrim($this->getFileUrl($path, $filter), '/'));
     }
 
     public function store(BinaryInterface $binary, $path, $filter): void

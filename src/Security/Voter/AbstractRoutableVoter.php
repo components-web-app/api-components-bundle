@@ -29,7 +29,7 @@ abstract class AbstractRoutableVoter extends Voter
             return false;
         }
         if (!$subject instanceof RoutableInterface) {
-            throw new \InvalidArgumentException(sprintf('$subject must be of type `%s`', RoutableInterface::class));
+            throw new \InvalidArgumentException(\sprintf('$subject must be of type `%s`', RoutableInterface::class));
         }
 
         return true;

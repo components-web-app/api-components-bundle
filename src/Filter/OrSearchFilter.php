@@ -123,7 +123,7 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
 
             if (!$this->hasValidValues($values, $this->getDoctrineFieldType($property, $resourceClass))) {
                 $this->logger->notice('Invalid filter ignored', [
-                    'exception' => new InvalidArgumentException(sprintf('Values for field "%s" are not valid according to the doctrine type.', $field)),
+                    'exception' => new InvalidArgumentException(\sprintf('Values for field "%s" are not valid according to the doctrine type.', $field)),
                 ]);
 
                 return;
@@ -147,7 +147,7 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
 
         if (!$this->hasValidValues($values, $doctrineTypeField)) {
             $this->logger->notice('Invalid filter ignored', [
-                'exception' => new InvalidArgumentException(sprintf('Values for field "%s" are not valid according to the doctrine type.', $field)),
+                'exception' => new InvalidArgumentException(\sprintf('Values for field "%s" are not valid according to the doctrine type.', $field)),
             ]);
 
             return;
@@ -177,7 +177,7 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 return $expr;
             }
 
-            return sprintf('LOWER(%s)', $expr);
+            return \sprintf('LOWER(%s)', $expr);
         };
     }
 
@@ -191,12 +191,12 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 if (\is_array($value)) {
                     foreach ($value as $i => $v) {
                         $queryBuilder
-                            ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter . $i))
+                            ->orWhere(\sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
                     }
                 } else {
                     $queryBuilder
-                        ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter))
+                        ->orWhere(\sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter))
                         ->setParameter($valueParameter, $value);
                 }
                 break;
@@ -204,12 +204,12 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 if (\is_array($value)) {
                     foreach ($value as $i => $v) {
                         $queryBuilder
-                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
                     }
                 } else {
                     $queryBuilder
-                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter))
                         ->setParameter($valueParameter, $value);
                 }
                 break;
@@ -217,12 +217,12 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 if (\is_array($value)) {
                     foreach ($value as $i => $v) {
                         $queryBuilder
-                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
                     }
                 } else {
                     $queryBuilder
-                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter))
                         ->setParameter($valueParameter, $value);
                 }
                 break;
@@ -230,12 +230,12 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 if (\is_array($value)) {
                     foreach ($value as $i => $v) {
                         $queryBuilder
-                            ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter . $i))
+                            ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
                     }
                 } else {
                     $queryBuilder
-                        ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter))
+                        ->orWhere(\sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter))
                         ->setParameter($valueParameter, $value);
                 }
                 break;
@@ -243,17 +243,17 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 if (\is_array($value)) {
                     foreach ($value as $i => $v) {
                         $queryBuilder
-                            ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter . $i))
+                            ->orWhere(\sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
                     }
                 } else {
                     $queryBuilder
-                        ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter))
+                        ->orWhere(\sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter))
                         ->setParameter($valueParameter, $value);
                 }
                 break;
             default:
-                throw new InvalidArgumentException(sprintf('strategy %s does not exist.', $strategy));
+                throw new InvalidArgumentException(\sprintf('strategy %s does not exist.', $strategy));
         }
     }
 }

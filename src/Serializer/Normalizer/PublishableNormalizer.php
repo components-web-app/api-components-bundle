@@ -267,7 +267,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
     {
         $em = $this->registry->getManagerForClass($type);
         if (!$em) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for class %s', $type));
         }
 
         return $em;
@@ -277,7 +277,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
     {
         $classMetadata = $em->getClassMetadata($type);
         if (!$classMetadata instanceof ClassMetadataInfo) {
-            throw new InvalidArgumentException(sprintf('Class metadata for %s was not an instance of %s', $type, ClassMetadataInfo::class));
+            throw new InvalidArgumentException(\sprintf('Class metadata for %s was not an instance of %s', $type, ClassMetadataInfo::class));
         }
 
         return $classMetadata;

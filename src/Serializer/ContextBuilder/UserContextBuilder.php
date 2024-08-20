@@ -43,7 +43,7 @@ class UserContextBuilder implements SerializerContextBuilderInterface
             $context['groups'] = [];
         }
         $postfix = false === $normalization ? 'input' : 'output';
-        $context['groups'][] = sprintf('User:%s', $postfix);
+        $context['groups'][] = \sprintf('User:%s', $postfix);
 
         if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
             $context['groups'][] = 'User:superAdmin';

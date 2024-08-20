@@ -37,7 +37,7 @@ class ChangePasswordType extends AbstractType
     public function __construct(Security $security, UserRepositoryInterface $userRepository, string $userClass)
     {
         if (!is_subclass_of($userClass, AbstractUser::class)) {
-            throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $userClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(\sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $userClass, __CLASS__, AbstractUser::class));
         }
         $this->security = $security;
         $this->userRepository = $userRepository;

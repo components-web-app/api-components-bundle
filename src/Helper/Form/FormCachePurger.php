@@ -43,7 +43,7 @@ class FormCachePurger implements CacheClearerInterface
             /** @var Form[] $forms */
             $forms = $repo->findAll();
         } catch (\Exception $exception) {
-            $this->dispatcher->dispatch(new CommandLogEvent(sprintf('<error>Could not clear form cache: %s</error>', $exception->getMessage())));
+            $this->dispatcher->dispatch(new CommandLogEvent(\sprintf('<error>Could not clear form cache: %s</error>', $exception->getMessage())));
 
             return;
         }
@@ -65,7 +65,7 @@ class FormCachePurger implements CacheClearerInterface
         $dateTime = new \DateTime();
         $timestamp = filemtime($reflector->getFileName());
 
-        $this->dispatcher->dispatch(new CommandLogEvent(sprintf('<info>Checking timestamp for %s</info>', $formClass)));
+        $this->dispatcher->dispatch(new CommandLogEvent(\sprintf('<info>Checking timestamp for %s</info>', $formClass)));
 
         if (!$form->modifiedAt || $timestamp !== $form->modifiedAt->getTimestamp()) {
             $dateTime->setTimestamp($timestamp);

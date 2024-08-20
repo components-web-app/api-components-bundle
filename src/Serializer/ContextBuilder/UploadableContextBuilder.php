@@ -39,9 +39,9 @@ final class UploadableContextBuilder implements SerializerContextBuilderInterfac
 
         $reflectionClass = new \ReflectionClass($resourceClass);
         if ($normalization) {
-            $context['groups'][] = sprintf('%s:%s:read', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
+            $context['groups'][] = \sprintf('%s:%s:read', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
         } else {
-            $context['groups'][] = sprintf('%s:%s:write', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
+            $context['groups'][] = \sprintf('%s:%s:write', $reflectionClass->getShortName(), UploadableLoader::GROUP_NAME);
         }
 
         return $context;

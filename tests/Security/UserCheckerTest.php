@@ -40,7 +40,7 @@ class UserCheckerTest extends TestCase
     public function test_user_not_enabled_throws_exception(): void
     {
         $userChecker = new UserChecker();
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $user->setEnabled(false)->setEmailAddressVerified(true);
@@ -55,7 +55,7 @@ class UserCheckerTest extends TestCase
     public function test_user_with_unverified_email_throws_exception(): void
     {
         $userChecker = new UserChecker();
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $user->setEnabled(true);
@@ -71,7 +71,7 @@ class UserCheckerTest extends TestCase
     public function test_user_with_unverified_email_can_be_allowed_and_not_throw_exception(): void
     {
         $userChecker = new UserChecker(false);
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $user->setEnabled(true);

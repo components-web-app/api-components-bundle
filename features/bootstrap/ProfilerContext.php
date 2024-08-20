@@ -88,7 +88,7 @@ class ProfilerContext implements Context
     {
         $messageObjects = $this->getMercureMessageObjects();
         if (null !== $count && \count($messageObjects) !== $count) {
-            throw new ExpectationException(sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('%d updates were published but %d were expected', \count($messageObjects), $count), $this->minkContext->getSession()->getDriver());
         }
 
         return $messageObjects;
@@ -117,7 +117,7 @@ class ProfilerContext implements Context
                 return $messageAsArray;
             }
         }
-        throw new ExpectationException(sprintf('%d updates were published but no ComponentGroup was found', \count($messageObjects)), $this->minkContext->getSession()->getDriver());
+        throw new ExpectationException(\sprintf('%d updates were published but no ComponentGroup was found', \count($messageObjects)), $this->minkContext->getSession()->getDriver());
     }
 
     /**
@@ -156,7 +156,7 @@ class ProfilerContext implements Context
             }
         }
         if ($draftCount !== $count) {
-            throw new ExpectationException(sprintf('%d draft updates were published but %d were expected', $draftCount, $count), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('%d draft updates were published but %d were expected', $draftCount, $count), $this->minkContext->getSession()->getDriver());
         }
     }
 
@@ -184,7 +184,7 @@ class ProfilerContext implements Context
                 }
             }
         }
-        throw new ExpectationException(sprintf('The resource %s was not found in any xkey headers sent to be purged. IRIs that were purged were `%s`', $expectedIri, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+        throw new ExpectationException(\sprintf('The resource %s was not found in any xkey headers sent to be purged. IRIs that were purged were `%s`', $expectedIri, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
     }
 
     /**
@@ -213,7 +213,7 @@ class ProfilerContext implements Context
             return $email->getSubject();
         }, $messages);
 
-        Assert::assertCount(1, $messages, sprintf("%d messages were sent but only 1 was expected. Messages were sent with subjects '%s'", \count($messages), implode("', '", $subjects)));
+        Assert::assertCount(1, $messages, \sprintf("%d messages were sent but only 1 was expected. Messages were sent with subjects '%s'", \count($messages), implode("', '", $subjects)));
         Assert::assertInstanceOf(TemplatedEmail::class, $email = $messages[0]);
 
         /** @var TemplatedEmail $email */
@@ -260,7 +260,7 @@ class ProfilerContext implements Context
                 $this->validatePasswordChanged($headers);
                 break;
             default:
-                throw new \InvalidArgumentException(sprintf('The email type %s is not configured to test', $emailType));
+                throw new \InvalidArgumentException(\sprintf('The email type %s is not configured to test', $emailType));
         }
     }
 

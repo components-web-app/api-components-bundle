@@ -200,7 +200,7 @@ class UploadableFileManager
             throw new NotFoundHttpException($exception->getMessage());
         }
         if (!$this->annotationReader->isFieldConfigured($reflectionProperty)) {
-            throw new NotFoundHttpException(sprintf('field configuration not found for %s', $property));
+            throw new NotFoundHttpException(\sprintf('field configuration not found for %s', $property));
         }
 
         $propertyConfiguration = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
@@ -257,10 +257,10 @@ class UploadableFileManager
         $basename = $pathInfo['filename'];
         $extension = $pathInfo['extension'] ?? null;
         if (!empty($extension)) {
-            $extension = sprintf('.%s', $extension);
+            $extension = \sprintf('.%s', $extension);
         }
         $num = 1;
-        while ($filesystem->fileExists($newFilepath = sprintf('%s_%d%s', $basename, $num, $extension))) {
+        while ($filesystem->fileExists($newFilepath = \sprintf('%s_%d%s', $basename, $num, $extension))) {
             ++$num;
         }
         $filesystem->copy($currentFilepath, $newFilepath);

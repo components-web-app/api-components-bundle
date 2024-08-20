@@ -61,7 +61,7 @@ class RouteGenerator implements RouteGeneratorInterface
     {
         $entityManager = $this->registry->getManagerForClass($className = $object::class);
         if (!$entityManager) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
         }
         $uow = $entityManager->getUnitOfWork();
         /** @var RoutableInterface $originalPage */
@@ -110,8 +110,8 @@ class RouteGenerator implements RouteGeneratorInterface
         $conflictCounter = 0;
         while ($this->conflictExists($name, $path, $conflicts)) {
             ++$conflictCounter;
-            $name = sprintf('%s-%d', $baseName, $conflictCounter);
-            $path = sprintf('%s-%d', $basePath, $conflictCounter);
+            $name = \sprintf('%s-%d', $baseName, $conflictCounter);
+            $path = \sprintf('%s-%d', $basePath, $conflictCounter);
         }
 
         return [$name, $path];

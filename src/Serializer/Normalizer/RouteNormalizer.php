@@ -45,7 +45,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
                 break;
             }
             if (\in_array($nextRedirect->getId(), $redirectedRoutes, true)) {
-                throw new CircularReferenceException(sprintf('The redirect routes result in a circular reference: %s', implode(' -> ', $redirectedRoutes)));
+                throw new CircularReferenceException(\sprintf('The redirect routes result in a circular reference: %s', implode(' -> ', $redirectedRoutes)));
             }
             $redirectedRoutes[] = $nextRedirect->getId();
             $finalRoute = $nextRedirect;

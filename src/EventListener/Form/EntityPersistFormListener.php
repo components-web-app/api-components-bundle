@@ -59,7 +59,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         UserDataProcessor $userDataProcessor
     ): void {
         if (!$normalizer instanceof DenormalizerInterface) {
-            throw new InvalidArgumentException(sprintf('$normalizer must also implement %s', DenormalizerInterface::class));
+            throw new InvalidArgumentException(\sprintf('$normalizer must also implement %s', DenormalizerInterface::class));
         }
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
@@ -86,7 +86,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
 
         $entityManager = $this->registry->getManagerForClass($this->dataClass);
         if (!$entityManager) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $this->dataClass));
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $this->dataClass));
         }
 
         if ($data instanceof AbstractUser) {

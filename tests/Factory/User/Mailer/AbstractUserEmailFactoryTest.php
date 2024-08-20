@@ -67,7 +67,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             }
         };
         $factory->create(
-            new class() extends AbstractUser {
+            new class extends AbstractUser {
             }
         );
     }
@@ -75,7 +75,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_exception_thrown_if_user_has_no_username(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'email subject');
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setEmailAddress('email@address.com');
 
@@ -88,7 +88,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_exception_thrown_if_user_has_no_email_address(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'email subject');
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('my_username');
 
@@ -101,7 +101,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_exception_thrown_if_email_not_rfc_compliant(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'email subject');
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('invalid_email:address');
 
@@ -114,12 +114,12 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_exception_thrown_if_no_website_name_context_key(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'email subject');
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `website_name`, `test_key`)', DummyUserEmailFactory::class));
+        $this->expectExceptionMessage(\sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `website_name`, `test_key`)', DummyUserEmailFactory::class));
 
         $userEmailFactory->create($user);
     }
@@ -127,7 +127,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_create_email_message(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'website name is {{ website_name }}');
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
 
@@ -167,7 +167,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
     public function test_do_not_create_email_message_if_not_enabled(): void
     {
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('my_username')->setEmailAddress('email@address.com');
 
@@ -189,7 +189,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The `defaultRedirectPath` or `redirectPathQueryKey` must be set');
         $userEmailFactory->dummyGetTokenUrl(
-            new class() extends AbstractUser {
+            new class extends AbstractUser {
             }
         );
     }
@@ -211,9 +211,9 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->willReturn($requestStackMock);
 
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage(sprintf('The querystring key `%s` could not be found in the request to generate a token URL', 'queryKey'));
+        $this->expectExceptionMessage(\sprintf('The querystring key `%s` could not be found in the request to generate a token URL', 'queryKey'));
         $userEmailFactory->dummyGetTokenUrl(
-            new class() extends AbstractUser {
+            new class extends AbstractUser {
             }
         );
     }
@@ -253,7 +253,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         self::assertEquals(
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
-                new class() extends AbstractUser {
+                new class extends AbstractUser {
                 }
             )
         );
@@ -290,7 +290,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
         self::assertEquals(
             '/any-path',
             $userEmailFactory->dummyGetTokenUrl(
-                new class() extends AbstractUser {
+                new class extends AbstractUser {
                 }
             )
         );
@@ -321,7 +321,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->with('/path/token%20username/my_token')
             ->willReturn('/any-path');
 
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user->setUsername('token username');
         self::assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl($user));

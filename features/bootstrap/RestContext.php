@@ -151,7 +151,7 @@ class RestContext implements Context
     public function iAddHeaderEqualToTheResource($name, $resource)
     {
         if (!isset($this->resources[$resource])) {
-            throw new ExpectationException(sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
         }
         $value = $this->resources[$resource];
         $this->restContext->iAddHeaderEqualTo($name, $value);
@@ -163,7 +163,7 @@ class RestContext implements Context
     public function iSendARequestToTheResourceWithBody(string $method, string $resource, ?string $postfix = null, ?PyStringNode $body = null)
     {
         if (!isset($this->resources[$resource])) {
-            throw new ExpectationException(sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
         }
         $endpoint = $this->resources[$resource] . ($postfix ?: '');
 

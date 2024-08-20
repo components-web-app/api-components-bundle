@@ -57,7 +57,7 @@ class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
     {
         $decoratedMock = $this->getDecoratedMock();
         $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
-        $pageDataClass = new class() extends AbstractPageData {
+        $pageDataClass = new class extends AbstractPageData {
         };
         $metadataCollection = $factory->create($pageDataClass::class);
         /** @var ApiResource $apiResource */

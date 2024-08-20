@@ -66,10 +66,10 @@ final class RefreshTokensExpireCommand extends Command
         if ($username = (string) $input->getArgument('username')) {
             $user = $this->repository->findOneBy([$input->getOption('field') => $username]);
             if (!$user) {
-                throw new EntityNotFoundException(sprintf('User with username "%s" not found.', $username));
+                throw new EntityNotFoundException(\sprintf('User with username "%s" not found.', $username));
             }
             $this->storage->expireAll($user);
-            $output->writeln(sprintf('RefreshTokens for user <comment>%s</comment> successfully expired.', $username));
+            $output->writeln(\sprintf('RefreshTokens for user <comment>%s</comment> successfully expired.', $username));
         } else {
             $this->storage->expireAll(null);
             $output->writeln('RefreshTokens for all users successfully expired.');

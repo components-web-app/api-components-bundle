@@ -42,7 +42,7 @@ class UploadAction
         $contentType = explode(';', $contentType)[0];
         $formats = ['multipart/form-data'];
         if (!\in_array(strtolower($contentType), $formats, true)) {
-            throw new UnsupportedMediaTypeHttpException(sprintf('The content-type "%s" is not supported. Supported MIME type is "%s".', $contentType, implode('", "', $formats)));
+            throw new UnsupportedMediaTypeHttpException(\sprintf('The content-type "%s" is not supported. Supported MIME type is "%s".', $contentType, implode('", "', $formats)));
         }
 
         $resourceClass = $request->attributes->get('_api_resource_class');

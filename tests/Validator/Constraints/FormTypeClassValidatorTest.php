@@ -82,7 +82,7 @@ class FormTypeClassValidatorTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->formTypeClassValidator->validate(
             TestType::class,
-            new class() extends Constraint {
+            new class extends Constraint {
             }
         );
     }

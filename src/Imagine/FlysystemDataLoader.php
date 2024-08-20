@@ -46,7 +46,7 @@ class FlysystemDataLoader implements LoaderInterface
 
         // This should be finding the file that we have uploaded into a location already - source file locator
         if (false === $filesystem->fileExists($path)) {
-            throw new NotLoadableException(sprintf('Source image "%s" not found.', $path));
+            throw new NotLoadableException(\sprintf('Source image "%s" not found.', $path));
         }
 
         $mimeType = $filesystem->mimeType($path);

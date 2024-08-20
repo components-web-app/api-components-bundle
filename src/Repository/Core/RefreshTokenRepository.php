@@ -32,7 +32,7 @@ class RefreshTokenRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry, string $entityClass)
     {
         if (!is_subclass_of($entityClass, AbstractRefreshToken::class)) {
-            throw new InvalidArgumentException(sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractRefreshToken::class));
+            throw new InvalidArgumentException(\sprintf('The entity class `%s` used for the repository `%s` must be a subclass of `%s`', $entityClass, __CLASS__, AbstractRefreshToken::class));
         }
         parent::__construct($registry, $entityClass);
     }

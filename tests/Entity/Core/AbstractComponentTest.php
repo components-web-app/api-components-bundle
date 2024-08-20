@@ -24,7 +24,7 @@ class AbstractComponentTest extends TestCase
     protected function setUp(): void
     {
         // Create a new instance from the Abstract Class
-        $this->anonymousClassFromAbstract = new class() extends AbstractComponent {
+        $this->anonymousClassFromAbstract = new class extends AbstractComponent {
         };
     }
 

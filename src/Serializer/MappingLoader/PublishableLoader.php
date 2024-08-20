@@ -41,8 +41,8 @@ final class PublishableLoader implements LoaderInterface
 
         $allAttributesMetadata = $classMetadata->getAttributesMetadata();
         $shortClassName = $reflectionClass->getShortName();
-        $readGroup = sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
-        $writeGroup = sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
+        $readGroup = \sprintf('%s:%s:read', $shortClassName, self::GROUP_NAME);
+        $writeGroup = \sprintf('%s:%s:write', $shortClassName, self::GROUP_NAME);
 
         if (
             ($attributeMetadata = ($allAttributesMetadata[$configuration->fieldName] ?? null))
@@ -62,7 +62,7 @@ final class PublishableLoader implements LoaderInterface
         if (
             $attributeMetadata = ($allAttributesMetadata[$configuration->reverseAssociationName] ?? null)
         ) {
-            $authorizedReadGroup = sprintf('%s:%s:read:authorized', $shortClassName, self::GROUP_NAME);
+            $authorizedReadGroup = \sprintf('%s:%s:read:authorized', $shortClassName, self::GROUP_NAME);
             $attributeMetadata->addGroup($authorizedReadGroup);
         }
 

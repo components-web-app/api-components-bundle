@@ -46,8 +46,8 @@ final class TimestampedLoader implements LoaderInterface
             $configuration->createdAtField,
             new Assert\NotNull(
                 [
-                    'groups' => [sprintf('%s:timestamped', $shortName)],
-                    'message' => sprintf('%s should not be null', $configuration->createdAtField),
+                    'groups' => [\sprintf('%s:timestamped', $shortName)],
+                    'message' => \sprintf('%s should not be null', $configuration->createdAtField),
                 ]
             )
         );
@@ -56,8 +56,8 @@ final class TimestampedLoader implements LoaderInterface
             $configuration->modifiedAtField,
             new Assert\NotNull(
                 [
-                    'groups' => [sprintf('%s:timestamped', $shortName)],
-                    'message' => sprintf('%s should not be null', $configuration->modifiedAtField),
+                    'groups' => [\sprintf('%s:timestamped', $shortName)],
+                    'message' => \sprintf('%s should not be null', $configuration->modifiedAtField),
                 ]
             )
         );

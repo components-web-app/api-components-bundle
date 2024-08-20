@@ -42,12 +42,12 @@ final class ComponentPositionContextBuilder implements SerializerContextBuilderI
             return $context;
         }
         $rw = $normalization ? 'read' : 'write';
-        $context['groups'][] = sprintf('ComponentPosition:%s', $rw);
+        $context['groups'][] = \sprintf('ComponentPosition:%s', $rw);
         $user = $this->security->getUser();
         if ($user) {
             $reachableRoles = $this->roleHierarchy->getReachableRoleNames($user->getRoles());
             foreach ($reachableRoles as $reachableRole) {
-                $context['groups'][] = sprintf('ComponentPosition:%s:%s', $rw, strtolower($reachableRole));
+                $context['groups'][] = \sprintf('ComponentPosition:%s:%s', $rw, strtolower($reachableRole));
             }
         }
 

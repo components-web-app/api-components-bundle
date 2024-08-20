@@ -34,11 +34,11 @@ final class ApiResourceRouteFinder
         try {
             $parameters = $this->router->match($iri);
         } catch (RoutingExceptionInterface $e) {
-            throw new InvalidArgumentException(sprintf('No route matches "%s".', $iri), $e->getCode(), $e);
+            throw new InvalidArgumentException(\sprintf('No route matches "%s".', $iri), $e->getCode(), $e);
         }
 
         if (!isset($parameters['_api_resource_class'])) {
-            throw new InvalidArgumentException(sprintf('No resource associated to "%s".', $iri));
+            throw new InvalidArgumentException(\sprintf('No resource associated to "%s".', $iri));
         }
 
         return $parameters;

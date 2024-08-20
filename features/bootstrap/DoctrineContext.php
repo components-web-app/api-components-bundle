@@ -422,8 +422,8 @@ final class DoctrineContext implements Context
         for ($x = 0; $x < $count; ++$x) {
             $route = new Route();
             $route
-                ->setPath(sprintf('/route-%s', $x))
-                ->setName(sprintf('/route-%s', $x));
+                ->setPath(\sprintf('/route-%s', $x))
+                ->setName(\sprintf('/route-%s', $x));
             $this->timestampedHelper->persistTimestampedFields($route, true);
             $this->manager->persist($route);
             $this->restContext->resources['route_' . $x] = $this->iriConverter->getIriFromResource($route);
@@ -602,7 +602,7 @@ final class DoctrineContext implements Context
             'PUT',
             'page_data',
             null,
-            new PyStringNode([sprintf('{ "%s": "%s" }', $property, $iri)], 0)
+            new PyStringNode([\sprintf('{ "%s": "%s" }', $property, $iri)], 0)
         );
     }
 
@@ -767,7 +767,7 @@ final class DoctrineContext implements Context
     {
         $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]);
         if (!$component instanceof AbstractComponent) {
-            throw new \RuntimeException(sprintf('The resource named `%s` is not a component', $resource));
+            throw new \RuntimeException(\sprintf('The resource named `%s` is not a component', $resource));
         }
 
         $page = $this->thereIsAPage('page_1');
@@ -870,7 +870,7 @@ final class DoctrineContext implements Context
         try {
             $iri = $this->restContext->resources[$name];
             $this->iriConverter->getResourceFromIri($iri);
-            throw new ExpectationException(sprintf('The resource %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('The resource %s can still be found and has not been removed', $iri), $this->minkContext->getSession()->getDriver());
         } catch (ItemNotFoundException $exception) {
         }
     }
@@ -886,7 +886,7 @@ final class DoctrineContext implements Context
             'user' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']),
         ]);
         if (!$token->isExpired()) {
-            throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
         }
     }
 
@@ -902,7 +902,7 @@ final class DoctrineContext implements Context
         ]);
         foreach ($tokens as $token) {
             if (!$token->isExpired()) {
-                throw new ExpectationException(sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+                throw new ExpectationException(\sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
             }
         }
     }
@@ -917,7 +917,7 @@ final class DoctrineContext implements Context
             $iri = $this->restContext->resources[$name];
             $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
     }
 
@@ -1014,6 +1014,6 @@ final class DoctrineContext implements Context
                 ++$nonExpiredCount;
             }
         }
-        Assert::assertLessThanOrEqual(1, $nonExpiredCount, sprintf('There should only be 1 token that is not expired. There are %d', $nonExpiredCount));
+        Assert::assertLessThanOrEqual(1, $nonExpiredCount, \sprintf('There should only be 1 token that is not expired. There are %d', $nonExpiredCount));
     }
 }

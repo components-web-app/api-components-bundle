@@ -56,7 +56,7 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
                         HttpOperation::METHOD_POST !== $operation->getMethod()
                         && !$operation instanceof CollectionOperationInterface
                         && !$operation->getSecurity()) {
-                        $operation = $operation->withSecurity(sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
+                        $operation = $operation->withSecurity(\sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
                     }
                     $newOperations[$i] = $operation;
                 }

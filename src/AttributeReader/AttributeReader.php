@@ -48,14 +48,14 @@ abstract class AttributeReader implements AttributeReaderInterface
 
     private function resolveClassName(object|string|null $class): string
     {
-        $error = sprintf('$class passed to %s must be a valid class FQN or object.', __CLASS__);
+        $error = \sprintf('$class passed to %s must be a valid class FQN or object.', __CLASS__);
         if (null === $class) {
             throw new InvalidArgumentException($error . ' It is null.');
         }
 
         if (\is_string($class)) {
             if (!class_exists($class)) {
-                throw new InvalidArgumentException(sprintf('%s %s is not a class.', $error, $class));
+                throw new InvalidArgumentException(\sprintf('%s %s is not a class.', $error, $class));
             }
 
             return $class;
@@ -103,7 +103,7 @@ abstract class AttributeReader implements AttributeReaderInterface
             if (!\count($attributes)) {
                 $attributes = $this->getConfigurationFromTraits($reflection, $annotationClass);
                 if (!\count($attributes)) {
-                    throw new InvalidArgumentException(sprintf('%s does not have %s annotation', \is_object($class) ? $class::class : $class, $annotationClass));
+                    throw new InvalidArgumentException(\sprintf('%s does not have %s annotation', \is_object($class) ? $class::class : $class, $annotationClass));
                 }
             }
         }

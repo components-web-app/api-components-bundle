@@ -68,7 +68,7 @@ class FormSubmitHelper
     private function getRootData(FormInterface $form, $content): array
     {
         if (!isset($content[$form->getName()])) {
-            throw new UnprocessableEntityHttpException(sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName()));
+            throw new UnprocessableEntityHttpException(\sprintf('Form object key could not be found. Expected: <b>%s</b>: { "input_name": "input_value" }', $form->getName()));
         }
 
         return $content[$form->getName()];

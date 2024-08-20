@@ -65,7 +65,7 @@ class DataUriFile extends File
         $path = $this->getTempFileBasePath();
 
         if (false === file_put_contents($path, $decoded)) {
-            throw new FileException(sprintf('Unable to write the file "%s"', $path));
+            throw new FileException(\sprintf('Unable to write the file "%s"', $path));
         }
 
         return $path;
@@ -76,7 +76,7 @@ class DataUriFile extends File
         $target = $this->createTempFileTarget($mimeType);
         $content = urldecode($dataUriMatch);
         if (false === @fwrite($target->resource, $content)) {
-            throw new FileException(sprintf('Unable to write the file "%s"', $target->path));
+            throw new FileException(\sprintf('Unable to write the file "%s"', $target->path));
         }
         $this->closeFile($target);
 
@@ -93,7 +93,7 @@ class DataUriFile extends File
         }
 
         if (false === stream_copy_to_stream($source, $target->resource)) {
-            throw new FileException(sprintf('Unable to write the file "%s"', $target->path));
+            throw new FileException(\sprintf('Unable to write the file "%s"', $target->path));
         }
 
         if (false === @fclose($source)) {
@@ -108,7 +108,7 @@ class DataUriFile extends File
     private function getTempFileBasePath(): string
     {
         if (false === $path = tempnam($directory = sys_get_temp_dir(), 'DataUriFile')) {
-            throw new FileException(sprintf('Unable to create a file into the "%s" directory: %s', $directory, $path));
+            throw new FileException(\sprintf('Unable to create a file into the "%s" directory: %s', $directory, $path));
         }
 
         return $path;
@@ -123,10 +123,10 @@ class DataUriFile extends File
         }
 
         if (false === $target = @fopen($path, 'wb+')) {
-            throw new FileException(sprintf('Unable to open the file "%s"', $path));
+            throw new FileException(\sprintf('Unable to open the file "%s"', $path));
         }
 
-        $class = new class() {
+        $class = new class {
             public string $path;
             public $resource;
         };
@@ -139,7 +139,7 @@ class DataUriFile extends File
     private function closeFile(object $target): void
     {
         if (false === @fclose($target->resource)) {
-            throw new FileException(sprintf('Unable to close the file "%s"', $target->path));
+            throw new FileException(\sprintf('Unable to close the file "%s"', $target->path));
         }
     }
 }

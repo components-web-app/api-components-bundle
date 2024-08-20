@@ -50,7 +50,7 @@ class UserDataProcessor
 
         $username = $user->getUsername();
         if (!$username) {
-            throw new UnexpectedValueException(sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
+            throw new UnexpectedValueException(\sprintf('The entity %s should have a username set to send a password reset email.', AbstractUser::class));
         }
         $user->setNewPasswordConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
         $user->plainNewPasswordConfirmationToken = $token;

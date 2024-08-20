@@ -200,7 +200,7 @@ class JsonContext implements Context
                 return $cookie;
             }
         }
-        throw new \Exception(sprintf('The cookie "%s" was not found in the response headers.', $name));
+        throw new \Exception(\sprintf('The cookie "%s" was not found in the response headers.', $name));
     }
 
     /**
@@ -210,7 +210,7 @@ class JsonContext implements Context
     {
         $cookie = $this->getCookieByName($name);
         $timeDiff = $cookie->getExpiresTime() - time();
-        Assert::assertLessThan($seconds, $timeDiff, sprintf('The cookie "%s" expires in "%d" seconds. Expected less than "%d" seconds', $name, $timeDiff, $seconds));
+        Assert::assertLessThan($seconds, $timeDiff, \sprintf('The cookie "%s" expires in "%d" seconds. Expected less than "%d" seconds', $name, $timeDiff, $seconds));
     }
 
     /**
@@ -220,7 +220,7 @@ class JsonContext implements Context
     {
         $cookie = $this->getCookieByName($name);
         $real = $cookie->getValue();
-        Assert::assertEquals($value, $real, sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
+        Assert::assertEquals($value, $real, \sprintf('The cookie "%s" has the value "%s". Expected "%s"', $name, $real, $value));
     }
 
     /**
@@ -234,7 +234,7 @@ class JsonContext implements Context
         $actual = $this->inspector->evaluate($json, $node);
         $diff = (new \DateTime($text))->getTimestamp() - (new \DateTime($actual))->getTimestamp();
         if ($diff < -1 || $diff > 1) {
-            throw new \Exception(sprintf("The node value is '%s' which is a difference of %s seconds to the cached 'now' value", json_encode($actual), $diff));
+            throw new \Exception(\sprintf("The node value is '%s' which is a difference of %s seconds to the cached 'now' value", json_encode($actual), $diff));
         }
     }
 
@@ -268,7 +268,7 @@ class JsonContext implements Context
         $actual = $this->inspector->evaluate($json, $name);
 
         if (1 !== preg_match($expression, $actual)) {
-            throw new \Exception(sprintf("The node value did not match '%s'. It is '%s'", $expression, json_encode($actual)));
+            throw new \Exception(\sprintf("The node value did not match '%s'. It is '%s'", $expression, json_encode($actual)));
         }
     }
 

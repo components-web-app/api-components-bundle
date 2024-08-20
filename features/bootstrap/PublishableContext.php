@@ -123,7 +123,7 @@ final class PublishableContext implements Context
     {
         $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$publishedComponent]);
         if (!$component instanceof DummyPublishableComponent) {
-            throw new \RuntimeException(sprintf('The resource named `%s` is not a DummyPublishableComponent', $publishedComponent));
+            throw new \RuntimeException(\sprintf('The resource named `%s` is not a DummyPublishableComponent', $publishedComponent));
         }
         $publishAt = $publishDate ? (new \DateTime($publishDate))->format('Y-m-d H:i:s') : null;
         $draft = $this->thereIsAPublishableResource($publishAt, false, true);
@@ -222,7 +222,7 @@ final class PublishableContext implements Context
         $flush && $this->manager->flush();
 
         $this->resources[] = $resource;
-        $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
+        $componentKey = \sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
         $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromResource($resource);
 
         return $resource;
@@ -262,7 +262,7 @@ final class PublishableContext implements Context
         $expectedTotal = \count($draftResources) + \count($this->publishedResourcesWithoutDrafts);
 
         if ($expectedTotal !== ($receivedTotal = \count($items))) {
-            throw new ExpectationException(sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal), $this->minkContext->getSession()->getDriver());
         }
 
         $expectedPublishedResourceIds = $this->getResourceIds($this->publishedResourcesWithoutDrafts);
@@ -293,7 +293,7 @@ final class PublishableContext implements Context
 
         $expectedTotal = \count($publishedResources);
 
-        Assert::assertEquals($expectedTotal, $receivedTotal = \count($items), sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
+        Assert::assertEquals($expectedTotal, $receivedTotal = \count($items), \sprintf('Expected %d resources but received %d', $expectedTotal, $receivedTotal));
 
         foreach ($items as $item) {
             Assert::assertEquals('is_published', $item['reference'], 'Received an unexpected item in the response: ' . json_encode($item, \JSON_THROW_ON_ERROR, 512));
@@ -319,7 +319,7 @@ final class PublishableContext implements Context
     public function theComponentPositionShouldHaveTheComponent(string $reference)
     {
         $response = $this->jsonContext->getJsonAsArray();
-        Assert::assertEquals($this->restContext->resources[$reference], $response['component'], sprintf('The component position was expected to have the component %s but %s was returned', $this->restContext->resources[$reference], $response['component']));
+        Assert::assertEquals($this->restContext->resources[$reference], $response['component'], \sprintf('The component position was expected to have the component %s but %s was returned', $this->restContext->resources[$reference], $response['component']));
     }
 
     /**
@@ -334,7 +334,7 @@ final class PublishableContext implements Context
         $this->manager->persist($resource);
         $this->resources[] = $resource;
 
-        $componentKey = sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
+        $componentKey = \sprintf('publishable_%s', $isPublished ? 'published' : 'draft');
         $this->restContext->resources[$componentKey] = $this->iriConverter->getIriFromResource($resource);
 
         return $resource;

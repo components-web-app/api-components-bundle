@@ -37,10 +37,10 @@ class FormTypeClassValidator extends ConstraintValidator
             return;
         }
         if (!\is_string($value)) {
-            throw new InvalidArgumentException(sprintf('The value passed to %s must be a string', __CLASS__));
+            throw new InvalidArgumentException(\sprintf('The value passed to %s must be a string', __CLASS__));
         }
         if (!$constraint instanceof FormTypeClass) {
-            throw new InvalidArgumentException(sprintf('$constraint parameter must be %s', FormTypeClass::class));
+            throw new InvalidArgumentException(\sprintf('$constraint parameter must be %s', FormTypeClass::class));
         }
 
         try {

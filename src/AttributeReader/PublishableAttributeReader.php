@@ -27,7 +27,7 @@ final class PublishableAttributeReader extends AttributeReader
     {
         $publishable = $this->getClassAttributeConfiguration($class, Publishable::class);
         if (!$publishable instanceof Publishable) {
-            throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Publishable::class));
+            throw new \LogicException(\sprintf('getClassAnnotationConfiguration should return the type %s', Publishable::class));
         }
 
         return $publishable;

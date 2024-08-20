@@ -70,11 +70,11 @@ class RefererUrlResolver
         ] = array_merge($defaults, parse_url($url) ?: []);
 
         if (null === $host) {
-            throw new UnparseableRequestHeaderException(sprintf('Could not extract `host` while parsing the `%s` header', $headerName));
+            throw new UnparseableRequestHeaderException(\sprintf('Could not extract `host` while parsing the `%s` header', $headerName));
         }
 
         if (null === $scheme) {
-            throw new UnparseableRequestHeaderException(sprintf('Could not extract `scheme` while parsing the `%s` header', $headerName));
+            throw new UnparseableRequestHeaderException(\sprintf('Could not extract `scheme` while parsing the `%s` header', $headerName));
         }
 
         $url = $scheme . '://' . $host;

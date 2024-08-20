@@ -96,7 +96,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     #[Pure]
     private static function generateOperationName(Operation $operation): string
     {
-        return sprintf(
+        return \sprintf(
             '_api_%s_%s%s',
             $operation->getUriTemplate(),
             strtolower($operation->getMethod()),
@@ -128,7 +128,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     #[Pure]
     private static function generatePostOperation(Post $defaultOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
     {
-        $path = sprintf('/%s/upload', $pathSegmentName);
+        $path = \sprintf('/%s/upload', $pathSegmentName);
         $newPost = $defaultOperation
             ->withUriTemplate($path)
             ->withShortName($defaultOperation->getShortName())
@@ -140,7 +140,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     #[Pure]
     private static function generateUploadItemOperation(Get $getOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
     {
-        $path = sprintf('/%s/{id}/upload', $pathSegmentName);
+        $path = \sprintf('/%s/{id}/upload', $pathSegmentName);
         $newUploadPost = $getOperation
             ->withUriTemplate($path)
             ->withMethod(HttpOperation::METHOD_POST)
@@ -153,7 +153,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     #[Pure]
     private static function generateDownloadItemOperation(Get $getOperation, string $pathSegmentName): Operation
     {
-        $downloadPath = sprintf('/%s/{id}/download/{property}', $pathSegmentName);
+        $downloadPath = \sprintf('/%s/{id}/download/{property}', $pathSegmentName);
 
         return $getOperation
             ->withUriTemplate($downloadPath)

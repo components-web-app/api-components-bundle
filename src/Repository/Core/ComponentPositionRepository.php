@@ -45,7 +45,7 @@ class ComponentPositionRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('cp');
         $expr = $qb->expr();
         foreach ($properties as $index => $property) {
-            $key = sprintf(':positionName%d', $index);
+            $key = \sprintf(':positionName%d', $index);
             $qb->orWhere($expr->eq('cp.pageDataProperty', $key));
             $qb->setParameter($key, $property);
         }

@@ -29,6 +29,6 @@ class ApiUrlGenerator implements UploadableUrlGeneratorInterface
         $resourceId = $this->iriConverter->getIriFromResource($object);
         $converter = new CamelCaseToSnakeCaseNameConverter();
 
-        return $this->urlHelper->getAbsoluteUrl(sprintf('%s/download/%s', $resourceId, $converter->normalize($fileProperty)));
+        return $this->urlHelper->getAbsoluteUrl(\sprintf('%s/download/%s', $resourceId, $converter->normalize($fileProperty)));
     }
 }

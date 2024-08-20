@@ -66,7 +66,7 @@ class RouteEventListener
         }
         $entityManager = $this->registry->getManagerForClass($className = Route::class);
         if (!$entityManager) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for %s', $className));
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
         }
 
         // create a redirect from the old route

@@ -40,19 +40,19 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
     {
         // needs to be a class
         if (!class_exists($resourceClass)) {
-            throw new PageDataNotFoundException(sprintf('`%s` was not found', $resourceClass));
+            throw new PageDataNotFoundException(\sprintf('`%s` was not found', $resourceClass));
         }
 
         // Check it is page data
         $reflection = new \ReflectionClass($resourceClass);
         if (!$reflection->implementsInterface(PageDataInterface::class)) {
-            throw new PageDataNotFoundException(sprintf('Resource class `%s` is not a valid page data resource', $resourceClass));
+            throw new PageDataNotFoundException(\sprintf('Resource class `%s` is not a valid page data resource', $resourceClass));
         }
 
         // Find the doctrine manager
         $manager = $this->registry->getManagerForClass($resourceClass);
         if (!$manager) {
-            throw new PageDataNotFoundException(sprintf('Cannot find manager for page data resource `%s`', $resourceClass));
+            throw new PageDataNotFoundException(\sprintf('Cannot find manager for page data resource `%s`', $resourceClass));
         }
         $classMetadata = $manager->getClassMetadata($resourceClass);
 

@@ -54,7 +54,7 @@ class UserMailerTest extends TestCase
 
     public function test_context_can_be_omitted(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $userMailer = new UserMailer($this->mailerMock, $this->containerMock);
@@ -72,7 +72,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_method_skipped_if_no_message_returned(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
@@ -92,7 +92,7 @@ class UserMailerTest extends TestCase
 
     public function test_exception_thrown_if_mailer_send_throws_exception(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $templateEmail = new TemplatedEmail();
 
@@ -117,7 +117,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_password_reset_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_password_reset_email';
         };
 
@@ -128,7 +128,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_change_email_verification_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_change_email_verification_email';
         };
 
@@ -139,7 +139,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_welcome_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_welcome_email';
         };
 
@@ -150,7 +150,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_user_enabled_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_user_enabled_email';
         };
 
@@ -161,7 +161,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_username_changed_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_username_changed_email';
         };
 
@@ -172,7 +172,7 @@ class UserMailerTest extends TestCase
 
     public function test_send_password_changed_email(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
             protected ?string $username = 'test_send_password_changed_email';
         };
 

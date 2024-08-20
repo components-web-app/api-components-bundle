@@ -53,14 +53,14 @@ final class CwaResourceContextBuilder implements SerializerContextBuilderInterfa
         }
         $rw = $normalization ? 'read' : 'write';
         foreach ($componentNames as $componentName) {
-            $context['groups'][] = sprintf('%s:%s:%s', $componentName, CwaResourceLoader::GROUP_NAME, $rw);
+            $context['groups'][] = \sprintf('%s:%s:%s', $componentName, CwaResourceLoader::GROUP_NAME, $rw);
         }
 
         $user = $this->security->getUser();
         if ($user) {
             $reachableRoles = $this->roleHierarchy->getReachableRoleNames($user->getRoles());
             foreach ($reachableRoles as $reachableRole) {
-                $context['groups'][] = sprintf('%s:%s:%s:%s', $shortName, CwaResourceLoader::GROUP_NAME, $rw, strtolower($reachableRole));
+                $context['groups'][] = \sprintf('%s:%s:%s:%s', $shortName, CwaResourceLoader::GROUP_NAME, $rw, strtolower($reachableRole));
             }
         }
 

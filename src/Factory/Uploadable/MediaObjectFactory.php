@@ -90,7 +90,7 @@ class MediaObjectFactory
             }
 
             if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
-                throw new InvalidArgumentException(sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
+                throw new InvalidArgumentException(\sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
             }
             $contentUrl = $urlGenerator->generateUrl($object, $fileProperty, $filesystem, $path);
 

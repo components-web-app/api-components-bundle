@@ -135,7 +135,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type = $component::class);
         $em = $this->registry->getManagerForClass($component::class);
         if (!$em) {
-            throw new InvalidArgumentException(sprintf('Could not find entity manager for class %s', $type));
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for class %s', $type));
         }
         /** @var ClassMetadataInfo $classMetadata */
         $classMetadata = $em->getClassMetadata($type);
@@ -174,7 +174,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
 
         // it must be a component if it is found though
         if (!$component instanceof AbstractComponent) {
-            throw new InvalidArgumentException(sprintf('The page data property %s is not a component', $object->pageDataProperty));
+            throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $object->pageDataProperty));
         }
 
         // populate the position

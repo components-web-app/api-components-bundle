@@ -24,7 +24,7 @@ final class TimestampedAttributeReader extends AttributeReader
     {
         $timestamped = $this->getClassAttributeConfiguration($class, Timestamped::class);
         if (!$timestamped instanceof Timestamped) {
-            throw new \LogicException(sprintf('getClassAnnotationConfiguration should return the type %s', Timestamped::class));
+            throw new \LogicException(\sprintf('getClassAnnotationConfiguration should return the type %s', Timestamped::class));
         }
 
         return $timestamped;

@@ -35,7 +35,7 @@ class UserRegisterType extends AbstractType
     {
         $this->userClass = $userClass;
         if (!is_subclass_of($this->userClass, AbstractUser::class)) {
-            throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(\sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
     }
 

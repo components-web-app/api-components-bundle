@@ -37,7 +37,7 @@ class ClassNameValidator
     public static function isClassSame(string $className, object $validClass): bool
     {
         if (!class_exists($className) && !interface_exists($className)) {
-            throw new InvalidArgumentException(sprintf('The class/interface %s does not exist', $className));
+            throw new InvalidArgumentException(\sprintf('The class/interface %s does not exist', $className));
         }
 
         if ($validClass::class === $className) {

@@ -114,7 +114,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$cookieProvider', $cookieProvider);
 
         $definition = $container->getDefinition('silverback.security.jwt_manager');
-        $definition->setArgument('$userProvider', new Reference(sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
+        $definition->setArgument('$userProvider', new Reference(\sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
         $definition = $container->getDefinition(PublishableStatusChecker::class);
@@ -275,8 +275,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
     private function appendMappingPaths(&$mappingPaths, $srcBase, $name): void
     {
         $configBasePath = $srcBase . '/Resources/config/api_platform';
-        $mappingPaths[] = sprintf('%s/%s/resource.xml', $configBasePath, $name);
-        $propertiesPath = sprintf('%s/%s/properties.xml', $configBasePath, $name);
+        $mappingPaths[] = \sprintf('%s/%s/resource.xml', $configBasePath, $name);
+        $propertiesPath = \sprintf('%s/%s/properties.xml', $configBasePath, $name);
         if (file_exists($propertiesPath)) {
             $mappingPaths[] = $propertiesPath;
         }
@@ -300,7 +300,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             'api_platform',
             [
                 'title' => $websiteName,
-                'description' => sprintf('API for %s', $websiteName),
+                'description' => \sprintf('API for %s', $websiteName),
                 'defaults' => [
                     'pagination_client_items_per_page' => true,
                     'pagination_maximum_items_per_page' => 100,

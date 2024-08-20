@@ -122,7 +122,7 @@ abstract class AbstractUserEmailFactory
         $event = new UserEmailMessageEvent(static::class, $email);
         $this->eventDispatcher->dispatch($event);
 
-        $email->getHeaders()->addTextHeader('X-Message-ID', sprintf('%s-%s', static::MESSAGE_ID_PREFIX, TokenGenerator::generateToken()));
+        $email->getHeaders()->addTextHeader('X-Message-ID', \sprintf('%s-%s', static::MESSAGE_ID_PREFIX, TokenGenerator::generateToken()));
 
         return $event->getEmail();
     }
@@ -155,7 +155,7 @@ abstract class AbstractUserEmailFactory
             $this->defaultRedirectPath;
 
         if (null === $path) {
-            throw new UnexpectedValueException(sprintf('The querystring key `%s` could not be found in the request to generate a token URL', $this->redirectPathQueryKey));
+            throw new UnexpectedValueException(\sprintf('The querystring key `%s` could not be found in the request to generate a token URL', $this->redirectPathQueryKey));
         }
 
         return $path;
@@ -178,7 +178,7 @@ abstract class AbstractUserEmailFactory
         $contextKeys = static::getContextKeys();
         $keys = array_keys($context);
         if (\count($differences = array_diff($contextKeys, $keys))) {
-            throw new InvalidArgumentException(sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `%s`)', static::class, implode('`, `', $differences)));
+            throw new InvalidArgumentException(\sprintf('You have not specified required context key(s) for the user email factory factory `%s` (expected: `%s`)', static::class, implode('`, `', $differences)));
         }
     }
 

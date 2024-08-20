@@ -34,7 +34,7 @@ class NewEmailAddressType extends AbstractType
     public function __construct(Security $security, UserRepositoryInterface $userRepository, string $userClass)
     {
         if (!is_subclass_of($userClass, AbstractUser::class)) {
-            throw new InvalidArgumentException(sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
+            throw new InvalidArgumentException(\sprintf('The user class `%s` provided to the form `%s` must extend `%s`', $this->userClass, __CLASS__, AbstractUser::class));
         }
         $this->security = $security;
         $this->userRepository = $userRepository;
@@ -45,11 +45,11 @@ class NewEmailAddressType extends AbstractType
     {
         $data = $this->security->getUser();
         if (!$data instanceof AbstractUser) {
-            throw new InvalidArgumentException(sprintf('The logged in user must be an instance of %s to use the form %s', AbstractUser::class, __CLASS__));
+            throw new InvalidArgumentException(\sprintf('The logged in user must be an instance of %s to use the form %s', AbstractUser::class, __CLASS__));
         }
         $help = null;
         if ($data instanceof AbstractUser && $data->getNewEmailAddress()) {
-            $help = sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());
+            $help = \sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());
         }
         $builder
             ->add(

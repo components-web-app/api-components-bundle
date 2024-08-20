@@ -176,7 +176,7 @@ class UploadsContext implements Context
             /* @var UploadableTrait $item */
             return $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new ExpectationException(sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
+            throw new ExpectationException(\sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
         }
     }
 }

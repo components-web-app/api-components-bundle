@@ -25,7 +25,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
         $factory = new WelcomeEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull(
             $factory->create(
-                new class() extends AbstractUser {
+                new class extends AbstractUser {
                 }
             )
         );
@@ -33,7 +33,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
 
     public function test_redirect_url_context_added_and_html_template_passed(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user
             ->setUsername('username')
@@ -59,7 +59,7 @@ class WelcomeEmailFactoryTest extends AbstractFinalEmailFactoryTest
 
     public function test_redirect_url_context_added_and_html_template_passed_with_token(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $user
             ->setUsername('username')

@@ -85,7 +85,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             $this->expressionLanguage->addFunction($rawurlencode);
 
             $this->expressionLanguage->addFunction(
-                new ExpressionFunction('iri', static fn (string $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL): string => sprintf('iri(%s, %d)', $apiResource, $referenceType), static fn (array $arguments, $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL): string => $iriConverter->getIriFromResource($apiResource, $referenceType))
+                new ExpressionFunction('iri', static fn (string $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL): string => \sprintf('iri(%s, %d)', $apiResource, $referenceType), static fn (array $arguments, $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL): string => $iriConverter->getIriFromResource($apiResource, $referenceType))
             );
         }
     }
@@ -99,9 +99,9 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
     public function add(object $item, ?string $type = null): void
     {
-        $property = sprintf('%sObjects', $type);
+        $property = \sprintf('%sObjects', $type);
         if (!isset($this->{$property})) {
-            throw new \InvalidArgumentException(sprintf('Cannot collect Mercure resource with type %s : the property %s does not exist.', $type, $property));
+            throw new \InvalidArgumentException(\sprintf('Cannot collect Mercure resource with type %s : the property %s does not exist.', $type, $property));
         }
 
         if (!is_iterable($item)) {
@@ -170,12 +170,12 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         }
 
         if (!\is_array($options)) {
-            throw new InvalidArgumentException(sprintf('The value of the "mercure" attribute of the "%s" resource class must be a boolean, an array of options or an expression returning this array, "%s" given.', $resourceClass, \gettype($options)));
+            throw new InvalidArgumentException(\sprintf('The value of the "mercure" attribute of the "%s" resource class must be a boolean, an array of options or an expression returning this array, "%s" given.', $resourceClass, \gettype($options)));
         }
 
         foreach ($options as $key => $value) {
             if (!isset(self::ALLOWED_KEYS[$key])) {
-                throw new InvalidArgumentException(sprintf('The option "%s" set in the "mercure" attribute of the "%s" resource does not exist. Existing options: "%s"', $key, $resourceClass, implode('", "', self::ALLOWED_KEYS)));
+                throw new InvalidArgumentException(\sprintf('The option "%s" set in the "mercure" attribute of the "%s" resource does not exist. Existing options: "%s"', $key, $resourceClass, implode('", "', self::ALLOWED_KEYS)));
             }
         }
 

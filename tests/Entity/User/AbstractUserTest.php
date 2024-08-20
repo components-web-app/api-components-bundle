@@ -31,7 +31,7 @@ class AbstractUserTest extends TestCase
         $this->assertEquals('password', $user->getPassword());
         $this->assertFalse($user->isEnabled());
 
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $this->assertEquals('', $user->getUsername());
         $this->assertEquals('', $user->getEmailAddress());
@@ -43,7 +43,7 @@ class AbstractUserTest extends TestCase
 
     public function test_getters_and_setters(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
 
         $this->assertEquals($user, $user->setUsername('username'));
@@ -95,7 +95,7 @@ class AbstractUserTest extends TestCase
 
     public function test_is_password_request_limit_reached(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $dateTime = new \DateTime();
         $user->setPasswordRequestedAt($dateTime);
@@ -148,7 +148,7 @@ class AbstractUserTest extends TestCase
 
     public function test_unserialize_object_throws_exception(): void
     {
-        $user = new class() extends AbstractUser {
+        $user = new class extends AbstractUser {
         };
         $original = [
             '253e0f90-8842-4731-91dd-0191816e6a28',
