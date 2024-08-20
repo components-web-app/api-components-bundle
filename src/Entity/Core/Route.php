@@ -202,8 +202,13 @@ class Route
     }
 
     #[Groups(['Route:cwa_resource:read:ROLE_ADMIN'])]
-    public function getAssociatedResource()
+    public function getAssociatedResources()
     {
-        return $this->redirect ?: $this->pageData ?: $this->page;
+        return [
+            'redirect' => $this->redirect?->path,
+            'page' => $this->page?->reference,
+            'pageData' => $this->pageData?->getTitle(),
+            'pageDataType' => $this->pageData ? get_class($this->pageData) : null
+        ];
     }
 }
