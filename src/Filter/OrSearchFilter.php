@@ -188,8 +188,8 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         switch ($strategy) {
             case null:
             case self::STRATEGY_EXACT:
-                if (is_array($value)) {
-                    foreach ($value as $i=>$v) {
+                if (\is_array($value)) {
+                    foreach ($value as $i => $v) {
                         $queryBuilder
                             ->orWhere(sprintf($wrapCase('%s.%s') . ' = ' . $wrapCase(':%s'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
@@ -201,8 +201,8 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 }
                 break;
             case self::STRATEGY_PARTIAL:
-                if (is_array($value)) {
-                    foreach ($value as $i=>$v) {
+                if (\is_array($value)) {
+                    foreach ($value as $i => $v) {
                         $queryBuilder
                             ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
@@ -214,8 +214,8 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 }
                 break;
             case self::STRATEGY_START:
-                if (is_array($value)) {
-                    foreach ($value as $i=>$v) {
+                if (\is_array($value)) {
+                    foreach ($value as $i => $v) {
                         $queryBuilder
                             ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(:%s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
@@ -227,8 +227,8 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 }
                 break;
             case self::STRATEGY_END:
-                if (is_array($value)) {
-                    foreach ($value as $i=>$v) {
+                if (\is_array($value)) {
+                    foreach ($value as $i => $v) {
                         $queryBuilder
                             ->orWhere(sprintf($wrapCase('%s.%s') . ' LIKE ' . $wrapCase('CONCAT(\'%%\', :%s)'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);
@@ -240,8 +240,8 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
                 }
                 break;
             case self::STRATEGY_WORD_START:
-                if (is_array($value)) {
-                    foreach ($value as $i=>$v) {
+                if (\is_array($value)) {
+                    foreach ($value as $i => $v) {
                         $queryBuilder
                             ->orWhere(sprintf($wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(:%3$s, \'%%\')') . ' OR ' . $wrapCase('%1$s.%2$s') . ' LIKE ' . $wrapCase('CONCAT(\'%% \', :%3$s, \'%%\')'), $alias, $field, $valueParameter . $i))
                             ->setParameter($valueParameter . $i, $v);

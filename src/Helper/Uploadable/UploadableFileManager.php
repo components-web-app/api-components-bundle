@@ -55,8 +55,8 @@ class UploadableFileManager
         FlysystemDataLoader $flysystemDataLoader,
         FileInfoCacheManager $fileInfoCacheManager,
         ?CacheManager $imagineCacheManager,
-        ?FilterService $filterService = null)
-    {
+        ?FilterService $filterService = null
+    ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
         $this->filesystemProvider = $filesystemProvider;

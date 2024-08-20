@@ -44,7 +44,7 @@ final class PublishableEventListener
 
     public function __construct(
         private readonly PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry                           $registry,
+        ManagerRegistry $registry,
         private readonly ValidatorInterface $validator,
         private readonly UploadableFileManager $uploadableFileManager
     ) {
@@ -227,7 +227,8 @@ final class PublishableEventListener
 
         try {
             $this->uploadableFileManager->deleteFiles($publishedResource);
-        } catch (\InvalidArgumentException $e) {}
+        } catch (\InvalidArgumentException $e) {
+        }
 
         foreach ($properties as $property) {
             $property->setAccessible(true);

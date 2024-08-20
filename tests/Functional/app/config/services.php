@@ -57,10 +57,10 @@ return static function (ContainerConfigurator $container) {
     $services
         ->set(FlysystemCacheResolver::class)
         ->args([
-            '$filesystem' => new Reference("api_components.filesystem.local"),
+            '$filesystem' => new Reference('api_components.filesystem.local'),
             '$rootUrl' => '/uploads/',
             '$cachePrefix' => 'cache',
-            '$visibility' => 'public'
+            '$visibility' => 'public',
         ])
-        ->tag('liip_imagine.cache.resolver', [ 'resolver' => 'in_memory_cache_resolver' ]);
+        ->tag('liip_imagine.cache.resolver', ['resolver' => 'in_memory_cache_resolver']);
 };

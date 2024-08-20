@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
-use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
