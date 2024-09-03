@@ -56,6 +56,7 @@ const SECURITY = "is_granted('read_route', object)";
 #[UniqueEntity('path', 'This path is already in use.')]
 #[ApiResource(
     mercure: true,
+    paginationClientItemsPerPage: true,
     provider: RouteStateProvider::class
 )]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'path'], arguments: ['orderParameterName' => 'order'])]
