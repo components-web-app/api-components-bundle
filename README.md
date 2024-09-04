@@ -15,8 +15,6 @@
 
 ### **[Read the documentation](https://docs.api.cwa.rocks/)**
 
-### **[See it in action: Components Web App](https://github.com/components-web-app/components-web-app)**
-
 ## Sponsors
 
 [![Blackfire](./docs/images/blackfire-io_secondary_horizontal_transparent.png)](https://blackfire.io/)
