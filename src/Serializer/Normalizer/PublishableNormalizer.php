@@ -63,7 +63,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         private readonly IriConverterInterface $iriConverter,
         private readonly UploadableFileManager $uploadableFileManager,
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
-        private readonly EventDispatcherInterface $eventDispatcher
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }

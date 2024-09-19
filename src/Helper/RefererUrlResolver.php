@@ -66,7 +66,7 @@ class RefererUrlResolver
         [
             'host' => $host,
             'scheme' => $scheme,
-            'port' => $port
+            'port' => $port,
         ] = array_merge($defaults, parse_url($url) ?: []);
 
         if (null === $host) {

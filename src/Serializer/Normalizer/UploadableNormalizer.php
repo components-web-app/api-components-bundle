@@ -53,7 +53,7 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
         private UploadableAttributeReader $annotationReader,
         private UploadableFileManager $uploadableFileManager,
         ManagerRegistry $registry,
-        private ResourceMetadataProvider $resourceMetadataProvider
+        private ResourceMetadataProvider $resourceMetadataProvider,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->initRegistry($registry);

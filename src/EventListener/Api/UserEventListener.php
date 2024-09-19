@@ -28,7 +28,7 @@ class UserEventListener
 {
     public function __construct(
         private readonly UserMailer $userMailer,
-        private readonly Security $security
+        private readonly Security $security,
     ) {
     }
 

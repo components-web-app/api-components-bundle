@@ -39,7 +39,7 @@ class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterfa
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ResourceClassResolverInterface $resourceClassResolver,
-        private ResourceMetadataProvider $resourceMetadataProvider
+        private ResourceMetadataProvider $resourceMetadataProvider,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }

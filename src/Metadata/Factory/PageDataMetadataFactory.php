@@ -29,7 +29,7 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
 {
     public function __construct(
         private readonly ManagerRegistry $registry,
-        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
     ) {
     }
 

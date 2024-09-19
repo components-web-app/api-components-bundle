@@ -44,7 +44,7 @@ class ComponentVoter extends Voter
         private readonly HttpKernelInterface $httpKernel,
         private readonly RequestStack $requestStack,
         private readonly PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry $registry
+        ManagerRegistry $registry,
     ) {
         $this->initRegistry($registry);
     }

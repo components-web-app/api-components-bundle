@@ -45,7 +45,7 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         ?PropertyAccessorInterface $propertyAccessor = null,
         ?LoggerInterface $logger = null,
         ?array $properties = null,
-        ?NameConverterInterface $nameConverter = null
+        ?NameConverterInterface $nameConverter = null,
     ) {
         parent::__construct($managerRegistry, $logger, $properties, $nameConverter);
 

@@ -46,7 +46,7 @@ final class PublishableEventListener
         private readonly PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
         private readonly ValidatorInterface $validator,
-        private readonly UploadableFileManager $uploadableFileManager
+        private readonly UploadableFileManager $uploadableFileManager,
     ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
         $this->initRegistry($registry);

@@ -36,7 +36,7 @@ final class PageDataNormalizer implements NormalizerInterface, NormalizerAwareIn
 
     public function __construct(
         private readonly PageDataMetadataFactoryInterface $pageDataMetadataFactory,
-        private readonly ResourceMetadataProvider $resourceMetadataProvider
+        private readonly ResourceMetadataProvider $resourceMetadataProvider,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }

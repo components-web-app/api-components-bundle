@@ -35,7 +35,7 @@ class PublishableStatusChecker
         ManagerRegistry $registry,
         private readonly PublishableAttributeReader $attributeReader,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
-        string $permission
+        string $permission,
     ) {
         $this->initRegistry($registry);
         $this->permission = $permission;

@@ -35,7 +35,7 @@ class MercureAuthorization
         private readonly Authorization $mercureAuthorization,
         private readonly RequestStack $requestStack,
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
-        private readonly ?string $hubName = null
+        private readonly ?string $hubName = null,
     ) {
     }
 

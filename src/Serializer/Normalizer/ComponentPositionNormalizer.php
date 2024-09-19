@@ -56,7 +56,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         private readonly PublishableStatusChecker $publishableStatusChecker,
         private readonly ManagerRegistry $registry,
         private readonly IriConverterInterface $iriConverter,
-        private readonly ResourceMetadataProvider $resourceMetadataProvider
+        private readonly ResourceMetadataProvider $resourceMetadataProvider,
     ) {
     }
 

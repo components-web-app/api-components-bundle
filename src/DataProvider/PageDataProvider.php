@@ -40,7 +40,7 @@ class PageDataProvider
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         private readonly PageDataMetadataProvider $pageDataMetadataProvider,
-        private readonly ManagerRegistry $managerRegistry
+        private readonly ManagerRegistry $managerRegistry,
     ) {
     }
 

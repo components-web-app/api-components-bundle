@@ -27,7 +27,7 @@ final class UploadableField
         public string $urlGenerator = 'api',
         public string $property = 'filename',
         public ?string $prefix = null,
-        public ?array $imagineFilters = []
+        public ?array $imagineFilters = [],
     ) {
     }
 }

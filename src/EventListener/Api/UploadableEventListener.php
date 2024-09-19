@@ -27,7 +27,7 @@ final class UploadableEventListener
 
     public function __construct(
         private readonly UploadableAttributeReader $uploadableAttributeReader,
-        private readonly UploadableFileManager $uploadableFileManager
+        private readonly UploadableFileManager $uploadableFileManager,
     ) {
     }
 

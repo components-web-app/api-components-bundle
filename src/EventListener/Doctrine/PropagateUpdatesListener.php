@@ -53,7 +53,7 @@ class PropagateUpdatesListener
         private readonly iterable $resourceChangedPropagators,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly PageDataProvider $pageDataProvider,
-        private readonly ComponentPositionRepository $positionRepository
+        private readonly ComponentPositionRepository $positionRepository,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);

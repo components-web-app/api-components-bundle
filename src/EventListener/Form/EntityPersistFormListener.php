@@ -56,7 +56,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         TimestampedDataPersister $timestampedDataPersister,
         UserEventListener $userEventListener,
         NormalizerInterface $normalizer,
-        UserDataProcessor $userDataProcessor
+        UserDataProcessor $userDataProcessor,
     ): void {
         if (!$normalizer instanceof DenormalizerInterface) {
             throw new InvalidArgumentException(\sprintf('$normalizer must also implement %s', DenormalizerInterface::class));

@@ -35,7 +35,7 @@ class FormSubmitHelper
 
     public function __construct(
         FormFactoryInterface $formFactory,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
     ) {
         $this->formFactory = $formFactory;
         $this->eventDispatcher = $eventDispatcher;

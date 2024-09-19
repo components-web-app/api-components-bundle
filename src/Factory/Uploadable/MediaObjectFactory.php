@@ -50,7 +50,7 @@ class MediaObjectFactory
         private readonly FilesystemFactory $filesystemFactory,
         private readonly UrlHelper $urlHelper,
         private readonly ServiceLocator $urlGenerators,
-        private readonly ?FilterService $filterService = null
+        private readonly ?FilterService $filterService = null,
     ) {
         $this->initRegistry($managerRegistry);
     }

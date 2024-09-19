@@ -35,7 +35,7 @@ class RouteGenerator implements RouteGeneratorInterface
         SlugifyInterface $slugify,
         ManagerRegistry $registry,
         TimestampedDataPersister $timestampedDataPersister,
-        RouteRepository $routeRepository
+        RouteRepository $routeRepository,
     ) {
         $this->slugify = $slugify;
         $this->registry = $registry;

@@ -58,7 +58,7 @@ class CollectionApiEventListener
         NormalizerInterface $itemNormalizer,
         SerializeFormatResolver $serializeFormatResolver,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
-        string $itemsPerPageParameterName
+        string $itemsPerPageParameterName,
     ) {
         $this->resourceRouteFinder = $resourceRouteFinder;
         $this->provider = $provider;

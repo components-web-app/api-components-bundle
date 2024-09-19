@@ -21,7 +21,7 @@ class ResourcePublishableMetadata
         #[Groups('cwa_resource:metadata')]
         public bool $published,
         #[Groups('cwa_resource:metadata')]
-        public ?string $publishedAt = null
+        public ?string $publishedAt = null,
     ) {
     }
 }

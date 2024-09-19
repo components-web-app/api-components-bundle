@@ -23,7 +23,7 @@ class AccessDeniedListener
     use ApiEventListenerTrait;
 
     public function __construct(
-        private readonly MercureAuthorization $mercureAuthorization
+        private readonly MercureAuthorization $mercureAuthorization,
     ) {
     }
 

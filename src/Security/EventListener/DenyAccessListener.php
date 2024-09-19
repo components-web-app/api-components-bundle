@@ -32,7 +32,7 @@ final class DenyAccessListener
 {
     public function __construct(
         private readonly Security $security,
-        private readonly RouteRepository $routeRepository
+        private readonly RouteRepository $routeRepository,
     ) {
     }
 

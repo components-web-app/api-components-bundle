@@ -28,7 +28,7 @@ class PageDataMetadataProvider
 
     public function __construct(
         ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
-        PageDataMetadataFactoryInterface $pageDataMetadataFactory
+        PageDataMetadataFactoryInterface $pageDataMetadataFactory,
     ) {
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
         $this->pageDataMetadataFactory = $pageDataMetadataFactory;

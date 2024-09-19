@@ -33,7 +33,7 @@ class UserDataProcessor
         private readonly bool $initialEmailVerifiedState,
         private readonly bool $verifyEmailOnRegister,
         private readonly bool $verifyEmailOnChange,
-        private readonly int $tokenTtl = 8600
+        private readonly int $tokenTtl = 8600,
     ) {
     }
 

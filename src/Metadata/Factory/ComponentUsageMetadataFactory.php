@@ -39,7 +39,7 @@ class ComponentUsageMetadataFactory
         ComponentPositionRepository $componentPositionRepository,
         PageDataProvider $pageDataProvider,
         PublishableStatusChecker $publishableStatusChecker,
-        ManagerRegistry $registry
+        ManagerRegistry $registry,
     ) {
         $this->componentPositionRepository = $componentPositionRepository;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();

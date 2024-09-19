@@ -41,7 +41,7 @@ class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterfac
         private readonly UserDataProcessor $userDataProcessor,
         private readonly RoleHierarchy $roleHierarchy,
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
-        private readonly MercureAuthorization $mercureAuthorization
+        private readonly MercureAuthorization $mercureAuthorization,
     ) {
     }
 

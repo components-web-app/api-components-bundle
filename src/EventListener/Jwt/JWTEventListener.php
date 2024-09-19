@@ -33,7 +33,7 @@ final class JWTEventListener
     public function __construct(
         private readonly RoleHierarchy $roleHierarchy,
         private readonly JWTCookieProvider $cookieProvider,
-        private readonly MercureAuthorization $mercureAuthorization
+        private readonly MercureAuthorization $mercureAuthorization,
     ) {
     }
 

@@ -38,7 +38,7 @@ class FormApiEventListener
         FormSubmitHelper $formSubmitHelper,
         SerializeFormatResolver $serializeFormatResolver,
         SerializerInterface $serializer,
-        FormViewFactory $formViewFactory
+        FormViewFactory $formViewFactory,
     ) {
         if (!$serializer instanceof DecoderInterface) {
             throw new \InvalidArgumentException(\sprintf('$serializer must be also be an instance of %s', DecoderInterface::class));

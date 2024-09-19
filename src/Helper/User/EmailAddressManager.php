@@ -36,7 +36,7 @@ class EmailAddressManager
         UserRepositoryInterface $userRepository,
         PasswordHasherFactoryInterface $passwordHasherFactory,
         UserDataProcessor $userDataProcessor,
-        UserEventListener $userEventListener
+        UserEventListener $userEventListener,
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
