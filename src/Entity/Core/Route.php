@@ -209,7 +209,7 @@ class Route
             'redirect' => $this->redirect?->path,
             'page' => $this->page?->reference,
             'pageData' => $this->pageData?->getTitle(),
-            'pageDataType' => $this->pageData ? get_class($this->pageData) : null
+            'pageDataType' => $this->pageData ? \get_class($this->pageData) : null,
         ];
     }
 }
