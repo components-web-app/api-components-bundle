@@ -245,7 +245,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services.php');
         $loader->load('services_normalizers.php');
 
-        $loader->load('services_doctrine_orm_http_cache_purger.php');
+        if ($container->hasDefinition('api_platform.http_cache.purger')) {
+            $loader->load('services_doctrine_orm_http_cache_purger.php');
+        }
         $loader->load('services_doctrine_orm_mercure_publisher.php');
     }
 
