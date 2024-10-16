@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -28,7 +29,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('api_platform.iri_converter'),
             new Reference('api_platform.resource_class_resolver'),
-            new Reference('api_platform.http_cache.purger'),
+            new Reference('api_platform.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->tag('silverback_api_components.resource_changed_propagator');
     $services->alias(HttpCachePurger::class, 'silverback.api_components.http_cache.purger');

@@ -33,7 +33,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
-        private readonly PurgerInterface $httpCachePurger,
+        private readonly ?PurgerInterface $httpCachePurger,
     ) {
         $this->reset();
     }
@@ -96,7 +96,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
             return;
         }
 
-        $this->httpCachePurger->purge(array_values($this->tags));
+        $this->httpCachePurger && $this->httpCachePurger->purge(array_values($this->tags));
         $this->reset();
     }
 
