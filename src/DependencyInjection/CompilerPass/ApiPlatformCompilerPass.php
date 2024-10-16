@@ -31,6 +31,8 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         if ($container->hasAlias('api_platform.http_cache.purger')) {
             // we have implemented fully custom logic
             $container->removeDefinition('api_platform.doctrine.listener.http_cache.purge');
+        } else {
+            $container->removeDefinition('silverback.api_components.http_cache.purger');
         }
 
         $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
