@@ -45,9 +45,9 @@ class Layout
     public string $reference;
 
     /**
-     * @var Collection|Page[]
+     * @var Collection<int, Page>
      */
-    public Collection $pages;
+    private Collection $pages;
 
     public function __construct()
     {
@@ -60,5 +60,10 @@ class Layout
         $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
             'message' => 'You must define the uiComponent for this resource.',
         ]));
+    }
+
+    public function getPages(): Collection
+    {
+        return $this->pages;
     }
 }

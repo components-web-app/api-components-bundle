@@ -92,12 +92,17 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to the resource "page"
     Then the response status code should be 401
 
-  Scenario: A component in a PageData resource which has a restricted route is also restricted
+  Scenario: While a component within page data with a route should be accessible, the dynamic page should not be restricted
     Given there is a component in a PageData route with the path "/my-page"
+    When I send a "GET" request to the resource "component_0"
+    Then the response status code should be 200
+    When I send a "GET" request to the resource "page_data"
+    Then the response status code should be 200
+    # we will need to be able to get the dynamic page as a resource when loading the data page
     When I send a "GET" request to the resource "page"
     Then the response status code should be 200
 
-  Scenario: A routable resource is forbidden to be loaded
+  Scenario: A routable resource is forbidden to be loaded without a route
     Given there is a Page
     When I send a "GET" request to the resource "page"
     Then the response status code should be 401
@@ -112,13 +117,8 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to the resource "route_page"
     Then the response status code should be 401
 
-  Scenario: A routable resource cannot be loaded by public users without a route
-    Given there is a Page
-    When I send a "GET" request to the resource "page"
-    Then the response status code should be 401
-
   @loginAdmin
-  Scenario: A routable resource can be loaded by an admin
+  Scenario: A routable resource without a route can be loaded by an admin
     Given there is a Page
     When I send a "GET" request to the resource "page"
     Then the response status code should be 200

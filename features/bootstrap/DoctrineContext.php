@@ -702,6 +702,20 @@ final class DoctrineContext implements Context
         $this->manager->flush();
     }
 
+    private function thereIsAPageDataPage(Page $page): PageData
+    {
+        $pageData = new PageData();
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+
+        return $pageData;
+    }
+
     /**
      * @Given there is a component in a PageData route with the path :path
      */
@@ -709,10 +723,7 @@ final class DoctrineContext implements Context
     {
         $page = $this->thereIsAPage('page_data_page');
 
-        $pageData = new PageData();
-        $pageData->page = $page;
-        $this->timestampedHelper->persistTimestampedFields($pageData, true);
-        $this->manager->persist($pageData);
+        $pageData = $this->thereIsAPageDataPage($page);
 
         if ($path) {
             $route = new Route();
