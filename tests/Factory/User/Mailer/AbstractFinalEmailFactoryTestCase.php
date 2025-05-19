@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
-class AbstractFinalEmailFactoryTest extends TestEmailCase
+class AbstractFinalEmailFactoryTestCase extends TestEmailCase
 {
     /**
      * @var MockObject|ContainerInterface

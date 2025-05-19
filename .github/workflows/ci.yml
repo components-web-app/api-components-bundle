@@ -106,9 +106,9 @@ jobs:
         run: |
           mkdir -p build/logs/phpunit
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/simple-phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/simple-phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml
           else
-            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
           fi
       - name: Upload test artifacts
         if: always()
@@ -275,7 +275,7 @@ jobs:
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -400,7 +400,7 @@ jobs:
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml --colors=always
+          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4

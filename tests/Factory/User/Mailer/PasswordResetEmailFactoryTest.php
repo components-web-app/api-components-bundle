@@ -19,7 +19,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 {
     public function test_skip_user_validation_if_disabled(): void
     {

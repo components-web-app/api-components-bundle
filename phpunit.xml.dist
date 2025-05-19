@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.1/phpunit.xsd" backupGlobals="false" bootstrap="tests/Functional/app/bootstrap.php">
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.1/phpunit.xsd"
+    bootstrap="tests/Functional/app/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    failOnWarning="false"
+    failOnDeprecation="false">
   <source>
       <include>
           <directory suffix=".php">.</directory>
@@ -13,7 +20,7 @@
           <directory>.php-cs-fixer.dist.php</directory>
       </exclude>
   </source>
-  <coverage processUncoveredFiles="true">
+  <coverage includeUncoveredFiles="true">
     <report>
       <clover outputFile="clover.xml"/>
       <xml outputDirectory="infection-coverage-xml"/>
@@ -39,14 +46,4 @@
       <directory>tests</directory>
     </testsuite>
   </testsuites>
-  <listeners>
-      <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener">
-          <arguments>
-              <array>
-                  <!-- set this option to 0 to disable the DebugClassLoader integration -->
-                  <!--<element key="debug-class-loader"><integer>0</integer></element> -->
-              </array>
-          </arguments>
-      </listener>
-  </listeners>
 </phpunit>

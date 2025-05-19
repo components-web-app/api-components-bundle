@@ -18,7 +18,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class UsernameChangedEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class UsernameChangedEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 {
     public function test_skip_user_validation_if_disabled(): void
     {

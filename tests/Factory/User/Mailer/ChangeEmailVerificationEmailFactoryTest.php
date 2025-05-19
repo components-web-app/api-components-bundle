@@ -19,7 +19,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEm
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
-class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryTest
+class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 {
     public function test_skip_user_validation_if_disabled(): void
     {
