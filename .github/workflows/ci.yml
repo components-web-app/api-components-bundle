@@ -50,6 +50,7 @@ jobs:
       matrix:
         php:
           - '8.3'
+          - '8.4'
         symfony:
           - '7.3'
         experimental:
@@ -147,6 +148,7 @@ jobs:
     strategy:
       matrix:
         php:
+          - '8.3'
           - '8.4'
         symfony:
           - '7.3'
