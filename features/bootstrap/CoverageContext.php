@@ -40,7 +40,7 @@ final class CoverageContext implements Context
     public static function setup()
     {
         $filter = new Filter();
-        $filter->includeDirectory(__DIR__ . '/../../src');
+        $filter->includeFile(__DIR__ . '/../../src');
         $codeCoverageDriver = (new Selector())->forLineCoverage($filter);
         self::$coverage = new CodeCoverage(
             $codeCoverageDriver,
