@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -47,7 +48,8 @@ class Layout
     /**
      * @var Collection<int, Page>
      */
-    private Collection $pages;
+    #[ApiProperty(writable: false)]
+    public Collection $pages;
 
     public function __construct()
     {
@@ -60,10 +62,5 @@ class Layout
         $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
             'message' => 'You must define the uiComponent for this resource.',
         ]));
-    }
-
-    public function getPages(): Collection
-    {
-        return $this->pages;
     }
 }
