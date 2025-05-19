@@ -186,12 +186,12 @@ Feature: API Resources which can have files uploaded
     When I send a "PUT" request to the resource "dummy_uploadable" with data:
       | file               |
       | base64(<new_file>) |
-    Examples:
-      | existing_file    | new_file      |
-      | existing.png     | image.png     |
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should not exist
     And the resource "dummy_uploadable" should have 1 component positions
+    Examples:
+      | existing_file    | new_file      |
+      | existing.png     | image.png     |
 
   @loginAdmin
   Scenario: When I upload an image to a published resource to create a draft, the published image data and filename should remain in tact

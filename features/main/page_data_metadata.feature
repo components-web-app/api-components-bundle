@@ -19,7 +19,7 @@ Feature: Page data metadata
 #    And the JSON node "hydra:member[1].properties[0].componentClass" should be equal to "DummyComponent"
 
   Scenario: I can get a single page data endpoint
-    When I send a "GET" request to "/_/page_data_metadatas/Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent"
+    When I send a "GET" request to "/_/page_data_metadatas/Silverback%5CApiComponentsBundle%5CTests%5CFunctional%5CTestBundle%5CEntity%5CPageDataWithComponent"
     Then the response status code should be 200
     And the JSON node "properties" should have 2 element
     And the JSON node "properties[0].property" should be equal to "component"
