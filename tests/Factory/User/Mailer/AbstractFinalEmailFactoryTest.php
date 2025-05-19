@@ -69,10 +69,15 @@ abstract class AbstractFinalEmailFactoryTest extends TestEmailCase
         $containerWith[] = ['twig'];
         $willReturn[] = $twig;
 
+        $invokedCount = self::exactly(\count($willReturn));
+
         $this->containerInterfaceMock
-            ->expects(self::exactly(\count($willReturn)))
+            ->expects($invokedCount)
             ->method('get')
-            ->withConsecutive(...$containerWith)
-            ->willReturnOnConsecutiveCalls(...$willReturn);
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $containerWith, $willReturn) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $this->assertSame($containerWith[$currentInvocationCount - 1], $parameters);
+                return $willReturn[$currentInvocationCount - 1];
+            });
     }
 }

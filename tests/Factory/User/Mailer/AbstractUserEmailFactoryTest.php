@@ -238,17 +238,17 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->with('/query-path')
             ->willReturn('/any-path');
 
+        $invokedCount = self::exactly(2);
+        $callParams = [[RequestStack::class], [RefererUrlResolver::class]];
+        $willReturn = [$requestStackMock, $refererUrlMock];
         $this->containerInterfaceMock
-            ->expects(self::exactly(2))
+            ->expects($invokedCount)
             ->method('get')
-            ->withConsecutive(
-                [RequestStack::class],
-                [RefererUrlResolver::class]
-            )
-            ->willReturnOnConsecutiveCalls(
-                $requestStackMock,
-                $refererUrlMock
-            );
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+                return $willReturn[$currentInvocationCount - 1];
+            });
 
         self::assertEquals(
             '/any-path',
@@ -272,14 +272,18 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->willReturn($request);
 
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
+
+        $invokedCount = self::exactly(2);
+        $callParams = [[RequestStack::class], [RefererUrlResolver::class]];
+        $willReturn = [$requestStackMock, $refererUrlMock];
         $this->containerInterfaceMock
-            ->expects(self::exactly(2))
+            ->expects($invokedCount)
             ->method('get')
-            ->withConsecutive([RequestStack::class], [RefererUrlResolver::class])
-            ->willReturnOnConsecutiveCalls(
-                $requestStackMock,
-                $refererUrlMock
-            );
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+                return $willReturn[$currentInvocationCount - 1];
+            });
 
         $refererUrlMock
             ->expects(self::once())
@@ -308,12 +312,19 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->method('getMainRequest')
             ->willReturn($request);
 
+
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
+        $invokedCount = self::exactly(2);
+        $callParams = [[RequestStack::class], [RefererUrlResolver::class]];
+        $willReturn = [$requestStackMock, $refererUrlMock];
         $this->containerInterfaceMock
-            ->expects(self::exactly(2))
+            ->expects($invokedCount)
             ->method('get')
-            ->withConsecutive([RequestStack::class], [RefererUrlResolver::class])
-            ->willReturnOnConsecutiveCalls($requestStackMock, $refererUrlMock);
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+                return $willReturn[$currentInvocationCount - 1];
+            });
 
         $refererUrlMock
             ->expects(self::once())

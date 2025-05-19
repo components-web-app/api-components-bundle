@@ -138,7 +138,7 @@ abstract class AbstractUserEmailFactory
             ]
         );
 
-        return $this->container->get(RefererUrlResolver::class)->getAbsoluteUrl($path);
+        return $this->container->get(RefererUrlResolver::class)?->getAbsoluteUrl($path) ?? $path;
     }
 
     private function getTokenPath(): string
@@ -148,7 +148,7 @@ abstract class AbstractUserEmailFactory
         }
 
         $requestStack = $this->container->get(RequestStack::class);
-        $request = $requestStack->getMainRequest();
+        $request = $requestStack?->getMainRequest();
 
         $path = ($request && $this->redirectPathQueryKey) ?
             $request->query->get($this->redirectPathQueryKey, $this->defaultRedirectPath) :
