@@ -23,7 +23,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AbstractRepositoryTest extends KernelTestCase
+class AbstractRepositoryTest extends KernelTestCase
 {
     /**
      * @var EntityManagerInterface|ObjectManager|null
