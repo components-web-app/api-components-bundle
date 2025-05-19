@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir -p build/logs/phpunit
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/simple-phpunit --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml
+            vendor/bin/simple-phpunit --configuration=phpunit.coverage.xml.dist --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml
           else
             vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
           fi
@@ -237,7 +237,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '^7.2'
+          - '^7.3'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -292,7 +292,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '^7.2'
+          - '^7.3'
       fail-fast: false
     timeout-minutes: 20
     steps:

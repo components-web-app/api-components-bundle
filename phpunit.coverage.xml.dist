@@ -20,6 +20,12 @@
           <directory>.php-cs-fixer.dist.php</directory>
       </exclude>
   </source>
+  <coverage includeUncoveredFiles="true">
+    <report>
+      <clover outputFile="clover.xml"/>
+      <xml outputDirectory="infection-coverage-xml"/>
+    </report>
+  </coverage>
   <php>
     <ini name="error_reporting" value="-1"/>
     <ini name="memory_limit" value="-1"/>
