@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Validator;
 
-use ProxyManager\Proxy\LazyLoadingInterface;
+use Doctrine\Persistence\Proxy;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Symfony\Component\VarExporter\LazyObjectInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -44,13 +45,13 @@ class ClassNameValidator
             return true;
         }
 
-        return self::isClassSameLazy($className, $validClass) ?: ($validClass instanceof $className);
+        return self::isClassSameLazy($className, $validClass) || $validClass instanceof $className;
     }
 
     /** @throws \ReflectionException */
     private static function isClassSameLazy(string $className, $validClass): bool
     {
-        if (\in_array(LazyLoadingInterface::class, class_implements($validClass), true)) {
+        if (\in_array(LazyObjectInterface::class, class_implements($validClass), true) || \in_array(Proxy::class, class_implements($validClass), true)) {
             $reflection = new \ReflectionClass($validClass);
 
             return $reflection->isSubclassOf($className);
