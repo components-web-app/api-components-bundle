@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.2'
+          - '8.4'
       fail-fast: false
     timeout-minutes: 5
     steps:
@@ -40,6 +40,8 @@ jobs:
           tools: pecl, composer, php-cs-fixer
           coverage: none
       - name: Run PHP-CS-Fixer fix
+        env:
+            PHP_CS_FIXER_IGNORE_ENV: '1'
         run: php-cs-fixer fix --dry-run --diff --ansi
 
   phpunit:
