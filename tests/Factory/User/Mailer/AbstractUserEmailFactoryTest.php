@@ -247,6 +247,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
                 $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+
                 return $willReturn[$currentInvocationCount - 1];
             });
 
@@ -282,6 +283,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
                 $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+
                 return $willReturn[$currentInvocationCount - 1];
             });
 
@@ -312,7 +314,6 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->method('getMainRequest')
             ->willReturn($request);
 
-
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
         $invokedCount = self::exactly(2);
         $callParams = [[RequestStack::class], [RefererUrlResolver::class]];
@@ -323,6 +324,7 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
                 $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+
                 return $willReturn[$currentInvocationCount - 1];
             });
 

@@ -77,6 +77,7 @@ class AbstractFinalEmailFactoryTest extends TestEmailCase
             ->willReturnCallback(function (...$parameters) use ($invokedCount, $containerWith, $willReturn) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
                 $this->assertSame($containerWith[$currentInvocationCount - 1], $parameters);
+
                 return $willReturn[$currentInvocationCount - 1];
             });
     }
