@@ -162,7 +162,7 @@ final class JWTManager implements JWTTokenManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function createFromPayload(UserInterface $user, array $payload): string
+    public function createFromPayload(UserInterface $user, array $payload = []): string
     {
         return $this->decorated->createFromPayload($user, $payload);
     }
