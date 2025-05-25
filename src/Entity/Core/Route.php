@@ -33,9 +33,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-const REQUIREMENTS = ['id' => '(.+)'];
-const SECURITY = "is_granted('read_route', object)";
-
 /**
  * Although a user will be able to get the routes and the tree of data down to getting the ID for a component
  * fetching a component will be restricted based on the route it is within.
@@ -63,19 +60,22 @@ const SECURITY = "is_granted('read_route', object)";
 #[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
 #[GetCollection(order: ['createdAt' => 'DESC'])]
-#[Delete(requirements: REQUIREMENTS, security: SECURITY)]
-#[Put(requirements: REQUIREMENTS, security: SECURITY)]
-#[Patch(requirements: REQUIREMENTS, security: SECURITY)]
-#[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: SECURITY)]
+#[Delete(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
+#[Put(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
+#[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
+#[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: Route::API_SECURITY)]
 // Custom endpoints
 #[Post(uriTemplate: '/routes/generate{._format}', validationContext: ['groups' => ['Route:generate:write']])]
-#[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: SECURITY)]
-#[Get(uriTemplate: '/routes_manifest/{id}{._format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: SECURITY)]
+#[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: Route::API_REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: Route::API_SECURITY)]
+#[Get(uriTemplate: '/routes_manifest/{id}{._format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: Route::API_REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: Route::API_SECURITY)]
 #[Silverback\Timestamped]
 class Route
 {
     use IdTrait;
     use TimestampedTrait;
+
+    private const array API_REQUIREMENTS = ['id' => '(.+)'];
+    private const string API_SECURITY = "is_granted('read_route', object)";
 
     #[Assert\NotBlank]
     #[Groups(['Route:redirect:read'])]
