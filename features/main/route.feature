@@ -17,6 +17,14 @@ Feature: Route resources
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
 
+  Scenario: I cannot create a route anonymously
+    Given there is a Page
+    And there is a Route "/other" with a page
+    When I send a "POST" request to "/_/routes" with data:
+      | path     | name         | page            | redirect         |
+      | /contact | contact-page | resource[page]  | resource[route] |
+    Then the response status code should be 401
+
   @loginUser
   Scenario: I cannot create a route without a page
     Given there is a Page

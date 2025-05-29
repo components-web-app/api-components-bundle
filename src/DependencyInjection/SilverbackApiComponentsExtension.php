@@ -48,6 +48,7 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
+use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -145,6 +146,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition(RouteVoter::class);
         $definition->setArgument('$config', $config['route_security']);
+
+        $definition = $container->getDefinition(SiteConfigParameterVoter::class);
+        $definition->setArgument('$permission', $config['publishable']['permission']);
 
         $definition = $container->getDefinition(RoutableExtension::class);
         $definition->setArgument('$securityStr', $config['routable_security']);

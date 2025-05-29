@@ -16,7 +16,7 @@ namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Symfony\Security\ResourceAccessCheckerInterface;
+use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 

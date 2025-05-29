@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Security\Voter;
 
-use ApiPlatform\Symfony\Security\ResourceAccessCheckerInterface;
+use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;

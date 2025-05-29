@@ -35,6 +35,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -412,6 +413,20 @@ final class DoctrineContext implements Context
         $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
 
         return $page;
+    }
+
+    /**
+     * @Given there is a SiteConfigParameter
+     */
+    public function thereIsASiteConfigParameter(string $key = 'key', string $value = 'value'): SiteConfigParameter
+    {
+        $param = new SiteConfigParameter();
+        $param->setKey($key)->setValue($value);
+        $this->manager->persist($param);
+        $this->manager->flush();
+        $this->restContext->resources['site_config_param'] = $this->iriConverter->getIriFromResource($param);
+
+        return $param;
     }
 
     /**

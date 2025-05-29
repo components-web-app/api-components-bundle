@@ -122,3 +122,59 @@ Feature: Restrict loading of components and routes
     Given there is a Page
     When I send a "GET" request to the resource "page"
     Then the response status code should be 200
+
+  Scenario: Site settings can be loaded anonymously
+    Given there is a SiteConfigParameter
+    When I send a "GET" request to "/_/site_config_parameters"
+    Then the response status code should be 200
+
+  Scenario: Site settings cannot be deleted anonymously
+    Given there is a SiteConfigParameter
+    When I send a "DELETE" request to the resource "site_config_param"
+    Then the response status code should be 401
+
+  @loginAdmin
+  Scenario: Site settings can be deleted by an admin
+    Given there is a SiteConfigParameter
+    When I send a "DELETE" request to the resource "site_config_param"
+    Then the response status code should be 204
+
+  Scenario: Site settings cannot be fetched individually anonymously
+    Given there is a SiteConfigParameter
+    When I send a "GET" request to the resource "site_config_param"
+    Then the response status code should be 401
+
+  @loginAdmin
+  Scenario: Site settings can be fetched individually by an admin
+    Given there is a SiteConfigParameter
+    When I send a "GET" request to the resource "site_config_param"
+    Then the response status code should be 200
+
+  Scenario: Site settings cannot be created by anonymous users
+    Given there is a SiteConfigParameter
+    When I send a "POST" request to "/_/site_config_parameters" with data:
+      | key     | value      |
+      | bob     | uncle      |
+    Then the response status code should be 401
+
+  @loginAdmin
+  Scenario: Site settings can be created by admin
+    When I send a "POST" request to "/_/site_config_parameters" with data:
+      | key     | value    |
+      | bob     | uncle    |
+    Then the response status code should be 201
+
+  Scenario: Site settings cannot be updated by anonymous users
+    Given there is a SiteConfigParameter
+    When I send a "PUT" request to the resource "site_config_param" with data:
+      | key     | value      |
+      | new_key | new_value  |
+    Then the response status code should be 401
+
+  @loginAdmin
+  Scenario: Site settings can be updated by admin
+    Given there is a SiteConfigParameter
+    When I send a "PUT" request to the resource "site_config_param" with data:
+      | key     | value      |
+      | new_key | new_value  |
+    Then the response status code should be 200

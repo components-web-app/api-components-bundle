@@ -133,6 +133,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Repository\Core\SiteConfigParameterRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\EventListener\AccessDeniedListener;
@@ -143,6 +144,7 @@ use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
+use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentPositionContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
@@ -878,10 +880,28 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.doctrine.repository.route', RouteRepository::class);
 
     $services
+        ->set(SiteConfigParameterRepository::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('doctrine.repository_service');
+    $services->alias('silverback.doctrine.repository.site_config_parameter', SiteConfigParameterRepository::class);
+
+    $services
         ->set(RouteVoter::class)
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
+        ])
+        ->tag('security.voter');
+
+    $services
+        ->set(SiteConfigParameterVoter::class)
+        ->args([
+            '', // added in dependency injection
+            new Reference(AuthorizationCheckerInterface::class),
         ])
         ->tag('security.voter');
 
