@@ -17,7 +17,7 @@ build:
         variables:
             XDEBUG_MODE: coverage
         php:
-            version: 8.1.2
+            version: 8.4
             ini:
                 'date.timezone': 'Europe/London'
                 memory_limit: -1
