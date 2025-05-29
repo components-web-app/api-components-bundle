@@ -1,4 +1,4 @@
-php_version: 8.1
+php_version: 8.4
 rules:
     doctrine.public_doctrine_property:
         enabled: false
