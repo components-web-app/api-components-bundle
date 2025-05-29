@@ -4,4 +4,4 @@ rules:
         enabled: false
 pre_composer_script: |
     #!/bin/bash
-    rm composer.lock
+    # rm composer.lock
