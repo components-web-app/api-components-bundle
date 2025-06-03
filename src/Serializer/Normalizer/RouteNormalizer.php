@@ -77,14 +77,16 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
     {
         $resourceId = $resource['@id'] ?? null;
         if (
-            $resourceId
-            && !str_starts_with($resource['@id'] ?? null, '/.well-known/')
-            && '/_/resource_metadatas' !== $resourceId
-            && !\in_array($resourceId, $iris, true)
+            str_starts_with($resourceId, '/.well-known/')
+            || '/_/resource_metadatas' === $resourceId
+            || in_array($resourceId, $iris, true)
         ) {
+            return $iris;
+        }
+        if ($resourceId) {
             $iris[] = $resourceId;
         }
-        foreach ($resource as $resourceKey => $resourceValue) {
+        foreach ($resource as $key => $resourceValue) {
             // may be a string or simple
             // may be an array representing a resource
             // may be an array of any other values

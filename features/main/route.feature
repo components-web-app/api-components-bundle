@@ -127,13 +127,27 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON node "route" should be equal to the string "/_/routes//my-route"
 
-  Scenario: I can get a manifest of all resources that should be loaded for a route
+  # todo: do not expect publishable, and do not require the annotation on PageData resource to be added manually. See: https://github.com/components-web-app/api-components-bundle/issues/157
+  Scenario: I can get a manifest of all unauthenticated resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to "/_/routes_manifest//my-route"
     Then the response status code should be 200
     And the JSON node "resource_iris[0]" should be equal to "/_/routes//my-route"
     And the JSON node "resource_iris[1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
-    And the JSON node "resource_iris[2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[4]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+
+  @loginAdmin
+  Scenario: I can get a manifest of all authenticated resources that should be loaded for a route
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to "/_/routes_manifest//my-route"
+    Then the response status code should be 200
+    And the JSON node "resource_iris[0]" should be equal to "/_/routes//my-route"
+    And the JSON node "resource_iris[1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[4]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
 
   @loginUser
   Scenario: When I create a redirect route, the cache should be cleared for the route being redirected to
