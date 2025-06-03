@@ -295,7 +295,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given (removed as was not used in features, only internal) there is a DummyPublishableComponent
+     * @Given(removed as was not used in features, only internal) there is a DummyPublishableComponent
      */
     public function thereIsADummyPublishableComponent(): DummyPublishableComponent
     {
@@ -577,7 +577,6 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
         $this->manager->persist($componentPosition);
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
-
 
         $page = new Page();
         $page->isTemplate = true;
