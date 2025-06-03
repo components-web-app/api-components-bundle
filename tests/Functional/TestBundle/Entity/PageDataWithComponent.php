@@ -16,7 +16,6 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -25,12 +24,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity]
 class PageDataWithComponent extends AbstractPageData
 {
-    #[Groups(['Route:manifest:read'])]
     #[ORM\ManyToOne(targetEntity: DummyComponent::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     public ?DummyComponent $component = null;
 
-    #[Groups(['Route:manifest:read'])]
     #[ORM\ManyToOne(targetEntity: DummyPublishableComponent::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     public ?DummyPublishableComponent $publishableComponent = null;
