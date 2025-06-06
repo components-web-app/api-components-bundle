@@ -43,7 +43,7 @@ Feature: A Collection component resource
     Then the response status code should be 204
 
   @loginUser
-  Scenario: I can get a collection and the default pagination is enabled
+  Scenario: When a dummy component is deleted the collection will be purged from the cache
     Given there are 2 DummyComponent resources
     And there is a Collection resource
     When I send a "DELETE" request to the resource "dummy_component_0"

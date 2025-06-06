@@ -91,9 +91,9 @@ Feature: Prevent disabled users from logging in
     Then the response status code should be 401
 
   @loginUser
-  Scenario: I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
+  Scenario Outline: I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
     Given I have a refresh token
-    When I send a "GET" request to "/logout"
+    When I send a "<Method>" request to "/logout"
     Then the response status code should be 200
     And 1 refresh tokens should exist
     And all the refresh tokens should be expired
@@ -102,6 +102,10 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "mercureAuthorization" cookie
     And the mercure cookie should not contain draft resource topics
+    Examples:
+    | Method |
+    | Get    |
+    | Post   |
 
   @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
