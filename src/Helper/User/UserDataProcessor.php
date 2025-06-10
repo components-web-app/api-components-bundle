@@ -112,6 +112,7 @@ class UserDataProcessor
         }
         $encoded = $this->passwordHasher->hashPassword($entity, $entity->getPlainPassword());
         $entity->setPassword($encoded);
+        $entity->setEmailAddressVerified(true);
         $entity->eraseCredentials();
     }
 }

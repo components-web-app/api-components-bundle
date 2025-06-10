@@ -77,6 +77,7 @@ Feature: Forgot password system
     """
     Then the response status code should be 201
     And I should get a "password_changed" email sent to the email address "test.user@example.com"
+    And the user "username" should have a verified email address
 
   Scenario Outline: I cannot reset my password with an invalid token
     Given there is a "password_update" form
