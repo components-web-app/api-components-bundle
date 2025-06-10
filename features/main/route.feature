@@ -136,7 +136,7 @@ Feature: Route resources
     And the JSON node "resource_iris[1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
 #    And the JSON node "resource_iris[2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
 #    And the JSON node "resource_iris[3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
-    And the JSON node "resource_iris[4]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
 
   @loginAdmin
   Scenario: I can get a manifest of all authenticated resources that should be loaded for a route
@@ -147,7 +147,7 @@ Feature: Route resources
     And the JSON node "resource_iris[1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
 #    And the JSON node "resource_iris[2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
 #    And the JSON node "resource_iris[3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
-    And the JSON node "resource_iris[4]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+    And the JSON node "resource_iris[2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
 
   @loginUser
   Scenario: When I create a redirect route, the cache should be cleared for the route being redirected to
