@@ -16,9 +16,9 @@ namespace Silverback\ApiComponentsBundle\EventListener;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 
-class ResourceChangedEventListener
+readonly class ResourceChangedEventListener
 {
-    public function __construct(private readonly iterable $resourceChangedPropagators)
+    public function __construct(private iterable $resourceChangedPropagators)
     {
     }
 

@@ -120,7 +120,6 @@ Feature: Route resources
     And the resource "page_data" should not exist
     And the resource "page_data_route" should not exist
 
-
   Scenario: A resource with a relation to a route should return the path instead of the IRI
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to the resource "page_data"
@@ -162,3 +161,13 @@ Feature: Route resources
     """
     Then the response status code should be 201
     And the resource "route" should be purged from the cache
+
+  @loginUser
+  Scenario: When I delete a route that redirects, the destination route should be cleared from the cache
+    Given there is a Route "/my-route" which redirects to "/contact-new"
+    When I send a "DELETE" request to the resource "route"
+    Then the response status code should be 204
+    And the resource "route" should be purged from the cache
+    And the resource "middle_route" should be purged from the cache
+    # we need to delete the whole tree for the /redirects endpoint which fetches the whole tree
+    And the resource "final_route" should be purged from the cache

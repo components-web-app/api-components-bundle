@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-use ApiPlatform\Exception\InvalidArgumentException;
-use ApiPlatform\Metadata\Exception\InvalidArgumentException as LegacyInvalidArgumentException;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
@@ -31,6 +30,7 @@ use Doctrine\Persistence\ObjectRepository;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -191,6 +191,11 @@ class PropagateUpdatesListener
         }
         $this->addResourceIrisFromObject($resource, $type);
         $this->addToPropagators($resource, $type);
+        if ($resource instanceof Route) {
+            if ($redirect = $resource->getRedirect()) {
+                $this->collectUpdatedResource($redirect, $type);
+            }
+        }
     }
 
     private function addResourceIrisFromObject($resource, string $type): void
@@ -204,7 +209,7 @@ class PropagateUpdatesListener
 
         try {
             $resourceClass = $this->resourceClassResolver->getResourceClass($resource);
-        } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             return;
         }
 
@@ -213,7 +218,7 @@ class PropagateUpdatesListener
             try {
                 $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
                 $this->updatedCollectionClassToIriMapping[$resourceClass] = $collectionIri;
-            } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
+            } catch (InvalidArgumentException) {
             }
         }
 
