@@ -99,7 +99,8 @@ class UserEventListener
             $this->userMailer->sendPasswordChangedEmail($user);
         }
 
-        if (($token = $user->getEmailAddressVerifyToken()) && $token !== $previousUser->getEmailAddressVerifyToken()) {
+        // we need the plain token to have been set - it should be but we cannot read the previous user verify token to match, this fail-safes our process
+        if ($user->plainEmailAddressVerifyToken && ($token = $user->getEmailAddressVerifyToken()) && $token !== $previousUser->getEmailAddressVerifyToken()) {
             $this->userMailer->sendEmailVerifyEmail($user);
         }
 

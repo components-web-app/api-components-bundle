@@ -57,6 +57,27 @@ Feature: Forgot password system
     Then the response status code should be 201
     And I should get a "password_changed" email sent to the email address "test.user@example.com"
 
+  Scenario: I can still reset my password if I am not a validated user
+    Given there is a "password_update" form
+    And there is a user with the username "username" password "password" and role "ROLE_USER"
+    And the user email is not verified with the token "I am a teapot"
+    And the user has the newPasswordConfirmationToken "abc123" requested at "now"
+    When I send a "POST" request to the resource "password_update_form" and the postfix "/submit" with body:
+    """
+    {
+      "password_update": {
+        "username": "username",
+        "plainNewPasswordConfirmationToken": "abc123",
+        "plainPassword": {
+          "first": "mynewpassword",
+          "second": "mynewpassword"
+        }
+      }
+    }
+    """
+    Then the response status code should be 201
+    And I should get a "password_changed" email sent to the email address "test.user@example.com"
+
   Scenario Outline: I cannot reset my password with an invalid token
     Given there is a "password_update" form
     And there is a user with the username "username" password "password" and role "ROLE_USER"
