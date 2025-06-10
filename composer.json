@@ -95,7 +95,7 @@
         "symfony/mercure-bundle": "^0.3.5",
         "symfony/messenger": "^7.2",
         "symfony/monolog-bundle": "^3.8",
-        "symfony/phpunit-bridge": "^7.2",
+        "symfony/phpunit-bridge": "^7.3",
         "symfony/stopwatch": "^7.2",
         "symfony/web-profiler-bundle": "^7.2"
     },
