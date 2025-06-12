@@ -78,7 +78,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
     {
         $resourceId = $resource['@id'] ?? null;
         if (
-            str_starts_with($resourceId, '/.well-known/')
+            str_contains($resourceId, '/.well-known/')
             || '/_/resource_metadatas' === $resourceId
             || \in_array($resourceId, $iris, true)
         ) {
@@ -107,7 +107,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         }
 
         return array_filter($iris, function($iri) {
-            return !str_starts_with($iri, '/.well-known/');
+            return !str_contains($iri, '/.well-known/');
         });
     }
 
