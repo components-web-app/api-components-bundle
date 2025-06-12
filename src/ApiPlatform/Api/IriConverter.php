@@ -32,12 +32,24 @@ class IriConverter implements IriConverterInterface
         return $this->decorated->getResourceFromIri($iri, $context, $operation);
     }
 
+    // We want relations when they are found, to use the IRI with the path
     public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
-        if ($resource instanceof Route && ($path = $resource->getPath())) {
-            return '/_/routes/' . $path;
+        $originalIri = $this->decorated->getIriFromResource($resource, $referenceType, $operation, $context);
+
+        if (!$resource instanceof Route || !($path = $resource->getPath())) {
+            return $originalIri;
         }
 
-        return $this->decorated->getIriFromResource($resource, $referenceType, $operation, $context);
+        $id = $resource->getId();
+        if (!$id) {
+            // id may not exist on object anymore. Deleting a page data resource with the route on will cascade,
+            //then mercure will want to publish the change with the IRI
+            $parts = explode('/', $originalIri);
+            array_pop($parts);
+            $parts[] = $path;
+            return join('/', $parts);
+        }
+        return str_replace($id->toString(), $path, $originalIri);
     }
 }
