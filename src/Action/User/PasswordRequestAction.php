@@ -47,14 +47,16 @@ class PasswordRequestAction
             return new Response(null, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        if ($user) {
-            $this->entityManager->flush();
-            $this->mailer->sendPasswordResetEmail($user);
-            $user->setPasswordRequestedAt(new \DateTime());
-            $this->entityManager->flush();
+        if (!$user) {
+            return new Response(null, Response::HTTP_BAD_REQUEST);
         }
 
-        $response = new Response(null, Response::HTTP_OK);
+        $this->entityManager->flush();
+        $passwordResetSuccess = $this->mailer->sendPasswordResetEmail($user);
+        $user->setPasswordRequestedAt(new \DateTime());
+        $this->entityManager->flush();
+
+        $response = new Response(null, $passwordResetSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
         $response->setCache([
             'private' => true,
             's_maxage' => 0,
