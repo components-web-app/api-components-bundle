@@ -33,7 +33,7 @@ Feature: Register process via a form
       | referer    | http://www.website.com | /submit?email_redirect=/another-path/{{ username }}/{{ new_email }}/{{ token }} | custom_change_email_confirmation |
 
   @loginUser
-    @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks
+  @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks
   Scenario Outline: Test invalid referer and missing referer and origin headers
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
@@ -73,6 +73,7 @@ Feature: Register process via a form
     Then the response status code should be 422
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Your new email address should be different."
     And the JSON should be valid according to the schema file "form.schema.json"
+    And I should not receive any emails
 
   @loginUser
   Scenario: I get an invalid response if I try to change my email address to one that already exists
@@ -90,6 +91,7 @@ Feature: Register process via a form
     Then the response status code should be 422
     And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Someone else is already registered with that email address."
     And the JSON should be valid according to the schema file "form.schema.json"
+    And I should not receive any emails
 
   @loginSuperAdmin
   Scenario: I can authenticate that I am not able to change my email address to a blank string
@@ -106,6 +108,7 @@ Feature: Register process via a form
     And the JSON node "violations[0].propertyPath" should be equal to "newEmailAddress"
     And the JSON node "violations[0].message" should be equal to "This value should not be blank."
     And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
+    And I should not receive any emails
 
   @loginSuperAdmin
   Scenario: I can authenticate that I am not able to change my email address to a blank string
@@ -159,13 +162,14 @@ Feature: Register process via a form
     And I should not receive any emails
 
   Scenario: I can verify my new email address
-    Given there is a user with the username "my_username" password "password" and role "ROLE_USER"
+    Given there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "old@email.com"
     And the user has a new email address "new@email.com" and confirmation token abc123
     And I add "referer" header equal to "http://www.website.com"
     When I send a "GET" request to "/confirm-email/my_username/new@email.com/abc123"
     Then the response status code should be 200
     And the new email address should be "new@email.com" for username "my_username"
-    And I should get a "verify_email" email sent to the email address "new@email.com"
+    And the user "my_username" should have a verified email address
+    And I should not receive any emails
 
   Scenario: Email verification reset if another user now has confirmed email same as the one this user is trying to confirm
     Given there is a user with the username "new@email.com" password "password" and role "ROLE_USER" and the email address "new@email.com"

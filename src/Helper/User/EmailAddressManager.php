@@ -74,7 +74,7 @@ class EmailAddressManager
         $user
             ->setEmailAddress($user->getNewEmailAddress())
             ->setNewEmailAddress(null)
-            ->setEmailAddressVerified(false)
+            ->setEmailAddressVerified(true)
             ->setNewEmailConfirmationToken(null);
 
         $this->userDataProcessor->processChanges($user, $previousUser);
