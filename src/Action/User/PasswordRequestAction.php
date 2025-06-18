@@ -48,13 +48,15 @@ class PasswordRequestAction
         }
 
         if (!$user) {
-            return new Response(null, Response::HTTP_BAD_REQUEST);
+            return new Response(null, Response::HTTP_OK);
         }
 
         $this->entityManager->flush();
         $passwordResetSuccess = $this->mailer->sendPasswordResetEmail($user);
-        $user->setPasswordRequestedAt(new \DateTime());
-        $this->entityManager->flush();
+        if ($passwordResetSuccess) {
+            $user->setPasswordRequestedAt(new \DateTime());
+            $this->entityManager->flush();
+        }
 
         $response = new Response(null, $passwordResetSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
         $response->setCache([
