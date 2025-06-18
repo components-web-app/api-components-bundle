@@ -101,7 +101,8 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewEmailConfirmationToken = null;
 
-    #[ApiProperty(readable: false, writable: false)]
+    #[ApiProperty(readable: true, writable: false)]
+    #[Groups(['User:output', 'Form:cwa_resource:read'])]
     protected bool $emailAddressVerified = false;
 
     /**
