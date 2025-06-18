@@ -96,6 +96,12 @@ class UserMailer
         } catch (TransportExceptionInterface $exception) {
             $exception = new MailerTransportException($exception->getMessage());
             $exception->appendDebug($exception->getDebug());
+            if ($logger = $this->container->get('logger')) {
+                $logger->error($exception->getMessage(), [
+                    'exception' => $exception,
+                ]);
+                return;
+            }
             throw $exception;
         }
     }
