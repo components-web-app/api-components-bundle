@@ -26,6 +26,8 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
 use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
+use Silverback\ApiComponentsBundle\Action\User\ResendVerifyEmailAddressAction;
+use Silverback\ApiComponentsBundle\Action\User\ResendVerifyNewEmailAddressAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
@@ -1268,6 +1270,23 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('controller.service_arguments');
+
+    $services
+        ->set(ResendVerifyEmailAddressAction::class)
+        ->args([
+            new Reference(UserMailer::class),
+            new Reference(UserDataProcessor::class),
+        ])
+        ->tag('controller.service_arguments');
+
+    $services
+        ->set(ResendVerifyNewEmailAddressAction::class)
+        ->args([
+            new Reference(UserMailer::class),
+            new Reference(UserDataProcessor::class),
+        ])
+        ->tag('controller.service_arguments');
+
 
     $services
         ->set(VerifyEmailFactory::class)

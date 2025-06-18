@@ -109,6 +109,7 @@ readonly class UserDataProcessor
         if (!$user) {
             throw new InvalidArgumentException('Username not found');
         }
+
         return $user;
     }
 
@@ -119,6 +120,7 @@ readonly class UserDataProcessor
             return null;
         }
         $this->setNewEmailConfirmationToken($user);
+
         return $user;
     }
 
@@ -129,6 +131,7 @@ readonly class UserDataProcessor
             return null;
         }
         $this->setEmailAddressVerifyToken($user);
+
         return $user;
     }
 

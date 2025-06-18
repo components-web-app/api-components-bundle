@@ -164,12 +164,12 @@ Feature: Register process via a form
   @loginUser
   Scenario: I can resend a new email address confirmation email with a new token
     Given there is a "new_email" form
-    And there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    And there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "user@example.com"
+    And the user has a new email address "new@example.com" and confirmation token abc123
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "GET" request to "/confirm-email/my_username/new@email.com/abc123"
-    Then the response status code should be 201
-    And the JSON node "newEmailConfirmationToken" should not exist
-    And I should not receive any emails
+    When I send a "GET" request to "/resend-verify-new-email/my_username"
+    Then the response status code should be 200
+    And I should get a "change_email_confirmation" email sent to the email address "user@example.com"
 
   Scenario: I can verify my new email address
     Given there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "old@email.com"

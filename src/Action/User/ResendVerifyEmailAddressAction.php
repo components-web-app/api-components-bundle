@@ -38,6 +38,7 @@ final readonly class ResendVerifyEmailAddressAction
                 's_maxage' => 0,
                 'max_age' => 0,
             ]);
+
             return $response;
         }
 

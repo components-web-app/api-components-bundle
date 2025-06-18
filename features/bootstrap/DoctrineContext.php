@@ -216,7 +216,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given /^there is a user with the username "([^"]*)" password "([^"]*)" and role "([^"]*)"(?: and the email address "([^"]*)"|)$/i
+     * @Given /^there is a user with the username "([^" ]*)" password "([^" ]*)" and role "([^" ]*)"(?: and the email address "([^" ]*)"|)$/i
      */
     public function thereIsAUserWithUsernamePasswordAndRole(string $username, string $password, string $role, string $emailAddress = 'test.user@example.com'): void
     {

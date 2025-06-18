@@ -199,7 +199,7 @@ class ProfilerContext implements Context
     }
 
     /**
-     * @Then /^I should get a(?:n|) "(.+)" email sent(?:| to the email address "(.+)")$/i
+     * @Then /^I should get a(?:n|) "([^" ]*)" email sent(?:| to the email address "([^" ]*)")$/i
      */
     public function iShouldGetAnEmail(string $emailType, string $emailAddress = 'user@example.com')
     {
@@ -242,7 +242,7 @@ class ProfilerContext implements Context
                 $this->validateChangeEmailVerification($context, $headers, true);
                 break;
             case 'change_email_confirmation':
-                $this->validateChangeEmailVerification($context, $headers);
+                $this->validateChangeEmailVerification($context, $headers, false, $context['user']->getUsername());
                 break;
             case 'change_password_notification':
                 $this->validateChangePasswordNotification($headers);
@@ -283,13 +283,16 @@ class ProfilerContext implements Context
         Assert::assertStringStartsWith(UserEnabledEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 
-    private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false): void
+    private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false, ?string $username = null): void
     {
+        if (!$username) {
+            $username = 'new_user';
+        }
         $pathInsert = $customPath ? 'another-path' : 'confirm-new-email';
         Assert::assertEquals('Please confirm your new email address', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertIsString($context['user']->getNewEmailConfirmationToken());
-        Assert::assertMatchesRegularExpression('/^http:\/\/www.website.com\/' . $pathInsert . '\/new_user\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
+        Assert::assertMatchesRegularExpression('/^http:\/\/www\.website\.com\/' . $pathInsert . '\/' . $username . '\/new%40example.com\/([a-z0-9]+)$/i', $context['redirect_url']);
     }
 
     private function validateChangePasswordNotification(Headers $headers): void
