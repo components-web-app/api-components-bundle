@@ -43,52 +43,52 @@ class UserMailer
         $this->context = $context;
     }
 
-    public function sendPasswordResetEmail(AbstractUser $user): void
+    public function sendPasswordResetEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(PasswordResetEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendChangeEmailConfirmationEmail(AbstractUser $user): void
+    public function sendChangeEmailConfirmationEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(ChangeEmailConfirmationEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendEmailVerifyEmail(AbstractUser $user): void
+    public function sendEmailVerifyEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(VerifyEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendWelcomeEmail(AbstractUser $user): void
+    public function sendWelcomeEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(WelcomeEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendUserEnabledEmail(AbstractUser $user): void
+    public function sendUserEnabledEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(UserEnabledEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendUsernameChangedEmail(AbstractUser $user): void
+    public function sendUsernameChangedEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(UsernameChangedEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    public function sendPasswordChangedEmail(AbstractUser $user): void
+    public function sendPasswordChangedEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(PasswordChangedEmailFactory::class)->create($user, $this->context);
-        $this->send($email);
+        return $this->send($email);
     }
 
-    private function send(?RawMessage $message): void
+    private function send(?RawMessage $message): bool
     {
         if (null === $message) {
-            return;
+            return false;
         }
 
         try {
@@ -100,9 +100,10 @@ class UserMailer
                 $logger->error($exception->getMessage(), [
                     'exception' => $exception,
                 ]);
-                return;
+                return false;
             }
             throw $exception;
         }
+        return true;
     }
 }
