@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Api;
 
-use ApiPlatform\Metadata\Exception\OperationNotFoundException;
-use ApiPlatform\Metadata\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
@@ -37,40 +35,43 @@ class IriConverter implements IriConverterInterface
         return $this->decorated->getResourceFromIri($iri, $context, $operation);
     }
 
-    // We want relations when they are found, to use the IRI with the path
+    private function getUserGetOperation(?Operation $operation = null): Operation
+    {
+        // we do not want to return the /me IRI if a Get endpoint is configured. The IRI should be canonical to the user's ID etc.
 
-    /**
-     * @throws ResourceClassNotFoundException
-     * @throws \Exception
-     */
+        // get the API metadata of the class
+        // find the Get operation - ApiPlatform\Metadata\Get
+        // use this uriTemplate instead, overwrite $operation and the operation in context
+        $resourceIterator = $this->resourceMetadataCollectionFactory->create($operation->getClass())->getIterator();
+        while ($resourceIterator->valid()) {
+            $current = $resourceIterator->current();
+            /**
+             * @var Operations $resourceOperations
+             */
+            $resourceOperations = $current->getOperations();
+            $operationIterator = $resourceOperations->getIterator();
+            while ($operationIterator->valid()) {
+                $checkOperation = $operationIterator->current();
+                if ($checkOperation instanceof Get) {
+                    return $checkOperation;
+                }
+                $operationIterator->next();
+            }
+            $resourceIterator->next();
+        }
+
+        return $operation;
+    }
+
+    // We want relations when they are found, to use the IRI with the path
     public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
-        if ($operation?->getName() === 'me') {
-            // we do not want to return the /me IRI if a Get endpoint is configured. The IRI should be canonical to the user's ID etc.
-
-            // get the API metadata of the class
-            // find the Get operation - ApiPlatform\Metadata\Get
-            // use this uriTemplate instead, overwrite $operation and the operation in context
-            $resourceIterator = $this->resourceMetadataCollectionFactory->create($operation->getClass())->getIterator();
-            while($resourceIterator->valid()) {
-                $current = $resourceIterator->current();
-                /**
-                 * @var Operations $resourceOperations
-                 */
-                $resourceOperations = $current->getOperations();
-                $operationIterator = $resourceOperations->getIterator();
-                while($operationIterator->valid()) {
-                    $checkOperation = $operationIterator->current();
-                    if ($checkOperation instanceof Get) {
-                        $operation = $checkOperation;
-                        $context['operation'] = $checkOperation;
-                        break 2;
-                    }
-                    $operationIterator->next();
-                }
-                $resourceIterator->next();
-            }
+        if ('me' === $operation?->getName()) {
+            $checkOperation = $this->getUserGetOperation($operation);
+            $operation = $checkOperation;
+            $context['operation'] = $checkOperation;
         }
+
         $originalIri = $this->decorated->getIriFromResource($resource, $referenceType, $operation, $context);
 
         if (!$resource instanceof Route || !($path = $resource->getPath())) {

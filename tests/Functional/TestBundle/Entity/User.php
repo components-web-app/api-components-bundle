@@ -27,12 +27,12 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
  * @author Daniel West <daniel@silverback.is>
  */
 #[ApiResource(operations: [
-    new GetCollection( order: ['createdAt' => 'DESC'], security: "is_granted('ROLE_SUPER_ADMIN')"),
-    new Post( security: "is_granted('ROLE_SUPER_ADMIN')" ),
-    new Get( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
-    new Put( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
-    new Patch( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
-    new Delete( security: "is_granted('ROLE_SUPER_ADMIN')" )
+    new GetCollection(order: ['createdAt' => 'DESC'], security: "is_granted('ROLE_SUPER_ADMIN')"),
+    new Post(security: "is_granted('ROLE_SUPER_ADMIN')"),
+    new Get(security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()"),
+    new Put(security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()"),
+    new Patch(security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()"),
+    new Delete(security: "is_granted('ROLE_SUPER_ADMIN')"),
 ])]
 #[ORM\Entity]
 #[ORM\Table(name: '`user`')]
