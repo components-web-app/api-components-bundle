@@ -161,6 +161,16 @@ Feature: Register process via a form
     And the JSON node "newEmailConfirmationToken" should not exist
     And I should not receive any emails
 
+  @loginUser
+  Scenario: I can resend a new email address confirmation email with a new token
+    Given there is a "new_email" form
+    And there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "GET" request to "/confirm-email/my_username/new@email.com/abc123"
+    Then the response status code should be 201
+    And the JSON node "newEmailConfirmationToken" should not exist
+    And I should not receive any emails
+
   Scenario: I can verify my new email address
     Given there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "old@email.com"
     And the user has a new email address "new@email.com" and confirmation token abc123

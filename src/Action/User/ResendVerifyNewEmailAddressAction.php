@@ -13,10 +13,8 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Action\User;
 
-use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,17 +25,21 @@ final readonly class ResendVerifyNewEmailAddressAction
     public function __construct(
         private UserMailer $userMailer,
         private UserDataProcessor $userDataProcessor,
-        private Security $security,
     ) {
     }
 
-    public function __invoke(string $username, string $token): Response
+    public function __invoke(string $username): Response
     {
-        $user = $this->security->getUser();
-        if (!$user instanceof AbstractUser) {
-            return new Response(null, Response::HTTP_UNAUTHORIZED);
+        $user = $this->userDataProcessor->updateNewEmailToken($username);
+        if (!$user) {
+            $response = new Response(null, Response::HTTP_OK);
+            $response->setCache([
+                'private' => true,
+                's_maxage' => 0,
+                'max_age' => 0,
+            ]);
+            return $response;
         }
-        $this->userDataProcessor->setNewEmailConfirmationToken($user);
         $emailSuccess = $this->userMailer->sendChangeEmailConfirmationEmail($user);
 
         $response = new Response(null, $emailSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);

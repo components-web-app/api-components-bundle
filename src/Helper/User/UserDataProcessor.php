@@ -39,12 +39,8 @@ readonly class UserDataProcessor
 
     public function updatePasswordConfirmationToken(string $usernameQuery): ?AbstractUser
     {
-        $user = $this->userRepository->loadUserByIdentifier($usernameQuery);
-        if (!$user) {
-            throw new InvalidArgumentException('Username not found');
-        }
-
-        if ($user->isPasswordRequestLimitReached($this->tokenTtl)) {
+        $user = $this->findUserByUsername($usernameQuery);
+        if (!$user || $user->isPasswordRequestLimitReached($this->tokenTtl)) {
             return null;
         }
 
@@ -107,13 +103,42 @@ readonly class UserDataProcessor
         }
     }
 
-    public function setNewEmailConfirmationToken(AbstractUser $user): void
+    private function findUserByUsername(string $usernameQuery): ?AbstractUser
+    {
+        $user = $this->userRepository->loadUserByIdentifier($usernameQuery);
+        if (!$user) {
+            throw new InvalidArgumentException('Username not found');
+        }
+        return $user;
+    }
+
+    public function updateNewEmailToken(string $usernameQuery): ?AbstractUser
+    {
+        $user = $this->findUserByUsername($usernameQuery);
+        if (!$user) {
+            return null;
+        }
+        $this->setNewEmailConfirmationToken($user);
+        return $user;
+    }
+
+    public function updateVerifyEmailToken(string $usernameQuery): ?AbstractUser
+    {
+        $user = $this->findUserByUsername($usernameQuery);
+        if (!$user) {
+            return null;
+        }
+        $this->setEmailAddressVerifyToken($user);
+        return $user;
+    }
+
+    private function setNewEmailConfirmationToken(AbstractUser $user): void
     {
         $user->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
         $user->plainNewEmailConfirmationToken = $token;
     }
 
-    public function setEmailAddressVerifyToken(AbstractUser $user): void
+    private function setEmailAddressVerifyToken(AbstractUser $user): void
     {
         $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
         $user->plainEmailAddressVerifyToken = $token;
