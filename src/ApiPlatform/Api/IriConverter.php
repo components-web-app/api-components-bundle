@@ -44,12 +44,14 @@ class IriConverter implements IriConverterInterface
         $id = $resource->getId();
         if (!$id) {
             // id may not exist on object anymore. Deleting a page data resource with the route on will cascade,
-            //then mercure will want to publish the change with the IRI
+            // then mercure will want to publish the change with the IRI
             $parts = explode('/', $originalIri);
             array_pop($parts);
             $parts[] = $path;
-            return join('/', $parts);
+
+            return implode('/', $parts);
         }
+
         return str_replace($id->toString(), $path, $originalIri);
     }
 }

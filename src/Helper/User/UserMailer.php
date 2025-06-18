@@ -46,42 +46,49 @@ class UserMailer
     public function sendPasswordResetEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(PasswordResetEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendChangeEmailConfirmationEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(ChangeEmailConfirmationEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendEmailVerifyEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(VerifyEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendWelcomeEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(WelcomeEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendUserEnabledEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(UserEnabledEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendUsernameChangedEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(UsernameChangedEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
     public function sendPasswordChangedEmail(AbstractUser $user): bool
     {
         $email = $this->container->get(PasswordChangedEmailFactory::class)->create($user, $this->context);
+
         return $this->send($email);
     }
 
@@ -100,10 +107,12 @@ class UserMailer
                 $logger->error($exception->getMessage(), [
                     'exception' => $exception,
                 ]);
+
                 return false;
             }
             throw $exception;
         }
+
         return true;
     }
 }

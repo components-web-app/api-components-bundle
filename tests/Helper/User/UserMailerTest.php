@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\User;
 
+use Monolog\Logger;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
@@ -96,7 +96,8 @@ class UserMailerTest extends TestCase
         };
         $templateEmail = new TemplatedEmail();
 
-        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
+        $loggerMock = $this->createMock(Logger::class);
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [['logger', $loggerMock]]);
 
         $factoryMock
             ->expects(self::once())
@@ -111,7 +112,11 @@ class UserMailerTest extends TestCase
             ->with($templateEmail)
             ->willThrowException($mockException);
 
-        $this->expectException(MailerTransportException::class);
+        $loggerMock
+            ->expects(self::once())
+            ->method('error')
+            ->with($mockException->getMessage());
+
         $this->userMailer->sendPasswordResetEmail($user);
     }
 
@@ -196,14 +201,26 @@ class UserMailerTest extends TestCase
         $this->expectMailerSendMethod($templateEmail);
     }
 
-    private function getFactoryFromContainerMock(string $factory): MockObject
+    private function getFactoryFromContainerMock(string $factory, array $additionalExpectations = []): MockObject
     {
         $factoryMock = $this->createMock(AbstractUserEmailFactory::class);
+        $expectations = [
+            [$factory, $factoryMock],
+            ...$additionalExpectations,
+        ];
+
+        $invokedCount = self::exactly(\count($expectations));
+
         $this->containerMock
-            ->expects(self::once())
+            ->expects($invokedCount)
             ->method('get')
-            ->with($factory)
-            ->willReturn($factoryMock);
+            ->willReturnCallback(function ($parameters) use ($invokedCount, $expectations) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $currentExpectation = $expectations[$currentInvocationCount - 1];
+                $this->assertSame($currentExpectation[0], $parameters);
+
+                return $currentExpectation[1];
+            });
 
         return $factoryMock;
     }

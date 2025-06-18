@@ -66,6 +66,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         $operationName = $context['operation_name'] ?? null;
         if ('_api_/routes_manifest/{id}{._format}_get' === $operationName) {
             $normalized['@id'] = str_replace('routes_manifest', 'routes', $normalized['@id']);
+
             return [
                 'resource_iris' => $this->getResourceIrisFromArray($normalized),
             ];
@@ -106,7 +107,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
             }
         }
 
-        return array_filter($iris, function($iri) {
+        return array_filter($iris, function ($iri) {
             return !str_contains($iri, '/.well-known/');
         });
     }
