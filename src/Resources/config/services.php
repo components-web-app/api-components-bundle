@@ -1421,6 +1421,7 @@ return static function (ContainerConfigurator $configurator) {
         ->decorate('api_platform.iri_converter')
         ->args([
             new Reference(IriConverter::class . '.inner'),
+            new Reference('api_platform.metadata.resource.metadata_collection_factory'),
         ]);
     $services->alias('silverback.iri_converter', IriConverter::class);
     $services->alias(IriConverterInterface::class, IriConverter::class);

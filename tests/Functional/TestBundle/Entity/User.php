@@ -18,21 +18,22 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 
-const USER_SECURITY = "is_granted('ROLE_SUPER_ADMIN') or object == user";
-
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-#[ApiResource]
-#[Get(security: USER_SECURITY)]
-#[Put(security: USER_SECURITY)]
-#[Patch(security: USER_SECURITY)]
-#[Delete(security: USER_SECURITY)]
-#[GetCollection(order: ['createdAt' => 'DESC'], security: "is_granted('ROLE_SUPER_ADMIN')")]
+#[ApiResource(operations: [
+    new GetCollection( order: ['createdAt' => 'DESC'], security: "is_granted('ROLE_SUPER_ADMIN')"),
+    new Post( security: "is_granted('ROLE_SUPER_ADMIN')" ),
+    new Get( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
+    new Put( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
+    new Patch( security: "is_granted('ROLE_SUPER_ADMIN') or object.getId() == user.getId()" ),
+    new Delete( security: "is_granted('ROLE_SUPER_ADMIN')" )
+])]
 #[ORM\Entity]
 #[ORM\Table(name: '`user`')]
 class User extends AbstractUser
