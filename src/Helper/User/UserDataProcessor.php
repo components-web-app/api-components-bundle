@@ -24,16 +24,16 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserDataProcessor
+readonly class UserDataProcessor
 {
     public function __construct(
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly PasswordHasherFactoryInterface $passwordHasherFactory,
-        private readonly bool $initialEmailVerifiedState,
-        private readonly bool $verifyEmailOnRegister,
-        private readonly bool $verifyEmailOnChange,
-        private readonly int $tokenTtl = 8600,
+        private UserPasswordHasherInterface $passwordHasher,
+        private UserRepositoryInterface $userRepository,
+        private PasswordHasherFactoryInterface $passwordHasherFactory,
+        private bool $initialEmailVerifiedState,
+        private bool $verifyEmailOnRegister,
+        private bool $verifyEmailOnChange,
+        private int $tokenTtl = 8600,
     ) {
     }
 
@@ -83,23 +83,21 @@ class UserDataProcessor
         if (!$previousUser) {
             $user->setEmailAddressVerified($this->initialEmailVerifiedState);
             if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
-                $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
-                $user->plainEmailAddressVerifyToken = $token;
+                $this->setEmailAddressVerifyToken($user);
             }
         }
 
         if ($previousUser) {
             if ($this->verifyEmailOnChange && $user->getEmailAddress() !== $previousUser->getEmailAddress()) {
-                $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
-                $user->plainEmailAddressVerifyToken = $token;
+                $this->setEmailAddressVerifyToken($user);
             }
             if (($newEmail = $user->getNewEmailAddress()) !== $previousUser->getNewEmailAddress()) {
                 if ($newEmail) {
-                    $user->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
-                    $user->plainNewEmailConfirmationToken = $token;
+                    $this->setNewEmailConfirmationToken($user);
                 } else {
                     // invalidate any existing requests
                     $user->setNewEmailConfirmationToken(null);
+                    // revert any tokens for the new primary saved email address as this was converted from the update
                     if ($previousUser->getNewEmailAddress() === $user->getEmailAddress() && $user->plainEmailAddressVerifyToken) {
                         $user->plainEmailAddressVerifyToken = null;
                         $user->setEmailAddressVerifyToken(null);
@@ -107,6 +105,18 @@ class UserDataProcessor
                 }
             }
         }
+    }
+
+    public function setNewEmailConfirmationToken(AbstractUser $user): void
+    {
+        $user->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
+        $user->plainNewEmailConfirmationToken = $token;
+    }
+
+    public function setEmailAddressVerifyToken(AbstractUser $user): void
+    {
+        $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $token = TokenGenerator::generateToken()));
+        $user->plainEmailAddressVerifyToken = $token;
     }
 
     private function hashPassword(AbstractUser $entity): void

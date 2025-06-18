@@ -19,4 +19,12 @@
     <route id="api_components_verify_email" path="/verify-email/{username}/{token}"
            controller="Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction"
            methods="GET"/>
+
+    <route id="api_components_resend_email_verification" path="/resend-verify-email/{username}"
+           controller="Silverback\ApiComponentsBundle\Action\User\ResendVerifyEmailAddressAction"
+           methods="GET"/>
+
+    <route id="api_components_resend_new_email_verification" path="/resend-verify-new-email/{username}"
+           controller="Silverback\ApiComponentsBundle\Action\User\ResendVerifyNewEmailAddressAction"
+           methods="GET"/>
 </routes>
