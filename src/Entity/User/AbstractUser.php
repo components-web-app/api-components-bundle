@@ -117,6 +117,9 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $emailLastUpdatedAt = null;
 
+    #[ApiProperty(readable: false, writable: false)]
+    protected ?\DateTime $emailAddressVerificationRequestedAt = null;
+
     /**
      * `final` to make `createFromPayload` safe. Could instead make an interface? Or abstract and force child to define constructor?
      */
@@ -253,9 +256,6 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setNewEmailAddress(?string $newEmailAddress): self
     {
         $this->newEmailAddress = $newEmailAddress;
-        if ($newEmailAddress) {
-            $this->newEmailAddressChangeRequestedAt = new \DateTime();
-        }
 
         return $this;
     }
@@ -268,9 +268,6 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setNewEmailConfirmationToken(?string $newEmailConfirmationToken): self
     {
         $this->newEmailConfirmationToken = $newEmailConfirmationToken;
-        if ($newEmailConfirmationToken) {
-            $this->newEmailAddressChangeRequestedAt = new \DateTime();
-        }
 
         return $this;
     }
@@ -278,6 +275,11 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function getNewEmailAddressChangeRequestedAt(): ?\DateTime
     {
         return $this->newEmailAddressChangeRequestedAt;
+    }
+
+    public function setNewEmailAddressChangeRequestedAt(?\DateTime $newEmailAddressChangeRequestedAt): void
+    {
+        $this->newEmailAddressChangeRequestedAt = $newEmailAddressChangeRequestedAt;
     }
 
     public function isEmailAddressVerified(): bool
@@ -300,9 +302,16 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setEmailAddressVerifyToken(?string $emailAddressVerifyToken): void
     {
         $this->emailAddressVerifyToken = $emailAddressVerifyToken;
-        if ($emailAddressVerifyToken) {
-            $this->emailLastUpdatedAt = new \DateTime();
-        }
+    }
+
+    public function getEmailAddressVerificationRequestedAt(): ?\DateTime
+    {
+        return $this->emailAddressVerificationRequestedAt;
+    }
+
+    public function setEmailAddressVerificationRequestedAt(?\DateTime $emailAddressVerificationRequestedAt): void
+    {
+        $this->emailAddressVerificationRequestedAt = $emailAddressVerificationRequestedAt;
     }
 
     public function isPasswordRequestLimitReached($ttl): bool
@@ -323,7 +332,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
     public function isEmailVerifyRequestLimitReached($ttl): bool
     {
-        $lastRequest = $this->emailLastUpdatedAt;
+        $lastRequest = $this->getEmailAddressVerificationRequestedAt();
 
         return $lastRequest instanceof \DateTime
             && $lastRequest->getTimestamp() + $ttl > time();
@@ -349,7 +358,6 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
      */
     public function unserialize(string $serialized): self
     {
-        $id = null;
         [
             $id,
             $this->username,

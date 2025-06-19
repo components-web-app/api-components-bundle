@@ -165,7 +165,7 @@ Feature: Register process via a form
   Scenario: I can resend a new email address confirmation email with a new token
     Given there is a "new_email" form
     And there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "user@example.com"
-    And the user has a new email address "new@example.com" and confirmation token abc123
+    And the user has a new email address "new@example.com" and confirmation token "abc123" and the email was sent at "-1 day"
     And I add "referer" header equal to "http://www.website.com"
     When I send a "GET" request to "/resend-verify-new-email/my_username"
     Then the response status code should be 200
@@ -173,7 +173,7 @@ Feature: Register process via a form
 
   Scenario: I can verify my new email address
     Given there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "old@email.com"
-    And the user has a new email address "new@email.com" and confirmation token abc123
+    And the user has a new email address "new@email.com" and confirmation token "abc123"
     And I add "referer" header equal to "http://www.website.com"
     When I send a "GET" request to "/confirm-email/my_username/new@email.com/abc123"
     Then the response status code should be 200
@@ -184,7 +184,7 @@ Feature: Register process via a form
   Scenario: Email verification reset if another user now has confirmed email same as the one this user is trying to confirm
     Given there is a user with the username "new@email.com" password "password" and role "ROLE_USER" and the email address "new@email.com"
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
-    And the user has a new email address "new@email.com" and confirmation token abc123
+    And the user has a new email address "new@email.com" and confirmation token "abc123"
     When I send a "GET" request to "/confirm-email/another_user/new@email.com/abc123"
     Then the response status code should be 401
     And the new email address should be "test.user@example.com" for username "another_user"

@@ -271,13 +271,17 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given the user has a new email address :emailAddress and confirmation token :token
+     * @Given /^the user has a new email address "([^" ]*)" and confirmation token "([^" ]*)"(?: and the email was sent at "([^"]*)"|)$/i
      */
-    public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken): void
+    public function theUserHasANewEmailAddress(string $emailAddress, string $verificationToken, string $emailSentAt = 'now'): void
     {
         /** @var User $user */
         $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
-        $user->setNewEmailAddress($emailAddress)->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $verificationToken));
+        $user
+            ->setNewEmailAddress($emailAddress)
+            ->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $verificationToken))
+            ->setNewEmailAddressChangeRequestedAt(new \DateTime($emailSentAt))
+        ;
         $this->manager->flush();
     }
 
