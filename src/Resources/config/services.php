@@ -1192,8 +1192,8 @@ return static function (ContainerConfigurator $configurator) {
                     UsernameChangedEmailFactory::class => new Reference(UsernameChangedEmailFactory::class),
                     PasswordChangedEmailFactory::class => new Reference(PasswordChangedEmailFactory::class),
                     VerifyEmailFactory::class => new Reference(VerifyEmailFactory::class),
+                    'doctrine.orm.entity_manager' => new Reference('doctrine.orm.entity_manager'),
                     'logger' => new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-                    new Reference(EntityManagerInterface::class),
                 ]),
                 '', // injected in dependency injection
             ]

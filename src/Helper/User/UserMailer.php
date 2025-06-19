@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Helper\User;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
@@ -50,7 +49,7 @@ class UserMailer
 
         if ($email) {
             $user->setPasswordRequestedAt(new \DateTime());
-            $this->container->get(EntityManagerInterface::class)->flush();
+            $this->container->get('doctrine.orm.entity_manager')->flush();
         }
 
         return $this->send($email);
@@ -62,7 +61,7 @@ class UserMailer
 
         if ($email) {
             $user->setNewEmailAddressChangeRequestedAt(new \DateTime());
-            $this->container->get(EntityManagerInterface::class)->flush();
+            $this->container->get('doctrine.orm.entity_manager')->flush();
         }
 
         return $this->send($email);
@@ -74,7 +73,7 @@ class UserMailer
 
         if ($email) {
             $user->setEmailAddressVerificationRequestedAt(new \DateTime());
-            $this->container->get(EntityManagerInterface::class)->flush();
+            $this->container->get('doctrine.orm.entity_manager')->flush();
         }
 
         return $this->send($email);

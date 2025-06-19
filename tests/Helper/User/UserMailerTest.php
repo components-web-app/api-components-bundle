@@ -215,7 +215,7 @@ class UserMailerTest extends TestCase
 
         return [
             [
-                EntityManagerInterface::class,
+                'doctrine.orm.entity_manager',
                 $emMock,
             ],
         ];
