@@ -1193,6 +1193,7 @@ return static function (ContainerConfigurator $configurator) {
                     PasswordChangedEmailFactory::class => new Reference(PasswordChangedEmailFactory::class),
                     VerifyEmailFactory::class => new Reference(VerifyEmailFactory::class),
                     'logger' => new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+                    new Reference(EntityManagerInterface::class),
                 ]),
                 '', // injected in dependency injection
             ]

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\User;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Monolog\Logger;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -96,8 +97,10 @@ class UserMailerTest extends TestCase
         };
         $templateEmail = new TemplatedEmail();
 
+        $additionalExpectations = $this->createEmMockExpectation();
+
         $loggerMock = $this->createMock(Logger::class);
-        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [['logger', $loggerMock]]);
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [...$additionalExpectations, ['logger', $loggerMock]]);
 
         $factoryMock
             ->expects(self::once())
@@ -126,7 +129,9 @@ class UserMailerTest extends TestCase
             protected ?string $username = 'test_send_password_reset_email';
         };
 
-        $this->expectFactoryCallAndSendMailerMethod(PasswordResetEmailFactory::class, $user);
+        $additionalExpectations = $this->createEmMockExpectation();
+
+        $this->expectFactoryCallAndSendMailerMethod(PasswordResetEmailFactory::class, $user, $additionalExpectations);
 
         $this->userMailer->sendPasswordResetEmail($user);
     }
@@ -137,7 +142,9 @@ class UserMailerTest extends TestCase
             protected ?string $username = 'test_send_change_email_verification_email';
         };
 
-        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user);
+        $additionalExpectations = $this->createEmMockExpectation();
+
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user, $additionalExpectations);
 
         $this->userMailer->sendChangeEmailConfirmationEmail($user);
     }
@@ -186,11 +193,11 @@ class UserMailerTest extends TestCase
         $this->userMailer->sendPasswordChangedEmail($user);
     }
 
-    private function expectFactoryCallAndSendMailerMethod(string $factoryClass, AbstractUser $user): void
+    private function expectFactoryCallAndSendMailerMethod(string $factoryClass, AbstractUser $user, array $additionalExpectations = []): void
     {
         $templateEmail = new TemplatedEmail();
 
-        $factoryMock = $this->getFactoryFromContainerMock($factoryClass);
+        $factoryMock = $this->getFactoryFromContainerMock($factoryClass, $additionalExpectations);
 
         $factoryMock
             ->expects(self::once())
@@ -199,6 +206,19 @@ class UserMailerTest extends TestCase
             ->willReturn($templateEmail);
 
         $this->expectMailerSendMethod($templateEmail);
+    }
+
+    private function createEmMockExpectation(): array
+    {
+        $emMock = $this->createMock(EntityManagerInterface::class);
+        $emMock->expects(self::once())->method('flush');
+
+        return [
+            [
+                EntityManagerInterface::class,
+                $emMock,
+            ],
+        ];
     }
 
     private function getFactoryFromContainerMock(string $factory, array $additionalExpectations = []): MockObject

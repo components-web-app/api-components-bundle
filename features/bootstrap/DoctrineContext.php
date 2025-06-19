@@ -280,8 +280,7 @@ final class DoctrineContext implements Context
         $user
             ->setNewEmailAddress($emailAddress)
             ->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $verificationToken))
-            ->setNewEmailAddressChangeRequestedAt(new \DateTime($emailSentAt))
-        ;
+            ->setNewEmailAddressChangeRequestedAt(new \DateTime($emailSentAt));
         $this->manager->flush();
     }
 
