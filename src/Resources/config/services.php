@@ -1287,7 +1287,6 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('controller.service_arguments');
 
-
     $services
         ->set(VerifyEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
