@@ -38,13 +38,12 @@ class AbstractFinalEmailFactoryTestCase extends TestEmailCase
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
     }
 
-    protected function assertCommonMockMethodsCalled(bool $tokenPathExpected = false): void
+    protected function assertCommonMockMethodsCalled(bool $tokenPathExpected = false, array $additionalExpectations = []): void
     {
         $loaderMock = $this->createMock(LoaderInterface::class);
         $twig = new Environment($loaderMock);
 
-        $containerWith = [];
-        $willReturn = [];
+        $expectations = [...$additionalExpectations];
 
         if ($tokenPathExpected) {
             $requestStackMock = $this->createMock(RequestStack::class);
@@ -60,25 +59,32 @@ class AbstractFinalEmailFactoryTestCase extends TestEmailCase
                 ->with('/default-path')
                 ->willReturn('/transformed-path');
 
-            $containerWith[] = [RequestStack::class];
-            $containerWith[] = [RefererUrlResolver::class];
-            $willReturn[] = $requestStackMock;
-            $willReturn[] = $refererUrlMock;
+            $expectations[] = [
+                [RequestStack::class],
+                $requestStackMock,
+            ];
+            $expectations[] = [
+                [RefererUrlResolver::class],
+                $refererUrlMock,
+            ];
         }
 
-        $containerWith[] = ['twig'];
-        $willReturn[] = $twig;
+        $expectations[] = [
+            ['twig'],
+            $twig,
+        ];
 
-        $invokedCount = self::exactly(\count($willReturn));
+        $invokedCount = self::exactly(\count($expectations));
 
         $this->containerInterfaceMock
             ->expects($invokedCount)
             ->method('get')
-            ->willReturnCallback(function (...$parameters) use ($invokedCount, $containerWith, $willReturn) {
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $expectations) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
-                $this->assertSame($containerWith[$currentInvocationCount - 1], $parameters);
+                $currentExpectation = $expectations[$currentInvocationCount - 1];
+                $this->assertSame($currentExpectation[0], $parameters);
 
-                return $willReturn[$currentInvocationCount - 1];
+                return $currentExpectation[1];
             });
     }
 }

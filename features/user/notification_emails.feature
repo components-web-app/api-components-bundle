@@ -6,6 +6,7 @@ Feature: Receive notification emails on important user changes
   Background:
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
+    And I add "referer" header equal to "http://www.website.com"
 
   @loginSuperAdmin
   Scenario: I receive an email when my user has been enabled

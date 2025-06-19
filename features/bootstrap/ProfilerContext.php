@@ -236,7 +236,7 @@ class ProfilerContext implements Context
                 $this->usernameChangedNotification($headers);
                 break;
             case 'enabled_notification':
-                $this->validateEnabledNotification($headers);
+                $this->validateEnabledNotification($context, $headers);
                 break;
             case 'custom_change_email_confirmation':
                 $this->validateChangeEmailVerification($context, $headers, true);
@@ -277,10 +277,11 @@ class ProfilerContext implements Context
         Assert::assertStringStartsWith(UsernameChangedEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
     }
 
-    private function validateEnabledNotification(Headers $headers): void
+    private function validateEnabledNotification(array $context, Headers $headers): void
     {
         Assert::assertEquals('Your account has been enabled', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(UserEnabledEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
+        Assert::assertMatchesRegularExpression('/^http:\/\/www\.website\.com\/login$/i', $context['login_url']);
     }
 
     private function validateChangeEmailVerification(array $context, Headers $headers, bool $customPath = false, ?string $username = null): void

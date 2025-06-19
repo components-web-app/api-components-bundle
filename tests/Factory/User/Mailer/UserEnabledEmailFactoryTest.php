@@ -15,6 +15,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
@@ -41,7 +42,14 @@ class UserEnabledEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 
         $factory = new UserEnabledEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
-        $this->assertCommonMockMethodsCalled();
+        $referrerUrlMock = $this->createMock(RefererUrlResolver::class);
+        $referrerUrlMock
+            ->method('getAbsoluteUrl')
+            ->willReturn('https://login');
+        $this->assertCommonMockMethodsCalled(false, [[
+            [RefererUrlResolver::class],
+            $referrerUrlMock,
+        ]]);
 
         $email = (new TemplatedEmail())
             ->to(Address::create('email@address.com'))
@@ -51,6 +59,7 @@ class UserEnabledEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
                 [
                     'website_name' => 'my website',
                     'user' => $user,
+                    'login_url' => 'https://login',
                 ]
             );
 

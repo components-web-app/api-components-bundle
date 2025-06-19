@@ -100,7 +100,7 @@ class UserMailerTest extends TestCase
         $additionalExpectations = $this->createEmMockExpectation();
 
         $loggerMock = $this->createMock(Logger::class);
-        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [...$additionalExpectations, ['logger', $loggerMock]]);
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [...$additionalExpectations, [['logger'], $loggerMock]]);
 
         $factoryMock
             ->expects(self::once())
@@ -215,7 +215,7 @@ class UserMailerTest extends TestCase
 
         return [
             [
-                'doctrine.orm.entity_manager',
+                ['doctrine.orm.entity_manager'],
                 $emMock,
             ],
         ];
@@ -225,7 +225,7 @@ class UserMailerTest extends TestCase
     {
         $factoryMock = $this->createMock(AbstractUserEmailFactory::class);
         $expectations = [
-            [$factory, $factoryMock],
+            [[$factory], $factoryMock],
             ...$additionalExpectations,
         ];
 
@@ -234,7 +234,7 @@ class UserMailerTest extends TestCase
         $this->containerMock
             ->expects($invokedCount)
             ->method('get')
-            ->willReturnCallback(function ($parameters) use ($invokedCount, $expectations) {
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $expectations) {
                 $currentInvocationCount = $invokedCount->numberOfInvocations();
                 $currentExpectation = $expectations[$currentInvocationCount - 1];
                 $this->assertSame($currentExpectation[0], $parameters);
