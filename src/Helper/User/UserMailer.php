@@ -50,6 +50,8 @@ class UserMailer
         if ($email) {
             $user->setPasswordRequestedAt(new \DateTime());
             $this->container->get('doctrine.orm.entity_manager')->flush();
+        } else {
+            $user->setPasswordRequestedAt(null);
         }
 
         return $this->send($email);
@@ -62,6 +64,8 @@ class UserMailer
         if ($email) {
             $user->setNewEmailAddressChangeRequestedAt(new \DateTime());
             $this->container->get('doctrine.orm.entity_manager')->flush();
+        } else {
+            $user->setNewEmailAddressChangeRequestedAt(null);
         }
 
         return $this->send($email);
@@ -74,6 +78,8 @@ class UserMailer
         if ($email) {
             $user->setEmailAddressVerificationRequestedAt(new \DateTime());
             $this->container->get('doctrine.orm.entity_manager')->flush();
+        } else {
+            $user->setEmailAddressVerificationRequestedAt(null);
         }
 
         return $this->send($email);
