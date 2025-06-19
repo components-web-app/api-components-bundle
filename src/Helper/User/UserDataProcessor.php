@@ -116,7 +116,7 @@ readonly class UserDataProcessor
     public function updateNewEmailToken(string $usernameQuery): ?AbstractUser
     {
         $user = $this->findUserByUsername($usernameQuery);
-        if (!$user) {
+        if (!$user || $user->isNewEmailVerifyRequestLimitReached($this->tokenTtl)) {
             return null;
         }
         $this->setNewEmailConfirmationToken($user);
@@ -127,7 +127,7 @@ readonly class UserDataProcessor
     public function updateVerifyEmailToken(string $usernameQuery): ?AbstractUser
     {
         $user = $this->findUserByUsername($usernameQuery);
-        if (!$user) {
+        if (!$user || $user->isEmailVerifyRequestLimitReached($this->tokenTtl)) {
             return null;
         }
         $this->setEmailAddressVerifyToken($user);

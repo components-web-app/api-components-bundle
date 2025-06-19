@@ -268,6 +268,9 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setNewEmailConfirmationToken(?string $newEmailConfirmationToken): self
     {
         $this->newEmailConfirmationToken = $newEmailConfirmationToken;
+        if ($newEmailConfirmationToken) {
+            $this->newEmailAddressChangeRequestedAt = new \DateTime();
+        }
 
         return $this;
     }
@@ -297,11 +300,30 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setEmailAddressVerifyToken(?string $emailAddressVerifyToken): void
     {
         $this->emailAddressVerifyToken = $emailAddressVerifyToken;
+        if ($emailAddressVerifyToken) {
+            $this->emailLastUpdatedAt = new \DateTime();
+        }
     }
 
     public function isPasswordRequestLimitReached($ttl): bool
     {
         $lastRequest = $this->getPasswordRequestedAt();
+
+        return $lastRequest instanceof \DateTime
+            && $lastRequest->getTimestamp() + $ttl > time();
+    }
+
+    public function isNewEmailVerifyRequestLimitReached($ttl): bool
+    {
+        $lastRequest = $this->getNewEmailAddressChangeRequestedAt();
+
+        return $lastRequest instanceof \DateTime
+            && $lastRequest->getTimestamp() + $ttl > time();
+    }
+
+    public function isEmailVerifyRequestLimitReached($ttl): bool
+    {
+        $lastRequest = $this->emailLastUpdatedAt;
 
         return $lastRequest instanceof \DateTime
             && $lastRequest->getTimestamp() + $ttl > time();
