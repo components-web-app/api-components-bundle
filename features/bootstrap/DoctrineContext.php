@@ -829,6 +829,16 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given The resource :name is removed
+     */
+    public function theUserUsernameIsRemoved(string $name): void
+    {
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $this->manager->remove($resource);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given /I have a refresh token(?: which expires at "([^"]*)"|)?$/
      */
     public function iHaveARefreshToken(string $expiresAt = '+10 seconds'): void

@@ -108,6 +108,30 @@ Feature: Prevent disabled users from logging in
     | Post   |
 
   @loginUser
+  Scenario: I can logout even if I have no refresh token
+    When I send a "POST" request to "/logout"
+    Then the response status code should be 200
+    And 1 refresh tokens should exist
+    And all the refresh tokens should be expired
+    And the response should have a "api_components" cookie
+    And the response should have a "api_components" cookie with max age less than 2
+    And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should not contain draft resource topics
+
+  @loginUser
+  Scenario: I can logout even if the user has been deleted while logged in
+    Given the resource "login_user" is removed
+    When I send a "POST" request to "/logout"
+    Then the response status code should be 200
+    And 0 refresh tokens should exist
+    And the response should have a "api_components" cookie
+    And the response should have a "api_components" cookie with max age less than 2
+    And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should not contain draft resource topics
+
+  @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
     Given I have an invalid JWT token
     When I send a "GET" request to "/"

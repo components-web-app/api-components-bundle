@@ -24,6 +24,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class RefreshToken extends AbstractRefreshToken
 {
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected ?UserInterface $user = null;
 }
