@@ -80,7 +80,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         $resourceId = $resource['@id'] ?? null;
         if (
             str_contains($resourceId, '/.well-known/')
-            || '/_/resource_metadatas' === $resourceId
+            || str_ends_with($resourceId, '/_/resource_metadatas')
             || \in_array($resourceId, $iris, true)
         ) {
             return $iris;
