@@ -105,7 +105,7 @@ Feature: API Resources which can have files uploaded
   @loginUser
   Scenario Outline: I can update a media resource
     Given there is a DummyUploadableWithImagineFilters
-    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
       | file           |
       | base64(<file>) |
     Then the response status code should be 200
@@ -154,7 +154,7 @@ Feature: API Resources which can have files uploaded
   @loginAdmin
   Scenario: I can set the file to null to delete it
     And there is a DummyUploadableWithImagineFilters
-    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
       | file   |
       | null   |
     Then the response status code should be 200
@@ -183,7 +183,7 @@ Feature: API Resources which can have files uploaded
     Given there is a DummyUploadableAndPublishable
     And the resource "dummy_uploadable" has a file "<existing_file>"
     And there is a ComponentPosition with the resource "dummy_uploadable"
-    When I send a "PUT" request to the resource "dummy_uploadable" with data:
+    When I send a "PATCH" request to the resource "dummy_uploadable" with data:
       | file               |
       | base64(<new_file>) |
     Then the response status code should be 200
