@@ -112,18 +112,18 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
             ->withDeserialize(false)
             ->withStateless(null);
         // todo: re-instatate..
-//            ->withOpenapiContext([
-//                'requestBody' => [
-//                    'content' => [
-//                        'multipart/form-data' => [
-//                            'schema' => [
-//                                'type' => 'object',
-//                                'properties' => $openApiRequestMultipartProperties,
-//                            ],
-//                        ],
-//                    ],
-//                ],
-//            ]);
+        //            ->withOpenapiContext([
+        //                'requestBody' => [
+        //                    'content' => [
+        //                        'multipart/form-data' => [
+        //                            'schema' => [
+        //                                'type' => 'object',
+        //                                'properties' => $openApiRequestMultipartProperties,
+        //                            ],
+        //                        ],
+        //                    ],
+        //                ],
+        //            ]);
     }
 
     #[Pure]

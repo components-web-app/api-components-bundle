@@ -172,8 +172,9 @@ class RestContext implements Context
         return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body ?? new PyStringNode([], 0));
     }
 
-    private function setContentTypeForMethod(string $method) {
-        $this->restContext->iAddHeaderEqualTo('Content-Type', $method === 'PATCH' ? 'application/merge-patch+json' : 'application/ld+json');
+    private function setContentTypeForMethod(string $method)
+    {
+        $this->restContext->iAddHeaderEqualTo('Content-Type', 'PATCH' === $method ? 'application/merge-patch+json' : 'application/ld+json');
     }
 
     /**
