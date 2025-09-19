@@ -16,6 +16,7 @@ namespace Silverback\ApiComponentsBundle\Security\Voter;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
@@ -41,7 +42,7 @@ class RouteVoter extends Voter
     /**
      * @param Route $subject
      */
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         foreach ($this->config as $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
