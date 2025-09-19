@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
 use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 
 /**
  * If a routable object does not have a route, implement the security configuration. Usually admin only access.
@@ -46,7 +47,7 @@ final class RoutableVoter extends AbstractRoutableVoter
     /**
      * @param RoutableInterface $routable
      */
-    protected function voteOnAttribute(string $attribute, $routable, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, mixed $routable, TokenInterface $token, ?Vote $vote = null): bool
     {
         if (!$this->securityStr) {
             return true;

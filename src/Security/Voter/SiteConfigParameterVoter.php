@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
@@ -40,7 +41,7 @@ class SiteConfigParameterVoter extends Voter
     /**
      * @param Route $subject
      */
-    protected function voteOnAttribute($attribute, $subject, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         return $this->isGranted();
     }
