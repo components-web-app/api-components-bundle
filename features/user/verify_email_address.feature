@@ -31,7 +31,7 @@ Feature: Email address verification
   Scenario: Email becomes unverified when the email address is changed by the API
     Given there is a user with the username "my_username" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "PUT" request to the resource "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "emailAddress": "new@email.com"

@@ -203,7 +203,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: As a user with draft access, when I update a published resource, it should create and return a draft resource. Draft resource should not have the component position.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
     And there is a ComponentPosition with the resource "publishable_published"
-    When I send a "PUT" request to the resource "publishable_published" with body:
+    When I send a "PATCH" request to the resource "publishable_published" with body:
     """
     {
         "reference": "updated"
@@ -247,7 +247,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published resource with a publication date in the past (or now), it should be ignored.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_published" with data:
+    When I send a "PATCH" request to the resource "publishable_published" with data:
       | publishedAt   |
       | <publishedAt> |
     Then the response status code should be 200
@@ -260,7 +260,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario Outline: As a user with draft access, when I update a published/draft resource with a draft resource available, and set a publication date in the past (or now), it should update the draft resource, merge it with the public resource, and remove the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "<component>" with data:
+    When I send a "PATCH" request to the resource "<component>" with data:
       | publishedAt   | reference |
       | <publishedAt> | updated   |
     Then the response status code should be 200
@@ -278,7 +278,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: As a user with draft access, when I update a published resource with a draft resource available, and set a publication date in the future, it should update and return the draft resource.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_published" with body:
+    When I send a "PATCH" request to the resource "publishable_published" with body:
     """
     {
         "publishedAt": "2991-11-11T23:59:59+00:00"
@@ -291,7 +291,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with no draft access, when I update a published resource, it should update and return the published resource.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_published" with body:
+    When I send a "PATCH" request to the resource "publishable_published" with body:
     """
     {
         "reference": "updated"
@@ -304,7 +304,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginUser
   Scenario: As a user with no draft access, I cannot update a draft resource.
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_draft" with body:
+    When I send a "PATCH" request to the resource "publishable_draft" with body:
     """
     {
         "reference": "updated"
@@ -315,7 +315,7 @@ Feature: Access to unpublished/draft resources should be configurable
   @loginAdmin
   Scenario: I cannot modify the publishedResource property via the API
     Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
-    When I send a "PUT" request to the resource "publishable_draft" with body:
+    When I send a "PATCH" request to the resource "publishable_draft" with body:
     """
     {
         "reference": "updated",
@@ -410,7 +410,7 @@ Feature: Access to unpublished/draft resources should be configurable
   Scenario: When I publish a draft component where there is an existing published component, the newly published draft should inherit the old published component positions
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
     And there is a ComponentPosition with the resource "publishable_published"
-    When I send a "PUT" request to the resource "publishable_draft" with body:
+    When I send a "PATCH" request to the resource "publishable_draft" with body:
     """
     {
         "publishedAt": "1970-11-11T23:59:59+00:00"

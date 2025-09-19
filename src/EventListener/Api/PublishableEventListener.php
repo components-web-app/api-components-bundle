@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Metadata\CollectionOperationInterface;
-use ApiPlatform\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
@@ -155,10 +155,9 @@ final class PublishableEventListener
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '1');
         } catch (ValidationException $exception) {
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '0');
-
             if (
                 true === $request->query->getBoolean(self::VALID_PUBLISHED_QUERY, false)
-                && \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT], true)
+                && \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PUT, Request::METHOD_PATCH], true)
             ) {
                 throw $exception;
             }

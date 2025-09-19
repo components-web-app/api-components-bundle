@@ -142,6 +142,7 @@ class RestContext implements Context
      */
     public function iSendARequestToWithData($method, $url, TableNode $tableNode): void
     {
+        $this->setContentTypeForMethod($method);
         $this->restContext->iSendARequestToWithBody($method, $url, new PyStringNode([json_encode($this->castTableNodeToArray($tableNode))], 0));
     }
 
@@ -166,8 +167,13 @@ class RestContext implements Context
             throw new ExpectationException(\sprintf("The resource with name $resource has not been defined. (Components that exist are `%s`)", implode('`, `', array_keys($this->resources))), $this->minkContext->getSession()->getDriver());
         }
         $endpoint = $this->resources[$resource] . ($postfix ?: '');
+        $this->setContentTypeForMethod($method);
 
         return $this->restContext->iSendARequestToWithBody($method, $endpoint, $body ?? new PyStringNode([], 0));
+    }
+
+    private function setContentTypeForMethod(string $method) {
+        $this->restContext->iAddHeaderEqualTo('Content-Type', $method === 'PATCH' ? 'application/merge-patch+json' : 'application/ld+json');
     }
 
     /**

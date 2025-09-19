@@ -98,7 +98,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "PUT" request to the resource "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "newEmailAddress": ""
@@ -115,7 +115,7 @@ Feature: Register process via a form
     Given there is a "new_email" form
     And there is a user with the username "another_user" password "password" and role "ROLE_USER"
     And I add "referer" header equal to "http://www.website.com"
-    When I send a "PUT" request to the resource "user" with body:
+    When I send a "PATCH" request to the resource "user" with body:
     """
     {
       "newEmailAddress": null

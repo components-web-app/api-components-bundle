@@ -83,7 +83,7 @@ Feature: Route resources
   @loginUser
   Scenario: I update a route path. A new redirect will be created.
     Given there is a PageData resource with the route path "/original"
-    When I send a "PUT" request to "/_/routes//original" with data:
+    When I send a "PATCH" request to "/_/routes//original" with data:
       | path            |
       | /new            |
     Then the response status code should be 200

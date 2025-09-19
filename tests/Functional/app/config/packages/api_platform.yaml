@@ -16,7 +16,8 @@ api_platform:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
-    keep_legacy_inflector: true
+    # use doctrine/inflector
+    # keep_legacy_inflector: true
     http_cache:
         invalidation:
             purger: 'api_platform.http_cache.purger.varnish.xkey'
@@ -27,8 +28,10 @@ api_platform:
     # event listeners will always be available...
     # we do recommend using providers/processors instead
     use_symfony_listeners: true
+    serializer:
+        hydra_prefix: true
     defaults:
-        #standard_put: true
+        standard_put: true
         extra_properties:
             rfc_7807_compliant_errors: true
         cache_headers:

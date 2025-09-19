@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
-use ApiPlatform\Exception\ItemNotFoundException;
+use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
@@ -618,7 +618,7 @@ final class DoctrineContext implements Context
     {
         $iri = $this->restContext->resources[$resource];
         $this->restContext->iSendARequestToTheResourceWithBody(
-            'PUT',
+            'PATCH',
             'page_data',
             null,
             new PyStringNode([\sprintf('{ "%s": "%s" }', $property, $iri)], 0)
