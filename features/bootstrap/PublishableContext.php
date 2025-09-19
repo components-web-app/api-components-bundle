@@ -251,7 +251,7 @@ final class PublishableContext implements Context
     public function theResponseShouldIncludeTheDraftResourcesInsteadOfThePublishedOnes(): void
     {
         $response = $this->jsonContext->getJsonAsArray();
-        $items = $response['hydra:member'];
+        $items = $response['member'];
         $draftResources = array_filter(
             $this->resources,
             static function (DummyPublishableComponent $component) {
@@ -282,7 +282,7 @@ final class PublishableContext implements Context
     public function theResponseShouldIncludeThePublishedResourcesOnly(): array
     {
         $response = $this->jsonContext->getJsonAsArray();
-        $items = $response['hydra:member'];
+        $items = $response['member'];
 
         $publishedResources = array_filter(
             $this->resources,

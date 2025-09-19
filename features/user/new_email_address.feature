@@ -46,7 +46,7 @@ Feature: Register process via a form
     }
     """
     Then the response status code should be 400
-    And the JSON node "hydra:description" should be equal to "<expectedMessage>"
+    And the JSON node "description" should be equal to "<expectedMessage>"
     And I should not receive any emails
     Examples:
       | headerName | headerValue           | expectedMessage                                                                                           |

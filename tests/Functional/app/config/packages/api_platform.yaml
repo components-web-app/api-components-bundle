@@ -28,8 +28,6 @@ api_platform:
     # event listeners will always be available...
     # we do recommend using providers/processors instead
     use_symfony_listeners: true
-    serializer:
-        hydra_prefix: true
     defaults:
         standard_put: true
         extra_properties:

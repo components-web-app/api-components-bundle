@@ -46,7 +46,7 @@ Feature: Page resources
       | <layout>  | <reference> | <nested>  | false      |
     Then the response status code should be 500
     And the JSON should be valid according to the schema file "error.schema.json"
-    And the JSON node "hydra:description" should be equal to the string '<message>'
+    And the JSON node "description" should be equal to the string '<message>'
     Examples:
       | layout             | reference | nested | message                                                               |
       | resource[layout]   | home      | null   | The type of the "nested" attribute must be "bool", "NULL" given.      |

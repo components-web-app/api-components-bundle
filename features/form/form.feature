@@ -113,7 +113,7 @@ Feature: Form component that defines a form type created in the application
     And the JSON should be a superset of:
     """
     {
-      "hydra:description": "Form object key could not be found. Expected: <b>test</b>: { \"input_name\": \"input_value\" }"
+      "description": "Form object key could not be found. Expected: <b>test</b>: { \"input_name\": \"input_value\" }"
     }
     """
 

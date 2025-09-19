@@ -16,20 +16,20 @@
       "default": "",
       "const": "ConstraintViolationList"
     },
-    "hydra:title": {
-      "$id": "#/properties/hydra:title",
+    "title": {
+      "$id": "#/properties/title",
       "type": "string",
-      "title": "The Hydra:title Schema",
+      "title": "The title Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "examples": [
         "An error occurred"
       ]
     },
-    "hydra:description": {
-      "$id": "#/properties/hydra:description",
+    "description": {
+      "$id": "#/properties/description",
       "type": "string",
-      "title": "The Hydra:description Schema",
+      "title": "The description Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "examples": [

@@ -26,14 +26,14 @@ Feature: Restrict loading of components and routes
     Given there is a Route "/user-area/my-page" with a page
     When I send a "GET" request to "/_/routes"
     Then the response status code should be 200
-    And the JSON node "hydra:member[0]" should not exist
+    And the JSON node "member[0]" should not exist
 
   @loginSuperAdmin
   Scenario: I can get a collection of routes as a super admin
     Given there is a Route "/user-area/my-page" with a page
     When I send a "GET" request to "/_/routes"
     Then the response status code should be 200
-    And the JSON node "hydra:member[0]" should exist
+    And the JSON node "member[0]" should exist
 
   Scenario: A component in a restricted route cannot be loaded by an anonymous user
     Given there is a component in a route with the path "/user-area/my-page"

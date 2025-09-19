@@ -56,10 +56,10 @@ Feature: A Collection component resource
     And there is a Collection resource
     When I send a "GET" request to the resource "collection"
     Then the response status code should be 200
-    And the JSON node "collection.hydra:member" should have "30" elements
-    And the JSON node "collection.hydra:totalItems" should be equal to "50"
+    And the JSON node "collection.member" should have "30" elements
+    And the JSON node "collection.totalItems" should be equal to "50"
     And the JSON node "collection.@id" should be equal to "/component/dummy_components"
-    And the JSON node "collection.@type" should be equal to "hydra:Collection"
+    And the JSON node "collection.@type" should be equal to "Collection"
 
   @loginUser
   Scenario: I can get a collection component with perPage configured
@@ -72,14 +72,14 @@ Feature: A Collection component resource
     }
     """
     Then the response status code should be 201
-    And the JSON node "collection.hydra:member" should have "3" elements
+    And the JSON node "collection.member" should have "3" elements
 
   @loginUser
   Scenario Outline: Pagination parameter is configured
     Given there are 120 DummyResourceWithPagination resources
     When I send a "GET" request to "/dummy_resource_with_paginations<postfix>"
     Then the response status code should be 200
-    And the JSON node "hydra:member" should have "<total>" elements
+    And the JSON node "member" should have "<total>" elements
     Examples:
       | total  | postfix           |
       | 10     |                   |
@@ -94,7 +94,7 @@ Feature: A Collection component resource
     And there is a Collection resource with the resource IRI "/dummy_resource_with_paginations"
     When I send a "GET" request to the resource "collection" and the postfix "<postfix>"
     Then the response status code should be 200
-    And the JSON node "collection.hydra:member" should have "<total>" elements
+    And the JSON node "collection.member" should have "<total>" elements
     Examples:
       | total  | postfix           |
       | 10     |                   |
@@ -108,7 +108,7 @@ Feature: A Collection component resource
     Given there are 80 DummyResourceWithFilters resources
     When I send a "GET" request to "/dummy_resource_with_filters<postfix>"
     Then the response status code should be 200
-    And the JSON node "hydra:member" should have "<total>" elements
+    And the JSON node "member" should have "<total>" elements
     Examples:
       | total | postfix                      |
       | 17    | ?reference=1                 |
@@ -124,7 +124,7 @@ Feature: A Collection component resource
     And there is a Collection resource with the resource IRI "/dummy_resource_with_filters" and default query string parameters
     When I send a "GET" request to the resource "collection" and the postfix "<postfix>"
     Then the response status code should be 200
-    And the JSON node "collection.hydra:member" should have "<total>" elements
+    And the JSON node "collection.member" should have "<total>" elements
     Examples:
       | total | postfix                      |
       | 17    |                              |

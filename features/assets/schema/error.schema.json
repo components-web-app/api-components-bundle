@@ -7,8 +7,8 @@
   "default": {},
   "required": [
     "@type",
-    "hydra:title",
-    "hydra:description"
+    "title",
+    "description"
   ],
   "additionalProperties": true,
   "properties": {
@@ -18,20 +18,20 @@
       "title": "The @type schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
-      "const": "hydra:Error"
+      "const": "Error"
     },
-    "hydra:title": {
-      "$id": "#/properties/hydra:title",
+    "title": {
+      "$id": "#/properties/title",
       "type": "string",
-      "title": "The hydra:title schema",
+      "title": "The title schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "const": "An error occurred"
     },
-    "hydra:description": {
-      "$id": "#/properties/hydra:description",
+    "description": {
+      "$id": "#/properties/description",
       "type": "string",
-      "title": "The hydra:description schema",
+      "title": "The description schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
       "examples": [
