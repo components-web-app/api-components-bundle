@@ -50,7 +50,8 @@ class CollectionApiEventListener
         private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ?ProviderInterface $parameterProvider,
         private readonly string $itemsPerPageParameterName,
-    ) {}
+    ) {
+    }
 
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
@@ -87,7 +88,7 @@ class CollectionApiEventListener
         }
 
         // Build context
-        $collectionContext = [ 'operation' => $getCollectionOperation, 'resource_class' => $resourceClass ];
+        $collectionContext = ['operation' => $getCollectionOperation, 'resource_class' => $resourceClass];
 
         // Build filters
         $filters = [];
@@ -113,9 +114,18 @@ class CollectionApiEventListener
         $collectionContext += $normalizationContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
         try {
             $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
-            $this->parameterProvider->provide($getCollectionOperation, $uriVariables, [ ...$collectionContext, 'request' => clone $request, 'uri_variables' => $uriVariables ]);
+            $clonedRequest = clone $request;
+            if ($defaultQueryParams) {
+                foreach ($defaultQueryParams as $key => $defaultQueryParam) {
+                    if (!$clonedRequest->query->has($key)) {
+                        $clonedRequest->query->set($key, $defaultQueryParam);
+                    }
+                }
+                $clonedRequest->attributes->set('_api_query_parameters', $clonedRequest->query->all());
+            }
+            $this->parameterProvider->provide($getCollectionOperation, $uriVariables, [...$collectionContext, 'request' => $clonedRequest, 'uri_variables' => $uriVariables]);
             // Operation $operation, array $uriVariables = [], array $context = []
-            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, [ ...$collectionContext, 'request' => $request, 'uri_variables' => $uriVariables ]);
+            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
         } catch (InvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
