@@ -126,7 +126,7 @@
         "symfony": {
             "allow-contrib": false,
             "root-dir": "tests/Functional/app",
-            "require": "^7.2"
+            "require": "^7.4"
         }
     },
     "scripts": {
