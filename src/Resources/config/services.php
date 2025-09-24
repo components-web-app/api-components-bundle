@@ -305,6 +305,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(NormalizerInterface::class),
                 new Reference(SerializeFormatResolver::class),
                 new Reference('api_platform.metadata.resource.metadata_collection_factory'),
+                new Reference('api_platform.state_provider.parameter'),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize']);

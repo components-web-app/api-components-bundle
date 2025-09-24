@@ -40,34 +40,17 @@ class CollectionApiEventListener
 {
     use UriVariablesResolverTrait;
 
-    private ApiResourceRouteFinder $resourceRouteFinder;
-    private ProviderInterface $provider;
-    private RequestStack $requestStack;
-    private SerializerContextBuilderInterface $serializerContextBuilder;
-    private NormalizerInterface $itemNormalizer;
-    private SerializeFormatResolver $serializeFormatResolver;
-    private string $itemsPerPageParameterName;
-    private ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory;
-
     public function __construct(
-        ApiResourceRouteFinder $resourceRouteFinder,
-        ProviderInterface $provider,
-        RequestStack $requestStack,
-        SerializerContextBuilderInterface $serializerContextBuilder,
-        NormalizerInterface $itemNormalizer,
-        SerializeFormatResolver $serializeFormatResolver,
-        ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
-        string $itemsPerPageParameterName,
-    ) {
-        $this->resourceRouteFinder = $resourceRouteFinder;
-        $this->provider = $provider;
-        $this->requestStack = $requestStack;
-        $this->serializerContextBuilder = $serializerContextBuilder;
-        $this->itemNormalizer = $itemNormalizer;
-        $this->serializeFormatResolver = $serializeFormatResolver;
-        $this->itemsPerPageParameterName = $itemsPerPageParameterName;
-        $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
-    }
+        private readonly ApiResourceRouteFinder $resourceRouteFinder,
+        private readonly ProviderInterface $provider,
+        private readonly RequestStack $requestStack,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        private readonly NormalizerInterface $itemNormalizer,
+        private readonly SerializeFormatResolver $serializeFormatResolver,
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
+        private readonly ?ProviderInterface $parameterProvider,
+        private readonly string $itemsPerPageParameterName,
+    ) {}
 
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
@@ -104,7 +87,7 @@ class CollectionApiEventListener
         }
 
         // Build context
-        $collectionContext = ['operation' => $getCollectionOperation];
+        $collectionContext = [ 'operation' => $getCollectionOperation, 'resource_class' => $resourceClass ];
 
         // Build filters
         $filters = [];
@@ -123,15 +106,16 @@ class CollectionApiEventListener
             // e.g. a default search value could be overridden by no search value
             $filters = array_merge($filters, $requestFilters);
         }
+
         $collectionContext['filters'] = $filters;
 
         // Compose context for provider
         $collectionContext += $normalizationContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
-
         try {
             $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
+            $this->parameterProvider->provide($getCollectionOperation, $uriVariables, [ ...$collectionContext, 'request' => clone $request, 'uri_variables' => $uriVariables ]);
             // Operation $operation, array $uriVariables = [], array $context = []
-            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
+            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, [ ...$collectionContext, 'request' => $request, 'uri_variables' => $uriVariables ]);
         } catch (InvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
