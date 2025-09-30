@@ -11,7 +11,7 @@
             <operation class="ApiPlatform\Metadata\Put" />
             <operation class="ApiPlatform\Metadata\Patch" />
             <operation class="ApiPlatform\Metadata\Patch"
-                       name="submit_patch"
+                       name="_api_/forms/{id}/submit{._format}"
                        method="PATCH"
                        uriTemplate="/forms/{id}/submit{._format}"
                        read="true"
@@ -24,7 +24,7 @@
                 </requirements>
             </operation>
             <operation class="ApiPlatform\Metadata\Put"
-                       name="submit_post"
+                       name="_api_/forms/{id}/submit{._format}"
                        method="POST"
                        uriTemplate="/forms/{id}/submit{._format}"
                        read="true"

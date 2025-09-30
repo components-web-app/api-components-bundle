@@ -24,11 +24,11 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class UserEventListener
+readonly class UserEventListener
 {
     public function __construct(
-        private readonly UserMailer $userMailer,
-        private readonly Security $security,
+        private UserMailer $userMailer,
+        private Security   $security,
     ) {
     }
 
@@ -42,7 +42,7 @@ class UserEventListener
         if (
             empty($resourceClass)
             || !is_a($resourceClass, AbstractUser::class, true)
-            || 'me' !== $request->attributes->get('_api_operation_name')
+            || '_api_me' !== $request->attributes->get('_api_operation_name')
         ) {
             return;
         }
@@ -60,6 +60,20 @@ class UserEventListener
         // want to give a user the response of being unauthenticated when they are authenticated.
         // Could be abused and attacked. So we will want to refresh the user's jwt token
         $request->attributes->set('id', $user->getUsername());
+    }
+
+    public function onPostRead(RequestEvent $event): void
+    {
+        $request = $event->getRequest();
+        $class = $request->attributes->get('_api_resource_class');
+
+        if ($class === AbstractUser::class) {
+            $resources = [
+                '/me'
+            ];
+
+            $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
+        }
     }
 
     public function onPostWrite(ViewEvent $event): void

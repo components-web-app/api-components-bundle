@@ -33,7 +33,7 @@ class AccessDeniedListener
         $attributes = $this->getAttributes($request);
         if (
             !($operation = $attributes['operation'] ?? null)
-            || 'me' !== $operation->getName()
+            || '_api_me' !== $operation->getName()
             || !($response = $event->getResponse()) instanceof JWTAuthenticationFailureResponse) {
             return;
         }

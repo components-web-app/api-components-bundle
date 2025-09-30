@@ -66,7 +66,7 @@ class IriConverter implements IriConverterInterface
     // We want relations when they are found, to use the IRI with the path
     public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
-        if ('me' === $operation?->getName()) {
+        if ('_api_me' === $operation?->getName()) {
             $checkOperation = $this->getUserGetOperation($operation);
             $operation = $checkOperation;
             $context['operation'] = $checkOperation;
