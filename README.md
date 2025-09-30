@@ -1,4 +1,4 @@
-# API Components Bundle [WIP]
+# API Components Bundle (Work in Progress)
 [![SymfonyInsight](https://insight.symfony.com/projects/d5fac2e0-7a02-4f41-8427-b4ed49092bd9/big.svg)](https://insight.symfony.com/projects/d5fac2e0-7a02-4f41-8427-b4ed49092bd9)
 
 [![CI](https://github.com/components-web-app/api-components-bundle/workflows/CI/badge.svg?branch=main)](https://github.com/components-web-app/api-components-bundle/actions?query=workflow%3ACI)
@@ -40,4 +40,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
