@@ -59,7 +59,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'path'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
-#[GetCollection(order: ['createdAt' => 'DESC'])]
+#[GetCollection(paginationClientEnabled: true, order: ['createdAt' => 'DESC'])]
 #[Delete(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Put(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
