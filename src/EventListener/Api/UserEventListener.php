@@ -28,7 +28,7 @@ readonly class UserEventListener
 {
     public function __construct(
         private UserMailer $userMailer,
-        private Security   $security,
+        private Security $security,
     ) {
     }
 
@@ -67,9 +67,9 @@ readonly class UserEventListener
         $request = $event->getRequest();
         $class = $request->attributes->get('_api_resource_class');
 
-        if ($class === AbstractUser::class) {
+        if (AbstractUser::class === $class) {
             $resources = [
-                '/me'
+                '/me',
             ];
 
             $request->attributes->set('_resources', $request->attributes->get('_resources', []) + $resources);
