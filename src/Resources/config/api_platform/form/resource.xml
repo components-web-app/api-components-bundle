@@ -23,7 +23,7 @@
                     <requirement property="id">[^/]+</requirement>
                 </requirements>
             </operation>
-            <operation class="ApiPlatform\Metadata\Put"
+            <operation class="ApiPlatform\Metadata\Post"
                        name="_api_/forms/{id}/submit{._format}"
                        method="POST"
                        uriTemplate="/forms/{id}/submit{._format}"

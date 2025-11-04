@@ -31,7 +31,7 @@ Feature: Register process via a form
     """
     {
         "@context": "/contexts/User",
-        "@type": "User",
+        "@type": "__api_me",
         "username": "new_user",
         "emailAddress": "user@example.com",
         "_metadata": {
