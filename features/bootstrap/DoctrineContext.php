@@ -402,13 +402,15 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a Page
+     * @Given /^there is a Page(?: with the reference "([^"]+)")*[ and]*(?: with the title "([^"]+)")*(?: with the uiComponent "([^"]+)")*$/
      */
-    public function thereIsAPage(string $reference = 'page'): Page
+    public function thereIsAPage(string $reference = 'page', ?string $title = null, ?string $uiComponent = null): Page
     {
         $page = new Page();
         $page->isTemplate = false;
         $page->reference = $reference;
+        $page->setTitle($title);
+        $page->uiComponent = $uiComponent;
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
         $this->manager->flush();
