@@ -1,6 +1,6 @@
 framework:
-    property_info:
-        with_constructor_extractor: true
+#    property_info:
+#        with_constructor_extractor: true
     fragments:
         enabled: true
     test:     ~
