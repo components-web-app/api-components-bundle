@@ -70,7 +70,7 @@
         "friends-of-behat/mink-browserkit-driver": "^1.6",
         "friends-of-behat/mink-extension": "^2.7",
         "friends-of-behat/symfony-extension": "^2.4",
-        "friendsofphp/php-cs-fixer": "^3.75",
+        "friendsofphp/php-cs-fixer": "^v3",
         "justinrainbow/json-schema": "^5.4",
         "league/flysystem": "^3.11",
         "league/flysystem-memory": "^3.0.0",

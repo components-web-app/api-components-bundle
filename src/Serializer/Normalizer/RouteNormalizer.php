@@ -107,7 +107,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
             }
         }
 
-        return array_filter($iris, function ($iri) {
+        return array_filter($iris, static function ($iri) {
             return !str_contains($iri, '/.well-known/');
         });
     }
