@@ -73,6 +73,7 @@ readonly class UserResourceMetadataCollectionFactory implements ResourceMetadata
     {
         return new Get(
             uriTemplate: '/me{._format}',
+            uriVariables: [],
             routePrefix: $operation->getRoutePrefix(),
             cacheHeaders: [
                 'public' => false,
@@ -82,6 +83,7 @@ readonly class UserResourceMetadataCollectionFactory implements ResourceMetadata
             shortName: '__api_me',
             class: $operation->getClass(),
             security: 'is_granted("IS_AUTHENTICATED_FULLY")',
+            priority: 1000,
             name: '_api_me',
             provider: UserStateProvider::class
         );
