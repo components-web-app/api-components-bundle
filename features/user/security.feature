@@ -50,6 +50,15 @@ Feature: Prevent disabled users from logging in
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should not contain draft resource topics
 
+  @loginSuperAdmin
+  Scenario: A logged in user can fetch a list of all users
+    Given there is a user with the username "another_user" password "password" and role "ROLE_USER"
+    When I send a "GET" request to "/users"
+    Then the response status code should be 200
+    And the JSON node "member" should have 2 elements
+    And the JSON node "member[0].username" should be equal to "another_user"
+    And the JSON node "member[1].username" should be equal to "new_user"
+
   Scenario: A successful login
     Given there is a user with the username "admin" password "password" and role "ROLE_ADMIN"
     When I send a "POST" request to "/login" with body:
