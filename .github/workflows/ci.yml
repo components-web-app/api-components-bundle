@@ -53,12 +53,12 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '7.3'
+          - '7.4'
         experimental:
             - false
         include:
           - php: '8.4'
-            symfony: '7.3'
+            symfony: '7.4'
             experimental: false
             coverage: true
       fail-fast: false
@@ -151,12 +151,12 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '7.3'
+          - '7.4'
         experimental:
           - false
         include:
           - php: '8.4'
-            symfony: '7.3'
+            symfony: '7.4'
             experimental: false
             coverage: true
       fail-fast: false
@@ -235,7 +235,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '^7.2'
+          - '^7.4'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -290,7 +290,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '^7.2'
+          - '^7.4'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -343,7 +343,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -415,7 +415,7 @@ jobs:
         php:
           - '8.4'
         symfony:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     timeout-minutes: 20
     steps:
