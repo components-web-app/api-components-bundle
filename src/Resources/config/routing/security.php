@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the Silverback API Components Bundle Project
  *
@@ -11,6 +9,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Symfony\Component\Routing\Loader\Configurator;
 
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
@@ -18,46 +18,36 @@ use Silverback\ApiComponentsBundle\Action\User\PasswordRequestAction;
 use Silverback\ApiComponentsBundle\Action\User\ResendVerifyEmailAddressAction;
 use Silverback\ApiComponentsBundle\Action\User\ResendVerifyNewEmailAddressAction;
 use Silverback\ApiComponentsBundle\Action\User\VerifyEmailAddressAction;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 
 return static function (RoutingConfigurator $routes): void {
     $routes
-        ->add('api_components_login_check', '/login')
-    ;
+        ->add('api_components_login_check', '/login');
 
     $routes
-        ->add('api_components_logout', '/logout')
-    ;
+        ->add('api_components_logout', '/logout');
 
     $routes
         ->add('api_components_password_reset_request', '/password/reset/request/{username}')
         ->methods(['GET'])
-        ->controller(PasswordRequestAction::class)
-    ;
+        ->controller(PasswordRequestAction::class);
 
     $routes
         ->add('api_components_confirm_email', '/confirm-email/{username}/{emailAddress}/{token}')
         ->methods(['GET'])
-        ->controller(EmailAddressConfirmAction::class)
-    ;
+        ->controller(EmailAddressConfirmAction::class);
 
     $routes
         ->add('api_components_verify_email', '/verify-email/{username}/{token}')
         ->methods(['GET'])
-        ->controller(VerifyEmailAddressAction::class)
-    ;
+        ->controller(VerifyEmailAddressAction::class);
 
     $routes
         ->add('api_components_resend_email_verification', '/verify-email/{username}/{token}')
         ->methods(['GET'])
-        ->controller(ResendVerifyEmailAddressAction::class)
-    ;
+        ->controller(ResendVerifyEmailAddressAction::class);
 
     $routes
         ->add('api_components_resend_new_email_verification', '/resend-verify-new-email/{username}')
         ->methods(['GET'])
-        ->controller(ResendVerifyNewEmailAddressAction::class)
-    ;
+        ->controller(ResendVerifyNewEmailAddressAction::class);
 };
-
