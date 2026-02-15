@@ -1,3 +1,2 @@
 silverback_api_components:
-    resource: "@SilverbackApiComponentsBundle/Resources/config/routing"
-    type: directory
+    resource: "@SilverbackApiComponentsBundle/Resources/config/routing/all.php"
