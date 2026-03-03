@@ -182,7 +182,7 @@ class Configuration implements ConfigurationInterface
                                     ->children()
                                         ->scalarNode('redirect_path_query')->end()
                                         ->scalarNode('default_redirect_path')->isRequired()->end()
-                                        ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Your password has been reset')->end()
+                                        ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Your password reset request')->end()
                                     ->end()
                                 ->end()
                                 ->integerNode('repeat_ttl_seconds')->defaultValue(8600)->end()
