@@ -60,6 +60,7 @@ final class PublishableEventListener
             empty($attributes['data'])
             || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || $request->isMethod(Request::METHOD_DELETE)
+            || $request->isMethod(Request::METHOD_GET)
             || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
             return;
