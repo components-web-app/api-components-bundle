@@ -39,6 +39,13 @@ Feature: ComponentGroup resource
     And there should be 4 DummyComponent resources
     And there should be 0 ComponentPosition resources
 
+  @loginUser
+  Scenario: I can get a component group by reference
+    Given there is a ComponentGroup with 0 components
+    When I send a "GET" request to "/_/component_groups/collection"
+    Then the response status code should be 200
+    And the JSON node "@id" should be equal to the IRI of the resource "component_group"
+
   Scenario: Components are ordered by the sortValue of the resourcePosition
     Given there is a ComponentGroup with 4 components
     When I send a "GET" request to the resource "component_group"

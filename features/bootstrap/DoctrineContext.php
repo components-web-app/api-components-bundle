@@ -73,6 +73,7 @@ final class DoctrineContext implements Context
     private UserPasswordHasherInterface $passwordHasher;
     private array $classes;
     private JWTEncoderInterface $jwtEncoder;
+    private JsonContext $jsonContext;
 
     /**
      * Initializes context.
@@ -110,6 +111,7 @@ final class DoctrineContext implements Context
         $this->baseRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
+        $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
     }
 
     /**
@@ -890,6 +892,16 @@ final class DoctrineContext implements Context
     {
         $repo = $this->manager->getRepository(DummyComponent::class);
         Assert::assertCount($count, $repo->findAll());
+    }
+
+    /**
+     * @Then the response resource should be saved as :name
+     */
+    public function theResponseResourceShouldBeSavedAs($name): void
+    {
+        $response = $this->jsonContext->getJsonAsArray();
+        Assert::assertArrayHasKey('@id', $response);
+        $this->restContext->resources[$name] = $response['@id'];
     }
 
     /**

@@ -83,6 +83,7 @@ final class PublishableEventListener
             return;
         }
 
+        // this will merge the draft into published on a GET request if the publish date is reached.
         $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
     }
 

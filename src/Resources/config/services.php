@@ -47,6 +47,7 @@ use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
@@ -131,6 +132,7 @@ use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer\UuidUriVariableTransformer;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
+use Silverback\ApiComponentsBundle\Repository\Core\ComponentGroupRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\LayoutRepository;
@@ -829,6 +831,17 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('api_platform.state_provider');
 
     $services
+        ->set(ComponentGroupStateProvider::class)
+        ->args(
+            [
+                new Reference('silverback.doctrine.repository.component_group'),
+                new Reference('api_platform.state_provider'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
+
+    $services
         ->set(FormStateProvider::class)
         ->args(
             [
@@ -1359,6 +1372,16 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.doctrine.repository.component_position')
         ->class(ComponentPositionRepository::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('doctrine.repository_service');
+
+    $services
+        ->set('silverback.doctrine.repository.component_group')
+        ->class(ComponentGroupRepository::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),

@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -30,7 +31,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     normalizationContext: ['groups' => ['ComponentGroup:read']],
     denormalizationContext: ['groups' => ['ComponentGroup:write']],
-    mercure: true
+    mercure: true,
+    provider: ComponentGroupStateProvider::class
 )]
 #[UniqueEntity(fields: ['reference'], message: 'There is already a ComponentGroup resource with that reference.')]
 class ComponentGroup

@@ -137,6 +137,27 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
     And the JSON node "_metadata.publishable.published" should be true
 
+  # Replicate a published resource not having an image, creating a draft by uploading and then publishing this draft and the published resource should have the image
+  @loginAdmin
+  Scenario: When we create a draft through means of an upload to the published, and then publish the draft, the new published resource should still have a file
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    And there is a DummyUploadableAndPublishable
+    When I send a "POST" request to the resource "dummy_uploadable" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.svg |
+    Then the response status code should be 201
+    And the response resource should be saved as "dummy_uploadable_draft"
+    And I send a "PATCH" request to the resource "dummy_uploadable_draft" with body:
+    """
+    {
+        "publishedAt": "1970-11-11T23:59:59+00:00"
+    }
+    """
+    Then the response status code should be 200
+    And the response should be the resource "dummy_uploadable"
+    And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
+    And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
+
   # DELETE
 
   @loginAdmin
