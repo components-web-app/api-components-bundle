@@ -350,6 +350,31 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given /^there is a ComponentGroup in a Page$/
+     */
+    public function thereIsAComponentGroupInAPage() {
+        $page = $this->thereIsAPage();
+        $group = $this->thereIsAComponentGroupWithComponents(1);
+        $page->addComponentGroup($group);
+        $this->manager->persist($page);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given /^there is a ComponentGroup in a Page and a Layout$/
+     */
+    public function thereIsAComponentGroupInAPageAndALayout() {
+        $page = $this->thereIsAPage();
+        $layout = $this->thereIsALayout();
+        $group = $this->thereIsAComponentGroupWithComponents(1);
+        $page->addComponentGroup($group);
+        $layout->addComponentGroup($group);
+        $this->manager->persist($layout);
+        $this->manager->persist($page);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given /^there is a ComponentGroup with (\d+) components(?:| and the ID "([^"]+)")$/
      */
     public function thereIsAComponentGroupWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentGroup
@@ -520,7 +545,7 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a Layout(?: with the reference "([^"]+)")*[ and]*(?: with createdAt "([^"]+)")*(?: with the uiComponent "([^"]+)")*$/
      */
-    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null, ?string $uiComponent = null): void
+    public function thereIsALayout(string $reference = 'no-reference', ?string $createdAt = null, ?string $uiComponent = null): Layout
     {
         $layout = new Layout();
         $layout->reference = $reference;
@@ -532,6 +557,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($layout);
         $this->manager->flush();
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);
+        return $layout;
     }
 
     /**
@@ -586,6 +612,7 @@ final class DoctrineContext implements Context
         $page = new Page();
         $page->isTemplate = true;
         $page->reference = 'test page';
+        $page->addComponentGroup($componentGroup);
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
 

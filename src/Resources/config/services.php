@@ -65,7 +65,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedComponentEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedResourceEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -1391,7 +1391,7 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set('silverback.event_listener.api.orphaned_component')
-        ->class(OrphanedComponentEventListener::class)
+        ->class(OrphanedResourceEventListener::class)
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),

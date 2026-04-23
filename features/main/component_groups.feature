@@ -68,3 +68,30 @@ Feature: ComponentGroup resource
     And the JSON node "pages[0]" should be equal to the IRI of the resource "page"
     And the JSON node "layouts[0]" should be equal to the IRI of the resource "layout"
     And the JSON node "components[0]" should be equal to the IRI of the resource "dummy_component"
+
+  @loginAdmin
+  Scenario: If a component group is orphaned it should be deleted
+    Given there is a ComponentGroup in a Page
+    When I send a "DELETE" request to the resource "page"
+    Then the response status code should be 204
+    And the resource "component_group" should not exist
+    And the resource "position_0" should not exist
+    And the resource "component_0" should not exist
+
+  @loginAdmin
+  Scenario: If a component group is not orphaned it should not be deleted
+    Given there is a ComponentGroup in a Page and a Layout
+    When I send a "DELETE" request to the resource "page"
+    Then the response status code should be 204
+    And the resource "component_group" should exist
+    And the resource "position_0" should exist
+    And the resource "component_0" should exist
+
+  @loginAdmin
+  Scenario: If a component group is deleted, orphaned positions and components should be deleted
+    Given there is a ComponentGroup in a Page and a Layout
+    When I send a "DELETE" request to the resource "component_group"
+    Then the response status code should be 204
+    And the resource "component_group" should not exist
+    And the resource "position_0" should not exist
+    And the resource "component_0" should not exist

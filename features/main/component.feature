@@ -91,8 +91,15 @@ Feature: Components
     And the resource position_0 should not exist
 
   @loginAdmin
-  Scenario: An orphaned component is deleted
+  Scenario: An orphaned component from page data is deleted
     Given there is a PageData resource with the route path "/"
     When I send a "DELETE" request to the resource "page_data"
     Then the response status code should be 204
     And the resource dummy_component should not exist
+
+  @loginAdmin
+  Scenario: An orphaned component from a component position is deleted
+    Given there is a ComponentGroup with 1 components
+    When I send a "DELETE" request to the resource "position_0"
+    Then the response status code should be 204
+    And the resource component_0 should not exist
