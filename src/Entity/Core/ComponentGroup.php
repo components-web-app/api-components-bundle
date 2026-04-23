@@ -26,6 +26,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
+ * @internal
+ * @description This is an internal class because we will detect when it is orphaned from known locations and delete it automatically
  */
 #[Silverback\Timestamped]
 #[ApiResource(

@@ -33,8 +33,10 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
  * @author Daniel West <daniel@silverback.is>
  */
 readonly class OrphanedResourceEventListener {
-    public function __construct(private PageDataMetadataFactoryInterface $pageDataMetadataFactory, private ComponentUsageMetadataFactory $usageMetadataFactory, private ManagerRegistry $registry)
-    {
+    public function __construct(
+        private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
+        private ComponentUsageMetadataFactory $usageMetadataFactory,
+        private ManagerRegistry $registry) {
     }
 
     public function onPreWrite(ViewEvent $event): void
