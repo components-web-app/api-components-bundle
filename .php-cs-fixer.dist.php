@@ -126,4 +126,5 @@ return (new PhpCsFixer\Config())
             'on_multiline' => 'ensure_fully_multiline',
         ],
     ])
-    ->setFinder($finder);
+    ->setFinder($finder)
+    ;

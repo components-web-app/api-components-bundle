@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
 date_default_timezone_set('UTC');
 
 $loader = require __DIR__ . '/../../../vendor/autoload.php';

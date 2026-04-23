@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentsBundle\Security {
     function random_bytes(int $bytes = 0)
     {

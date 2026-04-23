@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentsBundle\Repository\User;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentsBundle\EventListener\Imagine;
 
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;

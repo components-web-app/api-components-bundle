@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
 namespace Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer;
 
 use ApiPlatform\Exception\InvalidUriVariableException as LegacyInvalidUriVariableException;
