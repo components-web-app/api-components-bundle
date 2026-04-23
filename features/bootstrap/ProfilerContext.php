@@ -312,7 +312,7 @@ class ProfilerContext implements Context
     private function validatePasswordReset(array $context, Headers $headers, bool $customPath = false): void
     {
         $pathInsert = $customPath ? 'another-path' : 'reset-password';
-        Assert::assertEquals('Your password has been reset', $headers->get('subject')->getBodyAsString());
+        Assert::assertEquals('Your password reset request', $headers->get('subject')->getBodyAsString());
         Assert::assertStringStartsWith(PasswordResetEmailFactory::MESSAGE_ID_PREFIX, $headers->get('x-message-id')->getBodyAsString());
         Assert::assertMatchesRegularExpression('/^http:\/\/www.website.com\/' . $pathInsert . '\/my_username\/([a-z0-9]+)$/i', $context['redirect_url']);
     }

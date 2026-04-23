@@ -36,7 +36,7 @@ Feature: ComponentGroup resource
     Given there is a ComponentGroup with 4 components
     When I send a "DELETE" request to the resource "component_group"
     Then the response status code should be 204
-    And there should be 4 DummyComponent resources
+    And there should be 0 DummyComponent resources
     And there should be 0 ComponentPosition resources
 
   @loginUser
