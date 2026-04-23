@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\AttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Command\CleanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
@@ -1147,6 +1148,16 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UserFactory::class),
+            ]
+        );
+
+    $services
+        ->set(CleanOrphanedCommand::class)
+        ->tag('console.command')
+        ->args(
+            [
+                new Reference('silverback.helper.orphaned_resource_helper'),
+                new Reference(ManagerRegistry::class)
             ]
         );
 

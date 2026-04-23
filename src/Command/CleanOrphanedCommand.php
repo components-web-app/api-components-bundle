@@ -2,7 +2,7 @@
 
 namespace Silverback\ApiComponentsBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'silverback:api-components:clean-orphaned')]
 class CleanOrphanedCommand extends Command
 {
-    public function __construct(private readonly OrphanedResourceHelper $orphanedResourceHelper, private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly OrphanedResourceHelper $orphanedResourceHelper, private readonly ManagerRegistry $registry)
     {
         parent::__construct();
     }
@@ -30,7 +30,7 @@ class CleanOrphanedCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $count = 0;
-        $componentGroupRepository = $this->entityManager->getRepository(ComponentGroup::class);
+        $componentGroupRepository = $this->registry->getRepository(ComponentGroup::class);
         $componentGroups = $componentGroupRepository->findAll();
         $groupsProgressBar = new ProgressBar($output, count($componentGroups));
         $groupsProgressBar->start();
@@ -42,7 +42,7 @@ class CleanOrphanedCommand extends Command
         }
         $groupsProgressBar->finish();
 
-        $componentRepository = $this->entityManager->getRepository(AbstractComponent::class);
+        $componentRepository = $this->registry->getRepository(AbstractComponent::class);
         $components = $componentRepository->findAll();
         $componentsProgressBar = new ProgressBar($output, count($componentGroups));
         $componentsProgressBar->start();
