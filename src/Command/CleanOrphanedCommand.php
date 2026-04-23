@@ -41,6 +41,7 @@ class CleanOrphanedCommand extends Command
             }
         }
         $groupsProgressBar->finish();
+        $output->writeln('');
 
         $componentRepository = $this->registry->getRepository(AbstractComponent::class);
         $components = $componentRepository->findAll();
@@ -53,6 +54,7 @@ class CleanOrphanedCommand extends Command
             }
         }
         $componentsProgressBar->finish();
+        $output->writeln('');
 
         $output->writeln(\sprintf('Removed <comment>%d</comment> orphaned components (excluding cascades)', $count));
         return 0;
