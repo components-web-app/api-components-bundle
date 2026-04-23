@@ -65,7 +65,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\OrphanedResourceEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\DeletedResourceEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -111,6 +111,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
@@ -1391,15 +1392,24 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set('silverback.event_listener.api.orphaned_component')
-        ->class(OrphanedResourceEventListener::class)
+        ->class(DeletedResourceEventListener::class)
+        ->args(
+            [
+                new Reference('silverback.helper.orphaned_resource_helper'),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+
+    $services
+        ->set('silverback.helper.orphaned_resource_helper')
+        ->class(OrphanedResourceHelper::class)
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),
                 new Reference('silverback.metadata_factory.component_usage'),
                 new Reference(ManagerRegistry::class),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+        );
 
     $services
         ->set('silverback.event_listener.api.position_remove')

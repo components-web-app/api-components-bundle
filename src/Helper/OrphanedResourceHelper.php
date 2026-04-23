@@ -1,17 +1,6 @@
 <?php
 
-/*
- * This file is part of the Silverback API Components Bundle Project
- *
- * (c) Daniel West <daniel@silverback.is>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-declare(strict_types=1);
-
-namespace Silverback\ApiComponentsBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\Helper;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -25,69 +14,51 @@ use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
-/**
- * @author Daniel West <daniel@silverback.is>
- */
-readonly class OrphanedResourceEventListener {
+final class OrphanedResourceHelper
+{
     public function __construct(
         private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
         private ComponentUsageMetadataFactory $usageMetadataFactory,
         private ManagerRegistry $registry) {
     }
 
-    public function onPreWrite(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $data = $request->attributes->get('data');
-        $resourceClass = $request->attributes->get('_api_resource_class');
-        // only listen for deleted
-        if (!$request->isMethod(Request::METHOD_DELETE)) {
-            return;
-        }
+    public function handleRemovedComponentPosition(ComponentPosition $componentPosition): void {
+        $this->removeOrphanedComponentPosition($componentPosition);
+    }
 
-        if ($data instanceof ComponentPosition) {
-            $this->removeOrphanedComponentPosition($data);
-            return;
+    public function handleRemovedRootResource(AbstractComponent|Page|Layout $resource): void {
+        foreach ($resource->getComponentGroups() as $componentGroup) {
+            $this->removeOrphanedComponentGroup($componentGroup, $resource);
         }
+    }
 
-        if ($data instanceof Page || $data instanceof AbstractComponent || $data instanceof Layout) {
-            foreach ($data->getComponentGroups() as $componentGroup) {
-                $this->removeOrphanedComponentGroup($componentGroup, $data);
-            }
-            return;
-        }
+    public function handleRemovedComponentGroup(ComponentGroup $componentGroup): void {
+        $this->removeOrphanedComponentGroup($componentGroup);
+    }
 
-        if ($data instanceof ComponentGroup) {
-            $this->removeOrphanedComponentGroup($data);
-            return;
-        }
-
-        if ($data instanceof PageDataInterface) {
-            $propertyAccessor = PropertyAccess::createPropertyAccessor();
-            $pageDataMetadata = $this->pageDataMetadataFactory->create($resourceClass);
-            foreach ($pageDataMetadata->getProperties() as $property) {
-                $component = $propertyAccessor->getValue($data, $property->getProperty());
-                if ($component instanceof ComponentInterface) {
-                    $this->removeOrphanedComponent($component);
-                }
+    public function handleRemovedPageData(PageDataInterface $resource, ?string $resourceClass): void {
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $pageDataMetadata = $this->pageDataMetadataFactory->create($resourceClass ?: get_class($resource));
+        foreach ($pageDataMetadata->getProperties() as $property) {
+            $component = $propertyAccessor->getValue($resource, $property->getProperty());
+            if ($component instanceof ComponentInterface) {
+                $this->removeOrphanedComponent($component);
             }
         }
+    }
 
-        if ($data instanceof RoutableInterface) {
-            $route = $data->getRoute();
-            if ($route) {
-                $routeAssociations = 0;
-                $route->getPage() && $routeAssociations++;
-                $route->getPageData() && $routeAssociations++;
-                $route->getRedirect() && $routeAssociations++;
-                if ($routeAssociations <= 1) {
-                    $manager = $this->registry->getManagerForClass(Route::class);
-                    $manager?->remove($route);
-                }
+    public function handleRemovedRoutable(RoutableInterface $resource): void {
+        $route = $resource->getRoute();
+        if ($route) {
+            $routeAssociations = 0;
+            $route->getPage() && $routeAssociations++;
+            $route->getPageData() && $routeAssociations++;
+            $route->getRedirect() && $routeAssociations++;
+            if ($routeAssociations <= 1) {
+                $manager = $this->registry->getManagerForClass(Route::class);
+                $manager?->remove($route);
             }
         }
     }
