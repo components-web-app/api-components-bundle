@@ -56,7 +56,7 @@ class CleanOrphanedCommand extends Command
         $componentsProgressBar->finish();
         $output->writeln('');
 
-        $output->writeln(\sprintf('Removed <comment>%d</comment> orphaned components (excluding cascades)', $count));
+        $output->writeln(\sprintf('Removed <info>%d</info> orphaned components (excluding cascades)', $count));
         return 0;
     }
 }
