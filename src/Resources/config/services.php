@@ -65,8 +65,8 @@ use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\DeletedResourceEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
@@ -1157,7 +1157,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.helper.orphaned_resource_helper'),
-                new Reference(ManagerRegistry::class)
+                new Reference(ManagerRegistry::class),
             ]
         );
 

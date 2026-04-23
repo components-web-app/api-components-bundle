@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentsBundle\Command;
 
 use Doctrine\Persistence\ManagerRegistry;
@@ -32,12 +43,12 @@ class CleanOrphanedCommand extends Command
         $count = 0;
         $componentGroupRepository = $this->registry->getRepository(ComponentGroup::class);
         $componentGroups = $componentGroupRepository->findAll();
-        $groupsProgressBar = new ProgressBar($output, count($componentGroups));
+        $groupsProgressBar = new ProgressBar($output, \count($componentGroups));
         $groupsProgressBar->start();
         foreach ($componentGroups as $componentGroup) {
             $groupsProgressBar->advance();
             if ($this->orphanedResourceHelper->checkAndRemoveOrphanedComponentGroup($componentGroup)) {
-                $count++;
+                ++$count;
             }
         }
         $groupsProgressBar->finish();
@@ -45,18 +56,19 @@ class CleanOrphanedCommand extends Command
 
         $componentRepository = $this->registry->getRepository(AbstractComponent::class);
         $components = $componentRepository->findAll();
-        $componentsProgressBar = new ProgressBar($output, count($componentGroups));
+        $componentsProgressBar = new ProgressBar($output, \count($componentGroups));
         $componentsProgressBar->start();
         foreach ($components as $component) {
             $componentsProgressBar->advance();
             if ($this->orphanedResourceHelper->checkAndRemoveOrphanedComponent($component)) {
-                $count++;
+                ++$count;
             }
         }
         $componentsProgressBar->finish();
         $output->writeln('');
 
         $output->writeln(\sprintf('Removed <info>%d</info> orphaned components (excluding cascades)', $count));
+
         return 0;
     }
 }

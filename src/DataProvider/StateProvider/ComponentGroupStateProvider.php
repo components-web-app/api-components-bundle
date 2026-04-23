@@ -19,7 +19,6 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentGroupRepository;
-use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -28,8 +27,9 @@ class ComponentGroupStateProvider implements ProviderInterface
 {
     public function __construct(
         private ComponentGroupRepository $componentGroupRepository,
-        private ProviderInterface $defaultProvider)
-    {}
+        private ProviderInterface $defaultProvider,
+    ) {
+    }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {

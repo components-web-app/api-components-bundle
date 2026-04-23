@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Silverback\ApiComponentsBundle\Helper;
 
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,26 +32,31 @@ final readonly class OrphanedResourceHelper
     public function __construct(
         private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
         private ComponentUsageMetadataFactory $usageMetadataFactory,
-        private ManagerRegistry $registry) {
+        private ManagerRegistry $registry,
+    ) {
     }
 
-    public function handleRemovedComponentPosition(ComponentPosition $componentPosition): void {
+    public function handleRemovedComponentPosition(ComponentPosition $componentPosition): void
+    {
         $this->removeOrphanedComponentPosition($componentPosition);
     }
 
-    public function handleRemovedRootResource(AbstractComponent|Page|Layout $resource): void {
+    public function handleRemovedRootResource(AbstractComponent|Page|Layout $resource): void
+    {
         foreach ($resource->getComponentGroups() as $componentGroup) {
             $this->removeOrphanedComponentGroup($componentGroup, $resource);
         }
     }
 
-    public function handleRemovedComponentGroup(ComponentGroup $componentGroup): void {
+    public function handleRemovedComponentGroup(ComponentGroup $componentGroup): void
+    {
         $this->removeOrphanedComponentGroup($componentGroup);
     }
 
-    public function handleRemovedPageData(PageDataInterface $resource, ?string $resourceClass): void {
+    public function handleRemovedPageData(PageDataInterface $resource, ?string $resourceClass): void
+    {
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $pageDataMetadata = $this->pageDataMetadataFactory->create($resourceClass ?: get_class($resource));
+        $pageDataMetadata = $this->pageDataMetadataFactory->create($resourceClass ?: $resource::class);
         foreach ($pageDataMetadata->getProperties() as $property) {
             $component = $propertyAccessor->getValue($resource, $property->getProperty());
             if ($component instanceof ComponentInterface) {
@@ -49,7 +65,8 @@ final readonly class OrphanedResourceHelper
         }
     }
 
-    public function handleRemovedRoutable(RoutableInterface $resource): void {
+    public function handleRemovedRoutable(RoutableInterface $resource): void
+    {
         $route = $resource->getRoute();
         if ($route) {
             $routeAssociations = 0;
@@ -63,7 +80,8 @@ final readonly class OrphanedResourceHelper
         }
     }
 
-    public function checkAndRemoveOrphanedComponentGroup(ComponentGroup $componentGroup): bool {
+    public function checkAndRemoveOrphanedComponentGroup(ComponentGroup $componentGroup): bool
+    {
         if ($componentGroup->pages->count() || $componentGroup->layouts->count() || $componentGroup->components->count()) {
             return false;
         }
@@ -78,10 +96,12 @@ final readonly class OrphanedResourceHelper
         $groupManager?->remove($componentGroup);
         $groupManager?->flush();
         $positionManager?->flush();
+
         return true;
     }
 
-    public function checkAndRemoveOrphanedComponent(AbstractComponent $component): bool {
+    public function checkAndRemoveOrphanedComponent(AbstractComponent $component): bool
+    {
         return $this->removeOrphanedComponent($component, 0, true);
     }
 
@@ -105,10 +125,12 @@ final readonly class OrphanedResourceHelper
                 return true;
             }
         }
+
         return false;
     }
 
-    private function removeOrphanedComponentGroup(ComponentGroup $componentGroup, AbstractComponent|Page|Layout|null $deletedLocation = null): void {
+    private function removeOrphanedComponentGroup(ComponentGroup $componentGroup, AbstractComponent|Page|Layout|null $deletedLocation = null): void
+    {
         $groupExistsElsewhere = $this->isComponentGroupInOtherLocations($componentGroup, $deletedLocation);
         if ($groupExistsElsewhere) {
             return;
@@ -125,7 +147,8 @@ final readonly class OrphanedResourceHelper
         }
     }
 
-    private function removeOrphanedComponentPosition(ComponentPosition $componentPosition): void {
+    private function removeOrphanedComponentPosition(ComponentPosition $componentPosition): void
+    {
         if ($componentPosition->component) {
             $this->removeOrphanedComponent($componentPosition->component);
         }
@@ -135,16 +158,16 @@ final readonly class OrphanedResourceHelper
     {
         $metadata = $this->usageMetadataFactory->create($component);
         if ($countCheck === $metadata->getTotal()) {
-            $resourceClass = get_class($component);
+            $resourceClass = $component::class;
             $manager = $this->registry->getManagerForClass($resourceClass);
             $manager?->remove($component);
             if ($doFlush) {
                 $manager?->flush();
             }
+
             return true;
         }
+
         return false;
     }
-
-
 }

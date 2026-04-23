@@ -352,7 +352,8 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a ComponentGroup in a Page$/
      */
-    public function thereIsAComponentGroupInAPage() {
+    public function thereIsAComponentGroupInAPage()
+    {
         $page = $this->thereIsAPage();
         $group = $this->thereIsAComponentGroupWithComponents(1);
         $page->addComponentGroup($group);
@@ -363,7 +364,8 @@ final class DoctrineContext implements Context
     /**
      * @Given /^there is a ComponentGroup in a Page and a Layout$/
      */
-    public function thereIsAComponentGroupInAPageAndALayout() {
+    public function thereIsAComponentGroupInAPageAndALayout()
+    {
         $page = $this->thereIsAPage();
         $layout = $this->thereIsALayout();
         $group = $this->thereIsAComponentGroupWithComponents(1);
@@ -557,6 +559,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($layout);
         $this->manager->flush();
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);
+
         return $layout;
     }
 

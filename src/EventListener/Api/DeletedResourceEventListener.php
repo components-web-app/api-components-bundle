@@ -27,9 +27,11 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-readonly class DeletedResourceEventListener {
+readonly class DeletedResourceEventListener
+{
     public function __construct(
-        private OrphanedResourceHelper $orphanedResourceHelper) {
+        private OrphanedResourceHelper $orphanedResourceHelper,
+    ) {
     }
 
     public function onPreWrite(ViewEvent $event): void
@@ -44,6 +46,7 @@ readonly class DeletedResourceEventListener {
 
         if ($data instanceof ComponentPosition) {
             $this->orphanedResourceHelper->handleRemovedComponentPosition($data);
+
             return;
         }
 
