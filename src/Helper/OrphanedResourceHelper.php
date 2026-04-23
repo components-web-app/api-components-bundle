@@ -16,7 +16,7 @@ use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactor
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
-final class OrphanedResourceHelper
+final readonly class OrphanedResourceHelper
 {
     public function __construct(
         private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
@@ -61,6 +61,28 @@ final class OrphanedResourceHelper
                 $manager?->remove($route);
             }
         }
+    }
+
+    public function checkAndRemoveOrphanedComponentGroup(ComponentGroup $componentGroup): bool {
+        if ($componentGroup->pages->count() || $componentGroup->layouts->count() || $componentGroup->components->count()) {
+            return false;
+        }
+        $groupManager = $this->registry->getManagerForClass(ComponentGroup::class);
+
+        $positionManager = $this->registry->getManagerForClass(ComponentPosition::class);
+        foreach ($componentGroup->componentPositions as $componentPosition) {
+            $positionManager?->remove($componentPosition);
+            $this->removeOrphanedComponentPosition($componentPosition);
+        }
+
+        $groupManager?->remove($componentGroup);
+        $groupManager?->flush();
+        $positionManager?->flush();
+        return true;
+    }
+
+    public function checkAndRemoveOrphanedComponent(AbstractComponent $component): bool {
+        return $this->removeOrphanedComponent($component, 0, true);
     }
 
     private function isComponentGroupInOtherLocations(ComponentGroup $componentGroup, AbstractComponent|Page|Layout|null $deletedLocation = null): bool
@@ -109,13 +131,20 @@ final class OrphanedResourceHelper
         }
     }
 
-    private function removeOrphanedComponent(ComponentInterface $component): void
+    private function removeOrphanedComponent(ComponentInterface $component, int $countCheck = 1, bool $doFlush = false): bool
     {
         $metadata = $this->usageMetadataFactory->create($component);
-        if (1 === $metadata->getTotal()) {
+        if ($countCheck === $metadata->getTotal()) {
             $resourceClass = get_class($component);
             $manager = $this->registry->getManagerForClass($resourceClass);
             $manager?->remove($component);
+            if ($doFlush) {
+                $manager?->flush();
+            }
+            return true;
         }
+        return false;
     }
+
+
 }
