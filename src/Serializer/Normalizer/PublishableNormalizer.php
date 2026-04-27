@@ -259,7 +259,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type) && is_array($data);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type) && \is_array($data);
     }
 
     private function getManagerFromType(string $type): ObjectManager

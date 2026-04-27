@@ -230,14 +230,14 @@ final class PublishableEventListener
         }
 
         foreach ($properties as $property) {
-//            $property->setAccessible(true);
+            //            $property->setAccessible(true);
             $name = $property->getName();
             if ($identifierFieldName === $name) {
                 continue;
             }
             $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
             if ($draftProperty) {
-//                $draftProperty->setAccessible(true);
+                //                $draftProperty->setAccessible(true);
                 $draftValue = $draftProperty->getValue($draftResource);
                 $property->setValue($publishedResource, $draftValue);
             }
