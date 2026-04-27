@@ -46,6 +46,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class PublishableNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
+    use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
@@ -258,7 +259,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
      */
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type);
+        return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type) && is_array($data);
     }
 
     private function getManagerFromType(string $type): ObjectManager

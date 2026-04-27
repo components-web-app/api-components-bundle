@@ -59,15 +59,16 @@ Feature: ComponentGroup resource
   Scenario: I can add a component collection to pages and layouts
     Given there is a Page
     And there is a Layout
-    And there is a DummyComponent
+    And there is a DummyPublishableComponent
     When I send a "POST" request to "/_/component_groups" with data:
-     | reference | location  | pages                             | layouts                             | components                                   |
-     | main_body | main      | json_decode([ "resource[page]" ]) | json_decode([ "resource[layout]" ]) | json_decode([ "resource[dummy_component]" ]) |
+     | reference | location                                   | pages                             | layouts                             | components                                   |
+     | main_body | resource[dummy_publishable_component]      | json_decode([ "resource[page]" ]) | json_decode([ "resource[layout]" ]) | json_decode([ "resource[dummy_publishable_component]" ]) |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component_group.schema.json"
     And the JSON node "pages[0]" should be equal to the IRI of the resource "page"
     And the JSON node "layouts[0]" should be equal to the IRI of the resource "layout"
-    And the JSON node "components[0]" should be equal to the IRI of the resource "dummy_component"
+    And the JSON node "location" should be equal to the IRI of the resource "dummy_publishable_component"
+    And the JSON node "components[0]" should be equal to the IRI of the resource "dummy_publishable_component"
 
   @loginAdmin
   Scenario: If a component group is orphaned it should be deleted

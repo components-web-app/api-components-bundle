@@ -298,7 +298,7 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given(removed as was not used in features, only internal) there is a DummyPublishableComponent
+     * @Given there is a DummyPublishableComponent
      */
     public function thereIsADummyPublishableComponent(): DummyPublishableComponent
     {
@@ -387,7 +387,7 @@ final class DoctrineContext implements Context
         if ($id) {
             $reflection = new \ReflectionClass($componentGroup);
             $reflectionProp = $reflection->getProperty('id');
-            $reflectionProp->setAccessible(true);
+//            $reflectionProp->setAccessible(true);
             $reflectionProp->setValue($componentGroup, Uuid::fromString($id));
             $this->manager->flush();
             $repo = $this->manager->getRepository(ComponentGroup::class);

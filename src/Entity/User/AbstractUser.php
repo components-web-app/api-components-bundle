@@ -404,7 +404,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
         $reflection = new \ReflectionClass(static::class);
         $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
+//        $idProperty->setAccessible(true);
         $idProperty->setValue($newUser, Uuid::fromString($payload['id']));
 
         return $newUser;
