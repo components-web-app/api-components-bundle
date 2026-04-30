@@ -86,7 +86,7 @@ trait UiTrait
     public function removeComponentGroup(ComponentGroup $componentGroup)
     {
         if ($this->componentGroups->contains($componentGroup)) {
-            $this->componentGroups->remove($componentGroup);
+            $this->componentGroups->removeElement($componentGroup);
         }
 
         return $this;
