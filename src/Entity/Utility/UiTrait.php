@@ -50,7 +50,7 @@ trait UiTrait
     /**
      * @return Collection|ComponentGroup[]
      */
-    public function getComponentGroups()
+    public function getComponentGroups(): Collection|array
     {
         return $this->componentGroups;
     }
@@ -58,7 +58,7 @@ trait UiTrait
     /**
      * @return static
      */
-    public function setComponentGroups(iterable $componentGroups)
+    public function setComponentGroups(iterable $componentGroups): static
     {
         $this->componentGroups = new ArrayCollection();
         foreach ($componentGroups as $componentGroup) {
@@ -71,7 +71,7 @@ trait UiTrait
     /**
      * @return static
      */
-    public function addComponentGroup(ComponentGroup $componentGroup)
+    public function addComponentGroup(ComponentGroup $componentGroup): static
     {
         if (!$this->componentGroups->contains($componentGroup)) {
             $this->componentGroups->add($componentGroup);
@@ -83,7 +83,7 @@ trait UiTrait
     /**
      * @return static
      */
-    public function removeComponentGroup(ComponentGroup $componentGroup)
+    public function removeComponentGroup(ComponentGroup $componentGroup): static
     {
         if ($this->componentGroups->contains($componentGroup)) {
             $this->componentGroups->removeElement($componentGroup);
