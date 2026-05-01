@@ -55,9 +55,6 @@ trait UiTrait
         return $this->componentGroups;
     }
 
-    /**
-     * @return static
-     */
     public function setComponentGroups(iterable $componentGroups): static
     {
         $this->componentGroups = new ArrayCollection();
@@ -68,9 +65,6 @@ trait UiTrait
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function addComponentGroup(ComponentGroup $componentGroup): static
     {
         if (!$this->componentGroups->contains($componentGroup)) {
@@ -80,9 +74,6 @@ trait UiTrait
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function removeComponentGroup(ComponentGroup $componentGroup): static
     {
         if ($this->componentGroups->contains($componentGroup)) {

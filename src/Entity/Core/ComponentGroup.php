@@ -31,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[Silverback\Timestamped]
 #[ApiResource(
-    requirements: ['id' => ".+"],
+    requirements: ['id' => '.+'],
     normalizationContext: ['groups' => ['ComponentGroup:read']],
     denormalizationContext: ['groups' => ['ComponentGroup:write']],
     mercure: true,
