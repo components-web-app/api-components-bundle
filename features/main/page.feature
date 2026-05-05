@@ -57,3 +57,30 @@ Feature: Page resources
     Given there is a Page
     When I send a "DELETE" request to the resource "page"
     Then the response status code should be 204
+
+  @loginAdmin
+  Scenario: The page resources can be filtered by reference
+    Given there is a Page with the reference "primary"
+    And there is a Page with the reference "secondary"
+    When I send a "GET" request to "/_/pages?reference=primary"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "primary"
+
+  @loginAdmin
+  Scenario: The page resources can be filtered by title
+    Given there is a Page with the reference "primary" and with the title "primary"
+    And there is a Page with the reference "secondary" and with the title "secondary"
+    When I send a "GET" request to "/_/pages?title=primary"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "primary"
+
+  @loginAdmin
+  Scenario: The page resources can be filtered by ui component
+    Given there is a Page with the reference "primary" and with the uiComponent "primary"
+    And there is a Page with the reference "secondary" and with the uiComponent "secondary"
+    When I send a "GET" request to "/_/pages?uiComponent=primary"
+    Then the response status code should be 200
+    And the JSON node "hydra:member" should have "1" elements
+    And the JSON node "hydra:member[0].reference" should be equal to "primary"
