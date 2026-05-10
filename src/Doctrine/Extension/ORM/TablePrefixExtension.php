@@ -65,7 +65,7 @@ class TablePrefixExtension
                 continue;
             }
 
-            if ($mapping->inherited !== null) {
+            if (null !== $mapping->inherited) {
                 continue;
             }
 
