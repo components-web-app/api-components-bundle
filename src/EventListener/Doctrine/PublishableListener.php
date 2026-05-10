@@ -55,6 +55,7 @@ final class PublishableListener
         }
 
         if (!$metadata->hasAssociation($configuration->associationName)) {
+            $referencedColumnName = $namingStrategy->referenceColumnName();
             $metadata->mapOneToOne(
                 [
                     'fieldName' => $configuration->associationName,
@@ -63,9 +64,9 @@ final class PublishableListener
                         [
                             'name' => $namingStrategy->joinKeyColumnName(
                                 $configuration->associationName,
-                                $metadata->getName()
+                                $referencedColumnName
                             ),
-                            'referencedColumnName' => $namingStrategy->referenceColumnName(),
+                            'referencedColumnName' => $referencedColumnName,
                             'onDelete' => 'SET NULL',
                             'nullable' => true,
                         ],

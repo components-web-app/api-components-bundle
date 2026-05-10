@@ -36,7 +36,6 @@ class TimestampedListener
         }
 
         $configuration = $this->annotationReader->getConfiguration($metadata->getName());
-
         if (!$metadata->hasField($configuration->createdAtField)) {
             $metadata->mapField(
                 [
