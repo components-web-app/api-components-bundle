@@ -884,7 +884,7 @@ final class DoctrineContext implements Context
         $refreshToken = new RefreshToken();
         $refreshToken
             ->setUser($this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']))
-            ->setCreatedAt(new \DateTime())
+            ->setCreatedAt(new \DateTimeImmutable())
             ->setExpiresAt(new \DateTimeImmutable($expiresAt));
         $this->manager->persist($refreshToken);
         $this->manager->flush();
