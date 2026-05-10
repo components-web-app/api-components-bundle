@@ -128,7 +128,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         $queryBuilder
             ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
             ->andWhere("$alias.$configuration->fieldName <= :currentTime")
-            ->setParameter('currentTime', new \DateTimeImmutable());
+            ->setParameter('currentTime', new \DateTime());
     }
 
     private function getConfiguration(string $resourceClass): ?Publishable

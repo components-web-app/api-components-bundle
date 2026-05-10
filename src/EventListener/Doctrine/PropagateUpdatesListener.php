@@ -16,7 +16,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
-use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
@@ -25,6 +24,7 @@ use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
+use Doctrine\Persistence\Proxy;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
@@ -121,7 +121,11 @@ class PropagateUpdatesListener
         $changeSet = $uow->getEntityChangeSet($entity);
         $this->collectUpdatedResource($entity, $type);
 
-        $associationMappings = $em->getClassMetadata(ClassUtils::getClass($entity))->getAssociationMappings();
+        $class = $entity instanceof Proxy
+            ? get_parent_class($entity)
+            : $entity::class;
+
+        $associationMappings = $em->getClassMetadata($class)->getAssociationMappings();
 
         if ($entity instanceof PageDataInterface) {
             $this->pageDataPropertiesChanged = array_keys($changeSet);

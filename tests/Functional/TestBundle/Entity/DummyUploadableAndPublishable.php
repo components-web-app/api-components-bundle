@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Symfony\Component\HttpFoundation\File\File;
@@ -29,7 +28,6 @@ use Symfony\Component\HttpFoundation\File\File;
 #[ORM\Entity]
 class DummyUploadableAndPublishable extends AbstractComponent
 {
-    use IdTrait;
     use PublishableTrait;
     use UploadableTrait;
 

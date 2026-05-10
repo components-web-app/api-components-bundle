@@ -12,7 +12,7 @@
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 
@@ -30,7 +30,7 @@ final class PublishableListener
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadataInfo $metadata */
+        /** @var ClassMetadata $metadata */
         $metadata = $eventArgs->getClassMetadata();
         if (!$this->publishableStatusChecker->isConfigured($metadata->getName())) {
             return;
@@ -55,14 +55,18 @@ final class PublishableListener
         }
 
         if (!$metadata->hasAssociation($configuration->associationName)) {
+            $referencedColumnName = $namingStrategy->referenceColumnName();
             $metadata->mapOneToOne(
                 [
                     'fieldName' => $configuration->associationName,
                     'targetEntity' => $metadata->getName(),
                     'joinColumns' => [
                         [
-                            'name' => $namingStrategy->joinKeyColumnName($metadata->getName()),
-                            'referencedColumnName' => $namingStrategy->referenceColumnName(),
+                            'name' => $namingStrategy->joinKeyColumnName(
+                                $configuration->associationName,
+                                $referencedColumnName
+                            ),
+                            'referencedColumnName' => $referencedColumnName,
                             'onDelete' => 'SET NULL',
                             'nullable' => true,
                         ],

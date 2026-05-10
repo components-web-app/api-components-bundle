@@ -16,6 +16,6 @@
         <many-to-many field="layouts" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Layout" mapped-by="componentGroups" fetch="LAZY"/>
         <many-to-many field="pages" target-entity="Silverback\ApiComponentsBundle\Entity\Core\Page" mapped-by="componentGroups" fetch="LAZY"/>
         <many-to-many field="components" target-entity="Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent" mapped-by="componentGroups" fetch="LAZY"/>
-        <field name="allowedComponents" column="allowed_components" type="array" nullable="true"/>
+        <field name="allowedComponents" column="allowed_components" type="json" nullable="true"/>
     </entity>
 </doctrine-mapping>

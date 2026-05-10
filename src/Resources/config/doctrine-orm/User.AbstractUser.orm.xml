@@ -8,7 +8,7 @@
         </indexes>
         <field name="username" length="255" column="username"/>
         <field name="emailAddress" length="255" column="email_address"/>
-        <field name="roles" column="roles" type="array"/>
+        <field name="roles" column="roles" type="json"/>
         <field name="enabled" column="enabled" type="boolean"/>
         <field name="password" column="password" length="255"/>
         <field name="newPasswordConfirmationToken" column="new_password_confirmation_token" nullable="true"/>

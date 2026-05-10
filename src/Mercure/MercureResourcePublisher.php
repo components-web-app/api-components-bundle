@@ -126,11 +126,11 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         $id = $this->iriConverter->getIriFromResource($object);
         $iri = $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
-        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options)];
+        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options, $object)];
 
         if ('deletedObjects' === $property) {
-            $this->createdObjects->detach($object);
-            $this->updatedObjects->detach($object);
+            $this->createdObjects->offsetUnset($object);
+            $this->updatedObjects->offsetUnset($object);
             $this->deletedObjects[$object] = $objectData;
 
             return;
@@ -173,14 +173,14 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         foreach ($options as $key => $value) {
             if (!isset(self::ALLOWED_KEYS[$key])) {
-                throw new InvalidArgumentException(\sprintf('The option "%s" set in the "mercure" attribute of the "%s" resource does not exist. Existing options: "%s"', $key, $resourceClass, implode('", "', self::ALLOWED_KEYS)));
+                throw new InvalidArgumentException(\sprintf('The option "%s" set in the "mercure" attribute of the "%s" resource does not exist. Existing options: "%s"', $key, $resourceClass, implode('", "', array_keys(self::ALLOWED_KEYS))));
             }
         }
 
         return $options;
     }
 
-    private function normalizeMercureOptions(array $options): array
+    private function normalizeMercureOptions(array $options, object $object): array
     {
         $options['enable_async_update'] ??= true;
 
@@ -188,11 +188,6 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             $topics = [];
             foreach ((array) $options['topics'] as $topic) {
                 if (!\is_string($topic) || !str_starts_with($topic, '@=')) {
-                    $topics[] = $topic;
-                    continue;
-                }
-
-                if (!str_starts_with($topic, '@=')) {
                     $topics[] = $topic;
                     continue;
                 }
@@ -229,7 +224,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         }
     }
 
-    private function getObjectData(object $object, string $iri)
+    private function getObjectData(object $object, string $iri, array $options): string
     {
         $resourceClass = $this->getObjectClass($object);
 
@@ -250,7 +245,9 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     private function publishUpdate(object $object, array $objectData, string $type): void
     {
         $options = $objectData['mercureOptions'];
-        $iri = $options['topics'] ?? $objectData['iri'];
+
+        $topicIri = $options['topics'] ?? $objectData['iri'];
+        $resourceIri = $objectData['iri'];
 
         $getDeletedObjectData = static function () use ($objectData) {
             return json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
@@ -260,15 +257,17 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             $data = $getDeletedObjectData();
         } else {
             try {
-                $data = $this->getObjectData($object, $iri);
+                $data = $this->getObjectData($object, $resourceIri, $options);
             } catch (InvalidArgumentException|LegacyInvalidArgumentException) {
-                // the object may have been deleted at the database level with delete cascades...
                 $type = 'delete';
                 $data = $getDeletedObjectData();
             }
         }
 
-        $updates = array_merge([$this->buildUpdate($iri, $data, $options)], $this->getGraphQlSubscriptionUpdates($object, $options, $type));
+        $updates = array_merge(
+            [$this->buildUpdate($topicIri, $data, $options)],
+            $this->getGraphQlSubscriptionUpdates($object, $options, $type)
+        );
 
         foreach ($updates as $update) {
             if ($options['enable_async_update'] && $this->messageBus) {

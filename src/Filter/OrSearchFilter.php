@@ -57,7 +57,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
     protected function getType(string $doctrineType): string
     {
         return match ($doctrineType) {
-            Types::ARRAY => 'array',
             Types::JSON => 'json',
             Types::BIGINT, Types::INTEGER, Types::SMALLINT => 'int',
             Types::BOOLEAN => 'bool',

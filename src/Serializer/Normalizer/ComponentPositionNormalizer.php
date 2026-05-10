@@ -12,7 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Metadata\IriConverterInterface;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -135,7 +135,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         if (!$em) {
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for class %s', $type));
         }
-        /** @var ClassMetadataInfo $classMetadata */
+        /** @var ClassMetadata $classMetadata */
         $classMetadata = $em->getClassMetadata($type);
         $draft = $classMetadata->getFieldValue($component, $configuration->reverseAssociationName);
 

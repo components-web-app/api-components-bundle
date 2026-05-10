@@ -13,7 +13,7 @@ namespace Silverback\ApiComponentsBundle\Doctrine\Extension\ORM;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ManyToManyOwningSideMapping;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
@@ -61,10 +61,18 @@ class TablePrefixExtension
     private function setJoinTableName(ClassMetadata $classMetadata): void
     {
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
-            if (ClassMetadataInfo::MANY_TO_MANY === $mapping['type'] && $mapping['isOwningSide'] && !\array_key_exists('inherited', $mapping)) {
-                $mappedTableName = $mapping['joinTable']['name'];
-                $classMetadata->associationMappings[$fieldName]['joinTable']['name'] = $this->prefix . $mappedTableName;
+            if (!$mapping instanceof ManyToManyOwningSideMapping) {
+                continue;
             }
+
+            if (null !== $mapping->inherited) {
+                continue;
+            }
+
+            $mapping->joinTable->name = $this->prefix . $mapping->joinTable->name;
+
+            // May not be needed, because $mapping is already the same object stored internally.
+            $classMetadata->associationMappings[$fieldName] = $mapping;
         }
     }
 

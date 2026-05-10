@@ -19,7 +19,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class RefreshToken
 {
     protected ?\DateTimeInterface $createdAt = null;
-    protected ?\DateTimeInterface $expiresAt = null;
+    protected ?\DateTimeImmutable $expiresAt = null;
     protected ?UserInterface $user = null;
     protected ?int $version = null;
 
@@ -38,7 +38,7 @@ class RefreshToken
         return $this;
     }
 
-    public function getExpiresAt(): ?\DateTimeInterface
+    public function getExpiresAt(): ?\DateTimeImmutable
     {
         return $this->expiresAt;
     }
@@ -46,7 +46,7 @@ class RefreshToken
     /**
      * @return static
      */
-    public function setExpiresAt(\DateTimeInterface $expiresAt)
+    public function setExpiresAt(\DateTimeImmutable $expiresAt)
     {
         $this->expiresAt = $expiresAt;
 

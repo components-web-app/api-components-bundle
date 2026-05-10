@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
@@ -84,7 +84,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
 
         $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
         $em = $this->getManagerFromType($type);
-        $classMetadata = $this->getClassMetadataInfo($em, $type);
+        $classMetadata = $em->getClassMetadata($type);
 
         $publishedAtDateTime = $classMetadata->getFieldValue($object, $configuration->fieldName);
         if ($publishedAtDateTime instanceof \DateTimeInterface) {
@@ -213,7 +213,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
     public function createDraft(object $object, Publishable $configuration, string $type): object
     {
         $em = $this->getManagerFromType($type);
-        $classMetadata = $this->getClassMetadataInfo($em, $type);
+        $classMetadata = $em->getClassMetadata($type);
 
         // Resource is a draft: nothing to do here anymore
         if (null !== $classMetadata->getFieldValue($object, $configuration->associationName)) {
@@ -234,7 +234,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         // Clear any writable one-to-many fields, these should still reference the published component, such as component positions
         // Doesn't matter usually it seems, but where we process uploadable, the one-to-many is not then reassigned later back to the publishable during normalization
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
-            if (ClassMetadataInfo::ONE_TO_MANY === $mapping['type'] && $this->propertyAccessor->isWritable($draft, $fieldName)) {
+            if (ClassMetadata::ONE_TO_MANY === $mapping['type'] && $this->propertyAccessor->isWritable($draft, $fieldName)) {
                 $this->propertyAccessor->setValue($draft, $fieldName, new ArrayCollection());
             }
         }
@@ -270,16 +270,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         }
 
         return $em;
-    }
-
-    private function getClassMetadataInfo(ObjectManager $em, string $type): ClassMetadataInfo
-    {
-        $classMetadata = $em->getClassMetadata($type);
-        if (!$classMetadata instanceof ClassMetadataInfo) {
-            throw new InvalidArgumentException(\sprintf('Class metadata for %s was not an instance of %s', $type, ClassMetadataInfo::class));
-        }
-
-        return $classMetadata;
     }
 
     public function getSupportedTypes(?string $format): array
