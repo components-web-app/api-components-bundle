@@ -11,7 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 
@@ -29,7 +29,7 @@ class TimestampedListener
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadataInfo $metadata */
+        /** @var ClassMetadata $metadata */
         $metadata = $eventArgs->getClassMetadata();
         if (!$this->annotationReader->isConfigured($metadata->getName())) {
             return;

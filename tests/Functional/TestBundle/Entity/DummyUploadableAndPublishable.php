@@ -29,7 +29,6 @@ use Symfony\Component\HttpFoundation\File\File;
 #[ORM\Entity]
 class DummyUploadableAndPublishable extends AbstractComponent
 {
-    use IdTrait;
     use PublishableTrait;
     use UploadableTrait;
 

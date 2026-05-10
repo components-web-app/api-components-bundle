@@ -12,7 +12,7 @@
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\Event\LoadClassMetadataEventArgs;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 
@@ -30,7 +30,7 @@ final class UploadableListener
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadataInfo $metadata */
+        /** @var ClassMetadata $metadata */
         $metadata = $eventArgs->getClassMetadata();
         $className = $metadata->getName();
         if (!$this->uploadableAnnotationReader->isConfigured($className)) {
