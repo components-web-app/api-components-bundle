@@ -65,13 +65,7 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
         return !isset($context[self::ALREADY_CALLED]) && $this->annotationReader->isConfigured($type);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, $type, $format = null, array $context = []): mixed
-    {
-        $context[self::ALREADY_CALLED] = true;
-
+    private function findConfiguredFields(iterable $data, string $type): iterable {
         foreach ($data as $fieldName => $value) {
             try {
                 $reflectionProperty = new \ReflectionProperty($type, $fieldName);
@@ -99,6 +93,20 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
             } catch (FileException $exception) {
                 throw new NotNormalizableValueException($exception->getMessage());
             }
+        }
+
+        return $data;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function denormalize($data, $type, $format = null, array $context = []): mixed
+    {
+        $context[self::ALREADY_CALLED] = true;
+
+        if (is_iterable($data)) {
+            $this->findConfiguredFields($data, $type);
         }
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
