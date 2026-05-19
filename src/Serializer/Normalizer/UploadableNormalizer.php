@@ -65,7 +65,8 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
         return !isset($context[self::ALREADY_CALLED]) && $this->annotationReader->isConfigured($type);
     }
 
-    private function findConfiguredFields(iterable $data, string $type): iterable {
+    private function findConfiguredFields(iterable $data, string $type): iterable
+    {
         foreach ($data as $fieldName => $value) {
             try {
                 $reflectionProperty = new \ReflectionProperty($type, $fieldName);
