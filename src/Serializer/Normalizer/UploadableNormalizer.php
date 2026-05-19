@@ -107,7 +107,7 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
         $context[self::ALREADY_CALLED] = true;
 
         if (is_iterable($data)) {
-            $this->findConfiguredFields($data, $type);
+            $data = $this->findConfiguredFields($data, $type);
         }
 
         return $this->denormalizer->denormalize($data, $type, $format, $context);
