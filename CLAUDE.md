@@ -77,7 +77,7 @@ Resources are designed as **individual, piecemeal, independently cacheable entit
 Consequences for all design decisions:
 - **Never embed related resource data** — always return IRIs. The consumer follows the IRI in a separate request.
 - **Serialization groups should expose the minimum needed** — a reference to a related resource is an IRI, not an object.
-- **For nested pages specifically**: the child's manifest returns `parentRoute` as an IRI only. The Nuxt module makes a separate `GET /routes_manifest/<parent-id>` request. The parent and child manifests are cached and invalidated independently. A change to the parent layout does not invalidate the child's manifest cache.
+- **For nested pages specifically**: the child's manifest returns `resource_iris` as an array of arrays grouped by depth (index 0 = root/shallowest, last index = the requested page). Each inner array is fetched in parallel. Parent and child manifests are cached and invalidated independently — a change to the parent layout does not invalidate the child's manifest cache.
 
 ### Serialization groups
 
@@ -124,55 +124,57 @@ A validation constraint (`Assert\Expression`) ensures both cannot be set simulta
 
 ### How the manifest carries parent resources
 
-`$parentPage`, `$parentPageData`, and `$route` (on `AbstractPage`) all carry `#[Groups(['Route:manifest:read'])]`. When a child Route is normalised for the manifest, the parent entity is embedded inline, and inside it the parent's own route is embedded. `RouteNormalizer::getResourceIrisFromArray()` walks the structure and collects all `@id` values. Circular references resolve to IRI strings via AP3's circular-reference handler — the walker only processes arrays, so string IRIs are ignored.
+`$parentPage`, `$parentPageData`, and `$route` (on `AbstractPage`) all carry `#[Groups(['Route:manifest:read'])]`. When a child Route is normalised for the manifest, the parent entity is embedded inline, and inside it the parent's own route is embedded.
 
-For one level of nesting, `resource_iris` contains:
-1. child route
-2. child PageData/Page IRI
-3. child Page IRI (from PageData.$page)
-4. parent PageData/Page IRI (from `$parentPageData`/`$parentPage`)
-5. parent Page IRI (from parent PageData.$page, if applicable)
-6. parent route IRI (from parent's `$route`)
+`RouteNormalizer` walks the normalised structure and emits `resource_iris` as an **array of arrays grouped by depth**: index 0 = root/shallowest resources, last index = the resources for the requested page. The `parentPage`/`parentPageData` fields are the depth boundaries — everything reachable without crossing those fields belongs to the same depth group. Circular references resolve to IRI strings via AP3's circular-reference handler; the walker only processes arrays, so string IRIs are left as-is.
 
-All fetched in parallel by the module.
+For one level of nesting (PageData-based):
+```json
+{
+  "resource_iris": [
+    ["/_/routes//conference", "/_/abstract_page_data/parent-uuid", "/_/pages/parent-template-uuid"],
+    ["/_/routes//conference/programme", "/_/abstract_page_data/child-uuid", "/_/pages/child-template-uuid"]
+  ]
+}
+```
 
-### Route path concatenation — a public-routing necessity
+For a flat (non-nested) page, `resource_iris` has one inner array. The module always iterates by depth group.
 
-`RouteGenerator` prefixes a child's generated path with the parent's path (e.g. parent `/conference` + `programme` → `/conference/programme`). This is **required for public Nuxt routing to work correctly.**
+### Route path concatenation — recommended, not required
 
-Nuxt's `<NuxtPage />` is hard-wired to `useRoute().matched` — it renders the next matched route in the tree based on URL segment depth. A page at URL `/programme` is always depth 0; there is no slot for it inside a parent template. A page at `/conference/programme` is depth 1 and can render inside `/conference`'s `<NuxtPage />`. This is a hard Nuxt constraint.
+`RouteGenerator` prefixes a child's generated path with the parent's path (e.g. parent `/conference` + `programme` → `/conference/programme`). This produces clean, hierarchical public URLs and is the default behaviour.
 
-Therefore, route concatenation is not optional for public pages that should render inside a parent. `RouteGenerator` concatenates by default precisely because it is required. The module never parses URL segments to infer hierarchy — hierarchy comes from `parentPage`/`parentPageData` in the data — but URL depth MUST match rendering depth for public routing to function.
+Path concatenation is **not a rendering constraint**. The module's `<CwaPage />` component is data-driven — it reads the `resource_iris` depth groups from the manifest to determine rendering depth, not the URL structure. A child page at URL `/programme` with `parentPageData` set would still render nested inside the parent, because the manifest's depth grouping carries the correct structure. Concatenated paths are preferred for SEO and UX, but the rendering mechanism does not depend on them.
 
-### Two routing contexts — critical module concern
+### Rendering and routing — `<CwaPage />`
 
-See the module's CLAUDE.md for full detail. Summary for the API side:
+The module uses a single `<CwaPage />` mechanism for all rendering contexts, both public routes and admin/draft access. The rendering depth is determined entirely from `resource_iris` depth groups (or from walking the `parentPage`/`parentPageData` chain on individually fetched resources). There is no URL-segment-depth dependency.
 
-**Public routing:** URL-depth-driven via `<NuxtPage />`. Route concatenation ensures URL depth matches rendering depth. The API's role is to produce the correctly prefixed URL via `RouteGenerator` and to expose the full parent resource tree in `resource_iris`.
+This means:
+- **Public routes**: manifest delivers `resource_iris` groups; `<CwaPage />` renders the stack from root to deepest leaf, with keepalive preserving ancestor layers when only the deepest layer changes
+- **Admin/draft**: no manifest (no Route yet); `<CwaPage />` fetches the resource by IRI and walks the `parentPage`/`parentPageData` chain to build the same depth stack
 
-**Admin/draft access:** A nested page in draft has no public Route. The admin accesses it via its entity IRI directly (the module already supports this). The URL is at depth 0 regardless of hierarchy depth. The module must use the `parentPage`/`parentPageData` data to determine rendering depth programmatically — not from the URL. The API's role is to expose the parent chain fields so the module can walk them.
-
-The API serves both contexts correctly already — `resource_iris` contains the parent chain for public routes, and the individual resource response exposes `parentPage`/`parentPageData` for the admin data-driven path.
+The API serves both contexts correctly — `resource_iris` groups carry the full tree for public routes, and `parentPage`/`parentPageData` are exposed on every individual resource response for the admin walk.
 
 ### What is complete ✓
 
 1. **`$parentPage` and `$parentPageData` on `AbstractPage`** — `Assert\Expression` constraint, getters/setters, computed `getParentPageRoute()`, ORM mappings (`Core.Page.orm.xml`, `Core.AbstractPageData.orm.xml`)
 2. **`$nested` removed from `AbstractPage`** — property, getter, setter, ORM mapping, and schema entry all removed. Parent = nested, always.
-3. **`$route`, `$parentPage`, `$parentPageData` in `Route:manifest:read`** — parent sub-tree IRIs appear in `resource_iris` automatically via the existing normalizer walk
-4. **Behat tests** — `features/main/route.feature`: nested PageData manifest has 6 elements, both child and parent route IRIs present; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422)
+3. **`$route`, `$parentPage`, `$parentPageData` in `Route:manifest:read`** — parent sub-tree IRIs appear in `resource_iris` automatically via the normalizer walk
+4. **Behat tests** — `features/main/route.feature`: nested PageData and nested Page manifests both tested; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422), PATCH to set parentPage (200)
 
 ### What is still missing (API bundle)
 
-1. **Behat test: `Page`-based nesting** — only `PageData`-based nesting is tested. Need a scenario where the child is a `Page` entity (not `PageData`) with a `$parentPage` or `$parentPageData`.
+1. **`resource_iris` as array of arrays** — `RouteNormalizer.getResourceIrisFromArray()` currently emits a flat `string[]`. Must be changed to emit `string[][]` grouped by depth (root first). Behat tests for manifest shape need updating to assert the new structure. This is the next immediate task.
 
-3. **Depth counter in `getResourceIrisFromArray`** — currently unlimited traversal. Add a configurable counter (default 5 levels) passed through the recursion. Beyond the cap the module resolves the remaining chain via its own `resourceTypeToNestedResourceProperties` traversal.
-
-4. **Admin parent picker** — generic `parentPage`/`parentPageData` field exposed in the API schema for any entity extending `AbstractPage`. The admin UI renders a picker for these fields. No per-project code needed.
+2. **Admin parent picker** — generic `parentPage`/`parentPageData` field exposed in the API schema for any entity extending `AbstractPage`. The admin UI renders a picker for these fields. No per-project code needed.
 
 ### Design decisions
 
 - **No `$nested` boolean** — parent = nested, full stop. The presence of `$parentPage`/`$parentPageData` is the complete signal.
 - **Two FK properties, not one** — `AbstractPage` is a mapped superclass with no discriminator map; `?AbstractPage` cannot be a Doctrine FK target. `?Page` + `?AbstractPageData` mirrors `Route.$page`/`Route.$pageData`.
 - **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null safely when the parent has no route yet.
-- **Route concatenation is a public-routing necessity, not optional** — Nuxt's URL-depth constraint makes it load-bearing for public pages.
+- **Route concatenation is recommended, not required** — `RouteGenerator` prefixes child paths for clean URLs and SEO, but the module's `<CwaPage />` renders depth from manifest data, not URL structure.
+- **`resource_iris` is `string[][]`, not `string[]`** — depth-grouped, root first. The module reads the array index as the rendering depth without any client-side traversal.
+- **Single rendering mechanism** — `<CwaPage />` handles both public routes (manifest depth groups) and admin/draft access (walk `parentPage`/`parentPageData` chain). No URL-depth dependency.
 - **Hierarchy on AbstractPage, not Route** — Routes are the publication mechanism. Hierarchy must be settable before either page has a public URL.

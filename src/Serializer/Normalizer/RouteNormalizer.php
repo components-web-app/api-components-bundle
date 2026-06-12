@@ -66,48 +66,74 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
             $normalized['@id'] = str_replace('routes_manifest', 'routes', $normalized['@id']);
 
             return [
-                'resource_iris' => $this->getResourceIrisFromArray($normalized),
+                'resource_iris' => $this->buildDepthGroups($normalized),
             ];
         }
 
         return $normalized;
     }
 
-    private function getResourceIrisFromArray(array $resource, array $iris = []): array
+    /**
+     * Returns IRIs grouped by rendering depth, root first.
+     * parentPage/parentPageData fields mark depth boundaries — everything reachable
+     * without crossing those fields belongs to the same depth group.
+     */
+    private function buildDepthGroups(array $resource): array
     {
-        $resourceId = $resource['@id'] ?? null;
-        if (
-            str_contains($resourceId, '/.well-known/')
-            || str_ends_with($resourceId, '/_/resource_metadatas')
-            || \in_array($resourceId, $iris, true)
-        ) {
-            return $iris;
+        [$currentIris, $parentResources] = $this->collectCurrentDepth($resource, [], []);
+
+        if (empty($parentResources)) {
+            return [array_values(array_unique($currentIris))];
         }
-        if ($resourceId) {
-            $iris[] = $resourceId;
+
+        $ancestorGroups = $this->buildDepthGroups($parentResources[0]);
+
+        return [...$ancestorGroups, array_values(array_unique($currentIris))];
+    }
+
+    /**
+     * Collects IRIs at the current depth without crossing parentPage/parentPageData boundaries.
+     * Returns [$iris, $parentResources] where $parentResources are the objects found behind
+     * those boundary fields (at most one, but returned as array for uniformity).
+     *
+     * @return array{0: string[], 1: array[]}
+     */
+    private function collectCurrentDepth(array $resource, array $iris, array $parentResources): array
+    {
+        $id = $resource['@id'] ?? null;
+        if ($id && !$this->shouldSkipIri($id) && !\in_array($id, $iris, true)) {
+            $iris[] = $id;
         }
-        foreach ($resource as $key => $resourceValue) {
-            // may be a string or simple
-            // may be an array representing a resource
-            // may be an array of any other values
-            // may be an array of arrays
-            if (\is_array($resourceValue)) {
-                // check if the array is representing a new resource
-                if (isset($resourceValue['@id'])) {
-                    $iris = $this->getResourceIrisFromArray($resourceValue, $iris);
+
+        foreach ($resource as $key => $value) {
+            if (!\is_array($value)) {
+                continue;
+            }
+
+            if (\in_array($key, ['parentPage', 'parentPageData'], true)) {
+                if (isset($value['@id'])) {
+                    $parentResources[] = $value;
                 }
-                // check if the array contains more resources
-                foreach ($resourceValue as $nestedValue) {
-                    if (isset($nestedValue['@id'])) {
-                        $iris = $this->getResourceIrisFromArray($nestedValue, $iris);
+                continue;
+            }
+
+            if (isset($value['@id'])) {
+                [$iris, $parentResources] = $this->collectCurrentDepth($value, $iris, $parentResources);
+            } else {
+                foreach ($value as $nested) {
+                    if (isset($nested['@id'])) {
+                        [$iris, $parentResources] = $this->collectCurrentDepth($nested, $iris, $parentResources);
                     }
                 }
             }
         }
 
-        return array_filter($iris, static function ($iri) {
-            return !str_contains($iri, '/.well-known/');
-        });
+        return [$iris, $parentResources];
+    }
+
+    private function shouldSkipIri(string $iri): bool
+    {
+        return str_contains($iri, '/.well-known/') || str_ends_with($iri, '/_/resource_metadatas');
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool
