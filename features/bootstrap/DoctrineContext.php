@@ -445,6 +445,26 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a child Page with a Layout
+     */
+    public function thereIsAChildPageWithLayout(): Page
+    {
+        $layout = $this->thereIsALayout();
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'child';
+        $page->layout = $layout;
+        $page->uiComponent = 'myComponent';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->resources['child_page'] = $this->iriConverter->getIriFromResource($page);
+
+        return $page;
+    }
+
+    /**
      * @Given there is a SiteConfigParameter
      */
     public function thereIsASiteConfigParameter(string $key = 'key', string $value = 'value'): SiteConfigParameter

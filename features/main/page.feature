@@ -25,6 +25,7 @@ Feature: Page resources
       | resource[layout] | child     | resource[page] | myComponent | true       |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
+    And the JSON node "parentPage" should be equal to the IRI of the resource "page"
 
   @loginUser
   Scenario: I can create a page with a parent PageData
@@ -35,6 +36,17 @@ Feature: Page resources
       | resource[layout] | child     | resource[page_data] | myComponent | true       |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
+    And the JSON node "parentPageData" should be equal to the IRI of the resource "page_data"
+
+  @loginAdmin
+  Scenario: I can patch a page to set a parent Page
+    Given there is a Page
+    And there is a child Page with a Layout
+    When I send a "PATCH" request to the resource "child_page" with data:
+      | parentPage     |
+      | resource[page] |
+    Then the response status code should be 200
+    And the JSON node "parentPage" should be equal to the IRI of the resource "page"
 
   @loginUser
   Scenario: I cannot set both a parent Page and a parent PageData on a page
