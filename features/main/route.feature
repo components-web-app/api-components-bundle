@@ -134,6 +134,14 @@ Feature: Route resources
     And the JSON node "resource_iris" should contain the element "/_/routes//conference/programme"
     And the JSON node "resource_iris" should contain the element "/_/routes//conference"
 
+  Scenario: The manifest for a nested Page route includes parent resource IRIs
+    Given there is a Page resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "GET" request to "/_/routes_manifest//conference/programme"
+    Then the response status code should be 200
+    And the JSON node "resource_iris" should have 4 elements
+    And the JSON node "resource_iris" should contain the element "/_/routes//conference/programme"
+    And the JSON node "resource_iris" should contain the element "/_/routes//conference"
+
   # todo: do not expect publishable, and do not require the annotation on PageData resource to be added manually. See: https://github.com/components-web-app/api-components-bundle/issues/157
   Scenario: I can get a manifest of all unauthenticated resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"

@@ -72,6 +72,10 @@ class MetadataNormalizer implements NormalizerInterface, NormalizerAwareInterfac
         $normalizedResourceMetadata = $this->normalizer->normalize($resourceMetadata, $format, $metadataContext);
         $data = $this->normalizer->normalize($object, $format, $context);
 
+        if (!\is_array($data)) {
+            return $data;
+        }
+
         $data[$this->metadataKey] = empty($normalizedResourceMetadata) ? null : $normalizedResourceMetadata;
 
         return $data;
