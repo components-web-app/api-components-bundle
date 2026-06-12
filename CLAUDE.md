@@ -100,7 +100,7 @@ Key current group assignments:
 
 ## Feature: Nested Sub-Pages
 
-> **Status: API manifest layer complete and tested. Remaining gaps listed below.**
+> **Status: API layer complete and tested. No remaining API work.**
 > Companion plan: see `## Planned Feature: Nested Sub-Pages` in the CWA Nuxt Module CLAUDE.md (`/Users/danielwest/Documents/GitHub/_CWA/cwa-nuxt-3-module/CLAUDE.md`).
 
 ### What we want
@@ -165,9 +165,7 @@ The API serves both contexts correctly — `resource_iris` groups carry the full
 
 ### What is still missing (API bundle)
 
-1. **`resource_iris` as array of arrays** — `RouteNormalizer.getResourceIrisFromArray()` currently emits a flat `string[]`. Must be changed to emit `string[][]` grouped by depth (root first). Behat tests for manifest shape need updating to assert the new structure. This is the next immediate task.
-
-2. **Admin parent picker** — generic `parentPage`/`parentPageData` field exposed in the API schema for any entity extending `AbstractPage`. The admin UI renders a picker for these fields. No per-project code needed.
+Nothing — the API layer for nested sub-pages is complete. The admin parent picker is a module concern; the API already exposes `parentPage`/`parentPageData` on all `AbstractPage`-derived resources.
 
 ### Design decisions
 
