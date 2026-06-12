@@ -15,6 +15,8 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -23,28 +25,23 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 #[Silverback\Timestamped]
 #[UniqueEntity('route', message: 'The route must be unique.')]
+#[Assert\Expression(
+    'this.getParentPage() === null || this.getParentPageData() === null',
+    message: 'A page can only have one parent: either a Page or a PageData, not both.'
+)]
 abstract class AbstractPage implements RoutableInterface
 {
     use IdTrait;
     use TimestampedTrait;
 
+    #[Groups(['Route:manifest:read'])]
     protected ?Route $route = null;
 
-    /**
-     * This will be se so that when auto-generating a route for a newly created
-     * Page / PageData, we can prepend parent routes.
-     */
-    protected ?Route $parentRoute = null;
+    #[Groups(['Route:manifest:read'])]
+    protected ?Page $parentPage = null;
 
-    /**
-     * If true, then the Page/PageData is nested within the parentRoute.
-     * So not only will any auto-generated route have the parent route prefixes,
-     * the front end should expect to load the Page/PageData nested within
-     * the parent page(s) up to the point where a parent is defined as not nested or
-     * does not have a parent route
-     * E.g. the parent route's page may just be a Hero and some Tab navigation.
-     */
-    protected bool $nested = true;
+    #[Groups(['Route:manifest:read'])]
+    protected ?AbstractPageData $parentPageData = null;
 
     protected ?string $title = 'Unnamed Page';
 
@@ -62,28 +59,33 @@ abstract class AbstractPage implements RoutableInterface
         return $this;
     }
 
-    public function getParentRoute(): ?Route
+    public function getParentPage(): ?Page
     {
-        return $this->parentRoute;
+        return $this->parentPage;
     }
 
-    public function setParentRoute(?Route $parentRoute): self
+    public function setParentPage(?Page $parentPage): self
     {
-        $this->parentRoute = $parentRoute;
+        $this->parentPage = $parentPage;
 
         return $this;
     }
 
-    public function isNested(): bool
+    public function getParentPageData(): ?AbstractPageData
     {
-        return $this->nested;
+        return $this->parentPageData;
     }
 
-    public function setNested(?bool $nested): self
+    public function setParentPageData(?AbstractPageData $parentPageData): self
     {
-        $this->nested = $nested ?? false;
+        $this->parentPageData = $parentPageData;
 
         return $this;
+    }
+
+    public function getParentPageRoute(): ?Route
+    {
+        return $this->parentPage?->getRoute() ?? $this->parentPageData?->getRoute();
     }
 
     public function getTitle(): ?string

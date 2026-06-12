@@ -25,10 +25,19 @@ interface RoutableInterface
      */
     public function setRoute(?Route $route);
 
-    public function getParentRoute(): ?Route;
+    public function getParentPage(): ?Page;
 
     /**
      * @return static
      */
-    public function setParentRoute(?Route $parentRoute);
+    public function setParentPage(?Page $parentPage);
+
+    public function getParentPageData(): ?AbstractPageData;
+
+    /**
+     * @return static
+     */
+    public function setParentPageData(?AbstractPageData $parentPageData);
+
+    public function getParentPageRoute(): ?Route;
 }

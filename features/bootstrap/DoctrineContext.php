@@ -642,6 +642,50 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a PageData resource with the route path :childPath nested within the route :parentPath
+     */
+    public function thereIsANestedPageDataResource(string $childPath, string $parentPath): void
+    {
+        $parentPage = new Page();
+        $parentPage->isTemplate = true;
+        $parentPage->reference = 'parent page';
+        $this->timestampedHelper->persistTimestampedFields($parentPage, true);
+        $this->manager->persist($parentPage);
+
+        $parentPageData = new PageData();
+        $parentPageData->page = $parentPage;
+        $this->timestampedHelper->persistTimestampedFields($parentPageData, true);
+        $this->manager->persist($parentPageData);
+
+        $parentRoute = new Route();
+        $parentRoute->setPath($parentPath)->setName($parentPath)->setPageData($parentPageData);
+        $this->timestampedHelper->persistTimestampedFields($parentRoute, true);
+        $this->manager->persist($parentRoute);
+        $this->restContext->resources['parent_route'] = $this->iriConverter->getIriFromResource($parentRoute);
+
+        $childPage = new Page();
+        $childPage->isTemplate = true;
+        $childPage->reference = 'child page';
+        $this->timestampedHelper->persistTimestampedFields($childPage, true);
+        $this->manager->persist($childPage);
+
+        $childPageData = new PageData();
+        $childPageData->page = $childPage;
+        $childPageData->setParentPageData($parentPageData);
+        $this->timestampedHelper->persistTimestampedFields($childPageData, true);
+        $this->manager->persist($childPageData);
+
+        $childRoute = new Route();
+        $childRoute->setPath($childPath)->setName($childPath)->setPageData($childPageData);
+        $this->timestampedHelper->persistTimestampedFields($childRoute, true);
+        $this->manager->persist($childRoute);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
+        $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childRoute);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @When I patch the PageData with the property :property and resource :resource
      */
     public function iPatchPageDataWithThePropertyAndResource(string $property, string $resource)

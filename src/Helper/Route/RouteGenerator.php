@@ -75,8 +75,8 @@ class RouteGenerator implements RouteGeneratorInterface
 
         $path = '/' . ltrim($titleSlug, '/');
 
-        if ($parentRoute = $object->getParentRoute()) {
-            $path = '/' . ltrim($parentRoute->getPath(), '/') . $path;
+        if ($parentPageRoute = $object->getParentPageRoute()) {
+            $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
         }
 
         [$name, $path] = $this->resolveConflicts($name, $path);

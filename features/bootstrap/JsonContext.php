@@ -257,6 +257,16 @@ class JsonContext implements Context
     }
 
     /**
+     * @Then the JSON node :node should contain the element :value
+     */
+    public function theJsonNodeShouldContainTheElement(string $node, string $value): void
+    {
+        $json = $this->getJson();
+        $actual = $this->inspector->evaluate($json, $node);
+        Assert::assertContains($value, $actual, \sprintf("The node '%s' does not contain the element '%s'. Actual: %s", $node, $value, json_encode($actual)));
+    }
+
+    /**
      * @Then the JSON node :name should match the regex :expression
      */
     public function theJsonNodeShouldMatchTheRegex(string $name, string $expression): void

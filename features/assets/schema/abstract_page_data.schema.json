@@ -9,9 +9,6 @@
         },
         {
           "type": "object",
-          "required": [
-            "nested"
-          ],
           "properties": {
             "page": {
               "type": "string",
@@ -22,15 +19,15 @@
               "format": "iri-reference",
               "nullable": true
             },
-            "parentRoute": {
-              "description": "This will be se so that when auto-generating a route for a newly created\nPage / PageData, we can prepend parent routes.",
+            "parentPage": {
               "type": "string",
               "format": "iri-reference",
               "nullable": true
             },
-            "nested": {
-              "description": "If true, then the Page/PageData is nested within the parentRoute.",
-              "type": "boolean"
+            "parentPageData": {
+              "type": "string",
+              "format": "iri-reference",
+              "nullable": true
             },
             "title": {
               "type": "string"
