@@ -69,7 +69,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 // Custom endpoints
 #[Post(uriTemplate: '/routes/generate{._format}', validationContext: ['groups' => ['Route:generate:write']])]
 #[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: Route::API_REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: Route::API_SECURITY)]
-#[Get(uriTemplate: '/routes_manifest/{id}{._format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: Route::API_REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: Route::API_SECURITY)]
+#[Get(uriTemplate: '/resource_manifest/{id}{._format}', defaults: ['_api_item_operation_name' => 'route_resources'], requirements: Route::API_REQUIREMENTS, normalizationContext: ['groups' => ['Route:manifest:read']], security: Route::API_SECURITY)]
 #[Silverback\Timestamped]
 class Route
 {

@@ -128,7 +128,7 @@ Feature: Route resources
 
   Scenario: The manifest for a nested PageData route includes parent resource IRIs grouped by depth
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
-    When I send a "GET" request to "/_/routes_manifest//conference/programme"
+    When I send a "GET" request to "/_/resource_manifest//conference/programme"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
     And the JSON node "resource_iris[0]" should have 3 elements
@@ -138,7 +138,7 @@ Feature: Route resources
 
   Scenario: The manifest for a nested Page route includes parent resource IRIs grouped by depth
     Given there is a Page resource with the route path "/conference/programme" nested within the route "/conference"
-    When I send a "GET" request to "/_/routes_manifest//conference/programme"
+    When I send a "GET" request to "/_/resource_manifest//conference/programme"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
     And the JSON node "resource_iris[0]" should have 2 elements
@@ -149,7 +149,7 @@ Feature: Route resources
   # todo: do not expect publishable, and do not require the annotation on PageData resource to be added manually. See: https://github.com/components-web-app/api-components-bundle/issues/157
   Scenario: I can get a manifest of all unauthenticated resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"
-    When I send a "GET" request to "/_/routes_manifest//my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 1 element
     And the JSON node "resource_iris[0][0]" should be equal to "/_/routes//my-route"
@@ -161,7 +161,7 @@ Feature: Route resources
   @loginAdmin
   Scenario: I can get a manifest of all authenticated resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"
-    When I send a "GET" request to "/_/routes_manifest//my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 1 element
     And the JSON node "resource_iris[0][0]" should be equal to "/_/routes//my-route"

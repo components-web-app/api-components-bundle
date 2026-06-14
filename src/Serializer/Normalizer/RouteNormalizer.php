@@ -62,8 +62,8 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         }
 
         $operationName = $context['operation_name'] ?? null;
-        if ('_api_/routes_manifest/{id}{._format}_get' === $operationName) {
-            $normalized['@id'] = str_replace('routes_manifest', 'routes', $normalized['@id']);
+        if ('_api_/resource_manifest/{id}{._format}_get' === $operationName) {
+            $normalized['@id'] = str_replace('resource_manifest', 'routes', $normalized['@id']);
 
             return [
                 'resource_iris' => $this->buildDepthGroups($normalized),
