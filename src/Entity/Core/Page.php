@@ -17,7 +17,6 @@ use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Component\Serializer\Annotation\Groups;

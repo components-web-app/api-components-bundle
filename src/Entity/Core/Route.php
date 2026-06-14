@@ -89,12 +89,12 @@ class Route
     #[Groups(['Route:redirect:read'])]
     private string $name;
 
-    #[ORM\ManyToOne(targetEntity: Route::class, inversedBy: 'redirectedFrom', fetch: 'EAGER')]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'redirectedFrom', fetch: 'EAGER')]
     #[ORM\JoinColumn(name: 'redirect', onDelete: 'CASCADE', nullable: true)]
     #[Groups(['Route:redirect:read'])]
     private ?Route $redirect = null;
 
-    #[ORM\OneToMany(targetEntity: Route::class, mappedBy: 'redirect', cascade: ['remove'])]
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'redirect', cascade: ['remove'])]
     #[Groups(['Route:redirect:read'])]
     private Collection $redirectedFrom;
 

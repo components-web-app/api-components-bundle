@@ -18,7 +18,6 @@ use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
