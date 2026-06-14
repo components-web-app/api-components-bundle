@@ -100,7 +100,7 @@ Key current group assignments:
 
 ## Feature: Nested Sub-Pages
 
-> **Status: API layer complete and tested. No remaining API work.**
+> **Status: API layer complete and tested. One remaining item: manifest endpoint for non-route entity access (required for admin performance — see below).**
 > Companion plan: see `## Planned Feature: Nested Sub-Pages` in the CWA Nuxt Module CLAUDE.md (`/Users/danielwest/Documents/GitHub/_CWA/cwa-nuxt-3-module/CLAUDE.md`).
 
 ### What we want
@@ -152,9 +152,9 @@ The module uses a single `<CwaPage />` mechanism for all rendering contexts, bot
 
 This means:
 - **Public routes**: manifest delivers `resource_iris` groups; `<CwaPage />` renders the stack from root to deepest leaf, with keepalive preserving ancestor layers when only the deepest layer changes
-- **Admin/draft**: no manifest (no Route yet); `<CwaPage />` fetches the resource by IRI and walks the `parentPage`/`parentPageData` chain to build the same depth stack
+- **Admin/draft**: a manifest endpoint is required — see "What is still missing" below
 
-The API serves both contexts correctly — `resource_iris` groups carry the full tree for public routes, and `parentPage`/`parentPageData` are exposed on every individual resource response for the admin walk.
+The API serves public routes correctly — `resource_iris` groups carry the full tree for public routes, and `parentPage`/`parentPageData` are exposed on every individual resource response as a fallback chain-walk. However admin access also needs a manifest (see below).
 
 ### What is complete ✓
 
@@ -165,7 +165,122 @@ The API serves both contexts correctly — `resource_iris` groups carry the full
 
 ### What is still missing (API bundle)
 
-Nothing — the API layer for nested sub-pages is complete. The admin parent picker is a module concern; the API already exposes `parentPage`/`parentPageData` on all `AbstractPage`-derived resources.
+**Manifest endpoint for non-route entity access** — required for admin/draft performance.
+
+Without a manifest, admin access to a page by IRI triggers a cascade of serial fetches:
+1. `GET /_/pages/{id}` → returns `componentGroups`, `layout`, `parentPage` etc.
+2. `GET /_/component_groups/{id}` (one per group) → returns `componentPositions`
+3. `GET /_/component_positions/{id}` (one per position) → returns `component`
+4. `GET /component/{id}` (one per component)
+
+That is **4+ serial round-trip levels** before a single component renders. The route manifest exists precisely to eliminate this: one manifest request, then all IRIs in a single parallel batch. Admin access needs the same treatment — a page viewed by IRI (not via a public route) must be fetchable via a manifest endpoint that returns the same `resource_iris: string[][]` structure.
+
+---
+
+#### Implementation: exact steps
+
+**Step A — Add `Get` manifest operations to `Page` and `AbstractPageData`**
+
+In `Page.php`, add alongside the existing `#[ApiResource]`:
+```php
+#[Get(uriTemplate: '/pages_manifest/{id}{._format}', normalizationContext: ['groups' => ['Route:manifest:read']])]
+```
+
+In `AbstractPageData.php`, add:
+```php
+#[Get(uriTemplate: '/abstract_page_data_manifest/{id}{._format}', normalizationContext: ['groups' => ['Route:manifest:read']])]
+```
+
+No special `requirements` needed (IDs are UUIDs, not path strings like routes). No extra security needed beyond the standard read access already on these entities.
+
+**Step B — Extract depth-group logic into a shared trait**
+
+`RouteNormalizer::buildDepthGroups()`, `collectCurrentDepth()`, and `shouldSkipIri()` are self-contained and need to be reused. Extract them into a trait `ManifestNormalizerTrait` (or an abstract base class) so both `RouteNormalizer` and the new normalizer can use them without duplication.
+
+**Step C — Create `AbstractPageManifestNormalizer`**
+
+New class: `src/Serializer/Normalizer/AbstractPageManifestNormalizer.php`
+
+```php
+class AbstractPageManifestNormalizer implements NormalizerInterface, NormalizerAwareInterface
+{
+    use NormalizerAwareTrait;
+    use ManifestNormalizerTrait;
+
+    private const ALREADY_CALLED = 'ABSTRACT_PAGE_MANIFEST_NORMALIZER_ALREADY_CALLED';
+
+    private const MANIFEST_OPERATIONS = [
+        '_api_/pages_manifest/{id}{._format}_get',
+        '_api_/abstract_page_data_manifest/{id}{._format}_get',
+    ];
+
+    public function normalize($object, $format = null, array $context = []): mixed
+    {
+        $context[self::ALREADY_CALLED] = true;
+        $normalized = $this->normalizer->normalize($object, $format, $context);
+
+        $operationName = $context['operation_name'] ?? null;
+        if (\in_array($operationName, self::MANIFEST_OPERATIONS, true)) {
+            return ['resource_iris' => $this->buildDepthGroups($normalized)];
+        }
+
+        return $normalized;
+    }
+
+    public function supportsNormalization($data, $format = null, $context = []): bool
+    {
+        return !isset($context[self::ALREADY_CALLED])
+            && ($data instanceof Page || $data instanceof AbstractPageData);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [AbstractPage::class => false];
+    }
+}
+```
+
+Note: Unlike `RouteNormalizer`, no `@id` rewriting is needed. For routes the manifest IRI is `/routes_manifest/{path}` whereas the canonical IRI is `/_/routes/{path}` — AP3 may resolve `@id` to the manifest URL, requiring a rewrite. For `Page`/`AbstractPageData`, AP3 resolves `@id` from the entity's primary `Get` IRI (`/_/pages/{uuid}`, `/_/abstract_page_datas/{uuid}`), not the manifest endpoint URL. Verify this in tests and add rewriting if needed.
+
+**Step D — Register the new normalizer**
+
+In `src/Resources/config/services_normalizers.php`, add:
+```php
+$services
+    ->set(AbstractPageManifestNormalizer::class)
+    ->autoconfigure(false)
+    ->tag('serializer.normalizer', ['priority' => -499]);
+```
+
+**Step E — Behat tests**
+
+Add scenarios to `features/main/page.feature` (or a new `features/main/page_manifest.feature`):
+
+```gherkin
+Scenario: I can get a manifest for a flat Page
+  Given ... (create a Page with layout and component groups)
+  When I send a GET request to "/pages_manifest/{page-id}"
+  Then the response status code should be 200
+  And the response should have a "resource_iris" key
+  And "resource_iris" should be an array with 1 depth group
+  And the depth group contains IRIs for the page, layout, and component groups
+
+Scenario: I can get a manifest for a nested Page
+  Given ... (create parent PageData + child PageData with parentPageData set)
+  When I send a GET request to "/abstract_page_data_manifest/{child-pagedata-id}"
+  Then "resource_iris" should have 2 depth groups
+  And the first group contains the parent's IRIs
+  And the second group contains the child's IRIs
+
+Scenario: I can get a manifest for a flat AbstractPageData
+  Given ... (create a PageData with no parent)
+  When I send a GET request to "/abstract_page_data_manifest/{pagedata-id}"
+  Then "resource_iris" should be an array with 1 depth group
+```
+
+The existing `features/main/route.feature` nested manifest tests are a good reference for the expected response structure.
+
+The admin parent picker is a module concern; the API already exposes `parentPage`/`parentPageData` on all `AbstractPage`-derived resources.
 
 ### Design decisions
 
@@ -174,5 +289,6 @@ Nothing — the API layer for nested sub-pages is complete. The admin parent pic
 - **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null safely when the parent has no route yet.
 - **Route concatenation is recommended, not required** — `RouteGenerator` prefixes child paths for clean URLs and SEO, but the module's `<CwaPage />` renders depth from manifest data, not URL structure.
 - **`resource_iris` is `string[][]`, not `string[]`** — depth-grouped, root first. The module reads the array index as the rendering depth without any client-side traversal.
-- **Single rendering mechanism** — `<CwaPage />` handles both public routes (manifest depth groups) and admin/draft access (walk `parentPage`/`parentPageData` chain). No URL-depth dependency.
+- **Single rendering mechanism** — `<CwaPage />` uses a manifest in both public and admin/draft contexts. For public routes the route manifest is used; for admin/draft access a page-entity manifest endpoint is used. The chain walk (`parentPage`/`parentPageData`) is a fallback for resources missing from the manifest, not the primary path. No URL-depth dependency.
 - **Hierarchy on AbstractPage, not Route** — Routes are the publication mechanism. Hierarchy must be settable before either page has a public URL.
+- **Manifest for admin is a performance requirement, not an optimisation** — without it, rendering a page requires 4+ serial round trips (page → groups → positions → components). The manifest collapses this to one parallel batch. Both contexts must have manifests.

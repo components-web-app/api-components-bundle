@@ -33,10 +33,6 @@ trait UiTrait
     /**
      * @var Collection|ComponentGroup[]
      */
-    #[ORM\ManyToMany(targetEntity: ComponentGroup::class)]
-    #[Groups(['Route:manifest:read'])]
-    private Collection $componentGroups;
-
     public function __construct()
     {
         $this->initComponentGroups();

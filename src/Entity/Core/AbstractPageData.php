@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -22,10 +23,22 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\Entity]
+#[ORM\Table(name: 'abstract_page_data')]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'dtype', type: 'string', length: 255)]
+#[ORM\AssociationOverrides([
+    new ORM\AssociationOverride(name: 'route', inversedBy: 'pageData'),
+])]
+#[ORM\AttributeOverrides([
+    new ORM\AttributeOverride(name: 'title', column: new ORM\Column(nullable: false)),
+])]
 #[ApiResource]
 #[Get]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
+    #[ORM\ManyToOne(targetEntity: Page::class)]
+    #[ORM\JoinColumn(name: 'page_id', nullable: false)]
     #[Assert\NotBlank(message: 'Please select a page template')]
     #[Groups(['Route:manifest:read'])]
     public Page $page;

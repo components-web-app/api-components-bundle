@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -23,6 +24,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\Entity]
+#[ORM\Table(name: 'component_position')]
 #[Silverback\Timestamped]
 #[ApiResource(mercure: true, order: ['sortValue' => 'ASC'])]
 #[AcbAssert\ComponentPosition]
@@ -35,16 +38,22 @@ class ComponentPosition
     use IdTrait;
     use TimestampedTrait;
 
+    #[ORM\ManyToOne(targetEntity: ComponentGroup::class, inversedBy: 'componentPositions')]
+    #[ORM\JoinColumn(name: 'component_group_id', onDelete: 'CASCADE', nullable: false)]
     #[Assert\NotNull]
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
     public ?ComponentGroup $componentGroup = null;
 
+    #[ORM\ManyToOne(targetEntity: AbstractComponent::class, inversedBy: 'componentPositions')]
+    #[ORM\JoinColumn(name: 'component_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'Route:manifest:read'])]
     public ?AbstractComponent $component = null;
 
+    #[ORM\Column(name: 'page_data_property', nullable: true)]
     #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
     public ?string $pageDataProperty = null;
 
+    #[ORM\Column(name: 'sort_value', type: 'integer')]
     #[Assert\NotNull]
     #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
     public ?int $sortValue = null;

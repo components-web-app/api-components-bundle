@@ -12,11 +12,13 @@
 namespace Silverback\ApiComponentsBundle\Entity\User;
 
 use ApiPlatform\Metadata\ApiProperty;
+use Doctrine\ORM\Mapping as ORM;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -28,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\MappedSuperclass(repositoryClass: UserRepositoryInterface::class)]
 #[Silverback\Timestamped]
 #[UniqueEntity(fields: ['username'], message: 'Sorry, that user already exists in the database.', errorPath: 'username')]
 #[UniqueEntity(fields: ['emailAddress'], message: 'Sorry, that email address already exists in the database.', errorPath: 'emailAddress')]
@@ -37,21 +40,26 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     use IdTrait;
     use TimestampedTrait;
 
+    #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Please enter a username.', allowNull: false, groups: ['Default'])]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $username;
 
+    #[ORM\Column(name: 'email_address', length: 255)]
     #[Assert\NotBlank(message: 'Please enter your email address.', allowNull: false, groups: ['Default'])]
     #[Assert\Email]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $emailAddress;
 
+    #[ORM\Column(type: 'json')]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected array $roles;
 
+    #[ORM\Column(type: 'boolean')]
     #[Groups(['User:superAdmin'])]
     protected bool $enabled;
 
+    #[ORM\Column(length: 255)]
     #[ApiProperty(readable: false, writable: false)]
     protected string $password;
 
@@ -64,12 +72,14 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     /**
      * Random string sent to the user email address in order to verify it.
      */
+    #[ORM\Column(name: 'new_password_confirmation_token', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?string $newPasswordConfirmationToken = null;
 
     #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewPasswordConfirmationToken = null;
 
+    #[ORM\Column(name: 'password_requested_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $passwordRequestedAt = null;
 
@@ -78,9 +88,11 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[Groups(['User:input'])]
     protected ?string $oldPassword = null;
 
+    #[ORM\Column(name: 'password_updated_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $passwordUpdatedAt = null;
 
+    #[ORM\Column(name: 'new_email_address', length: 255, nullable: true)]
     #[Assert\NotBlank(allowNull: true, groups: ['User:emailAddress', 'Default'])]
     #[Assert\Email]
     #[Groups(['User:input', 'User:output', 'User:emailAddress', 'Form:cwa_resource:read:role_user'])]
@@ -89,9 +101,11 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     /**
      * Random string sent to the user's new email address in order to verify it.
      */
+    #[ORM\Column(name: 'new_email_verification_token', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?string $newEmailConfirmationToken = null;
 
+    #[ORM\Column(name: 'new_email_address_change_requested_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     #[Groups(['User:output'])]
     protected ?\DateTime $newEmailAddressChangeRequestedAt = null;
@@ -99,6 +113,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[ApiProperty(readable: false, writable: false)]
     public ?string $plainNewEmailConfirmationToken = null;
 
+    #[ORM\Column(name: 'email_address_verified', type: 'boolean')]
     #[ApiProperty(readable: true, writable: false)]
     #[Groups(['User:output', 'Form:cwa_resource:read'])]
     protected bool $emailAddressVerified = false;
@@ -106,15 +121,18 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     /**
      * Random string sent to previous email address when email is changed to permit email restore and password change.
      */
+    #[ORM\Column(name: 'email_address_verify_token', length: 255, nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?string $emailAddressVerifyToken = null;
 
     #[ApiProperty(readable: false, writable: false)]
     public ?string $plainEmailAddressVerifyToken = null;
 
+    #[ORM\Column(name: 'email_last_updated_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $emailLastUpdatedAt = null;
 
+    #[ORM\Column(name: 'email_address_verification_requested_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $emailAddressVerificationRequestedAt = null;
 

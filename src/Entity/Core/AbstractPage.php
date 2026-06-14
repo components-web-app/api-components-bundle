@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -23,6 +24,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @internal
  */
+#[ORM\MappedSuperclass]
 #[Silverback\Timestamped]
 #[UniqueEntity('route', message: 'The route must be unique.')]
 #[Assert\Expression(
@@ -34,17 +36,25 @@ abstract class AbstractPage implements RoutableInterface
     use IdTrait;
     use TimestampedTrait;
 
+    #[ORM\OneToOne(targetEntity: Route::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(name: 'route_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['Route:manifest:read'])]
     protected ?Route $route = null;
 
+    #[ORM\ManyToOne(targetEntity: Page::class)]
+    #[ORM\JoinColumn(name: 'parent_page_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['Route:manifest:read'])]
     protected ?Page $parentPage = null;
 
+    #[ORM\ManyToOne(targetEntity: AbstractPageData::class)]
+    #[ORM\JoinColumn(name: 'parent_page_data_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['Route:manifest:read'])]
     protected ?AbstractPageData $parentPageData = null;
 
+    #[ORM\Column(nullable: true)]
     protected ?string $title = 'Unnamed Page';
 
+    #[ORM\Column(name: 'meta_description', nullable: true)]
     protected ?string $metaDescription = null;
 
     public function getRoute(): ?Route

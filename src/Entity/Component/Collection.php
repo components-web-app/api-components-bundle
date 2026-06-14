@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 class Collection extends AbstractComponent
 {
-    #[ORM\Column(nullable: false)]
+    #[ORM\Column(name: 'resource_class', nullable: true)]
     #[Assert\NotNull(message: 'The resource iri for a collection component is required')]
     #[AcbAssert\ResourceIri]
     private ?string $resourceIri;

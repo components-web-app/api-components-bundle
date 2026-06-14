@@ -20,11 +20,14 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Repository\Core\SiteConfigParameterRepository;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\Entity(repositoryClass: SiteConfigParameterRepository::class)]
+#[ORM\Table(name: 'site_config_parameter')]
 #[ApiResource(
     mercure: true,
     paginationEnabled: false,

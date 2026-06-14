@@ -15,6 +15,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 
@@ -24,6 +26,10 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
  *
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\Entity]
+#[ORM\Table(name: 'abstract_component')]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'dtype', type: 'string', length: 255)]
 #[ApiResource]
 #[Get]
 abstract class AbstractComponent implements ComponentInterface
@@ -31,13 +37,17 @@ abstract class AbstractComponent implements ComponentInterface
     use IdTrait;
     use UiTrait;
 
-    /**
-     * @var Collection|ComponentPosition[]
-     */
+    #[ORM\ManyToMany(targetEntity: ComponentGroup::class, inversedBy: 'components')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
+    private Collection $componentGroups;
+
+    #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'component', cascade: ['persist'])]
     private Collection $componentPositions;
 
     public function __construct()
     {
+        $this->componentGroups = new ArrayCollection();
         $this->initComponentGroups();
         $this->componentPositions = new ArrayCollection();
     }

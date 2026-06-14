@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -29,6 +30,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @description This is an internal class because we will detect when it is orphaned from known locations and delete it automatically
  */
+#[ORM\Entity]
+#[ORM\Table(name: 'component_group')]
 #[Silverback\Timestamped]
 #[ApiResource(
     requirements: ['id' => '.+'],
@@ -43,41 +46,34 @@ class ComponentGroup
     use IdTrait;
     use TimestampedTrait;
 
+    #[ORM\Column(unique: true)]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     #[Assert\NotBlank(message: 'The reference cannot be blank.')]
     public ?string $reference = null;
 
+    #[ORM\Column]
     #[Assert\NotBlank(message: 'The location cannot be blank.')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public ?string $location = null;
 
-    /**
-     * @var Collection|Layout[]
-     */
+    #[ORM\ManyToMany(targetEntity: Layout::class, mappedBy: 'componentGroups')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $layouts;
 
-    /**
-     * @var Collection|Page[]
-     */
+    #[ORM\ManyToMany(targetEntity: Page::class, mappedBy: 'componentGroups')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $pages;
 
-    /**
-     * @var Collection|AbstractComponent[]
-     */
+    #[ORM\ManyToMany(targetEntity: AbstractComponent::class, mappedBy: 'componentGroups')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public Collection $components;
 
-    /**
-     * @var Collection|ComponentPosition[]
-     */
+    #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'componentGroup', orphanRemoval: true)]
+    #[ORM\OrderBy(['sortValue' => 'ASC'])]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Route:manifest:read'])]
     public Collection $componentPositions;
 
-    /**
-     * @var string[]|null
-     */
+    #[ORM\Column(name: 'allowed_components', type: 'json', nullable: true)]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     public ?array $allowedComponents = null;
 

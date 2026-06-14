@@ -22,11 +22,13 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -37,6 +39,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Daniel West <daniel@silverback.is>
  */
+#[ORM\Entity(repositoryClass: RouteRepository::class)]
+#[ORM\Table(name: 'route')]
 #[Assert\Expression(
     '!(this.getPage() == null & this.getPageData() == null & this.getRedirect() == null)',
     message: 'Please specify either page, pageData or redirect.',
@@ -75,23 +79,30 @@ class Route
     private const array API_REQUIREMENTS = ['id' => '(.+)'];
     private const string API_SECURITY = "is_granted('read_route', object)";
 
+    #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
     #[Groups(['Route:redirect:read'])]
     private string $path = '';
 
+    #[ORM\Column(unique: true)]
     #[Assert\NotNull]
     #[Groups(['Route:redirect:read'])]
     private string $name;
 
+    #[ORM\ManyToOne(targetEntity: Route::class, inversedBy: 'redirectedFrom', fetch: 'EAGER')]
+    #[ORM\JoinColumn(name: 'redirect', onDelete: 'CASCADE', nullable: true)]
     #[Groups(['Route:redirect:read'])]
     private ?Route $redirect = null;
 
+    #[ORM\OneToMany(targetEntity: Route::class, mappedBy: 'redirect', cascade: ['remove'])]
     #[Groups(['Route:redirect:read'])]
     private Collection $redirectedFrom;
 
+    #[ORM\OneToOne(targetEntity: Page::class, mappedBy: 'route')]
     #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?Page $page = null;
 
+    #[ORM\OneToOne(targetEntity: AbstractPageData::class, mappedBy: 'route')]
     #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?AbstractPageData $pageData = null;
 
