@@ -646,6 +646,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
         $this->manager->persist($pageData);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+        $this->restContext->resources['page_data_manifest'] = '/_/resource_manifest/' . $pageData->getId();
 
         if ($path) {
             $route = new Route();
@@ -700,6 +701,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($childRoute, true);
         $this->manager->persist($childRoute);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
+        $this->restContext->resources['page_data_manifest'] = '/_/resource_manifest/' . $childPageData->getId();
         $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childRoute);
 
         $this->manager->flush();

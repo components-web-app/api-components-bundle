@@ -93,3 +93,19 @@ Feature: Page resources
     Given there is a Page
     When I send a "DELETE" request to the resource "page"
     Then the response status code should be 204
+
+  @loginAdmin
+  Scenario: I can get a resource manifest for a flat PageData by UUID
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to the resource "page_data_manifest"
+    Then the response status code should be 200
+    And the JSON node "resource_iris" should have 1 element
+    And the JSON node "resource_iris[0][0]" should be equal to the IRI of the resource "page_data"
+
+  @loginAdmin
+  Scenario: I can get a resource manifest for a nested PageData by UUID
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "GET" request to the resource "page_data_manifest"
+    Then the response status code should be 200
+    And the JSON node "resource_iris" should have 2 elements
+    And the JSON node "resource_iris[1][0]" should be equal to the IRI of the resource "page_data"

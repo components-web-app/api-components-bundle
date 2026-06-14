@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -22,6 +23,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
+    use ManifestDepthGroupTrait;
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'ROUTE_NORMALIZER_ALREADY_CALLED';
@@ -61,79 +63,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
             $normalized['redirectPath'] = $finalRoute->getPath();
         }
 
-        $operationName = $context['operation_name'] ?? null;
-        if ('_api_/resource_manifest/{id}{._format}_get' === $operationName) {
-            $normalized['@id'] = str_replace('resource_manifest', 'routes', $normalized['@id']);
-
-            return [
-                'resource_iris' => $this->buildDepthGroups($normalized),
-            ];
-        }
-
         return $normalized;
-    }
-
-    /**
-     * Returns IRIs grouped by rendering depth, root first.
-     * parentPage/parentPageData fields mark depth boundaries — everything reachable
-     * without crossing those fields belongs to the same depth group.
-     */
-    private function buildDepthGroups(array $resource): array
-    {
-        [$currentIris, $parentResources] = $this->collectCurrentDepth($resource, [], []);
-
-        if (empty($parentResources)) {
-            return [array_values(array_unique($currentIris))];
-        }
-
-        $ancestorGroups = $this->buildDepthGroups($parentResources[0]);
-
-        return [...$ancestorGroups, array_values(array_unique($currentIris))];
-    }
-
-    /**
-     * Collects IRIs at the current depth without crossing parentPage/parentPageData boundaries.
-     * Returns [$iris, $parentResources] where $parentResources are the objects found behind
-     * those boundary fields (at most one, but returned as array for uniformity).
-     *
-     * @return array{0: string[], 1: array[]}
-     */
-    private function collectCurrentDepth(array $resource, array $iris, array $parentResources): array
-    {
-        $id = $resource['@id'] ?? null;
-        if ($id && !$this->shouldSkipIri($id) && !\in_array($id, $iris, true)) {
-            $iris[] = $id;
-        }
-
-        foreach ($resource as $key => $value) {
-            if (!\is_array($value)) {
-                continue;
-            }
-
-            if (\in_array($key, ['parentPage', 'parentPageData'], true)) {
-                if (isset($value['@id'])) {
-                    $parentResources[] = $value;
-                }
-                continue;
-            }
-
-            if (isset($value['@id'])) {
-                [$iris, $parentResources] = $this->collectCurrentDepth($value, $iris, $parentResources);
-            } else {
-                foreach ($value as $nested) {
-                    if (isset($nested['@id'])) {
-                        [$iris, $parentResources] = $this->collectCurrentDepth($nested, $iris, $parentResources);
-                    }
-                }
-            }
-        }
-
-        return [$iris, $parentResources];
-    }
-
-    private function shouldSkipIri(string $iri): bool
-    {
-        return str_contains($iri, '/.well-known/') || str_ends_with($iri, '/_/resource_metadatas');
     }
 
     public function supportsNormalization($data, $format = null, $context = []): bool

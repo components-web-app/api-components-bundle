@@ -49,6 +49,7 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -146,6 +147,7 @@ use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
+use Silverback\ApiComponentsBundle\Security\Voter\ResourceManifestVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
@@ -941,6 +943,20 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(DenyAccessListener::class),
         ])
         ->tag('security.voter');
+
+    $services
+        ->set(ResourceManifestVoter::class)
+        ->args([new Reference(Security::class)])
+        ->tag('security.voter');
+
+    $services
+        ->set(ResourceManifestStateProvider::class)
+        ->args([
+            new Reference('silverback.doctrine.repository.route'),
+            new Reference(EntityManagerInterface::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
 
     $services
         ->set(RoutingPrefixResourceMetadataCollectionFactory::class)
