@@ -98,21 +98,21 @@ abstract class AbstractPage implements RoutableInterface
     public function validateNoCircularParent(ExecutionContextInterface $context): void
     {
         $parent = $this->parentPage ?? $this->parentPageData;
-        if ($parent === null) {
+        if (null === $parent) {
             return;
         }
 
         $visitedIds = [];
-        if ($this->id !== null) {
+        if (null !== $this->id) {
             $visitedIds[] = $this->id->toString();
         }
 
-        while ($parent !== null) {
+        while (null !== $parent) {
             $parentId = $parent->getId();
-            if ($parentId !== null) {
+            if (null !== $parentId) {
                 $parentIdStr = $parentId->toString();
                 if (\in_array($parentIdStr, $visitedIds, true)) {
-                    $field = $this->parentPage !== null ? 'parentPage' : 'parentPageData';
+                    $field = null !== $this->parentPage ? 'parentPage' : 'parentPageData';
                     $context->buildViolation('Setting this parent would create a circular reference.')
                         ->atPath($field)
                         ->addViolation();
