@@ -24,8 +24,11 @@ class FormTypeClass extends Constraint
 {
     public string $message;
 
-    public function __construct($options = null)
-    {
+    public function __construct(
+        ?string $message = null,
+        ?array $groups = null,
+        mixed $payload = null,
+    ) {
         $conditionsStr = vsprintf(
             'It should extend %s, implement %s or tagged %s',
             [
@@ -34,8 +37,8 @@ class FormTypeClass extends Constraint
                 'silverback_api_components.form_type',
             ]
         );
-        $this->message = 'The string "{{ string }}" does not refer to a class configured correctly as a form type. ' . $conditionsStr;
+        $this->message = $message ?? 'The string "{{ string }}" does not refer to a class configured correctly as a form type. ' . $conditionsStr;
 
-        parent::__construct($options);
+        parent::__construct([], $groups, $payload);
     }
 }

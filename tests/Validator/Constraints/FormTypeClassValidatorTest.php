@@ -141,7 +141,7 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_form_type_class_options_passed_to_parent(): void
     {
-        $constraint = new FormTypeClass(['message' => 'different message option']);
+        $constraint = new FormTypeClass(message: 'different message option');
         $this->assertEquals('different message option', $constraint->message);
     }
 }
