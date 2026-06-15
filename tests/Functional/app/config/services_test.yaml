@@ -3,6 +3,10 @@ services:
         autowire: true
         autoconfigure: true
 
+    Doctrine\DBAL\Driver\AbstractSQLiteDriver\Middleware\EnableForeignKeys:
+        tags:
+            - { name: doctrine.middleware, priority: 101 }
+
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
 

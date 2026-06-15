@@ -19,7 +19,7 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
-use Doctrine\ORM\Tools\SchemaTool;
+use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
@@ -67,9 +67,7 @@ final class DoctrineContext implements Context
     private IriConverterInterface $iriConverter;
     private TimestampedDataPersister $timestampedHelper;
     private ObjectManager $manager;
-    private SchemaTool $schemaTool;
     private UserPasswordHasherInterface $passwordHasher;
-    private array $classes;
     private JWTEncoderInterface $jwtEncoder;
     private JsonContext $jsonContext;
 
@@ -87,8 +85,6 @@ final class DoctrineContext implements Context
         $this->iriConverter = $iriConverter;
         $this->timestampedHelper = $timestampedHelper;
         $this->manager = $doctrine->getManager();
-        $this->schemaTool = new SchemaTool($this->manager);
-        $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
         $this->passwordHasher = $passwordHasher;
         $this->jwtEncoder = $jwtEncoder;
     }
@@ -96,9 +92,12 @@ final class DoctrineContext implements Context
     /**
      * @BeforeSuite
      */
-    public static function clearAppCache(): void
+    public static function prepareTestSuite(): void
     {
         exec('php tests/Functional/app/bin/console cache:clear --env=test --no-warmup');
+        exec('php tests/Functional/app/bin/console doctrine:database:drop --force --env=test 2>/dev/null; true');
+        exec('php tests/Functional/app/bin/console doctrine:database:create --env=test');
+        exec('php tests/Functional/app/bin/console doctrine:schema:create --env=test');
     }
 
     /**
@@ -115,11 +114,20 @@ final class DoctrineContext implements Context
     /**
      * @BeforeScenario
      */
-    public function createDatabase(): void
+    public function setupDatabase(): void
     {
-        $this->schemaTool->dropSchema($this->classes);
-        $this->doctrine->getManager()->clear();
-        $this->schemaTool->createSchema($this->classes);
+        StaticDriver::setKeepStaticConnections(true);
+        StaticDriver::beginTransaction();
+        $this->manager->clear();
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function rollbackDatabase(): void
+    {
+        StaticDriver::rollBack();
+        $this->manager->clear();
     }
 
     private function login(array $roles = [], $useAuthHeader = false): void

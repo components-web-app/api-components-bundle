@@ -26,15 +26,15 @@ Companion project: **CWA Nuxt Module** (`@cwa/nuxt`) — the frontend that consu
 
 ```bash
 # Unit tests
-bin/phpunit
+php -d memory_limit=256M vendor/bin/phpunit
 
 # Integration tests (Behat)
-bin/behat
+php -d memory_limit=256M vendor/bin/behat
 
 # Database setup for tests
-bin/console -e test doctrine:database:create
-bin/console -e test doctrine:migrations:migrate --no-interaction
-bin/console -e test doctrine:schema:validate
+php tests/Functional/app/bin/console -e test doctrine:database:create
+php tests/Functional/app/bin/console -e test doctrine:migrations:migrate --no-interaction
+php tests/Functional/app/bin/console -e test doctrine:schema:validate
 ```
 
 Behat features live in `features/`. PHPUnit tests in `tests/`. Behat coverage is more extensive than unit — prefer adding Behat scenarios for new API behaviour, unit tests for pure logic.
@@ -163,6 +163,14 @@ This means:
 4. **Behat tests** — `features/main/route.feature`: nested PageData and nested Page manifests both tested; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422), PATCH to set parentPage (200), flat PageData manifest (200), nested PageData manifest (200)
 5. **`/_/resource_manifest/{id}` unified endpoint** — `ResourceManifest` DTO (`src/ApiResource/ResourceManifest.php`) with `ResourceManifestStateProvider` resolving route paths (starts with `/`) or UUIDs (Page then AbstractPageData). `ResourceManifestVoter` delegates access control to `RouteVoter` or `AbstractRoutableVoter`. `ResourceManifestNormalizer` produces `{ "resource_iris": string[][] }` using the shared `ManifestDepthGroupTrait`.
 6. **`ManifestDepthGroupTrait`** (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) — `buildDepthGroups`, `collectCurrentDepth`, `shouldSkipIri` extracted and shared between `RouteNormalizer` and `ResourceManifestNormalizer`
+
+### Outstanding — `parentPage` in standard Page read group
+
+**Requirement (discovered 2026-06-15):** The Nuxt module's admin parent-page picker must filter out descendants of the current page to prevent circular parent chains (e.g. A → B → A). The picker is populated from `GET /_/pages` (via `useParentPageLoader`). To detect descendants client-side, each page in that collection response must include its own `parentPage` IRI.
+
+Currently `parentPage` is only in `Route:manifest:read`. It needs to be added to whatever serialization group drives the `/_/pages` collection read (e.g. `Page:read` or a shared `AbstractPage:read` group). This satisfies the principle of least exposure — there is a concrete consumer (the admin picker descendant-filter).
+
+A Behat test should cover: `GET /_/pages` response includes `parentPage` for a page that has one set.
 
 ### Design decisions
 

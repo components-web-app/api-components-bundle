@@ -65,6 +65,7 @@
         "behat/behat": "^3.13",
         "behat/mink": "*",
         "behatch/contexts": "dev-master",
+        "dama/doctrine-test-bundle": "^8.6",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friends-of-behat/mink-browserkit-driver": "^1.6",
         "friends-of-behat/mink-extension": "^2.7",
