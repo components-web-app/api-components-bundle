@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -91,6 +92,37 @@ abstract class AbstractPage implements RoutableInterface
         $this->parentPageData = $parentPageData;
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateNoCircularParent(ExecutionContextInterface $context): void
+    {
+        $parent = $this->parentPage ?? $this->parentPageData;
+        if ($parent === null) {
+            return;
+        }
+
+        $visitedIds = [];
+        if ($this->id !== null) {
+            $visitedIds[] = $this->id->toString();
+        }
+
+        while ($parent !== null) {
+            $parentId = $parent->getId();
+            if ($parentId !== null) {
+                $parentIdStr = $parentId->toString();
+                if (\in_array($parentIdStr, $visitedIds, true)) {
+                    $field = $this->parentPage !== null ? 'parentPage' : 'parentPageData';
+                    $context->buildViolation('Setting this parent would create a circular reference.')
+                        ->atPath($field)
+                        ->addViolation();
+
+                    return;
+                }
+                $visitedIds[] = $parentIdStr;
+            }
+            $parent = $parent->getParentPage() ?? $parent->getParentPageData();
+        }
     }
 
     public function getParentPageRoute(): ?Route

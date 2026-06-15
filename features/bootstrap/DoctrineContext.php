@@ -437,6 +437,47 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a page with parent page :parentRef
+     */
+    public function thereIsAPageWithParentPage(string $parentRef): void
+    {
+        /** @var Page $parent */
+        $parent = $this->iriConverter->getResourceFromIri($this->restContext->resources[$parentRef]);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'child-page';
+        $page->setParentPage($parent);
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->resources['child_page'] = $this->iriConverter->getIriFromResource($page);
+    }
+
+    /**
+     * @Given there is a page data with parent page :parentRef
+     */
+    public function thereIsAPageDataWithParentPage(string $parentRef): void
+    {
+        /** @var Page $parent */
+        $parent = $this->iriConverter->getResourceFromIri($this->restContext->resources[$parentRef]);
+
+        $templatePage = new Page();
+        $templatePage->isTemplate = true;
+        $templatePage->reference = 'page-data-template';
+        $this->timestampedHelper->persistTimestampedFields($templatePage, true);
+        $this->manager->persist($templatePage);
+
+        $pageData = new PageData();
+        $pageData->page = $templatePage;
+        $pageData->setParentPage($parent);
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->manager->flush();
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+    }
+
+    /**
      * @Given there is a Page
      */
     public function thereIsAPage(string $reference = 'page'): Page

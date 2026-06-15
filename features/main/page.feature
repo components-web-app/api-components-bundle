@@ -48,6 +48,35 @@ Feature: Page resources
     Then the response status code should be 200
     And the JSON node "parentPage" should be equal to the IRI of the resource "page"
 
+  @loginAdmin
+  Scenario: I cannot set a page as its own parent
+    Given there is a Page
+    When I send a "PATCH" request to the resource "page" with data:
+      | parentPage     |
+      | resource[page] |
+    Then the response status code should be 422
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
+
+  @loginAdmin
+  Scenario: I cannot create a circular parent chain between two pages
+    Given there is a Page
+    And there is a page with parent page "page"
+    When I send a "PATCH" request to the resource "page" with data:
+      | parentPage           |
+      | resource[child_page] |
+    Then the response status code should be 422
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
+
+  @loginAdmin
+  Scenario: I cannot create a circular parent chain across mixed Page and PageData parents
+    Given there is a Page
+    And there is a page data with parent page "page"
+    When I send a "PATCH" request to the resource "page" with data:
+      | parentPageData      |
+      | resource[page_data] |
+    Then the response status code should be 422
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
+
   @loginUser
   Scenario: I cannot set both a parent Page and a parent PageData on a page
     Given there is a Layout
