@@ -28,6 +28,9 @@ api_platform:
     # event listeners will always be available...
     # we do recommend using providers/processors instead
     use_symfony_listeners: true
+    exception_to_status:
+        Symfony\Component\Serializer\Exception\NotNormalizableValueException: 422
+        TypeError: 422
     defaults:
         standard_put: true
         extra_properties:

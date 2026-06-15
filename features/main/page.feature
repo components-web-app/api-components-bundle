@@ -110,7 +110,7 @@ Feature: Page resources
     When I send a "POST" request to "/_/pages" with data:
       | layout    | reference   | isTemplate |
       | <layout>  | <reference> | false      |
-    Then the response status code should be 500
+    Then the response status code should be 422
     And the JSON should be valid according to the schema file "error.schema.json"
     And the JSON node "description" should be equal to the string '<message>'
     Examples:

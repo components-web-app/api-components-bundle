@@ -52,6 +52,7 @@ jobs:
           - '8.5'
         symfony:
           - '7.4'
+          - '8.1'
         experimental:
             - false
         include:
@@ -111,14 +112,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-logs-php${{ matrix.php }}
+          name: phpunit-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           path: build/logs/phpunit
         continue-on-error: true
       - name: Upload coverage results to Codecov
         if: matrix.coverage
         uses: codecov/codecov-action@v3
         with:
-          name: phpunit-php${{ matrix.php }}
+          name: phpunit-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           flags: phpunit
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -150,6 +151,7 @@ jobs:
           - '8.5'
         symfony:
           - '7.4'
+          - '8.1'
         experimental:
           - false
         include:
@@ -213,14 +215,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: behat-logs-php${{ matrix.php }}
+          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           path: build/logs/behat
         continue-on-error: true
       - name: Upload coverage results to Codecov
         if: matrix.coverage
         uses: codecov/codecov-action@v3
         with:
-          name: behat-php${{ matrix.php }}
+          name: behat-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           flags: behat
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -341,7 +343,7 @@ jobs:
         php:
           - '8.5'
         symfony:
-          - '8.0'
+          - '8.2'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -374,7 +376,8 @@ jobs:
         continue-on-error: true
       - name: Update project dependencies
         run: |
-          composer config minimum-stability dev  
+          composer config extra.symfony.require ${{ matrix.symfony }}
+          composer config minimum-stability dev
           composer config prefer-stable false
           composer update --no-progress --ansi
       - name: Flag held back Symfony packages
@@ -413,7 +416,7 @@ jobs:
         php:
           - '8.5'
         symfony:
-          - '8.0'
+          - '8.2'
       fail-fast: false
     timeout-minutes: 20
     steps:
@@ -446,7 +449,8 @@ jobs:
         continue-on-error: true
       - name: Update project dependencies
         run: |
-          composer config minimum-stability dev  
+          composer config extra.symfony.require ${{ matrix.symfony }}
+          composer config minimum-stability dev
           composer config prefer-stable false
           composer update --no-progress --ansi
       - name: Clear test app cache
