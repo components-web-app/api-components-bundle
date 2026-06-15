@@ -67,8 +67,8 @@ class Page extends AbstractPage
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
-            'message' => 'Please specify a UI component.',
-        ]));
+        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank(
+            message: 'Please specify a UI component.',
+        ));
     }
 }

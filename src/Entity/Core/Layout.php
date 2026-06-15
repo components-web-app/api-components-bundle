@@ -65,8 +65,8 @@ class Layout
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void
     {
-        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank([
-            'message' => 'You must define the uiComponent for this resource.',
-        ]));
+        $metadata->addPropertyConstraint('uiComponent', new Assert\NotBlank(
+            message: 'You must define the uiComponent for this resource.',
+        ));
     }
 }
