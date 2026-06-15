@@ -51,6 +51,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected ?string $emailAddress;
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
     protected array $roles;
@@ -183,7 +184,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
 
     public function setRoles(array $roles): self
     {
-        $this->roles = $roles;
+        $this->roles = array_values($roles);
 
         return $this;
     }

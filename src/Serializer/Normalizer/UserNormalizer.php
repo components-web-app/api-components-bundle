@@ -81,7 +81,7 @@ class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterfac
         $context[self::ALREADY_CALLED] = true;
 
         $rolesAsEntities = $object->getRoles();
-        $object->setRoles($this->roleHierarchy->getReachableRoleNames($rolesAsEntities));
+        $object->setRoles(array_values($this->roleHierarchy->getReachableRoleNames($rolesAsEntities)));
 
         $subscribeTopics = $this->mercureAuthorization->getSubscribeTopics();
         $metadata = $this->resourceMetadataProvider->findResourceMetadata($object);
