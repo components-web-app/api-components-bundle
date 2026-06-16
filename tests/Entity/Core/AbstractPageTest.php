@@ -135,6 +135,25 @@ class AbstractPageTest extends TestCase
         $pageData->validateNoCircularParent($this->makeContext(1, 'parentPageData'));
     }
 
+    public function test_parent_page_is_checked_before_parent_page_data_in_cycle_detection(): void
+    {
+        // parentPage creates a cycle; parentPageData does not.
+        // If the coalesce order were swapped ($parentPageData ?? $parentPage) the cycle
+        // would be missed because parentPageData has no parent chain.
+        $subject = $this->makePage('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        $cyclingParent = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+        $cyclingParent->setParentPage($subject); // creates A→B→A cycle
+
+        $safePageData = new TestPageData();
+        $safePageData->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
+        // safePageData has no parent — no cycle
+
+        $subject->setParentPage($cyclingParent);
+        $subject->setParentPageData($safePageData); // both set (invalid in production, valid for unit testing logic)
+
+        $subject->validateNoCircularParent($this->makeContext(1, 'parentPage'));
+    }
+
     public function test_get_parent_page_route_returns_parent_route(): void
     {
         $route = new Route();
@@ -145,6 +164,31 @@ class AbstractPageTest extends TestCase
         $child->setParentPage($parent);
 
         $this->assertSame($route, $child->getParentPageRoute());
+    }
+
+    public function test_get_parent_page_route_prefers_parent_page_over_parent_page_data(): void
+    {
+        // Exercises the coalesce in getParentPageRoute: parentPage?->getRoute() ?? parentPageData?->getRoute()
+        // Both parents have routes; the parentPage route must win.
+        // A swapped coalesce (parentPageData?->getRoute() ?? parentPage?->getRoute()) would return routeB instead.
+        $routeA = new Route();
+        $routeA->setPath('/page-route');
+
+        $routeB = new Route();
+        $routeB->setPath('/pagedata-route');
+
+        $parentPage = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+        $parentPage->setRoute($routeA);
+
+        $parentPageData = new TestPageData();
+        $parentPageData->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
+        $parentPageData->setRoute($routeB);
+
+        $child = $this->makePage('dddddddd-dddd-dddd-dddd-dddddddddddd');
+        $child->setParentPage($parentPage);
+        $child->setParentPageData($parentPageData);
+
+        $this->assertSame($routeA, $child->getParentPageRoute());
     }
 
     public function test_get_parent_page_route_returns_null_when_parent_has_no_route(): void
