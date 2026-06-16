@@ -15,6 +15,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -24,9 +25,11 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 trait UiTrait
 {
     #[ORM\Column(nullable: true)]
+    #[Groups(['Layout:read', 'Layout:write'])]
     public ?string $uiComponent = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['Layout:read', 'Layout:write'])]
     public ?array $uiClassNames = null;
 
     /**

@@ -112,6 +112,23 @@ Key current group assignments:
 - `AbstractPageData`: `page` (the Page template IRI) → `Route:manifest:read`
 - `AbstractPage`: `route`, `parentPage`, `parentPageData` → `Route:manifest:read`
 
+### Bug: `Layout.componentGroups` returns embedded objects instead of IRIs
+
+**Symptom (discovered 2026-06-16):** The navigation bar is empty for unauthenticated users. No failed requests appear in the network tab — the layout's component group contents are simply never fetched.
+
+**Root cause:** `GET /_api/_/layouts/{uuid}` returns `componentGroups` as **full embedded objects**:
+```json
+"componentGroups": [{ "@id": "/_api/_/component_groups/...", "location": "top", "componentPositions": [...] }]
+```
+
+The module's `fetchAssociatedResources` expects all associated property values to be **IRI strings** (this is both the module's contract and the caching architecture principle: "Never embed related resource data — always return IRIs"). Receiving objects instead of strings causes a silent TypeError (`object.split is not a function`) that is swallowed by `fetchBatch`, so the component groups are never stored and `CwaComponentGroup` finds nothing.
+
+**Why page content still works:** The manifest response includes page component group IRIs directly in `resource_iris`, so they are fetched as standalone resources in the manifest batch. Layouts have no manifest and rely entirely on `fetchAssociatedResources`.
+
+**Required fix:** Change the `Layout` serialization group so `componentGroups` is serialized as an array of IRI strings only (not embedded objects). Check `ComponentGroup.componentPositions` for the same issue — the module also expects these to be IRI strings.
+
+The module will be updated with a defensive `@id` extraction as a fallback, but the correct fix is here: the API must return IRIs, not embedded objects, for all associated resource properties.
+
 ### API endpoints
 
 | Endpoint | Purpose |
@@ -195,6 +212,139 @@ This means:
 Currently `parentPage` is only in `Route:manifest:read`. It needs to be added to whatever serialization group drives the `/_/pages` collection read (e.g. `Page:read` or a shared `AbstractPage:read` group). This satisfies the principle of least exposure — there is a concrete consumer (the admin picker descendant-filter).
 
 A Behat test should cover: `GET /_/pages` response includes `parentPage` for a page that has one set.
+
+### Outstanding — UUID-based manifest must walk the `parentPage` chain
+
+**Bug (discovered 2026-06-16):** When the Nuxt module admin accesses a nested `Page` entity directly via its admin URL (e.g. `/_cwa/%2F_api%2F_%2Fpages%2F{child-uuid}`), the fetcher calls `GET /_api/_/resource_manifest/{child-uuid}`. The module code is correct: it uses `irisByDepth[0]` as the parent depth and renders `pageIriAtDepth(depth)` for each level. However, the admin admin page displays only a placeholder (no parent content) because the manifest endpoint currently returns only the accessed page in a single depth group — it does not walk the `parentPage`/`parentPageData` chain upward.
+
+**Required fix:** `ResourceManifestNormalizer` (or `ResourceManifestStateProvider`) when resolving by Page UUID must walk the `parentPage`/`parentPageData` chain to the root and produce `resource_iris: string[][]` with one inner array per depth level, root first — exactly as the route-path path does when the manifest normalizer walks the embedded parent sub-tree via the `Route:manifest:read` group.
+
+For a chapter `Page` entity whose `parentPage` is a topic `Page`:
+```json
+{
+  "resource_iris": [
+    ["/_/pages/topic-uuid", "/_/component_groups/...", ...],
+    ["/_/pages/chapter-uuid", "/_/component_groups/...", ...]
+  ]
+}
+```
+
+The fix should mirror what `RouteNormalizer` does when following `parentPage`/`parentPageData` during route-based manifest generation. The `ManifestDepthGroupTrait` `buildDepthGroups` should already handle this if the correct sub-tree is passed in — check whether `ResourceManifestNormalizer` is passing the full serialized entity (including embedded parent data) or only the top-level page object.
+
+A Behat test should cover: `GET /_/resource_manifest/{child-page-uuid}` for a page with `parentPage` set returns `resource_iris` with two depth groups (parent resources first, child resources last).
+
+---
+
+## Feature: CwaFixtureBuilder
+
+> **Status: Design agreed, not yet implemented.**
+
+A fluent builder API that lets developers scaffold CWA website structure (layouts, pages, component groups, components, routes) in Doctrine fixture code with minimal boilerplate. The Doctrine Fixtures Bundle handles execution; this feature adds the ergonomic PHP API on top.
+
+### Dream developer API
+
+```php
+class AppScaffold extends AbstractCwaScaffold
+{
+    public function build(CwaFixtureBuilder $cwa): void
+    {
+        $cwa->layout('default', 'CwaLayout', function(LayoutBuilder $layout) {
+            $layout->group('navigation', fn(GroupBuilder $g) => $g
+                ->add(new NavigationLink('Home', '/'))
+                ->add(new NavigationLink('Blog', '/blog'))
+            );
+        });
+
+        $cwa->page('home', 'HomePage', layout: 'default', route: '/', function(PageBuilder $page) {
+            $page->group('hero', fn(GroupBuilder $g) => $g->add(new HtmlContent('<h1>Welcome</h1>')));
+            $page->group('body', fn(GroupBuilder $g) => $g->add(new HtmlContent('Intro text')));
+        });
+
+        // Complex pages extract cleanly to private methods via PHP 8.1 first-class callables
+        $cwa->page('blog', 'BlogPage', layout: 'default', route: '/blog', $this->buildBlog(...));
+
+        $cwa->page('conference', 'ConferencePage', layout: 'default', route: '/conference', $this->buildConference(...));
+    }
+
+    private function buildBlog(PageBuilder $page): void
+    {
+        $page->group('listing', fn(GroupBuilder $g) => $g->add(new Collection()));
+        $page->nested($this->buildBlogArticles(...));
+    }
+
+    private function buildBlogArticles(CwaFixtureBuilder $cwa): void
+    {
+        foreach ($this->articles() as $data) {
+            // route auto-generated: /blog/first-post (parent path + slug from title via RouteGenerator)
+            $cwa->pageData(new BlogArticleData(title: $data['title']), template: 'blog-article');
+        }
+    }
+
+    private function buildConference(PageBuilder $page): void
+    {
+        $page->group('details', fn(GroupBuilder $g) => $g->add(new HtmlContent('Details')));
+        $page->nested(function(CwaFixtureBuilder $cwa) {
+            // /conference/programme, /conference/speakers — auto-prefixed via RouteGenerator
+            $cwa->pageData(new ConferenceData(title: 'Programme'), template: 'conference-section');
+            $cwa->pageData(new ConferenceData(title: 'Speakers'), template: 'conference-section');
+        });
+    }
+}
+```
+
+### Integration — `AbstractCwaScaffold` IS the fixture
+
+```php
+abstract class AbstractCwaScaffold implements FixtureInterface
+{
+    public function __construct(private CwaFixtureBuilder $cwa) {}
+
+    public function load(ObjectManager $manager): void
+    {
+        $this->build($this->cwa->withManager($manager));
+    }
+
+    abstract public function build(CwaFixtureBuilder $cwa): void;
+}
+```
+
+Register `AppScaffold` as a service; it's ready to use as a Doctrine fixture with no extra boilerplate.
+
+### Builder shape
+
+```
+CwaFixtureBuilder
+  ->layout(ref, uiComponent, ?Closure)  → LayoutBuilder
+      ->group(name, ?allow[], Closure)  → LayoutBuilder  (closure receives GroupBuilder)
+  ->page(ref, uiComponent, layout, ?route, ?Closure)  → PageBuilder
+      ->group(name, Closure)  → PageBuilder
+      ->nested(Closure)  → PageBuilder  (CwaFixtureBuilder in closure has parent context)
+  ->pageData(AbstractPageData, ?template, ?Closure)  → PageDataBuilder
+      ->route(path)  → PageDataBuilder
+
+GroupBuilder
+  ->add(AbstractComponent, ?sort)  → GroupBuilder  (sort defaults to insertion order)
+```
+
+### Route auto-generation rules
+
+| Situation | Result |
+|---|---|
+| `route: '/'` explicit | uses that path |
+| no `route:` on `->page()` | no Route created (it's a template) |
+| `->pageData(...)` inside `->nested()`, no route | calls `RouteGenerator` with parent context → `/parent-path/slug-from-title` |
+| `->pageData(...)` at top level, no route | no Route created (draft) |
+
+### What the builder handles invisibly
+
+- `TimestampedDataPersister` called on each entity
+- `$manager->persist()` for all entities
+- Deduplication by reference (call `->layout('default', ...)` twice → same entity returned)
+- `ComponentPosition` wrapping and sort order
+- `setRoute()` / `setPageData()` bidirectional linking
+- Parent context propagation through `->nested()` so `parentPage`/`parentPageData` is set automatically
+
+---
 
 ### Design decisions
 

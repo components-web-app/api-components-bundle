@@ -46,8 +46,13 @@ trait ManifestDepthGroupTrait
             $iris[] = $id;
         }
 
+        $isBlankNode = isset($resource['@id']) && str_contains($resource['@id'], '/.well-known/genid/');
+
         foreach ($resource as $key => $value) {
             if (!\is_array($value)) {
+                if (!$isBlankNode && \is_string($value) && !str_starts_with($key, '@') && str_starts_with($value, '/') && !$this->shouldSkipIri($value) && !\in_array($value, $iris, true)) {
+                    $iris[] = $value;
+                }
                 continue;
             }
 

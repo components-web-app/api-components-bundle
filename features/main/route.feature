@@ -126,6 +126,12 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON node "route" should be equal to the string "/_/routes//my-route"
 
+  Scenario: The manifest includes component IRIs resolved from pageDataProperty positions
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the JSON node "resource_iris[0][5]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+
   Scenario: The manifest for a nested PageData route includes parent resource IRIs grouped by depth
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
     When I send a "GET" request to "/_/resource_manifest//conference/programme"

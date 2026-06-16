@@ -93,7 +93,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         $staticComponent = $object->component;
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
 
-        $object = $this->normalizeForPageData($object);
+        $object = $this->normalizeForPageData($object, $context);
         if ($object->pageDataProperty) {
             $resourceMetadata->setIsDynamicPosition(true);
             try {
@@ -142,19 +142,25 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         return $draft ?? $component;
     }
 
-    private function normalizeForPageData(ComponentPosition $object): ComponentPosition
+    private function normalizeForPageData(ComponentPosition $object, array $context): ComponentPosition
     {
-        if (!$object->pageDataProperty || !$this->requestStack->getCurrentRequest()) {
-            return $object;
-        }
-        try {
-            $pageData = $this->pageDataProvider->getPageData();
-        } catch (UnprocessableEntityHttpException $e) {
-            // when serializing for mercure, we do not need the path header
+        if (!$object->pageDataProperty) {
             return $object;
         }
 
-        if (!$pageData) {
+        if (isset($context['cwa_current_page_data'])) {
+            $pageData = $context['cwa_current_page_data'];
+        } elseif ($this->requestStack->getCurrentRequest()) {
+            try {
+                $pageData = $this->pageDataProvider->getPageData();
+            } catch (UnprocessableEntityHttpException $e) {
+                // when serializing for mercure, we do not need the path header
+                return $object;
+            }
+            if (!$pageData) {
+                return $object;
+            }
+        } else {
             return $object;
         }
 

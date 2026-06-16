@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
@@ -33,7 +34,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 #[ORM\Entity]
 #[ORM\Table(name: 'layout')]
 #[Silverback\Timestamped]
-#[ApiResource(mercure: true, order: ['createdAt' => 'DESC'])]
+#[ApiResource(
+    normalizationContext: ['groups' => ['Layout:read']],
+    denormalizationContext: ['groups' => ['Layout:write']],
+    mercure: true,
+    order: ['createdAt' => 'DESC'],
+)]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(OrSearchFilter::class, properties: ['reference' => 'ipartial', 'uiComponent' => 'ipartial'])]
 #[UniqueEntity(fields: ['reference'], message: 'There is already a Layout with that reference.')]
@@ -45,15 +51,18 @@ class Layout
 
     #[ORM\Column]
     #[Assert\NotBlank(message: 'Please enter a reference.')]
+    #[Groups(['Layout:read', 'Layout:write'])]
     public string $reference;
 
     #[ORM\OneToMany(targetEntity: Page::class, mappedBy: 'layout')]
     #[ApiProperty(writable: false)]
+    #[Groups(['Layout:read'])]
     public Collection $pages;
 
     #[ORM\ManyToMany(targetEntity: ComponentGroup::class, inversedBy: 'layouts')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['Layout:read', 'Layout:write'])]
     private Collection $componentGroups;
 
     public function __construct()
@@ -61,6 +70,12 @@ class Layout
         $this->componentGroups = new ArrayCollection();
         $this->initComponentGroups();
         $this->pages = new ArrayCollection();
+    }
+
+    #[ApiProperty(readableLink: false, writableLink: false)]
+    public function getComponentGroups(): Collection|array
+    {
+        return $this->componentGroups;
     }
 
     public static function loadValidatorMetadata(ClassMetadata $metadata): void

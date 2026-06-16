@@ -109,3 +109,10 @@ Feature: Layout resources
     Then the response status code should be 200
     And the JSON node "member" should have "1" elements
     And the JSON node "member[0].reference" should be equal to "primary"
+
+  @loginUser
+  Scenario: Layout componentGroups are returned as IRI strings, not embedded objects
+    Given there is a ComponentGroup in a Page and a Layout
+    When I send a "GET" request to the resource "layout"
+    Then the response status code should be 200
+    And the JSON node "componentGroups[0]" should be equal to the IRI of the resource "component_group"

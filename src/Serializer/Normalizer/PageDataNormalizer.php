@@ -47,6 +47,10 @@ final class PageDataNormalizer implements NormalizerInterface, NormalizerAwareIn
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPageDataMetadata($metadata);
 
+        if (\in_array('Route:manifest:read', $context['groups'] ?? [], true)) {
+            $context['cwa_current_page_data'] = $object;
+        }
+
         return $this->normalizer->normalize($object, $format, $context);
     }
 
