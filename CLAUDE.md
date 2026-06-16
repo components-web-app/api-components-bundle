@@ -112,22 +112,18 @@ Key current group assignments:
 - `AbstractPageData`: `page` (the Page template IRI) → `Route:manifest:read`
 - `AbstractPage`: `route`, `parentPage`, `parentPageData` → `Route:manifest:read`
 
-### Bug: `Layout.componentGroups` returns embedded objects instead of IRIs
+### ~~Bug: `Layout.componentGroups` returns embedded objects instead of IRIs~~ — FIXED
 
-**Symptom (discovered 2026-06-16):** The navigation bar is empty for unauthenticated users. No failed requests appear in the network tab — the layout's component group contents are simply never fetched.
+**Symptom (discovered 2026-06-16):** The navigation bar was empty for unauthenticated users. `GET /_api/_/layouts/{uuid}` returned `componentGroups` as embedded JSON-LD objects; the Nuxt module expected IRI strings.
 
-**Root cause:** `GET /_api/_/layouts/{uuid}` returns `componentGroups` as **full embedded objects**:
-```json
-"componentGroups": [{ "@id": "/_api/_/component_groups/...", "location": "top", "componentPositions": [...] }]
-```
+**Root cause:** AP4 reads `readableLink` from getter methods, not property declarations. `Layout` had no explicit normalization context and `UiTrait.getComponentGroups()` had no `#[ApiProperty]` override — so AP4 auto-embedded the collection.
 
-The module's `fetchAssociatedResources` expects all associated property values to be **IRI strings** (this is both the module's contract and the caching architecture principle: "Never embed related resource data — always return IRIs"). Receiving objects instead of strings causes a silent TypeError (`object.split is not a function`) that is swallowed by `fetchBatch`, so the component groups are never stored and `CwaComponentGroup` finds nothing.
+**Fix (committed 2026-06-16):**
+- Added explicit `normalizationContext: ['groups' => ['Layout:read']]` and `denormalizationContext` to `Layout#[ApiResource]`
+- Added `#[Groups(['Layout:read', 'Layout:write'])]` to `Layout.reference`, `Layout.pages`, `Layout.componentGroups`, and `UiTrait.uiComponent` / `UiTrait.uiClassNames`
+- Overrode `getComponentGroups()` in `Layout.php` with `#[ApiProperty(readableLink: false, writableLink: false)]` so AP4 returns IRI strings
 
-**Why page content still works:** The manifest response includes page component group IRIs directly in `resource_iris`, so they are fetched as standalone resources in the manifest batch. Layouts have no manifest and rely entirely on `fetchAssociatedResources`.
-
-**Required fix:** Change the `Layout` serialization group so `componentGroups` is serialized as an array of IRI strings only (not embedded objects). Check `ComponentGroup.componentPositions` for the same issue — the module also expects these to be IRI strings.
-
-The module will be updated with a defensive `@id` extraction as a fallback, but the correct fix is here: the API must return IRIs, not embedded objects, for all associated resource properties.
+The Nuxt module also has a defensive `value?.['@id']` extraction fallback in `fetchAssociatedResources`, but the authoritative fix is this API-side change.
 
 ### API endpoints
 
@@ -204,6 +200,8 @@ This means:
 4. **Behat tests** — `features/main/route.feature`: nested PageData and nested Page manifests both tested; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422), PATCH to set parentPage (200), flat PageData manifest (200), nested PageData manifest (200)
 5. **`/_/resource_manifest/{id}` unified endpoint** — `ResourceManifest` DTO (`src/ApiResource/ResourceManifest.php`) with `ResourceManifestStateProvider` resolving route paths (starts with `/`) or UUIDs (Page then AbstractPageData). `ResourceManifestVoter` delegates access control to `RouteVoter` or `AbstractRoutableVoter`. `ResourceManifestNormalizer` produces `{ "resource_iris": string[][] }` using the shared `ManifestDepthGroupTrait`.
 6. **`ManifestDepthGroupTrait`** (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) — `buildDepthGroups`, `collectCurrentDepth`, `shouldSkipIri` extracted and shared between `RouteNormalizer` and `ResourceManifestNormalizer`
+7. **`pageDataProperty` component IRIs in manifests** — `PageDataNormalizer` injects `cwa_current_page_data` into the serialization context when `Route:manifest:read` is active. `ComponentPositionNormalizer.normalizeForPageData()` reads this context key and resolves `pageDataProperty` positions during manifest generation without requiring an HTTP `path` header. `ManifestDepthGroupTrait.collectCurrentDepth()` now also collects string IRI values from non-blank-node subresources (AP4 returns component IRIs as strings when `AbstractComponent` has no `Route:manifest:read` fields). Blank node resources (`/.well-known/genid/...`) are excluded from string IRI collection to avoid leaking internal metadata IRIs (e.g. `pageDataMetadata`). Behat test in `features/main/route.feature` covers `resource_iris[0][5]` matching a DummyComponent IRI.
+8. **`Layout.componentGroups` returns IRI strings** — see fixed bug above. Behat test in `features/main/layout.feature` covers `componentGroups[0]` equal to the component group IRI.
 
 ### Outstanding — `parentPage` in standard Page read group
 
@@ -241,6 +239,31 @@ A Behat test should cover: `GET /_/resource_manifest/{child-page-uuid}` for a pa
 
 A fluent builder API that lets developers scaffold CWA website structure (layouts, pages, component groups, components, routes) in Doctrine fixture code with minimal boilerplate. The Doctrine Fixtures Bundle handles execution; this feature adds the ergonomic PHP API on top.
 
+The design was refined against real fixtures from `components-web-app` (`HomePageFixture`, `BlogArticlesFixture`, `BlogCollectionPageFixture`, `NestedPageDataFixture`). All patterns those fixtures use must be expressible in the builder API.
+
+### Real-world patterns the builder must cover
+
+Derived from studying the components-web-app fixture classes:
+
+| Pattern | Example from fixtures |
+|---|---|
+| Layout with nav group, restricted to one component type | `addAllowedComponent(NavigationLink::class IRI)` |
+| Nav bar populated AFTER routes are created | Routes generated by `RouteGenerator.create()`, then `addNavigationLink(..., $parent->getRoute())` |
+| Template page (no route, `isTemplate: true`) | `createPage(..., isTemplate: true)` — shared template for multiple PageData instances |
+| Page with static components | `HtmlContent`, `Image`, `Collection`, `Form` added to a ComponentGroup |
+| Page with `pageDataProperty` positions | `position->setPageDataProperty('introContent')` — slot resolved at render time from PageData |
+| Multiple `pageDataProperty` positions on same template | `image` and `htmlContent` positions on blog template |
+| Publishable components | `$component->setPublishedAt(new \DateTime())` |
+| Draft component linked to published version | `$draft->setPublishedResource($published)` |
+| PageData with custom properties (component references) | `BlogArticleData.htmlContent`, `NestedPageData.introContent` |
+| PageData with explicit route | `$route = createRoute('/blog-articles/blog-article-0', ..., pageData: $articleData)` |
+| PageData auto-routed via `RouteGenerator` | `RouteGenerator::create($pageData)` — slugifies title, prefixes with parent path |
+| **Page** as child of **PageData** parent | `$childPage->setParentPageData($parentPageData)` + `RouteGenerator::create($childPage)` |
+| **PageData** as child of **PageData** parent | `$childPd->setParentPageData($parentPd)` + `RouteGenerator::create($childPd)` |
+| ComponentGroup.addAllowedComponent | Restricts admin to one type; takes class collection IRI |
+| Routes shared across fixtures by name | `createRoute('/blog', 'blog-page')` deduped by Doctrine fixture reference |
+| Collection component | `$c->setPerPage(8)->setResourceIri(IriConverter->getIriFromResource(BlogArticleData::class, ...))` |
+
 ### Dream developer API
 
 ```php
@@ -248,46 +271,81 @@ class AppScaffold extends AbstractCwaScaffold
 {
     public function build(CwaFixtureBuilder $cwa): void
     {
-        $cwa->layout('default', 'CwaLayout', function(LayoutBuilder $layout) {
-            $layout->group('navigation', fn(GroupBuilder $g) => $g
-                ->add(new NavigationLink('Home', '/'))
-                ->add(new NavigationLink('Blog', '/blog'))
-            );
-        });
+        // Layout: create the nav group (empty — nav links added after routes exist)
+        $navGroup = $cwa->layout('main', 'CwaLayoutPrimary')
+            ->group('top', allow: [NavigationLink::class]);
 
-        $cwa->page('home', 'HomePage', layout: 'default', route: '/', function(PageBuilder $page) {
-            $page->group('hero', fn(GroupBuilder $g) => $g->add(new HtmlContent('<h1>Welcome</h1>')));
-            $page->group('body', fn(GroupBuilder $g) => $g->add(new HtmlContent('Intro text')));
-        });
+        // Home page
+        $cwa->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/', routeName: 'home-page', fn(PageBuilder $page) =>
+            $page->title('Welcome to CWA')->metaDescription('...')
+                 ->group('primary', fn(GroupBuilder $g) => $g
+                     ->add((new HtmlContent())->setHtml('...')->setPublishedAt(new \DateTime()))
+                     ->add(new Image())  // no publishedAt = draft
+                 )
+        );
 
-        // Complex pages extract cleanly to private methods via PHP 8.1 first-class callables
-        $cwa->page('blog', 'BlogPage', layout: 'default', route: '/blog', $this->buildBlog(...));
+        // Blog collection page
+        $cwa->page('blog-list', 'PrimaryPageTemplate', layout: 'main', route: '/blog-articles', routeName: 'blog-page', fn(PageBuilder $page) =>
+            $page->title('Blog')
+                 ->group('primary', fn(GroupBuilder $g) => $g
+                     ->add($this->buildCollection($cwa, BlogArticleData::class, perPage: 8))
+                 )
+        );
 
-        $cwa->page('conference', 'ConferencePage', layout: 'default', route: '/conference', $this->buildConference(...));
-    }
+        // Populate nav bar now that routes exist
+        $navGroup->add((new NavigationLink())->setLabel('Home')->setRoute($cwa->getRoute('home-page'))->setPublishedAt(new \DateTime()));
+        $navGroup->add((new NavigationLink())->setLabel('Blog')->setRoute($cwa->getRoute('blog-page'))->setPublishedAt(new \DateTime()));
 
-    private function buildBlog(PageBuilder $page): void
-    {
-        $page->group('listing', fn(GroupBuilder $g) => $g->add(new Collection()));
-        $page->nested($this->buildBlogArticles(...));
-    }
+        // Blog article template (isTemplate: true, pageDataProperty positions, no route)
+        $cwa->page('blog-template', 'BlogPageTemplate', layout: 'main', isTemplate: true, fn(PageBuilder $page) =>
+            $page->group('primary', fn(GroupBuilder $g) => $g
+                ->pageDataPosition('image')      // dynamic — resolved from BlogArticleData.image at render time
+                ->pageDataPosition('htmlContent')
+            )
+        );
 
-    private function buildBlogArticles(CwaFixtureBuilder $cwa): void
-    {
-        foreach ($this->articles() as $data) {
-            // route auto-generated: /blog/first-post (parent path + slug from title via RouteGenerator)
-            $cwa->pageData(new BlogArticleData(title: $data['title']), template: 'blog-article');
+        // Blog article instances (PageData, explicit route per item)
+        for ($i = 0; $i < 10; $i++) {
+            $article = (new BlogArticleData())->setTitle("Blog Article $i");
+            $article->htmlContent = (new HtmlContent())->setHtml("...{$i}...")->setPublishedAt(new \DateTime());
+            $cwa->pageData($article, template: 'blog-template', route: "/blog-articles/blog-article-$i");
         }
-    }
 
-    private function buildConference(PageBuilder $page): void
-    {
-        $page->group('details', fn(GroupBuilder $g) => $g->add(new HtmlContent('Details')));
-        $page->nested(function(CwaFixtureBuilder $cwa) {
-            // /conference/programme, /conference/speakers — auto-prefixed via RouteGenerator
-            $cwa->pageData(new ConferenceData(title: 'Programme'), template: 'conference-section');
-            $cwa->pageData(new ConferenceData(title: 'Speakers'), template: 'conference-section');
-        });
+        // Topic template (isTemplate: true, pageDataProperty for per-instance intro content)
+        $cwa->page('topic-template', 'NestedTopicTemplate', layout: 'main', isTemplate: true, fn(PageBuilder $page) =>
+            $page->group('primary', fn(GroupBuilder $g) => $g
+                ->pageDataPosition('introContent')
+            )
+        );
+
+        // Topic PageData instances with child Page sub-pages
+        foreach ([1 => 'Topic One', 2 => 'Topic Two'] as $num => $title) {
+            $intro = (new HtmlContent())->setHtml("Intro for $title")->setPublishedAt(new \DateTime());
+            $topicPd = (new NestedPageData())->setTitle($title);
+            $topicPd->introContent = $intro;
+
+            $topicBuilder = $cwa->pageData($topicPd, template: 'topic-template');
+            // No route arg → RouteGenerator called automatically: /topic-one, /topic-two
+
+            // Child Pages (parentPageData set automatically by builder; route prefixed via RouteGenerator)
+            $topicBuilder->nested(function(CwaFixtureBuilder $child) use ($cwa, $topicPd, $navGroup, $title) {
+                $child->page('topic-chapter-1', 'NestedSubPageTemplate', layout: 'main', fn(PageBuilder $page) =>
+                    $page->title('Chapter One')
+                         ->group('primary', fn(GroupBuilder $g) => $g
+                             ->add((new HtmlContent())->setHtml('...')->setPublishedAt(new \DateTime()))
+                         )
+                );
+                $child->page('topic-chapter-2', 'NestedSubPageTemplate', layout: 'main', fn(PageBuilder $page) =>
+                    $page->title('Chapter Two')
+                         ->group('primary', fn(GroupBuilder $g) => $g
+                             ->add((new HtmlContent())->setHtml('...')->setPublishedAt(new \DateTime()))
+                         )
+                );
+            });
+
+            // Add nav link for this topic (route now exists after RouteGenerator ran)
+            $navGroup->add((new NavigationLink())->setLabel($title)->setRoute($topicPd->getRoute())->setPublishedAt(new \DateTime()));
+        }
     }
 }
 ```
@@ -314,35 +372,69 @@ Register `AppScaffold` as a service; it's ready to use as a Doctrine fixture wit
 
 ```
 CwaFixtureBuilder
-  ->layout(ref, uiComponent, ?Closure)  → LayoutBuilder
-      ->group(name, ?allow[], Closure)  → LayoutBuilder  (closure receives GroupBuilder)
-  ->page(ref, uiComponent, layout, ?route, ?Closure)  → PageBuilder
-      ->group(name, Closure)  → PageBuilder
-      ->nested(Closure)  → PageBuilder  (CwaFixtureBuilder in closure has parent context)
-  ->pageData(AbstractPageData, ?template, ?Closure)  → PageDataBuilder
-      ->route(path)  → PageDataBuilder
+  ->layout(ref, uiComponent): LayoutBuilder          (deduped by ref; returns same builder if called twice)
+  ->page(ref, uiComponent, layout, ?route, ?routeName, isTemplate=false, ?title, ?Closure): PageBuilder
+  ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
+  ->getRoute(routeName): Route                        (look up a named route already created)
+
+LayoutBuilder
+  ->group(name, allow: [], ?Closure): GroupBuilder   (returns the GroupBuilder; same name = same group)
+
+PageBuilder
+  ->title(string): self
+  ->metaDescription(string): self
+  ->group(name, ?Closure): GroupBuilder
+  ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
+  ->getRoute(): ?Route                               (route after builder flushes RouteGenerator)
+
+PageDataBuilder
+  ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
+  ->getRoute(): ?Route
 
 GroupBuilder
-  ->add(AbstractComponent, ?sort)  → GroupBuilder  (sort defaults to insertion order)
+  ->add(AbstractComponent, ?sort): self              (sort defaults to insertion order × 10)
+  ->pageDataPosition(propertyName, ?sort): self      (creates ComponentPosition with pageDataProperty set)
 ```
 
 ### Route auto-generation rules
 
 | Situation | Result |
 |---|---|
-| `route: '/'` explicit | uses that path |
-| no `route:` on `->page()` | no Route created (it's a template) |
-| `->pageData(...)` inside `->nested()`, no route | calls `RouteGenerator` with parent context → `/parent-path/slug-from-title` |
-| `->pageData(...)` at top level, no route | no Route created (draft) |
+| `route: '/path'` explicit on `->page()` or `->pageData()` | creates Route with that exact path; optionally named `routeName:` |
+| no `route:` on `->page()` + `isTemplate: true` | no Route created |
+| no `route:` on `->page()` without template flag | RouteGenerator called from title (slug) |
+| `->pageData(...)` inside `->nested()`, no route | RouteGenerator called → `/parent-path/slug-from-title` |
+| `->pageData(...)` or `->page(...)` at top level, no route, no title | no Route created (draft) |
+
+### Allowed components on groups
+
+`->group('top', allow: [NavigationLink::class])` calls `ComponentGroup::addAllowedComponent()` with the class-level IRI obtained from `IriConverterInterface`. The builder handles the IRI lookup internally — callers pass PHP class names.
+
+### Internal flush ordering
+
+The builder manages persisting in the correct order. Roughly:
+
+1. Persist all Layout, Page, and AbstractPageData entities (no relations yet)
+2. `flush()` — entities get UUIDs
+3. Create ComponentGroups (keyed by entity IRI + location name for deduplication)
+4. `flush()`
+5. Call `RouteGenerator::create()` for all auto-routed entities (parents before children — breadth-first)
+6. `flush()` — routes now have paths
+7. Create ComponentPositions and nav-bar links (which may reference routes created in step 5)
+8. Final `flush()`
+
+`->getRoute(routeName)` and `PageDataBuilder/PageBuilder->getRoute()` are only valid after step 5 completes. The builder defers all closures to the correct phase internally. Closures registered against GroupBuilder via `->add()` or `->pageDataPosition()` are evaluated in phase 7. The `->nested()` closure is evaluated during phase 5 so parent routes exist before child routes are generated.
 
 ### What the builder handles invisibly
 
-- `TimestampedDataPersister` called on each entity
+- `TimestampedDataPersister->persistTimestampedFields($entity, true)` on every entity
 - `$manager->persist()` for all entities
-- Deduplication by reference (call `->layout('default', ...)` twice → same entity returned)
-- `ComponentPosition` wrapping and sort order
-- `setRoute()` / `setPageData()` bidirectional linking
-- Parent context propagation through `->nested()` so `parentPage`/`parentPageData` is set automatically
+- Layout/Page deduplication by reference string (calling `->layout('main', ...)` twice returns the same LayoutBuilder)
+- ComponentGroup deduplication by entity IRI + location name
+- `ComponentPosition` wrapping and auto-incrementing sort values (× 10 so gaps can be filled)
+- Bidirectional linking: `Route::setPage/setPageData`, `AbstractPageData::setPage`, `AbstractPage::setRoute`
+- Parent context propagation through `->nested()` — `parentPage`/`parentPageData` set on all children
+- `RouteGenerator::create()` called automatically for all auto-routed entities in parent-before-child order
 
 ---
 
@@ -357,3 +449,5 @@ GroupBuilder
 - **Unified manifest endpoint, not per-entity operations** — `/_/resource_manifest/{id}` is owned by the `ResourceManifest` DTO (not by `Route`, `Page`, or `AbstractPageData`). The state provider distinguishes route paths (start with `/`) from UUIDs at runtime. This avoids URL conflicts from `RoutingPrefixResourceMetadataCollectionFactory` auto-applying `/_/` to all bundle-namespace classes.
 - **Hierarchy on AbstractPage, not Route** — Routes are the publication mechanism. Hierarchy must be settable before either page has a public URL.
 - **Manifest for admin is a performance requirement, not an optimisation** — without it, rendering a page requires 4+ serial round trips (page → groups → positions → components). The manifest collapses this to one parallel batch. Both contexts must have manifests.
+- **Builder returns GroupBuilder references** — rather than closures that are deferred, `->group()` on LayoutBuilder and PageBuilder returns a `GroupBuilder` that can be held as a PHP variable and populated at any point before the final flush. This naturally handles the "nav bar populated after routes exist" pattern without special deferred-closure machinery.
+- **`->nested()` takes a Closure, not a return value** — nested entities must have their parent's route before their own route can be generated. The `->nested()` Closure is evaluated during phase 5 (route generation), after the parent's route is created. The builder does not return nested builders; side effects are registered against the outer builder state.

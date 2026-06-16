@@ -137,19 +137,21 @@ class AbstractPageTest extends TestCase
 
     public function test_parent_page_is_checked_before_parent_page_data_in_cycle_detection(): void
     {
-        // parentPage creates a cycle; parentPageData does not.
-        // If the coalesce order were swapped ($parentPageData ?? $parentPage) the cycle
-        // would be missed because parentPageData has no parent chain.
+        // $subject → $intermediate, where $intermediate has BOTH parentPage=$subject (cycle)
+        // AND parentPageData=$safe (no cycle). The mutation swaps the coalesce order on
+        // line 124 of AbstractPage, so only the correct order detects the cycle.
+        //
+        // Original:  $intermediate->getParentPage() ?? ...  = $subject (id=A, in visited) → VIOLATION
+        // Mutated:   $intermediate->getParentPageData() ?? ... = $safe (id=C, not in visited) → no violation
         $subject = $this->makePage('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
-        $cyclingParent = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
-        $cyclingParent->setParentPage($subject); // creates A→B→A cycle
+        $intermediate = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
 
-        $safePageData = new TestPageData();
-        $safePageData->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
-        // safePageData has no parent — no cycle
+        $safe = new TestPageData();
+        $safe->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
 
-        $subject->setParentPage($cyclingParent);
-        $subject->setParentPageData($safePageData); // both set (invalid in production, valid for unit testing logic)
+        $subject->setParentPage($intermediate);
+        $intermediate->setParentPage($subject);    // cycle: A→B→A
+        $intermediate->setParentPageData($safe);   // safe path: no further parents
 
         $subject->validateNoCircularParent($this->makeContext(1, 'parentPage'));
     }
