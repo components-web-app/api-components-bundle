@@ -11,7 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\ResourceMetadata;
 
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 class ResourcePublishableMetadata
 {

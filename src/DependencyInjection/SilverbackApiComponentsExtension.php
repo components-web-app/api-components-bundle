@@ -274,27 +274,28 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         );
     }
 
-    private function appendMappingPaths(&$mappingPaths, $srcBase, $name): void
-    {
-        $configBasePath = $srcBase . '/Resources/config/api_platform';
-        $mappingPaths[] = \sprintf('%s/%s/resource.xml', $configBasePath, $name);
-        $propertiesPath = \sprintf('%s/%s/properties.xml', $configBasePath, $name);
-        if (file_exists($propertiesPath)) {
-            $mappingPaths[] = $propertiesPath;
-        }
-    }
-
     private function prependApiPlatformConfig(ContainerBuilder $container, array $config): void
     {
         $srcBase = __DIR__ . '/..';
-        $mappingPaths = [$srcBase . '/Entity/Core', $srcBase . '/ApiResource'];
-        $this->appendMappingPaths($mappingPaths, $srcBase, 'uploadable');
-        $this->appendMappingPaths($mappingPaths, $srcBase, 'page_data_metadata');
-        $this->appendMappingPaths($mappingPaths, $srcBase, 'resource_metadata');
+        $mappingPaths = [
+            $srcBase . '/Entity/Core',
+            $srcBase . '/ApiResource',
+            $srcBase . '/Model/Uploadable',
+            $srcBase . '/Metadata',
+        ];
+
+        $componentDirMap = [
+            'form' => $srcBase . '/Entity/Component',
+            'collection' => $srcBase . '/Entity/Component',
+        ];
+        $enabledComponentDirs = [];
         foreach ($config['enabled_components'] as $component => $is_enabled) {
-            if (true === $is_enabled) {
-                $this->appendMappingPaths($mappingPaths, $srcBase, $component);
+            if (true === $is_enabled && isset($componentDirMap[$component])) {
+                $enabledComponentDirs[$componentDirMap[$component]] = true;
             }
+        }
+        foreach (array_keys($enabledComponentDirs) as $dir) {
+            $mappingPaths[] = $dir;
         }
 
         $websiteName = $config['website_name'];

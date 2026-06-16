@@ -12,7 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Serializer\ResourceMetadata;
 
 use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ResourceMetadata implements ResourceMetadataInterface

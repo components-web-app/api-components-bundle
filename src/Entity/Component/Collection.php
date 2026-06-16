@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Entity\Component;
 
 use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
@@ -21,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Daniel West <daniel@silverback.is>
  */
 #[ORM\Entity]
+#[ApiResource]
 class Collection extends AbstractComponent
 {
     #[ORM\Column(name: 'resource_class', nullable: true)]

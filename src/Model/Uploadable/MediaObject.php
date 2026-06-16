@@ -11,28 +11,44 @@
 
 namespace Silverback\ApiComponentsBundle\Model\Uploadable;
 
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use Ramsey\Uuid\Uuid;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[ApiResource(
+    types: ['http://schema.org/MediaObject'],
+    normalizationContext: ['jsonld_embed_context' => true],
+    operations: [new Get()]
+)]
 final class MediaObject
 {
+    #[ApiProperty(readable: false, writable: false, identifier: true)]
     private string $id;
 
+    #[ApiProperty(writable: false, types: ['http://schema.org/contentUrl'])]
     public string $contentUrl;
 
+    #[ApiProperty(writable: false)]
     public int $fileSize;
 
+    #[ApiProperty(writable: false, types: ['http://schema.org/encodingFormat'])]
     public string $mimeType;
 
+    #[ApiProperty(writable: false, types: ['http://schema.org/width'])]
     public ?int $width = null;
 
+    #[ApiProperty(writable: false, types: ['http://schema.org/height'])]
     public ?int $height = null;
 
+    #[ApiProperty(writable: false)]
     public ?string $imagineFilter = null;
 
     // defined otherwise the IRI mapping in API Platform does not work with just the getter method
+    #[ApiProperty(writable: false, types: ['http://schema.org/contentSize'])]
     private ?string $formattedFileSize = null;
 
     public function __construct()

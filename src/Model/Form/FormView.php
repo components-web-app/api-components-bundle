@@ -16,7 +16,7 @@ use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView as SymfonyFormView;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * @author Daniel West <daniel@silverback.is>

@@ -52,12 +52,7 @@ class NestedType extends AbstractType
                     'error_bubbling' => false,
                     'empty_data' => [new ChildType()],
                     'constraints' => [
-                        new Count(
-                            [
-                                'min' => 1,
-                                'minMessage' => 'At least one child is required with a name',
-                            ]
-                        ),
+                        new Count(min: 1, minMessage: 'At least one child is required with a name'),
                     ],
                 ]
             )
@@ -76,12 +71,7 @@ class NestedType extends AbstractType
                     'constraints' => [
                         new All(
                             [
-                                new Length(
-                                    [
-                                        'min' => 2,
-                                        'minMessage' => 'Must be at least 2 characters',
-                                    ]
-                                ),
+                                new Length(min: 2, minMessage: 'Must be at least 2 characters'),
                             ]
                         ),
                     ],

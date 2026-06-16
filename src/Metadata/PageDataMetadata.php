@@ -11,23 +11,37 @@
 
 namespace Silverback\ApiComponentsBundle\Metadata;
 
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * @internal
  *
  * @author Daniel West <daniel@silverback.is>
  */
+#[ApiResource(
+    normalizationContext: ['jsonld_embed_context' => true, 'groups' => ['PageDataMetadata:cwa_resource:read']],
+    operations: [
+        new Get(provider: PageDataMetadataStateProvider::class),
+        new GetCollection(provider: PageDataMetadataStateProvider::class),
+    ]
+)]
 class PageDataMetadata
 {
+    #[ApiProperty(readable: true, writable: false, identifier: true)]
     #[Groups(['AbstractPageData:cwa_resource:read', 'PageDataMetadata:cwa_resource:read'])]
     private string $resourceClass;
 
     /**
      * @var Collection|PageDataPropertyMetadata[]
      */
+    #[ApiProperty(writable: false)]
     #[Groups(['AbstractPageData:cwa_resource:read', 'PageDataMetadata:cwa_resource:read'])]
     private Collection $properties;
 

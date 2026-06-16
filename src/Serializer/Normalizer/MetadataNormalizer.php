@@ -67,10 +67,9 @@ class MetadataNormalizer implements NormalizerInterface, NormalizerAwareInterfac
         }
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
-        $metadataContext['resource_class'] = $resourceMetadata::class;
 
+        $metadataContext['api_sub_level'] = true;
         $normalizedResourceMetadata = $this->normalizer->normalize($resourceMetadata, $format, $metadataContext);
-        file_put_contents('/tmp/metadata_debug.txt', json_encode(['groups' => $metadataContext['groups'] ?? 'NOT_SET', 'normalized' => $normalizedResourceMetadata, 'persisted' => $resourceMetadata->getPersisted()], \JSON_PRETTY_PRINT));
         $data = $this->normalizer->normalize($object, $format, $context);
 
         if (!\is_array($data)) {
