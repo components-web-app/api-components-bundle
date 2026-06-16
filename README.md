@@ -15,6 +15,11 @@
 
 ### **[Read the documentation](https://docs.api.cwa.rocks/)**
 
+## Requirements
+
+- PHP 8.2+
+- Symfony 7.4+ (bundle code is Symfony 8.x-compatible; test suite is currently capped at Symfony 7.x by `behat/behat` and `friends-of-behat/symfony-extension` not yet supporting Symfony 8.x)
+
 ## Sponsors
 
 [![Blackfire](./docs/images/blackfire-io_secondary_horizontal_transparent.png)](https://blackfire.io/)
