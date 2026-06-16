@@ -42,9 +42,7 @@ class TestType extends AbstractType
                 [
                     'constraints' => [
                         new NotBlank(
-                            [
-                                'message' => 'Please provide your name',
-                            ]
+                           message: 'Please provide your name'
                         ),
                     ],
                 ]
@@ -55,9 +53,7 @@ class TestType extends AbstractType
                 [
                     'constraints' => [
                         new NotBlank(
-                            [
-                                'message' => 'Please provide your company',
-                            ]
+                            message: 'Please provide your company'
                         ),
                     ],
                 ]
