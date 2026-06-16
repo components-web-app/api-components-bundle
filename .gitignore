@@ -16,6 +16,8 @@
 /tests/Functional/app/vendor/
 /tests/Functional/app/public/uploads/
 /tools/
+/.claude/
+/tests/Functional/app/config/reference.php
 
 ###> symfony/phpunit-bridge ###
 .phpunit
