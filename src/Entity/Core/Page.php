@@ -45,9 +45,9 @@ class Page extends AbstractPage
     #[Groups(['Route:manifest:read'])]
     public ?Layout $layout;
 
-    #[ORM\Column(unique: true)]
+    #[ORM\Column(unique: true, nullable: true)]
     #[Assert\NotBlank(message: 'Please enter a reference.')]
-    public string $reference;
+    public ?string $reference = null;
 
     #[ORM\Column(name: 'is_template')]
     #[Assert\NotNull(message: 'Please specify if this page is a template or not.')]

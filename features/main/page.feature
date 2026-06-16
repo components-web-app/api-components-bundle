@@ -102,20 +102,8 @@ Feature: Page resources
       | layout             | reference | propertyPath       | message                                    | uiComponent    |
       | null               | home      | layout             | Please specify a layout.                   | myComponent    |
       | resource[layout]   |           | reference          | Please enter a reference.                  | myComponent    |
+      | resource[layout]   | null      | reference          | Please enter a reference.                  | myComponent    |
       | resource[layout]   | home      | uiComponent        | Please specify a UI component.             |                |
-
-  @loginUser
-  Scenario Outline: The page resource returns errors on incorrect data types
-    Given there is a Layout
-    When I send a "POST" request to "/_/pages" with data:
-      | layout    | reference   | isTemplate |
-      | <layout>  | <reference> | false      |
-    Then the response status code should be 422
-    And the JSON should be valid according to the schema file "error.schema.json"
-    And the JSON node "description" should be equal to the string '<message>'
-    Examples:
-      | layout             | reference | message                                                               |
-      | resource[layout]   | null      | The type of the "reference" attribute must be "string", "NULL" given. |
 
   @loginAdmin
   Scenario: I can delete a page
