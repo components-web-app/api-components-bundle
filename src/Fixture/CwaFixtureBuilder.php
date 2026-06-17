@@ -422,7 +422,7 @@ class CwaFixtureBuilder
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->component = $component;
-            $componentGroup->addComponentPosition($position);
+            $position->componentGroup = $componentGroup;
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->persistWithAssociations($component);
             $this->manager->persist($position);
@@ -433,7 +433,7 @@ class CwaFixtureBuilder
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->pageDataProperty = $item['property'];
-            $componentGroup->addComponentPosition($position);
+            $position->componentGroup = $componentGroup;
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->manager->persist($position);
             $hasAny = true;
