@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -398,6 +399,71 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->assertCount(2, $createOrder);
         $this->assertSame(spl_object_id($parentPageData), $createOrder[0]);
+    }
+
+    // --- Association graph auto-persist ---
+
+    public function test_public_persist_persists_entity_via_manager(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->persist($component);
+        $builder->flush();
+
+        $this->assertContains($component, $persisted);
+    }
+
+    public function test_flush_second_call_only_processes_new_positions(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $component1 = new class extends AbstractComponent {};
+        $component2 = new class extends AbstractComponent {};
+
+        $routeGenerator = $this->autoRouteGenerator();
+        $builder = $this->makeBuilder($em, $routeGenerator);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $navGroup = $builder->layout('main', 'CwaLayoutPrimary')->group('nav');
+        $builder->page('home', 'Template', layout: 'main', route: '/');
+
+        $navGroup->add($component1);
+        $builder->flush(); // first flush — component1 processed
+
+        $navGroup->add($component2);
+        $builder->flush(); // second flush — only component2 should be processed
+
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        // component1 → position1 in flush 1; component2 → position2 in flush 2
+        $this->assertCount(2, $positions);
+        $components = array_map(static fn ($p) => $p->component, $positions);
+        $this->assertContains($component1, $components);
+        $this->assertContains($component2, $components);
+    }
+
+    public function test_phases_one_to_three_run_only_once_across_multiple_flushes(): void
+    {
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->once()) // must be called exactly once despite two flush() calls
+            ->method('create')
+            ->willReturnCallback(static function (object $entity): Route {
+                $route = new Route();
+                $route->setPath('/' . spl_object_id($entity));
+                $route->setName((string) spl_object_id($entity));
+                $entity->setRoute($route);
+                return $route;
+            });
+
+        $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main'); // will call routeGenerator->create() once
+
+        $builder->flush();
+        $builder->flush(); // second flush must NOT call routeGenerator->create() again
     }
 
     public function test_parent_pagedata_route_created_before_child_pagedata_route(): void

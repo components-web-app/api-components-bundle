@@ -63,6 +63,12 @@ class CwaFixtureBuilder
     /** Maps spl_object_id(GroupBuilder) → ComponentGroup for use in phase 4 */
     private array $componentGroupMap = [];
 
+    /** Tracks object IDs already passed to persist() to avoid cycles in persistWithAssociations() */
+    private array $persistedEntities = [];
+
+    /** Phases 1–3 run exactly once; phase 4 runs on every flush() call to pick up new positions */
+    private bool $initialFlushDone = false;
+
     public function __construct(
         private readonly TimestampedDataPersister $timestampedPersister,
         private readonly RouteGeneratorInterface $routeGenerator,
@@ -157,9 +163,14 @@ class CwaFixtureBuilder
         return $builder;
     }
 
+    /**
+     * Explicitly persist an entity and walk its owning-side associations to persist related objects.
+     * Use this for app-specific entities that the builder doesn't manage (e.g. HtmlContent set on a PageData).
+     * Does not rely on Doctrine cascade — every related object is persisted explicitly.
+     */
     public function persist(object $entity): static
     {
-        $this->manager->persist($entity);
+        $this->persistWithAssociations($entity);
 
         return $this;
     }
@@ -173,12 +184,20 @@ class CwaFixtureBuilder
         return $this->namedRoutes[$routeName];
     }
 
+    /**
+     * Phases 1–3 run exactly once (on first call).
+     * Phase 4 runs every call to pick up positions added after the first flush (e.g. nav links added after routes exist).
+     */
     public function flush(): void
     {
-        $this->phaseOne();
-        $this->evaluateNested();
-        $this->phaseTwo();
-        $this->phaseThree();
+        if (!$this->initialFlushDone) {
+            $this->phaseOne();
+            $this->evaluateNested();
+            $this->phaseTwo();
+            $this->phaseThree();
+            $this->initialFlushDone = true;
+        }
+
         $this->phaseFour();
     }
 
@@ -211,8 +230,9 @@ class CwaFixtureBuilder
 
         $newPageDataSpecs = \array_slice($this->pageDataSpecs, $existingPageDataCount);
         foreach ($newPageDataSpecs as $spec) {
-            $this->timestampedPersister->persistTimestampedFields($spec['builder']->getPageData(), true);
-            $this->manager->persist($spec['builder']->getPageData());
+            $pageData = $spec['builder']->getPageData();
+            $this->timestampedPersister->persistTimestampedFields($pageData, true);
+            $this->persistWithAssociations($pageData);
             $hasNew = true;
         }
 
@@ -224,7 +244,7 @@ class CwaFixtureBuilder
                 $page->layout = $layoutBuilder->getLayout();
             }
             $this->timestampedPersister->persistTimestampedFields($page, true);
-            $this->manager->persist($page);
+            $this->persistWithAssociations($page);
             $hasNew = true;
         }
 
@@ -238,7 +258,7 @@ class CwaFixtureBuilder
         foreach ($this->layoutBuilders as $layoutBuilder) {
             $layout = $layoutBuilder->getLayout();
             $this->timestampedPersister->persistTimestampedFields($layout, true);
-            $this->manager->persist($layout);
+            $this->persistWithAssociations($layout);
         }
 
         foreach ($this->pageSpecs as $spec) {
@@ -248,7 +268,7 @@ class CwaFixtureBuilder
                 $page->layout = $layoutBuilder->getLayout();
             }
             $this->timestampedPersister->persistTimestampedFields($page, true);
-            $this->manager->persist($page);
+            $this->persistWithAssociations($page);
         }
 
         foreach ($this->pageDataSpecs as $spec) {
@@ -257,7 +277,7 @@ class CwaFixtureBuilder
                 $pageData->page = $this->pageSpecs[$spec['templateRef']]['builder']->getPage();
             }
             $this->timestampedPersister->persistTimestampedFields($pageData, true);
-            $this->manager->persist($pageData);
+            $this->persistWithAssociations($pageData);
         }
 
         $this->manager->flush();
@@ -313,6 +333,9 @@ class CwaFixtureBuilder
         foreach ($this->orderedRouteSpecs as $spec) {
             if ('page' === $spec['type']) {
                 $page = $spec['builder']->getPage();
+                if (null !== $page->getRoute()) {
+                    continue;
+                }
                 if (null !== $spec['route']) {
                     $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
                     $route->setPage($page);
@@ -330,6 +353,9 @@ class CwaFixtureBuilder
                 }
             } else {
                 $pageData = $spec['builder']->getPageData();
+                if (null !== $pageData->getRoute()) {
+                    continue;
+                }
                 if (null !== $spec['route']) {
                     $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
                     $route->setPageData($pageData);
@@ -385,19 +411,19 @@ class CwaFixtureBuilder
 
         $hasAny = false;
 
-        foreach ($groupBuilder->getComponents() as $item) {
+        foreach ($groupBuilder->getNewComponents() as $item) {
             $component = $item['component'];
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->component = $component;
             $componentGroup->addComponentPosition($position);
             $this->timestampedPersister->persistTimestampedFields($position, true);
-            $this->manager->persist($component);
+            $this->persistWithAssociations($component);
             $this->manager->persist($position);
             $hasAny = true;
         }
 
-        foreach ($groupBuilder->getPageDataPositions() as $item) {
+        foreach ($groupBuilder->getNewPageDataPositions() as $item) {
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->pageDataProperty = $item['property'];
@@ -424,5 +450,58 @@ class CwaFixtureBuilder
         $slug = trim(str_replace('/', '-', $path), '-');
 
         return $slug ?: 'root';
+    }
+
+    /**
+     * Persists an entity and recursively persists all owning-side associated objects.
+     * Does not rely on Doctrine cascade — every object is persisted explicitly.
+     * Uses spl_object_id tracking to prevent cycles.
+     */
+    private function persistWithAssociations(object $entity): void
+    {
+        $oid = spl_object_id($entity);
+        if (isset($this->persistedEntities[$oid])) {
+            return;
+        }
+        $this->persistedEntities[$oid] = true;
+        $this->manager->persist($entity);
+
+        try {
+            $metadata = $this->manager->getClassMetadata($entity::class);
+            foreach ($metadata->getAssociationNames() as $assocName) {
+                if ($metadata->isAssociationInverseSide($assocName)) {
+                    continue;
+                }
+                $related = $this->readProperty($entity, $assocName);
+                if (null === $related) {
+                    continue;
+                }
+                if (is_iterable($related)) {
+                    foreach ($related as $item) {
+                        if (is_object($item)) {
+                            $this->persistWithAssociations($item);
+                        }
+                    }
+                } else {
+                    $this->persistWithAssociations($related);
+                }
+            }
+        } catch (\Exception) {
+            // Entity class not in Doctrine metadata (e.g. during unit tests with stubs)
+        }
+    }
+
+    private function readProperty(object $entity, string $property): mixed
+    {
+        $class = new \ReflectionClass($entity);
+        do {
+            if ($class->hasProperty($property)) {
+                $prop = $class->getProperty($property);
+
+                return $prop->isInitialized($entity) ? $prop->getValue($entity) : null;
+            }
+        } while ($class = $class->getParentClass());
+
+        return null;
     }
 }
