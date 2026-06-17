@@ -211,6 +211,36 @@ Currently `parentPage` is only in `Route:manifest:read`. It needs to be added to
 
 A Behat test should cover: `GET /_/pages` response includes `parentPage` for a page that has one set.
 
+### Bug: PATCH `/_/pages/{uuid}` throws 500 when body contains `componentGroups`
+
+**Symptom (discovered 2026-06-17):** Saving a Page from the Nuxt admin modal returns:
+```
+500: Warning: Undefined property: Doctrine\Common\Collections\ArrayCollection::$sortValue
+```
+
+**Trigger payload:** The Nuxt module admin modal PATCHes the full resource data including `componentGroups` as an array (either IRI strings or embedded JSON-LD objects, depending on what was returned in the GET). Example body:
+```json
+{
+  "@type": "Page",
+  "reference": "My Page",
+  "layout": "/_/layouts/uuid",
+  "componentGroups": ["/_/component_groups/uuid1", "/_/component_groups/uuid2"]
+}
+```
+
+**Likely root cause:** The Symfony deserializer processes the `componentGroups` array and, during denormalization of `ComponentGroup` entities, either a lifecycle callback or the `ComponentPositionNormalizer` accesses `$sortValue` on the `ComponentGroup.componentPositions` `ArrayCollection` as if it were a scalar property — rather than iterating over individual `ComponentPosition` entities. This results in PHP trying to read `$sortValue` on the `ArrayCollection` object itself.
+
+**Where to look:**
+- `ComponentGroup` entity — any `#[ORM\PrePersist]` / `#[ORM\PreUpdate]` listener that reads `componentPositions->sortValue`
+- `ComponentPositionNormalizer` — any code path triggered during `PATCH` denormalization that accesses the position collection
+- Symfony's denormalization of `ComponentGroup.componentPositions` when the PATCH body includes inline `componentGroups`
+
+**Workaround (Nuxt module, committed 2026-06-17):** `PageAdminModal` passes `excludeFields: ['componentGroups']` to `useItemPage`, so `componentGroups` is stripped from the PATCH body before sending. This bypasses the bug without fixing it. A proper API-side fix is still needed so that PATCH requests including `componentGroups` do not 500.
+
+**Test to write:** Behat scenario — `PATCH /_/pages/{uuid}` with `componentGroups` in the request body returns 200, not 500.
+
+---
+
 ### Outstanding — UUID-based manifest must walk the `parentPage` chain
 
 **Bug (discovered 2026-06-16):** When the Nuxt module admin accesses a nested `Page` entity directly via its admin URL (e.g. `/_cwa/%2F_api%2F_%2Fpages%2F{child-uuid}`), the fetcher calls `GET /_api/_/resource_manifest/{child-uuid}`. The module code is correct: it uses `irisByDepth[0]` as the parent depth and renders `pageIriAtDepth(depth)` for each level. However, the admin admin page displays only a placeholder (no parent content) because the manifest endpoint currently returns only the accessed page in a single depth group — it does not walk the `parentPage`/`parentPageData` chain upward.

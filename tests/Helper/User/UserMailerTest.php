@@ -125,7 +125,7 @@ class UserMailerTest extends TestCase
             ->method('error')
             ->with(
                 self::anything(),
-                self::callback(fn (array $ctx) => isset($ctx['exception']) && $ctx['exception'] instanceof MailerTransportException)
+                self::callback(static fn (array $ctx) => isset($ctx['exception']) && $ctx['exception'] instanceof MailerTransportException)
             );
 
         $result = $this->userMailer->sendPasswordResetEmail($user);

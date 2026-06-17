@@ -135,7 +135,7 @@ class AbstractPageTest extends TestCase
         $pageData->validateNoCircularParent($this->makeContext(1, 'parentPageData'));
     }
 
-    public function test_initial_parent_selection_uses_parentPage_over_parentPageData(): void
+    public function test_initial_parent_selection_uses_parent_page_over_parent_page_data(): void
     {
         // Subject has BOTH parentPage (cyclic) and parentPageData (safe) set simultaneously.
         // The initial parent selection on line 100 must pick parentPage first.
