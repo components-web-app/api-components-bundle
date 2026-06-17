@@ -109,6 +109,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
@@ -1557,6 +1558,14 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
     $services->alias(PropagateUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.propagate_updates_listener');
+
+    $services
+        ->set(CwaFixtureBuilder::class)
+        ->args([
+            new Reference(TimestampedDataPersister::class),
+            new Reference(RouteGeneratorInterface::class),
+            new Reference(IriConverterInterface::class),
+        ]);
 
     $services
         ->set('silverback.api_components.uploadable.url_generator.api')

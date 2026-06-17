@@ -293,6 +293,7 @@ class CwaFixtureBuilder
                 );
             }
 
+            $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
             $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
             $this->manager->persist($componentGroup);
         }
@@ -383,6 +384,7 @@ class CwaFixtureBuilder
             $position->sortValue = $item['sort'];
             $position->component = $component;
             $componentGroup->addComponentPosition($position);
+            $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->manager->persist($component);
             $this->manager->persist($position);
             $hasAny = true;
@@ -393,6 +395,7 @@ class CwaFixtureBuilder
             $position->sortValue = $item['sort'];
             $position->pageDataProperty = $item['property'];
             $componentGroup->addComponentPosition($position);
+            $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->manager->persist($position);
             $hasAny = true;
         }
