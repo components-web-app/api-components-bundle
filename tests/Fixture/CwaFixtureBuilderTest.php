@@ -170,7 +170,9 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $iriConverter = $this->createStub(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willReturn('/_/some_components'); // any call returns the stub IRI
+        $iriConverter->method('getIriFromResource')->willReturnCallback(
+            static fn ($resource) => is_string($resource) ? '/_/some_components' : '/_api/_/layouts/test-uuid'
+        );
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
         $builder->layout('main', 'CwaLayoutPrimary')->group('nav', allow: [\stdClass::class]);
@@ -180,8 +182,8 @@ class CwaFixtureBuilderTest extends TestCase
         $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
 
         $this->assertCount(1, $groups);
-        $this->assertSame('layout:main/nav', $groups[0]->reference);
-        $this->assertSame('nav', $groups[0]->location);
+        $this->assertSame('nav_/_api/_/layouts/test-uuid', $groups[0]->reference);
+        $this->assertSame('/_api/_/layouts/test-uuid', $groups[0]->location);
         $this->assertSame(['/_/some_components'], $groups[0]->allowedComponents);
 
         $this->assertCount(1, $layouts);
@@ -196,7 +198,10 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->collectingEm($persisted);
 
-        $builder = $this->makeBuilder($em);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/_api/_/pages/test-uuid');
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
             ->group('primary');
@@ -206,8 +211,8 @@ class CwaFixtureBuilderTest extends TestCase
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
 
         $this->assertCount(1, $groups);
-        $this->assertSame('page:home/primary', $groups[0]->reference);
-        $this->assertSame('primary', $groups[0]->location);
+        $this->assertSame('primary_/_api/_/pages/test-uuid', $groups[0]->reference);
+        $this->assertSame('/_api/_/pages/test-uuid', $groups[0]->location);
         $this->assertNull($groups[0]->allowedComponents);
 
         $this->assertCount(1, $pages);

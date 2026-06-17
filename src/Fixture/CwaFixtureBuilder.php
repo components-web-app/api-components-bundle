@@ -296,14 +296,11 @@ class CwaFixtureBuilder
 
     private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page $owner): void
     {
-        $componentGroup = new ComponentGroup();
-        $componentGroup->location = $groupBuilder->getName();
+        $ownerIri = $this->iriConverter->getIriFromResource($owner);
 
-        if ($owner instanceof Layout) {
-            $componentGroup->reference = \sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
-        } else {
-            $componentGroup->reference = \sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
-        }
+        $componentGroup = new ComponentGroup();
+        $componentGroup->location = $ownerIri;
+        $componentGroup->reference = $groupBuilder->getName() . '_' . $ownerIri;
 
         foreach ($groupBuilder->getAllowedClasses() as $class) {
             $componentGroup->addAllowedComponent(
@@ -318,6 +315,12 @@ class CwaFixtureBuilder
         $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
         // Add to the owning side BEFORE the first flush so Doctrine writes the join table.
         $owner->getComponentGroups()->add($componentGroup);
+        // Sync the inverse side for in-memory consistency (Doctrine populates it from DB on load).
+        if ($owner instanceof Layout) {
+            $componentGroup->layouts->add($owner);
+        } else {
+            $componentGroup->pages->add($owner);
+        }
         $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
         $this->manager->persist($componentGroup);
     }
