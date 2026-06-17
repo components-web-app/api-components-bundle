@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -24,6 +25,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -65,10 +67,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Delete(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Put(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
-#[Get(requirements: ['id' => "(?!.+\/redirects$).+"], security: Route::API_SECURITY)]
+#[Get(requirements: ['id' => "(?!.+\/(?:redirects|children)$).+"], security: Route::API_SECURITY)]
 // Custom endpoints
 #[Post(uriTemplate: '/routes/generate{._format}', validationContext: ['groups' => ['Route:generate:write']])]
 #[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: Route::API_REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: Route::API_SECURITY)]
+#[Get(uriTemplate: '/routes/{id}/children{._format}', requirements: Route::API_REQUIREMENTS, provider: RouteChildrenStateProvider::class, security: "is_granted('ROLE_ADMIN')")]
 #[Silverback\Timestamped]
 class Route
 {
@@ -104,6 +107,9 @@ class Route
     #[ORM\OneToOne(targetEntity: AbstractPageData::class, mappedBy: 'route')]
     #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?AbstractPageData $pageData = null;
+
+    #[ApiProperty(readable: false)]
+    public bool $cascadeChildPaths = false;
 
     public function __construct()
     {

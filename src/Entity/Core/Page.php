@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -58,6 +59,12 @@ class Page extends AbstractPage
     #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
     #[Groups(['Route:manifest:read'])]
     private Collection $componentGroups;
+
+    #[ApiProperty(writable: false)]
+    public function getComponentGroups(): Collection
+    {
+        return $this->componentGroups;
+    }
 
     public function __construct()
     {

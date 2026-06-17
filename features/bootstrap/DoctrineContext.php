@@ -368,6 +368,29 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a valid Page with a ComponentGroup
+     */
+    public function thereIsAValidPageWithAComponentGroup(): void
+    {
+        $layout = $this->thereIsALayout();
+
+        $page = new Page();
+        $page->reference = 'page-with-group';
+        $page->uiComponent = 'TestComponent';
+        $page->isTemplate = false;
+        $page->layout = $layout;
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $group = $this->thereIsAComponentGroupWithComponents(1);
+        $page->addComponentGroup($group);
+        $this->manager->persist($page);
+        $this->manager->flush();
+
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
+    }
+
+    /**
      * @Given /^there is a ComponentGroup in a Page and a Layout$/
      */
     public function thereIsAComponentGroupInAPageAndALayout()
@@ -786,8 +809,47 @@ final class DoctrineContext implements Context
         $this->manager->persist($childRoute);
         $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($childPage);
         $this->restContext->resources['page_route'] = $this->iriConverter->getIriFromResource($childRoute);
+        $this->restContext->resources['page_manifest'] = '/_/resource_manifest/' . $childPage->getId();
 
         $this->manager->flush();
+    }
+
+    /**
+     * @When I patch the page with the component group in the request body
+     */
+    public function iPatchPageWithComponentGroupInBody(): void
+    {
+        $cgIri = $this->restContext->resources['component_group'];
+        $this->restContext->iSendARequestToTheResourceWithBody(
+            'PATCH',
+            'page',
+            null,
+            new PyStringNode([sprintf('{"componentGroups": ["%s"]}', $cgIri)], 0)
+        );
+    }
+
+    /**
+     * @When I patch the page with an embedded component group in the request body
+     */
+    public function iPatchPageWithEmbeddedComponentGroupInBody(): void
+    {
+        $cgIri = $this->restContext->resources['component_group'];
+        $posIri = $this->restContext->resources['position_0'];
+        $body = json_encode([
+            'componentGroups' => [
+                [
+                    '@id' => $cgIri,
+                    '@type' => 'ComponentGroup',
+                    'componentPositions' => [['@id' => $posIri, 'sortValue' => 0]],
+                ],
+            ],
+        ]);
+        $this->restContext->iSendARequestToTheResourceWithBody(
+            'PATCH',
+            'page',
+            null,
+            new PyStringNode([$body], 0)
+        );
     }
 
     /**
@@ -1226,6 +1288,18 @@ final class DoctrineContext implements Context
             ]
         );
         Assert::assertEquals($newPath, $route->getRedirect()->getPath());
+    }
+
+    /**
+     * @Then the Route :path should not redirect
+     */
+    public function theRouteShouldNotRedirect(string $path): void
+    {
+        $this->manager->clear();
+        $repository = $this->manager->getRepository(Route::class);
+        $route = $repository->findOneBy(['path' => $path]);
+        Assert::assertNotNull($route, sprintf('Expected route "%s" to exist.', $path));
+        Assert::assertNull($route->getRedirect(), sprintf('Expected route "%s" to have no redirect, but it does.', $path));
     }
 
     /**

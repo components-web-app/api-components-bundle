@@ -12,7 +12,11 @@
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Metadata\HttpOperation;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
@@ -73,8 +77,68 @@ class RouteEventListener
         if ($previousPath !== $data->getPath()) {
             $newRedirect = $this->routeGenerator->createRedirect($previousPath, $data);
             $entityManager->persist($newRedirect);
+
+            if ($data->cascadeChildPaths) {
+                $this->cascadeChildPaths($data, $previousPath, $entityManager);
+            }
+
             $entityManager->flush();
         }
+    }
+
+    private function cascadeChildPaths(Route $parentRoute, string $oldParentPath, EntityManagerInterface $em): void
+    {
+        $pageOrPageData = $parentRoute->getPage() ?? $parentRoute->getPageData();
+        if (null === $pageOrPageData) {
+            return;
+        }
+
+        $newParentPath = $parentRoute->getPath();
+        $childUpdates = []; // oldChildPath => childRoute
+
+        foreach ($this->findDirectChildren($pageOrPageData, $em) as $child) {
+            $childRoute = $child->getRoute();
+            if (null === $childRoute) {
+                continue;
+            }
+
+            $oldChildPath = $childRoute->getPath();
+            if (!str_starts_with($oldChildPath, $oldParentPath . '/')) {
+                continue;
+            }
+
+            $newChildPath = $newParentPath . substr($oldChildPath, \strlen($oldParentPath));
+            $childRoute->setPath($newChildPath)->setName($newChildPath);
+            $childUpdates[$oldChildPath] = $childRoute;
+        }
+
+        if (empty($childUpdates)) {
+            return;
+        }
+
+        // Flush path updates so old paths are freed in the DB before creating redirects with those paths.
+        // Doctrine processes INSERTs before UPDATEs, so without this flush the redirect INSERT would
+        // conflict with the child route that still holds the old path in the database.
+        $em->flush();
+
+        foreach ($childUpdates as $oldChildPath => $childRoute) {
+            $redirect = $this->routeGenerator->createRedirect($oldChildPath, $childRoute);
+            $em->persist($redirect);
+            $this->cascadeChildPaths($childRoute, $oldChildPath, $em);
+        }
+    }
+
+    /**
+     * @return AbstractPage[]
+     */
+    private function findDirectChildren(AbstractPage $parent, EntityManagerInterface $em): array
+    {
+        $field = $parent instanceof Page ? 'parentPage' : 'parentPageData';
+
+        return array_merge(
+            $em->getRepository(Page::class)->findBy([$field => $parent]),
+            $em->getRepository(AbstractPageData::class)->findBy([$field => $parent]),
+        );
     }
 
     private function generateRoute(Route $data, Request $request): void

@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageDataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ResourceManifestNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteChildrenNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
@@ -154,6 +155,11 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set(ResourceManifestNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(RouteChildrenNormalizer::class)
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
 

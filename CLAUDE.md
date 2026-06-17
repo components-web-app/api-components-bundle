@@ -197,71 +197,52 @@ This means:
 1. **`$parentPage` and `$parentPageData` on `AbstractPage`** — `Assert\Expression` constraint, getters/setters, computed `getParentPageRoute()`, ORM attributes on both `Page` and `AbstractPageData`
 2. **`$nested` removed from `AbstractPage`** — property, getter, setter, ORM mapping, and schema entry all removed. Parent = nested, always.
 3. **`$route`, `$parentPage`, `$parentPageData` in `Route:manifest:read`** — parent sub-tree IRIs appear in `resource_iris` automatically via the normalizer walk
-4. **Behat tests** — `features/main/route.feature`: nested PageData and nested Page manifests both tested; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422), PATCH to set parentPage (200), flat PageData manifest (200), nested PageData manifest (200)
+4. **Behat tests** — `features/main/route.feature`: nested PageData and nested Page manifests both tested; `features/main/page.feature`: create with parentPage (201), create with parentPageData (201), both set (422), PATCH to set parentPage (200), flat PageData manifest (200), nested PageData manifest (200), nested Page manifest (200)
 5. **`/_/resource_manifest/{id}` unified endpoint** — `ResourceManifest` DTO (`src/ApiResource/ResourceManifest.php`) with `ResourceManifestStateProvider` resolving route paths (starts with `/`) or UUIDs (Page then AbstractPageData). `ResourceManifestVoter` delegates access control to `RouteVoter` or `AbstractRoutableVoter`. `ResourceManifestNormalizer` produces `{ "resource_iris": string[][] }` using the shared `ManifestDepthGroupTrait`.
 6. **`ManifestDepthGroupTrait`** (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) — `buildDepthGroups`, `collectCurrentDepth`, `shouldSkipIri` extracted and shared between `RouteNormalizer` and `ResourceManifestNormalizer`
 7. **`pageDataProperty` component IRIs in manifests** — `PageDataNormalizer` injects `cwa_current_page_data` into the serialization context when `Route:manifest:read` is active. `ComponentPositionNormalizer.normalizeForPageData()` reads this context key and resolves `pageDataProperty` positions during manifest generation without requiring an HTTP `path` header. `ManifestDepthGroupTrait.collectCurrentDepth()` now also collects string IRI values from non-blank-node subresources (AP4 returns component IRIs as strings when `AbstractComponent` has no `Route:manifest:read` fields). Blank node resources (`/.well-known/genid/...`) are excluded from string IRI collection to avoid leaking internal metadata IRIs (e.g. `pageDataMetadata`). Behat test in `features/main/route.feature` covers `resource_iris[0][5]` matching a DummyComponent IRI.
 8. **`Layout.componentGroups` returns IRI strings** — see fixed bug above. Behat test in `features/main/layout.feature` covers `componentGroups[0]` equal to the component group IRI.
 
-### Outstanding — `parentPage` in standard Page read group
+### ~~Outstanding — `parentPage` in standard Page read group~~ — ALREADY WORKS
 
-**Requirement (discovered 2026-06-15):** The Nuxt module's admin parent-page picker must filter out descendants of the current page to prevent circular parent chains (e.g. A → B → A). The picker is populated from `GET /_/pages` (via `useParentPageLoader`). To detect descendants client-side, each page in that collection response must include its own `parentPage` IRI.
+`parentPage` already appears in `GET /_/pages` responses for pages that have a parent set. Because `Page` has no explicit `normalizationContext`, AP4 does not inject a `groups` key into the Symfony serializer context. Without a `groups` key, the Symfony serializer ignores all `#[Groups]` annotations and serializes all accessible properties — including `parentPage` via `getParentPage()`. No code change was needed; Behat test added to `features/main/page.feature` for coverage.
 
-Currently `parentPage` is only in `Route:manifest:read`. It needs to be added to whatever serialization group drives the `/_/pages` collection read (e.g. `Page:read` or a shared `AbstractPage:read` group). This satisfies the principle of least exposure — there is a concrete consumer (the admin picker descendant-filter).
+### ~~Bug: PATCH `/_/pages/{uuid}` throws 500 when body contains `componentGroups`~~ — FIXED
 
-A Behat test should cover: `GET /_/pages` response includes `parentPage` for a page that has one set.
+**Symptom (discovered 2026-06-17):** Saving a Page from the Nuxt admin modal triggered a 500/422 when the PATCH body contained `componentGroups` as embedded JSON-LD objects (AP4 tried to denormalize the component positions collection, which caused `ArrayCollection::$sortValue` access errors).
 
-### Bug: PATCH `/_/pages/{uuid}` throws 500 when body contains `componentGroups`
+**Fix (committed 2026-06-17):** Overrode `getComponentGroups()` in `Page.php` with `#[ApiProperty(writable: false)]`. AP4 now ignores `componentGroups` during deserialization — whether sent as IRI strings or embedded objects. Component groups are managed via their own endpoints.
 
-**Symptom (discovered 2026-06-17):** Saving a Page from the Nuxt admin modal returns:
-```
-500: Warning: Undefined property: Doctrine\Common\Collections\ArrayCollection::$sortValue
-```
-
-**Trigger payload:** The Nuxt module admin modal PATCHes the full resource data including `componentGroups` as an array (either IRI strings or embedded JSON-LD objects, depending on what was returned in the GET). Example body:
-```json
-{
-  "@type": "Page",
-  "reference": "My Page",
-  "layout": "/_/layouts/uuid",
-  "componentGroups": ["/_/component_groups/uuid1", "/_/component_groups/uuid2"]
-}
-```
-
-**Likely root cause:** The Symfony deserializer processes the `componentGroups` array and, during denormalization of `ComponentGroup` entities, either a lifecycle callback or the `ComponentPositionNormalizer` accesses `$sortValue` on the `ComponentGroup.componentPositions` `ArrayCollection` as if it were a scalar property — rather than iterating over individual `ComponentPosition` entities. This results in PHP trying to read `$sortValue` on the `ArrayCollection` object itself.
-
-**Where to look:**
-- `ComponentGroup` entity — any `#[ORM\PrePersist]` / `#[ORM\PreUpdate]` listener that reads `componentPositions->sortValue`
-- `ComponentPositionNormalizer` — any code path triggered during `PATCH` denormalization that accesses the position collection
-- Symfony's denormalization of `ComponentGroup.componentPositions` when the PATCH body includes inline `componentGroups`
-
-**Workaround (Nuxt module, committed 2026-06-17):** `PageAdminModal` passes `excludeFields: ['componentGroups']` to `useItemPage`, so `componentGroups` is stripped from the PATCH body before sending. This bypasses the bug without fixing it. A proper API-side fix is still needed so that PATCH requests including `componentGroups` do not 500.
-
-**Test to write:** Behat scenario — `PATCH /_/pages/{uuid}` with `componentGroups` in the request body returns 200, not 500.
+**Behat tests:** Two scenarios in `features/main/page.feature` — PATCH with IRI-string componentGroups (200), PATCH with embedded componentGroups including positions (200).
 
 ---
 
-### Outstanding — UUID-based manifest must walk the `parentPage` chain
 
-**Bug (discovered 2026-06-16):** When the Nuxt module admin accesses a nested `Page` entity directly via its admin URL (e.g. `/_cwa/%2F_api%2F_%2Fpages%2F{child-uuid}`), the fetcher calls `GET /_api/_/resource_manifest/{child-uuid}`. The module code is correct: it uses `irisByDepth[0]` as the parent depth and renders `pageIriAtDepth(depth)` for each level. However, the admin admin page displays only a placeholder (no parent content) because the manifest endpoint currently returns only the accessed page in a single depth group — it does not walk the `parentPage`/`parentPageData` chain upward.
+---
 
-**Required fix:** `ResourceManifestNormalizer` (or `ResourceManifestStateProvider`) when resolving by Page UUID must walk the `parentPage`/`parentPageData` chain to the root and produce `resource_iris: string[][]` with one inner array per depth level, root first — exactly as the route-path path does when the manifest normalizer walks the embedded parent sub-tree via the `Route:manifest:read` group.
+## API contracts: Route UI/UX (from Nuxt module design discussion)
 
-For a chapter `Page` entity whose `parentPage` is a topic `Page`:
+### 1. Cascade child path update on route PATCH — COMPLETE ✓
+
+`PATCH /_/routes/{id}` accepts optional `cascadeChildPaths: true` boolean. When set and `path` changes, `RouteEventListener.onPostWrite` walks direct children via `AbstractPage.parentPage`/`parentPageData`, updates their route paths (prefixing with the new parent path), and creates redirects from old to new child paths. Children whose path does not start with the old prefix are ignored. Intermediate flush required before creating child redirects (Doctrine processes INSERTs before UPDATEs; flushing path changes first frees old paths in the DB). Behat tests in `features/main/route.feature`.
+
+### 2. Route children endpoint — COMPLETE ✓
+
+`GET /_/routes/{id}/children` returns the recursive child tree for a specific route. Admin-only (`ROLE_ADMIN`). Response:
 ```json
 {
-  "resource_iris": [
-    ["/_/pages/topic-uuid", "/_/component_groups/...", ...],
-    ["/_/pages/chapter-uuid", "/_/component_groups/...", ...]
+  "children": [
+    {
+      "route": "/_/routes//conference/programme",
+      "path": "/conference/programme",
+      "children": []
+    }
   ]
 }
 ```
+Each node embeds its direct children recursively so the full sub-tree is visible in one request. Children are plain objects (not IRIs) since you need the tree structure to navigate it; `route` and `path` are the only data fields per node — all other route detail is fetched via the IRI.
 
-The fix should mirror what `RouteNormalizer` does when following `parentPage`/`parentPageData` during route-based manifest generation. The `ManifestDepthGroupTrait` `buildDepthGroups` should already handle this if the correct sub-tree is passed in — check whether `ResourceManifestNormalizer` is passing the full serialized entity (including embedded parent data) or only the top-level page object.
-
-A Behat test should cover: `GET /_/resource_manifest/{child-page-uuid}` for a page with `parentPage` set returns `resource_iris` with two depth groups (parent resources first, child resources last).
-
----
+Implementation: `RouteChildren` + `RouteChildrenNode` DTOs, `RouteChildrenStateProvider`, `RouteChildrenNormalizer`. Custom `Get` operation added to `Route` at `/routes/{id}/children`. The standard Route `Get` requirement updated to `(?!.+\/(?:redirects|children)$).+` to exclude both sub-resource suffixes. Behat tests in `features/main/route.feature`.
 
 ## Feature: CwaFixtureBuilder
 

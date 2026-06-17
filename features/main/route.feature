@@ -90,6 +90,66 @@ Feature: Route resources
     And the JSON should be valid according to the schema file "route.schema.json"
     And the Route "/original" should redirect to "/new"
 
+  @loginAdmin
+  Scenario: PATCH a route path with cascadeChildPaths updates child routes and creates redirects
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "PATCH" request to the resource "parent_route" with data:
+      | path            | cascadeChildPaths |
+      | /new-conference | true              |
+    Then the response status code should be 200
+    And the JSON node "path" should be equal to the string "/new-conference"
+    And the Route "/conference" should redirect to "/new-conference"
+    And the Route "/conference/programme" should redirect to "/new-conference/programme"
+
+  @loginAdmin
+  Scenario: PATCH a route path without cascadeChildPaths does not cascade to children
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "PATCH" request to the resource "parent_route" with data:
+      | path            |
+      | /new-conference |
+    Then the response status code should be 200
+    And the Route "/conference/programme" should not redirect
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths but path unchanged causes no cascade
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "PATCH" request to the resource "parent_route" with data:
+      | path        | cascadeChildPaths |
+      | /conference | true              |
+    Then the response status code should be 200
+    And the Route "/conference/programme" should not redirect
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths ignores children with diverged route paths
+    Given there is a PageData resource with the route path "/talks" nested within the route "/conference"
+    When I send a "PATCH" request to the resource "parent_route" with data:
+      | path            | cascadeChildPaths |
+      | /new-conference | true              |
+    Then the response status code should be 200
+    And the Route "/talks" should not redirect
+
+  @loginAdmin
+  Scenario: GET a route's children returns recursive tree with path and IRI per node
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "GET" request to the resource "parent_route" and the postfix "/children"
+    Then the response status code should be 200
+    And the JSON node "children" should have 1 element
+    And the JSON node "children[0].route" should be equal to "/_/routes//conference/programme"
+    And the JSON node "children[0].path" should be equal to the string "/conference/programme"
+    And the JSON node "children[0].children" should have 0 elements
+
+  @loginAdmin
+  Scenario: GET children for a leaf route returns an empty children array
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "GET" request to the resource "page_data_route" and the postfix "/children"
+    Then the response status code should be 200
+    And the JSON node "children" should have 0 elements
+
+  Scenario: Anonymous users cannot access route children
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "GET" request to the resource "parent_route" and the postfix "/children"
+    Then the response status code should be 401
+
   @loginUser
   Scenario: I generate a route for a path that already exists and the new route is generated with a postfix
     Given there is a PageData resource with the route path "/unnamed-page"

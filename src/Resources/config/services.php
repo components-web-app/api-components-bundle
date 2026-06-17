@@ -50,6 +50,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStat
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -827,6 +828,18 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.doctrine.repository.route'),
                 new Reference('api_platform.state_provider'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
+
+    $services
+        ->set(RouteChildrenStateProvider::class)
+        ->args(
+            [
+                new Reference('silverback.doctrine.repository.route'),
+                new Reference(ManagerRegistry::class),
+                new Reference(IriConverterInterface::class),
             ]
         )
         ->autoconfigure(false)
