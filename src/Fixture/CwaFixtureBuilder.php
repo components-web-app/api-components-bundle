@@ -197,6 +197,7 @@ class CwaFixtureBuilder
             $this->evaluateNested();
             $this->phaseTwo();
             $this->phaseThree();
+            $this->phaseThreePointFive();
             $this->initialFlushDone = true;
         }
 
@@ -213,9 +214,12 @@ class CwaFixtureBuilder
             if (null === $closure) {
                 continue;
             }
+            $beforePageRefs = array_keys($this->pageSpecs);
             $this->parentContext = $spec['builder']->getPageData();
             $closure($this);
             $this->parentContext = null;
+            $addedRefs = array_values(array_diff(array_keys($this->pageSpecs), $beforePageRefs));
+            $spec['builder']->setChildPageRefs($addedRefs);
         }
 
         foreach ($this->pageSpecs as $spec) {
@@ -381,6 +385,28 @@ class CwaFixtureBuilder
         $this->manager->flush();
     }
 
+    private function phaseThreePointFive(): void
+    {
+        $hasChanges = false;
+
+        foreach ($this->pageDataSpecs as $spec) {
+            $cb = $spec['builder']->getOnRoutesCreated();
+            if (null === $cb) {
+                continue;
+            }
+            $childBuilders = array_values(array_filter(array_map(
+                fn ($ref) => $this->pageSpecs[$ref]['builder'] ?? null,
+                $spec['builder']->getChildPageRefs(),
+            )));
+            $cb($childBuilders);
+            $hasChanges = true;
+        }
+
+        if ($hasChanges) {
+            $this->manager->flush();
+        }
+    }
+
     private function phaseFour(): void
     {
         $hasPositions = false;
@@ -482,7 +508,7 @@ class CwaFixtureBuilder
                 }
                 if (is_iterable($related)) {
                     foreach ($related as $item) {
-                        if (is_object($item)) {
+                        if (\is_object($item)) {
                             $this->persistWithAssociations($item);
                         }
                     }

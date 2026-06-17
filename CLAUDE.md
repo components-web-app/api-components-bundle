@@ -400,6 +400,7 @@ PageBuilder
 
 PageDataBuilder
   ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
+  ->onRoutesCreated(Closure): self                   (Closure receives array<PageBuilder> of direct child page builders; called after phaseThree so child route paths are available)
   ->getRoute(): ?Route
 
 GroupBuilder
@@ -431,10 +432,95 @@ The builder manages persisting in the correct order. Roughly:
 4. `flush()`
 5. Call `RouteGenerator::create()` for all auto-routed entities (parents before children — breadth-first)
 6. `flush()` — routes now have paths
+6.5. Call `onRoutesCreated` callbacks on any `PageDataBuilder` that registered one, passing the child `PageBuilder` instances tracked during `evaluateNested()`. The callback mutates already-persisted entity properties (e.g. sets `HtmlContent.html` with real child paths). Followed by a `flush()` to persist those changes.
 7. Create ComponentPositions and nav-bar links (which may reference routes created in step 5)
 8. Final `flush()`
 
 `->getRoute(routeName)` and `PageDataBuilder/PageBuilder->getRoute()` are only valid after step 5 completes. The builder defers all closures to the correct phase internally. Closures registered against GroupBuilder via `->add()` or `->pageDataPosition()` are evaluated in phase 7. The `->nested()` closure is evaluated during phase 5 so parent routes exist before child routes are generated.
+
+### `onRoutesCreated` — implementation plan
+
+**Use case:** A `PageData` entity has a component whose content must reference child page URLs (e.g. an `HtmlContent` with links to the child pages). Child routes don't exist at entity-creation time, so the content must be set after `phaseThree`.
+
+**Required changes in `CwaFixtureBuilder`:**
+
+In `evaluateNested()`, record which page refs were registered by each nested closure and store them on the `PageDataBuilder`:
+
+```php
+foreach ($this->pageDataSpecs as $spec) {
+    $closure = $spec['builder']->getNestedClosure();
+    if (null === $closure) continue;
+    $beforePageRefs = array_keys($this->pageSpecs);
+    $this->parentContext = $spec['builder']->getPageData();
+    $closure($this);
+    $this->parentContext = null;
+    $addedRefs = array_diff(array_keys($this->pageSpecs), $beforePageRefs);
+    $spec['builder']->setChildPageRefs(array_values($addedRefs));
+}
+```
+
+Add a new `phaseThreePointFive()` called between `phaseThree()` and `phaseFour()` in `flush()`:
+
+```php
+private function phaseThreePointFive(): void
+{
+    $hasChanges = false;
+    foreach ($this->pageDataSpecs as $spec) {
+        $cb = $spec['builder']->getOnRoutesCreated();
+        if (null === $cb) continue;
+        $childBuilders = array_values(array_filter(array_map(
+            fn($ref) => $this->pageSpecs[$ref]['builder'] ?? null,
+            $spec['builder']->getChildPageRefs(),
+        )));
+        $cb($childBuilders);
+        $hasChanges = true;
+    }
+    if ($hasChanges) {
+        $this->manager->flush();
+    }
+}
+```
+
+**Required changes in `PageDataBuilder`:**
+
+```php
+private ?\Closure $onRoutesCreated = null;
+private array $childPageRefs = [];
+
+public function onRoutesCreated(\Closure $cb): self { $this->onRoutesCreated = $cb; return $this; }
+public function getOnRoutesCreated(): ?\Closure { return $this->onRoutesCreated; }
+public function setChildPageRefs(array $refs): void { $this->childPageRefs = $refs; }
+public function getChildPageRefs(): array { return $this->childPageRefs; }
+```
+
+**App usage (`AppScaffold`):**
+
+```php
+$intro = new HtmlContent();
+$intro->setPublishedAt(new \DateTime());
+$topicPageData->introContent = $intro;  // persisted in phaseOne via cascade
+
+$topicBuilder = $cwa->pageData($topicPageData, template: 'nested-topic-template', routeName: 'topic-1');
+
+$topicBuilder->nested(function (CwaFixtureBuilder $child) use ($chapters) {
+    foreach ($chapters as $j => $chapter) {
+        $child->page(sprintf('topic-1-chapter-%d', $j + 1), 'NestedSubPageTemplate', layout: 'main',
+            configure: fn(PageBuilder $p) => $p->title($chapter['title'])->group('primary')->add(...)
+        );
+    }
+});
+
+$topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
+    $links = implode(' | ', array_map(
+        fn(PageBuilder $b) => sprintf('<a href="%s">%s</a>', $b->getRoute()->getPath(), $b->getPage()->getTitle()),
+        $childBuilders
+    ));
+    $intro->html = sprintf('<p>Introduction to Topic 1. Chapters: %s</p>', $links);
+    // No persist() needed — entity is already managed; flush() in phaseThreePointFive picks it up
+});
+```
+
+**Key constraint:** The `HtmlContent` (or any entity updated in the callback) must already be persisted before `onRoutesCreated` fires — i.e. set on the `PageData` entity before passing to `->pageData()` so phaseOne cascades it. The callback only mutates properties on already-managed entities; it does not call `persist()`.
 
 ### What the builder handles invisibly
 

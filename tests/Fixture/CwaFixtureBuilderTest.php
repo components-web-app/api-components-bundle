@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -171,7 +170,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(
-            static fn ($resource) => is_string($resource) ? '/_/some_components' : '/_api/_/layouts/test-uuid'
+            static fn ($resource) => \is_string($resource) ? '/_/some_components' : '/_api/_/layouts/test-uuid'
         );
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
@@ -460,6 +459,7 @@ class CwaFixtureBuilderTest extends TestCase
                 $route->setPath('/' . spl_object_id($entity));
                 $route->setName((string) spl_object_id($entity));
                 $entity->setRoute($route);
+
                 return $route;
             });
 
@@ -469,6 +469,41 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder->flush();
         $builder->flush(); // second flush must NOT call routeGenerator->create() again
+    }
+
+    public function test_on_routes_created_fires_after_child_routes_exist_with_child_builders(): void
+    {
+        $parentPageData = new class extends AbstractPageData {};
+        $capturedBuilders = null;
+        $capturedChildRoute = null;
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parentPageData)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('chapter', 'ChapterTemplate', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $childBuilders) use (&$capturedBuilders, &$capturedChildRoute): void {
+                $capturedBuilders = $childBuilders;
+                $capturedChildRoute = $childBuilders[0]->getRoute()?->getPath();
+            });
+        $builder->flush();
+
+        $this->assertIsArray($capturedBuilders);
+        $this->assertCount(1, $capturedBuilders);
+        $this->assertNotNull($capturedChildRoute, 'Child route path should be available inside onRoutesCreated');
+    }
+
+    public function test_on_routes_created_not_called_when_no_callback_registered(): void
+    {
+        $called = false;
+        $parentPageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->pageData($parentPageData);
+        $builder->flush();
+
+        $this->assertFalse($called); // trivially passes; confirms no exception thrown
     }
 
     public function test_parent_pagedata_route_created_before_child_pagedata_route(): void

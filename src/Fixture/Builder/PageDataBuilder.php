@@ -17,19 +17,45 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 class PageDataBuilder
 {
     private ?\Closure $nestedClosure = null;
+    private ?\Closure $onRoutesCreated = null;
+    private array $childPageRefs = [];
 
     public function __construct(private readonly AbstractPageData $pageData)
     {
     }
 
-    public function nested(\Closure $configure): void
+    public function nested(\Closure $configure): self
     {
         $this->nestedClosure = $configure;
+
+        return $this;
     }
 
     public function getNestedClosure(): ?\Closure
     {
         return $this->nestedClosure;
+    }
+
+    public function onRoutesCreated(\Closure $cb): self
+    {
+        $this->onRoutesCreated = $cb;
+
+        return $this;
+    }
+
+    public function getOnRoutesCreated(): ?\Closure
+    {
+        return $this->onRoutesCreated;
+    }
+
+    public function setChildPageRefs(array $refs): void
+    {
+        $this->childPageRefs = $refs;
+    }
+
+    public function getChildPageRefs(): array
+    {
+        return $this->childPageRefs;
     }
 
     public function getPageData(): AbstractPageData
