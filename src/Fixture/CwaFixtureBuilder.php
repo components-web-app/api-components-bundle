@@ -247,6 +247,9 @@ class CwaFixtureBuilder
             }
             $this->timestampedPersister->persistTimestampedFields($page, true);
             $this->persistWithAssociations($page);
+            foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
+                $this->createAndLinkComponentGroup($groupBuilder, $page);
+            }
             $hasNew = true;
         }
 
@@ -261,6 +264,9 @@ class CwaFixtureBuilder
             $layout = $layoutBuilder->getLayout();
             $this->timestampedPersister->persistTimestampedFields($layout, true);
             $this->persistWithAssociations($layout);
+            foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
+                $this->createAndLinkComponentGroup($groupBuilder, $layout);
+            }
         }
 
         foreach ($this->pageSpecs as $spec) {
@@ -271,6 +277,9 @@ class CwaFixtureBuilder
             }
             $this->timestampedPersister->persistTimestampedFields($page, true);
             $this->persistWithAssociations($page);
+            foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
+                $this->createAndLinkComponentGroup($groupBuilder, $page);
+            }
         }
 
         foreach ($this->pageDataSpecs as $spec) {
@@ -285,52 +294,39 @@ class CwaFixtureBuilder
         $this->manager->flush();
     }
 
+    private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page $owner): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->location = $groupBuilder->getName();
+
+        if ($owner instanceof Layout) {
+            $componentGroup->reference = \sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
+        } else {
+            $componentGroup->reference = \sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
+        }
+
+        foreach ($groupBuilder->getAllowedClasses() as $class) {
+            $componentGroup->addAllowedComponent(
+                $this->iriConverter->getIriFromResource(
+                    $class,
+                    UrlGeneratorInterface::ABS_PATH,
+                    (new GetCollection())->withClass($class)
+                )
+            );
+        }
+
+        $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
+        // Add to the owning side BEFORE the first flush so Doctrine writes the join table.
+        $owner->getComponentGroups()->add($componentGroup);
+        $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
+        $this->manager->persist($componentGroup);
+    }
+
     private function phaseTwo(): void
     {
-        $allGroupSpecs = [];
-
-        foreach ($this->layoutBuilders as $layoutBuilder) {
-            foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
-                $allGroupSpecs[] = ['group' => $groupBuilder, 'owner' => $layoutBuilder->getLayout()];
-            }
-        }
-
-        foreach ($this->pageSpecs as $spec) {
-            foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
-                $allGroupSpecs[] = ['group' => $groupBuilder, 'owner' => $spec['builder']->getPage()];
-            }
-        }
-
-        foreach ($allGroupSpecs as $item) {
-            $groupBuilder = $item['group'];
-            $owner = $item['owner'];
-
-            $componentGroup = new ComponentGroup();
-            $componentGroup->location = $groupBuilder->getName();
-
-            if ($owner instanceof Layout) {
-                $componentGroup->reference = \sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
-            } else {
-                $componentGroup->reference = \sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
-            }
-            $owner->getComponentGroups()->add($componentGroup);
-
-            foreach ($groupBuilder->getAllowedClasses() as $class) {
-                $componentGroup->addAllowedComponent(
-                    $this->iriConverter->getIriFromResource(
-                        $class,
-                        UrlGeneratorInterface::ABS_PATH,
-                        (new GetCollection())->withClass($class)
-                    )
-                );
-            }
-
-            $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
-            $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
-            $this->manager->persist($componentGroup);
-        }
-
-        $this->manager->flush();
+        // ComponentGroups are created and linked in phaseOne/evaluateNested
+        // while both the owner and group are still new entities, so Doctrine
+        // writes the ManyToMany join table correctly on the first flush.
     }
 
     private function phaseThree(): void
