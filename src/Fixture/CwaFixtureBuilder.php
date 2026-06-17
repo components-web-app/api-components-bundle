@@ -310,11 +310,10 @@ class CwaFixtureBuilder
 
             if ($owner instanceof Layout) {
                 $componentGroup->reference = \sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
-                $componentGroup->addLayout($owner);
             } else {
                 $componentGroup->reference = \sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
-                $componentGroup->addPage($owner);
             }
+            $owner->getComponentGroups()->add($componentGroup);
 
             foreach ($groupBuilder->getAllowedClasses() as $class) {
                 $componentGroup->addAllowedComponent(
