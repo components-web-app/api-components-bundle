@@ -38,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface
 {
     #[ORM\ManyToOne(targetEntity: Page::class)]
-    #[ORM\JoinColumn(name: 'page_id', nullable: false)]
+    #[ORM\JoinColumn(name: 'page_id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotBlank(message: 'Please select a page template')]
     #[Groups(['Route:manifest:read'])]
     public Page $page;
