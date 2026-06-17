@@ -824,7 +824,7 @@ final class DoctrineContext implements Context
             'PATCH',
             'page',
             null,
-            new PyStringNode([sprintf('{"componentGroups": ["%s"]}', $cgIri)], 0)
+            new PyStringNode([\sprintf('{"componentGroups": ["%s"]}', $cgIri)], 0)
         );
     }
 
@@ -1298,8 +1298,8 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(Route::class);
         $route = $repository->findOneBy(['path' => $path]);
-        Assert::assertNotNull($route, sprintf('Expected route "%s" to exist.', $path));
-        Assert::assertNull($route->getRedirect(), sprintf('Expected route "%s" to have no redirect, but it does.', $path));
+        Assert::assertNotNull($route, \sprintf('Expected route "%s" to exist.', $path));
+        Assert::assertNull($route->getRedirect(), \sprintf('Expected route "%s" to have no redirect, but it does.', $path));
     }
 
     /**

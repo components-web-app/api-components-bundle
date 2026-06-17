@@ -30,7 +30,7 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
-            function (object $e) use (&$persisted): void { $persisted[] = $e; }
+            static function (object $e) use (&$persisted): void { $persisted[] = $e; }
         );
 
         $builder = new CwaFixtureBuilder(
@@ -44,9 +44,9 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/', routeName: 'home');
         $builder->flush();
 
-        $layouts = array_values(array_filter($persisted, fn ($e) => $e instanceof Layout));
-        $pages = array_values(array_filter($persisted, fn ($e) => $e instanceof Page));
-        $routes = array_values(array_filter($persisted, fn ($e) => $e instanceof Route));
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
 
         $this->assertCount(1, $layouts);
         $this->assertSame('CwaLayoutPrimary', $layouts[0]->uiComponent);
@@ -70,7 +70,7 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
-            function (object $e) use (&$persisted): void { $persisted[] = $e; }
+            static function (object $e) use (&$persisted): void { $persisted[] = $e; }
         );
 
         $iriConverter = $this->createStub(IriConverterInterface::class);
@@ -87,8 +87,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary')->group('nav', allow: [\stdClass::class]);
         $builder->flush();
 
-        $groups = array_values(array_filter($persisted, fn ($e) => $e instanceof ComponentGroup));
-        $layouts = array_values(array_filter($persisted, fn ($e) => $e instanceof Layout));
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
 
         $this->assertCount(1, $groups);
         $this->assertSame('layout:main/nav', $groups[0]->reference);
@@ -105,7 +105,7 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
-            function (object $e) use (&$persisted): void { $persisted[] = $e; }
+            static function (object $e) use (&$persisted): void { $persisted[] = $e; }
         );
 
         $parentPageData = new class extends AbstractPageData {};
@@ -114,7 +114,7 @@ class CwaFixtureBuilderTest extends TestCase
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->exactly(2))
             ->method('create')
-            ->willReturnCallback(function (AbstractPageData $pd): Route {
+            ->willReturnCallback(static function (AbstractPageData $pd): Route {
                 $route = new Route();
                 $route->setPath('/' . spl_object_id($pd));
                 $route->setName((string) spl_object_id($pd));
@@ -131,7 +131,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->withManager($em);
 
         $builder->pageData($parentPageData)
-            ->nested(function (CwaFixtureBuilder $child) use ($childPageData): void {
+            ->nested(static function (CwaFixtureBuilder $child) use ($childPageData): void {
                 $child->pageData($childPageData);
             });
         $builder->flush();
@@ -144,14 +144,14 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
-            function (object $e) use (&$persisted): void { $persisted[] = $e; }
+            static function (object $e) use (&$persisted): void { $persisted[] = $e; }
         );
 
         $parentPageData = new class extends AbstractPageData {};
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->method('create')
-            ->willReturnCallback(function (object $entity): Route {
+            ->willReturnCallback(static function (object $entity): Route {
                 $route = new Route();
                 $route->setPath('/' . spl_object_id($entity));
                 $route->setName((string) spl_object_id($entity));
@@ -169,12 +169,12 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->pageData($parentPageData)
-            ->nested(function (CwaFixtureBuilder $child): void {
+            ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'ChapterTemplate', layout: 'main');
             });
         $builder->flush();
 
-        $pages = array_values(array_filter($persisted, fn ($e) => $e instanceof Page));
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
         $this->assertCount(1, $pages);
         $this->assertSame($parentPageData, $pages[0]->getParentPageData());
     }
@@ -184,7 +184,7 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
-            function (object $e) use (&$persisted): void { $persisted[] = $e; }
+            static function (object $e) use (&$persisted): void { $persisted[] = $e; }
         );
 
         $builder = new CwaFixtureBuilder(
@@ -199,8 +199,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->group('primary');
         $builder->flush();
 
-        $groups = array_values(array_filter($persisted, fn ($e) => $e instanceof ComponentGroup));
-        $pages = array_values(array_filter($persisted, fn ($e) => $e instanceof Page));
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
 
         $this->assertCount(1, $groups);
         $this->assertSame('page:home/primary', $groups[0]->reference);

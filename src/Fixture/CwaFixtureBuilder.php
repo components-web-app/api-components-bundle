@@ -36,14 +36,14 @@ class CwaFixtureBuilder
     private array $layoutBuilders = [];
 
     /**
-     * Each entry: ['builder' => PageBuilder, 'layoutRef' => string, 'route' => ?string, 'routeName' => ?string, 'isTemplate' => bool]
+     * Each entry: ['builder' => PageBuilder, 'layoutRef' => string, 'route' => ?string, 'routeName' => ?string, 'isTemplate' => bool].
      *
      * @var array<string, array>
      */
     private array $pageSpecs = [];
 
     /**
-     * Each entry: ['builder' => PageDataBuilder, 'templateRef' => ?string, 'route' => ?string, 'routeName' => ?string]
+     * Each entry: ['builder' => PageDataBuilder, 'templateRef' => ?string, 'route' => ?string, 'routeName' => ?string].
      *
      * @var array<array>
      */
@@ -146,7 +146,7 @@ class CwaFixtureBuilder
     public function getRoute(string $routeName): Route
     {
         if (!isset($this->namedRoutes[$routeName])) {
-            throw new \LogicException(sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
+            throw new \LogicException(\sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
         }
 
         return $this->namedRoutes[$routeName];
@@ -163,7 +163,7 @@ class CwaFixtureBuilder
 
     private function evaluateNested(): void
     {
-        $existingPageDataCount = count($this->pageDataSpecs);
+        $existingPageDataCount = \count($this->pageDataSpecs);
         $existingPageRefs = array_keys($this->pageSpecs);
 
         foreach ($this->pageDataSpecs as $spec) {
@@ -188,7 +188,7 @@ class CwaFixtureBuilder
 
         $hasNew = false;
 
-        $newPageDataSpecs = array_slice($this->pageDataSpecs, $existingPageDataCount);
+        $newPageDataSpecs = \array_slice($this->pageDataSpecs, $existingPageDataCount);
         foreach ($newPageDataSpecs as $spec) {
             $this->timestampedPersister->persistTimestampedFields($spec['builder']->getPageData(), true);
             $this->manager->persist($spec['builder']->getPageData());
@@ -266,10 +266,10 @@ class CwaFixtureBuilder
             $componentGroup->location = $groupBuilder->getName();
 
             if ($owner instanceof Layout) {
-                $componentGroup->reference = sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
+                $componentGroup->reference = \sprintf('layout:%s/%s', $owner->reference, $groupBuilder->getName());
                 $componentGroup->addLayout($owner);
             } else {
-                $componentGroup->reference = sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
+                $componentGroup->reference = \sprintf('page:%s/%s', $owner->reference ?? $owner->getTitle(), $groupBuilder->getName());
                 $componentGroup->addPage($owner);
             }
 
