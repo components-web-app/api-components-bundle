@@ -144,6 +144,43 @@ class AbstractUserTest extends TestCase
         $this->assertEquals(['ROLE_ADMIN'], $user->getRoles());
     }
 
+    public function test_set_roles_re_indexes_non_sequential_array(): void
+    {
+        $user = new class extends AbstractUser {
+        };
+        $user->setRoles(['a' => 'ROLE_ADMIN', 'b' => 'ROLE_USER']);
+        $this->assertSame([0 => 'ROLE_ADMIN', 1 => 'ROLE_USER'], $user->getRoles());
+    }
+
+    public function test_set_plain_password_updates_password_updated_at_only_for_non_null(): void
+    {
+        $user = new class extends AbstractUser {
+            public function getPasswordUpdatedAt(): ?\DateTime
+            {
+                return $this->passwordUpdatedAt;
+            }
+        };
+        $user->setPlainPassword('new_password');
+        $this->assertNotNull($user->getPasswordUpdatedAt());
+
+        $user2 = new class extends AbstractUser {
+            public function getPasswordUpdatedAt(): ?\DateTime
+            {
+                return $this->passwordUpdatedAt;
+            }
+        };
+        $user2->setPlainPassword(null);
+        $this->assertNull($user2->getPasswordUpdatedAt());
+    }
+
+    public function test_password_request_limit_not_reached_when_no_request_at(): void
+    {
+        $user = new class extends AbstractUser {
+        };
+        $this->assertFalse($user->isPasswordRequestLimitReached(0));
+        $this->assertFalse($user->isPasswordRequestLimitReached(100));
+    }
+
     public function test_unserialize_object_throws_exception(): void
     {
         $user = new class extends AbstractUser {

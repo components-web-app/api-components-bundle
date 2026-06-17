@@ -110,6 +110,26 @@ class UserContextBuilderTest extends TestCase
         $this->assertEquals(['groups' => ['a_group', 'User:input'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
     }
 
+    public function test_request_input_with_non_array_groups_resets_to_empty(): void
+    {
+        $request = new Request();
+        $normalization = false;
+
+        $this->serializerContextBuilderMock
+            ->expects(self::once())
+            ->method('createFromRequest')
+            ->with($request, $normalization, null)
+            ->willReturn(['groups' => 'not_an_array', 'resource_class' => User::class]);
+
+        $this->authorizationCheckerMock
+            ->expects(self::once())
+            ->method('isGranted')
+            ->with('ROLE_SUPER_ADMIN')
+            ->willReturn(false);
+
+        $this->assertEquals(['groups' => ['User:input'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
+    }
+
     public function test_request_input_with_super_admin_groups(): void
     {
         $request = new Request();

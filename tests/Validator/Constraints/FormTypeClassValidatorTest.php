@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -21,6 +22,7 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class FormTypeClassValidatorTest extends TestCase
 {
     private FormTypeClassValidator $formTypeClassValidator;

@@ -135,6 +135,24 @@ class AbstractPageTest extends TestCase
         $pageData->validateNoCircularParent($this->makeContext(1, 'parentPageData'));
     }
 
+    public function test_initial_parent_selection_uses_parentPage_over_parentPageData(): void
+    {
+        // Subject has BOTH parentPage (cyclic) and parentPageData (safe) set simultaneously.
+        // The initial parent selection on line 100 must pick parentPage first.
+        // With the coalesce swapped (parentPageData ?? parentPage), the safe path is followed
+        // and the cycle through parentPage goes undetected.
+        $subject = $this->makePage('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        $cyclingPage = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+        $safe = new TestPageData();
+        $safe->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
+
+        $cyclingPage->setParentPage($subject);  // B → A
+        $subject->setParentPage($cyclingPage);   // A → B (cycle)
+        $subject->setParentPageData($safe);      // safe path: no further parents
+
+        $subject->validateNoCircularParent($this->makeContext(1, 'parentPage'));
+    }
+
     public function test_parent_page_is_checked_before_parent_page_data_in_cycle_detection(): void
     {
         // $subject → $intermediate, where $intermediate has BOTH parentPage=$subject (cycle)

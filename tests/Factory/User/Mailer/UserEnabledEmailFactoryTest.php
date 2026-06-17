@@ -11,12 +11,14 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
+#[AllowMockObjectsWithoutExpectations]
 class UserEnabledEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 {
     public function test_skip_user_validation_if_disabled(): void

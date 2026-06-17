@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Serializer;
 
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
@@ -22,6 +23,7 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataP
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class PersistedNormalizerTest extends TestCase
 {
     private PersistedNormalizer $apiNormalizer;

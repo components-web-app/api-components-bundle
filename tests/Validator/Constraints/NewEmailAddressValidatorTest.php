@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -22,6 +23,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class NewEmailAddressValidatorTest extends TestCase
 {
     private NewEmailAddressValidator $newEmailAddressValidator;

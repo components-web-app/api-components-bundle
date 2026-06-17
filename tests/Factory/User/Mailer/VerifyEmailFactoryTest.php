@@ -14,18 +14,18 @@ namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 
 #[AllowMockObjectsWithoutExpectations]
-class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
+class VerifyEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 {
     public function test_skip_user_validation_if_disabled(): void
     {
-        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
+        $factory = new VerifyEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', false);
         $this->assertNull(
             $factory->create(
                 new class extends AbstractUser {
@@ -42,10 +42,10 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
 
-        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
+        $factory = new VerifyEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A new password confirmation token must be set to send the `password reset` email');
+        $this->expectExceptionMessage('An `email verify token` must be set to send the verification email');
 
         $factory->create($user);
     }
@@ -55,9 +55,9 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
         $user = new class extends AbstractUser {
         };
         $user->setUsername('username')->setEmailAddress('email@address.com');
-        $user->plainNewPasswordConfirmationToken = 'token';
+        $user->plainEmailAddressVerifyToken = 'token';
 
-        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
+        $factory = new VerifyEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $requestStackMock = $this->createMock(RequestStack::class);
         $requestStackMock->expects(self::once())->method('getMainRequest')->willReturn(null);
@@ -92,15 +92,15 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
         $user
             ->setUsername('username')
             ->setEmailAddress('email@address.com');
-        $user->plainNewPasswordConfirmationToken = 'token';
-        $factory = new PasswordResetEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
+        $user->plainEmailAddressVerifyToken = 'token';
+        $factory = new VerifyEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 
         $email = (new TemplatedEmail())
             ->to(Address::create('email@address.com'))
             ->subject('subject')
-            ->htmlTemplate('@SilverbackApiComponents/emails/user_password_reset.html.twig')
+            ->htmlTemplate('@SilverbackApiComponents/emails/user_verify_email.html.twig')
             ->context(
                 [
                     'website_name' => 'my website',
@@ -109,6 +109,6 @@ class PasswordResetEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
                 ]
             );
 
-        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), PasswordResetEmailFactory::MESSAGE_ID_PREFIX);
+        $this->assertEmailEquals($email, $factory->create($user, ['website_name' => 'my website']), VerifyEmailFactory::MESSAGE_ID_PREFIX);
     }
 }

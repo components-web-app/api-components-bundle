@@ -17,12 +17,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -66,6 +68,8 @@ class UserMailerTest extends TestCase
             ->with($user, [])
             ->willReturn(null);
 
+        $this->mailerMock->expects($this->never())->method('send');
+
         $userMailer->sendPasswordResetEmail($user);
     }
 
@@ -73,6 +77,7 @@ class UserMailerTest extends TestCase
     {
         $user = new class extends AbstractUser {
         };
+        $user->setPasswordRequestedAt(new \DateTime());
 
         $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class);
 
@@ -86,7 +91,9 @@ class UserMailerTest extends TestCase
             ->expects($this->never())
             ->method('send');
 
-        $this->userMailer->sendPasswordResetEmail($user);
+        $result = $this->userMailer->sendPasswordResetEmail($user);
+        $this->assertFalse($result);
+        $this->assertNull($user->getPasswordRequestedAt());
     }
 
     public function test_exception_thrown_if_mailer_send_throws_exception(): void
@@ -106,7 +113,7 @@ class UserMailerTest extends TestCase
             ->with($user, self::TEST_CONTEXT)
             ->willReturn($templateEmail);
 
-        $mockException = $this->createMock(TransportExceptionInterface::class);
+        $mockException = $this->createStub(TransportExceptionInterface::class);
         $this->mailerMock
             ->expects(self::once())
             ->method('send')
@@ -116,9 +123,13 @@ class UserMailerTest extends TestCase
         $loggerMock
             ->expects(self::once())
             ->method('error')
-            ->with($mockException->getMessage());
+            ->with(
+                self::anything(),
+                self::callback(fn (array $ctx) => isset($ctx['exception']) && $ctx['exception'] instanceof MailerTransportException)
+            );
 
-        $this->userMailer->sendPasswordResetEmail($user);
+        $result = $this->userMailer->sendPasswordResetEmail($user);
+        $this->assertFalse($result);
     }
 
     public function test_send_password_reset_email(): void
@@ -131,7 +142,29 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(PasswordResetEmailFactory::class, $user, $additionalExpectations);
 
-        $this->userMailer->sendPasswordResetEmail($user);
+        $result = $this->userMailer->sendPasswordResetEmail($user);
+        $this->assertTrue($result);
+        $this->assertNotNull($user->getPasswordRequestedAt());
+    }
+
+    public function test_send_change_email_null_case(): void
+    {
+        $user = new class extends AbstractUser {
+        };
+        $user->setNewEmailAddressChangeRequestedAt(new \DateTime());
+
+        $factoryMock = $this->getFactoryFromContainerMock(ChangeEmailConfirmationEmailFactory::class);
+        $factoryMock
+            ->expects(self::once())
+            ->method('create')
+            ->with($user, self::TEST_CONTEXT)
+            ->willReturn(null);
+
+        $this->mailerMock->expects($this->never())->method('send');
+
+        $result = $this->userMailer->sendChangeEmailConfirmationEmail($user);
+        $this->assertFalse($result);
+        $this->assertNull($user->getNewEmailAddressChangeRequestedAt());
     }
 
     public function test_send_change_email_verification_email(): void
@@ -144,7 +177,43 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user, $additionalExpectations);
 
-        $this->userMailer->sendChangeEmailConfirmationEmail($user);
+        $result = $this->userMailer->sendChangeEmailConfirmationEmail($user);
+        $this->assertTrue($result);
+        $this->assertNotNull($user->getNewEmailAddressChangeRequestedAt());
+    }
+
+    public function test_send_email_verify_email_null_case(): void
+    {
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerificationRequestedAt(new \DateTime());
+
+        $factoryMock = $this->getFactoryFromContainerMock(VerifyEmailFactory::class);
+        $factoryMock
+            ->expects(self::once())
+            ->method('create')
+            ->with($user, self::TEST_CONTEXT)
+            ->willReturn(null);
+
+        $this->mailerMock->expects($this->never())->method('send');
+
+        $result = $this->userMailer->sendEmailVerifyEmail($user);
+        $this->assertFalse($result);
+        $this->assertNull($user->getEmailAddressVerificationRequestedAt());
+    }
+
+    public function test_send_email_verify_email(): void
+    {
+        $user = new class extends AbstractUser {
+        };
+
+        $additionalExpectations = $this->createEmMockExpectation();
+
+        $this->expectFactoryCallAndSendMailerMethod(VerifyEmailFactory::class, $user, $additionalExpectations);
+
+        $result = $this->userMailer->sendEmailVerifyEmail($user);
+        $this->assertTrue($result);
+        $this->assertNotNull($user->getEmailAddressVerificationRequestedAt());
     }
 
     public function test_send_welcome_email(): void
@@ -155,7 +224,8 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(WelcomeEmailFactory::class, $user);
 
-        $this->userMailer->sendWelcomeEmail($user);
+        $result = $this->userMailer->sendWelcomeEmail($user);
+        $this->assertTrue($result);
     }
 
     public function test_send_user_enabled_email(): void
@@ -166,7 +236,8 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(UserEnabledEmailFactory::class, $user);
 
-        $this->userMailer->sendUserEnabledEmail($user);
+        $result = $this->userMailer->sendUserEnabledEmail($user);
+        $this->assertTrue($result);
     }
 
     public function test_send_username_changed_email(): void
@@ -177,7 +248,8 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(UsernameChangedEmailFactory::class, $user);
 
-        $this->userMailer->sendUsernameChangedEmail($user);
+        $result = $this->userMailer->sendUsernameChangedEmail($user);
+        $this->assertTrue($result);
     }
 
     public function test_send_password_changed_email(): void
@@ -188,7 +260,8 @@ class UserMailerTest extends TestCase
 
         $this->expectFactoryCallAndSendMailerMethod(PasswordChangedEmailFactory::class, $user);
 
-        $this->userMailer->sendPasswordChangedEmail($user);
+        $result = $this->userMailer->sendPasswordChangedEmail($user);
+        $this->assertTrue($result);
     }
 
     private function expectFactoryCallAndSendMailerMethod(string $factoryClass, AbstractUser $user, array $additionalExpectations = []): void

@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -31,6 +32,7 @@ use Symfony\Component\Mime\RawMessage;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class AbstractUserEmailFactoryTest extends TestEmailCase
 {
     private const VALID_CONTEXT = ['website_name' => 'my website', 'test_key' => 'any value'];
@@ -298,6 +300,40 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
                 }
             )
         );
+    }
+
+    public function test_null_path_variable_placeholder_is_not_replaced(): void
+    {
+        // Path contains {{new_email}} but new_email is null (not passed to getTokenUrl).
+        // The placeholder must stay in the path, not be replaced with empty string.
+        $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/path/{{new_email}}');
+
+        $request = new Request();
+        $requestStackMock = $this->createMock(RequestStack::class);
+        $requestStackMock->expects(self::once())->method('getMainRequest')->willReturn($request);
+
+        $refererUrlMock = $this->createMock(RefererUrlResolver::class);
+        $invokedCount = self::exactly(2);
+        $callParams = [[RequestStack::class], [RefererUrlResolver::class]];
+        $willReturn = [$requestStackMock, $refererUrlMock];
+        $this->containerInterfaceMock
+            ->expects($invokedCount)
+            ->method('get')
+            ->willReturnCallback(function (...$parameters) use ($invokedCount, $callParams, $willReturn) {
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $this->assertSame($callParams[$currentInvocationCount - 1], $parameters);
+
+                return $willReturn[$currentInvocationCount - 1];
+            });
+
+        $refererUrlMock
+            ->expects(self::once())
+            ->method('getAbsoluteUrl')
+            ->with('/path/{{new_email}}')
+            ->willReturn('/any-path');
+
+        self::assertEquals('/any-path', $userEmailFactory->dummyGetTokenUrl(new class extends AbstractUser {
+        }));
     }
 
     public function test_token_path_variable_populate(): void

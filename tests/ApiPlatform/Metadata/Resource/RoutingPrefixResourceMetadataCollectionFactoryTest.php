@@ -26,25 +26,32 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 {
-    private function getDecoratedMock(?ResourceMetadataCollection $resourceMetadata = null)
+    private function getDecoratedMock(?ResourceMetadataCollection $resourceMetadata = null, string $resourceClass = 'ResourceClassName')
     {
+        if (null === $resourceMetadata) {
+            $operations = new Operations([new HttpOperation()]);
+            $apiResource = (new ApiResource())->withOperations($operations);
+            $resourceMetadata = new ResourceMetadataCollection($resourceClass, [$apiResource]);
+        }
         $mock = $this->createMock(ResourceMetadataCollectionFactoryInterface::class);
         $mock
             ->expects(self::once())
             ->method('create')
-            ->willReturn($resourceMetadata ?? new ResourceMetadataCollection('ResourceClassName'));
+            ->willReturn($resourceMetadata);
 
         return $mock;
     }
 
     public function test_component_prefix(): void
     {
-        $decoratedMock = $this->getDecoratedMock();
+        $decoratedMock = $this->getDecoratedMock(null, Form::class);
         $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
         $metadataCollection = $factory->create(Form::class);
+        $this->assertCount(1, $metadataCollection);
         /** @var ApiResource $apiResource */
         foreach ($metadataCollection as $apiResource) {
             $operations = $apiResource->getOperations();
+            $this->assertCount(1, $operations);
             foreach ($operations as $operation) {
                 $this->assertEquals('/component', $operation->getRoutePrefix());
             }
@@ -53,14 +60,16 @@ class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 
     public function test_page_data_prefix(): void
     {
-        $decoratedMock = $this->getDecoratedMock();
-        $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
         $pageDataClass = new class extends AbstractPageData {
         };
+        $decoratedMock = $this->getDecoratedMock(null, $pageDataClass::class);
+        $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
         $metadataCollection = $factory->create($pageDataClass::class);
+        $this->assertCount(1, $metadataCollection);
         /** @var ApiResource $apiResource */
         foreach ($metadataCollection as $apiResource) {
             $operations = $apiResource->getOperations();
+            $this->assertCount(1, $operations);
             foreach ($operations as $operation) {
                 $this->assertEquals('/page_data', $operation->getRoutePrefix());
             }
@@ -69,12 +78,14 @@ class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 
     public function test_api_components_bundle_prefix(): void
     {
-        $decoratedMock = $this->getDecoratedMock();
+        $decoratedMock = $this->getDecoratedMock(null, Route::class);
         $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
         $metadataCollection = $factory->create(Route::class);
+        $this->assertCount(1, $metadataCollection);
         /** @var ApiResource $apiResource */
         foreach ($metadataCollection as $apiResource) {
             $operations = $apiResource->getOperations();
+            $this->assertCount(1, $operations);
             foreach ($operations as $operation) {
                 $this->assertEquals('/_', $operation->getRoutePrefix());
             }
@@ -108,12 +119,14 @@ class RoutingPrefixResourceMetadataCollectionFactoryTest extends TestCase
 
     public function test_no_prefix(): void
     {
-        $decoratedMock = $this->getDecoratedMock();
+        $decoratedMock = $this->getDecoratedMock(null, User::class);
         $factory = new RoutingPrefixResourceMetadataCollectionFactory($decoratedMock);
         $metadataCollection = $factory->create(User::class);
+        $this->assertCount(1, $metadataCollection);
         /** @var ApiResource $apiResource */
         foreach ($metadataCollection as $apiResource) {
             $operations = $apiResource->getOperations();
+            $this->assertCount(1, $operations);
             foreach ($operations as $operation) {
                 $this->assertNull($operation->getRoutePrefix());
             }

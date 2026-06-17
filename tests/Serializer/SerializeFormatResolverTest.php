@@ -11,12 +11,14 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Serializer;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+#[AllowMockObjectsWithoutExpectations]
 class SerializeFormatResolverTest extends TestCase
 {
     /**

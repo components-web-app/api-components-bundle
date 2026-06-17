@@ -35,6 +35,7 @@ class RefererUrlResolverTest extends TestCase
 
     public function test_do_not_change_absolute_paths(): void
     {
+        $this->requestStackMock->expects($this->never())->method('getMainRequest');
         $this->assertEquals('https://website.com', $this->refererUrlHelper->getAbsoluteUrl('https://website.com'));
         $this->assertEquals('//website.com', $this->refererUrlHelper->getAbsoluteUrl('//website.com'));
     }
@@ -215,5 +216,18 @@ class RefererUrlResolverTest extends TestCase
             ->willReturn($request);
 
         $this->assertEquals('https://www.example.com:999/path-to-convert', $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert'));
+    }
+
+    public function test_get_absolute_url_using_http_origin_with_non_default_https_port(): void
+    {
+        // Port 443 is the default for HTTPS but NOT for HTTP — should be preserved
+        $request = new Request();
+        $request->headers->set('origin', 'http://www.example.com:443');
+        $this->requestStackMock
+            ->expects(self::once())
+            ->method('getMainRequest')
+            ->willReturn($request);
+
+        $this->assertEquals('http://www.example.com:443/path-to-convert', $this->refererUrlHelper->getAbsoluteUrl('/path-to-convert'));
     }
 }
