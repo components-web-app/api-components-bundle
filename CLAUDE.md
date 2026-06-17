@@ -246,7 +246,7 @@ Implementation: `RouteChildren` + `RouteChildrenNode` DTOs, `RouteChildrenStateP
 
 ## Feature: CwaFixtureBuilder
 
-> **Status: Design agreed, not yet implemented.**
+> **Status: Implemented and tested (unit tests in `tests/Fixture/CwaFixtureBuilderTest.php`).**
 
 A fluent builder API that lets developers scaffold CWA website structure (layouts, pages, component groups, components, routes) in Doctrine fixture code with minimal boilerplate. The Doctrine Fixtures Bundle handles execution; this feature adds the ergonomic PHP API on top.
 

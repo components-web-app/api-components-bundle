@@ -36,18 +36,26 @@ class CwaFixtureBuilder
     private array $layoutBuilders = [];
 
     /**
-     * Each entry: ['builder' => PageBuilder, 'layoutRef' => string, 'route' => ?string, 'routeName' => ?string, 'isTemplate' => bool].
+     * Each entry: ['builder' => PageBuilder, 'layoutRef' => string, 'route' => ?string, 'routeName' => ?string, 'isTemplate' => bool, 'type' => 'page'].
      *
      * @var array<string, array>
      */
     private array $pageSpecs = [];
 
     /**
-     * Each entry: ['builder' => PageDataBuilder, 'templateRef' => ?string, 'route' => ?string, 'routeName' => ?string].
+     * Each entry: ['builder' => PageDataBuilder, 'templateRef' => ?string, 'route' => ?string, 'routeName' => ?string, 'type' => 'pageData'].
      *
      * @var array<array>
      */
     private array $pageDataSpecs = [];
+
+    /**
+     * All page and pageData specs in registration order (parents before children).
+     * Used in phaseThree() to ensure parent routes are created before child routes.
+     *
+     * @var array<array>
+     */
+    private array $orderedRouteSpecs = [];
 
     /** @var array<string, Route> */
     private array $namedRoutes = [];
@@ -104,13 +112,16 @@ class CwaFixtureBuilder
             if (null !== $configure) {
                 $configure($builder);
             }
-            $this->pageSpecs[$ref] = [
+            $spec = [
                 'builder' => $builder,
                 'layoutRef' => $layout,
                 'route' => $route,
                 'routeName' => $routeName,
                 'isTemplate' => $isTemplate,
+                'type' => 'page',
             ];
+            $this->pageSpecs[$ref] = $spec;
+            $this->orderedRouteSpecs[] = $spec;
         }
 
         return $this->pageSpecs[$ref]['builder'];
@@ -133,12 +144,15 @@ class CwaFixtureBuilder
         if (null !== $configure) {
             $configure($builder);
         }
-        $this->pageDataSpecs[] = [
+        $spec = [
             'builder' => $builder,
             'templateRef' => $template,
             'route' => $route,
             'routeName' => $routeName,
+            'type' => 'pageData',
         ];
+        $this->pageDataSpecs[] = $spec;
+        $this->orderedRouteSpecs[] = $spec;
 
         return $builder;
     }
@@ -288,38 +302,40 @@ class CwaFixtureBuilder
 
     private function phaseThree(): void
     {
-        foreach ($this->pageSpecs as $spec) {
-            $page = $spec['builder']->getPage();
-            if (null !== $spec['route']) {
-                $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
-                $route->setPage($page);
-                $this->timestampedPersister->persistTimestampedFields($route, true);
-                $this->manager->persist($route);
-                if (null !== $spec['routeName']) {
-                    $this->namedRoutes[$spec['routeName']] = $route;
-                }
-            } elseif (!$spec['isTemplate']) {
-                $route = $this->routeGenerator->create($page);
-                if (null !== $spec['routeName'] && null !== $page->getRoute()) {
-                    $this->namedRoutes[$spec['routeName']] = $page->getRoute();
-                }
-            }
-        }
-
-        foreach ($this->pageDataSpecs as $spec) {
-            $pageData = $spec['builder']->getPageData();
-            if (null !== $spec['route']) {
-                $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
-                $route->setPageData($pageData);
-                $this->timestampedPersister->persistTimestampedFields($route, true);
-                $this->manager->persist($route);
-                if (null !== $spec['routeName']) {
-                    $this->namedRoutes[$spec['routeName']] = $route;
+        foreach ($this->orderedRouteSpecs as $spec) {
+            if ('page' === $spec['type']) {
+                $page = $spec['builder']->getPage();
+                if (null !== $spec['route']) {
+                    $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
+                    $route->setPage($page);
+                    $this->timestampedPersister->persistTimestampedFields($route, true);
+                    $this->manager->persist($route);
+                    if (null !== $spec['routeName']) {
+                        $this->namedRoutes[$spec['routeName']] = $route;
+                    }
+                } elseif (!$spec['isTemplate']) {
+                    $route = $this->routeGenerator->create($page);
+                    $this->manager->persist($route);
+                    if (null !== $spec['routeName'] && null !== $page->getRoute()) {
+                        $this->namedRoutes[$spec['routeName']] = $page->getRoute();
+                    }
                 }
             } else {
-                $route = $this->routeGenerator->create($pageData);
-                if (null !== $spec['routeName'] && null !== $pageData->getRoute()) {
-                    $this->namedRoutes[$spec['routeName']] = $pageData->getRoute();
+                $pageData = $spec['builder']->getPageData();
+                if (null !== $spec['route']) {
+                    $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
+                    $route->setPageData($pageData);
+                    $this->timestampedPersister->persistTimestampedFields($route, true);
+                    $this->manager->persist($route);
+                    if (null !== $spec['routeName']) {
+                        $this->namedRoutes[$spec['routeName']] = $route;
+                    }
+                } else {
+                    $route = $this->routeGenerator->create($pageData);
+                    $this->manager->persist($route);
+                    if (null !== $spec['routeName'] && null !== $pageData->getRoute()) {
+                        $this->namedRoutes[$spec['routeName']] = $pageData->getRoute();
+                    }
                 }
             }
         }
