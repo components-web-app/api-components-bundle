@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\Fixture;
 
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -316,7 +318,11 @@ class CwaFixtureBuilder
 
             foreach ($groupBuilder->getAllowedClasses() as $class) {
                 $componentGroup->addAllowedComponent(
-                    $this->iriConverter->getIriFromResource($class)
+                    $this->iriConverter->getIriFromResource(
+                        $class,
+                        UrlGeneratorInterface::ABS_PATH,
+                        (new GetCollection())->withClass($class)
+                    )
                 );
             }
 

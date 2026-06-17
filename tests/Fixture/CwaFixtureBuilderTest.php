@@ -170,7 +170,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $iriConverter = $this->createStub(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willReturn('/_/some_components');
+        $iriConverter->method('getIriFromResource')->willReturn('/_/some_components'); // any call returns the stub IRI
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
         $builder->layout('main', 'CwaLayoutPrimary')->group('nav', allow: [\stdClass::class]);
