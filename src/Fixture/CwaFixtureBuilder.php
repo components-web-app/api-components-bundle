@@ -157,6 +157,13 @@ class CwaFixtureBuilder
         return $builder;
     }
 
+    public function persist(object $entity): static
+    {
+        $this->manager->persist($entity);
+
+        return $this;
+    }
+
     public function getRoute(string $routeName): Route
     {
         if (!isset($this->namedRoutes[$routeName])) {
