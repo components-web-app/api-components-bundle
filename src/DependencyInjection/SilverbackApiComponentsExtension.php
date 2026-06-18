@@ -40,6 +40,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
@@ -242,6 +243,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $container->registerForAutoconfiguration(FormSuccessEventListenerInterface::class)
             ->addTag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+
+        $container->registerForAutoconfiguration(AbstractCwaScaffold::class)
+            ->addTag('doctrine.fixture.orm')
+            ->setAutowired(true);
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');
