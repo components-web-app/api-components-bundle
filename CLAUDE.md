@@ -13,6 +13,7 @@ All feature work follows this cycle:
 2. Agree on whether the test is correct (Daniel is the author and has deep system knowledge — expect discussion)
 3. Write or adjust the test, then write the code to make it pass
 4. Keep CLAUDE.md current throughout — update mid-task if the design shifts, not just at the end
+5. After committing, log any user-facing changes in the **Pending Documentation Review** table in `/Users/danielwest/Documents/GitHub/_CWA/docs/CLAUDE.md` so the docs project can decide whether to document them
 
 ---
 
