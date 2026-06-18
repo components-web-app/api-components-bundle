@@ -27,6 +27,7 @@ use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentGroupNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
@@ -78,6 +79,12 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResourceMetadataProvider::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
+
+    $services
+        ->set(ComponentGroupNormalizer::class)
+        ->autoconfigure(false)
+        ->args([new Reference('api_platform.iri_converter')])
+        ->tag('serializer.normalizer', ['priority' => -498]);
 
     $services
         ->set(ComponentPositionNormalizer::class)

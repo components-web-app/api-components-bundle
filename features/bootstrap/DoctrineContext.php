@@ -460,6 +460,25 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the ComponentGroup has a DummyPublishableComponent position
+     */
+    public function theComponentGroupHasADummyPublishableComponentPosition(): void
+    {
+        /** @var ComponentGroup $collection */
+        $collection = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_group']);
+        $component = new DummyPublishableComponent();
+        $this->manager->persist($component);
+        $position = new ComponentPosition();
+        $position->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $position->sortValue = 999;
+        $position->componentGroup = $collection;
+        $position->component = $component;
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @Given there is a page with parent page :parentRef
      */
     public function thereIsAPageWithParentPage(string $parentRef): void

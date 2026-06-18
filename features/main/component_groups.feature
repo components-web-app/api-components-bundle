@@ -96,3 +96,12 @@ Feature: ComponentGroup resource
     And the resource "component_group" should not exist
     And the resource "position_0" should not exist
     And the resource "component_0" should not exist
+
+  Scenario: Positions with non-allowed components are filtered from the component group response
+    Given there is a ComponentGroup with 1 components
+    And the ComponentGroup has the allowedComponent "/component/dummy_components"
+    And the ComponentGroup has a DummyPublishableComponent position
+    When I send a "GET" request to the resource "component_group"
+    Then the response status code should be 200
+    And the JSON node "componentPositions" should have 1 element
+    And the JSON node "componentPositions[0]" should be equal to the IRI of the resource "position_0"
