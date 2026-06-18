@@ -48,10 +48,10 @@ class PageBuilder
         return $this;
     }
 
-    public function group(string $name, ?\Closure $configure = null): GroupBuilder
+    public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
-            $this->groupBuilders[$name] = new GroupBuilder($name);
+            $this->groupBuilders[$name] = new GroupBuilder($name, [], $locationReference);
         }
         if (null !== $configure) {
             $configure($this->groupBuilders[$name]);

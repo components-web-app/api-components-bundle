@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Persistence\ObjectManager;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
@@ -22,6 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\LayoutBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
@@ -62,8 +64,14 @@ class CwaFixtureBuilder
     /** @var array<string, Route> */
     private array $namedRoutes = [];
 
+    /** @var array<int, ComponentBuilder> keyed by spl_object_id of the AbstractComponent */
+    private array $componentBuilders = [];
+
     /** Maps spl_object_id(GroupBuilder) → ComponentGroup for use in phase 4 */
     private array $componentGroupMap = [];
+
+    /** ComponentGroups keyed by their full reference, for deduplication when locationReference is set */
+    private array $namedComponentGroups = [];
 
     /** Tracks object IDs already passed to persist() to avoid cycles in persistWithAssociations() */
     private array $persistedEntities = [];
@@ -175,6 +183,16 @@ class CwaFixtureBuilder
         $this->persistWithAssociations($entity);
 
         return $this;
+    }
+
+    public function component(AbstractComponent $component): ComponentBuilder
+    {
+        $oid = spl_object_id($component);
+        if (!isset($this->componentBuilders[$oid])) {
+            $this->componentBuilders[$oid] = new ComponentBuilder($component);
+        }
+
+        return $this->componentBuilders[$oid];
     }
 
     public function getRoute(string $routeName): Route
@@ -295,38 +313,63 @@ class CwaFixtureBuilder
             $this->persistWithAssociations($pageData);
         }
 
+        foreach ($this->componentBuilders as $componentBuilder) {
+            $component = $componentBuilder->getComponent();
+            $this->timestampedPersister->persistTimestampedFields($component, true);
+            $this->persistWithAssociations($component);
+            foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
+                $this->createAndLinkComponentGroup($groupBuilder, $component);
+            }
+        }
+
         $this->manager->flush();
     }
 
-    private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page $owner): void
+    private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page|AbstractComponent $owner): void
     {
         $ownerIri = $this->iriConverter->getIriFromResource($owner);
+        $locationRef = $groupBuilder->getLocationReference() ?? $ownerIri;
+        $fullRef = $groupBuilder->getName() . '_' . $locationRef;
 
-        $componentGroup = new ComponentGroup();
-        $componentGroup->location = $ownerIri;
-        $componentGroup->reference = $groupBuilder->getName() . '_' . $ownerIri;
+        if (null !== $groupBuilder->getLocationReference() && isset($this->namedComponentGroups[$fullRef])) {
+            $componentGroup = $this->namedComponentGroups[$fullRef];
+        } else {
+            $componentGroup = new ComponentGroup();
+            $componentGroup->location = $ownerIri;
+            $componentGroup->reference = $fullRef;
 
-        foreach ($groupBuilder->getAllowedClasses() as $class) {
-            $componentGroup->addAllowedComponent(
-                $this->iriConverter->getIriFromResource(
-                    $class,
-                    UrlGeneratorInterface::ABS_PATH,
-                    (new GetCollection())->withClass($class)
-                )
-            );
+            foreach ($groupBuilder->getAllowedClasses() as $class) {
+                $componentGroup->addAllowedComponent(
+                    $this->iriConverter->getIriFromResource(
+                        $class,
+                        UrlGeneratorInterface::ABS_PATH,
+                        (new GetCollection())->withClass($class)
+                    )
+                );
+            }
+
+            $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
+            $this->manager->persist($componentGroup);
+
+            if (null !== $groupBuilder->getLocationReference()) {
+                $this->namedComponentGroups[$fullRef] = $componentGroup;
+            }
         }
 
-        $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
         // Add to the owning side BEFORE the first flush so Doctrine writes the join table.
-        $owner->getComponentGroups()->add($componentGroup);
         // Sync the inverse side for in-memory consistency (Doctrine populates it from DB on load).
         if ($owner instanceof Layout) {
+            $owner->getComponentGroups()->add($componentGroup);
             $componentGroup->layouts->add($owner);
-        } else {
+        } elseif ($owner instanceof Page) {
+            $owner->getComponentGroups()->add($componentGroup);
             $componentGroup->pages->add($owner);
+        } else {
+            $owner->addComponentGroup($componentGroup);
+            $componentGroup->components->add($owner);
         }
+
         $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
-        $this->manager->persist($componentGroup);
     }
 
     private function phaseTwo(): void
@@ -421,6 +464,14 @@ class CwaFixtureBuilder
 
         foreach ($this->pageSpecs as $spec) {
             foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
+                if ($this->createPositions($groupBuilder)) {
+                    $hasPositions = true;
+                }
+            }
+        }
+
+        foreach ($this->componentBuilders as $componentBuilder) {
+            foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
                 if ($this->createPositions($groupBuilder)) {
                     $hasPositions = true;
                 }

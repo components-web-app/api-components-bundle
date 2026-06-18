@@ -24,6 +24,7 @@ class GroupBuilder
     public function __construct(
         private readonly string $name,
         private readonly array $allowedClasses = [],
+        private readonly ?string $locationReference = null,
     ) {
     }
 
@@ -51,6 +52,11 @@ class GroupBuilder
     public function getAllowedClasses(): array
     {
         return $this->allowedClasses;
+    }
+
+    public function getLocationReference(): ?string
+    {
+        return $this->locationReference;
     }
 
     public function getComponents(): array

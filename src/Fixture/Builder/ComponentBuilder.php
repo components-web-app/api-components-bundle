@@ -11,14 +11,14 @@
 
 namespace Silverback\ApiComponentsBundle\Fixture\Builder;
 
-use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 
-class LayoutBuilder
+class ComponentBuilder
 {
     /** @var array<string, GroupBuilder> */
     private array $groupBuilders = [];
 
-    public function __construct(private readonly Layout $layout)
+    public function __construct(private readonly AbstractComponent $component)
     {
     }
 
@@ -34,9 +34,9 @@ class LayoutBuilder
         return $this->groupBuilders[$name];
     }
 
-    public function getLayout(): Layout
+    public function getComponent(): AbstractComponent
     {
-        return $this->layout;
+        return $this->component;
     }
 
     /** @return array<string, GroupBuilder> */

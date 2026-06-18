@@ -880,4 +880,163 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertCount(1, $routes);
         $this->assertSame('root', $routes[0]->getName());
     }
+
+    // --- locationReference on groups ---
+
+    public function test_layout_group_with_location_reference_uses_custom_reference_suffix(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/_api/_/layouts/test-uuid');
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'CwaLayoutPrimary')
+            ->group('nav', locationReference: 'global-nav');
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertCount(1, $groups);
+        $this->assertSame('nav_global-nav', $groups[0]->reference);
+        $this->assertSame('/_api/_/layouts/test-uuid', $groups[0]->location);
+    }
+
+    public function test_page_group_with_location_reference_uses_custom_reference_suffix(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/_api/_/pages/test-uuid');
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
+            ->group('primary', locationReference: 'home-primary');
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertCount(1, $groups);
+        $this->assertSame('primary_home-primary', $groups[0]->reference);
+        $this->assertSame('/_api/_/pages/test-uuid', $groups[0]->location);
+    }
+
+    public function test_shared_group_via_location_reference_links_to_multiple_layouts(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnOnConsecutiveCalls(
+            '/_api/_/layouts/uuid-1',
+            '/_api/_/layouts/uuid-2',
+        );
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'CwaLayoutPrimary')->group('nav', locationReference: 'global-nav');
+        $builder->layout('alt', 'CwaLayoutAlt')->group('nav', locationReference: 'global-nav');
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertCount(1, $groups);
+        $this->assertCount(2, $layouts);
+        $this->assertTrue($layouts[0]->getComponentGroups()->contains($groups[0]));
+        $this->assertTrue($layouts[1]->getComponentGroups()->contains($groups[0]));
+        $this->assertTrue($groups[0]->layouts->contains($layouts[0]));
+        $this->assertTrue($groups[0]->layouts->contains($layouts[1]));
+    }
+
+    // --- component() groups ---
+
+    public function test_component_group_creates_component_group_linked_to_component(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/_api/component/comp-uuid');
+
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->component($component)->group('items');
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertCount(1, $groups);
+        $this->assertSame('items_/_api/component/comp-uuid', $groups[0]->reference);
+        $this->assertSame('/_api/component/comp-uuid', $groups[0]->location);
+        $this->assertTrue($component->getComponentGroups()->contains($groups[0]));
+        $this->assertTrue($groups[0]->components->contains($component));
+    }
+
+    public function test_component_group_with_location_reference(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/_api/component/comp-uuid');
+
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->component($component)->group('items', locationReference: 'my-comp');
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertCount(1, $groups);
+        $this->assertSame('items_my-comp', $groups[0]->reference);
+        $this->assertSame('/_api/component/comp-uuid', $groups[0]->location);
+    }
+
+    public function test_component_group_positions_are_created_in_phase_four(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $outerComponent = new class extends AbstractComponent {};
+        $innerComponent = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($em);
+        $builder->component($outerComponent)->group('items')->add($innerComponent);
+        $builder->flush();
+
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertCount(1, $positions);
+        $this->assertSame($innerComponent, $positions[0]->component);
+    }
+
+    public function test_component_returns_same_builder_for_same_instance(): void
+    {
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder();
+
+        $b1 = $builder->component($component);
+        $b2 = $builder->component($component);
+
+        $this->assertSame($b1, $b2);
+    }
+
+    public function test_component_is_persisted_in_phase_one_before_groups_are_linked(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder($em);
+        $builder->component($component)->group('items');
+        $builder->flush();
+
+        // Component must appear before the ComponentGroup in persisted order (phase 1 ordering)
+        $componentIndex = array_search($component, $persisted, true);
+        $groupIndex = array_search(
+            array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup))[0] ?? null,
+            $persisted,
+            true,
+        );
+        $this->assertNotFalse($componentIndex);
+        $this->assertNotFalse($groupIndex);
+        $this->assertLessThan($groupIndex, $componentIndex);
+    }
 }
