@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -61,6 +62,7 @@ class ComponentPosition
     /**
      * @return ComponentPosition[]|Collection|null
      */
+    #[ApiProperty(readable: false)]
     public function getSortCollection(): ?Collection
     {
         return $this->componentGroup ? $this->componentGroup->componentPositions : null;

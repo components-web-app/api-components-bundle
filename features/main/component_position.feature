@@ -19,6 +19,12 @@ Feature: Component positions
     And the Mercure message for component group should contain timestamped fields
     And the Mercure message for component group should contain 1 component position
 
+  Scenario: sortCollection is not included in a component position response
+    Given there is a ComponentGroup with 1 components
+    When I send a "GET" request to the resource "position_0"
+    Then the response status code should be 200
+    And the JSON node "sortCollection" should not exist
+
   @loginUser
   Scenario Outline: I can restrict which components are permitted to be inside a component collection and a component that must be specifically defined as being allowed to pass validation
     Given there is a ComponentGroup with 0 components

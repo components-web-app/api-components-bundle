@@ -83,6 +83,7 @@ class Route
 
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^\//', message: 'The path must begin with a forward slash.')]
     #[Groups(['Route:redirect:read'])]
     private string $path = '';
 

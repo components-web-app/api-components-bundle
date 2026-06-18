@@ -36,6 +36,15 @@ Feature: Route resources
     And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
   @loginUser
+  Scenario: I cannot create a route without a leading slash
+    Given there is a Page
+    When I send a "POST" request to "/_/routes" with data:
+      | path    | name         | page           |
+      | contact | contact-page | resource[page] |
+    Then the response status code should be 422
+    And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
+
+  @loginUser
   Scenario: I can delete a route
     Given there is a Route "/deletable" with a page
     When I send a "DELETE" request to the resource "route"
