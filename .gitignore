@@ -12,6 +12,7 @@
 /tests/Functional/app/public/media/
 /infection.log
 /infection.json
+/infection.phar
 /clover.xml
 /tests/Functional/app/vendor/
 /tests/Functional/app/public/uploads/

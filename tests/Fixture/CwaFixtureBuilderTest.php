@@ -39,12 +39,16 @@ class CwaFixtureBuilderTest extends TestCase
         return $builder;
     }
 
-    private function collectingEm(?array &$persisted = null): ObjectManager
+    private function collectingEm(?array &$persisted = null, ?int &$flushCount = null): ObjectManager
     {
         $persisted ??= [];
+        $flushCount ??= 0;
         $em = $this->createStub(ObjectManager::class);
         $em->method('persist')->willReturnCallback(
             static function (object $e) use (&$persisted): void { $persisted[] = $e; }
+        );
+        $em->method('flush')->willReturnCallback(
+            static function () use (&$flushCount): void { ++$flushCount; }
         );
 
         return $em;
@@ -534,5 +538,346 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertCount(2, $createOrder);
         $this->assertSame(spl_object_id($parentPageData), $createOrder[0]);
         $this->assertSame(spl_object_id($childPageData), $createOrder[1]);
+    }
+
+    // --- Nested entity persistence in evaluateNested ---
+
+    public function test_nested_pagedata_entity_is_persisted_in_evaluatenested(): void
+    {
+        $persisted = [];
+        $parent = new class extends AbstractPageData {};
+        $child = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $nested) use ($child): void {
+                $nested->pageData($child);
+            });
+        $builder->flush();
+
+        $this->assertContains($child, $persisted);
+    }
+
+    public function test_nested_page_in_evaluatenested_gets_layout_linked(): void
+    {
+        $persisted = [];
+        $parent = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $nested): void {
+                $nested->page('child', 'Template', layout: 'main');
+            });
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertCount(1, $pages);
+        $this->assertSame($layouts[0], $pages[0]->layout);
+    }
+
+    // --- Flush counting: evaluateNested ---
+
+    public function test_evaluate_nested_does_not_flush_when_no_new_nested_entities(): void
+    {
+        $flushCount = 0;
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true);
+        $builder->flush();
+
+        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; evaluateNested must not flush
+    }
+
+    public function test_evaluate_nested_flushes_when_new_nested_entities_added(): void
+    {
+        $flushCount = 0;
+        $parent = new class extends AbstractPageData {};
+        $child = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $nested) use ($child): void {
+                $nested->pageData($child);
+            });
+        $builder->flush();
+
+        $this->assertSame(3, $flushCount); // phaseOne + evaluateNested + phaseThree
+    }
+
+    // --- Flush counting: phaseFour ---
+
+    public function test_phase_four_does_not_flush_when_no_positions(): void
+    {
+        $flushCount = 0;
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary'); // group exists but no components added
+        $builder->flush();
+
+        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; phaseFour must not flush
+    }
+
+    public function test_phase_four_flushes_when_positions_are_created(): void
+    {
+        $flushCount = 0;
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+
+        $this->assertSame(3, $flushCount); // phaseOne + phaseThree + phaseFour
+    }
+
+    // --- Flush counting: phaseThreePointFive ---
+
+    public function test_phase_three_point_five_does_not_flush_when_no_callbacks(): void
+    {
+        $flushCount = 0;
+        $pd = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
+        $builder->pageData($pd);
+        $builder->flush();
+
+        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; phaseThreePointFive must not flush
+    }
+
+    public function test_phase_three_point_five_flushes_when_on_routes_created_fires(): void
+    {
+        $flushCount = 0;
+        $pd = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($pd)
+            ->nested(static function (CwaFixtureBuilder $nested): void {
+                $nested->page('child', 'Template', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $builders): void {});
+        $builder->flush();
+
+        $this->assertSame(4, $flushCount); // phaseOne + evaluateNested + phaseThree + phaseThreePointFive
+    }
+
+    public function test_multiple_pagedata_specs_all_on_routes_created_callbacks_evaluated(): void
+    {
+        $pd1 = new class extends AbstractPageData {};
+        $pd2 = new class extends AbstractPageData {};
+        $callbackCalled = false;
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->pageData($pd1); // no callback — must not break the loop
+        $builder->pageData($pd2)
+            ->onRoutesCreated(static function (array $builders) use (&$callbackCalled): void {
+                $callbackCalled = true;
+            });
+        $builder->flush();
+
+        $this->assertTrue($callbackCalled);
+    }
+
+    // --- Custom sort values ---
+
+    public function test_group_add_uses_explicit_sort_when_provided(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component, 99);
+        $builder->flush();
+
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertCount(1, $positions);
+        $this->assertSame(99, $positions[0]->sortValue);
+    }
+
+    public function test_page_data_position_uses_explicit_sort_when_provided(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'BlogTemplate', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->pageDataPosition('image', 99);
+        $builder->flush();
+
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertCount(1, $positions);
+        $this->assertSame(99, $positions[0]->sortValue);
+    }
+
+    // --- getNewPageDataPositions incremental ---
+
+    public function test_flush_second_call_only_processes_new_page_data_positions(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $group = $builder->page('home', 'Template', layout: 'main', isTemplate: true)->group('primary');
+
+        $group->pageDataPosition('image');
+        $builder->flush();
+
+        $group->pageDataPosition('htmlContent');
+        $builder->flush();
+
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertCount(2, $positions);
+        $properties = array_map(static fn ($p) => $p->pageDataProperty, $positions);
+        $this->assertContains('image', $properties);
+        $this->assertContains('htmlContent', $properties);
+    }
+
+    // --- pageData nested under a Page parent ---
+
+    public function test_nested_pagedata_under_page_sets_parent_page_relationship(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('parent', 'ParentTemplate', layout: 'main')
+            ->nested(static function (CwaFixtureBuilder $nested) use ($pageData): void {
+                $nested->pageData($pageData);
+            });
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages);
+        $this->assertSame($pages[0], $pageData->getParentPage());
+        $this->assertNull($pageData->getParentPageData());
+    }
+
+    // --- Multiple specs where only later entries have nested closures ---
+
+    public function test_multiple_pagedata_specs_all_nested_closures_evaluated(): void
+    {
+        $childPageData = new class extends AbstractPageData {};
+        $parent1 = new class extends AbstractPageData {};
+        $parent2 = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->pageData($parent1); // no nested closure — must not break the loop
+        $builder->pageData($parent2)
+            ->nested(static function (CwaFixtureBuilder $nested) use ($childPageData): void {
+                $nested->pageData($childPageData);
+            });
+        $builder->flush();
+
+        $this->assertSame($parent2, $childPageData->getParentPageData());
+    }
+
+    public function test_multiple_page_specs_all_nested_closures_evaluated(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('first', 'FirstTemplate', layout: 'main'); // no nested closure — must not break the loop
+        $builder->page('second', 'SecondTemplate', layout: 'main')
+            ->nested(static function (CwaFixtureBuilder $nested): void {
+                $nested->page('child', 'ChildTemplate', layout: 'main');
+            });
+        $builder->flush();
+
+        $pages = array_column(
+            array_filter($persisted, static fn ($e) => $e instanceof Page),
+            null,
+            'reference'
+        );
+        $this->assertArrayHasKey('child', $pages);
+        $this->assertSame($pages['second'], $pages['child']->getParentPage());
+    }
+
+    // --- onRoutesCreated receives only child builders, not pre-existing page specs ---
+
+    public function test_on_routes_created_receives_only_child_page_builders_not_pre_existing_pages(): void
+    {
+        $parentPageData = new class extends AbstractPageData {};
+        $capturedCount = null;
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('existing', 'ExistingTemplate', layout: 'main'); // pre-existing page spec
+        $builder->pageData($parentPageData)
+            ->nested(static function (CwaFixtureBuilder $nested): void {
+                $nested->page('chapter', 'ChapterTemplate', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $childBuilders) use (&$capturedCount): void {
+                $capturedCount = \count($childBuilders);
+            });
+        $builder->flush();
+
+        $this->assertSame(1, $capturedCount);
+    }
+
+    // --- Named route via RouteGenerator for a Page ---
+
+    public function test_named_route_via_generator_for_page_is_accessible_after_flush(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', routeName: 'home-page');
+        $builder->flush();
+
+        $route = $builder->getRoute('home-page');
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertSame($route, $pages[0]->getRoute());
+    }
+
+    // --- deriveRouteName ---
+
+    public function test_explicit_route_without_name_derives_name_from_path(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/blog/articles');
+        $builder->flush();
+
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
+        $this->assertCount(1, $routes);
+        $this->assertSame('blog-articles', $routes[0]->getName());
+    }
+
+    public function test_explicit_route_for_root_path_derives_name_root(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/');
+        $builder->flush();
+
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
+        $this->assertCount(1, $routes);
+        $this->assertSame('root', $routes[0]->getName());
     }
 }
