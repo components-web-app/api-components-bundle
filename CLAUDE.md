@@ -22,6 +22,8 @@ All feature work follows this cycle:
 
 Companion project: **CWA Nuxt Module** (`@cwa/nuxt`) — the frontend that consumes this API. Local source at `/Users/danielwest/Documents/GitHub/_CWA/cwa-nuxt-3-module`. The two projects must be kept in sync on shared concepts (serialization groups, resource types, nested page conventions).
 
+**CWA documentation site** — covers the API bundle, Nuxt module, and template in one place. Local source at `/Users/danielwest/Documents/GitHub/_CWA/docs` (Nuxt Content). Sections: `content/4.api/` for bundle docs, `content/5.nuxt-module/` for module docs. Update this site when adding user-facing features.
+
 ## Commands
 
 ```bash
