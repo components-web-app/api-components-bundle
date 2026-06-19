@@ -1585,5 +1585,6 @@ final class DoctrineContext implements Context
         }
 
         $this->manager->flush();
+        $this->manager->clear();
     }
 }

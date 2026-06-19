@@ -18,6 +18,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -76,7 +77,9 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         }
 
         $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
-        $locationCount = method_exists($object, 'getComponentPositions') ? count($object->getComponentPositions()) : null;
+        $locationCount = method_exists($object, 'getComponentPositions')
+            ? $this->registry->getManagerForClass(ComponentPosition::class)?->getRepository(ComponentPosition::class)->count(['component' => $object])
+            : null;
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPublishable($isPublished, null, $locationCount);
