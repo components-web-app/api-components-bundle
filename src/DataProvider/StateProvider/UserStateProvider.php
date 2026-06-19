@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -37,6 +38,11 @@ class UserStateProvider implements ProviderInterface
             return null;
         }
 
-        return $this->userRepository->loadUserByIdentifier($id);
+        $user = $this->userRepository->loadUserByIdentifier($id);
+        if (null === $user) {
+            throw new UnauthorizedHttpException('Bearer', 'User not found.');
+        }
+
+        return $user;
     }
 }

@@ -16,6 +16,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTInvalidEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -36,6 +37,27 @@ class JWTClearTokenListener
     public function onJwtExpired(JWTExpiredEvent $event): void
     {
         $this->clearJwtCookie($event->getResponse());
+    }
+
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+        $request = $event->getRequest();
+        if ('_api_me' !== $request->attributes->get('_api_operation_name')) {
+            return;
+        }
+        $response = $event->getResponse();
+        if ($response->isSuccessful()) {
+            return;
+        }
+        // Only clear the JWT cookie if it was present in the request (not anonymous /me)
+        $clearCookie = $this->cookieProvider->createCookie('x.x.x', null, 1);
+        if ($request->cookies->has($clearCookie->getName())) {
+            $response->headers->setCookie($clearCookie);
+            $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
+        }
     }
 
     private function clearJwtCookie(Response $response): void

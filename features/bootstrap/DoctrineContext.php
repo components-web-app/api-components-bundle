@@ -187,6 +187,21 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the logged in user has been deleted from the database
+     */
+    public function deleteLoggedInUser(): void
+    {
+        $userIri = $this->restContext->resources['login_user'] ?? null;
+        if (!$userIri) {
+            throw new \RuntimeException('No logged in user resource found. Use a @loginAdmin or @loginSuperAdmin tag.');
+        }
+        $user = $this->iriConverter->getResourceFromIri($userIri);
+        $this->manager->remove($user);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @Given there is a :type form
      */
     public function createForm(string $type)

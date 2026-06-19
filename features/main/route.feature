@@ -35,6 +35,12 @@ Feature: Route resources
     Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
+  Scenario: A route path with a format extension resolves to the correct route
+    Given there is a Route "/contact" with a page
+    When I send a "GET" request to "/_/routes//contact.json"
+    Then the response status code should be 200
+    And the JSON node "path" should be equal to the string "/contact"
+
   @loginUser
   Scenario: A route created without a leading slash is automatically prefixed
     Given there is a Page

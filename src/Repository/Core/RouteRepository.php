@@ -36,13 +36,18 @@ class RouteRepository extends ServiceEntityRepository
 
     public function findOneByIdOrPath(string $idOrRoute): ?Route
     {
-        $route = $this->findOneBy(
-            [
-                'path' => $idOrRoute,
-            ]
-        );
+        $route = $this->findOneBy(['path' => $idOrRoute]);
         if ($route) {
             return $route;
+        }
+
+        // Strip format extension (e.g. /contact.json → /contact) and retry
+        $stripped = preg_replace('/\.[^.\/]+$/', '', $idOrRoute);
+        if ($stripped !== $idOrRoute) {
+            $route = $this->findOneBy(['path' => $stripped]);
+            if ($route) {
+                return $route;
+            }
         }
 
         try {

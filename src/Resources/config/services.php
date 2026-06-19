@@ -748,7 +748,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(MercureAuthorization::class),
         ])
         ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid'])
-        ->tag('kernel.event_listener', ['event' => Events::JWT_EXPIRED, 'method' => 'onJwtExpired']);
+        ->tag('kernel.event_listener', ['event' => Events::JWT_EXPIRED, 'method' => 'onJwtExpired'])
+        ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
     $services->alias(JWTClearTokenListener::class, 'silverback.security.jwt_clear_token_listener');
 
     $services

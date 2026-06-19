@@ -178,3 +178,10 @@ Feature: Restrict loading of components and routes
       | key     | value      |
       | new_key | new_value  |
     Then the response status code should be 200
+
+  @loginAdmin
+  Scenario: JWT cookie is cleared when the authenticated user is deleted from the database
+    Given the logged in user has been deleted from the database
+    When I send a "GET" request to "/me"
+    Then the response status code should be 401
+    And the response should have a "api_components" cookie with max age less than 2
