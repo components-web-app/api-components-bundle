@@ -558,6 +558,12 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 These are known open issues with enough context to resume work without re-investigation.
 
+### #113 — Additional page resource tests needed
+
+A community draft PR ([#156](https://github.com/components-web-app/api-components-bundle/pull/156), now closed as too stale to merge) was opened in 2022 to add page resource tests. The code has since gone through major Symfony/AP4 version upgrades. The underlying gap is real: page resource Behat coverage is incomplete. New tests should be written from scratch against the current codebase.
+
+---
+
 ### #178 — POST vs PATCH permission asymmetry on RoutableInterface entities
 
 `RoutableResourceMetadataCollectionFactory` deliberately excludes POST from the `read_routable` security check. A `ROLE_USER` can create a Page/PageData but cannot PATCH or DELETE it until it has a public route (only `ROLE_ADMIN` can edit unpublished pages). Surfaced while adding Behat tests for PATCHing `parentPage` — those tests require `@loginAdmin` because the page has no public route.
