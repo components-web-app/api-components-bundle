@@ -935,8 +935,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ResourceMetadataProvider::class, 'silverback.api_components.serializer.resource_metadata_provider');
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.route')
-        ->class(RouteStateProvider::class)
+        ->set(RouteStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
@@ -945,11 +944,10 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(RouteStateProvider::class, 'silverback.api_components.api_platform.state_provider.route');
+    $services->alias('silverback.api_components.api_platform.state_provider.route', RouteStateProvider::class);
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.route_children')
-        ->class(RouteChildrenStateProvider::class)
+        ->set(RouteChildrenStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
@@ -959,11 +957,10 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(RouteChildrenStateProvider::class, 'silverback.api_components.api_platform.state_provider.route_children');
+    $services->alias('silverback.api_components.api_platform.state_provider.route_children', RouteChildrenStateProvider::class);
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.component_group')
-        ->class(ComponentGroupStateProvider::class)
+        ->set(ComponentGroupStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.component_group'),
@@ -972,11 +969,10 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(ComponentGroupStateProvider::class, 'silverback.api_components.api_platform.state_provider.component_group');
+    $services->alias('silverback.api_components.api_platform.state_provider.component_group', ComponentGroupStateProvider::class);
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.form')
-        ->class(FormStateProvider::class)
+        ->set(FormStateProvider::class)
         ->args(
             [
                 new Reference('api_platform.state_provider'),
@@ -984,7 +980,7 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(FormStateProvider::class, 'silverback.api_components.api_platform.state_provider.form');
+    $services->alias('silverback.api_components.api_platform.state_provider.form', FormStateProvider::class);
 
     $services
         ->set('silverback.event_listener.api.route_event_listener')
@@ -1095,15 +1091,14 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ResourceManifestVoter::class, 'silverback.api_components.security.voter.resource_manifest');
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.resource_manifest')
-        ->class(ResourceManifestStateProvider::class)
+        ->set(ResourceManifestStateProvider::class)
         ->args([
             new Reference('silverback.doctrine.repository.route'),
             new Reference(EntityManagerInterface::class),
         ])
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(ResourceManifestStateProvider::class, 'silverback.api_components.api_platform.state_provider.resource_manifest');
+    $services->alias('silverback.api_components.api_platform.state_provider.resource_manifest', ResourceManifestStateProvider::class);
 
     $services
         ->set('silverback.api_components.api_platform.metadata.resource.routing_prefix_factory')
@@ -1368,8 +1363,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(CleanOrphanedCommand::class, 'silverback.api_components.command.clean_orphaned');
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.user')
-        ->class(UserStateProvider::class)
+        ->set(UserStateProvider::class)
         ->args(
             [
                 new Reference('silverback.repository.user'),
@@ -1378,7 +1372,7 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(UserStateProvider::class, 'silverback.api_components.api_platform.state_provider.user');
+    $services->alias('silverback.api_components.api_platform.state_provider.user', UserStateProvider::class);
 
     $services
         ->set('silverback.api_components.factory.user.mailer.user_enabled_email')
@@ -1686,8 +1680,7 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set('silverback.api_components.api_platform.state_provider.page_data_metadata')
-        ->class(PageDataMetadataStateProvider::class)
+        ->set(PageDataMetadataStateProvider::class)
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),
@@ -1696,7 +1689,7 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
-    $services->alias(PageDataMetadataStateProvider::class, 'silverback.api_components.api_platform.state_provider.page_data_metadata');
+    $services->alias('silverback.api_components.api_platform.state_provider.page_data_metadata', PageDataMetadataStateProvider::class);
 
     $services
         ->set('silverback.security.voter.component_voter')
