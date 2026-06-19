@@ -644,14 +644,6 @@ Related to #163. When the route manifest is fetched and components with uploaded
 
 ---
 
-### #129 — Multipart file upload does not trigger Mercure update
-
-Uploading a file via `multipart/form-data` does not fire the Mercure realtime notification that a normal JSON PATCH would. The relevant listener is `PropagateUpdatesListener` — it hooks into `onFlush`/`postFlush` Doctrine events which should fire regardless of request format. The issue may be in how AP4 handles multipart requests in its event pipeline, or in how the Uploadable state processor persists.
-
-**Where to investigate:** `src/EventListener/Doctrine/PropagateUpdatesListener.php` and the uploadable processing path — check whether the entity flush during a multipart upload goes through the same `onFlush` event that triggers cache/Mercure propagation.
-
----
-
 ### #98 — Mercure subscriptions not secured
 
 Hub subscription tokens are not currently scoped — any subscriber can receive updates for any resource. The gist linked in the issue (`soyuka/5deae36cf0fa348c4225985f6a073efe`) shows the pattern for scoping Mercure JWT tokens to specific topics.
