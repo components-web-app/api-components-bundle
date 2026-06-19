@@ -562,52 +562,15 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 These are known open issues with enough context to resume work without re-investigation.
 
-### `CwaFixtureBuilder.component()` throws for non-timestamped entities — fix needed
+### ~~`CwaFixtureBuilder.component()` throws for non-timestamped entities~~ — FIXED
 
-**Context (discovered 2026-06-19):** `CwaFixtureBuilder.phaseOne()` unconditionally calls `TimestampedDataPersister->persistTimestampedFields($component, true)` for every `ComponentBuilder` registered via `->component()`. This throws `InvalidArgumentException` (`AttributeReader.findAttributeConfiguration` line 104) when the entity does not have the `#[Timestamped]` annotation. `AbstractComponent` subclasses (e.g. `HtmlContent`, `NavigationLink`, `Image`) use `#[Publishable]` but NOT `#[Timestamped]`, so `$cwa->component($htmlContent)` always crashes.
-
-**Relevant code:** `src/Fixture/CwaFixtureBuilder.php` phaseOne loop (~line 316–323):
-```php
-foreach ($this->componentBuilders as $componentBuilder) {
-    $component = $componentBuilder->getComponent();
-    $this->timestampedPersister->persistTimestampedFields($component, true);  // throws for HtmlContent etc.
-    $this->persistWithAssociations($component);
-    ...
-}
-```
-
-**Fix required:**
-
-1. Add `isConfigured(object|string $entity): bool` to `TimestampedDataPersister` (delegates to `$this->annotationReader->isConfigured($entity)` — `TimestampedAttributeReader` inherits `isConfigured` from `AttributeReader`, which catches `InvalidArgumentException` and returns false).
-
-2. In `phaseOne()`, guard the call:
-```php
-if ($this->timestampedPersister->isConfigured($component)) {
-    $this->timestampedPersister->persistTimestampedFields($component, true);
-}
-```
-
-The `Layout`, `Page`, and `AbstractPageData` loops in phaseOne are unaffected — those entities all have `#[Timestamped]`. Only the `componentBuilders` loop needs the guard.
-
-**Workaround for `AppScaffold` until fixed:** Use `$cwa->persist($htmlContent)` (which calls `persistWithAssociations` without any timestamp logic) for standalone components set as PageData properties. This is the same effect as the intended `$cwa->component()` call minus the timestamp step (which is a no-op for these entities anyway since they have no `createdAt`/`modifiedAt` fields).
+**Fixed (commit `b438d60d`):** `TimestampedDataPersister.isConfigured()` added; `CwaFixtureBuilder.phaseOne()` now guards the `persistTimestampedFields` call with `isConfigured()`. Non-timestamped components (e.g. `HtmlContent`, `NavigationLink`) are persisted without crashing. Timestamped components (if any) still get timestamps set. Unit test added.
 
 ---
 
-### ComponentPosition `sortValue` collision on insert — API-side normalisation needed
+### ~~ComponentPosition `sortValue` collision on insert — double-shifting~~ — FIXED
 
-**Context (from Nuxt module):** When an admin inserts a component "before" or "after" an existing position, the module computes a `sortValue` for the new `ComponentPosition` that may equal an existing position's `sortValue`. For "add before X (sortValue=N)", the new position gets `sortValue=N` (same as X). For "add after X (sortValue=N)", the new position gets `sortValue=N+1` which may collide with the position immediately following X.
-
-**Module-side workaround (shipped):** Before POSTing the new component, the module PATCHes all positions in the group with `sortValue >= newSortValue`, incrementing each by 1 (in descending order to avoid intermediate collisions). This is sequential HTTP requests and adds latency.
-
-**Preferred API-side fix:** The API should accept an atomic "insert before/after" parameter on `ComponentPosition` POST that handles sort value shifting in a single database transaction. Options:
-
-1. **`insertBefore: IRI`** — the API shifts all positions with `sortValue >= targetPosition.sortValue` by +1, then assigns the freed `sortValue` to the new position.
-2. **`insertAfter: IRI`** — the API shifts all positions with `sortValue > targetPosition.sortValue` by +1, assigns `targetPosition.sortValue + 1` to the new position.
-3. **Auto-shift on collision** — when a `ComponentPosition` is written with a `sortValue` that already exists in the group, automatically shift all conflicting positions up before saving. No new parameter needed; the API resolves collisions transparently.
-
-Option 3 is simplest: no API contract change, backward-compatible. The module could then remove its pre-PATCH shifting step and rely on the API to handle collisions atomically.
-
-**Where to implement:** `ComponentPositionEventListener`, `ComponentPositionStateProcessor`, or a Doctrine `prePersist` event on `ComponentPosition`. The shift must be transactional (all updates in the same flush as the insert).
+**Fixed (commit `b438d60d`):** `ComponentPositionSortValueHelper.calculateSortValue()` now only shifts existing positions when an actual sortValue collision exists. Previously it always shifted all positions with `sortValue >= newSortValue`, causing double-shifts when the Nuxt module pre-shifted upstream. Behat test added for the no-collision case. The module's pre-shift workaround remains compatible (no collision → no shift).
 
 Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
@@ -615,14 +578,11 @@ Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 ### #170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write
 
-**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`. The position remains in `componentPositions` but with `component = null`. Direct-component write-side validation already works via `ComponentPositionValidator`.
+**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`. Direct-component write-side validation already works via `ComponentPositionValidator`.
 
 **`pageDataProperty` write-side still open:** When creating a `ComponentPosition` with `pageDataProperty` set, no validation is done against `allowedComponents`. The property name is just a string — the component type isn't known until render time.
 
-**Options:**
-- Validate that the PageData class's property type for `pageDataProperty` is in `allowedComponents` (requires knowing the PageData class at write time)
-- Accept the current read-side filtering as sufficient (disallowed types are hidden even if they sneak in)
-- Add a separate `allowedPageDataProperties` restriction
+**Agreed plan:** The module must send `pageDataClass` (FQCN of the PageData entity, e.g. `"App\\Entity\\ConferenceData"`) alongside `pageDataProperty` in POST/PATCH. The API can then resolve the property type and validate against `allowedComponents`. Requires coordinated change in both projects. See issue #170 (reopened) and nuxt module CLAUDE.md section on `allowedComponents` for the full spec.
 
 Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
 
@@ -656,7 +616,9 @@ A console command to scaffold a new component class would ease the process and a
 
 An admin viewing a component group or draft resource currently has no way to know how many draft items exist across locations. A count per-location would allow the admin UI to surface "3 unpublished items in this group" without fetching all items.
 
-**No implementation started.** Likely a custom API endpoint or serialization group addition that returns aggregated counts. Needs design work on the response shape.
+**Partially implemented (commit `b438d60d`):** `_metadata.publishable.locationCount` is now returned in component responses, showing how many `ComponentPosition` entries reference that component. Behat test in `features/publishable/publishable.feature`.
+
+**Remaining:** aggregated counts per location (e.g. "N draft items in this group") and collection-level counts are not yet implemented.
 
 ---
 
