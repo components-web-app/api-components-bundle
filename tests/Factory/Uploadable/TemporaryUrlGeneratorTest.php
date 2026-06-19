@@ -17,7 +17,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\TemporaryUrlGenerator;
 
 class TemporaryUrlGeneratorTest extends TestCase
 {
-    public function testGeneratesTemporaryUrlFromFilesystem(): void
+    public function test_generates_temporary_url_from_filesystem(): void
     {
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->method('temporaryUrl')
@@ -30,12 +30,12 @@ class TemporaryUrlGeneratorTest extends TestCase
         $this->assertSame('https://s3.example.com/file.png?signed=abc', $result);
     }
 
-    public function testUsesConfiguredExpiryString(): void
+    public function test_uses_configured_expiry_string(): void
     {
         $capturedExpiry = null;
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->method('temporaryUrl')
-            ->willReturnCallback(function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedExpiry): string {
+            ->willReturnCallback(static function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedExpiry): string {
                 $capturedExpiry = $expiry;
 
                 return 'https://s3.example.com/signed';
@@ -50,14 +50,14 @@ class TemporaryUrlGeneratorTest extends TestCase
         $this->assertLessThanOrEqual($after->getTimestamp(), $capturedExpiry->getTimestamp());
     }
 
-    public function testPassesConfigToFilesystem(): void
+    public function test_passes_config_to_filesystem(): void
     {
         $config = ['ServerSideEncryption' => 'AES256'];
 
         $capturedConfig = null;
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->method('temporaryUrl')
-            ->willReturnCallback(function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedConfig): string {
+            ->willReturnCallback(static function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedConfig): string {
                 $capturedConfig = $config;
 
                 return 'https://s3.example.com/signed';

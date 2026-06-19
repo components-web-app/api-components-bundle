@@ -245,19 +245,24 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(ApiResourceRouteFinder::class)
+        ->set('silverback.api_components.utility.api_resource_route_finder')
+        ->class(ApiResourceRouteFinder::class)
         ->args(
             [
                 new Reference('api_platform.router'),
             ]
         );
+    $services->alias(ApiResourceRouteFinder::class, 'silverback.api_components.utility.api_resource_route_finder');
 
     $services
-        ->set(ChangeEmailConfirmationEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.change_email_confirmation_email')
+        ->class(ChangeEmailConfirmationEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(ChangeEmailConfirmationEmailFactory::class, 'silverback.api_components.factory.user.mailer.change_email_confirmation_email');
 
     $services
-        ->set(ChangePasswordType::class)
+        ->set('silverback.api_components.form.change_password_type')
+        ->class(ChangePasswordType::class)
         ->args(
             [
                 new Reference(Security::class),
@@ -266,41 +271,51 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('form.type');
+    $services->alias(ChangePasswordType::class, 'silverback.api_components.form.change_password_type');
 
     $services
-        ->set(CwaResourceContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.cwa_resource')
+        ->class(CwaResourceContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(CwaResourceContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.cwa_resource.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(CwaResourceContextBuilder::class, 'silverback.api_components.serializer.context_builder.cwa_resource');
 
     $services
-        ->set(ComponentPositionContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.component_position')
+        ->class(ComponentPositionContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(ComponentPositionContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.component_position.inner'),
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(Security::class),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(ComponentPositionContextBuilder::class, 'silverback.api_components.serializer.context_builder.component_position');
 
     $services
-        ->set(CwaResourceLoader::class);
+        ->set('silverback.api_components.serializer.mapping_loader.cwa_resource')
+        ->class(CwaResourceLoader::class);
+    $services->alias(CwaResourceLoader::class, 'silverback.api_components.serializer.mapping_loader.cwa_resource');
 
     $services
-        ->set(ChangePasswordListener::class)
+        ->set('silverback.api_components.event_listener.form.change_password')
+        ->class(ChangePasswordListener::class)
         ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+    $services->alias(ChangePasswordListener::class, 'silverback.api_components.event_listener.form.change_password');
 
     $services
-        ->set(CollectionApiEventListener::class)
+        ->set('silverback.api_components.event_listener.api.collection')
+        ->class(CollectionApiEventListener::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -315,29 +330,36 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize']);
+    $services->alias(CollectionApiEventListener::class, 'silverback.api_components.event_listener.api.collection');
 
     $services
         ->set('silverback.helper.component_position_sort_value')
         ->class(ComponentPositionSortValueHelper::class);
+    $services->alias(ComponentPositionSortValueHelper::class, 'silverback.helper.component_position_sort_value');
 
     $services
-        ->set(ComponentPositionValidator::class)
+        ->set('silverback.api_components.validator.component_position')
+        ->class(ComponentPositionValidator::class)
         ->args([
             new Reference(IriConverterInterface::class),
         ])
         ->tag('validator.constraint_validator');
+    $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');
 
     $services
-        ->set(ComponentPropertyMetadataFactory::class)
+        ->set('silverback.api_components.api_platform.property_metadata_factory.component')
+        ->class(ComponentPropertyMetadataFactory::class)
         ->decorate('api_platform.metadata.property.metadata_factory')
         ->args(
             [
-                new Reference(ComponentPropertyMetadataFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.property_metadata_factory.component.inner'),
             ]
         );
+    $services->alias(ComponentPropertyMetadataFactory::class, 'silverback.api_components.api_platform.property_metadata_factory.component');
 
     $services
-        ->set(DenyAccessListener::class)
+        ->set('silverback.api_components.event_listener.security.deny_access')
+        ->class(DenyAccessListener::class)
         ->args(
             [
                 new Reference(Security::class),
@@ -345,13 +367,17 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);
+    $services->alias(DenyAccessListener::class, 'silverback.api_components.event_listener.security.deny_access');
 
     $services
-        ->set(DownloadAction::class)
+        ->set('silverback.api_components.action.uploadable.download')
+        ->class(DownloadAction::class)
         ->tag('controller.service_arguments');
+    $services->alias(DownloadAction::class, 'silverback.api_components.action.uploadable.download');
 
     $services
-        ->set(EmailAddressManager::class)
+        ->set('silverback.api_components.helper.user.email_address_manager')
+        ->class(EmailAddressManager::class)
         ->args(
             [
                 new Reference(EntityManagerInterface::class),
@@ -361,15 +387,18 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UserEventListener::class),
             ]
         );
+    $services->alias(EmailAddressManager::class, 'silverback.api_components.helper.user.email_address_manager');
 
     $services
-        ->set(EmailAddressConfirmAction::class)
+        ->set('silverback.api_components.action.user.email_address_confirm')
+        ->class(EmailAddressConfirmAction::class)
         ->args(
             [
                 new Reference(EmailAddressManager::class),
             ]
         )
         ->tag('controller.service_arguments');
+    $services->alias(EmailAddressConfirmAction::class, 'silverback.api_components.action.user.email_address_confirm');
 
     $services
         ->set(EntityPersistFormListener::class)
@@ -387,42 +416,53 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(FileInfoCacheManager::class)
+        ->set('silverback.api_components.helper.uploadable.file_info_cache_manager')
+        ->class(FileInfoCacheManager::class)
         ->args(
             [
                 new Reference(EntityManagerInterface::class),
                 new Reference(FileInfoRepository::class),
             ]
         );
+    $services->alias(FileInfoCacheManager::class, 'silverback.api_components.helper.uploadable.file_info_cache_manager');
 
     $services
-        ->set(FileInfoRepository::class)
+        ->set('silverback.api_components.repository.file_info')
+        ->class(FileInfoRepository::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
             ]
         )
         ->tag('doctrine.repository_service');
+    $services->alias(FileInfoRepository::class, 'silverback.api_components.repository.file_info');
 
     $services
-        ->set(FilesystemFactory::class)
+        ->set('silverback.api_components.flysystem.filesystem_factory')
+        ->class(FilesystemFactory::class)
         ->args([tagged_locator(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, 'alias')]);
+    $services->alias(FilesystemFactory::class, 'silverback.api_components.flysystem.filesystem_factory');
 
     $services
-        ->set(FilesystemProvider::class)
+        ->set('silverback.api_components.flysystem.filesystem_provider')
+        ->class(FilesystemProvider::class)
         ->args([tagged_locator(FilesystemProvider::FILESYSTEM_TAG, 'alias')]);
+    $services->alias(FilesystemProvider::class, 'silverback.api_components.flysystem.filesystem_provider');
 
     $services
-        ->set(FlysystemDataLoader::class)
+        ->set('silverback.api_components.imagine.flysystem_data_loader')
+        ->class(FlysystemDataLoader::class)
         ->args(
             [
                 new Reference(FilesystemProvider::class),
             ]
         )
         ->tag('liip_imagine.binary.loader', ['loader' => 'silverback.api_components.liip_imagine.binary.loader']);
+    $services->alias(FlysystemDataLoader::class, 'silverback.api_components.imagine.flysystem_data_loader');
 
     $services
-        ->set(FormCachePurgeCommand::class)
+        ->set('silverback.api_components.command.form_cache_purge')
+        ->class(FormCachePurgeCommand::class)
         ->tag('console.command')
         ->args(
             [
@@ -430,18 +470,22 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(EventDispatcherInterface::class),
             ]
         );
+    $services->alias(FormCachePurgeCommand::class, 'silverback.api_components.command.form_cache_purge');
 
     $services
-        ->set(FormCachePurger::class)
+        ->set('silverback.api_components.helper.form.form_cache_purger')
+        ->class(FormCachePurger::class)
         ->args(
             [
                 new Reference(EntityManagerInterface::class),
                 new Reference(EventDispatcherInterface::class),
             ]
         );
+    $services->alias(FormCachePurger::class, 'silverback.api_components.helper.form.form_cache_purger');
 
     $services
-        ->set(FormApiEventListener::class)
+        ->set('silverback.api_components.event_listener.api.form')
+        ->class(FormApiEventListener::class)
         ->args(
             [
                 new Reference(FormSubmitHelper::class),
@@ -452,27 +496,33 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+    $services->alias(FormApiEventListener::class, 'silverback.api_components.event_listener.api.form');
 
     $services
-        ->set(FormSubmitHelper::class)
+        ->set('silverback.api_components.helper.form.form_submit')
+        ->class(FormSubmitHelper::class)
         ->args(
             [
                 new Reference(FormFactoryInterface::class),
                 new Reference(EventDispatcherInterface::class),
             ]
         );
+    $services->alias(FormSubmitHelper::class, 'silverback.api_components.helper.form.form_submit');
 
     $services
-        ->set(FormTypeClassValidator::class)
+        ->set('silverback.api_components.validator.form_type_class')
+        ->class(FormTypeClassValidator::class)
         ->tag('validator.constraint_validator')
         ->args(
             [
                 '$formTypes' => new TaggedIteratorArgument('silverback_api_components.form_type'),
             ]
         );
+    $services->alias(FormTypeClassValidator::class, 'silverback.api_components.validator.form_type_class');
 
     $services
-        ->set(FormViewFactory::class)
+        ->set('silverback.api_components.factory.form.form_view')
+        ->class(FormViewFactory::class)
         ->args(
             [
                 new Reference(FormFactoryInterface::class),
@@ -480,9 +530,11 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UrlHelper::class),
             ]
         );
+    $services->alias(FormViewFactory::class, 'silverback.api_components.factory.form.form_view');
 
     $services
-        ->set(ImagineEventListener::class)
+        ->set('silverback.api_components.event_listener.imagine')
+        ->class(ImagineEventListener::class)
         ->args(
             [
                 new Reference(FileInfoCacheManager::class),
@@ -490,27 +542,33 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('kernel.event_listener', ['event' => ImagineStoreEvent::class, 'method' => 'onStore'])
         ->tag('kernel.event_listener', ['event' => ImagineRemoveEvent::class, 'method' => 'onRemove']);
+    $services->alias(ImagineEventListener::class, 'silverback.api_components.event_listener.imagine');
 
     $services
-        ->set(ImagineFiltersPropertyMetadataFactory::class)
+        ->set('silverback.api_components.api_platform.property_metadata_factory.imagine_filters')
+        ->class(ImagineFiltersPropertyMetadataFactory::class)
         ->decorate('api_platform.metadata.property.metadata_factory')
         ->args(
             [
-                new Reference(ImagineFiltersPropertyMetadataFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.property_metadata_factory.imagine_filters.inner'),
             ]
         );
+    $services->alias(ImagineFiltersPropertyMetadataFactory::class, 'silverback.api_components.api_platform.property_metadata_factory.imagine_filters');
 
     $services
-        ->set(LayoutRepository::class)
+        ->set('silverback.api_components.repository.layout')
+        ->class(LayoutRepository::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
             ]
         )
         ->tag('doctrine.repository_service');
+    $services->alias(LayoutRepository::class, 'silverback.api_components.repository.layout');
 
     $services
-        ->set(MediaObjectFactory::class)
+        ->set('silverback.api_components.factory.uploadable.media_object')
+        ->class(MediaObjectFactory::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
@@ -525,23 +583,29 @@ return static function (ContainerConfigurator $configurator) {
                 null, // populated in dependency injection
             ]
         );
+    $services->alias(MediaObjectFactory::class, 'silverback.api_components.factory.uploadable.media_object');
 
     $services
-        ->set(MessageEventListener::class)
+        ->set('silverback.api_components.event_listener.mailer.message')
+        ->class(MessageEventListener::class)
         ->tag('kernel.event_listener', ['event' => MessageEvent::class])
         ->args(
             [
                 '%env(MAILER_EMAIL)%',
             ]
         );
+    $services->alias(MessageEventListener::class, 'silverback.api_components.event_listener.mailer.message');
 
     $services
-        ->set(NewEmailAddressListener::class)
+        ->set('silverback.api_components.event_listener.form.new_email_address')
+        ->class(NewEmailAddressListener::class)
         ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+    $services->alias(NewEmailAddressListener::class, 'silverback.api_components.event_listener.form.new_email_address');
 
     $services
-        ->set(NewEmailAddressType::class)
+        ->set('silverback.api_components.form.new_email_address_type')
+        ->class(NewEmailAddressType::class)
         ->args(
             [
                 new Reference(Security::class),
@@ -550,18 +614,22 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('form.type');
+    $services->alias(NewEmailAddressType::class, 'silverback.api_components.form.new_email_address_type');
 
     $services
-        ->set(NewEmailAddressValidator::class)
+        ->set('silverback.api_components.validator.new_email_address')
+        ->class(NewEmailAddressValidator::class)
         ->args(
             [
                 new Reference('silverback.repository.user'),
             ]
         )
         ->tag('validator.constraint_validator');
+    $services->alias(NewEmailAddressValidator::class, 'silverback.api_components.validator.new_email_address');
 
     $services
-        ->set(PageDataProvider::class)
+        ->set('silverback.api_components.data_provider.page_data')
+        ->class(PageDataProvider::class)
         ->args([
             new Reference(RequestStack::class),
             new Reference('silverback.doctrine.repository.route'),
@@ -570,17 +638,23 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.metadata_provider.page_data'),
             new Reference(ManagerRegistry::class),
         ]);
+    $services->alias(PageDataProvider::class, 'silverback.api_components.data_provider.page_data');
 
     $services
-        ->set(PasswordChangedEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.password_changed_email')
+        ->class(PasswordChangedEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(PasswordChangedEmailFactory::class, 'silverback.api_components.factory.user.mailer.password_changed_email');
 
     $services
-        ->set(PasswordResetEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.password_reset_email')
+        ->class(PasswordResetEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(PasswordResetEmailFactory::class, 'silverback.api_components.factory.user.mailer.password_reset_email');
 
     $services
-        ->set(PasswordRequestAction::class)
+        ->set('silverback.api_components.action.user.password_request')
+        ->class(PasswordRequestAction::class)
         ->args(
             [
                 new Reference(UserDataProcessor::class),
@@ -589,9 +663,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('controller.service_arguments');
+    $services->alias(PasswordRequestAction::class, 'silverback.api_components.action.user.password_request');
 
     $services
-        ->set(PasswordUpdateType::class)
+        ->set('silverback.api_components.form.password_update_type')
+        ->class(PasswordUpdateType::class)
         ->args(
             [
                 new Reference('request_stack'),
@@ -600,9 +676,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('form.type');
+    $services->alias(PasswordUpdateType::class, 'silverback.api_components.form.password_update_type');
 
     $services
-        ->set(PasswordUpdateListener::class)
+        ->set('silverback.api_components.event_listener.form.password_update')
+        ->class(PasswordUpdateListener::class)
         ->parent(EntityPersistFormListener::class)
         ->args(
             [
@@ -610,24 +688,30 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+    $services->alias(PasswordUpdateListener::class, 'silverback.api_components.event_listener.form.password_update');
 
     $services
-        ->set(PublishableAttributeReader::class)
+        ->set('silverback.api_components.attribute_reader.publishable')
+        ->class(PublishableAttributeReader::class)
         ->parent(AttributeReader::class);
+    $services->alias(PublishableAttributeReader::class, 'silverback.api_components.attribute_reader.publishable');
 
     $services
-        ->set(PublishableContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.publishable')
+        ->class(PublishableContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(PublishableContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.publishable.inner'),
                 new Reference(PublishableStatusChecker::class),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(PublishableContextBuilder::class, 'silverback.api_components.serializer.context_builder.publishable');
 
     $services
-        ->set(PublishableEventListener::class)
+        ->set('silverback.api_components.event_listener.api.publishable')
+        ->class(PublishableEventListener::class)
         ->args(
             [
                 new Reference(PublishableStatusChecker::class),
@@ -640,9 +724,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE, 'method' => 'onPostDeserialize'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+    $services->alias(PublishableEventListener::class, 'silverback.api_components.event_listener.api.publishable');
 
     $services
-        ->set(PublishableStatusChecker::class)
+        ->set('silverback.api_components.helper.publishable.status_checker')
+        ->class(PublishableStatusChecker::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
@@ -651,14 +737,18 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected with dependency injection
             ]
         );
+    $services->alias(PublishableStatusChecker::class, 'silverback.api_components.helper.publishable.status_checker');
 
     $services
-        ->set(PublishableListener::class)
+        ->set('silverback.api_components.doctrine.event_listener.publishable')
+        ->class(PublishableListener::class)
         ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+    $services->alias(PublishableListener::class, 'silverback.api_components.doctrine.event_listener.publishable');
 
     $services
-        ->set(MercureAuthorization::class)
+        ->set('silverback.api_components.mercure.authorization')
+        ->class(MercureAuthorization::class)
         ->args(
             [
                 new Reference(ResourceNameCollectionFactoryInterface::class),
@@ -670,22 +760,26 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected with dependency injection
             ]
         );
+    $services->alias(MercureAuthorization::class, 'silverback.api_components.mercure.authorization');
 
     $services
-        ->set(PublishableAwareHub::class)
+        ->set('silverback.api_components.mercure.publishable_aware_hub')
+        ->class(PublishableAwareHub::class)
         ->decorate('mercure.hub.default', null, -1)
         ->args(
             [
-                new Reference(PublishableAwareHub::class . '.inner'),
+                new Reference('silverback.api_components.mercure.publishable_aware_hub.inner'),
                 new Reference(PublishableStatusChecker::class),
                 new Reference(IriConverterInterface::class),
             ]
         )
         ->tag('mercure.hub');
+    $services->alias(PublishableAwareHub::class, 'silverback.api_components.mercure.publishable_aware_hub');
 
     // High priority for item because of queryBuilder reset
     $services
-        ->set(PublishableExtension::class)
+        ->set('silverback.api_components.doctrine.orm.extension.publishable')
+        ->class(PublishableExtension::class)
         ->args(
             [
                 new Reference(PublishableStatusChecker::class),
@@ -695,19 +789,24 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+    $services->alias(PublishableExtension::class, 'silverback.api_components.doctrine.orm.extension.publishable');
 
     $services
-        ->set(PublishableValidator::class)
+        ->set('silverback.api_components.validator.publishable')
+        ->class(PublishableValidator::class)
         ->decorate('api_platform.validator')
         ->args(
             [
-                new Reference(PublishableValidator::class . '.inner'),
+                new Reference('silverback.api_components.validator.publishable.inner'),
                 new Reference(PublishableStatusChecker::class),
             ]
         );
+    $services->alias(PublishableValidator::class, 'silverback.api_components.validator.publishable');
 
     $services
-        ->set(PublishableLoader::class);
+        ->set('silverback.api_components.serializer.mapping_loader.publishable')
+        ->class(PublishableLoader::class);
+    $services->alias(PublishableLoader::class, 'silverback.api_components.serializer.mapping_loader.publishable');
 
     $services
         ->set('silverback.security.jwt_manager')
@@ -785,21 +884,25 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(DoctrineRefreshTokenStorage::class, 'silverback.api_components.refresh_token.storage.doctrine');
 
     $services
-        ->set(ResourceIriValidator::class)
+        ->set('silverback.api_components.validator.resource_iri')
+        ->class(ResourceIriValidator::class)
         ->args(
             [
                 new Reference(ApiResourceRouteFinder::class),
             ]
         )
         ->tag('validator.constraint_validator');
+    $services->alias(ResourceIriValidator::class, 'silverback.api_components.validator.resource_iri');
 
     $services
-        ->set(RefererUrlResolver::class)
+        ->set('silverback.api_components.helper.referer_url_resolver')
+        ->class(RefererUrlResolver::class)
         ->args(
             [
                 new Reference(RequestStack::class),
             ]
         );
+    $services->alias(RefererUrlResolver::class, 'silverback.api_components.helper.referer_url_resolver');
 
     $services
         ->set('silverback.command.refresh_tokens_expire')
@@ -813,19 +916,24 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set(ResourceChangedEventListener::class)
+        ->set('silverback.api_components.event_listener.resource_changed')
+        ->class(ResourceChangedEventListener::class)
         ->tag('kernel.event_listener', ['event' => ResourceChangedEvent::class])
         ->args(
             [
                 '$resourceChangedPropagators' => new TaggedIteratorArgument('silverback_api_components.resource_changed_propagator'),
             ]
         );
+    $services->alias(ResourceChangedEventListener::class, 'silverback.api_components.event_listener.resource_changed');
 
     $services
-        ->set(ResourceMetadataProvider::class);
+        ->set('silverback.api_components.serializer.resource_metadata_provider')
+        ->class(ResourceMetadataProvider::class);
+    $services->alias(ResourceMetadataProvider::class, 'silverback.api_components.serializer.resource_metadata_provider');
 
     $services
-        ->set(RouteStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.route')
+        ->class(RouteStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
@@ -834,9 +942,11 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(RouteStateProvider::class, 'silverback.api_components.api_platform.state_provider.route');
 
     $services
-        ->set(RouteChildrenStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.route_children')
+        ->class(RouteChildrenStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.route'),
@@ -846,9 +956,11 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(RouteChildrenStateProvider::class, 'silverback.api_components.api_platform.state_provider.route_children');
 
     $services
-        ->set(ComponentGroupStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.component_group')
+        ->class(ComponentGroupStateProvider::class)
         ->args(
             [
                 new Reference('silverback.doctrine.repository.component_group'),
@@ -857,9 +969,11 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(ComponentGroupStateProvider::class, 'silverback.api_components.api_platform.state_provider.component_group');
 
     $services
-        ->set(FormStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.form')
+        ->class(FormStateProvider::class)
         ->args(
             [
                 new Reference('api_platform.state_provider'),
@@ -867,6 +981,7 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(FormStateProvider::class, 'silverback.api_components.api_platform.state_provider.form');
 
     $services
         ->set('silverback.event_listener.api.route_event_listener')
@@ -879,7 +994,8 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
 
     $services
-        ->set(RouteExtension::class)
+        ->set('silverback.api_components.doctrine.orm.extension.route')
+        ->class(RouteExtension::class)
         ->args(
             [
                 '', // added in dependency injection
@@ -887,6 +1003,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+    $services->alias(RouteExtension::class, 'silverback.api_components.doctrine.orm.extension.route');
 
     $services
         ->set('silverback.helper.route_generator')
@@ -923,23 +1040,28 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.doctrine.repository.site_config_parameter', SiteConfigParameterRepository::class);
 
     $services
-        ->set(RouteVoter::class)
+        ->set('silverback.api_components.security.voter.route')
+        ->class(RouteVoter::class)
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
         ])
         ->tag('security.voter');
+    $services->alias(RouteVoter::class, 'silverback.api_components.security.voter.route');
 
     $services
-        ->set(SiteConfigParameterVoter::class)
+        ->set('silverback.api_components.security.voter.site_config_parameter')
+        ->class(SiteConfigParameterVoter::class)
         ->args([
             '', // added in dependency injection
             new Reference(AuthorizationCheckerInterface::class),
         ])
         ->tag('security.voter');
+    $services->alias(SiteConfigParameterVoter::class, 'silverback.api_components.security.voter.site_config_parameter');
 
     $services
-        ->set(RoutableExtension::class)
+        ->set('silverback.api_components.doctrine.orm.extension.routable')
+        ->class(RoutableExtension::class)
         ->args(
             [
                 '', // added in dependency injection
@@ -947,9 +1069,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
+    $services->alias(RoutableExtension::class, 'silverback.api_components.doctrine.orm.extension.routable');
 
     $services
-        ->set(RoutableVoter::class)
+        ->set('silverback.api_components.security.voter.routable')
+        ->class(RoutableVoter::class)
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
@@ -958,70 +1082,87 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(DenyAccessListener::class),
         ])
         ->tag('security.voter');
+    $services->alias(RoutableVoter::class, 'silverback.api_components.security.voter.routable');
 
     $services
-        ->set(ResourceManifestVoter::class)
+        ->set('silverback.api_components.security.voter.resource_manifest')
+        ->class(ResourceManifestVoter::class)
         ->args([new Reference(Security::class)])
         ->tag('security.voter');
+    $services->alias(ResourceManifestVoter::class, 'silverback.api_components.security.voter.resource_manifest');
 
     $services
-        ->set(ResourceManifestStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.resource_manifest')
+        ->class(ResourceManifestStateProvider::class)
         ->args([
             new Reference('silverback.doctrine.repository.route'),
             new Reference(EntityManagerInterface::class),
         ])
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(ResourceManifestStateProvider::class, 'silverback.api_components.api_platform.state_provider.resource_manifest');
 
     $services
-        ->set(RoutingPrefixResourceMetadataCollectionFactory::class)
+        ->set('silverback.api_components.api_platform.metadata.resource.routing_prefix_factory')
+        ->class(RoutingPrefixResourceMetadataCollectionFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(RoutingPrefixResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.metadata.resource.routing_prefix_factory.inner'),
             ]
         );
+    $services->alias(RoutingPrefixResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.routing_prefix_factory');
 
     $services
-        ->set(RoutableResourceMetadataCollectionFactory::class)
+        ->set('silverback.api_components.api_platform.metadata.resource.routable_factory')
+        ->class(RoutableResourceMetadataCollectionFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(RoutableResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.metadata.resource.routable_factory.inner'),
             ]
         );
+    $services->alias(RoutableResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.routable_factory');
 
     $services
-        ->set(SerializeFormatResolver::class)
+        ->set('silverback.api_components.serializer.format_resolver')
+        ->class(SerializeFormatResolver::class)
         ->args(
             [
                 new Reference(RequestStack::class),
                 'jsonld',
             ]
         );
+    $services->alias(SerializeFormatResolver::class, 'silverback.api_components.serializer.format_resolver');
 
     $services
-        ->set(TablePrefixExtension::class)
+        ->set('silverback.api_components.doctrine.event_listener.table_prefix')
+        ->class(TablePrefixExtension::class)
         ->args(
             [
                 '', // injected in dependency injection
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+    $services->alias(TablePrefixExtension::class, 'silverback.api_components.doctrine.event_listener.table_prefix');
 
     $services
-        ->set(TimestampedAttributeReader::class)
+        ->set('silverback.api_components.attribute_reader.timestamped')
+        ->class(TimestampedAttributeReader::class)
         ->parent(AttributeReader::class);
+    $services->alias(TimestampedAttributeReader::class, 'silverback.api_components.attribute_reader.timestamped');
 
     $services
-        ->set(TimestampedContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.timestamped')
+        ->class(TimestampedContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder', null, -1)
         ->args(
             [
-                new Reference(TimestampedContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.timestamped.inner'),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(TimestampedContextBuilder::class, 'silverback.api_components.serializer.context_builder.timestamped');
 
     $services
         ->set('silverback.helper.timestamped_data_persister')
@@ -1041,58 +1182,73 @@ return static function (ContainerConfigurator $configurator) {
         ];
     };
     $services
-        ->set(TimestampedListener::class)
+        ->set('silverback.api_components.doctrine.event_listener.timestamped')
+        ->class(TimestampedListener::class)
         ->args(
             [
                 new Reference(TimestampedAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', $getTimestampedListenerTagArgs('loadClassMetadata'));
+    $services->alias(TimestampedListener::class, 'silverback.api_components.doctrine.event_listener.timestamped');
 
     $services
-        ->set(TimestampedLoader::class);
+        ->set('silverback.api_components.serializer.mapping_loader.timestamped')
+        ->class(TimestampedLoader::class);
+    $services->alias(TimestampedLoader::class, 'silverback.api_components.serializer.mapping_loader.timestamped');
 
     $services
-        ->set(TimestampedValidatorMappingLoader::class)
+        ->set('silverback.api_components.validator.mapping_loader.timestamped')
+        ->class(TimestampedValidatorMappingLoader::class)
         ->args(
             [
                 new Reference(TimestampedAttributeReader::class),
             ]
         );
+    $services->alias(TimestampedValidatorMappingLoader::class, 'silverback.api_components.validator.mapping_loader.timestamped');
 
     $services
-        ->set(TimestampedValidator::class)
+        ->set('silverback.api_components.validator.timestamped')
+        ->class(TimestampedValidator::class)
         ->decorate('api_platform.validator')
         ->args(
             [
-                new Reference(TimestampedValidator::class . '.inner'),
+                new Reference('silverback.api_components.validator.timestamped.inner'),
                 new Reference(TimestampedAttributeReader::class),
             ]
         );
+    $services->alias(TimestampedValidator::class, 'silverback.api_components.validator.timestamped');
 
     $services
-        ->set(UploadAction::class)
+        ->set('silverback.api_components.action.uploadable.upload')
+        ->class(UploadAction::class)
         ->tag('controller.service_arguments')
         ->args([
             '$publishableNormalizer' => new Reference(PublishableNormalizer::class),
         ]);
+    $services->alias(UploadAction::class, 'silverback.api_components.action.uploadable.upload');
 
     $services
-        ->set(UploadableAttributeReader::class)
+        ->set('silverback.api_components.attribute_reader.uploadable')
+        ->class(UploadableAttributeReader::class)
         ->parent(AttributeReader::class);
+    $services->alias(UploadableAttributeReader::class, 'silverback.api_components.attribute_reader.uploadable');
 
     $services
-        ->set(UploadableContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.uploadable')
+        ->class(UploadableContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder', null, -1)
         ->args(
             [
-                new Reference(UploadableContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.uploadable.inner'),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(UploadableContextBuilder::class, 'silverback.api_components.serializer.context_builder.uploadable');
 
     $services
-        ->set(UploadableEventListener::class)
+        ->set('silverback.api_components.event_listener.api.uploadable')
+        ->class(UploadableEventListener::class)
         ->args(
             [
                 new Reference(UploadableAttributeReader::class),
@@ -1101,9 +1257,11 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
+    $services->alias(UploadableEventListener::class, 'silverback.api_components.event_listener.api.uploadable');
 
     $services
-        ->set(UploadableFileManager::class)
+        ->set('silverback.api_components.helper.uploadable.file_manager')
+        ->class(UploadableFileManager::class)
         ->args(
             [
                 new Reference(ManagerRegistry::class),
@@ -1115,35 +1273,42 @@ return static function (ContainerConfigurator $configurator) {
                 null, // Set in dependency injection if imagine cache manager exists
             ]
         );
+    $services->alias(UploadableFileManager::class, 'silverback.api_components.helper.uploadable.file_manager');
 
     $services
-        ->set(UploadableListener::class)
+        ->set('silverback.api_components.doctrine.event_listener.uploadable')
+        ->class(UploadableListener::class)
         ->args(
             [
                 new Reference(UploadableAttributeReader::class),
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+    $services->alias(UploadableListener::class, 'silverback.api_components.doctrine.event_listener.uploadable');
 
     $services
-        ->set(UploadableLoader::class)
+        ->set('silverback.api_components.serializer.mapping_loader.uploadable')
+        ->class(UploadableLoader::class)
         ->args(
             [
                 new Reference(UploadableAttributeReader::class),
             ]
         );
+    $services->alias(UploadableLoader::class, 'silverback.api_components.serializer.mapping_loader.uploadable');
 
     $services
-        ->set(UploadableResourceMetadataCollectionFactory::class)
+        ->set('silverback.api_components.api_platform.metadata.resource.uploadable_factory')
+        ->class(UploadableResourceMetadataCollectionFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(UploadableResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.metadata.resource.uploadable_factory.inner'),
                 new Reference(UploadableAttributeReader::class),
                 new Reference('api_platform.path_segment_name_generator'),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(UploadableResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.uploadable_factory');
 
     //    COMPILER PASS REQUIRED AS WELL
     //    $services
@@ -1153,35 +1318,42 @@ return static function (ContainerConfigurator $configurator) {
     //        ]);
 
     $services
-        ->set(UserChecker::class)
+        ->set('silverback.api_components.security.user_checker')
+        ->class(UserChecker::class)
         ->args(
             [
                 '', // injected in dependency injection
             ]
         );
+    $services->alias(UserChecker::class, 'silverback.api_components.security.user_checker');
 
     $services
-        ->set(UserContextBuilder::class)
+        ->set('silverback.api_components.serializer.context_builder.user')
+        ->class(UserContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
         ->args(
             [
-                new Reference(UserContextBuilder::class . '.inner'),
+                new Reference('silverback.api_components.serializer.context_builder.user.inner'),
                 new Reference(AuthorizationCheckerInterface::class),
             ]
         )
         ->autoconfigure(false);
+    $services->alias(UserContextBuilder::class, 'silverback.api_components.serializer.context_builder.user');
 
     $services
-        ->set(UserCreateCommand::class)
+        ->set('silverback.api_components.command.user_create')
+        ->class(UserCreateCommand::class)
         ->tag('console.command')
         ->args(
             [
                 new Reference(UserFactory::class),
             ]
         );
+    $services->alias(UserCreateCommand::class, 'silverback.api_components.command.user_create');
 
     $services
-        ->set(CleanOrphanedCommand::class)
+        ->set('silverback.api_components.command.clean_orphaned')
+        ->class(CleanOrphanedCommand::class)
         ->tag('console.command')
         ->args(
             [
@@ -1189,9 +1361,11 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ManagerRegistry::class),
             ]
         );
+    $services->alias(CleanOrphanedCommand::class, 'silverback.api_components.command.clean_orphaned');
 
     $services
-        ->set(UserStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.user')
+        ->class(UserStateProvider::class)
         ->args(
             [
                 new Reference('silverback.repository.user'),
@@ -1200,13 +1374,17 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(UserStateProvider::class, 'silverback.api_components.api_platform.state_provider.user');
 
     $services
-        ->set(UserEnabledEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.user_enabled_email')
+        ->class(UserEnabledEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(UserEnabledEmailFactory::class, 'silverback.api_components.factory.user.mailer.user_enabled_email');
 
     $services
-        ->set(UserEventListener::class)
+        ->set('silverback.api_components.event_listener.api.user')
+        ->class(UserEventListener::class)
         ->args(
             [
                 new Reference(UserMailer::class),
@@ -1216,9 +1394,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite'])
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_READ, 'method' => 'onPreRead'])
         ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead']);
+    $services->alias(UserEventListener::class, 'silverback.api_components.event_listener.api.user');
 
     $services
-        ->set(UserFactory::class)
+        ->set('silverback.api_components.factory.user')
+        ->class(UserFactory::class)
         ->args(
             [
                 new Reference(EntityManagerInterface::class),
@@ -1229,14 +1409,18 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected in dependency injection
             ]
         );
+    $services->alias(UserFactory::class, 'silverback.api_components.factory.user');
 
     $services
-        ->set(UserLoginType::class)
+        ->set('silverback.api_components.form.user_login_type')
+        ->class(UserLoginType::class)
         ->args([new Reference(RouterInterface::class)])
         ->tag('form.type');
+    $services->alias(UserLoginType::class, 'silverback.api_components.form.user_login_type');
 
     $services
-        ->set(UserMailer::class)
+        ->set('silverback.api_components.helper.user.mailer')
+        ->class(UserMailer::class)
         ->args(
             [
                 new Reference(MailerInterface::class),
@@ -1254,13 +1438,17 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected in dependency injection
             ]
         );
+    $services->alias(UserMailer::class, 'silverback.api_components.helper.user.mailer');
 
     $services
-        ->set(UsernameChangedEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.username_changed_email')
+        ->class(UsernameChangedEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(UsernameChangedEmailFactory::class, 'silverback.api_components.factory.user.mailer.username_changed_email');
 
     $services
-        ->set(UserDataProcessor::class)
+        ->set('silverback.api_components.helper.user.data_processor')
+        ->class(UserDataProcessor::class)
         ->args(
             [
                 new Reference(UserPasswordHasherInterface::class),
@@ -1272,29 +1460,36 @@ return static function (ContainerConfigurator $configurator) {
                 '', // injected in dependency injection
             ]
         );
+    $services->alias(UserDataProcessor::class, 'silverback.api_components.helper.user.data_processor');
 
     $services
-        ->set(UserPasswordValidator::class)
+        ->set('silverback.api_components.validator.user_password')
+        ->class(UserPasswordValidator::class)
         ->args([
             new Reference(TokenStorageInterface::class),
             new Reference(PasswordHasherFactoryInterface::class),
             new Reference('silverback.repository.user'),
         ])
         ->decorate('security.validator.user_password');
+    $services->alias(UserPasswordValidator::class, 'silverback.api_components.validator.user_password');
 
     $services
-        ->set(UserRegisterListener::class)
+        ->set('silverback.api_components.event_listener.form.user_register')
+        ->class(UserRegisterListener::class)
         ->parent(EntityPersistFormListener::class)
         ->tag('kernel.event_listener', ['event' => FormSuccessEvent::class]);
+    $services->alias(UserRegisterListener::class, 'silverback.api_components.event_listener.form.user_register');
 
     $services
-        ->set(UserRegisterType::class)
+        ->set('silverback.api_components.form.user_register_type')
+        ->class(UserRegisterType::class)
         ->args(
             [
                 '', // injected in dependency injection
             ]
         )
         ->tag('form.type');
+    $services->alias(UserRegisterType::class, 'silverback.api_components.form.user_register_type');
 
     $services
         ->set(UserRepositoryInterface::class)
@@ -1311,46 +1506,58 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.repository.user', UserRepositoryInterface::class);
 
     $services
-        ->set(UserResourceMetadataCollectionFactory::class)
+        ->set('silverback.api_components.api_platform.metadata.resource.user_factory')
+        ->class(UserResourceMetadataCollectionFactory::class)
         ->decorate('api_platform.metadata.resource.metadata_collection_factory')
         ->args(
             [
-                new Reference(UserResourceMetadataCollectionFactory::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.metadata.resource.user_factory.inner'),
             ]
         );
+    $services->alias(UserResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.user_factory');
 
     $services
-        ->set(VerifyEmailAddressAction::class)
+        ->set('silverback.api_components.action.user.verify_email_address')
+        ->class(VerifyEmailAddressAction::class)
         ->args(
             [
                 new Reference(EmailAddressManager::class),
             ]
         )
         ->tag('controller.service_arguments');
+    $services->alias(VerifyEmailAddressAction::class, 'silverback.api_components.action.user.verify_email_address');
 
     $services
-        ->set(ResendVerifyEmailAddressAction::class)
+        ->set('silverback.api_components.action.user.resend_verify_email_address')
+        ->class(ResendVerifyEmailAddressAction::class)
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
         ])
         ->tag('controller.service_arguments');
+    $services->alias(ResendVerifyEmailAddressAction::class, 'silverback.api_components.action.user.resend_verify_email_address');
 
     $services
-        ->set(ResendVerifyNewEmailAddressAction::class)
+        ->set('silverback.api_components.action.user.resend_verify_new_email_address')
+        ->class(ResendVerifyNewEmailAddressAction::class)
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
         ])
         ->tag('controller.service_arguments');
+    $services->alias(ResendVerifyNewEmailAddressAction::class, 'silverback.api_components.action.user.resend_verify_new_email_address');
 
     $services
-        ->set(VerifyEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.verify_email')
+        ->class(VerifyEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(VerifyEmailFactory::class, 'silverback.api_components.factory.user.mailer.verify_email');
 
     $services
-        ->set(WelcomeEmailFactory::class)
+        ->set('silverback.api_components.factory.user.mailer.welcome_email')
+        ->class(WelcomeEmailFactory::class)
         ->parent(AbstractUserEmailFactory::class);
+    $services->alias(WelcomeEmailFactory::class, 'silverback.api_components.factory.user.mailer.welcome_email');
 
     $services
         ->set('silverback.metadata_factory.page_data')
@@ -1472,7 +1679,8 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(PageDataMetadataStateProvider::class)
+        ->set('silverback.api_components.api_platform.state_provider.page_data_metadata')
+        ->class(PageDataMetadataStateProvider::class)
         ->args(
             [
                 new Reference('silverback.metadata_factory.page_data'),
@@ -1481,6 +1689,7 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
+    $services->alias(PageDataMetadataStateProvider::class, 'silverback.api_components.api_platform.state_provider.page_data_metadata');
 
     $services
         ->set('silverback.security.voter.component_voter')
@@ -1502,30 +1711,36 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference('silverback.hydra.normalizer.versioned_documentation.inner')]);
 
     $services
-        ->set(UuidUriVariableTransformer::class)
+        ->set('silverback.api_components.api_platform.uuid_uri_variable_transformer')
+        ->class(UuidUriVariableTransformer::class)
         ->decorate('api_platform.ramsey_uuid.uri_variables.transformer.uuid')
         ->args(
             [
-                new Reference(UuidUriVariableTransformer::class . '.inner'),
+                new Reference('silverback.api_components.api_platform.uuid_uri_variable_transformer.inner'),
             ]
         );
+    $services->alias(UuidUriVariableTransformer::class, 'silverback.api_components.api_platform.uuid_uri_variable_transformer');
 
     $services
-        ->set(IriConverter::class)
+        ->set('silverback.api_components.api_platform.iri_converter')
+        ->class(IriConverter::class)
         ->decorate('api_platform.iri_converter')
         ->args([
-            new Reference(IriConverter::class . '.inner'),
+            new Reference('silverback.api_components.api_platform.iri_converter.inner'),
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
         ]);
-    $services->alias('silverback.iri_converter', IriConverter::class);
-    $services->alias(IriConverterInterface::class, IriConverter::class);
+    $services->alias('silverback.iri_converter', 'silverback.api_components.api_platform.iri_converter');
+    $services->alias(IriConverter::class, 'silverback.api_components.api_platform.iri_converter');
+    $services->alias(IriConverterInterface::class, 'silverback.api_components.api_platform.iri_converter');
 
     $services
-        ->set(MercureIriConverter::class)
+        ->set('silverback.api_components.mercure.iri_converter')
+        ->class(MercureIriConverter::class)
         ->args([
             new Reference('api_platform.iri_converter'),
             new Reference(PublishableStatusChecker::class),
         ]);
+    $services->alias(MercureIriConverter::class, 'silverback.api_components.mercure.iri_converter');
 
     $services
         ->set('silverback.doctrine.orm.or_search_filter')
@@ -1542,8 +1757,10 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
 
     $services
-        ->set(SqlLiteForeignKeyEnabler::class)
+        ->set('silverback.api_components.doctrine.event_listener.sqlite_foreign_key_enabler')
+        ->class(SqlLiteForeignKeyEnabler::class)
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::preFlush]);
+    $services->alias(SqlLiteForeignKeyEnabler::class, 'silverback.api_components.doctrine.event_listener.sqlite_foreign_key_enabler');
 
     $services
         ->set('silverback.api_components.event_listener.doctrine.propagate_updates_listener')
@@ -1561,12 +1778,14 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(PropagateUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.propagate_updates_listener');
 
     $services
-        ->set(CwaFixtureBuilder::class)
+        ->set('silverback.api_components.fixture.cwa_fixture_builder')
+        ->class(CwaFixtureBuilder::class)
         ->args([
             new Reference(TimestampedDataPersister::class),
             new Reference(RouteGeneratorInterface::class),
             new Reference(IriConverterInterface::class),
         ]);
+    $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
 
     $services
         ->set('silverback.api_components.uploadable.url_generator.api')

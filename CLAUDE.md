@@ -558,12 +558,6 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 These are known open issues with enough context to resume work without re-investigation.
 
-### #113 — Additional page resource tests needed
-
-A community draft PR ([#156](https://github.com/components-web-app/api-components-bundle/pull/156), now closed as too stale to merge) was opened in 2022 to add page resource tests. Remaining gap: `OpenApiFactory` decorator (`src/OpenApi/OpenApiFactory.php`) has no dedicated test coverage beyond the single smoke test in `features/main/openapi_compatibility.feature`.
-
----
-
 ### ComponentPosition `sortValue` collision on insert — API-side normalisation needed
 
 **Context (from Nuxt module):** When an admin inserts a component "before" or "after" an existing position, the module computes a `sortValue` for the new `ComponentPosition` that may equal an existing position's `sortValue`. For "add before X (sortValue=N)", the new position gets `sortValue=N` (same as X). For "add after X (sortValue=N)", the new position gets `sortValue=N+1` which may collide with the position immediately following X.
@@ -586,9 +580,9 @@ Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 ### #170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write
 
-**Read side fixed** (commit `c6964304`): `ComponentGroupNormalizer` filters `componentPositions` at normalisation time to hide positions whose component class is not in `allowedComponents`.
+**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`. The position remains in `componentPositions` but with `component = null`. Direct-component write-side validation already works via `ComponentPositionValidator`.
 
-**Write side still open:** When creating a `ComponentPosition` with `pageDataProperty` set (a dynamic slot resolved at render time), no validation is done against `allowedComponents`. A developer can add a `pageDataProperty` position referencing a disallowed component type and no error is raised. Validation is hard at write time because the component type of a `pageDataProperty` slot isn't known until the PageData is rendered — the property name is just a string like `'htmlContent'`.
+**`pageDataProperty` write-side still open:** When creating a `ComponentPosition` with `pageDataProperty` set, no validation is done against `allowedComponents`. The property name is just a string — the component type isn't known until render time.
 
 **Options:**
 - Validate that the PageData class's property type for `pageDataProperty` is in `allowedComponents` (requires knowing the PageData class at write time)
@@ -604,14 +598,6 @@ Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
 `src/Factory/Uploadable/MediaObjectFactory.php` line ~69 checks whether a file exists on the filesystem before returning its URL. For components hosted on S3 or other cloud storage, this check makes an HTTP request to the remote storage on every uncached component fetch.
 
 **Proposed fix:** Add a per-field config option on `#[Silverback\Uploadable]` (or a new attribute parameter) to disable the existence check. When disabled, the URL is returned without verification.
-
----
-
-### #162 — Missing Behat tests for uploadable URL generators
-
-Three URL generators exist: API gateway (default), Flysystem public URL, Flysystem temporary URL. These are configurable per field. No Behat tests cover switching between them.
-
-**Where to add:** `features/main/` — needs a new `uploadable_url_generators.feature` or additions to an existing uploadable feature. Tests should cover each generator type returning the correct URL format.
 
 ---
 

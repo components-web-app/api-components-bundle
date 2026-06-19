@@ -24,7 +24,7 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
     {
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
 
-        $container->getDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
+        $container->findDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
 
         if ($container->hasAlias('api_platform.http_cache.purger')) {
             // we have implemented fully custom logic

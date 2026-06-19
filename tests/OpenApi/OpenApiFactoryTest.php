@@ -16,7 +16,7 @@ use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 
 class OpenApiFactoryTest extends TestCase
 {
-    public function testGetExtendedVersionAppendsParenthesizedBundleVersion(): void
+    public function test_get_extended_version_appends_parenthesized_bundle_version(): void
     {
         $extended = OpenApiFactory::getExtendedVersion('3.1.0');
 
@@ -24,7 +24,7 @@ class OpenApiFactoryTest extends TestCase
         $this->assertStringEndsWith(')', $extended);
     }
 
-    public function testGetExtendedVersionPreservesOriginalVersion(): void
+    public function test_get_extended_version_preserves_original_version(): void
     {
         $extended = OpenApiFactory::getExtendedVersion('2.0');
 

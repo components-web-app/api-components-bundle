@@ -17,7 +17,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\PublicUrlGenerator;
 
 class PublicUrlGeneratorTest extends TestCase
 {
-    public function testGeneratesPublicUrlFromFilesystem(): void
+    public function test_generates_public_url_from_filesystem(): void
     {
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->method('publicUrl')
@@ -31,7 +31,7 @@ class PublicUrlGeneratorTest extends TestCase
         $this->assertSame('https://cdn.example.com/uploads/image.png', $result);
     }
 
-    public function testPassesConfigToFilesystem(): void
+    public function test_passes_config_to_filesystem(): void
     {
         $config = ['visibility' => 'public'];
 

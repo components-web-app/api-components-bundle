@@ -62,7 +62,8 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services
-        ->set(AbstractResourceNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.abstract_resource')
+        ->class(AbstractResourceNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -71,23 +72,29 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(AbstractResourceNormalizer::class, 'silverback.api_components.serializer.normalizer.abstract_resource');
 
     $services
-        ->set(CollectionNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.collection')
+        ->class(CollectionNormalizer::class)
         ->autoconfigure(false)
         ->args([
             new Reference(ResourceMetadataProvider::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(CollectionNormalizer::class, 'silverback.api_components.serializer.normalizer.collection');
 
     $services
-        ->set(ComponentGroupNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.component_group')
+        ->class(ComponentGroupNormalizer::class)
         ->autoconfigure(false)
         ->args([new Reference('api_platform.iri_converter')])
         ->tag('serializer.normalizer', ['priority' => -498]);
+    $services->alias(ComponentGroupNormalizer::class, 'silverback.api_components.serializer.normalizer.component_group');
 
     $services
-        ->set(ComponentPositionNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.component_position')
+        ->class(ComponentPositionNormalizer::class)
         ->autoconfigure(false)
         ->args([
             new Reference(PageDataProvider::class),
@@ -99,20 +106,24 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResourceMetadataProvider::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(ComponentPositionNormalizer::class, 'silverback.api_components.serializer.normalizer.component_position');
 
     $services
-        ->set(DataUriNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.data_uri')
+        ->class(DataUriNormalizer::class)
         ->decorate('serializer.normalizer.data_uri')
         ->autoconfigure(false)
         ->args(
             [
-                new Reference(DataUriNormalizer::class . '.inner'),
+                new Reference('silverback.api_components.serializer.normalizer.data_uri.inner'),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(DataUriNormalizer::class, 'silverback.api_components.serializer.normalizer.data_uri');
 
     $services
-        ->set(MetadataNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.metadata')
+        ->class(MetadataNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -121,9 +132,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -500]);
+    $services->alias(MetadataNormalizer::class, 'silverback.api_components.serializer.normalizer.metadata');
 
     $services
-        ->set(PersistedNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.persisted')
+        ->class(PersistedNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -133,9 +146,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(PersistedNormalizer::class, 'silverback.api_components.serializer.normalizer.persisted');
 
     $services
-        ->set(PublishableNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.publishable')
+        ->class(PublishableNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -149,9 +164,11 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(EventDispatcherInterface::class),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
+    $services->alias(PublishableNormalizer::class, 'silverback.api_components.serializer.normalizer.publishable');
 
     $services
-        ->set(PageDataNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.page_data')
+        ->class(PageDataNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -159,24 +176,32 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ResourceMetadataProvider::class),
             ]
         )->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(PageDataNormalizer::class, 'silverback.api_components.serializer.normalizer.page_data');
 
     $services
-        ->set(ResourceManifestNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.resource_manifest')
+        ->class(ResourceManifestNormalizer::class)
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(ResourceManifestNormalizer::class, 'silverback.api_components.serializer.normalizer.resource_manifest');
 
     $services
-        ->set(RouteChildrenNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.route_children')
+        ->class(RouteChildrenNormalizer::class)
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(RouteChildrenNormalizer::class, 'silverback.api_components.serializer.normalizer.route_children');
 
     $services
-        ->set(RouteNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.route')
+        ->class(RouteNormalizer::class)
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(RouteNormalizer::class, 'silverback.api_components.serializer.normalizer.route');
 
     $services
-        ->set(TimestampedNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.timestamped')
+        ->class(TimestampedNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -186,9 +211,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(TimestampedNormalizer::class, 'silverback.api_components.serializer.normalizer.timestamped');
 
     $services
-        ->set(UploadableNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.uploadable')
+        ->class(UploadableNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -200,9 +227,11 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(UploadableNormalizer::class, 'silverback.api_components.serializer.normalizer.uploadable');
 
     $services
-        ->set(UserNormalizer::class)
+        ->set('silverback.api_components.serializer.normalizer.user')
+        ->class(UserNormalizer::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -213,4 +242,5 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(UserNormalizer::class, 'silverback.api_components.serializer.normalizer.user');
 };

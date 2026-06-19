@@ -73,10 +73,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $this->loadServiceConfig($container);
 
-        $definition = $container->getDefinition(TablePrefixExtension::class);
+        $definition = $container->findDefinition(TablePrefixExtension::class);
         $definition->setArgument('$prefix', $config['table_prefix']);
 
-        $definition = $container->getDefinition(UserRepositoryInterface::class);
+        $definition = $container->findDefinition(UserRepositoryInterface::class);
         $definition->setArgument('$entityClass', $config['user']['class_name']);
         $definition->setArgument('$passwordRequestTimeout', $config['user']['password_reset']['request_timeout_seconds']);
         $definition->setArgument('$newEmailConfirmTimeout', $config['user']['new_email_confirmation']['request_timeout_seconds']);
@@ -118,10 +118,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$userProvider', new Reference(\sprintf('security.user.provider.concrete.%s', $config['refresh_token']['database_user_provider'])));
         $definition->setArgument('$storage', new Reference($config['refresh_token']['handler_id']));
 
-        $definition = $container->getDefinition(PublishableStatusChecker::class);
+        $definition = $container->findDefinition(PublishableStatusChecker::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
 
-        $definition = $container->getDefinition(MetadataNormalizer::class);
+        $definition = $container->findDefinition(MetadataNormalizer::class);
         $definition->setArgument('$metadataKey', $config['metadata_key']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification'], $config['user']['password_reset']['repeat_ttl_seconds']);
@@ -129,47 +129,47 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->setMailerServiceArguments($container, $config);
 
         $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
-        $definition = $container->getDefinition(UploadableAttributeReader::class);
+        $definition = $container->findDefinition(UploadableAttributeReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {
-            $definition = $container->getDefinition(UploadableFileManager::class);
+            $definition = $container->findDefinition(UploadableFileManager::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
             $definition->setArgument('$imagineCacheManager', new Reference('liip_imagine.cache.manager'));
 
-            $definition = $container->getDefinition(MediaObjectFactory::class);
+            $definition = $container->findDefinition(MediaObjectFactory::class);
             $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
         }
 
-        $definition = $container->getDefinition(RouteExtension::class);
+        $definition = $container->findDefinition(RouteExtension::class);
         $definition->setArgument('$config', $config['route_security']);
 
-        $definition = $container->getDefinition(RouteVoter::class);
+        $definition = $container->findDefinition(RouteVoter::class);
         $definition->setArgument('$config', $config['route_security']);
 
-        $definition = $container->getDefinition(SiteConfigParameterVoter::class);
+        $definition = $container->findDefinition(SiteConfigParameterVoter::class);
         $definition->setArgument('$permission', $config['publishable']['permission']);
 
-        $definition = $container->getDefinition(RoutableExtension::class);
+        $definition = $container->findDefinition(RoutableExtension::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
-        $definition = $container->getDefinition(RoutableVoter::class);
+        $definition = $container->findDefinition(RoutableVoter::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
-        $definition = $container->getDefinition(RoutableResourceMetadataCollectionFactory::class);
+        $definition = $container->findDefinition(RoutableResourceMetadataCollectionFactory::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
-        $definition = $container->getDefinition(MercureAuthorization::class);
+        $definition = $container->findDefinition(MercureAuthorization::class);
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void
     {
-        $definition = $container->getDefinition(UserChecker::class);
+        $definition = $container->findDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $emailVerificationConfig['deny_unverified_login']);
 
-        $definition = $container->getDefinition(UserDataProcessor::class);
+        $definition = $container->findDefinition(UserDataProcessor::class);
         $definition->setArgument('$initialEmailVerifiedState', $emailVerificationConfig['default_value']);
         $definition->setArgument('$verifyEmailOnRegister', $emailVerificationConfig['verify_on_register']);
         $definition->setArgument('$verifyEmailOnChange', $emailVerificationConfig['verify_on_change']);
@@ -178,25 +178,25 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
     private function setUserClassArguments(ContainerBuilder $container, string $userClass): void
     {
-        $definition = $container->getDefinition(UserFactory::class);
+        $definition = $container->findDefinition(UserFactory::class);
         $definition->setArgument('$userClass', $userClass);
 
-        $definition = $container->getDefinition(ChangePasswordType::class);
+        $definition = $container->findDefinition(ChangePasswordType::class);
         $definition->setArgument('$userClass', $userClass);
 
-        $definition = $container->getDefinition(NewEmailAddressType::class);
+        $definition = $container->findDefinition(NewEmailAddressType::class);
         $definition->setArgument('$userClass', $userClass);
 
-        $definition = $container->getDefinition(UserRegisterType::class);
+        $definition = $container->findDefinition(UserRegisterType::class);
         $definition->setArgument('$userClass', $userClass);
 
-        $definition = $container->getDefinition(PasswordUpdateType::class);
+        $definition = $container->findDefinition(PasswordUpdateType::class);
         $definition->setArgument('$userClass', $userClass);
     }
 
     private function setMailerServiceArguments(ContainerBuilder $container, array $config): void
     {
-        $definition = $container->getDefinition(UserMailer::class);
+        $definition = $container->findDefinition(UserMailer::class);
         $definition->setArgument(
             '$context',
             [
@@ -211,7 +211,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             WelcomeEmailFactory::class => 'welcome',
         ];
         foreach ($mapping as $class => $key) {
-            $definition = $container->getDefinition($class);
+            $definition = $container->findDefinition($class);
             $definition->setArgument('$subject', $config['user']['emails'][$key]['subject']);
             $definition->setArgument('$enabled', $config['user']['emails'][$key]['enabled']);
             if (WelcomeEmailFactory::class === $class) {
@@ -226,7 +226,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             PasswordResetEmailFactory::class => 'password_reset',
         ];
         foreach ($mapping as $class => $key) {
-            $definition = $container->getDefinition($class);
+            $definition = $container->findDefinition($class);
             $definition->setArgument('$subject', $config['user'][$key]['email']['subject']);
             $definition->setArgument('$enabled', true);
             $definition->setArgument('$defaultRedirectPath', $config['user'][$key]['email']['default_redirect_path']);

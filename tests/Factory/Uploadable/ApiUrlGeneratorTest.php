@@ -29,7 +29,7 @@ class ApiUrlGeneratorTest extends TestCase
         return new UrlHelper($requestStack);
     }
 
-    public function testGeneratesDownloadUrlFromResourceIriAndPropertyName(): void
+    public function test_generates_download_url_from_resource_iri_and_property_name(): void
     {
         $object = new \stdClass();
 
@@ -43,7 +43,7 @@ class ApiUrlGeneratorTest extends TestCase
         $this->assertSame('https://example.com/_/component_groups/abc-123/download/file_name', $result);
     }
 
-    public function testConvertsPropertyNameToSnakeCase(): void
+    public function test_converts_property_name_to_snake_case(): void
     {
         $object = new \stdClass();
 
