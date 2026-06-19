@@ -22,7 +22,7 @@
 
 ## Sponsors
 
-[![Blackfire](./docs/images/blackfire-io_secondary_horizontal_transparent.png)](https://blackfire.io/)
+[Blackfire](https://blackfire.io/)
 
 ## Contributors ✨
 
