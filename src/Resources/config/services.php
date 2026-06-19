@@ -370,11 +370,10 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(DenyAccessListener::class, 'silverback.api_components.event_listener.security.deny_access');
 
     $services
-        ->set('silverback.api_components.action.uploadable.download')
-        ->class(DownloadAction::class)
+        ->set(DownloadAction::class)
         ->public()
         ->tag('controller.service_arguments');
-    $services->alias(DownloadAction::class, 'silverback.api_components.action.uploadable.download')->public();
+    $services->alias('silverback.api_components.action.uploadable.download', DownloadAction::class)->public();
 
     $services
         ->set('silverback.api_components.helper.user.email_address_manager')
@@ -391,8 +390,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(EmailAddressManager::class, 'silverback.api_components.helper.user.email_address_manager');
 
     $services
-        ->set('silverback.api_components.action.user.email_address_confirm')
-        ->class(EmailAddressConfirmAction::class)
+        ->set(EmailAddressConfirmAction::class)
         ->public()
         ->args(
             [
@@ -400,7 +398,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('controller.service_arguments');
-    $services->alias(EmailAddressConfirmAction::class, 'silverback.api_components.action.user.email_address_confirm')->public();
+    $services->alias('silverback.api_components.action.user.email_address_confirm', EmailAddressConfirmAction::class)->public();
 
     $services
         ->set(EntityPersistFormListener::class)
@@ -655,8 +653,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(PasswordResetEmailFactory::class, 'silverback.api_components.factory.user.mailer.password_reset_email');
 
     $services
-        ->set('silverback.api_components.action.user.password_request')
-        ->class(PasswordRequestAction::class)
+        ->set(PasswordRequestAction::class)
         ->public()
         ->args(
             [
@@ -666,7 +663,7 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('controller.service_arguments');
-    $services->alias(PasswordRequestAction::class, 'silverback.api_components.action.user.password_request')->public();
+    $services->alias('silverback.api_components.action.user.password_request', PasswordRequestAction::class)->public();
 
     $services
         ->set('silverback.api_components.form.password_update_type')
@@ -1218,14 +1215,13 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(TimestampedValidator::class, 'silverback.api_components.validator.timestamped');
 
     $services
-        ->set('silverback.api_components.action.uploadable.upload')
-        ->class(UploadAction::class)
+        ->set(UploadAction::class)
         ->public()
         ->tag('controller.service_arguments')
         ->args([
             '$publishableNormalizer' => new Reference(PublishableNormalizer::class),
         ]);
-    $services->alias(UploadAction::class, 'silverback.api_components.action.uploadable.upload')->public();
+    $services->alias('silverback.api_components.action.uploadable.upload', UploadAction::class)->public();
 
     $services
         ->set('silverback.api_components.attribute_reader.uploadable')
@@ -1515,8 +1511,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(UserResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.user_factory');
 
     $services
-        ->set('silverback.api_components.action.user.verify_email_address')
-        ->class(VerifyEmailAddressAction::class)
+        ->set(VerifyEmailAddressAction::class)
         ->public()
         ->args(
             [
@@ -1524,29 +1519,27 @@ return static function (ContainerConfigurator $configurator) {
             ]
         )
         ->tag('controller.service_arguments');
-    $services->alias(VerifyEmailAddressAction::class, 'silverback.api_components.action.user.verify_email_address')->public();
+    $services->alias('silverback.api_components.action.user.verify_email_address', VerifyEmailAddressAction::class)->public();
 
     $services
-        ->set('silverback.api_components.action.user.resend_verify_email_address')
-        ->class(ResendVerifyEmailAddressAction::class)
+        ->set(ResendVerifyEmailAddressAction::class)
         ->public()
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
         ])
         ->tag('controller.service_arguments');
-    $services->alias(ResendVerifyEmailAddressAction::class, 'silverback.api_components.action.user.resend_verify_email_address')->public();
+    $services->alias('silverback.api_components.action.user.resend_verify_email_address', ResendVerifyEmailAddressAction::class)->public();
 
     $services
-        ->set('silverback.api_components.action.user.resend_verify_new_email_address')
-        ->class(ResendVerifyNewEmailAddressAction::class)
+        ->set(ResendVerifyNewEmailAddressAction::class)
         ->public()
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
         ])
         ->tag('controller.service_arguments');
-    $services->alias(ResendVerifyNewEmailAddressAction::class, 'silverback.api_components.action.user.resend_verify_new_email_address')->public();
+    $services->alias('silverback.api_components.action.user.resend_verify_new_email_address', ResendVerifyNewEmailAddressAction::class)->public();
 
     $services
         ->set('silverback.api_components.factory.user.mailer.verify_email')
