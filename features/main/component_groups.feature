@@ -134,6 +134,13 @@ Feature: ComponentGroup resource
     Then the response status code should be 200
     And the JSON node "component" should be null
 
+  Scenario: An allowed pageDataProperty position in a restricted group returns the component for anonymous users
+    Given there is a pageDataProperty position with an allowed component type in a restricted group with route "/test-page"
+    And I add "path" header equal to "/test-page"
+    When I send a "GET" request to the resource "position_0"
+    Then the response status code should be 200
+    And the JSON node "component" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+
   @loginAdmin
   Scenario: Sending a PHP class name as allowedComponents is normalised to a collection IRI
     Given there is a ComponentGroup with 0 components

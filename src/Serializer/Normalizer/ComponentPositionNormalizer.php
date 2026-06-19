@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Proxy;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -194,7 +195,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
 
         // skip if the resolved component type is not in the group's allowedComponents
         if ($object->componentGroup && null !== $object->componentGroup->allowedComponents) {
-            $resourceClass = $component::class;
+            $resourceClass = $component instanceof Proxy ? get_parent_class($component) : $component::class;
             $iri = $this->iriConverter->getIriFromResource(
                 $resourceClass,
                 UrlGeneratorInterface::ABS_PATH,
