@@ -42,9 +42,10 @@ class CwaFixtureBuilderTest extends TestCase
     /**
      * @param array<int, array{entity: object, isNew: bool}> $calls
      */
-    private function recordingTimestampedPersister(array &$calls): TimestampedDataPersister
+    private function recordingTimestampedPersister(array &$calls, bool $isConfigured = true): TimestampedDataPersister
     {
         $persister = $this->createStub(TimestampedDataPersister::class);
+        $persister->method('isConfigured')->willReturn($isConfigured);
         $persister->method('persistTimestampedFields')->willReturnCallback(
             static function (object $entity, bool $isNew) use (&$calls): void {
                 $calls[] = ['entity' => $entity, 'isNew' => $isNew];
@@ -1560,6 +1561,21 @@ class CwaFixtureBuilderTest extends TestCase
         foreach ($componentCalls as $call) {
             $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for component builder component');
         }
+    }
+
+    public function test_timestamped_persister_not_called_for_non_timestamped_component(): void
+    {
+        $calls = [];
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls, isConfigured: false),
+        );
+        $builder->component($component)->group('items');
+        $builder->flush();
+
+        $componentCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] === $component));
+        $this->assertEmpty($componentCalls, 'persistTimestampedFields must NOT be called for non-timestamped components');
     }
 
     // --- LogicalAnd: routeName only stored when route IS set on entity (kills mutants 9+10) ---

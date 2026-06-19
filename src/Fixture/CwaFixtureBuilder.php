@@ -315,7 +315,9 @@ class CwaFixtureBuilder
 
         foreach ($this->componentBuilders as $componentBuilder) {
             $component = $componentBuilder->getComponent();
-            $this->timestampedPersister->persistTimestampedFields($component, true);
+            if ($this->timestampedPersister->isConfigured($component)) {
+                $this->timestampedPersister->persistTimestampedFields($component, true);
+            }
             $this->persistWithAssociations($component);
             foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
                 $this->createAndLinkComponentGroup($groupBuilder, $component);

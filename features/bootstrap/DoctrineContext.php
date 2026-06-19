@@ -1558,4 +1558,32 @@ final class DoctrineContext implements Context
         }
         Assert::assertLessThanOrEqual(1, $nonExpiredCount, \sprintf('There should only be 1 token that is not expired. There are %d', $nonExpiredCount));
     }
+
+    /**
+     * @Given there is a published DummyPublishableComponent in :count component positions
+     */
+    public function thereIsAPublishedDummyPublishableComponentInPositions(int $count): void
+    {
+        $component = new DummyPublishableComponent();
+        $component->setPublishedAt(new \DateTime());
+        $this->manager->persist($component);
+        $this->restContext->resources['publishable_component'] = $this->iriConverter->getIriFromResource($component);
+
+        for ($i = 0; $i < $count; ++$i) {
+            $componentGroup = new ComponentGroup();
+            $componentGroup->reference = 'test_group_' . $i;
+            $componentGroup->location = 'test_group_' . $i;
+            $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+            $this->manager->persist($componentGroup);
+
+            $position = new ComponentPosition();
+            $position->sortValue = 0;
+            $position->component = $component;
+            $position->componentGroup = $componentGroup;
+            $this->timestampedHelper->persistTimestampedFields($position, true);
+            $this->manager->persist($position);
+        }
+
+        $this->manager->flush();
+    }
 }

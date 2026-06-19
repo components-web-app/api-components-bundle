@@ -134,3 +134,27 @@ Feature: Component positions
     And I send a "GET" request to the resource "position_3"
     And the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 3
+
+  @loginUser
+  Scenario: Inserting a ComponentPosition at a sortValue with no collision does not shift existing positions
+    Given there is a ComponentGroup with 3 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | component             | sortValue |
+      | resource[component_group] | resource[component_0] | 5         |
+    Then the response status code should be 201
+    And the JSON node "sortValue" should be equal to the number 5
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_0"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 0
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_1"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 1
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to the resource "position_2"
+    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 2

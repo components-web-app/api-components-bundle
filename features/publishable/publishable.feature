@@ -437,3 +437,11 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 204
     And the resource component_position should not exist
     And the resource publishable_draft should not exist
+
+
+  @loginAdmin
+  Scenario: A publishable component's location count is returned in metadata
+    Given there is a published DummyPublishableComponent in 2 component positions
+    When I send a "GET" request to the resource "publishable_component"
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.locationCount" should be equal to the number 2

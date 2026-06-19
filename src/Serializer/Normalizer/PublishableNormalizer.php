@@ -76,9 +76,10 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         }
 
         $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
+        $locationCount = method_exists($object, 'getComponentPositions') ? count($object->getComponentPositions()) : null;
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
-        $resourceMetadata->setPublishable($isPublished);
+        $resourceMetadata->setPublishable($isPublished, null, $locationCount);
 
         $type = $object::class;
 

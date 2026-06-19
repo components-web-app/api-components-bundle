@@ -87,10 +87,21 @@ class ComponentPositionSortValueHelper
             }
         }
 
+        // Only shift existing positions if there is an actual collision at the target sortValue.
+        // This avoids double-shifting when the caller has already pre-shifted positions upstream.
+        $hasCollision = false;
         foreach ($sortCollection as $existingComponentPosition) {
-            // for every position after this one we push it up 1
-            if ($existingComponentPosition->sortValue >= $componentPosition->sortValue) {
-                ++$existingComponentPosition->sortValue;
+            if ($existingComponentPosition->sortValue === $componentPosition->sortValue) {
+                $hasCollision = true;
+                break;
+            }
+        }
+
+        if ($hasCollision) {
+            foreach ($sortCollection as $existingComponentPosition) {
+                if ($existingComponentPosition->sortValue >= $componentPosition->sortValue) {
+                    ++$existingComponentPosition->sortValue;
+                }
             }
         }
     }

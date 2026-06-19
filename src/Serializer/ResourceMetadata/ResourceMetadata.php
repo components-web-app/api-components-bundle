@@ -121,15 +121,18 @@ class ResourceMetadata implements ResourceMetadataInterface
         return $this->publishable;
     }
 
-    public function setPublishable(bool $published, ?string $publishedAt = null): void
+    public function setPublishable(bool $published, ?string $publishedAt = null, ?int $locationCount = null): void
     {
         if ($this->publishable) {
             $this->publishable->published = $published;
             $this->publishable->publishedAt = $publishedAt;
+            if (null !== $locationCount) {
+                $this->publishable->locationCount = $locationCount;
+            }
 
             return;
         }
-        $this->publishable = new ResourcePublishableMetadata($published, $publishedAt);
+        $this->publishable = new ResourcePublishableMetadata($published, $publishedAt, $locationCount);
     }
 
     public function getViolations(): ?ConstraintViolationListInterface

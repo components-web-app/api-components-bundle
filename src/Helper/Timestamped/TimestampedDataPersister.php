@@ -30,6 +30,11 @@ class TimestampedDataPersister
         $this->annotationReader = $annotationReader;
     }
 
+    public function isConfigured(object|string $entity): bool
+    {
+        return $this->annotationReader->isConfigured($entity);
+    }
+
     public function persistTimestampedFields(object $timestamped, bool $isNew): void
     {
         $configuration = $this->annotationReader->getConfiguration($timestamped);
