@@ -105,6 +105,10 @@ This factory (`src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCo
 - **`api_sub_level` context**: when normalising a sub-object (e.g. `ResourceMetadata` inside `MetadataNormalizer`), set `$context['api_sub_level'] = true`. Without it, `PartialCollectionViewNormalizer` injects a `"view": {"@type": "PartialCollectionView"}` entry into any array property whenever the request URI has query parameters, turning the array into a JSON object.
 - **Symfony 8.2 null-for-typed-string**: Symfony 8.2 converts a null value for a non-nullable typed string property into a proper validation violation rather than a raw TypeError. Prefer `?string = null` (nullable PHP type + nullable ORM column) so null passes through deserialization to the `#[Assert\NotBlank]` validator consistently across all Symfony versions. AP4's `AbstractItemNormalizer` reads serializer metadata (including the ORM `nullable` flag), so `?string` with `nullable: false` on the ORM column still triggers the TypeError path.
 - **Behat / Symfony 8.x**: The `behat/behat` and `friends-of-behat/symfony-extension` packages do not yet support Symfony 8.x (their constraints cap at `^7.0`). This holds `symfony/console`, `symfony/event-dispatcher`, `symfony/property-access`, `symfony/http-kernel`, and the full security stack at 7.x in the test environment. The production bundle code is Symfony 8.x-compatible; only the test tooling is blocked. Watch for a `behat/behat` 4.x stable release or updated `friends-of-behat/symfony-extension` to unblock.
+- **Service ID convention — two mandatory exceptions**: All bundle services use stable `silverback.api_components.*` string IDs with FQCN class-name aliases. Two categories **must** keep the FQCN as the primary service ID (with the string ID as alias) because they are looked up by class name at runtime:
+  1. **AP4 state providers** tagged `api_platform.state_provider` and referenced as `provider: SomeClass::class` on an operation — AP4 builds its `CallableProvider` service locator keyed by tagged service ID. If the service ID is a string (not the FQCN), AP4 throws `ProviderNotFoundException`.
+  2. **Controller action services** tagged `controller.service_arguments` — Symfony's `RegisterControllerArgumentLocatorsPass` keys argument locators by service ID. Routes resolve controllers by FQCN; if the ID is a string the locator can't be matched and `__invoke` method argument injection fails.
+  Pattern: `->set(SomeClass::class)->...->tag(...)` then `->alias('silverback.api_components.*', SomeClass::class)->public()`. All other services use the reverse.
 
 ### Serialization groups
 
@@ -527,7 +531,7 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ### What the builder handles invisibly
 
-- `TimestampedDataPersister->persistTimestampedFields($entity, true)` on every entity
+- `TimestampedDataPersister->persistTimestampedFields($entity, true)` on entities that have the `#[Timestamped]` annotation (Layout, Page, AbstractPageData, ComponentGroup). **Not** called on `AbstractComponent` subclasses — see open issue below.
 - `$manager->persist()` for all entities
 - Layout/Page deduplication by reference string (calling `->layout('main', ...)` twice returns the same LayoutBuilder)
 - ComponentGroup deduplication by entity IRI + location name
@@ -557,6 +561,37 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 ## Open Issues — Context for Future Work
 
 These are known open issues with enough context to resume work without re-investigation.
+
+### `CwaFixtureBuilder.component()` throws for non-timestamped entities — fix needed
+
+**Context (discovered 2026-06-19):** `CwaFixtureBuilder.phaseOne()` unconditionally calls `TimestampedDataPersister->persistTimestampedFields($component, true)` for every `ComponentBuilder` registered via `->component()`. This throws `InvalidArgumentException` (`AttributeReader.findAttributeConfiguration` line 104) when the entity does not have the `#[Timestamped]` annotation. `AbstractComponent` subclasses (e.g. `HtmlContent`, `NavigationLink`, `Image`) use `#[Publishable]` but NOT `#[Timestamped]`, so `$cwa->component($htmlContent)` always crashes.
+
+**Relevant code:** `src/Fixture/CwaFixtureBuilder.php` phaseOne loop (~line 316–323):
+```php
+foreach ($this->componentBuilders as $componentBuilder) {
+    $component = $componentBuilder->getComponent();
+    $this->timestampedPersister->persistTimestampedFields($component, true);  // throws for HtmlContent etc.
+    $this->persistWithAssociations($component);
+    ...
+}
+```
+
+**Fix required:**
+
+1. Add `isConfigured(object|string $entity): bool` to `TimestampedDataPersister` (delegates to `$this->annotationReader->isConfigured($entity)` — `TimestampedAttributeReader` inherits `isConfigured` from `AttributeReader`, which catches `InvalidArgumentException` and returns false).
+
+2. In `phaseOne()`, guard the call:
+```php
+if ($this->timestampedPersister->isConfigured($component)) {
+    $this->timestampedPersister->persistTimestampedFields($component, true);
+}
+```
+
+The `Layout`, `Page`, and `AbstractPageData` loops in phaseOne are unaffected — those entities all have `#[Timestamped]`. Only the `componentBuilders` loop needs the guard.
+
+**Workaround for `AppScaffold` until fixed:** Use `$cwa->persist($htmlContent)` (which calls `persistWithAssociations` without any timestamp logic) for standalone components set as PageData properties. This is the same effect as the intended `$cwa->component()` call minus the timestamp step (which is a no-op for these entities anyway since they have no `createdAt`/`modifiedAt` fields).
+
+---
 
 ### ComponentPosition `sortValue` collision on insert — API-side normalisation needed
 
