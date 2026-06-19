@@ -689,42 +689,6 @@ The bundle ships Doctrine migrations. Currently migrations live in the PHP files
 
 ---
 
-### JWTEventListener: cross-user Set-Cookie leakage in FrankenPHP worker mode
-
-**File:** `src/EventListener/Jwt/JWTEventListener.php`
-
-`JWTEventListener` holds `private ?string $token = null` as an instance variable (line 29). In FrankenPHP worker mode the service container is never rebuilt between requests — the same `JWTEventListener` instance handles all requests on a given worker. When `onJWTRefreshed()` sets `$this->token` during an authenticated request (JWT expiry auto-refresh), that value persists into the next request on the same worker. If that next request is anonymous and matches the Souin `@use_cache` rule, the anonymous response gets a `Set-Cookie: api_component=<other_user_jwt>` header, which Souin may then cache and serve to further users.
-
-**Fix:** Implement `Symfony\Contracts\Service\ResetInterface`. Symfony's DI container auto-calls `reset()` between requests in worker mode:
-
-```php
-use Symfony\Contracts\Service\ResetInterface;
-
-final class JWTEventListener implements ResetInterface
-{
-    private ?string $token = null;
-
-    public function reset(): void
-    {
-        $this->token = null;
-    }
-```
-
-Also clear `$this->token` at the top of `onKernelResponse()` before use as defense-in-depth (so the method is idempotent even if `reset()` is not called):
-
-```php
-public function onKernelResponse(ResponseEvent $event): void
-{
-    $token = $this->token;
-    $this->token = null;
-    if (!empty($token)) { ... }
-}
-```
-
-**Status:** Fix needed. Reported from `components-web-app` investigation 2026-06-19.
-
----
-
 ### #60 — Uploadable: Private files (S3 pre-signed URLs)
 
 When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
