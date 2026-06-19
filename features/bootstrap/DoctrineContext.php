@@ -862,6 +862,7 @@ final class DoctrineContext implements Context
         $publishedComponent = new DummyPublishableComponent();
         $publishedComponent->setPublishedAt(new \DateTime());
         $this->manager->persist($publishedComponent);
+        $this->restContext->resources['publishable_component'] = $this->iriConverter->getIriFromResource($publishedComponent);
 
         $pageData = new PageDataWithComponent();
         $pageData->publishableComponent = $publishedComponent;

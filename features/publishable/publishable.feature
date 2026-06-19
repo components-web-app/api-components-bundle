@@ -445,3 +445,10 @@ Feature: Access to unpublished/draft resources should be configurable
     When I send a "GET" request to the resource "publishable_component"
     Then the response status code should be 200
     And the JSON node "_metadata.publishable.locationCount" should be equal to the number 2
+
+  @loginAdmin
+  Scenario: A publishable component used as a pageData property is included in the location count
+    Given there is a PageData resource with a published component in a pageDataProperty position and the route path "/test-page-data"
+    When I send a "GET" request to the resource "publishable_component"
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.locationCount" should be equal to the number 1

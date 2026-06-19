@@ -162,6 +162,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UploadableFileManager::class),
                 new Reference(ResourceMetadataProvider::class),
                 new Reference(EventDispatcherInterface::class),
+                new Reference('silverback.metadata_provider.page_data'),
             ]
         )->tag('serializer.normalizer', ['priority' => -400]);
     $services->alias(PublishableNormalizer::class, 'silverback.api_components.serializer.normalizer.publishable');

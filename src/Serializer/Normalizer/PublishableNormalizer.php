@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -64,6 +65,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         private readonly UploadableFileManager $uploadableFileManager,
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
         private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly PageDataMetadataProvider $pageDataMetadataProvider,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -78,7 +80,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
 
         $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
         $locationCount = method_exists($object, 'getComponentPositions')
-            ? $this->registry->getManagerForClass(ComponentPosition::class)?->getRepository(ComponentPosition::class)->count(['component' => $object])
+            ? $this->countLocations($object)
             : null;
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
@@ -264,6 +266,29 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
         return !isset($context[self::ALREADY_CALLED]) && $this->publishableStatusChecker->getAttributeReader()->isConfigured($type) && \is_array($data);
+    }
+
+    private function countLocations(object $component): int
+    {
+        $count = $this->registry->getManagerForClass(ComponentPosition::class)
+            ?->getRepository(ComponentPosition::class)->count(['component' => $component])
+            ?? 0;
+
+        foreach ($this->pageDataMetadataProvider->createAll() as $pageDataMetadata) {
+            $pageDataClass = $pageDataMetadata->getResourceClass();
+            $em = $this->registry->getManagerForClass($pageDataClass);
+            if (!$em) {
+                continue;
+            }
+            foreach ($pageDataMetadata->getProperties() as $propertyMetadata) {
+                if (!is_a($component, $propertyMetadata->getComponentClass(), true)) {
+                    continue;
+                }
+                $count += $em->getRepository($pageDataClass)->count([$propertyMetadata->getProperty() => $component]);
+            }
+        }
+
+        return $count;
     }
 
     private function getManagerFromType(string $type): ObjectManager
