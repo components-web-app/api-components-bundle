@@ -657,6 +657,30 @@ The bundle ships Doctrine migrations. Currently migrations live in the PHP files
 
 ---
 
+### #145 — Console commands to make a component
+
+A console command to scaffold a new component class would ease the process and allow options to enable annotations for `Timestamped`, `Publishable`, and `Uploadable` behaviours. Ideally reusing Symfony's `make:entity` / `make:api-resource` scaffolding patterns.
+
+**No implementation started.** Would slot in alongside `UserCreateCommand` (`src/Command/`). The command would need to generate: the entity class (extending `AbstractComponent`), the migration, and optionally the relevant attribute annotations.
+
+---
+
+### #118 — Return location counts for draft resources and collections
+
+An admin viewing a component group or draft resource currently has no way to know how many draft items exist across locations. A count per-location would allow the admin UI to surface "3 unpublished items in this group" without fetching all items.
+
+**No implementation started.** Likely a custom API endpoint or serialization group addition that returns aggregated counts. Needs design work on the response shape.
+
+---
+
+### #115 — Symfony data collector / profiler integration
+
+A custom Symfony profiler panel showing how the bundle handled a request — security decisions (JWT, refresh tokens), route resolution, page data lookups, Mercure topic publication — would significantly aid debugging.
+
+**No implementation started.** Would require implementing `DataCollectorInterface` and a profiler template. Low priority but useful for DX.
+
+---
+
 ### #60 — Uploadable: Private files (S3 pre-signed URLs)
 
 When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
