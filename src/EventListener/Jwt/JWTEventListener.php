@@ -19,12 +19,13 @@ use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class JWTEventListener
+final class JWTEventListener implements ResetInterface
 {
     private ?string $token = null;
 
@@ -56,6 +57,11 @@ final class JWTEventListener
         $event->setData($data);
     }
 
+    public function reset(): void
+    {
+        $this->token = null;
+    }
+
     public function onJWTRefreshed(JWTRefreshedEvent $event): void
     {
         $this->token = $event->getToken();
@@ -63,9 +69,12 @@ final class JWTEventListener
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        if (!empty($this->token)) {
+        // Consume and clear the token so it is never reused across requests in worker mode
+        $token = $this->token;
+        $this->token = null;
+        if (!empty($token)) {
             $responseHeaders = $event->getResponse()->headers;
-            $responseHeaders->setCookie($this->cookieProvider->createCookie($this->token));
+            $responseHeaders->setCookie($this->cookieProvider->createCookie($token));
             $responseHeaders->setCookie($this->mercureAuthorization->getAuthorizationCookie());
         }
     }
