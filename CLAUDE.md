@@ -676,31 +676,6 @@ The bundle ships Doctrine migrations. Currently migrations live in the PHP files
 
 ---
 
-### ComponentGroup.allowedComponents — missing from embedded Layout/Page responses (nav disappears on sync)
-
-**Files:** `src/Entity/Core/ComponentGroup.php` (line 77), `src/Serializer/Normalizer/ComponentGroupNormalizer.php`
-
-**Symptom:** Navigation renders correctly on first SSR load, then disappears once the Nuxt module's `ComponentGroupUtilSynchronizer` runs client-side.
-
-**Root cause:** `ComponentGroup.allowedComponents` is in `#[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]` only. When a `Layout` is fetched with `Layout:read` context, its embedded `ComponentGroup` objects are serialised with `Layout:read` groups — none of the ComponentGroup fields match, so the embedded object is a bare `{"@id": "...", "@type": "ComponentGroup"}` with no `allowedComponents` field.
-
-The module's `ComponentGroupUtilSynchronizer.updateAllowedComponents()` compares the Vue prop value against `resource.data.allowedComponents ?? null`. Because `allowedComponents` is absent from the embedded data, it reads as `undefined`, which coerces to `null`. The prop is `['/component/navigation_links']`. `isEqual(['/component/navigation_links'], null)` → false → PATCH fires.
-
-The PATCH response uses `ComponentGroup:read` normalization. `componentPositions` is in `ComponentGroup:read` but `ComponentPosition` fields are in `ComponentPosition:read`, so positions are returned as bare IRI strings. This PATCH response overwrites the richer SSR-fetched position data in the Pinia store, replacing it with unresolved IRIs. The nav goes blank.
-
-**Fix needed in bundle:** Add `Layout:read` (and `Page:read`) to the `allowedComponents` Groups annotation so the field is included in embedded responses:
-```php
-#[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
-public ?array $allowedComponents = null;
-```
-This lets the synchronizer compare correctly (`isEqual` returns true) and skip the unnecessary PATCH entirely.
-
-**Secondary fix (input normalisation):** `allowedComponents` has no normalisation on write — whatever strings are sent via PATCH are stored as-is. `ComponentGroupNormalizer` always computes IRIs from component class names and does `\in_array($iri, $allowed, true)` — so `allowedComponents` **must** contain collection IRIs (e.g. `/component/navigation_links`), never PHP FQCNs. Add a denormalizer or `setAllowedComponents` input conversion to guard against FQCNs being stored directly. `CwaFixtureBuilder` correctly converts FQCN → IRI before persisting; the gap is API-side.
-
-**Status:** Fix needed. The primary fix (add `Layout:read`/`Page:read` to Groups) resolves the nav disappearing on sync. The secondary fix (input normalisation) is a hardening measure.
-
----
-
 ### #60 — Uploadable: Private files (S3 pre-signed URLs)
 
 When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
