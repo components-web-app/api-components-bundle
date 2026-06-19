@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -188,6 +190,19 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             && !$this->publishableStatusChecker->isGranted($component)
         ) {
             return $object;
+        }
+
+        // skip if the resolved component type is not in the group's allowedComponents
+        if ($object->componentGroup && null !== $object->componentGroup->allowedComponents) {
+            $resourceClass = $component::class;
+            $iri = $this->iriConverter->getIriFromResource(
+                $resourceClass,
+                UrlGeneratorInterface::ABS_PATH,
+                (new GetCollection())->withClass($resourceClass),
+            );
+            if (!\in_array($iri, $object->componentGroup->allowedComponents, true)) {
+                return $object;
+            }
         }
 
         // populate the position

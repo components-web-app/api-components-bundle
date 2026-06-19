@@ -832,6 +832,54 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a pageDataProperty position with a disallowed component type in a restricted group with route :path
+     */
+    public function thereIsAPageDataPropertyPositionWithDisallowedComponentType(string $path): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $componentGroup->allowedComponents = ['/component/dummy_components'];
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->componentGroup = $componentGroup;
+        $componentPosition->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+        $this->restContext->resources['position_0'] = $this->iriConverter->getIriFromResource($componentPosition);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'test page';
+        $page->addComponentGroup($componentGroup);
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $publishableComponent = new DummyPublishableComponent();
+        $publishableComponent->setPublishedAt(new \DateTime());
+        $this->manager->persist($publishableComponent);
+
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = $publishableComponent;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($route);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a PageData resource with the route path :childPath nested within the route :parentPath
      */
     public function thereIsANestedPageDataResource(string $childPath, string $parentPath): void

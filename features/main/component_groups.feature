@@ -126,6 +126,14 @@ Feature: ComponentGroup resource
     Then the response status code should be 200
     And the resource "layout" should be purged from the cache
 
+  @loginUser
+  Scenario: A pageDataProperty position is not populated when the resolved component type is not in allowedComponents
+    Given there is a pageDataProperty position with a disallowed component type in a restricted group with route "/test-page"
+    And I add "path" header equal to "/test-page"
+    When I send a "GET" request to the resource "position_0"
+    Then the response status code should be 200
+    And the JSON node "component" should be null
+
   @loginAdmin
   Scenario: Sending a PHP class name as allowedComponents is normalised to a collection IRI
     Given there is a ComponentGroup with 0 components
