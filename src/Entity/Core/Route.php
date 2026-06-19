@@ -83,7 +83,6 @@ class Route
 
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
-    #[Assert\Regex(pattern: '/^\//', message: 'The path must begin with a forward slash.')]
     #[Groups(['Route:redirect:read'])]
     private string $path = '';
 
@@ -124,6 +123,9 @@ class Route
 
     public function setPath(string $path): self
     {
+        if ('' !== $path && !str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
         $this->path = $path;
 
         return $this;
