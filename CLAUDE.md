@@ -673,3 +673,11 @@ A custom Symfony profiler panel showing how the bundle handled a request — sec
 When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
 
 **Fix direction:** The `Flysystem temporary URL` generator (`silverback.api_components.uploadable.url_generator.temporary`) likely generates pre-signed URLs already. Tests for this path with a real (or mock) S3 adapter are missing. Also: the download endpoint (`src/Action/Uploadable/DownloadAction.php`) can gate access — apps can hook into events — but this isn't documented or tested.
+
+---
+
+## Known Configuration Quirks
+
+### `repeat_ttl_seconds: 8600` — possible typo for 86400
+
+The default value for `user.password_reset.repeat_ttl_seconds` in the bundle configuration is `8600` seconds (2 hours 23 minutes). This is likely a typo for `86400` (24 hours). Verify against `src/DependencyInjection/Configuration.php` before quoting this value in documentation or changing the default. If intentional, add a comment explaining the reasoning.
