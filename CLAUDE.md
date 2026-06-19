@@ -628,22 +628,6 @@ Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
 
 ---
 
-### #163 — File existence check may hurt performance for cloud-hosted files
-
-`src/Factory/Uploadable/MediaObjectFactory.php` line ~69 checks whether a file exists on the filesystem before returning its URL. For components hosted on S3 or other cloud storage, this check makes an HTTP request to the remote storage on every uncached component fetch.
-
-**Proposed fix:** Add a per-field config option on `#[Silverback\Uploadable]` (or a new attribute parameter) to disable the existence check. When disabled, the URL is returned without verification.
-
----
-
-### #159 — Manifest fetch triggers file existence checks → 500 when offline
-
-Related to #163. When the route manifest is fetched and components with uploaded files are included, `MediaObjectFactory` checks file existence. In a local environment not connected to the internet (with files hosted in the cloud), this causes 500 errors.
-
-**Fix direction:** Either: (a) suppress the existence check during manifest normalisation (pass a context flag), or (b) implement the per-field config from #163 and set it to skip the check. The manifest path specifically is `RouteNormalizer` / `ResourceManifestNormalizer` calling into the component normalisation chain.
-
----
-
 ### #98 — Mercure subscriptions not secured
 
 Hub subscription tokens are not currently scoped — any subscriber can receive updates for any resource. The gist linked in the issue (`soyuka/5deae36cf0fa348c4225985f6a073efe`) shows the pattern for scoping Mercure JWT tokens to specific topics.
