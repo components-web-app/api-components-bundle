@@ -614,16 +614,6 @@ A console command to scaffold a new component class would ease the process and a
 
 ---
 
-### #118 — Return location counts for draft resources and collections
-
-An admin viewing a component group or draft resource currently has no way to know how many draft items exist across locations. A count per-location would allow the admin UI to surface "3 unpublished items in this group" without fetching all items.
-
-**Partially implemented (commits `b438d60d`, `65de12f1`):** `_metadata.publishable.locationCount` is now returned in component responses. The count includes both direct `ComponentPosition.component` references and `AbstractPageData` subclass instances that reference the component as a typed association property (the source of `pageDataProperty` dynamic positions). Behat tests in `features/publishable/publishable.feature`.
-
-**Remaining:** aggregated counts per location (e.g. "N draft items in this group") and collection-level counts are not yet implemented.
-
----
-
 ### #115 — Symfony data collector / profiler integration
 
 A custom Symfony profiler panel showing how the bundle handled a request — security decisions (JWT, refresh tokens), route resolution, page data lookups, Mercure topic publication — would significantly aid debugging.
