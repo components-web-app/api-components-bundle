@@ -82,3 +82,17 @@ Feature: Dynamic pages
     Then the response status code should be 200
     And the JSON node "pageDataProperty" should be equal to "component"
     And the JSON node "component" should be null
+
+  Scenario: A published pageDataProperty component is returned for anonymous users
+    Given there is a PageData resource with a published component in a pageDataProperty position and the route path "/page-data"
+    And I add "path" header equal to "/page-data"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "component" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
+
+  Scenario: A draft pageDataProperty component is not returned for anonymous users
+    Given there is a PageData resource with a draft component in a pageDataProperty position and the route path "/page-data"
+    And I add "path" header equal to "/page-data"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "component" should be null

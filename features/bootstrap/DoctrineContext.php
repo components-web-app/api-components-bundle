@@ -829,6 +829,53 @@ final class DoctrineContext implements Context
         $this->manager->persist($route);
 
         $this->manager->flush();
+
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
+    }
+
+    /**
+     * @Given there is a PageData resource with a published component in a pageDataProperty position and the route path :path
+     */
+    public function thereIsAPageDataWithPublishedComponentInPageDataPropertyPosition(string $path): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->componentGroup = $componentGroup;
+        $componentPosition->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+        $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($componentPosition);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'test page';
+        $page->addComponentGroup($componentGroup);
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $publishedComponent = new DummyPublishableComponent();
+        $publishedComponent->setPublishedAt(new \DateTime());
+        $this->manager->persist($publishedComponent);
+
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = $publishedComponent;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $this->manager->flush();
+        $this->manager->clear();
     }
 
     /**

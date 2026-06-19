@@ -54,6 +54,8 @@ class PublishableStatusChecker
             throw new \InvalidArgumentException(\sprintf('Object of class %s does not implement publishable configuration.', $object::class));
         }
 
+        $this->initializeLazyObject($object);
+
         $value = $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
 
         return null !== $value && new \DateTimeImmutable() >= $value;
@@ -65,7 +67,17 @@ class PublishableStatusChecker
             throw new \InvalidArgumentException(\sprintf('Object of class %s does not implement publishable configuration.', $object::class));
         }
 
+        $this->initializeLazyObject($object);
+
         return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
+    }
+
+    private function initializeLazyObject(object $object): void
+    {
+        $em = $this->registry->getManagerForClass($this->getObjectClass($object));
+        if ($em && $em->isUninitializedObject($object)) {
+            $em->initializeObject($object);
+        }
     }
 
     public function isRequestForPublished(Request $request): bool
