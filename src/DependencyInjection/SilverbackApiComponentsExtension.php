@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Ramsey\Uuid\Doctrine\UuidType;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -153,6 +154,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$securityStr', $config['routable_security']);
 
         $definition = $container->getDefinition(RoutableVoter::class);
+        $definition->setArgument('$securityStr', $config['routable_security']);
+
+        $definition = $container->getDefinition(RoutableResourceMetadataCollectionFactory::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
         $definition = $container->getDefinition(MercureAuthorization::class);

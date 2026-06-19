@@ -35,8 +35,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
 {
-    use NormalizerAwareTrait;
     use DenormalizerAwareTrait;
+    use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'COMPONENT_GROUP_NORMALIZER_ALREADY_CALLED';
 
@@ -99,6 +99,7 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
                     if (!str_contains($value, '\\')) {
                         return $value;
                     }
+
                     return $this->iriConverter->getIriFromResource(
                         $value,
                         UrlGeneratorInterface::ABS_PATH,
