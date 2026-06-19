@@ -234,3 +234,12 @@ Feature: API Resources which can have files uploaded
       | key  | value      |
       | file | @image.svg |
     Then the response status code should be 201
+
+  @loginUser
+  Scenario: A multipart file upload fires exactly one Mercure notification
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to "/dummy_uploadables/upload" with parameters:
+      | key  | value      |
+      | file | @image.png |
+    Then the response status code should be 201
+    And there should be 1 mercure messages

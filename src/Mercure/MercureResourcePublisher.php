@@ -58,6 +58,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     private \SplObjectStorage $createdObjects;
     private \SplObjectStorage $updatedObjects;
     private \SplObjectStorage $deletedObjects;
+    private bool $isPropagating = false;
 
     // Do we want MessageBusInterface instead ? we don't have messenger installed yet, probably just use the default hub for now
     public function __construct(
@@ -207,6 +208,10 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
     public function propagate(): void
     {
+        if ($this->isPropagating) {
+            return;
+        }
+        $this->isPropagating = true;
         try {
             foreach ($this->createdObjects as $object) {
                 $this->publishUpdate($object, $this->createdObjects[$object], 'create');
@@ -220,6 +225,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
                 $this->publishUpdate($object, $this->deletedObjects[$object], 'delete');
             }
         } finally {
+            $this->isPropagating = false;
             $this->reset();
         }
     }

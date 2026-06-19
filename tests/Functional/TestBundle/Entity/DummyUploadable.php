@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\File\File;
  * @author Daniel West <daniel@silverback.is>
  */
 #[Silverback\Uploadable]
-#[ApiResource]
+#[ApiResource(mercure: true)]
 #[ORM\Entity]
 class DummyUploadable
 {
