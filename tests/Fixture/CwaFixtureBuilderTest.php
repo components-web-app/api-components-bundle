@@ -27,16 +27,31 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 
 class CwaFixtureBuilderTest extends TestCase
 {
-    private function makeBuilder(?ObjectManager $em = null, ?RouteGeneratorInterface $routeGenerator = null, ?IriConverterInterface $iriConverter = null): CwaFixtureBuilder
+    private function makeBuilder(?ObjectManager $em = null, ?RouteGeneratorInterface $routeGenerator = null, ?IriConverterInterface $iriConverter = null, ?TimestampedDataPersister $timestampedPersister = null): CwaFixtureBuilder
     {
         $builder = new CwaFixtureBuilder(
-            $this->createStub(TimestampedDataPersister::class),
+            $timestampedPersister ?? $this->createStub(TimestampedDataPersister::class),
             $routeGenerator ?? $this->createStub(RouteGeneratorInterface::class),
             $iriConverter ?? $this->createStub(IriConverterInterface::class),
         );
         $builder->withManager($em ?? $this->createStub(ObjectManager::class));
 
         return $builder;
+    }
+
+    /**
+     * @param array<int, array{entity: object, isNew: bool}> $calls
+     */
+    private function recordingTimestampedPersister(array &$calls): TimestampedDataPersister
+    {
+        $persister = $this->createStub(TimestampedDataPersister::class);
+        $persister->method('persistTimestampedFields')->willReturnCallback(
+            static function (object $entity, bool $isNew) use (&$calls): void {
+                $calls[] = ['entity' => $entity, 'isNew' => $isNew];
+            }
+        );
+
+        return $persister;
     }
 
     private function collectingEm(?array &$persisted = null, ?int &$flushCount = null): ObjectManager
@@ -1038,5 +1053,417 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNotFalse($componentIndex);
         $this->assertNotFalse($groupIndex);
         $this->assertLessThan($groupIndex, $componentIndex);
+    }
+
+    public function test_second_flush_call_does_not_repeat_phase_one_through_three(): void
+    {
+        $flushCount = 0;
+        $em = $this->collectingEm(flushCount: $flushCount);
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main');
+
+        $builder->flush();
+        $firstFlushCount = $flushCount;
+        $builder->flush();
+
+        // Second flush should not re-run phases 1-3
+        $this->assertSame($firstFlushCount, $flushCount, 'Second flush must not repeat phases 1-3');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_nested_pagedata(): void
+    {
+        $calls = [];
+        $parent = new class extends AbstractPageData {};
+        $child = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(
+            $this->collectingEm(),
+            $this->autoRouteGenerator(),
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $nested) use ($child): void {
+                $nested->pageData($child);
+            });
+        $builder->flush();
+
+        $childCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] === $child));
+        $this->assertNotEmpty($childCalls, 'persistTimestampedFields must be called for the nested child PageData');
+        foreach ($childCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for nested child PageData');
+        }
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_nested_page(): void
+    {
+        $calls = [];
+        $parent = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(
+            $this->collectingEm(),
+            $this->autoRouteGenerator(),
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('nested-child', 'Template', layout: 'main');
+            });
+        $builder->flush();
+
+        $pageCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Page));
+        $this->assertNotEmpty($pageCalls, 'persistTimestampedFields must be called for the nested Page');
+        foreach ($pageCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for nested Page');
+        }
+    }
+
+    public function test_nested_page_groups_are_created_in_evaluate_nested(): void
+    {
+        $persisted = [];
+        $parent = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parent)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('child', 'Template', layout: 'main')
+                    ->group('primary');
+            });
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertNotEmpty($groups, 'ComponentGroup for nested page must be created during evaluateNested');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_layout_in_phase_one(): void
+    {
+        $calls = [];
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->flush();
+
+        $layoutCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Layout));
+        $this->assertNotEmpty($layoutCalls, 'persistTimestampedFields must be called for Layout in phaseOne');
+        foreach ($layoutCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for Layout');
+        }
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_page_in_phase_one(): void
+    {
+        $calls = [];
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true);
+        $builder->flush();
+
+        $pageCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Page));
+        $this->assertNotEmpty($pageCalls, 'persistTimestampedFields must be called for Page in phaseOne');
+        foreach ($pageCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for Page');
+        }
+    }
+
+    public function test_pagedata_without_template_ref_does_not_set_page(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $pageData = new class extends AbstractPageData {};
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('some-template', 'Template', layout: 'main', isTemplate: true);
+        $builder->pageData($pageData); // no template= argument
+        $builder->flush();
+
+        $prop = (new \ReflectionClass($pageData))->getProperty('page');
+        $this->assertFalse($prop->isInitialized($pageData), 'PageData with no templateRef must not have page linked');
+    }
+
+    public function test_pagedata_with_nonexistent_template_ref_does_not_set_page(): void
+    {
+        $pageData = new class extends AbstractPageData {};
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
+        $builder->pageData($pageData, template: 'nonexistent-template');
+        $builder->flush();
+
+        $prop = (new \ReflectionClass($pageData))->getProperty('page');
+        $this->assertFalse($prop->isInitialized($pageData), 'PageData with nonexistent templateRef must not have page linked');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_pagedata_in_phase_one(): void
+    {
+        $calls = [];
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->pageData($pageData);
+        $builder->flush();
+
+        $pdCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] === $pageData));
+        $this->assertNotEmpty($pdCalls, 'persistTimestampedFields must be called for PageData in phaseOne');
+        foreach ($pdCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for PageData');
+        }
+    }
+
+    public function test_pagedata_entity_is_persisted_in_phase_one(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $pageData = new class extends AbstractPageData {};
+        $builder = $this->makeBuilder($em);
+        $builder->pageData($pageData);
+        $builder->flush();
+
+        $this->assertContains($pageData, $persisted, 'PageData entity must be persisted via ObjectManager in phaseOne');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_component_group(): void
+    {
+        $calls = [];
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary')->group('nav');
+        $builder->flush();
+
+        $groupCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof ComponentGroup));
+        $this->assertNotEmpty($groupCalls, 'persistTimestampedFields must be called for ComponentGroup');
+        foreach ($groupCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for ComponentGroup');
+        }
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_explicit_page_route(): void
+    {
+        $calls = [];
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', route: '/home');
+        $builder->flush();
+
+        $routeCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Route));
+        $this->assertNotEmpty($routeCalls, 'persistTimestampedFields must be called for explicit page Route in phaseThree');
+        foreach ($routeCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for page Route');
+        }
+    }
+
+    public function test_auto_route_page_with_null_route_name_does_not_register_named_route(): void
+    {
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main'); // routeName is null
+        $builder->flush();
+
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('any-name');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_explicit_pagedata_route(): void
+    {
+        $calls = [];
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->pageData($pageData, route: '/articles/1');
+        $builder->flush();
+
+        $routeCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Route));
+        $this->assertNotEmpty($routeCalls, 'persistTimestampedFields must be called for explicit pageData Route in phaseThree');
+        foreach ($routeCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for pageData Route');
+        }
+    }
+
+    public function test_auto_generated_route_for_pagedata_is_persisted_via_manager(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->pageData($pageData);
+        $builder->flush();
+
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
+        $this->assertNotEmpty($routes, 'Auto-generated Route for PageData must be explicitly persisted via ObjectManager');
+    }
+
+    public function test_auto_route_pagedata_with_null_route_name_does_not_register_named_route(): void
+    {
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->pageData($pageData); // routeName is null
+        $builder->flush();
+
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('anything');
+    }
+
+    public function test_on_routes_created_child_builders_contains_no_null_entries(): void
+    {
+        $parentPageData = new class extends AbstractPageData {};
+        $capturedBuilders = null;
+
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parentPageData)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('chapter', 'Template', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $childBuilders) use (&$capturedBuilders): void {
+                $capturedBuilders = $childBuilders;
+            });
+        $builder->flush();
+
+        $this->assertIsArray($capturedBuilders);
+        foreach ($capturedBuilders as $idx => $childBuilder) {
+            $this->assertNotNull($childBuilder, "childBuilders[$idx] must not be null");
+            $this->assertIsObject($childBuilder);
+        }
+    }
+
+    public function test_on_routes_created_child_builders_are_reindexed_from_zero(): void
+    {
+        $parentPageData = new class extends AbstractPageData {};
+        $capturedKeys = null;
+
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parentPageData)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('chapter', 'Template', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $childBuilders) use (&$capturedKeys): void {
+                $capturedKeys = array_keys($childBuilders);
+            });
+        $builder->flush();
+
+        $this->assertSame([0], $capturedKeys, 'childBuilders must be re-indexed from 0 (array_values applied)');
+    }
+
+    public function test_phase_four_only_flushes_when_at_least_one_position_is_created(): void
+    {
+        $flushCount = 0;
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+
+        $this->assertGreaterThan(0, $flushCount, 'phaseFour must flush when at least one position is created');
+    }
+
+    public function test_phase_four_does_not_flush_when_no_positions_exist(): void
+    {
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true);
+        $builder->flush();
+
+        // Store the flush count after flushing with no positions
+        $countWithNoPositions = $flushCount;
+
+        // Now do same but WITH a position
+        $flushCount = 0;
+        $component = new class extends AbstractComponent {};
+        $builder2 = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder2->layout('main', 'CwaLayoutPrimary');
+        $builder2->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder2->flush();
+
+        $this->assertGreaterThan($countWithNoPositions, $flushCount, 'Adding positions causes at least one extra flush in phaseFour');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_component_position(): void
+    {
+        $calls = [];
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+
+        $positionCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof ComponentPosition));
+        $this->assertNotEmpty($positionCalls, 'persistTimestampedFields must be called for ComponentPosition');
+        foreach ($positionCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for ComponentPosition');
+        }
+    }
+
+    public function test_component_is_persisted_via_manager_when_added_to_group(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($em);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+
+        $this->assertContains($component, $persisted, 'Component must be persisted via ObjectManager when added to a group position');
+    }
+
+    public function test_timestamped_persister_called_with_is_new_true_for_pagedata_position(): void
+    {
+        $calls = [];
+        $builder = $this->makeBuilder(
+            timestampedPersister: $this->recordingTimestampedPersister($calls),
+        );
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('template', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->pageDataPosition('content');
+        $builder->flush();
+
+        $positionCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof ComponentPosition));
+        $this->assertNotEmpty($positionCalls, 'persistTimestampedFields must be called for pageDataProperty ComponentPosition');
+        foreach ($positionCalls as $call) {
+            $this->assertTrue($call['isNew'], 'persistTimestampedFields must be called with isNew=true for pageData ComponentPosition');
+        }
+    }
+
+    public function test_phase_four_flushes_when_only_page_data_positions_exist(): void
+    {
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('template', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->pageDataPosition('content');
+        $builder->flush();
+
+        $this->assertGreaterThan(0, $flushCount, 'phaseFour must flush when only pageDataPositions are created');
     }
 }
