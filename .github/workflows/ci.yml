@@ -11,9 +11,7 @@ on:
 
 env:
   COMPOSER_ALLOW_SUPERUSER: '1' # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-  COMPOSER_INSTALLER_COMMIT: 2855762e882810a64816eded274321c56d9b274a
   COVERAGE: '0'
-  EXT_PCOV_VERSION: '1.0.6'
   INFECTION_VERSION: '0.29.14'
   COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,7 +28,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -64,7 +62,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -81,7 +79,7 @@ jobs:
         id: composercache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composercache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
@@ -117,9 +115,8 @@ jobs:
         continue-on-error: true
       - name: Upload coverage results to Codecov
         if: matrix.coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          name: phpunit-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           flags: phpunit
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -133,7 +130,7 @@ jobs:
           gpg --keyserver keyserver.ubuntu.com --recv-keys C6D76C329EBADE2FB9C458CFC5095986493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=85 --threads=30
+          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=90 --threads=30
       - name: Upload Infection Mutation Logs
         if: matrix.coverage
         uses: actions/upload-artifact@v4
@@ -163,7 +160,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -180,7 +177,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Restore composer cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
@@ -220,9 +217,8 @@ jobs:
         continue-on-error: true
       - name: Upload coverage results to Codecov
         if: matrix.coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          name: behat-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           flags: behat
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -240,7 +236,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -257,7 +253,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Restore composer cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
@@ -295,7 +291,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -312,7 +308,7 @@ jobs:
           id: composer-cache
           run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Restore composer cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
@@ -349,7 +345,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -366,7 +362,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Restore composer cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
@@ -423,7 +419,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -440,7 +436,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Restore composer cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-${{ github.sha }}
