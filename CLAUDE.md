@@ -625,16 +625,6 @@ Hub subscription tokens are not currently scoped — any subscriber can receive 
 
 ---
 
-### #86 — Service ID inconsistency in bundle config
-
-`src/Resources/config/services.php` has **~30 services** using the correct reusable-bundle pattern (string ID + `->class()` + `->alias(ClassName::class, 'string.id')`, e.g. `silverback.security.jwt_manager`) and **~320 services** using the class name directly as the service ID (e.g. `->set(ChangePasswordType::class)`).
-
-The Symfony recommendation for reusable bundles is stable string IDs with class aliases, so consuming apps can override services by stable name and the class can be renamed without a BC break. The inconsistency exists because the string-ID services are older (or needed decoration); newer services defaulted to class-name IDs.
-
-**Fix:** Methodically rename all `->set(ClassName::class)` entries to `->set('silverback.api_components.descriptive_name')->class(ClassName::class)` and add `->alias(ClassName::class, 'silverback.api_components.descriptive_name')` alongside each. No functional change — purely a naming/structure refactor.
-
----
-
 ### #81 — Doctrine migrations storage configuration
 
 The bundle ships Doctrine migrations. Currently migrations live in the PHP filesystem path. The issue proposes storing migration files in a configured Flysystem adapter so teams can use remote/shared storage.
