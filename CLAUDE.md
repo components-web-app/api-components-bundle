@@ -551,3 +551,146 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 - **Manifest for admin is a performance requirement, not an optimisation** — without it, rendering a page requires 4+ serial round trips (page → groups → positions → components). The manifest collapses this to one parallel batch. Both contexts must have manifests.
 - **Builder returns GroupBuilder references** — rather than closures that are deferred, `->group()` on LayoutBuilder and PageBuilder returns a `GroupBuilder` that can be held as a PHP variable and populated at any point before the final flush. This naturally handles the "nav bar populated after routes exist" pattern without special deferred-closure machinery.
 - **`->nested()` takes a Closure, not a return value** — nested entities must have their parent's route before their own route can be generated. The `->nested()` Closure is evaluated during phase 5 (route generation), after the parent's route is created. The builder does not return nested builders; side effects are registered against the outer builder state.
+
+---
+
+## Open Issues — Context for Future Work
+
+These are known open issues with enough context to resume work without re-investigation.
+
+### #178 — POST vs PATCH permission asymmetry on RoutableInterface entities
+
+`RoutableResourceMetadataCollectionFactory` deliberately excludes POST from the `read_routable` security check. A `ROLE_USER` can create a Page/PageData but cannot PATCH or DELETE it until it has a public route (only `ROLE_ADMIN` can edit unpublished pages). Surfaced while adding Behat tests for PATCHing `parentPage` — those tests require `@loginAdmin` because the page has no public route.
+
+**Decision needed:** Is `create = ROLE_USER, edit unpublished = ROLE_ADMIN` the right split? Or should POST also require `ROLE_ADMIN` for consistency? The Nuxt admin module needs to know which auth level to request for create vs edit operations.
+
+---
+
+### #170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write
+
+**Read side fixed** (commit `c6964304`): `ComponentGroupNormalizer` filters `componentPositions` at normalisation time to hide positions whose component class is not in `allowedComponents`.
+
+**Write side still open:** When creating a `ComponentPosition` with `pageDataProperty` set (a dynamic slot resolved at render time), no validation is done against `allowedComponents`. A developer can add a `pageDataProperty` position referencing a disallowed component type and no error is raised. Validation is hard at write time because the component type of a `pageDataProperty` slot isn't known until the PageData is rendered — the property name is just a string like `'htmlContent'`.
+
+**Options:**
+- Validate that the PageData class's property type for `pageDataProperty` is in `allowedComponents` (requires knowing the PageData class at write time)
+- Accept the current read-side filtering as sufficient (disallowed types are hidden even if they sneak in)
+- Add a separate `allowedPageDataProperties` restriction
+
+Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
+
+---
+
+### #167 — Cache not cleared when a component group is added to a page/layout
+
+When a new `ComponentGroup` is added to a page or layout, the Souin HTTP cache layer still serves the old cached data for that page/layout. The route manifest cache is also stale.
+
+**Relevant code:** `PropagateUpdatesListener` (`src/EventListener/Doctrine/PropagateUpdatesListener.php`) handles cache purging via `purgeResources()` → `addToPropagators()`. The bug is likely that adding a ComponentGroup to a Page's `componentGroups` collection doesn't trigger a purge of the Page IRI. Look at `gatherAllAssociatedEntities` and `gatherUpdatedAssociatedEntities` — the ManyToMany join (Page ↔ ComponentGroup) may not be walking back to the Page when the ComponentGroup is created.
+
+---
+
+### #163 — File existence check may hurt performance for cloud-hosted files
+
+`src/Factory/Uploadable/MediaObjectFactory.php` line ~69 checks whether a file exists on the filesystem before returning its URL. For components hosted on S3 or other cloud storage, this check makes an HTTP request to the remote storage on every uncached component fetch.
+
+**Proposed fix:** Add a per-field config option on `#[Silverback\Uploadable]` (or a new attribute parameter) to disable the existence check. When disabled, the URL is returned without verification.
+
+---
+
+### #162 — Missing Behat tests for uploadable URL generators
+
+Three URL generators exist: API gateway (default), Flysystem public URL, Flysystem temporary URL. These are configurable per field. No Behat tests cover switching between them.
+
+**Where to add:** `features/main/` — needs a new `uploadable_url_generators.feature` or additions to an existing uploadable feature. Tests should cover each generator type returning the correct URL format.
+
+---
+
+### #159 — Manifest fetch triggers file existence checks → 500 when offline
+
+Related to #163. When the route manifest is fetched and components with uploaded files are included, `MediaObjectFactory` checks file existence. In a local environment not connected to the internet (with files hosted in the cloud), this causes 500 errors.
+
+**Fix direction:** Either: (a) suppress the existence check during manifest normalisation (pass a context flag), or (b) implement the per-field config from #163 and set it to skip the check. The manifest path specifically is `RouteNormalizer` / `ResourceManifestNormalizer` calling into the component normalisation chain.
+
+---
+
+### #157 — Route manifest leaks IRIs of draft (unpublished) components
+
+The manifest endpoint (`GET /_/resource_manifest/{id}`) includes component IRIs collected from `ComponentPosition` entities. If a position's component has `publishedAt = null` (draft), an unauthenticated user receives the IRI. When the Nuxt module fetches that IRI it gets a 401/403, causing silent failures.
+
+**Relevant code:**
+- `ManifestDepthGroupTrait.collectCurrentDepth()` (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) collects component IRIs from positions
+- `PublishableStatusChecker` / `PublishableExtension` handle visibility of publishable entities in collection queries but may not filter within the manifest walk
+- `ComponentPositionNormalizer` currently resolves `pageDataProperty` positions but doesn't check publishable status
+
+**Fix direction:** Before emitting a component IRI in `collectCurrentDepth`, check if the component has a `publishedAt` set (or if the current user has permission to see drafts). Unpublished component IRIs should be omitted from the manifest for non-admin users.
+
+---
+
+### #129 — Multipart file upload does not trigger Mercure update
+
+Uploading a file via `multipart/form-data` does not fire the Mercure realtime notification that a normal JSON PATCH would. The relevant listener is `PropagateUpdatesListener` — it hooks into `onFlush`/`postFlush` Doctrine events which should fire regardless of request format. The issue may be in how AP4 handles multipart requests in its event pipeline, or in how the Uploadable state processor persists.
+
+**Where to investigate:** `src/EventListener/Doctrine/PropagateUpdatesListener.php` and the uploadable processing path — check whether the entity flush during a multipart upload goes through the same `onFlush` event that triggers cache/Mercure propagation.
+
+---
+
+### #119 — JWT cookie not cleared when `/me` finds no user
+
+When a user is deleted from the database but still holds a valid JWT token, calling `GET /me` correctly returns 401 (the user is not found). However, the JWT cookie is **not cleared** — subsequent requests keep returning 401 until the JWT naturally expires.
+
+**Current behaviour:** `JWTClearTokenListener` (`src/EventListener/Jwt/JWTClearTokenListener.php`) clears the cookie on `JWTInvalidEvent` and `JWTExpiredEvent` only. A `UserNotFoundException` from the `/me` user lookup doesn't fire those events.
+
+**Fix direction:** In `UserEventListener.onPreRead()` (`src/EventListener/Api/UserEventListener.php`), when the user is null or no longer in the DB, dispatch a response that also clears the JWT and Mercure auth cookies. Or listen to the Symfony `ExceptionEvent` for `UserNotFoundException` on the `/me` route and clear cookies in the response.
+
+---
+
+### #113 — New Feature Tests (checklist)
+
+Remaining unchecked items from the original issue:
+
+- **Filtering and ordering of page resource** — `GET /_/pages?order[reference]=asc` has one test (line 146 of `features/main/page.feature`) but deeper filter coverage is missing
+- **Page data normalisation** — no tests for: (a) throwing errors when page data is not found, (b) skipping and returning components anyway when the user is an admin accessing a page template admin view
+- **OpenApi Factory decorator** — `features/main/openapi_compatibility.feature` has only a single smoke test (200 on `/`). The `OpenApiFactory` decorator (`src/OpenApi/OpenApiFactory.php`) has no dedicated test coverage
+- **UserDataProvider `/me` uses username not ID** — `UserEventListener.onPreRead()` sets `id` attribute to `$user->getUsername()`. No Behat test verifies that `/me` works correctly after a fixture reload (where the DB ID would change but the username stays stable)
+
+---
+
+### #106 — Route path with format extension resolves wrong path
+
+`GET /_/routes//contact.json` should resolve path `/contact` in `json` format. Currently the `{id}` parameter has `requirements: ['id' => '(.+)']` on the `Route` entity's Get operation, which greedily matches `/contact.json` as the full path — the `.json` suffix is not stripped as a format.
+
+**Fix direction:** Either strip the format extension before the path lookup in `RouteRepository::findOneByIdOrPath()`, or adjust the AP4 route requirements so `{._format}` is honoured before `{id}` is resolved. Look at how AP4 normally handles `{._format}` suffixes on item operations.
+
+---
+
+### #98 — Mercure subscriptions not secured
+
+Hub subscription tokens are not currently scoped — any subscriber can receive updates for any resource. The gist linked in the issue (`soyuka/5deae36cf0fa348c4225985f6a073efe`) shows the pattern for scoping Mercure JWT tokens to specific topics.
+
+**Relevant code:** `src/Mercure/MercureAuthorization.php` and `PublishableAwareHub`. The fix requires generating subscriber tokens that include only the topic IRIs the current user is authorised to receive. Add a bundle config option (list of resource classes to secure, or a flag to secure all) and generate scoped tokens on login/auth.
+
+---
+
+### #86 — Service ID inconsistency in bundle config
+
+`src/Resources/config/services.php` has **~30 services** using the correct reusable-bundle pattern (string ID + `->class()` + `->alias(ClassName::class, 'string.id')`, e.g. `silverback.security.jwt_manager`) and **~320 services** using the class name directly as the service ID (e.g. `->set(ChangePasswordType::class)`).
+
+The Symfony recommendation for reusable bundles is stable string IDs with class aliases, so consuming apps can override services by stable name and the class can be renamed without a BC break. The inconsistency exists because the string-ID services are older (or needed decoration); newer services defaulted to class-name IDs.
+
+**Fix:** Methodically rename all `->set(ClassName::class)` entries to `->set('silverback.api_components.descriptive_name')->class(ClassName::class)` and add `->alias(ClassName::class, 'silverback.api_components.descriptive_name')` alongside each. No functional change — purely a naming/structure refactor.
+
+---
+
+### #81 — Doctrine migrations storage configuration
+
+The bundle ships Doctrine migrations. Currently migrations live in the PHP filesystem path. The issue proposes storing migration files in a configured Flysystem adapter so teams can use remote/shared storage.
+
+**Status:** Low priority enhancement. No implementation started.
+
+---
+
+### #60 — Uploadable: Private files (S3 pre-signed URLs)
+
+When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
+
+**Fix direction:** The `Flysystem temporary URL` generator (`silverback.api_components.uploadable.url_generator.temporary`) likely generates pre-signed URLs already. Tests for this path with a real (or mock) S3 adapter are missing. Also: the download endpoint (`src/Action/Uploadable/DownloadAction.php`) can gate access — apps can hook into events — but this isn't documented or tested.
