@@ -560,15 +560,27 @@ These are known open issues with enough context to resume work without re-invest
 
 ### #113 — Additional page resource tests needed
 
-A community draft PR ([#156](https://github.com/components-web-app/api-components-bundle/pull/156), now closed as too stale to merge) was opened in 2022 to add page resource tests. The code has since gone through major Symfony/AP4 version upgrades. The underlying gap is real: page resource Behat coverage is incomplete. New tests should be written from scratch against the current codebase.
+A community draft PR ([#156](https://github.com/components-web-app/api-components-bundle/pull/156), now closed as too stale to merge) was opened in 2022 to add page resource tests. Remaining gap: `OpenApiFactory` decorator (`src/OpenApi/OpenApiFactory.php`) has no dedicated test coverage beyond the single smoke test in `features/main/openapi_compatibility.feature`.
 
 ---
 
-### #178 — POST vs PATCH permission asymmetry on RoutableInterface entities
+### ComponentPosition `sortValue` collision on insert — API-side normalisation needed
 
-`RoutableResourceMetadataCollectionFactory` deliberately excludes POST from the `read_routable` security check. A `ROLE_USER` can create a Page/PageData but cannot PATCH or DELETE it until it has a public route (only `ROLE_ADMIN` can edit unpublished pages). Surfaced while adding Behat tests for PATCHing `parentPage` — those tests require `@loginAdmin` because the page has no public route.
+**Context (from Nuxt module):** When an admin inserts a component "before" or "after" an existing position, the module computes a `sortValue` for the new `ComponentPosition` that may equal an existing position's `sortValue`. For "add before X (sortValue=N)", the new position gets `sortValue=N` (same as X). For "add after X (sortValue=N)", the new position gets `sortValue=N+1` which may collide with the position immediately following X.
 
-**Decision needed:** Is `create = ROLE_USER, edit unpublished = ROLE_ADMIN` the right split? Or should POST also require `ROLE_ADMIN` for consistency? The Nuxt admin module needs to know which auth level to request for create vs edit operations.
+**Module-side workaround (shipped):** Before POSTing the new component, the module PATCHes all positions in the group with `sortValue >= newSortValue`, incrementing each by 1 (in descending order to avoid intermediate collisions). This is sequential HTTP requests and adds latency.
+
+**Preferred API-side fix:** The API should accept an atomic "insert before/after" parameter on `ComponentPosition` POST that handles sort value shifting in a single database transaction. Options:
+
+1. **`insertBefore: IRI`** — the API shifts all positions with `sortValue >= targetPosition.sortValue` by +1, then assigns the freed `sortValue` to the new position.
+2. **`insertAfter: IRI`** — the API shifts all positions with `sortValue > targetPosition.sortValue` by +1, assigns `targetPosition.sortValue + 1` to the new position.
+3. **Auto-shift on collision** — when a `ComponentPosition` is written with a `sortValue` that already exists in the group, automatically shift all conflicting positions up before saving. No new parameter needed; the API resolves collisions transparently.
+
+Option 3 is simplest: no API contract change, backward-compatible. The module could then remove its pre-PATCH shifting step and rely on the API to handle collisions atomically.
+
+**Where to implement:** `ComponentPositionEventListener`, `ComponentPositionStateProcessor`, or a Doctrine `prePersist` event on `ComponentPosition`. The shift must be transactional (all updates in the same flush as the insert).
+
+Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 ---
 
@@ -584,14 +596,6 @@ A community draft PR ([#156](https://github.com/components-web-app/api-component
 - Add a separate `allowedPageDataProperties` restriction
 
 Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
-
----
-
-### #167 — Cache not cleared when a component group is added to a page/layout
-
-When a new `ComponentGroup` is added to a page or layout, the Souin HTTP cache layer still serves the old cached data for that page/layout. The route manifest cache is also stale.
-
-**Relevant code:** `PropagateUpdatesListener` (`src/EventListener/Doctrine/PropagateUpdatesListener.php`) handles cache purging via `purgeResources()` → `addToPropagators()`. The bug is likely that adding a ComponentGroup to a Page's `componentGroups` collection doesn't trigger a purge of the Page IRI. Look at `gatherAllAssociatedEntities` and `gatherUpdatedAssociatedEntities` — the ManyToMany join (Page ↔ ComponentGroup) may not be walking back to the Page when the ComponentGroup is created.
 
 ---
 
@@ -624,35 +628,6 @@ Related to #163. When the route manifest is fetched and components with uploaded
 Uploading a file via `multipart/form-data` does not fire the Mercure realtime notification that a normal JSON PATCH would. The relevant listener is `PropagateUpdatesListener` — it hooks into `onFlush`/`postFlush` Doctrine events which should fire regardless of request format. The issue may be in how AP4 handles multipart requests in its event pipeline, or in how the Uploadable state processor persists.
 
 **Where to investigate:** `src/EventListener/Doctrine/PropagateUpdatesListener.php` and the uploadable processing path — check whether the entity flush during a multipart upload goes through the same `onFlush` event that triggers cache/Mercure propagation.
-
----
-
-### #119 — JWT cookie not cleared when `/me` finds no user
-
-When a user is deleted from the database but still holds a valid JWT token, calling `GET /me` correctly returns 401 (the user is not found). However, the JWT cookie is **not cleared** — subsequent requests keep returning 401 until the JWT naturally expires.
-
-**Current behaviour:** `JWTClearTokenListener` (`src/EventListener/Jwt/JWTClearTokenListener.php`) clears the cookie on `JWTInvalidEvent` and `JWTExpiredEvent` only. A `UserNotFoundException` from the `/me` user lookup doesn't fire those events.
-
-**Fix direction:** In `UserEventListener.onPreRead()` (`src/EventListener/Api/UserEventListener.php`), when the user is null or no longer in the DB, dispatch a response that also clears the JWT and Mercure auth cookies. Or listen to the Symfony `ExceptionEvent` for `UserNotFoundException` on the `/me` route and clear cookies in the response.
-
----
-
-### #113 — New Feature Tests (checklist)
-
-Remaining unchecked items from the original issue:
-
-- **Filtering and ordering of page resource** — `GET /_/pages?order[reference]=asc` has one test (line 146 of `features/main/page.feature`) but deeper filter coverage is missing
-- **Page data normalisation** — no tests for: (a) throwing errors when page data is not found, (b) skipping and returning components anyway when the user is an admin accessing a page template admin view
-- **OpenApi Factory decorator** — `features/main/openapi_compatibility.feature` has only a single smoke test (200 on `/`). The `OpenApiFactory` decorator (`src/OpenApi/OpenApiFactory.php`) has no dedicated test coverage
-- **UserDataProvider `/me` uses username not ID** — `UserEventListener.onPreRead()` sets `id` attribute to `$user->getUsername()`. No Behat test verifies that `/me` works correctly after a fixture reload (where the DB ID would change but the username stays stable)
-
----
-
-### #106 — Route path with format extension resolves wrong path
-
-`GET /_/routes//contact.json` should resolve path `/contact` in `json` format. Currently the `{id}` parameter has `requirements: ['id' => '(.+)']` on the `Route` entity's Get operation, which greedily matches `/contact.json` as the full path — the `.json` suffix is not stripped as a format.
-
-**Fix direction:** Either strip the format extension before the path lookup in `RouteRepository::findOneByIdOrPath()`, or adjust the AP4 route requirements so `{._format}` is honoured before `{id}` is resolved. Look at how AP4 normally handles `{._format}` suffixes on item operations.
 
 ---
 

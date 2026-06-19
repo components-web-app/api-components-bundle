@@ -7,8 +7,8 @@ Feature: Page resources
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
-  @loginUser
-  Scenario: I can create a page
+  @loginAdmin
+  Scenario: An admin can create a page
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
       | layout           | reference | uiComponent | isTemplate |
@@ -17,7 +17,15 @@ Feature: Page resources
     And the JSON should be valid according to the schema file "page.schema.json"
 
   @loginUser
-  Scenario: I can create a page with a parent Page
+  Scenario: A non-admin user cannot create a page
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | reference | uiComponent | isTemplate |
+      | resource[layout] | home      | myComponent | false      |
+    Then the response status code should be 403
+
+  @loginAdmin
+  Scenario: An admin can create a page with a parent Page
     Given there is a Layout
     And there is a Page
     When I send a "POST" request to "/_/pages" with data:
@@ -27,8 +35,8 @@ Feature: Page resources
     And the JSON should be valid according to the schema file "page.schema.json"
     And the JSON node "parentPage" should be equal to the IRI of the resource "page"
 
-  @loginUser
-  Scenario: I can create a page with a parent PageData
+  @loginAdmin
+  Scenario: An admin can create a page with a parent PageData
     Given there is a Layout
     And there is an empty PageData resource
     When I send a "POST" request to "/_/pages" with data:
@@ -77,8 +85,8 @@ Feature: Page resources
     Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
-  @loginUser
-  Scenario: I cannot set both a parent Page and a parent PageData on a page
+  @loginAdmin
+  Scenario: An admin cannot set both a parent Page and a parent PageData on a page
     Given there is a Layout
     And there is a Page
     And there is an empty PageData resource
@@ -88,7 +96,7 @@ Feature: Page resources
     Then the response status code should be 422
     And the JSON should be valid according to the schema file "validation_errors_object.schema.json"
 
-  @loginUser
+  @loginAdmin
   Scenario Outline: The page resource validates correctly
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
