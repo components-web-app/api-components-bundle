@@ -44,7 +44,7 @@ class UserCreateCommand extends Command
                     new InputArgument('username', InputArgument::REQUIRED, 'The username'),
                     new InputArgument('email', InputArgument::REQUIRED, 'The email'),
                     new InputArgument('password', InputArgument::REQUIRED, 'The password'),
-                    new InputOption('admin', null, InputOption::VALUE_NONE, 'Set the user as super admin'),
+                    new InputOption('admin', null, InputOption::VALUE_NONE, 'Set the user as admin'),
                     new InputOption('super-admin', null, InputOption::VALUE_NONE, 'Set the user as super admin'),
                     new InputOption('inactive', null, InputOption::VALUE_NONE, 'Set the user as inactive'),
                     new InputOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite the user if they already exist'),
