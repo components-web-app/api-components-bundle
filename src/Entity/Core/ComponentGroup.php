@@ -74,7 +74,7 @@ class ComponentGroup
     public Collection $componentPositions;
 
     #[ORM\Column(name: 'allowed_components', type: 'json', nullable: true)]
-    #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
     public ?array $allowedComponents = null;
 
     public function __construct()

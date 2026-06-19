@@ -125,3 +125,14 @@ Feature: ComponentGroup resource
       | json_decode([ "resource[layout]" ]) |
     Then the response status code should be 200
     And the resource "layout" should be purged from the cache
+
+  @loginAdmin
+  Scenario: Sending a PHP class name as allowedComponents is normalised to a collection IRI
+    Given there is a ComponentGroup with 0 components
+    When I send a "PATCH" request to the resource "component_group" with body:
+      """
+      {"allowedComponents": ["Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Entity\\DummyComponent"]}
+      """
+    Then the response status code should be 200
+    And the JSON node "allowedComponents[0]" should be equal to "/component/dummy_components"
+

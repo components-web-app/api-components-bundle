@@ -16,6 +16,9 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -25,11 +28,15 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  * pageDataProperty positions (no component) are always kept.
  * Components that violate the restriction remain in the database — they are only hidden from the response.
  *
+ * On write, converts any PHP FQCN in allowedComponents to a collection IRI so the stored value is
+ * always an IRI (e.g. /component/navigation_links) regardless of what the client sends.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
-class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareInterface
+class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
 {
     use NormalizerAwareTrait;
+    use DenormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'COMPONENT_GROUP_NORMALIZER_ALREADY_CALLED';
 
@@ -72,6 +79,37 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
         $object->componentPositions = $original;
 
         return $result;
+    }
+
+    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
+    {
+        return ComponentGroup::class === $type && !isset($context[self::ALREADY_CALLED]);
+    }
+
+    public function denormalize($data, $type, $format = null, array $context = []): ComponentGroup
+    {
+        $context[self::ALREADY_CALLED] = true;
+
+        /** @var ComponentGroup $object */
+        $object = $this->denormalizer->denormalize($data, $type, $format, $context);
+
+        if (null !== $object->allowedComponents) {
+            $object->allowedComponents = array_values(array_map(
+                function (string $value): string {
+                    if (!str_contains($value, '\\')) {
+                        return $value;
+                    }
+                    return $this->iriConverter->getIriFromResource(
+                        $value,
+                        UrlGeneratorInterface::ABS_PATH,
+                        (new GetCollection())->withClass($value),
+                    );
+                },
+                $object->allowedComponents,
+            ));
+        }
+
+        return $object;
     }
 
     public function getSupportedTypes(?string $format): array
