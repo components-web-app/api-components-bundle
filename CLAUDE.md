@@ -613,19 +613,6 @@ Related to #163. When the route manifest is fetched and components with uploaded
 
 ---
 
-### #157 — Route manifest leaks IRIs of draft (unpublished) components
-
-The manifest endpoint (`GET /_/resource_manifest/{id}`) includes component IRIs collected from `ComponentPosition` entities. If a position's component has `publishedAt = null` (draft), an unauthenticated user receives the IRI. When the Nuxt module fetches that IRI it gets a 401/403, causing silent failures.
-
-**Relevant code:**
-- `ManifestDepthGroupTrait.collectCurrentDepth()` (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) collects component IRIs from positions
-- `PublishableStatusChecker` / `PublishableExtension` handle visibility of publishable entities in collection queries but may not filter within the manifest walk
-- `ComponentPositionNormalizer` currently resolves `pageDataProperty` positions but doesn't check publishable status
-
-**Fix direction:** Before emitting a component IRI in `collectCurrentDepth`, check if the component has a `publishedAt` set (or if the current user has permission to see drafts). Unpublished component IRIs should be omitted from the manifest for non-admin users.
-
----
-
 ### #129 — Multipart file upload does not trigger Mercure update
 
 Uploading a file via `multipart/form-data` does not fire the Mercure realtime notification that a normal JSON PATCH would. The relevant listener is `PropagateUpdatesListener` — it hooks into `onFlush`/`postFlush` Doctrine events which should fire regardless of request format. The issue may be in how AP4 handles multipart requests in its event pipeline, or in how the Uploadable state processor persists.

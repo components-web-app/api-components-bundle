@@ -25,7 +25,7 @@ class UserFactoryTest extends TestCase
     private function buildFactory(?AbstractUser &$captured = null): UserFactory
     {
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::once())->method('persist')->willReturnCallback(function ($user) use (&$captured) {
+        $em->expects(self::once())->method('persist')->willReturnCallback(static function ($user) use (&$captured) {
             $captured = $user;
         });
         $em->expects(self::once())->method('flush');

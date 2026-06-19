@@ -54,7 +54,7 @@ class JWTEventListenerTest extends TestCase
         $listener->onKernelResponse($responseEvent);
 
         $cookies = $responseEvent->getResponse()->headers->getCookies();
-        $cookieNames = array_map(fn (Cookie $c) => $c->getName(), $cookies);
+        $cookieNames = array_map(static fn (Cookie $c) => $c->getName(), $cookies);
         self::assertNotContains('api_components', $cookieNames);
     }
 
@@ -71,7 +71,7 @@ class JWTEventListenerTest extends TestCase
         $listener->onKernelResponse($responseEvent);
 
         $cookieNames = array_map(
-            fn (Cookie $c) => $c->getName(),
+            static fn (Cookie $c) => $c->getName(),
             $responseEvent->getResponse()->headers->getCookies(),
         );
         self::assertNotContains('api_components', $cookieNames, 'Token must not leak to subsequent request after reset()');
@@ -86,13 +86,13 @@ class JWTEventListenerTest extends TestCase
         // First response: JWT cookie is set
         $first = $this->makeResponseEvent();
         $listener->onKernelResponse($first);
-        $firstCookieNames = array_map(fn (Cookie $c) => $c->getName(), $first->getResponse()->headers->getCookies());
+        $firstCookieNames = array_map(static fn (Cookie $c) => $c->getName(), $first->getResponse()->headers->getCookies());
         self::assertContains('api_components', $firstCookieNames);
 
         // Second response without reset or new refresh: token already consumed
         $second = $this->makeResponseEvent();
         $listener->onKernelResponse($second);
-        $secondCookieNames = array_map(fn (Cookie $c) => $c->getName(), $second->getResponse()->headers->getCookies());
+        $secondCookieNames = array_map(static fn (Cookie $c) => $c->getName(), $second->getResponse()->headers->getCookies());
         self::assertNotContains('api_components', $secondCookieNames, 'Token must not be reused on a second response');
     }
 }

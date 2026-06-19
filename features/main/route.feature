@@ -234,7 +234,6 @@ Feature: Route resources
     And the JSON node "resource_iris[0]" should contain the element "/_/routes//conference"
     And the JSON node "resource_iris[1]" should contain the element "/_/routes//conference/programme"
 
-  # todo: do not expect publishable, and do not require the annotation on PageData resource to be added manually. See: https://github.com/components-web-app/api-components-bundle/issues/157
   Scenario: I can get a manifest of all unauthenticated resources that should be loaded for a route
     Given there is a PageData resource with the route path "/my-route"
     When I send a "GET" request to "/_/resource_manifest//my-route"
@@ -242,8 +241,6 @@ Feature: Route resources
     And the JSON node "resource_iris" should have 1 element
     And the JSON node "resource_iris[0][0]" should be equal to "/_/routes//my-route"
     And the JSON node "resource_iris[0][1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
-#    And the JSON node "resource_iris[0][2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
-#    And the JSON node "resource_iris[0][3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
     And the JSON node "resource_iris[0][2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
 
   @loginAdmin
@@ -254,9 +251,20 @@ Feature: Route resources
     And the JSON node "resource_iris" should have 1 element
     And the JSON node "resource_iris[0][0]" should be equal to "/_/routes//my-route"
     And the JSON node "resource_iris[0][1]" should match the regex "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
-#    And the JSON node "resource_iris[0][2]" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
-#    And the JSON node "resource_iris[0][3]" should match the regex "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
     And the JSON node "resource_iris[0][2]" should match the regex "/\/_\/pages\/[a-z0-9\-]+/"
+
+  Scenario: A draft component resolved via pageDataProperty is excluded from the anonymous manifest
+    Given there is a PageData resource with a draft component in a pageDataProperty position and the route path "/my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the JSON node "resource_iris[0]" should not contain an element matching "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
+
+  @loginAdmin
+  Scenario: A draft component resolved via pageDataProperty is included in the admin manifest
+    Given there is a PageData resource with a draft component in a pageDataProperty position and the route path "/my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the JSON node "resource_iris[0]" should contain an element matching "/\/component\/dummy_publishable_components\/[a-z0-9\-]+/"
 
   @loginUser
   Scenario: When I create a redirect route, the cache should be cleared for the route being redirected to

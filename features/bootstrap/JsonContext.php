@@ -280,6 +280,35 @@ class JsonContext implements Context
         }
     }
 
+    /**
+     * @Then the JSON node :node should contain an element matching :regex
+     */
+    public function theJsonNodeShouldContainAnElementMatchingRegex(string $node, string $regex): void
+    {
+        $json = $this->getJson();
+        $actual = $this->inspector->evaluate($json, $node);
+        foreach ($actual as $element) {
+            if (1 === preg_match($regex, $element)) {
+                return;
+            }
+        }
+        throw new \Exception(\sprintf("The node '%s' does not contain an element matching '%s'. Actual: %s", $node, $regex, json_encode($actual)));
+    }
+
+    /**
+     * @Then the JSON node :node should not contain an element matching :regex
+     */
+    public function theJsonNodeShouldNotContainAnElementMatchingRegex(string $node, string $regex): void
+    {
+        $json = $this->getJson();
+        $actual = $this->inspector->evaluate($json, $node);
+        foreach ($actual as $element) {
+            if (1 === preg_match($regex, $element)) {
+                throw new \Exception(\sprintf("The node '%s' unexpectedly contains an element matching '%s'. Actual: %s", $node, $regex, json_encode($actual)));
+            }
+        }
+    }
+
     private function getJson(): Json
     {
         return new Json($this->getContent());

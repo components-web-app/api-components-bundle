@@ -769,6 +769,51 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a PageData resource with a draft component in a pageDataProperty position and the route path :path
+     */
+    public function thereIsAPageDataWithDraftComponentInPageDataPropertyPosition(string $path): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'test';
+        $componentGroup->location = 'test';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+
+        $componentPosition = new ComponentPosition();
+        $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->componentGroup = $componentGroup;
+        $componentPosition->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
+        $this->manager->persist($componentPosition);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'test page';
+        $page->addComponentGroup($componentGroup);
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $draftComponent = $this->thereIsADummyPublishableComponent();
+
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = $draftComponent;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setName($path)
+            ->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a PageData resource with the route path :childPath nested within the route :parentPath
      */
     public function thereIsANestedPageDataResource(string $childPath, string $parentPath): void

@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -40,7 +41,6 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
-use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;

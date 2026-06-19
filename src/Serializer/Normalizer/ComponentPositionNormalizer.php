@@ -181,6 +181,15 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $object->pageDataProperty));
         }
 
+        // skip draft components for users without permission to see unpublished content
+        if (
+            $this->publishableStatusChecker->getAttributeReader()->isConfigured($component)
+            && !$this->publishableStatusChecker->isActivePublishedAt($component)
+            && !$this->publishableStatusChecker->isGranted($component)
+        ) {
+            return $object;
+        }
+
         // populate the position
         $object->setComponent($component);
 
