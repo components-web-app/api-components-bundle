@@ -32,7 +32,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[AcbAssert\ComponentPosition]
 #[Assert\Expression(
     '!(this.component == null & this.pageDataProperty == null)',
-    message: 'Please specify either a component or pageDataProperty.',
+    message: 'Please specify either a component or both pageDataProperty and pageDataClass.',
+)]
+#[Assert\Expression(
+    '!(this.pageDataProperty != null & this.pageDataClass == null) && !(this.pageDataProperty == null & this.pageDataClass != null)',
+    message: 'pageDataProperty and pageDataClass must both be set or both be null.',
 )]
 class ComponentPosition
 {
@@ -53,6 +57,10 @@ class ComponentPosition
     #[ORM\Column(name: 'page_data_property', nullable: true)]
     #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
     public ?string $pageDataProperty = null;
+
+    #[ORM\Column(name: 'page_data_class', nullable: true)]
+    #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
+    public ?string $pageDataClass = null;
 
     #[ORM\Column(name: 'sort_value', type: 'integer')]
     #[Assert\NotNull]

@@ -72,6 +72,7 @@ Feature: Dynamic pages
     When I send a "GET" request to the resource "component_position"
     Then the response status code should be 200
     And the JSON node "pageDataProperty" should be equal to "component"
+    And the JSON node "pageDataClass" should be equal to "Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent"
     And the JSON node "component" should be null
 
   @loginAdmin
@@ -81,6 +82,7 @@ Feature: Dynamic pages
     When I send a "GET" request to the resource "component_position"
     Then the response status code should be 200
     And the JSON node "pageDataProperty" should be equal to "component"
+    And the JSON node "pageDataClass" should be equal to "Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent"
     And the JSON node "component" should be null
 
   Scenario: A published pageDataProperty component is returned for anonymous users

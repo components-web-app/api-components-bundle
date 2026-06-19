@@ -36,9 +36,9 @@ class GroupBuilder
         return $this;
     }
 
-    public function pageDataPosition(string $propertyName, ?int $sort = null): self
+    public function pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null): self
     {
-        $this->pageDataPositions[] = ['property' => $propertyName, 'sort' => $sort ?? $this->nextSort];
+        $this->pageDataPositions[] = ['class' => $pageDataClass, 'property' => $propertyName, 'sort' => $sort ?? $this->nextSort];
         $this->nextSort += 10;
 
         return $this;

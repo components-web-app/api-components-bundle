@@ -732,6 +732,7 @@ final class DoctrineContext implements Context
         /** @var ComponentPosition $componentPosition */
         $componentPosition = $this->iriConverter->getResourceFromIri($this->restContext->resources['position_0']);
         $componentPosition->setPageDataProperty($ref);
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $this->manager->flush();
     }
 
@@ -748,6 +749,7 @@ final class DoctrineContext implements Context
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'component';
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -799,6 +801,7 @@ final class DoctrineContext implements Context
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -846,6 +849,7 @@ final class DoctrineContext implements Context
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -894,6 +898,7 @@ final class DoctrineContext implements Context
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'publishableComponent';
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -942,6 +947,7 @@ final class DoctrineContext implements Context
 
         $componentPosition = new ComponentPosition();
         $componentPosition->pageDataProperty = 'component';
+        $componentPosition->pageDataClass = PageDataWithComponent::class;
         $componentPosition->componentGroup = $componentGroup;
         $componentPosition->sortValue = 0;
         $this->timestampedHelper->persistTimestampedFields($componentPosition, true);
@@ -1132,8 +1138,10 @@ final class DoctrineContext implements Context
 
         if ($dummyComponent instanceof DummyComponent) {
             $componentPosition->pageDataProperty = 'component';
+            $componentPosition->pageDataClass = PageDataWithComponent::class;
         } elseif ($dummyComponent instanceof DummyPublishableComponent) {
             $componentPosition->pageDataProperty = 'publishableComponent';
+            $componentPosition->pageDataClass = PageDataWithComponent::class;
         }
 
         $this->restContext->resources['page_data_component'] = $this->iriConverter->getIriFromResource($dummyComponent);

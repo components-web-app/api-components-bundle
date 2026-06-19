@@ -272,16 +272,18 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('blog-template', 'BlogTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
-            ->pageDataPosition('image')
-            ->pageDataPosition('htmlContent');
+            ->pageDataPosition('App\Entity\BlogArticleData', 'image')
+            ->pageDataPosition('App\Entity\BlogArticleData', 'htmlContent');
         $builder->flush();
 
         $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
         $this->assertCount(2, $positions);
         $this->assertNull($positions[0]->component);
         $this->assertSame('image', $positions[0]->pageDataProperty);
+        $this->assertSame('App\Entity\BlogArticleData', $positions[0]->pageDataClass);
         $this->assertSame(10, $positions[0]->sortValue);
         $this->assertSame('htmlContent', $positions[1]->pageDataProperty);
+        $this->assertSame('App\Entity\BlogArticleData', $positions[1]->pageDataClass);
         $this->assertSame(20, $positions[1]->sortValue);
     }
 
@@ -730,7 +732,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('home', 'BlogTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
-            ->pageDataPosition('image', 99);
+            ->pageDataPosition('App\Entity\BlogArticleData', 'image', 99);
         $builder->flush();
 
         $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
@@ -749,10 +751,10 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $group = $builder->page('home', 'Template', layout: 'main', isTemplate: true)->group('primary');
 
-        $group->pageDataPosition('image');
+        $group->pageDataPosition('App\Entity\BlogArticleData', 'image');
         $builder->flush();
 
-        $group->pageDataPosition('htmlContent');
+        $group->pageDataPosition('App\Entity\BlogArticleData', 'htmlContent');
         $builder->flush();
 
         $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
@@ -1445,7 +1447,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
-            ->pageDataPosition('content');
+            ->pageDataPosition('App\Entity\ContentPageData', 'content');
         $builder->flush();
 
         $positionCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof ComponentPosition));
@@ -1462,7 +1464,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
-            ->pageDataPosition('content');
+            ->pageDataPosition('App\Entity\ContentPageData', 'content');
         $builder->flush();
 
         $this->assertGreaterThan(0, $flushCount, 'phaseFour must flush when only pageDataPositions are created');
@@ -1477,7 +1479,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'CwaLayoutPrimary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
-            ->pageDataPosition('content');
+            ->pageDataPosition('App\Entity\ContentPageData', 'content');
         $builder->flush();
 
         // phaseOne + phaseThree + phaseFour (pageDataPosition creates a ComponentPosition — $hasAny must be true)

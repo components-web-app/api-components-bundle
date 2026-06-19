@@ -23,6 +23,8 @@ class ComponentPosition extends Constraint
 {
     public string $message = 'The IRI `{{ iri }}` is not permitted to be added to the collection `{{ reference }}`. Allowed IRIs: {{ allowed }}';
     public string $restrictedMessage = 'The IRI `{{ iri }}` must be specifically allowed within the collection {{ reference }}';
+    public string $invalidPageDataClassMessage = '`{{ class }}` is not a known PageData resource class';
+    public string $invalidPageDataPropertyMessage = '`{{ property }}` is not a component-typed property on `{{ class }}`';
 
     public function getTargets(): string|array
     {

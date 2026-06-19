@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -24,11 +25,10 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class ComponentPositionValidator extends ConstraintValidator
 {
-    private IriConverterInterface $iriConverter;
-
-    public function __construct(IriConverterInterface $iriConverter)
-    {
-        $this->iriConverter = $iriConverter;
+    public function __construct(
+        private readonly IriConverterInterface $iriConverter,
+        private readonly PageDataMetadataProvider $pageDataMetadataProvider,
+    ) {
     }
 
     /**
@@ -41,11 +41,23 @@ class ComponentPositionValidator extends ConstraintValidator
         if (!$collection) {
             return;
         }
+
         $component = $componentPosition->component;
-        if (!$component) {
+        if ($component) {
+            $this->validateDirectComponent($componentPosition, $constraint, $component, $collection);
+
             return;
         }
 
+        $pageDataClass = $componentPosition->pageDataClass;
+        $pageDataProperty = $componentPosition->pageDataProperty;
+        if ($pageDataClass && $pageDataProperty) {
+            $this->validateDynamicPosition($componentPosition, $constraint, $pageDataClass, $pageDataProperty, $collection);
+        }
+    }
+
+    private function validateDirectComponent(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, object $component, object $collection): void
+    {
         $resourceClass = $component::class;
         $iri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
 
@@ -65,6 +77,57 @@ class ComponentPositionValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->restrictedMessage)
                 ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
+                ->addViolation();
+        }
+    }
+
+    private function validateDynamicPosition(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, string $pageDataClass, string $pageDataProperty, object $collection): void
+    {
+        $pageDataMetadata = null;
+        foreach ($this->pageDataMetadataProvider->createAll() as $metadata) {
+            if ($metadata->getResourceClass() === $pageDataClass) {
+                $pageDataMetadata = $metadata;
+                break;
+            }
+        }
+
+        if (!$pageDataMetadata) {
+            $this->context->buildViolation($constraint->invalidPageDataClassMessage)
+                ->setParameter('{{ class }}', $pageDataClass)
+                ->addViolation();
+
+            return;
+        }
+
+        $propertyMetadata = null;
+        foreach ($pageDataMetadata->getProperties() as $property) {
+            if ($property->getProperty() === $pageDataProperty) {
+                $propertyMetadata = $property;
+                break;
+            }
+        }
+
+        if (!$propertyMetadata) {
+            $this->context->buildViolation($constraint->invalidPageDataPropertyMessage)
+                ->setParameter('{{ property }}', $pageDataProperty)
+                ->setParameter('{{ class }}', $pageDataClass)
+                ->addViolation();
+
+            return;
+        }
+
+        if (!$allowedComponents = $collection->allowedComponents) {
+            return;
+        }
+
+        $componentClass = $propertyMetadata->getComponentClass();
+        $iri = $this->iriConverter->getIriFromResource($componentClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($componentClass));
+
+        if (!\in_array($iri, $allowedComponents, true)) {
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ iri }}', $iri)
+                ->setParameter('{{ reference }}', $collection->reference)
+                ->setParameter('{{ allowed }}', implode(',', $allowedComponents))
                 ->addViolation();
         }
     }

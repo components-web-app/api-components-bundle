@@ -342,6 +342,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(ComponentPositionValidator::class)
         ->args([
             new Reference(IriConverterInterface::class),
+            new Reference('silverback.metadata_provider.page_data'),
         ])
         ->tag('validator.constraint_validator');
     $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');

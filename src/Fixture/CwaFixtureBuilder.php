@@ -510,6 +510,7 @@ class CwaFixtureBuilder
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->pageDataProperty = $item['property'];
+            $position->pageDataClass = $item['class'];
             $position->componentGroup = $componentGroup;
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->manager->persist($position);

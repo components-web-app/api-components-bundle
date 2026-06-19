@@ -317,8 +317,8 @@ class AppScaffold extends AbstractCwaScaffold
         // Blog article template (isTemplate: true, pageDataProperty positions, no route)
         $cwa->page('blog-template', 'BlogPageTemplate', layout: 'main', isTemplate: true, fn(PageBuilder $page) =>
             $page->group('primary', fn(GroupBuilder $g) => $g
-                ->pageDataPosition('image')      // dynamic — resolved from BlogArticleData.image at render time
-                ->pageDataPosition('htmlContent')
+                ->pageDataPosition(BlogArticleData::class, 'image')      // dynamic — resolved from BlogArticleData.image at render time
+                ->pageDataPosition(BlogArticleData::class, 'htmlContent')
             )
         );
 
@@ -332,7 +332,7 @@ class AppScaffold extends AbstractCwaScaffold
         // Topic template (isTemplate: true, pageDataProperty for per-instance intro content)
         $cwa->page('topic-template', 'NestedTopicTemplate', layout: 'main', isTemplate: true, fn(PageBuilder $page) =>
             $page->group('primary', fn(GroupBuilder $g) => $g
-                ->pageDataPosition('introContent')
+                ->pageDataPosition(NestedPageData::class, 'introContent')
             )
         );
 
@@ -412,7 +412,7 @@ PageDataBuilder
 
 GroupBuilder
   ->add(AbstractComponent, ?sort): self              (sort defaults to insertion order × 10)
-  ->pageDataPosition(propertyName, ?sort): self      (creates ComponentPosition with pageDataProperty set)
+  ->pageDataPosition(pageDataClass, propertyName, ?sort): self      (creates ComponentPosition with pageDataClass and pageDataProperty set)
 ```
 
 ### Route auto-generation rules
@@ -576,13 +576,15 @@ Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 ---
 
-### #170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write
+### ~~#170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write~~ — FIXED
 
-**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`. Direct-component write-side validation already works via `ComponentPositionValidator`.
+**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`.
 
-**`pageDataProperty` write-side still open:** When creating a `ComponentPosition` with `pageDataProperty` set, no validation is done against `allowedComponents`. The property name is just a string — the component type isn't known until render time.
+**Write side fixed** (pending commit): `ComponentPosition` now stores a `pageDataClass` (FQCN) alongside `pageDataProperty`. `ComponentPositionValidator` validates the pair on every POST/PATCH: (1) `pageDataClass` must be a known API-registered PageData resource; (2) `pageDataProperty` must be a component-typed property on that class; (3) the resolved component type must be in `componentGroup.allowedComponents` if set. Both fields must be set together (entity-level `Assert\Expression` constraint).
 
-**Agreed plan:** The module must send `pageDataClass` (FQCN of the PageData entity, e.g. `"App\\Entity\\ConferenceData"`) alongside `pageDataProperty` in POST/PATCH. The API can then resolve the property type and validate against `allowedComponents`. Requires coordinated change in both projects. See issue #170 (reopened) and nuxt module CLAUDE.md section on `allowedComponents` for the full spec.
+**`CwaFixtureBuilder` updated:** `GroupBuilder.pageDataPosition()` now takes `pageDataClass` as its first argument: `->pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null)`.
+
+**Nuxt module action required:** The module must now send `pageDataClass` alongside `pageDataProperty` in POST/PATCH requests to `/_/component_positions`. See nuxt module CLAUDE.md for the consumer-side spec.
 
 Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
 

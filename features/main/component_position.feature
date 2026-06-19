@@ -158,3 +158,68 @@ Feature: Component positions
     And I send a "GET" request to the resource "position_2"
     And the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 2
+
+  @loginUser
+  Scenario: Cannot create a dynamic position with pageDataProperty but no pageDataClass
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty |
+      | resource[component_group] | component        |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Cannot create a dynamic position with pageDataClass but no pageDataProperty
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataClass                                                                           |
+      | resource[component_group] | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Cannot create a dynamic position with a pageDataClass that is not a known PageData resource
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty | pageDataClass         |
+      | resource[component_group] | component        | App\NotAPageDataClass |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Cannot create a dynamic position where pageDataProperty is not a component-typed property on the pageDataClass
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty | pageDataClass                                                                           |
+      | resource[component_group] | notAProperty     | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Cannot create a dynamic position where the resolved component type is not in allowedComponents
+    Given there is a ComponentGroup with 0 components
+    And the ComponentGroup has the allowedComponent "/component/dummy_components"
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty     | pageDataClass                                                                           |
+      | resource[component_group] | publishableComponent | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Can create a dynamic position with a valid pageDataClass and pageDataProperty
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty | pageDataClass                                                                           |
+      | resource[component_group] | component        | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
+    Then the response status code should be 201
+
+  @loginUser
+  Scenario: Can create a dynamic position where the component type matches allowedComponents
+    Given there is a ComponentGroup with 0 components
+    And the ComponentGroup has the allowedComponent "/component/dummy_components"
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty | pageDataClass                                                                           |
+      | resource[component_group] | component        | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
+    Then the response status code should be 201
+
+  @loginAdmin
+  Scenario: An admin can read pageDataClass from a dynamic position
+    Given there is a PageData resource with the route path "/page-data"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "pageDataClass" should be equal to "Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent"
