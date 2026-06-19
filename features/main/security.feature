@@ -185,3 +185,11 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to "/me"
     Then the response status code should be 401
     And the response should have a "api_components" cookie with max age less than 2
+
+  @loginAdmin
+  Scenario: GET /me resolves the user by username even after the user entity is recreated with a new database ID
+    Given the logged in user has been deleted from the database
+    And the logged in user has been recreated with the same username
+    When I send a "GET" request to "/me"
+    Then the response status code should be 200
+    And the JSON node "username" should be equal to "new_user"

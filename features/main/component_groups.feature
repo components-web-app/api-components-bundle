@@ -105,3 +105,23 @@ Feature: ComponentGroup resource
     Then the response status code should be 200
     And the JSON node "componentPositions" should have 1 element
     And the JSON node "componentPositions[0]" should be equal to the IRI of the resource "position_0"
+
+  @loginAdmin
+  Scenario: Linking an existing ComponentGroup to a Page via PATCH purges the Page from the cache
+    Given there is a Page
+    And there is a ComponentGroup with 0 components
+    When I send a "PATCH" request to the resource "component_group" with data:
+      | pages                             |
+      | json_decode([ "resource[page]" ]) |
+    Then the response status code should be 200
+    And the resource "page" should be purged from the cache
+
+  @loginAdmin
+  Scenario: Linking an existing ComponentGroup to a Layout via PATCH purges the Layout from the cache
+    Given there is a Layout
+    And there is a ComponentGroup with 0 components
+    When I send a "PATCH" request to the resource "component_group" with data:
+      | layouts                               |
+      | json_decode([ "resource[layout]" ]) |
+    Then the response status code should be 200
+    And the resource "layout" should be purged from the cache

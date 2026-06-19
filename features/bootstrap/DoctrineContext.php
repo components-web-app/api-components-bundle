@@ -202,6 +202,24 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the logged in user has been recreated with the same username
+     */
+    public function theLoggedInUserHasBeenRecreatedWithSameUsername(): void
+    {
+        $user = new User();
+        $user
+            ->setRoles(['ROLE_ADMIN'])
+            ->setUsername('new_user')
+            ->setEmailAddress('recreated@example.com')
+            ->setPassword($this->passwordHasher->hashPassword($user, 'password'))
+            ->setEnabled(true)
+            ->setEmailAddressVerified(true);
+        $this->timestampedHelper->persistTimestampedFields($user, true);
+        $this->manager->persist($user);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a :type form
      */
     public function createForm(string $type)

@@ -65,3 +65,20 @@ Feature: Dynamic pages
     Then the response status code should be 200
     And the resource "component_position" should exist
     And the resource "component_position" should be purged from the cache
+
+  @loginAdmin
+  Scenario: An admin can fetch a pageDataProperty position without a path header and the component slot is not resolved
+    Given there is a PageData resource with the route path "/page-data"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "pageDataProperty" should be equal to "component"
+    And the JSON node "component" should be null
+
+  @loginAdmin
+  Scenario: Fetching a pageDataProperty position with a path that has no matching page data returns the position without a component
+    Given there is a PageData resource with the route path "/page-data"
+    And I add "path" header equal to "/unknown-path"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "pageDataProperty" should be equal to "component"
+    And the JSON node "component" should be null

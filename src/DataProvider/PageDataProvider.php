@@ -65,7 +65,11 @@ class PageDataProvider
 
         $route = $this->routeRepository->findOneByIdOrPath($path);
         if (!$route) {
-            $object = $this->iriConverter->getResourceFromIri($path);
+            try {
+                $object = $this->iriConverter->getResourceFromIri($path);
+            } catch (\Exception) {
+                return null;
+            }
             if ($object instanceof AbstractPageData) {
                 return $object;
             }
