@@ -606,11 +606,6 @@ The bundle ships Doctrine migrations. Currently migrations live in the PHP files
 
 ---
 
-### #145 — Console commands to make a component
-
-A console command to scaffold a new component class would ease the process and allow options to enable annotations for `Timestamped`, `Publishable`, and `Uploadable` behaviours. Ideally reusing Symfony's `make:entity` / `make:api-resource` scaffolding patterns.
-
-**No implementation started.** Would slot in alongside `UserCreateCommand` (`src/Command/`). The command would need to generate: the entity class (extending `AbstractComponent`), the migration, and optionally the relevant attribute annotations.
 
 ---
 
