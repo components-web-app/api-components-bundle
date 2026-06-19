@@ -15,6 +15,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
@@ -69,10 +70,6 @@ class MediaObjectFactory
                 continue;
             }
 
-            if (!$filesystem->fileExists($path)) {
-                continue;
-            }
-
             // todo: consultation on perhaps attributes which can be configured with environment variables or best way to achieve easier implementation
             $urlGeneratorReference = $fieldConfiguration->urlGenerator ?? 'api';
             $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
@@ -96,7 +93,7 @@ class MediaObjectFactory
             try {
                 $initialMediaObject = $this->create($filesystem, $path, $contentUrl);
                 $propertyMediaObjects[] = $initialMediaObject;
-            } catch (UnableToReadFile $exception) {
+            } catch (UnableToReadFile|UnableToRetrieveMetadata) {
                 continue;
             }
 
