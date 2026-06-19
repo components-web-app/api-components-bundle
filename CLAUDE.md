@@ -676,6 +676,25 @@ The bundle ships Doctrine migrations. Currently migrations live in the PHP files
 
 ---
 
+### ComponentGroup.allowedComponents — must store IRIs, not FQCNs
+
+**Files:** `src/Serializer/Normalizer/ComponentGroupNormalizer.php`, `src/Entity/Core/ComponentGroup.php`
+
+`ComponentGroupNormalizer::normalize()` filters `componentPositions` by checking whether the component's IRI is in the `allowedComponents` array (lines 55–67). It always computes the IRI from `$position->component::class` via `iriConverter->getIriFromResource()` and uses `\in_array($iri, $allowed, true)`. This means **`allowedComponents` must always contain collection IRIs** (e.g. `/component/navigation_links`), never PHP FQCNs. If FQCNs are stored, all positions are silently filtered out and the group appears empty.
+
+`ComponentGroup.allowedComponents` is a raw JSON column with no normalisation on input — whatever strings are sent via PATCH are stored as-is.
+
+**How values get set:**
+- **`CwaFixtureBuilder`** (correct): converts FQCN → IRI via `iriConverter->getIriFromResource($class, ABS_PATH, GetCollection)` before persisting. Pass `NavigationLink::class` in the fixture; IRI is stored.
+- **`CwaComponentGroup` Vue prop** (correct): accepts IRIs directly. The `ComponentGroupUtilSynchronizer` sends the prop value on PATCH. Template authors must pass IRIs (e.g. `['/component/navigation_links']`), not class names.
+- **Historical/manual PATCHes** (risk): any code path that sends FQCNs directly to the API will store them and break filtering. There is no input normalisation to guard against this.
+
+**Fix needed:** Add a denormalizer (or `setAllowedComponents` logic) that detects FQCNs and converts them to IRIs on input, so the stored value is always an IRI regardless of what is sent. Alternatively enforce IRI-only via API Platform validation.
+
+**Status:** Fix needed in bundle. `CwaFixtureBuilder` and the Vue component are already correct; the gap is API-side input normalisation.
+
+---
+
 ### #60 — Uploadable: Private files (S3 pre-signed URLs)
 
 When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
