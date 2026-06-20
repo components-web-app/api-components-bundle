@@ -590,11 +590,9 @@ Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
 
 ---
 
-### #98 — Mercure subscriptions not secured
+### ~~#98 — Mercure subscriptions not secured~~ — COMPLETE ✓
 
-Hub subscription tokens are not currently scoped — any subscriber can receive updates for any resource. The gist linked in the issue (`soyuka/5deae36cf0fa348c4225985f6a073efe`) shows the pattern for scoping Mercure JWT tokens to specific topics.
-
-**Relevant code:** `src/Mercure/MercureAuthorization.php` and `PublishableAwareHub`. The fix requires generating subscriber tokens that include only the topic IRIs the current user is authorised to receive. Add a bundle config option (list of resource classes to secure, or a flag to secure all) and generate scoped tokens on login/auth.
+**Fixed (commit `5ec68934`):** Added `mercure.secure_subscriptions: bool` config option (default: `false`). When `true`, `MercureAuthorization.getSubscribeIrisForResource()` evaluates each resource's AP4 security expression before including it in the subscriber JWT token. Class-level expressions (e.g. `is_granted('ROLE_ADMIN')`) are evaluated against the current user. Expressions referencing `object` (item-level security) are treated as always-accessible because access cannot be determined without a concrete instance. `DummySecuredMercureResource` test entity (ROLE_ADMIN, mercure: true) and three Behat scenarios in `features/user/security.feature` cover: excluded for non-admin, included for admin, excluded for anonymous. Test config sets `secure_subscriptions: true`.
 
 ---
 

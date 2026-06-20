@@ -162,6 +162,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->findDefinition(MercureAuthorization::class);
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
+        $definition->setArgument('$secureSubscriptions', $config['mercure']['secure_subscriptions']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void

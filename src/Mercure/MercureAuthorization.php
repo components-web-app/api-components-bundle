@@ -18,10 +18,13 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 class MercureAuthorization
 {
@@ -32,8 +35,10 @@ class MercureAuthorization
         private readonly RequestContext $requestContext,
         private readonly Authorization $mercureAuthorization,
         private readonly RequestStack $requestStack,
+        private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
         private readonly ?string $hubName = null,
+        private readonly bool $secureSubscriptions = false,
     ) {
     }
 
@@ -71,6 +76,10 @@ class MercureAuthorization
             return null;
         }
 
+        if ($this->secureSubscriptions && !$this->isOperationAccessible($operation)) {
+            return null;
+        }
+
         $refl = new \ReflectionClass($operation->getClass());
         $isPublishable = \count($refl->getAttributes(Publishable::class));
 
@@ -87,6 +96,42 @@ class MercureAuthorization
         }
 
         return $subscribeIris;
+    }
+
+    /**
+     * Evaluates the operation's security expression at the class level (no object context).
+     * Returns true if accessible, false if denied.
+     * Returns true when no security expression is set (resource is publicly accessible).
+     * Returns true when the expression references the `object` variable — these are item-level
+     * security expressions that cannot be evaluated without a concrete instance. Since some items
+     * of the resource may be accessible, the subscription topic is included.
+     */
+    private function isOperationAccessible(HttpOperation $operation): bool
+    {
+        $security = $operation->getSecurity();
+
+        if (null === $security) {
+            return true;
+        }
+
+        $securityStr = (string) $security;
+
+        // Item-level security expressions reference `object` (the specific entity instance).
+        // At subscription time we have no instance, so we cannot determine class-level access.
+        // Include the topic: some instances of this resource may be accessible.
+        if (preg_match('/\bobject\b/', $securityStr)) {
+            return true;
+        }
+
+        try {
+            return $this->authorizationChecker->isGranted(new Expression($securityStr));
+        } catch (AuthenticationCredentialsNotFoundException) {
+            return false;
+        } catch (\Throwable) {
+            // Expression evaluation failed for an unexpected reason.
+            // Treat as accessible to avoid accidentally blocking legitimate subscribers.
+            return true;
+        }
     }
 
     private function getMercureResourceOperation(string $resourceClass): ?HttpOperation

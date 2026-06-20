@@ -760,7 +760,10 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('router.request_context'),
                 new Reference(Authorization::class),
                 new Reference('request_stack'),
-                '', // injected with dependency injection
+                new Reference(AuthorizationCheckerInterface::class),
+                '', // $cookieSameSite — injected via DI
+                null, // $hubName — injected via DI
+                false, // $secureSubscriptions — injected via DI
             ]
         );
     $services->alias(MercureAuthorization::class, 'silverback.api_components.mercure.authorization');
