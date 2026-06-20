@@ -1,0 +1,27 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "logs": {
+        "text": "build/logs/infection.log",
+        "summary": "build/logs/infection-summary.log",
+        "json": "build/logs/infection.json",
+        "summaryJson": "build/logs/infection-summary.json"
+    },
+    "mutators": {
+        "@default": true
+    },
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--exclude-group=functional",
+    "initialTestsPhpOptions": "-d memory_limit=512M",
+    "phpUnit": {
+        "configDir": ".",
+        "customPath": "build/phpunit-for-infection.php"
+    },
+    "minMsi": 90,
+    "minCoveredMsi": 90,
+    "threads": 4
+}

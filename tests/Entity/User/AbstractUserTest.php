@@ -199,4 +199,57 @@ class AbstractUserTest extends TestCase
 
         $this->assertEquals($user->getId(), (string) $user);
     }
+
+    public function test_set_email_address_updates_email_last_updated_at_when_non_null(): void
+    {
+        $user = new class extends AbstractUser {
+            public function getEmailLastUpdatedAt(): ?\DateTime
+            {
+                return $this->emailLastUpdatedAt;
+            }
+        };
+
+        $before = new \DateTime();
+        $user->setEmailAddress('test@example.com');
+        $after = new \DateTime();
+
+        $updatedAt = $user->getEmailLastUpdatedAt();
+        $this->assertNotNull($updatedAt);
+        $this->assertGreaterThanOrEqual($before, $updatedAt);
+        $this->assertLessThanOrEqual($after, $updatedAt);
+    }
+
+    public function test_set_email_address_does_not_update_email_last_updated_at_when_null(): void
+    {
+        $user = new class extends AbstractUser {
+            public function getEmailLastUpdatedAt(): ?\DateTime
+            {
+                return $this->emailLastUpdatedAt;
+            }
+        };
+
+        $user->setEmailAddress(null);
+
+        $this->assertNull($user->getEmailLastUpdatedAt());
+    }
+
+    public function test_set_email_address_updates_timestamp_only_for_truthy_value(): void
+    {
+        $user = new class extends AbstractUser {
+            public function getEmailLastUpdatedAt(): ?\DateTime
+            {
+                return $this->emailLastUpdatedAt;
+            }
+        };
+
+        // Non-null non-empty string is truthy — timestamp must be set
+        $user->setEmailAddress('user@example.com');
+        $this->assertNotNull($user->getEmailLastUpdatedAt());
+        $firstTimestamp = $user->getEmailLastUpdatedAt();
+
+        // Null is falsy — timestamp must NOT be updated
+        $user->setEmailAddress(null);
+        // timestamp remains at the first value (not reset, not updated)
+        $this->assertSame($firstTimestamp, $user->getEmailLastUpdatedAt());
+    }
 }

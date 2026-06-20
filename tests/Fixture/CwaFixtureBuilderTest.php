@@ -1904,6 +1904,34 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertContains($associated, $persisted, 'Initialized property value must be returned and the associated entity persisted');
     }
 
+    // --- LogicalAnd kills mutants 70/71: null routeName must never register under empty-string key ---
+
+    public function test_auto_route_page_with_null_route_name_does_not_register_empty_string_route(): void
+    {
+        // The LogicalAnd mutant (&&→||) would store the route under the null→"" key when page->getRoute() is set.
+        // This test calls getRoute('') to verify no such registration happens.
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main'); // routeName is null, but route IS created
+        $builder->flush();
+
+        $this->expectException(\LogicException::class);
+        $builder->getRoute(''); // must throw — null routeName must not be stored under "" key
+    }
+
+    public function test_auto_route_pagedata_with_null_route_name_does_not_register_empty_string_route(): void
+    {
+        // Same as above but for PageData
+        $pageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->pageData($pageData); // routeName is null, but route IS created
+        $builder->flush();
+
+        $this->expectException(\LogicException::class);
+        $builder->getRoute(''); // must throw — null routeName must not be stored under "" key
+    }
+
     // --- readProperty: DoWhile traverses parent class hierarchy (kills not-covered DoWhile mutant line 578) ---
 
     public function test_read_property_finds_property_declared_only_in_parent_class(): void
