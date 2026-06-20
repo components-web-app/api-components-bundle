@@ -161,3 +161,35 @@ Feature: Prevent disabled users from logging in
     }
     """
     Then the response status code should be 404
+
+  Scenario: With secure_subscriptions enabled, a non-admin user's mercure cookie excludes admin-only resource topics
+    Given there is a user with the username "user" password "password" and role "ROLE_USER"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "user",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should not contain topics matching "/dummy_secured_mercure_resource/"
+
+  Scenario: With secure_subscriptions enabled, an admin user's mercure cookie includes admin-only resource topics
+    Given there is a user with the username "admin" password "password" and role "ROLE_ADMIN"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "admin",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should contain topics matching "/dummy_secured_mercure_resource/"
+
+  Scenario: With secure_subscriptions enabled, an anonymous user's mercure cookie excludes admin-only resource topics
+    When I send a "GET" request to "/me"
+    Then the response status code should be 401
+    And the response should have a "mercureAuthorization" cookie
+    And the mercure cookie should not contain topics matching "/dummy_secured_mercure_resource/"

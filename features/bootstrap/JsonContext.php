@@ -187,6 +187,48 @@ class JsonContext implements Context
         Assert::assertGreaterThan(0, $this->getMercureCookieDraftTopics(), 'The cookie does not allow a user to subscribe to any draft resources');
     }
 
+    private function getMercureCookieSubscribeTopics(): array
+    {
+        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
+        $setCookieHeaders = $responseHeaders['set-cookie'];
+        foreach ($setCookieHeaders as $setCookieHeader) {
+            $cookie = Cookie::fromString($setCookieHeader);
+            $realName = $cookie->getName();
+            if ('mercureAuthorization' === $realName) {
+                $token = $this->jwsProvider->load($cookie->getValue());
+                $payload = $token->getPayload();
+
+                return $payload['mercure']['subscribe'] ?? [];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @Then the mercure cookie should contain topics matching :pattern
+     */
+    public function theMercureCookieShouldContainTopicsMatching(string $pattern): void
+    {
+        $topics = $this->getMercureCookieSubscribeTopics();
+        $matched = array_filter($topics, static function ($topic) use ($pattern) {
+            return 1 === preg_match($pattern, $topic);
+        });
+        Assert::assertNotEmpty($matched, \sprintf('The mercure cookie does not contain any topics matching "%s". Topics: %s', $pattern, implode(', ', $topics)));
+    }
+
+    /**
+     * @Then the mercure cookie should not contain topics matching :pattern
+     */
+    public function theMercureCookieShouldNotContainTopicsMatching(string $pattern): void
+    {
+        $topics = $this->getMercureCookieSubscribeTopics();
+        $matched = array_filter($topics, static function ($topic) use ($pattern) {
+            return 1 === preg_match($pattern, $topic);
+        });
+        Assert::assertEmpty($matched, \sprintf('The mercure cookie contains topics matching "%s" but should not. Topics: %s', $pattern, implode(', ', $topics)));
+    }
+
     private function getCookieByName(string $name): Cookie
     {
         $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
