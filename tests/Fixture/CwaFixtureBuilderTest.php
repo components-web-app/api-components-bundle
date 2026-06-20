@@ -606,7 +606,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
-        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; evaluateNested must not flush
+        $this->assertSame(1, $flushCount); // phaseOne only; template page has no route → phaseThree skips; evaluateNested must not flush
     }
 
     public function test_evaluate_nested_flushes_when_new_nested_entities_added(): void
@@ -637,7 +637,7 @@ class CwaFixtureBuilderTest extends TestCase
             ->group('primary'); // group exists but no components added
         $builder->flush();
 
-        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; phaseFour must not flush
+        $this->assertSame(1, $flushCount); // phaseOne only; template page → phaseThree skips; phaseFour must not flush
     }
 
     public function test_phase_four_flushes_when_positions_are_created(): void
@@ -652,7 +652,7 @@ class CwaFixtureBuilderTest extends TestCase
             ->add($component);
         $builder->flush();
 
-        $this->assertSame(3, $flushCount); // phaseOne + phaseThree + phaseFour
+        $this->assertSame(2, $flushCount); // phaseOne + phaseFour (template page → phaseThree skips)
     }
 
     // --- Flush counting: phaseThreePointFive ---
@@ -666,7 +666,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->pageData($pd);
         $builder->flush();
 
-        $this->assertSame(2, $flushCount); // phaseOne + phaseThree; phaseThreePointFive must not flush
+        $this->assertSame(2, $flushCount); // phaseOne + phaseThree (route created); phaseThreePointFive must not flush
     }
 
     public function test_phase_three_point_five_flushes_when_on_routes_created_fires(): void
@@ -1482,8 +1482,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->pageDataPosition('App\Entity\ContentPageData', 'content');
         $builder->flush();
 
-        // phaseOne + phaseThree + phaseFour (pageDataPosition creates a ComponentPosition — $hasAny must be true)
-        $this->assertSame(3, $flushCount, 'phaseFour must flush when only pageDataPositions are created ($hasAny = true path)');
+        // phaseOne + phaseFour (template page → phaseThree skips; pageDataPosition creates a ComponentPosition — $hasAny must be true)
+        $this->assertSame(2, $flushCount, 'phaseFour must flush when only pageDataPositions are created ($hasAny = true path)');
     }
 
     // --- Layout group positions trigger phaseFour flush (kills IfNegation/TrueValue mutants 13+14) ---
@@ -1499,8 +1499,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->add($component);
         $builder->flush();
 
-        // phaseOne + phaseThree + phaseFour (component position in layout group triggers $hasPositions = true)
-        $this->assertSame(3, $flushCount, 'phaseFour must flush when a layout group has component positions');
+        // phaseOne + phaseFour (no route specs → phaseThree skips; component position triggers $hasPositions = true)
+        $this->assertSame(2, $flushCount, 'phaseFour must flush when a layout group has component positions');
     }
 
     public function test_phase_four_does_not_flush_when_layout_group_has_no_positions(): void
@@ -1512,8 +1512,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->group('nav'); // no positions added
         $builder->flush();
 
-        // phaseOne + phaseThree only; phaseFour must not flush
-        $this->assertSame(2, $flushCount, 'phaseFour must not flush when layout group has no positions');
+        // phaseOne only; no route specs → phaseThree skips; phaseFour must not flush
+        $this->assertSame(1, $flushCount, 'phaseFour must not flush when layout group has no positions');
     }
 
     // --- Component builder group positions trigger phaseFour flush (kills IfNegation/TrueValue mutants 15+16) ---
@@ -1528,8 +1528,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->component($outerComponent)->group('items')->add($innerComponent);
         $builder->flush();
 
-        // phaseOne + phaseThree + phaseFour (inner component position triggers $hasPositions = true)
-        $this->assertSame(3, $flushCount, 'phaseFour must flush when a component builder group has positions');
+        // phaseOne + phaseFour (no route specs → phaseThree skips; inner component position triggers $hasPositions = true)
+        $this->assertSame(2, $flushCount, 'phaseFour must flush when a component builder group has positions');
     }
 
     public function test_phase_four_does_not_flush_when_component_builder_group_has_no_positions(): void
@@ -1541,8 +1541,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->component($component)->group('items'); // no add() calls
         $builder->flush();
 
-        // phaseOne + phaseThree only; phaseFour must not flush since no positions were created
-        $this->assertSame(2, $flushCount, 'phaseFour must not flush when component builder group has no positions');
+        // phaseOne only; no route specs → phaseThree skips; phaseFour must not flush since no positions were created
+        $this->assertSame(1, $flushCount, 'phaseFour must not flush when component builder group has no positions');
     }
 
     // --- timestampedPersister called with isNew=true for AbstractComponent in componentBuilders (kills mutants 7+8) ---
@@ -1930,6 +1930,73 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $builder->getRoute(''); // must throw — null routeName must not be stored under "" key
+    }
+
+    // --- #183: flush() idempotency ---
+
+    public function test_double_flush_does_not_duplicate_entity_persists(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $component = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main')
+            ->group('nav')
+            ->add($component);
+        $builder->flush();
+        $firstCount = \count($persisted);
+
+        $builder->flush(); // second flush must not persist any entity again
+
+        $this->assertSame($firstCount, \count($persisted), 'Second flush must not add duplicate persists');
+
+        // Each entity object must appear at most once in $persisted
+        $entities = array_filter($persisted, static fn ($e) => $e instanceof Layout || $e instanceof Page || $e instanceof ComponentGroup);
+        foreach (array_count_values(array_map(static fn ($e) => spl_object_id($e), array_values($entities))) as $count) {
+            $this->assertSame(1, $count, 'Each entity must be persisted exactly once across multiple flush() calls');
+        }
+    }
+
+    public function test_page_registered_after_first_flush_is_persisted_on_second_flush(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+
+        $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->flush(); // first flush: only layout
+
+        $layoutsPersisted = \count(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertSame(0, $layoutsPersisted, 'No pages should be persisted after first flush');
+
+        $builder->page('home', 'Template', layout: 'main');
+        $builder->flush(); // second flush: page registered since last flush
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages, 'Page registered between flushes must be persisted on second flush');
+    }
+
+    public function test_on_routes_created_fires_exactly_once_across_multiple_flushes(): void
+    {
+        $callCount = 0;
+        $parentPageData = new class extends AbstractPageData {};
+
+        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->pageData($parentPageData)
+            ->nested(static function (CwaFixtureBuilder $child): void {
+                $child->page('chapter', 'Template', layout: 'main');
+            })
+            ->onRoutesCreated(static function (array $builders) use (&$callCount): void {
+                ++$callCount;
+            });
+
+        $builder->flush();
+        $builder->flush(); // second flush must not re-fire the callback
+
+        $this->assertSame(1, $callCount, 'onRoutesCreated must fire exactly once even when flush() is called multiple times');
     }
 
     // --- readProperty: DoWhile traverses parent class hierarchy (kills not-covered DoWhile mutant line 578) ---

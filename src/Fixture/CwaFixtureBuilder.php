@@ -76,8 +76,11 @@ class CwaFixtureBuilder
     /** Tracks object IDs already passed to persist() to avoid cycles in persistWithAssociations() */
     private array $persistedEntities = [];
 
-    /** Phases 1–3 run exactly once; phase 4 runs on every flush() call to pick up new positions */
-    private bool $initialFlushDone = false;
+    /** @var array<int, true> keyed by spl_object_id(PageDataBuilder|PageBuilder) — prevents re-evaluating nested closures */
+    private array $evaluatedNestedIds = [];
+
+    /** @var array<int, true> keyed by spl_object_id(PageDataBuilder) — prevents re-firing onRoutesCreated callbacks */
+    private array $firedCallbackIds = [];
 
     public function __construct(
         private readonly TimestampedDataPersister $timestampedPersister,
@@ -205,20 +208,15 @@ class CwaFixtureBuilder
     }
 
     /**
-     * Phases 1–3 run exactly once (on first call).
-     * Phase 4 runs every call to pick up positions added after the first flush (e.g. nav links added after routes exist).
+     * All phases run on every call; each phase is idempotent and skips already-processed work.
+     * Phase 4 always picks up positions added since the previous call (e.g. nav links added after routes exist).
      */
     public function flush(): void
     {
-        if (!$this->initialFlushDone) {
-            $this->phaseOne();
-            $this->evaluateNested();
-            $this->phaseTwo();
-            $this->phaseThree();
-            $this->phaseThreePointFive();
-            $this->initialFlushDone = true;
-        }
-
+        $this->phaseOne();
+        $this->evaluateNested();
+        $this->phaseThree();
+        $this->phaseThreePointFive();
         $this->phaseFour();
     }
 
@@ -232,6 +230,11 @@ class CwaFixtureBuilder
             if (null === $closure) {
                 continue;
             }
+            $oid = spl_object_id($spec['builder']);
+            if (isset($this->evaluatedNestedIds[$oid])) {
+                continue;
+            }
+            $this->evaluatedNestedIds[$oid] = true;
             $beforePageRefs = array_keys($this->pageSpecs);
             $this->parentContext = $spec['builder']->getPageData();
             $closure($this);
@@ -245,6 +248,11 @@ class CwaFixtureBuilder
             if (null === $closure) {
                 continue;
             }
+            $oid = spl_object_id($spec['builder']);
+            if (isset($this->evaluatedNestedIds[$oid])) {
+                continue;
+            }
+            $this->evaluatedNestedIds[$oid] = true;
             $this->parentContext = $spec['builder']->getPage();
             $closure($this);
             $this->parentContext = null;
@@ -282,9 +290,14 @@ class CwaFixtureBuilder
 
     private function phaseOne(): void
     {
+        $entityCountBefore = \count($this->persistedEntities);
+        $groupCountBefore = \count($this->componentGroupMap) + \count($this->namedComponentGroups);
+
         foreach ($this->layoutBuilders as $layoutBuilder) {
             $layout = $layoutBuilder->getLayout();
-            $this->timestampedPersister->persistTimestampedFields($layout, true);
+            if (!isset($this->persistedEntities[spl_object_id($layout)])) {
+                $this->timestampedPersister->persistTimestampedFields($layout, true);
+            }
             $this->persistWithAssociations($layout);
             foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
                 $this->createAndLinkComponentGroup($groupBuilder, $layout);
@@ -297,7 +310,9 @@ class CwaFixtureBuilder
             if (null !== $layoutBuilder) {
                 $page->layout = $layoutBuilder->getLayout();
             }
-            $this->timestampedPersister->persistTimestampedFields($page, true);
+            if (!isset($this->persistedEntities[spl_object_id($page)])) {
+                $this->timestampedPersister->persistTimestampedFields($page, true);
+            }
             $this->persistWithAssociations($page);
             foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
                 $this->createAndLinkComponentGroup($groupBuilder, $page);
@@ -309,14 +324,18 @@ class CwaFixtureBuilder
             if (null !== $spec['templateRef'] && isset($this->pageSpecs[$spec['templateRef']])) {
                 $pageData->page = $this->pageSpecs[$spec['templateRef']]['builder']->getPage();
             }
-            $this->timestampedPersister->persistTimestampedFields($pageData, true);
+            if (!isset($this->persistedEntities[spl_object_id($pageData)])) {
+                $this->timestampedPersister->persistTimestampedFields($pageData, true);
+            }
             $this->persistWithAssociations($pageData);
         }
 
         foreach ($this->componentBuilders as $componentBuilder) {
             $component = $componentBuilder->getComponent();
-            if ($this->timestampedPersister->isConfigured($component)) {
-                $this->timestampedPersister->persistTimestampedFields($component, true);
+            if (!isset($this->persistedEntities[spl_object_id($component)])) {
+                if ($this->timestampedPersister->isConfigured($component)) {
+                    $this->timestampedPersister->persistTimestampedFields($component, true);
+                }
             }
             $this->persistWithAssociations($component);
             foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
@@ -324,11 +343,20 @@ class CwaFixtureBuilder
             }
         }
 
-        $this->manager->flush();
+        $hadNew = \count($this->persistedEntities) > $entityCountBefore
+            || \count($this->componentGroupMap) + \count($this->namedComponentGroups) > $groupCountBefore;
+
+        if ($hadNew) {
+            $this->manager->flush();
+        }
     }
 
     private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page|AbstractComponent $owner): void
     {
+        if (isset($this->componentGroupMap[spl_object_id($groupBuilder)])) {
+            return;
+        }
+
         $ownerIri = $this->iriConverter->getIriFromResource($owner);
         $locationRef = $groupBuilder->getLocationReference() ?? $ownerIri;
         $fullRef = $groupBuilder->getName() . '_' . $locationRef;
@@ -374,15 +402,10 @@ class CwaFixtureBuilder
         $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
     }
 
-    private function phaseTwo(): void
-    {
-        // ComponentGroups are created and linked in phaseOne/evaluateNested
-        // while both the owner and group are still new entities, so Doctrine
-        // writes the ManyToMany join table correctly on the first flush.
-    }
-
     private function phaseThree(): void
     {
+        $hadNew = false;
+
         foreach ($this->orderedRouteSpecs as $spec) {
             if ('page' === $spec['type']) {
                 $page = $spec['builder']->getPage();
@@ -397,12 +420,14 @@ class CwaFixtureBuilder
                     if (null !== $spec['routeName']) {
                         $this->namedRoutes[$spec['routeName']] = $route;
                     }
+                    $hadNew = true;
                 } elseif (!$spec['isTemplate']) {
                     $route = $this->routeGenerator->create($page);
                     $this->manager->persist($route);
                     if (null !== $spec['routeName'] && null !== $page->getRoute()) {
                         $this->namedRoutes[$spec['routeName']] = $page->getRoute();
                     }
+                    $hadNew = true;
                 }
             } else {
                 $pageData = $spec['builder']->getPageData();
@@ -417,17 +442,21 @@ class CwaFixtureBuilder
                     if (null !== $spec['routeName']) {
                         $this->namedRoutes[$spec['routeName']] = $route;
                     }
+                    $hadNew = true;
                 } else {
                     $route = $this->routeGenerator->create($pageData);
                     $this->manager->persist($route);
                     if (null !== $spec['routeName'] && null !== $pageData->getRoute()) {
                         $this->namedRoutes[$spec['routeName']] = $pageData->getRoute();
                     }
+                    $hadNew = true;
                 }
             }
         }
 
-        $this->manager->flush();
+        if ($hadNew) {
+            $this->manager->flush();
+        }
     }
 
     private function phaseThreePointFive(): void
@@ -439,6 +468,11 @@ class CwaFixtureBuilder
             if (null === $cb) {
                 continue;
             }
+            $oid = spl_object_id($spec['builder']);
+            if (isset($this->firedCallbackIds[$oid])) {
+                continue;
+            }
+            $this->firedCallbackIds[$oid] = true;
             $childBuilders = array_values(array_filter(array_map(
                 fn ($ref) => $this->pageSpecs[$ref]['builder'] ?? null,
                 $spec['builder']->getChildPageRefs(),
