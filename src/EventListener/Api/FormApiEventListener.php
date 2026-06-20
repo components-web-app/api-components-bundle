@@ -68,10 +68,11 @@ class FormApiEventListener
 
         if ($data->formView->getForm()->isValid()) {
             $result = $this->formSubmitHelper->handleSuccess($data);
-            if ($result) {
-                // we were going to do sub-requests, but then we may require authorization and for forms we shouldn't need that
-                // instead Form:component:read serialization group should be added to properties of objects being returned
-                // for them to be serialized in the result
+            // Only replace the Form with the result if it is an explicit Response object
+            // (e.g. a 404 from PasswordUpdateListener). Entity results (e.g. the created User
+            // from registration) are intentionally ignored — the submit endpoint always returns
+            // the Form entity so @type and @id remain stable regardless of side-effects.
+            if ($result instanceof Response) {
                 $data = $result;
             }
         }

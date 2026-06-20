@@ -27,19 +27,7 @@ Feature: Register process via a form
     And the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be a superset of:
-    """
-    {
-        "@context": "/contexts/User",
-        "@type": "User",
-        "username": "new_user",
-        "emailAddress": "user@example.com",
-        "_metadata": {
-          "persisted": true
-        }
-    }
-    """
-    And the JSON should be valid according to the schema file "user.schema.json"
+    And the JSON should be valid according to the schema file "form.schema.json"
     And I should get a "user_welcome" email sent
 
   Scenario Outline: Submit a duplicate user registration form
