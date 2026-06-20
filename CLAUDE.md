@@ -617,11 +617,9 @@ A custom Symfony profiler panel showing how the bundle handled a request — sec
 
 ---
 
-### #60 — Uploadable: Private files (S3 pre-signed URLs)
+### ~~#60 — Uploadable: Private files (S3 pre-signed URLs)~~ — COMPLETE ✓
 
-When a component has a file uploaded to S3 with private ACL, accessing the file requires a pre-signed temporary URL. The bundle's uploadable system doesn't currently handle the pre-signed URL lifecycle — the URL returned may be permanent and publicly accessible (or inaccessible).
-
-**Fix direction:** The `Flysystem temporary URL` generator (`silverback.api_components.uploadable.url_generator.temporary`) likely generates pre-signed URLs already. Tests for this path with a real (or mock) S3 adapter are missing. Also: the download endpoint (`src/Action/Uploadable/DownloadAction.php`) can gate access — apps can hook into events — but this isn't documented or tested.
+**Fixed (commit `3146fafc`):** `urlGenerator: 'public'` and `urlGenerator: 'temporary'` paths on `#[UploadableField]` are now tested and documented. When the adapter implements the corresponding Flysystem interface (`PublicUrlGenerator` / `TemporaryUrlGenerator`), the direct URL is used; otherwise the field falls back to the `'api'` generator (the bundle's download endpoint). `MediaObjectFactory` now type-hints `UploadableAttributeReaderInterface` instead of the concrete class. Four unit tests in `MediaObjectFactoryUrlGeneratorTest` and two Behat scenarios in `features/uploads/uploads.feature` cover all four paths.
 
 ---
 
