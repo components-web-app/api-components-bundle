@@ -105,6 +105,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Placeholder\HtmlContentPlaceholder;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
@@ -1791,6 +1792,12 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
         ]);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
+
+    $services
+        ->set('silverback.api_components.fixture.html_content_placeholder')
+        ->class(HtmlContentPlaceholder::class)
+        ->public();
+    $services->alias(HtmlContentPlaceholder::class, 'silverback.api_components.fixture.html_content_placeholder');
 
     $services
         ->set('silverback.api_components.uploadable.url_generator.api')
