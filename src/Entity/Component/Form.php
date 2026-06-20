@@ -52,6 +52,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
             write: false,
             serialize: true,
             requirements: ['id' => '[^/]+'],
+            normalizationContext: ['item_uri_template' => '/forms/{id}{._format}'],
         ),
         new Post(
             name: '_api_/forms/{id}/submit{._format}_post',
@@ -62,6 +63,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
             write: false,
             serialize: true,
             requirements: ['id' => '[^/]+'],
+            normalizationContext: ['item_uri_template' => '/forms/{id}{._format}'],
         ),
     ]
 )]

@@ -40,6 +40,25 @@ Feature: Form component that defines a form type created in the application
       |            | 422    |
 
 
+  Scenario: The @id in the submit response is the canonical form IRI, not the /submit endpoint
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "test_form" and the postfix "/submit" with body:
+    """
+    {"test": {"name": "John Smith"}}
+    """
+    Then the response status code should be 200
+    And the JSON node "@id" should be equal to the IRI of the resource "test_form"
+
+  Scenario: The @id in the POST submit response is the canonical form IRI, not the /submit endpoint
+    Given there is a "test" form
+    When I send a "POST" request to the resource "test_form" and the postfix "/submit" with body:
+    """
+    {"test": {"name": "John Smith"}}
+    """
+    Then the response status code should be 201
+    And the JSON node "@id" should be equal to the IRI of the resource "test_form"
+
   # PATCH
 
   Scenario Outline: I send a PATCH request to the form with multiple fields
