@@ -22,6 +22,5 @@
         "customPath": "build/phpunit-for-infection.php"
     },
     "minMsi": 90,
-    "minCoveredMsi": 90,
-    "threads": 4
+    "minCoveredMsi": 90
 }
