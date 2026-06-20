@@ -32,6 +32,8 @@ class FormView
 
     private const OUTPUT_VARS = [
         'action',
+        'allow_add',
+        'allow_delete',
         'attr',
         'block_prefixes',
         'checked',
@@ -63,6 +65,9 @@ class FormView
     private DoctrineCollection $children;
 
     #[Groups(['Form:cwa_resource:read'])]
+    private ?self $prototype = null;
+
+    #[Groups(['Form:cwa_resource:read'])]
     private bool $rendered;
 
     #[Groups(['Form:cwa_resource:read'])]
@@ -91,7 +96,7 @@ class FormView
                 $this->addChild($view);
             }
             if (\array_key_exists('prototype', $formView->vars)) {
-                $this->addChild($formView->vars['prototype']);
+                $this->prototype = new self($this->form, $formView->vars['prototype']);
             }
         }
     }
@@ -140,6 +145,11 @@ class FormView
     public function getChildren(): DoctrineCollection
     {
         return $this->children;
+    }
+
+    public function getPrototype(): ?self
+    {
+        return $this->prototype;
     }
 
     public function isRendered(): bool

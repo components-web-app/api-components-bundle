@@ -580,7 +580,7 @@ Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 **Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`.
 
-**Write side fixed** (pending commit): `ComponentPosition` now stores a `pageDataClass` (FQCN) alongside `pageDataProperty`. `ComponentPositionValidator` validates the pair on every POST/PATCH: (1) `pageDataClass` must be a known API-registered PageData resource; (2) `pageDataProperty` must be a component-typed property on that class; (3) the resolved component type must be in `componentGroup.allowedComponents` if set. Both fields must be set together (entity-level `Assert\Expression` constraint).
+**Write side fixed** (committed): `ComponentPosition` now stores a `pageDataClass` (FQCN) alongside `pageDataProperty`. `ComponentPositionValidator` validates the pair on every POST/PATCH: (1) `pageDataClass` must be a known API-registered PageData resource; (2) `pageDataProperty` must be a component-typed property on that class; (3) the resolved component type must be in `componentGroup.allowedComponents` if set. Both fields must be set together (entity-level `Assert\Expression` constraint).
 
 **`CwaFixtureBuilder` updated:** `GroupBuilder.pageDataPosition()` now takes `pageDataClass` as its first argument: `->pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null)`.
 

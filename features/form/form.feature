@@ -117,6 +117,17 @@ Feature: Form component that defines a form type created in the application
     }
     """
 
+  Scenario: CollectionType fields expose allow_add, allow_delete and prototype in the form view
+    Given there is a "nested" form
+    When I send a "GET" request to the resource "nested_form"
+    Then the response status code should be 200
+    And the JSON node "formView.children[0].vars.allow_add" should be true
+    And the JSON node "formView.children[0].vars.allow_delete" should be true
+    And the JSON node "formView.children[0].prototype" should exist
+    And the JSON node "formView.children[1].vars.allow_add" should be true
+    And the JSON node "formView.children[1].vars.allow_delete" should be true
+    And the JSON node "formView.children[1].prototype" should exist
+
   # PATCH NESTED
 
   Scenario: I can send a valid field for validation of one of the children in a CollectionType
