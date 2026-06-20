@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\EventListener\Jwt;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
@@ -33,6 +34,7 @@ final class JWTEventListener implements ResetInterface
         private readonly RoleHierarchy $roleHierarchy,
         private readonly JWTCookieProvider $cookieProvider,
         private readonly MercureAuthorization $mercureAuthorization,
+        private readonly ?CwaCollectorData $collectorData = null,
     ) {
     }
 
@@ -65,6 +67,7 @@ final class JWTEventListener implements ResetInterface
     public function onJWTRefreshed(JWTRefreshedEvent $event): void
     {
         $this->token = $event->getToken();
+        $this->collectorData?->recordJwtRefreshIssued();
     }
 
     public function onKernelResponse(ResponseEvent $event): void
@@ -72,6 +75,14 @@ final class JWTEventListener implements ResetInterface
         // Consume and clear the token so it is never reused across requests in worker mode
         $token = $this->token;
         $this->token = null;
+
+        // Record whether a JWT cookie was present on the incoming request
+        $request = $event->getRequest();
+        $cookieName = $this->cookieProvider->createCookie('x')->getName();
+        if ($request->cookies->has($cookieName)) {
+            $this->collectorData?->recordJwtCookiePresent($cookieName);
+        }
+
         if (!empty($token)) {
             $responseHeaders = $event->getResponse()->headers;
             $responseHeaders->setCookie($this->cookieProvider->createCookie($token));

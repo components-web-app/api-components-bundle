@@ -600,11 +600,15 @@ Hub subscription tokens are not currently scoped — any subscriber can receive 
 
 ---
 
-### #115 — Symfony data collector / profiler integration
+### ~~#115 — Symfony data collector / profiler integration~~ — COMPLETE ✓
 
-A custom Symfony profiler panel showing how the bundle handled a request — security decisions (JWT, refresh tokens), route resolution, page data lookups, Mercure topic publication — would significantly aid debugging.
+**Implemented (commit `8a7c95cf`):** `CwaCollectorData` (`src/DataCollector/CwaCollectorData.php`) is a shared `ResetInterface` service that bundle listeners push data into. `CwaDataCollector` (`src/DataCollector/CwaDataCollector.php`) reads from it at `collect()` time and renders via `@SilverbackApiComponents/Collector/cwa.html.twig`. The toolbar/panel shows three categories:
 
-**No implementation started.** Would require implementing `DataCollectorInterface` and a profiler template. Low priority but useful for DX.
+- **JWT/authentication**: cookie presence (with name), refresh issued, cookie cleared
+- **Route resolution**: resolved path and route IRI from `RouteStateProvider`
+- **Mercure publications**: count and topic list from `MercureResourcePublisher`
+
+Services instrumented with optional `?CwaCollectorData` arg: `JWTEventListener`, `JWTClearTokenListener`, `MercureResourcePublisher`, `RouteStateProvider`. Unit tests in `tests/DataCollector/`.
 
 ---
 

@@ -24,6 +24,7 @@ use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Doctrine\ORM\PersistentCollection;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Utility\ResourceClassInfoTrait;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
@@ -73,6 +74,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         private readonly ?GraphQlSubscriptionManagerInterface $graphQlSubscriptionManager = null,
         private readonly ?GraphQlMercureSubscriptionIriGeneratorInterface $graphQlMercureSubscriptionIriGenerator = null,
         ?ExpressionLanguage $expressionLanguage = null,
+        private readonly ?CwaCollectorData $collectorData = null,
     ) {
         $this->reset();
         $this->resourceClassResolver = $resourceClassResolver;
@@ -276,6 +278,11 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         );
 
         foreach ($updates as $update) {
+            $topics = $update->getTopics();
+            foreach ((array) $topics as $topic) {
+                $this->collectorData?->recordMercurePublication($topic);
+            }
+
             if ($options['enable_async_update'] && $this->messageBus) {
                 $this->dispatch($update);
                 continue;

@@ -1,0 +1,141 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        {{ include('@SilverbackApiComponents/Collector/cwa_icon.svg') }}
+        {% set mercure_count = collector.publishedTopicsCount %}
+        {% set status_color = '' %}
+        <span class="sf-toolbar-value">CWA</span>
+        {% if mercure_count > 0 %}
+            <span class="sf-toolbar-info-piece-additional-detail">
+                <span class="sf-toolbar-label">Mercure</span>
+                <span class="sf-toolbar-value">{{ mercure_count }}</span>
+            </span>
+        {% endif %}
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>JWT cookie</b>
+            <span class="sf-toolbar-status {{ collector.jwtCookiePresent ? 'sf-toolbar-status-green' : '' }}">
+                {{ collector.jwtCookiePresent ? 'present' : 'none' }}
+            </span>
+        </div>
+        {% if collector.jwtRefreshIssued %}
+        <div class="sf-toolbar-info-piece">
+            <b>JWT refresh</b>
+            <span class="sf-toolbar-status sf-toolbar-status-yellow">issued</span>
+        </div>
+        {% endif %}
+        {% if collector.jwtCookieCleared %}
+        <div class="sf-toolbar-info-piece">
+            <b>JWT cookie</b>
+            <span class="sf-toolbar-status sf-toolbar-status-red">cleared</span>
+        </div>
+        {% endif %}
+        {% if collector.resolvedPath %}
+        <div class="sf-toolbar-info-piece">
+            <b>Resolved path</b>
+            <span>{{ collector.resolvedPath }}</span>
+        </div>
+        {% endif %}
+        <div class="sf-toolbar-info-piece">
+            <b>Mercure publications</b>
+            <span class="sf-toolbar-value">{{ collector.publishedTopicsCount }}</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: profiler_url }) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">{{ include('@SilverbackApiComponents/Collector/cwa_icon.svg') }}</span>
+        <strong>CWA</strong>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>CWA API Components Bundle</h2>
+
+    {# ------------------------------------------------------------------ #}
+    {# JWT / Authentication                                                 #}
+    {# ------------------------------------------------------------------ #}
+    <h3>JWT / Authentication</h3>
+    <div class="metrics">
+        <div class="metric">
+            <span class="value">{{ collector.jwtCookiePresent ? 'yes' : 'no' }}</span>
+            <span class="label">Cookie present</span>
+        </div>
+        {% if collector.jwtCookieName %}
+        <div class="metric">
+            <span class="value">{{ collector.jwtCookieName }}</span>
+            <span class="label">Cookie name</span>
+        </div>
+        {% endif %}
+        <div class="metric">
+            <span class="value {{ collector.jwtRefreshIssued ? 'status-warning' : '' }}">{{ collector.jwtRefreshIssued ? 'yes' : 'no' }}</span>
+            <span class="label">Refresh issued</span>
+        </div>
+        <div class="metric">
+            <span class="value {{ collector.jwtCookieCleared ? 'status-error' : '' }}">{{ collector.jwtCookieCleared ? 'yes' : 'no' }}</span>
+            <span class="label">Cookie cleared</span>
+        </div>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    {# Route resolution                                                    #}
+    {# ------------------------------------------------------------------ #}
+    <h3>Route Resolution</h3>
+    {% if collector.resolvedPath %}
+        <div class="metrics">
+            <div class="metric">
+                <span class="value">{{ collector.resolvedPath }}</span>
+                <span class="label">Resolved path</span>
+            </div>
+            {% if collector.resolvedRouteIri %}
+            <div class="metric">
+                <span class="value">{{ collector.resolvedRouteIri }}</span>
+                <span class="label">Route IRI</span>
+            </div>
+            {% endif %}
+            <div class="metric">
+                <span class="value">{{ collector.pageDataFound ? 'yes' : 'no' }}</span>
+                <span class="label">Page data found</span>
+            </div>
+        </div>
+    {% else %}
+        <p class="empty">No CWA route was resolved during this request.</p>
+    {% endif %}
+
+    {# ------------------------------------------------------------------ #}
+    {# Mercure publications                                                #}
+    {# ------------------------------------------------------------------ #}
+    <h3>Mercure Publications</h3>
+    {% if collector.publishedTopicsCount > 0 %}
+        <div class="metrics">
+            <div class="metric">
+                <span class="value">{{ collector.publishedTopicsCount }}</span>
+                <span class="label">Topics published</span>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Topic</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i, topic in collector.publishedTopics %}
+                <tr>
+                    <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
+                    <td>{{ topic }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No Mercure updates were published during this request.</p>
+    {% endif %}
+{% endblock %}
