@@ -16,6 +16,8 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
@@ -26,8 +28,11 @@ class RouteStateProvider implements ProviderInterface
     private RouteRepository $routeRepository;
     private ProviderInterface $defaultProvider;
 
-    public function __construct(RouteRepository $routeRepository, ProviderInterface $defaultProvider)
-    {
+    public function __construct(
+        RouteRepository $routeRepository,
+        ProviderInterface $defaultProvider,
+        private readonly ?CwaCollectorData $collectorData = null,
+    ) {
         $this->routeRepository = $routeRepository;
         $this->defaultProvider = $defaultProvider;
     }
@@ -43,6 +48,12 @@ class RouteStateProvider implements ProviderInterface
             return $this->defaultProvider->provide($operation->withProvider(ItemProvider::class), $uriVariables, $context);
         }
 
-        return $this->routeRepository->findOneByIdOrPath($id);
+        $route = $this->routeRepository->findOneByIdOrPath($id);
+
+        if ($route instanceof Route) {
+            $this->collectorData?->recordPathResolution($id, $route->getPath());
+        }
+
+        return $route;
     }
 }

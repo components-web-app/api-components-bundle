@@ -42,6 +42,8 @@ use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\CleanOrphanedCommand;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
@@ -832,6 +834,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('security.role_hierarchy'),
                 '', // injected in dependency injection
                 new Reference(MercureAuthorization::class),
+                new Reference(CwaCollectorData::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => Events::AUTHENTICATION_SUCCESS, 'method' => 'onJWTAuthenticationSuccess'])
@@ -846,6 +849,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '', // injected in dependency injection
             new Reference(MercureAuthorization::class),
+            new Reference(CwaCollectorData::class),
         ])
         ->tag('kernel.event_listener', ['event' => Events::JWT_INVALID, 'method' => 'onJwtInvalid'])
         ->tag('kernel.event_listener', ['event' => Events::JWT_EXPIRED, 'method' => 'onJwtExpired'])
@@ -938,6 +942,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.doctrine.repository.route'),
                 new Reference('api_platform.state_provider'),
+                new Reference(CwaCollectorData::class),
             ]
         )
         ->autoconfigure(false)
@@ -1799,4 +1804,19 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.uploadable.url_generator.temporary')
         ->class(TemporaryUrlGenerator::class)
         ->tag(UploadableUrlGeneratorInterface::TAG, ['alias' => 'temporary']);
+
+    $services
+        ->set('silverback.api_components.data_collector.data')
+        ->class(CwaCollectorData::class);
+    $services->alias(CwaCollectorData::class, 'silverback.api_components.data_collector.data');
+
+    $services
+        ->set('silverback.api_components.data_collector')
+        ->class(CwaDataCollector::class)
+        ->args([new Reference(CwaCollectorData::class)])
+        ->tag('kernel.data_collector', [
+            'template' => '@SilverbackApiComponents/Collector/cwa.html.twig',
+            'id' => 'cwa',
+        ]);
+    $services->alias(CwaDataCollector::class, 'silverback.api_components.data_collector');
 };

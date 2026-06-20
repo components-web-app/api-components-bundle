@@ -15,6 +15,7 @@
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -38,6 +39,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('messenger.default_bus', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             new Reference('api_platform.graphql.subscription.subscription_manager', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             new Reference('api_platform.graphql.subscription.mercure_iri_generator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            null, // ExpressionLanguage — left null so default auto-detection runs
+            new Reference(CwaCollectorData::class),
         ])
         ->call('setSerializer', [new Reference('serializer')])
         ->tag('silverback_api_components.resource_changed_propagator');
