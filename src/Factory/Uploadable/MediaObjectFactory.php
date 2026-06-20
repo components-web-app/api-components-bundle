@@ -18,7 +18,7 @@ use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
-use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
@@ -42,7 +42,7 @@ class MediaObjectFactory
     public function __construct(
         ManagerRegistry $managerRegistry,
         private readonly FileInfoCacheManager $fileInfoCacheManager,
-        private readonly UploadableAttributeReader $annotationReader,
+        private readonly UploadableAttributeReaderInterface $annotationReader,
         private readonly FilesystemProvider $filesystemProvider,
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly RequestStack $requestStack,

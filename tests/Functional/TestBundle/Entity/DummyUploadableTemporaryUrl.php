@@ -1,0 +1,32 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+use Symfony\Component\HttpFoundation\File\File;
+
+#[Silverback\Uploadable]
+#[ApiResource]
+#[ORM\Entity]
+class DummyUploadableTemporaryUrl
+{
+    use IdTrait;
+    use UploadableTrait;
+
+    // Uses local adapter, which does not implement TemporaryUrlGenerator — verifies the fallback to the API download endpoint
+    #[Silverback\UploadableField(adapter: 'local', urlGenerator: 'temporary')]
+    public ?File $file = null;
+}

@@ -24,6 +24,8 @@ use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -104,6 +106,40 @@ class UploadsContext implements Context
         }
 
         return $object;
+    }
+
+    /**
+     * @Given there is a DummyUploadablePublicUrl
+     */
+    public function thereIsADummyUploadablePublicUrl(): void
+    {
+        $object = new DummyUploadablePublicUrl();
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given there is a DummyUploadableTemporaryUrl
+     */
+    public function thereIsADummyUploadableTemporaryUrl(): void
+    {
+        $object = new DummyUploadableTemporaryUrl();
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Then the JSON node :node should start with :prefix
+     */
+    public function theJsonNodeShouldStartWith(string $node, string $prefix): void
+    {
+        $this->behatchJsonContext->theJsonNodeShouldMatch($node, \sprintf('/^%s/', preg_quote($prefix, '/')));
     }
 
     /**

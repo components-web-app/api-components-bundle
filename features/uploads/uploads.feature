@@ -236,6 +236,20 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 201
 
   @loginUser
+  Scenario: An uploadable field configured with urlGenerator public returns a direct public URL
+    Given there is a DummyUploadablePublicUrl
+    When I send a "GET" request to the resource "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should start with "http://localhost/uploads/"
+
+  @loginUser
+  Scenario: An uploadable field configured with urlGenerator temporary falls back to the API download endpoint when the adapter does not support temporary URLs
+    Given there is a DummyUploadableTemporaryUrl
+    When I send a "GET" request to the resource "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
+
+  @loginUser
   Scenario: A multipart file upload fires exactly one Mercure notification
     Given I add "Content-Type" header equal to "multipart/form-data"
     When I send a "POST" request to "/dummy_uploadables/upload" with parameters:
