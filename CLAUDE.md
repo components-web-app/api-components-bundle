@@ -584,9 +584,7 @@ Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
 
 **`CwaFixtureBuilder` updated:** `GroupBuilder.pageDataPosition()` now takes `pageDataClass` as its first argument: `->pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null)`.
 
-**Nuxt module action required:** The module must now send `pageDataClass` alongside `pageDataProperty` in POST/PATCH requests to `/_/component_positions`. See nuxt module CLAUDE.md for the consumer-side spec.
-
-Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151`.
+Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151` — closed; module now sends `pageDataClass` alongside `pageDataProperty`.
 
 ---
 
@@ -618,6 +616,4 @@ Services instrumented with optional `?CwaCollectorData` arg: `JWTEventListener`,
 
 ## Known Configuration Quirks
 
-### `repeat_ttl_seconds: 8600` — possible typo for 86400
-
-The default value for `user.password_reset.repeat_ttl_seconds` in the bundle configuration is `8600` seconds (2 hours 23 minutes). This is likely a typo for `86400` (24 hours). Verify against `src/DependencyInjection/Configuration.php` before quoting this value in documentation or changing the default. If intentional, add a comment explaining the reasoning.
+*(none)*

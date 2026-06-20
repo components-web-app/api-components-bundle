@@ -187,7 +187,7 @@ class Configuration implements ConfigurationInterface
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Your password reset request')->end()
                                     ->end()
                                 ->end()
-                                ->integerNode('repeat_ttl_seconds')->defaultValue(8600)->end()
+                                ->integerNode('repeat_ttl_seconds')->defaultValue(86400)->end()
                                 ->integerNode('request_timeout_seconds')->defaultValue(3600)->end()
                             ->end()
                         ->end()
