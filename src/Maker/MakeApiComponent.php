@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\Maker;
 
-use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -93,7 +92,7 @@ final class MakeApiComponent extends AbstractMaker
 
         $generator->generateClass(
             $classNameDetails->getFullName(),
-            __DIR__.'/../Resources/skeleton/component/Component.tpl.php',
+            __DIR__ . '/../Resources/skeleton/component/Component.tpl.php',
             [
                 'use_statements' => $useStatements,
                 'timestamped' => $timestamped,

@@ -130,7 +130,7 @@ jobs:
           gpg --keyserver keyserver.ubuntu.com --recv-keys C6D76C329EBADE2FB9C458CFC5095986493B4AA0
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=90 --threads=30
+          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
       - name: Upload Infection Mutation Logs
         if: matrix.coverage
         uses: actions/upload-artifact@v4

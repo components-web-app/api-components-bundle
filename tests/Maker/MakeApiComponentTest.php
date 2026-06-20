@@ -17,7 +17,6 @@ use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -61,10 +60,10 @@ class MakeApiComponentTest extends TestCase
 
         $generator->expects($this->once())
             ->method('generateClass')
-            ->willReturnCallback(function (string $className, string $template, array $vars) use (&$capturedVars): string {
+            ->willReturnCallback(static function (string $className, string $template, array $vars) use (&$capturedVars): string {
                 $capturedVars = $vars;
 
-                return 'src/Entity/Component/'.basename($className).'.php';
+                return 'src/Entity/Component/' . basename($className) . '.php';
             });
 
         $generator->expects($this->once())->method('writeChanges');
@@ -72,17 +71,17 @@ class MakeApiComponentTest extends TestCase
         return $generator;
     }
 
-    public function testCommandName(): void
+    public function test_command_name(): void
     {
         $this->assertSame('make:api-component', MakeApiComponent::getCommandName());
     }
 
-    public function testCommandDescription(): void
+    public function test_command_description(): void
     {
         $this->assertNotEmpty(MakeApiComponent::getCommandDescription());
     }
 
-    public function testGeneratesMinimalComponent(): void
+    public function test_generates_minimal_component(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -96,7 +95,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertFalse($vars['uploadable']);
     }
 
-    public function testGeneratesWithTimestamped(): void
+    public function test_generates_with_timestamped(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -110,7 +109,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertFalse($vars['uploadable']);
     }
 
-    public function testGeneratesWithPublishable(): void
+    public function test_generates_with_publishable(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -124,7 +123,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertFalse($vars['uploadable']);
     }
 
-    public function testGeneratesWithUploadable(): void
+    public function test_generates_with_uploadable(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -138,7 +137,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertTrue($vars['uploadable']);
     }
 
-    public function testGeneratesWithAllAnnotations(): void
+    public function test_generates_with_all_annotations(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -152,7 +151,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertTrue($vars['uploadable']);
     }
 
-    public function testOutputIncludesMigrationReminder(): void
+    public function test_output_includes_migration_reminder(): void
     {
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\Component\\MyComponent', $vars);
@@ -166,7 +165,7 @@ class MakeApiComponentTest extends TestCase
         $this->assertStringContainsString('review', $text);
     }
 
-    public function testInteractAsksAllThreeQuestions(): void
+    public function test_interact_asks_all_three_questions(): void
     {
         $command = $this->configuredCommand();
 
