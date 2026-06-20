@@ -68,11 +68,7 @@ class FormApiEventListener
 
         if ($data->formView->getForm()->isValid()) {
             $result = $this->formSubmitHelper->handleSuccess($data);
-            // Only replace the Form with the result if it is an explicit Response object
-            // (e.g. a 404 from PasswordUpdateListener). Entity results (e.g. the created User
-            // from registration) are intentionally ignored — the submit endpoint always returns
-            // the Form entity so @type and @id remain stable regardless of side-effects.
-            if ($result instanceof Response) {
+            if ($result) {
                 $data = $result;
             }
         }
@@ -103,11 +99,23 @@ class FormApiEventListener
             return;
         }
 
+        $response = $event->getResponse();
+
         if ($formView = $data->formView) {
             $form = $formView->getForm();
-            $response = $event->getResponse();
             if (!$form->isValid()) {
                 $response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        }
+
+        // AP4 uses the submit operation's uriTemplate to generate @id, giving /{uuid}/submit.
+        // Strip the suffix so @id always points to the canonical resource IRI.
+        $content = $response->getContent();
+        if ($content && str_contains($content, '\/submit"')) {
+            $decoded = json_decode($content, true);
+            if (isset($decoded['@id']) && str_ends_with($decoded['@id'], '/submit')) {
+                $decoded['@id'] = substr($decoded['@id'], 0, -\strlen('/submit'));
+                $response->setContent(json_encode($decoded));
             }
         }
     }
