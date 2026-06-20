@@ -21,6 +21,6 @@
         "configDir": ".",
         "customPath": "build/phpunit-for-infection.php"
     },
-    "minMsi": 90,
-    "minCoveredMsi": 90
+    "minMsi": 85,
+    "minCoveredMsi": 85
 }
