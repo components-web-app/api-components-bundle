@@ -29,6 +29,7 @@ use Symfony\Contracts\Service\ResetInterface;
 final class JWTEventListener implements ResetInterface
 {
     private ?string $token = null;
+    private readonly string $jwtCookieName;
 
     public function __construct(
         private readonly RoleHierarchy $roleHierarchy,
@@ -36,6 +37,7 @@ final class JWTEventListener implements ResetInterface
         private readonly MercureAuthorization $mercureAuthorization,
         private readonly ?CwaCollectorData $collectorData = null,
     ) {
+        $this->jwtCookieName = $cookieProvider->createCookie('header.payload.signature')->getName();
     }
 
     public function onJWTAuthenticationSuccess(AuthenticationSuccessEvent $event): void
@@ -78,9 +80,8 @@ final class JWTEventListener implements ResetInterface
 
         // Record whether a JWT cookie was present on the incoming request
         $request = $event->getRequest();
-        $cookieName = $this->cookieProvider->createCookie('x')->getName();
-        if ($request->cookies->has($cookieName)) {
-            $this->collectorData?->recordJwtCookiePresent($cookieName);
+        if ($request->cookies->has($this->jwtCookieName)) {
+            $this->collectorData?->recordJwtCookiePresent($this->jwtCookieName);
         }
 
         if (!empty($token)) {
