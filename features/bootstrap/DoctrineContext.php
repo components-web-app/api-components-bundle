@@ -709,7 +709,7 @@ final class DoctrineContext implements Context
         $this->timestampedHelper->persistTimestampedFields($page, true);
         $this->manager->persist($page);
 
-        $pageData = new \Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData();
+        $pageData = new PageData();
         $pageData->setTitle('Test PageData');
         $pageData->page = $page;
         $this->timestampedHelper->persistTimestampedFields($pageData, true);
