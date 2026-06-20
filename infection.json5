@@ -17,10 +17,6 @@
     "testFramework": "phpunit",
     "testFrameworkOptions": "--exclude-group=functional",
     "initialTestsPhpOptions": "-d memory_limit=512M",
-    "phpUnit": {
-        "configDir": ".",
-        "customPath": "build/phpunit-for-infection.php"
-    },
     "minMsi": 85,
     "minCoveredMsi": 85
 }
