@@ -28,7 +28,7 @@ class CwaDataCollectorTest extends TestCase
         $this->collector = new CwaDataCollector($this->collectorData);
     }
 
-    public function test_getName_returns_cwa(): void
+    public function test_get_name_returns_cwa(): void
     {
         self::assertSame('cwa', $this->collector->getName());
     }
