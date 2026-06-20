@@ -1817,7 +1817,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.data_collector')
         ->class(CwaDataCollector::class)
         ->args([new Reference(CwaCollectorData::class)])
-        ->tag('kernel.data_collector', [
+        ->tag('data_collector', [
             'template' => '@SilverbackApiComponents/Collector/cwa.html.twig',
             'id' => 'cwa',
         ]);
