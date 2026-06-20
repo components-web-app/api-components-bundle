@@ -534,6 +534,10 @@ class CwaFixtureBuilder
             $position->sortValue = $item['sort'];
             $position->component = $component;
             $position->componentGroup = $componentGroup;
+            if (!isset($this->persistedEntities[spl_object_id($component)])
+                && $this->timestampedPersister->isConfigured($component)) {
+                $this->timestampedPersister->persistTimestampedFields($component, true);
+            }
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->persistWithAssociations($component);
             $this->manager->persist($position);

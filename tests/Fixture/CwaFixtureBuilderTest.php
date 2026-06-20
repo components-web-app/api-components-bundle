@@ -1999,6 +1999,35 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(1, $callCount, 'onRoutesCreated must fire exactly once even when flush() is called multiple times');
     }
 
+    public function test_timestamped_persister_called_for_component_added_directly_to_group(): void
+    {
+        $calls = [];
+        $component = new class extends AbstractComponent {};
+
+        $persister = $this->createStub(TimestampedDataPersister::class);
+        $persister->method('isConfigured')->willReturnCallback(
+            static fn (object $entity): bool => $entity instanceof AbstractComponent
+        );
+        $persister->method('persistTimestampedFields')->willReturnCallback(
+            static function (object $entity, bool $isNew) use (&$calls): void {
+                $calls[] = ['entity' => $entity, 'isNew' => $isNew];
+            }
+        );
+
+        $builder = $this->makeBuilder(timestampedPersister: $persister);
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'Template', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+
+        $componentCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] === $component));
+        $this->assertNotEmpty($componentCalls, 'persistTimestampedFields must be called for component added via GroupBuilder::add() when isConfigured() returns true');
+        foreach ($componentCalls as $call) {
+            $this->assertTrue($call['isNew']);
+        }
+    }
+
     // --- readProperty: DoWhile traverses parent class hierarchy (kills not-covered DoWhile mutant line 578) ---
 
     public function test_read_property_finds_property_declared_only_in_parent_class(): void

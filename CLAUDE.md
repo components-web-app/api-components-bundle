@@ -614,6 +614,12 @@ Services instrumented with optional `?CwaCollectorData` arg: `JWTEventListener`,
 
 ---
 
+## ~~Bug: `CwaFixtureBuilder::createPositions()` does not timestamp components~~ — FIXED
+
+**Fix (committed PLACEHOLDER):** In `createPositions()`, before `$this->persistWithAssociations($component)`, guard with `isConfigured()` and call `persistTimestampedFields($component, true)` when the component is not already in `$persistedEntities`. PHPUnit test added to `tests/Fixture/CwaFixtureBuilderTest.php`.
+
+---
+
 ## Known Configuration Quirks
 
 *(none)*
