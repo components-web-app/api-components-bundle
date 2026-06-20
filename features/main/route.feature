@@ -73,6 +73,18 @@ Feature: Route resources
     And the JSON node redirectPath should be equal to the string "/contact-new"
     And the JSON node page should be equal to the string "resource[route_page]"
 
+  Scenario: A route with its own page and a redirect still returns the page IRI
+    Given there is a Route "/parent" with a page and a redirect to "/child"
+    When I send a "GET" request to "/_/routes//parent"
+    Then the response status code should be 200
+    And the JSON node page should be equal to the string "resource[route_page]"
+
+  Scenario: A route with its own pageData and a redirect still returns the pageData IRI
+    Given there is a Route "/parent" with a pageData and a redirect to "/child"
+    When I send a "GET" request to "/_/routes//parent"
+    Then the response status code should be 200
+    And the JSON node pageData should be equal to the string "resource[page_data]"
+
   # Route generate
   @loginUser
   Scenario: I can automatically generate a route from a PageData resource

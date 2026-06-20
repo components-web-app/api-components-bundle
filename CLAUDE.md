@@ -620,6 +620,14 @@ Services instrumented with optional `?CwaCollectorData` arg: `JWTEventListener`,
 
 ---
 
+## ~~Bug: `RouteNormalizer` mutates page/pageData entity state during serialization~~ — FIXED
+
+**Fixed (committed below):** `RouteNormalizer.normalize()` previously called `$object->setPage($finalRoute->getPage())` and `$object->setPageData($finalRoute->getPageData())` before normalizing a redirect route. Both setters call `$page->setRoute($this)` as a side effect, which corrupts Doctrine's identity map by moving the page/pageData's owning-side FK away from its correct route. In worker mode (FrankenPHP), the entity manager persists between requests so this dirty state is eventually flushed to the DB, causing `page: null` on the chapter route and `pageData: null` on the redirect route.
+
+**Fix:** Use `ReflectionProperty` to set `page` / `pageData` directly on the Route (bypassing the setters) before normalizing, then restore the original values after. Only sets from the final redirect target when the route has no own value (`null` check). Behat tests added for: route with page+redirect returns page IRI; route with pageData+redirect returns pageData IRI.
+
+---
+
 ## Known Configuration Quirks
 
 *(none)*

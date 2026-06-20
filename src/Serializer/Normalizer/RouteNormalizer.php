@@ -52,15 +52,29 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         }
 
         $isRedirect = $finalRoute !== $object;
+
         if ($isRedirect) {
-            $object->setPage($finalRoute->getPage());
-            $object->setPageData($finalRoute->getPageData());
+            // Use reflection to temporarily propagate page/pageData from the final route for serialization.
+            // We must NOT call setPage/setPageData: those setters call $page->setRoute($this),
+            // which corrupts Doctrine's identity map and causes stale data to be flushed to the DB.
+            $reflPage = new \ReflectionProperty($object, 'page');
+            $reflPageData = new \ReflectionProperty($object, 'pageData');
+            $originalPage = $reflPage->getValue($object);
+            $originalPageData = $reflPageData->getValue($object);
+            if (null === $originalPage) {
+                $reflPage->setValue($object, $finalRoute->getPage());
+            }
+            if (null === $originalPageData) {
+                $reflPageData->setValue($object, $finalRoute->getPageData());
+            }
         }
 
         $normalized = $this->normalizer->normalize($object, $format, $context);
 
         if ($isRedirect) {
             $normalized['redirectPath'] = $finalRoute->getPath();
+            $reflPage->setValue($object, $originalPage);
+            $reflPageData->setValue($object, $originalPageData);
         }
 
         return $normalized;

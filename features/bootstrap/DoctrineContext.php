@@ -665,6 +665,70 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a Route :path with a page and a redirect to :redirectPath
+     */
+    public function thereIsARouteWithPageAndRedirect(string $path, string $redirectPath): void
+    {
+        $childRoute = new Route();
+        $childRoute->setPath($redirectPath)->setName($redirectPath);
+        $this->timestampedHelper->persistTimestampedFields($childRoute, true);
+        $this->manager->persist($childRoute);
+
+        $page = new Page();
+        $page->isTemplate = false;
+        $page->reference = 'route-page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $parentRoute = new Route();
+        $parentRoute->setPath($path)->setName($path)->setRedirect($childRoute);
+        $parentRoute->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($parentRoute, true);
+        $this->manager->persist($parentRoute);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($parentRoute);
+        $this->restContext->resources['route_page'] = $this->iriConverter->getIriFromResource($page);
+        $this->restContext->resources['child_route'] = $this->iriConverter->getIriFromResource($childRoute);
+    }
+
+    /**
+     * @Given there is a Route :path with a pageData and a redirect to :redirectPath
+     */
+    public function thereIsARouteWithPageDataAndRedirect(string $path, string $redirectPath): void
+    {
+        $childRoute = new Route();
+        $childRoute->setPath($redirectPath)->setName($redirectPath);
+        $this->timestampedHelper->persistTimestampedFields($childRoute, true);
+        $this->manager->persist($childRoute);
+
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'template-page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $pageData = new \Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData();
+        $pageData->setTitle('Test PageData');
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        $parentRoute = new Route();
+        $parentRoute->setPath($path)->setName($path)->setRedirect($childRoute);
+        $parentRoute->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($parentRoute, true);
+        $this->manager->persist($parentRoute);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($parentRoute);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
+        $this->restContext->resources['child_route'] = $this->iriConverter->getIriFromResource($childRoute);
+    }
+
+    /**
      * @Given there is a Route :path which redirects to :redirectTo
      */
     public function thereIsARouteWithRedirects(string $firstPath, string $redirectTo): void
