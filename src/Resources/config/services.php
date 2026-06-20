@@ -496,6 +496,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(SerializeFormatResolver::class),
                 new Reference(SerializerInterface::class),
                 new Reference(FormViewFactory::class),
+                new Reference(IriConverterInterface::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])

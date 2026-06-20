@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
+use ApiPlatform\Metadata\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
@@ -31,12 +32,14 @@ class FormApiEventListener
     private SerializeFormatResolver $serializeFormatResolver;
     private SerializerInterface $serializer;
     private FormViewFactory $formViewFactory;
+    private IriConverterInterface $iriConverter;
 
     public function __construct(
         FormSubmitHelper $formSubmitHelper,
         SerializeFormatResolver $serializeFormatResolver,
         SerializerInterface $serializer,
         FormViewFactory $formViewFactory,
+        IriConverterInterface $iriConverter,
     ) {
         if (!$serializer instanceof DecoderInterface) {
             throw new \InvalidArgumentException(\sprintf('$serializer must be also be an instance of %s', DecoderInterface::class));
@@ -45,6 +48,7 @@ class FormApiEventListener
         $this->serializeFormatResolver = $serializeFormatResolver;
         $this->serializer = $serializer;
         $this->formViewFactory = $formViewFactory;
+        $this->iriConverter = $iriConverter;
     }
 
     public function onPreSerialize(ViewEvent $event): void
@@ -109,13 +113,16 @@ class FormApiEventListener
         }
 
         // AP4 uses the submit operation's uriTemplate to generate @id, giving /{uuid}/submit.
-        // Strip the suffix so @id always points to the canonical resource IRI.
+        // Use the IRI converter to get the canonical IRI and correct @id when it differs.
         $content = $response->getContent();
-        if ($content && str_contains($content, '\/submit"')) {
+        if ($content) {
             $decoded = json_decode($content, true);
-            if (isset($decoded['@id']) && str_ends_with($decoded['@id'], '/submit')) {
-                $decoded['@id'] = substr($decoded['@id'], 0, -\strlen('/submit'));
-                $response->setContent(json_encode($decoded));
+            if (isset($decoded['@id'])) {
+                $canonicalIri = $this->iriConverter->getIriFromResource($data);
+                if ($decoded['@id'] !== $canonicalIri) {
+                    $decoded['@id'] = $canonicalIri;
+                    $response->setContent(json_encode($decoded));
+                }
             }
         }
     }
