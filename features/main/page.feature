@@ -156,6 +156,72 @@ Feature: Page resources
     And the JSON node "member[0].parentPage" should be equal to the IRI of the resource "page"
 
   @loginAdmin
+  Scenario: The page resources can be ordered descending by reference
+    Given there is a Page with the reference "1"
+    And there is a Page with the reference "2"
+    When I send a "GET" request to "/_/pages?order[reference]=desc"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
+    And the JSON node "member[0].reference" should be equal to "2"
+    And the JSON node "member[1].reference" should be equal to "1"
+
+  @loginAdmin
+  Scenario: The page resources can be ordered ascending by createdAt
+    Given there is a Page with the reference "page_1" and with createdAt "now"
+    And there is a Page with the reference "page_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/pages?order[createdAt]=asc"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
+    And the JSON node "member[0].reference" should be equal to "page_1"
+    And the JSON node "member[1].reference" should be equal to "page_2"
+
+  @loginAdmin
+  Scenario: The page resources can be ordered descending by createdAt
+    Given there is a Page with the reference "page_1" and with createdAt "now"
+    And there is a Page with the reference "page_2" and with createdAt "+10 seconds"
+    When I send a "GET" request to "/_/pages?order[createdAt]=desc"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
+    And the JSON node "member[0].reference" should be equal to "page_2"
+    And the JSON node "member[1].reference" should be equal to "page_1"
+
+  @loginAdmin
+  Scenario: The page resources can be searched by reference
+    Given there is a Page with the reference "primary"
+    And there is a Page with the reference "secondary"
+    When I send a "GET" request to "/_/pages?reference=primary"
+    Then the response status code should be 200
+    And the JSON node "member" should have "1" element
+    And the JSON node "member[0].reference" should be equal to "primary"
+
+  @loginAdmin
+  Scenario: The page resources can be searched by title
+    Given there is a Page with the reference "conf" and with the title "My Conference"
+    And there is a Page with the reference "contact" and with the title "Contact Us"
+    When I send a "GET" request to "/_/pages?title=Conference"
+    Then the response status code should be 200
+    And the JSON node "member" should have "1" element
+    And the JSON node "member[0].reference" should be equal to "conf"
+
+  @loginAdmin
+  Scenario: The page resources can be searched by uiComponent
+    Given there is a Page with the reference "primary" and with the uiComponent "PrimaryPage"
+    And there is a Page with the reference "secondary" and with the uiComponent "SecondaryPage"
+    When I send a "GET" request to "/_/pages?uiComponent=PrimaryPage"
+    Then the response status code should be 200
+    And the JSON node "member" should have "1" element
+    And the JSON node "member[0].reference" should be equal to "primary"
+
+  @loginAdmin
+  Scenario: The page resources can be filtered to show only templates
+    Given there is a template Page with the reference "my-template"
+    And there is a Page with the reference "not-a-template"
+    When I send a "GET" request to "/_/pages?isTemplate=1"
+    Then the response status code should be 200
+    And the JSON node "member" should have "1" element
+    And the JSON node "member[0].reference" should be equal to "my-template"
+
+  @loginAdmin
   Scenario: I can get a resource manifest for a nested Page by UUID
     Given there is a Page resource with the route path "/conference/programme" nested within the route "/conference"
     When I send a "GET" request to the resource "page_manifest"

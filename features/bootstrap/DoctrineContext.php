@@ -569,6 +569,27 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given /^there is a(?: (template))? Page with the reference "([^"]+)"(?: and with createdAt "([^"]+)")?(?: and with the title "([^"]+)")?(?: and with the uiComponent "([^"]+)")?$/
+     */
+    public function thereIsAPageWithOptions(?string $isTemplate, string $reference, ?string $createdAt = null, ?string $title = null, ?string $uiComponent = null): Page
+    {
+        $page = new Page();
+        $page->isTemplate = 'template' === $isTemplate;
+        $page->reference = $reference;
+        $page->setTitle($title);
+        $page->uiComponent = $uiComponent;
+        if (null !== $createdAt) {
+            $page->setCreatedAt(new \DateTimeImmutable($createdAt));
+        }
+        $this->timestampedHelper->persistTimestampedFields($page, null === $createdAt);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->resources[$reference] = $this->iriConverter->getIriFromResource($page);
+
+        return $page;
+    }
+
+    /**
      * @Given there is a child Page with a Layout
      */
     public function thereIsAChildPageWithLayout(): Page
