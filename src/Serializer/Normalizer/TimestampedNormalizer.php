@@ -63,9 +63,8 @@ class TimestampedNormalizer implements DenormalizerInterface, DenormalizerAwareI
         return $object;
     }
 
-    // TODO: is this only for objects?
     public function getSupportedTypes(?string $format): array
     {
-        return ['*' => false];
+        return ['object' => false];
     }
 }
