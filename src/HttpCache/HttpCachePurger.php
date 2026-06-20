@@ -20,6 +20,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\PersistentCollection;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface
 {
@@ -29,6 +30,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly ?PurgerInterface $httpCachePurger,
+        private readonly ?CwaCollectorData $collectorData = null,
     ) {
         $this->reset();
     }
@@ -91,7 +93,9 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
             return;
         }
 
-        $this->httpCachePurger && $this->httpCachePurger->purge(array_values($this->tags));
+        $iris = array_values($this->tags);
+        $this->collectorData?->recordCachePurge($iris);
+        $this->httpCachePurger && $this->httpCachePurger->purge($iris);
         $this->reset();
     }
 

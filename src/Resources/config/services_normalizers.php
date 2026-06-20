@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -104,6 +105,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference('api_platform.iri_converter'),
             new Reference(ResourceMetadataProvider::class),
+            new Reference(CwaCollectorData::class),
         ])
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(ComponentPositionNormalizer::class, 'silverback.api_components.serializer.normalizer.component_position');

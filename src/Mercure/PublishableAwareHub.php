@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Mercure;
 
 use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
@@ -24,7 +25,7 @@ use Symfony\Component\Mercure\Update;
  */
 class PublishableAwareHub implements HubInterface
 {
-    public function __construct(private HubInterface $decorated, private PublishableStatusChecker $publishableStatusChecker, private IriConverterInterface $iriConverter)
+    public function __construct(private HubInterface $decorated, private PublishableStatusChecker $publishableStatusChecker, private IriConverterInterface $iriConverter, private readonly ?CwaCollectorData $collectorData = null)
     {
     }
 
@@ -59,6 +60,7 @@ class PublishableAwareHub implements HubInterface
 
             if ($this->publishableStatusChecker->getAttributeReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
                 $update = new Update(topics: $update->getTopics(), data: $update->getData(), private: true, id: $update->getId(), type: $update->getType(), retry: $update->getRetry());
+                $this->collectorData?->recordMercurePrivateUpgrade($update->getTopics(), $resource::class);
             }
         }
 

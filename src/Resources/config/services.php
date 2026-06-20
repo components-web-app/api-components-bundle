@@ -777,6 +777,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.api_components.mercure.publishable_aware_hub.inner'),
                 new Reference(PublishableStatusChecker::class),
                 new Reference(IriConverterInterface::class),
+                new Reference(CwaCollectorData::class),
             ]
         )
         ->tag('mercure.hub');
@@ -791,6 +792,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('request_stack'),
                 new Reference('doctrine'),
+                new Reference(CwaCollectorData::class),
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.item', ['priority' => 100])
@@ -1774,6 +1776,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.resource_class_resolver'),
             new Reference(PageDataProvider::class),
             new Reference('silverback.doctrine.repository.component_position'),
+            new Reference(CwaCollectorData::class),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);

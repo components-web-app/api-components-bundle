@@ -4,12 +4,17 @@
     {% set icon %}
         {{ include('@SilverbackApiComponents/Collector/cwa_icon.svg') }}
         {% set mercure_count = collector.publishedTopicsCount %}
-        {% set status_color = '' %}
         <span class="sf-toolbar-value">CWA</span>
         {% if mercure_count > 0 %}
             <span class="sf-toolbar-info-piece-additional-detail">
                 <span class="sf-toolbar-label">Mercure</span>
                 <span class="sf-toolbar-value">{{ mercure_count }}</span>
+            </span>
+        {% endif %}
+        {% if collector.totalInvalidated > 0 %}
+            <span class="sf-toolbar-info-piece-additional-detail">
+                <span class="sf-toolbar-label">Invalidated</span>
+                <span class="sf-toolbar-value">{{ collector.totalInvalidated }}</span>
             </span>
         {% endif %}
     {% endset %}
@@ -43,6 +48,18 @@
             <b>Mercure publications</b>
             <span class="sf-toolbar-value">{{ collector.publishedTopicsCount }}</span>
         </div>
+        {% if collector.publishableQueryCount > 0 %}
+        <div class="sf-toolbar-info-piece">
+            <b>Publishable queries</b>
+            <span class="sf-toolbar-value">{{ collector.publishableQueryCount }}</span>
+        </div>
+        {% endif %}
+        {% if collector.totalInvalidated > 0 %}
+        <div class="sf-toolbar-info-piece">
+            <b>Entities invalidated</b>
+            <span class="sf-toolbar-value">{{ collector.totalInvalidated }}</span>
+        </div>
+        {% endif %}
     {% endset %}
 
     {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: profiler_url }) }}
@@ -109,6 +126,124 @@
     {% endif %}
 
     {# ------------------------------------------------------------------ #}
+    {# Publishable ORM queries                                             #}
+    {# ------------------------------------------------------------------ #}
+    <h3>Publishable ORM Queries</h3>
+    {% if collector.publishableQueryCount > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Class</th>
+                    <th>Query type</th>
+                    <th>Mode</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i, q in collector.publishableQueries %}
+                <tr>
+                    <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
+                    <td class="font-normal text-small nowrap">{{ q.class|split('\\')|last }}</td>
+                    <td class="font-normal text-small">{{ q.queryType }}</td>
+                    <td>
+                        {% if q.mode == 'draft' %}
+                            <span class="status-warning">draft</span>
+                        {% else %}
+                            <span class="status-success">published_only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No publishable ORM queries were recorded for this request.</p>
+    {% endif %}
+
+    {# ------------------------------------------------------------------ #}
+    {# PageDataProperty resolutions                                        #}
+    {# ------------------------------------------------------------------ #}
+    <h3>PageDataProperty Resolutions</h3>
+    {% if collector.pageDataResolutionCount > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Property</th>
+                    <th>Resolved class</th>
+                    <th>Outcome</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i, r in collector.pageDataResolutions %}
+                <tr>
+                    <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
+                    <td class="font-normal text-small">{{ r.property }}</td>
+                    <td class="font-normal text-small text-muted">{{ r.resolvedClass ? r.resolvedClass|split('\\')|last : '—' }}</td>
+                    <td>
+                        {% if r.skipReason is null %}
+                            <span class="status-success">resolved</span>
+                        {% elseif r.skipReason == 'not_published' %}
+                            <span class="status-warning">{{ r.skipReason }}</span>
+                        {% else %}
+                            <span class="status-error">{{ r.skipReason }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No pageDataProperty positions were encountered during this request.</p>
+    {% endif %}
+
+    {# ------------------------------------------------------------------ #}
+    {# Write invalidation fan-out                                         #}
+    {# ------------------------------------------------------------------ #}
+    <h3>Write Invalidation Fan-out</h3>
+    {% set counts = collector.invalidationCounts %}
+    {% if collector.totalInvalidated > 0 or collector.cachePurgedCount > 0 %}
+        <div class="metrics">
+            <div class="metric">
+                <span class="value">{{ counts.created }}</span>
+                <span class="label">Created</span>
+            </div>
+            <div class="metric">
+                <span class="value">{{ counts.updated }}</span>
+                <span class="label">Updated</span>
+            </div>
+            <div class="metric">
+                <span class="value">{{ counts.deleted }}</span>
+                <span class="label">Deleted</span>
+            </div>
+            <div class="metric">
+                <span class="value">{{ collector.cachePurgedCount }}</span>
+                <span class="label">Cache IRIs purged</span>
+            </div>
+        </div>
+        {% if collector.cachePurgedCount > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Purged IRI</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i, iri in collector.cachePurgedIris %}
+                <tr>
+                    <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
+                    <td class="font-normal text-small">{{ iri }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    {% else %}
+        <p class="empty">No write fan-out was recorded for this request.</p>
+    {% endif %}
+
+    {# ------------------------------------------------------------------ #}
     {# Mercure publications                                                #}
     {# ------------------------------------------------------------------ #}
     <h3>Mercure Publications</h3>
@@ -118,24 +253,65 @@
                 <span class="value">{{ collector.publishedTopicsCount }}</span>
                 <span class="label">Topics published</span>
             </div>
+            <div class="metric">
+                <span class="value {{ collector.mercurePrivateUpgradeCount > 0 ? 'status-warning' : '' }}">{{ collector.mercurePrivateUpgradeCount }}</span>
+                <span class="label">Upgraded to private</span>
+            </div>
         </div>
         <table>
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Topic</th>
+                    <th>Private?</th>
                 </tr>
             </thead>
             <tbody>
+                {% set privateTopics = [] %}
+                {% for upgrade in collector.mercurePrivateUpgrades %}
+                    {% set privateTopics = privateTopics|merge(upgrade.topics) %}
+                {% endfor %}
                 {% for i, topic in collector.publishedTopics %}
                 <tr>
                     <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
                     <td>{{ topic }}</td>
+                    <td>
+                        {% if topic in privateTopics %}
+                            <span class="status-warning">yes (draft)</span>
+                        {% else %}
+                            no
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
         <p class="empty">No Mercure updates were published during this request.</p>
+    {% endif %}
+
+    {# ------------------------------------------------------------------ #}
+    {# Private Mercure upgrades detail                                     #}
+    {# ------------------------------------------------------------------ #}
+    {% if collector.mercurePrivateUpgradeCount > 0 %}
+    <h3>Private Mercure Upgrades</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Resource class</th>
+                <th>Topics</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i, upgrade in collector.mercurePrivateUpgrades %}
+            <tr>
+                <td class="font-normal text-small text-muted nowrap">{{ i + 1 }}</td>
+                <td class="font-normal text-small nowrap">{{ upgrade.resourceClass|split('\\')|last }}</td>
+                <td class="font-normal text-small">{{ upgrade.topics|join(', ') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% endif %}
 {% endblock %}

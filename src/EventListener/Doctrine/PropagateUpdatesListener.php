@@ -25,6 +25,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Doctrine\Persistence\Proxy;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
@@ -52,6 +53,7 @@ class PropagateUpdatesListener
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly PageDataProvider $pageDataProvider,
         private readonly ComponentPositionRepository $positionRepository,
+        private readonly ?CwaCollectorData $collectorData = null,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
@@ -244,6 +246,7 @@ class PropagateUpdatesListener
             'type' => $type,
             'resourceClass' => $resourceClass,
         ];
+        $this->collectorData?->recordInvalidationCount($type);
     }
 
     private function collectDynamicComponentPositionResources(?array $pageDataPropertiesChanged = null): void

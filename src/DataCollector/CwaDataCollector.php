@@ -18,10 +18,14 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 /**
  * Symfony profiler/toolbar panel for the CWA API Components Bundle.
  *
- * Shows three categories of per-request information:
- *   1. JWT / authentication — cookie presence, refresh, clearance
- *   2. Route resolution     — path header, resolved route IRI, page data
- *   3. Mercure publications — count and topic list
+ * Shows per-request information across seven categories:
+ *   1. JWT / authentication        — cookie presence, refresh, clearance
+ *   2. Route resolution            — path header, resolved route IRI, page data
+ *   3. Mercure publications        — count and topic list
+ *   4. Publishable ORM queries     — draft vs published-only mode per class
+ *   5. PageDataProperty resolution — outcome per dynamic slot
+ *   6. Write invalidation fan-out  — entity counts and cache-purged IRIs
+ *   7. Private Mercure upgrades    — topics upgraded to private for draft resources
  *
  * @author Daniel West <daniel@silverback.is>
  */
@@ -45,9 +49,27 @@ final class CwaDataCollector extends DataCollector
             'resolved_route_iri' => $this->collectorData->getResolvedRouteIri(),
             'page_data_found' => $this->collectorData->isPageDataFound(),
 
-            // Mercure
+            // Mercure publications
             'published_topics' => $this->collectorData->getPublishedTopics(),
             'published_topics_count' => $this->collectorData->getPublishedTopicsCount(),
+
+            // Publishable ORM queries
+            'publishable_queries' => $this->collectorData->getPublishableQueries(),
+            'publishable_query_count' => $this->collectorData->getPublishableQueryCount(),
+
+            // PageDataProperty resolutions
+            'page_data_resolutions' => $this->collectorData->getPageDataResolutions(),
+            'page_data_resolution_count' => $this->collectorData->getPageDataResolutionCount(),
+
+            // Write invalidation fan-out
+            'invalidation_counts' => $this->collectorData->getInvalidationCounts(),
+            'total_invalidated' => $this->collectorData->getTotalInvalidated(),
+            'cache_purged_iris' => $this->collectorData->getCachePurgedIris(),
+            'cache_purged_count' => $this->collectorData->getCachePurgedCount(),
+
+            // Private Mercure upgrades
+            'mercure_private_upgrades' => $this->collectorData->getMercurePrivateUpgrades(),
+            'mercure_private_upgrade_count' => $this->collectorData->getMercurePrivateUpgradeCount(),
         ];
     }
 
@@ -110,5 +132,60 @@ final class CwaDataCollector extends DataCollector
     public function getPublishedTopicsCount(): int
     {
         return (int) ($this->data['published_topics_count'] ?? 0);
+    }
+
+    /** @return list<array{class: string, mode: string, queryType: string}> */
+    public function getPublishableQueries(): array
+    {
+        return $this->data['publishable_queries'] ?? [];
+    }
+
+    public function getPublishableQueryCount(): int
+    {
+        return (int) ($this->data['publishable_query_count'] ?? 0);
+    }
+
+    /** @return list<array{property: string, resolvedClass: string|null, skipReason: string|null}> */
+    public function getPageDataResolutions(): array
+    {
+        return $this->data['page_data_resolutions'] ?? [];
+    }
+
+    public function getPageDataResolutionCount(): int
+    {
+        return (int) ($this->data['page_data_resolution_count'] ?? 0);
+    }
+
+    /** @return array{created: int, updated: int, deleted: int} */
+    public function getInvalidationCounts(): array
+    {
+        return $this->data['invalidation_counts'] ?? ['created' => 0, 'updated' => 0, 'deleted' => 0];
+    }
+
+    public function getTotalInvalidated(): int
+    {
+        return (int) ($this->data['total_invalidated'] ?? 0);
+    }
+
+    /** @return list<string> */
+    public function getCachePurgedIris(): array
+    {
+        return $this->data['cache_purged_iris'] ?? [];
+    }
+
+    public function getCachePurgedCount(): int
+    {
+        return (int) ($this->data['cache_purged_count'] ?? 0);
+    }
+
+    /** @return list<array{topics: list<string>, resourceClass: string}> */
+    public function getMercurePrivateUpgrades(): array
+    {
+        return $this->data['mercure_private_upgrades'] ?? [];
+    }
+
+    public function getMercurePrivateUpgradeCount(): int
+    {
+        return (int) ($this->data['mercure_private_upgrade_count'] ?? 0);
     }
 }

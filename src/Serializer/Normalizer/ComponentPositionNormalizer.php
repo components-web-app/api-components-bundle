@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Proxy;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -58,6 +59,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         private readonly ManagerRegistry $registry,
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceMetadataProvider $resourceMetadataProvider,
+        private readonly ?CwaCollectorData $collectorData = null,
     ) {
     }
 
@@ -151,6 +153,8 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             return $object;
         }
 
+        $property = $object->pageDataProperty;
+
         if (isset($context['cwa_current_page_data'])) {
             $pageData = $context['cwa_current_page_data'];
         } elseif ($this->requestStack->getCurrentRequest()) {
@@ -158,30 +162,40 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
                 $pageData = $this->pageDataProvider->getPageData();
             } catch (UnprocessableEntityHttpException $e) {
                 // when serializing for mercure, we do not need the path header
+                $this->collectorData?->recordPageDataResolution($property, null, 'no_path');
+
                 return $object;
             }
             if (!$pageData) {
+                $this->collectorData?->recordPageDataResolution($property, null, 'no_pagedata');
+
                 return $object;
             }
         } else {
+            $this->collectorData?->recordPageDataResolution($property, null, 'no_request');
+
             return $object;
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         try {
-            $component = $propertyAccessor->getValue($pageData, $object->pageDataProperty);
+            $component = $propertyAccessor->getValue($pageData, $property);
         } catch (UnexpectedTypeException|NoSuchIndexException|NoSuchPropertyException $e) {
+            $this->collectorData?->recordPageDataResolution($property, null, 'property_missing');
+
             return $object;
         }
 
         // optional to have the page data component found
         if (!$component) {
+            $this->collectorData?->recordPageDataResolution($property, null, 'no_component');
+
             return $object;
         }
 
         // it must be a component if it is found though
         if (!$component instanceof AbstractComponent) {
-            throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $object->pageDataProperty));
+            throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $property));
         }
 
         // skip draft components for users without permission to see unpublished content
@@ -190,6 +204,8 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             && !$this->publishableStatusChecker->isActivePublishedAt($component)
             && !$this->publishableStatusChecker->isGranted($component)
         ) {
+            $this->collectorData?->recordPageDataResolution($property, $component::class, 'not_published');
+
             return $object;
         }
 
@@ -202,12 +218,15 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
                 (new GetCollection())->withClass($resourceClass),
             );
             if (!\in_array($iri, $object->componentGroup->allowedComponents, true)) {
+                $this->collectorData?->recordPageDataResolution($property, $component::class, 'not_in_allowed');
+
                 return $object;
             }
         }
 
         // populate the position
         $object->setComponent($component);
+        $this->collectorData?->recordPageDataResolution($property, $component::class, null);
 
         return $object;
     }

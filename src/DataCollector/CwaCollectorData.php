@@ -32,9 +32,27 @@ final class CwaCollectorData implements ResetInterface
     private ?string $resolvedRouteIri = null;
     private bool $pageDataFound = false;
 
-    // --- Mercure ---
+    // --- Mercure publications ---
     /** @var list<string> */
     private array $publishedTopics = [];
+
+    // --- Publishable ORM queries ---
+    /** @var list<array{class: string, mode: string, queryType: string}> */
+    private array $publishableQueries = [];
+
+    // --- PageDataProperty resolutions ---
+    /** @var list<array{property: string, resolvedClass: string|null, skipReason: string|null}> */
+    private array $pageDataResolutions = [];
+
+    // --- Write invalidation fan-out ---
+    /** @var array{created: int, updated: int, deleted: int} */
+    private array $invalidationCounts = ['created' => 0, 'updated' => 0, 'deleted' => 0];
+    /** @var list<string> */
+    private array $cachePurgedIris = [];
+
+    // --- Private Mercure upgrades ---
+    /** @var list<array{topics: list<string>, resourceClass: string}> */
+    private array $mercurePrivateUpgrades = [];
 
     // -----------------------------------------------------------------------
     // JWT
@@ -107,7 +125,7 @@ final class CwaCollectorData implements ResetInterface
     }
 
     // -----------------------------------------------------------------------
-    // Mercure
+    // Mercure publications
     // -----------------------------------------------------------------------
 
     public function recordMercurePublication(string $topic): void
@@ -127,6 +145,106 @@ final class CwaCollectorData implements ResetInterface
     }
 
     // -----------------------------------------------------------------------
+    // Publishable ORM queries
+    // -----------------------------------------------------------------------
+
+    public function recordPublishableQuery(string $class, string $mode, string $queryType): void
+    {
+        $this->publishableQueries[] = ['class' => $class, 'mode' => $mode, 'queryType' => $queryType];
+    }
+
+    /** @return list<array{class: string, mode: string, queryType: string}> */
+    public function getPublishableQueries(): array
+    {
+        return $this->publishableQueries;
+    }
+
+    public function getPublishableQueryCount(): int
+    {
+        return \count($this->publishableQueries);
+    }
+
+    // -----------------------------------------------------------------------
+    // PageDataProperty resolutions
+    // -----------------------------------------------------------------------
+
+    public function recordPageDataResolution(string $property, ?string $resolvedClass, ?string $skipReason): void
+    {
+        $this->pageDataResolutions[] = ['property' => $property, 'resolvedClass' => $resolvedClass, 'skipReason' => $skipReason];
+    }
+
+    /** @return list<array{property: string, resolvedClass: string|null, skipReason: string|null}> */
+    public function getPageDataResolutions(): array
+    {
+        return $this->pageDataResolutions;
+    }
+
+    public function getPageDataResolutionCount(): int
+    {
+        return \count($this->pageDataResolutions);
+    }
+
+    // -----------------------------------------------------------------------
+    // Write invalidation fan-out
+    // -----------------------------------------------------------------------
+
+    public function recordInvalidationCount(string $type): void
+    {
+        if (isset($this->invalidationCounts[$type])) {
+            ++$this->invalidationCounts[$type];
+        }
+    }
+
+    /** @return array{created: int, updated: int, deleted: int} */
+    public function getInvalidationCounts(): array
+    {
+        return $this->invalidationCounts;
+    }
+
+    public function getTotalInvalidated(): int
+    {
+        return array_sum($this->invalidationCounts);
+    }
+
+    /** @param list<string> $iris */
+    public function recordCachePurge(array $iris): void
+    {
+        $this->cachePurgedIris = array_values(array_unique(array_merge($this->cachePurgedIris, $iris)));
+    }
+
+    /** @return list<string> */
+    public function getCachePurgedIris(): array
+    {
+        return $this->cachePurgedIris;
+    }
+
+    public function getCachePurgedCount(): int
+    {
+        return \count($this->cachePurgedIris);
+    }
+
+    // -----------------------------------------------------------------------
+    // Private Mercure upgrades
+    // -----------------------------------------------------------------------
+
+    /** @param list<string> $topics */
+    public function recordMercurePrivateUpgrade(array $topics, string $resourceClass): void
+    {
+        $this->mercurePrivateUpgrades[] = ['topics' => $topics, 'resourceClass' => $resourceClass];
+    }
+
+    /** @return list<array{topics: list<string>, resourceClass: string}> */
+    public function getMercurePrivateUpgrades(): array
+    {
+        return $this->mercurePrivateUpgrades;
+    }
+
+    public function getMercurePrivateUpgradeCount(): int
+    {
+        return \count($this->mercurePrivateUpgrades);
+    }
+
+    // -----------------------------------------------------------------------
     // ResetInterface
     // -----------------------------------------------------------------------
 
@@ -142,5 +260,10 @@ final class CwaCollectorData implements ResetInterface
         $this->pageDataFound = false;
 
         $this->publishedTopics = [];
+        $this->publishableQueries = [];
+        $this->pageDataResolutions = [];
+        $this->invalidationCounts = ['created' => 0, 'updated' => 0, 'deleted' => 0];
+        $this->cachePurgedIris = [];
+        $this->mercurePrivateUpgrades = [];
     }
 }

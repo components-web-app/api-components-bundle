@@ -20,6 +20,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -32,7 +33,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
     private RequestStack $requestStack;
     private ManagerRegistry $registry;
 
-    public function __construct(PublishableStatusChecker $publishableStatusChecker, RequestStack $requestStack, ManagerRegistry $registry)
+    public function __construct(PublishableStatusChecker $publishableStatusChecker, RequestStack $requestStack, ManagerRegistry $registry, private readonly ?CwaCollectorData $collectorData = null)
     {
         $this->publishableStatusChecker = $publishableStatusChecker;
         $this->requestStack = $requestStack;
@@ -50,10 +51,12 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         if (!$this->isDraftRequest($resourceClass, $context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
+            $this->collectorData?->recordPublishableQuery($resourceClass, 'published_only', 'item');
 
             return;
         }
 
+        $this->collectorData?->recordPublishableQuery($resourceClass, 'draft', 'item');
         $alias = $queryBuilder->getRootAliases()[0];
         $classMetadata = $this->registry->getManagerForClass($resourceClass)->getClassMetadata($resourceClass);
 
@@ -89,9 +92,12 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
         if (!$this->isDraftRequest($resourceClass, $context)) {
             // User has no access to draft object
             $this->updateQueryBuilderForUnauthorizedUsers($queryBuilder, $configuration);
+            $this->collectorData?->recordPublishableQuery($resourceClass, 'published_only', 'collection');
 
             return;
         }
+
+        $this->collectorData?->recordPublishableQuery($resourceClass, 'draft', 'collection');
 
         $alias = $queryBuilder->getRootAliases()[0];
         $identifiers = $this->registry->getManagerForClass($resourceClass)->getClassMetadata($resourceClass)->getIdentifier();
