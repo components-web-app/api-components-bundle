@@ -1950,7 +1950,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder->flush(); // second flush must not persist any entity again
 
-        $this->assertSame($firstCount, \count($persisted), 'Second flush must not add duplicate persists');
+        $this->assertCount($firstCount, $persisted, 'Second flush must not add duplicate persists');
 
         // Each entity object must appear at most once in $persisted
         $entities = array_filter($persisted, static fn ($e) => $e instanceof Layout || $e instanceof Page || $e instanceof ComponentGroup);
