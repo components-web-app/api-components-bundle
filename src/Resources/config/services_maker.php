@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
+use Silverback\ApiComponentsBundle\Maker\MakePageData;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container): void {
@@ -22,4 +23,10 @@ return static function (ContainerConfigurator $container): void {
         ->public();
 
     $services->alias(MakeApiComponent::class, 'silverback.api_components.maker.make_api_component');
+
+    $services->set('silverback.api_components.maker.make_page_data', MakePageData::class)
+        ->tag('maker.command')
+        ->public();
+
+    $services->alias(MakePageData::class, 'silverback.api_components.maker.make_page_data');
 };
