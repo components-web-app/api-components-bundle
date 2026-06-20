@@ -49,7 +49,7 @@ class MediaObjectFactoryTest extends TestCase
         $fieldConfig = new UploadableField(adapter: 'test_adapter');
         $fieldConfig->property = 'filename';
 
-        if ($annotationReader === null) {
+        if (null === $annotationReader) {
             $annotationReader = $this->createStub(UploadableAttributeReaderInterface::class);
             $annotationReader->method('getConfiguredProperties')->willReturn(['file' => $fieldConfig]);
         }
@@ -63,21 +63,21 @@ class MediaObjectFactoryTest extends TestCase
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($em);
 
-        if ($filesystem === null) {
+        if (null === $filesystem) {
             $filesystem = $this->createStub(Filesystem::class);
             $filesystem->method('mimeType')->willReturn('image/png');
             $filesystem->method('fileSize')->willReturn(1024);
             $filesystem->method('read')->willReturn('PNG_DATA');
         }
 
-        if ($filesystemProvider === null) {
+        if (null === $filesystemProvider) {
             $filesystemProvider = $this->createStub(FilesystemProvider::class);
             $filesystemProvider->method('getFilesystem')->willReturn($filesystem);
         }
 
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100);
 
-        if ($fileInfoCacheManager === null) {
+        if (null === $fileInfoCacheManager) {
             $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
             $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
         }
