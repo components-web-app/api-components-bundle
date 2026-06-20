@@ -598,15 +598,6 @@ Hub subscription tokens are not currently scoped — any subscriber can receive 
 
 ---
 
-### #81 — Doctrine migrations storage configuration
-
-The bundle ships Doctrine migrations. Currently migrations live in the PHP filesystem path. The issue proposes storing migration files in a configured Flysystem adapter so teams can use remote/shared storage.
-
-**Status:** Low priority enhancement. No implementation started.
-
----
-
-
 ---
 
 ### #115 — Symfony data collector / profiler integration
