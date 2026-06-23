@@ -119,19 +119,6 @@ Key current group assignments:
 - `AbstractPageData`: `page` (the Page template IRI) → `Route:manifest:read`
 - `AbstractPage`: `route`, `parentPage`, `parentPageData` → `Route:manifest:read`
 
-### ~~Bug: `Layout.componentGroups` returns embedded objects instead of IRIs~~ — FIXED
-
-**Symptom (discovered 2026-06-16):** The navigation bar was empty for unauthenticated users. `GET /_api/_/layouts/{uuid}` returned `componentGroups` as embedded JSON-LD objects; the Nuxt module expected IRI strings.
-
-**Root cause:** AP4 reads `readableLink` from getter methods, not property declarations. `Layout` had no explicit normalization context and `UiTrait.getComponentGroups()` had no `#[ApiProperty]` override — so AP4 auto-embedded the collection.
-
-**Fix (committed 2026-06-16):**
-- Added explicit `normalizationContext: ['groups' => ['Layout:read']]` and `denormalizationContext` to `Layout#[ApiResource]`
-- Added `#[Groups(['Layout:read', 'Layout:write'])]` to `Layout.reference`, `Layout.pages`, `Layout.componentGroups`, and `UiTrait.uiComponent` / `UiTrait.uiClassNames`
-- Overrode `getComponentGroups()` in `Layout.php` with `#[ApiProperty(readableLink: false, writableLink: false)]` so AP4 returns IRI strings
-
-The Nuxt module also has a defensive `value?.['@id']` extraction fallback in `fetchAssociatedResources`, but the authoritative fix is this API-side change.
-
 ### API endpoints
 
 | Endpoint | Purpose |
@@ -140,6 +127,8 @@ The Nuxt module also has a defensive `value?.['@id']` extraction fallback in `fe
 | `GET /_/resource_manifest/{id}` | Unified manifest endpoint — `{id}` starting with `/` resolves to a Route by path; a UUID resolves to a `Page` or `AbstractPageData` entity. Returns `{ "resource_iris": string[][] }`. |
 | `POST /routes/generate` | Auto-generate a Route for a Page/PageData |
 | `GET /routes/{id}/redirects` | Follow the redirect chain for a Route |
+| `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks direct children and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. |
+| `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. |
 
 ---
 
@@ -208,48 +197,21 @@ This means:
 5. **`/_/resource_manifest/{id}` unified endpoint** — `ResourceManifest` DTO (`src/ApiResource/ResourceManifest.php`) with `ResourceManifestStateProvider` resolving route paths (starts with `/`) or UUIDs (Page then AbstractPageData). `ResourceManifestVoter` delegates access control to `RouteVoter` or `AbstractRoutableVoter`. `ResourceManifestNormalizer` produces `{ "resource_iris": string[][] }` using the shared `ManifestDepthGroupTrait`.
 6. **`ManifestDepthGroupTrait`** (`src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`) — `buildDepthGroups`, `collectCurrentDepth`, `shouldSkipIri` extracted and shared between `RouteNormalizer` and `ResourceManifestNormalizer`
 7. **`pageDataProperty` component IRIs in manifests** — `PageDataNormalizer` injects `cwa_current_page_data` into the serialization context when `Route:manifest:read` is active. `ComponentPositionNormalizer.normalizeForPageData()` reads this context key and resolves `pageDataProperty` positions during manifest generation without requiring an HTTP `path` header. `ManifestDepthGroupTrait.collectCurrentDepth()` now also collects string IRI values from non-blank-node subresources (AP4 returns component IRIs as strings when `AbstractComponent` has no `Route:manifest:read` fields). Blank node resources (`/.well-known/genid/...`) are excluded from string IRI collection to avoid leaking internal metadata IRIs (e.g. `pageDataMetadata`). Behat test in `features/main/route.feature` covers `resource_iris[0][5]` matching a DummyComponent IRI.
-8. **`Layout.componentGroups` returns IRI strings** — see fixed bug above. Behat test in `features/main/layout.feature` covers `componentGroups[0]` equal to the component group IRI.
+8. **`Layout.componentGroups` returns IRI strings** — AP4 reads `readableLink` from getter methods; `Layout` overrides `getComponentGroups()` with `#[ApiProperty(readableLink: false, writableLink: false)]`. Behat test in `features/main/layout.feature`.
 
-### ~~Outstanding — `parentPage` in standard Page read group~~ — ALREADY WORKS
+### Design decisions
 
-`parentPage` already appears in `GET /_/pages` responses for pages that have a parent set. Because `Page` has no explicit `normalizationContext`, AP4 does not inject a `groups` key into the Symfony serializer context. Without a `groups` key, the Symfony serializer ignores all `#[Groups]` annotations and serializes all accessible properties — including `parentPage` via `getParentPage()`. No code change was needed; Behat test added to `features/main/page.feature` for coverage.
-
-### ~~Bug: PATCH `/_/pages/{uuid}` throws 500 when body contains `componentGroups`~~ — FIXED
-
-**Symptom (discovered 2026-06-17):** Saving a Page from the Nuxt admin modal triggered a 500/422 when the PATCH body contained `componentGroups` as embedded JSON-LD objects (AP4 tried to denormalize the component positions collection, which caused `ArrayCollection::$sortValue` access errors).
-
-**Fix (committed 2026-06-17):** Overrode `getComponentGroups()` in `Page.php` with `#[ApiProperty(writable: false)]`. AP4 now ignores `componentGroups` during deserialization — whether sent as IRI strings or embedded objects. Component groups are managed via their own endpoints.
-
-**Behat tests:** Two scenarios in `features/main/page.feature` — PATCH with IRI-string componentGroups (200), PATCH with embedded componentGroups including positions (200).
-
----
-
+- **No `$nested` boolean** — parent = nested, full stop. The presence of `$parentPage`/`$parentPageData` is the complete signal.
+- **Two FK properties, not one** — `AbstractPage` is a mapped superclass with no discriminator map; `?AbstractPage` cannot be a Doctrine FK target. `?Page` + `?AbstractPageData` mirrors `Route.$page`/`Route.$pageData`.
+- **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null safely when the parent has no route yet.
+- **Route concatenation is recommended, not required** — `RouteGenerator` prefixes child paths for clean URLs and SEO, but the module's `<CwaPage />` renders depth from manifest data, not URL structure.
+- **`resource_iris` is `string[][]`, not `string[]`** — depth-grouped, root first. The module reads the array index as the rendering depth without any client-side traversal.
+- **Single rendering mechanism** — `<CwaPage />` uses a manifest in both public and admin/draft contexts. Both contexts use the same `/_/resource_manifest/{id}` endpoint — route path for public, UUID for admin/draft. The chain walk (`parentPage`/`parentPageData`) is a fallback only. No URL-depth dependency.
+- **Unified manifest endpoint, not per-entity operations** — `/_/resource_manifest/{id}` is owned by the `ResourceManifest` DTO (not by `Route`, `Page`, or `AbstractPageData`). The state provider distinguishes route paths (start with `/`) from UUIDs at runtime. This avoids URL conflicts from `RoutingPrefixResourceMetadataCollectionFactory` auto-applying `/_/` to all bundle-namespace classes.
+- **Hierarchy on AbstractPage, not Route** — Routes are the publication mechanism. Hierarchy must be settable before either page has a public URL.
+- **Manifest for admin is a performance requirement, not an optimisation** — without it, rendering a page requires 4+ serial round trips (page → groups → positions → components). The manifest collapses this to one parallel batch. Both contexts must have manifests.
 
 ---
-
-## API contracts: Route UI/UX (from Nuxt module design discussion)
-
-### 1. Cascade child path update on route PATCH — COMPLETE ✓
-
-`PATCH /_/routes/{id}` accepts optional `cascadeChildPaths: true` boolean. When set and `path` changes, `RouteEventListener.onPostWrite` walks direct children via `AbstractPage.parentPage`/`parentPageData`, updates their route paths (prefixing with the new parent path), and creates redirects from old to new child paths. Children whose path does not start with the old prefix are ignored. Intermediate flush required before creating child redirects (Doctrine processes INSERTs before UPDATEs; flushing path changes first frees old paths in the DB). Behat tests in `features/main/route.feature`.
-
-### 2. Route children endpoint — COMPLETE ✓
-
-`GET /_/routes/{id}/children` returns the recursive child tree for a specific route. Admin-only (`ROLE_ADMIN`). Response:
-```json
-{
-  "children": [
-    {
-      "route": "/_/routes//conference/programme",
-      "path": "/conference/programme",
-      "children": []
-    }
-  ]
-}
-```
-Each node embeds its direct children recursively so the full sub-tree is visible in one request. Children are plain objects (not IRIs) since you need the tree structure to navigate it; `route` and `path` are the only data fields per node — all other route detail is fetched via the IRI.
-
-Implementation: `RouteChildren` + `RouteChildrenNode` DTOs, `RouteChildrenStateProvider`, `RouteChildrenNormalizer`. Custom `Get` operation added to `Route` at `/routes/{id}/children`. The standard Route `Get` requirement updated to `(?!.+\/(?:redirects|children)$).+` to exclude both sub-resource suffixes. Behat tests in `features/main/route.feature`.
 
 ## Feature: CwaFixtureBuilder
 
@@ -439,68 +401,15 @@ The builder manages persisting in the correct order. Roughly:
 4. `flush()`
 5. Call `RouteGenerator::create()` for all auto-routed entities (parents before children — breadth-first)
 6. `flush()` — routes now have paths
-6.5. Call `onRoutesCreated` callbacks on any `PageDataBuilder` that registered one, passing the child `PageBuilder` instances tracked during `evaluateNested()`. The callback mutates already-persisted entity properties (e.g. sets `HtmlContent.html` with real child paths). Followed by a `flush()` to persist those changes.
+6.5. Call `onRoutesCreated` callbacks on any `PageDataBuilder` that registered one, passing the child `PageBuilder` instances tracked during `evaluateNested()`. The callback mutates already-persisted entity properties (e.g. sets `HtmlContent.html` with real child paths). Followed by a `flush()`.
 7. Create ComponentPositions and nav-bar links (which may reference routes created in step 5)
 8. Final `flush()`
 
 `->getRoute(routeName)` and `PageDataBuilder/PageBuilder->getRoute()` are only valid after step 5 completes. The builder defers all closures to the correct phase internally. Closures registered against GroupBuilder via `->add()` or `->pageDataPosition()` are evaluated in phase 7. The `->nested()` closure is evaluated during phase 5 so parent routes exist before child routes are generated.
 
-### `onRoutesCreated` — implementation plan
+### `onRoutesCreated`
 
-**Use case:** A `PageData` entity has a component whose content must reference child page URLs (e.g. an `HtmlContent` with links to the child pages). Child routes don't exist at entity-creation time, so the content must be set after `phaseThree`.
-
-**Required changes in `CwaFixtureBuilder`:**
-
-In `evaluateNested()`, record which page refs were registered by each nested closure and store them on the `PageDataBuilder`:
-
-```php
-foreach ($this->pageDataSpecs as $spec) {
-    $closure = $spec['builder']->getNestedClosure();
-    if (null === $closure) continue;
-    $beforePageRefs = array_keys($this->pageSpecs);
-    $this->parentContext = $spec['builder']->getPageData();
-    $closure($this);
-    $this->parentContext = null;
-    $addedRefs = array_diff(array_keys($this->pageSpecs), $beforePageRefs);
-    $spec['builder']->setChildPageRefs(array_values($addedRefs));
-}
-```
-
-Add a new `phaseThreePointFive()` called between `phaseThree()` and `phaseFour()` in `flush()`:
-
-```php
-private function phaseThreePointFive(): void
-{
-    $hasChanges = false;
-    foreach ($this->pageDataSpecs as $spec) {
-        $cb = $spec['builder']->getOnRoutesCreated();
-        if (null === $cb) continue;
-        $childBuilders = array_values(array_filter(array_map(
-            fn($ref) => $this->pageSpecs[$ref]['builder'] ?? null,
-            $spec['builder']->getChildPageRefs(),
-        )));
-        $cb($childBuilders);
-        $hasChanges = true;
-    }
-    if ($hasChanges) {
-        $this->manager->flush();
-    }
-}
-```
-
-**Required changes in `PageDataBuilder`:**
-
-```php
-private ?\Closure $onRoutesCreated = null;
-private array $childPageRefs = [];
-
-public function onRoutesCreated(\Closure $cb): self { $this->onRoutesCreated = $cb; return $this; }
-public function getOnRoutesCreated(): ?\Closure { return $this->onRoutesCreated; }
-public function setChildPageRefs(array $refs): void { $this->childPageRefs = $refs; }
-public function getChildPageRefs(): array { return $this->childPageRefs; }
-```
-
-**App usage (`AppScaffold`):**
+**Use case:** A `PageData` entity has a component whose content must reference child page URLs (e.g. an `HtmlContent` with links to the child pages). Child routes don't exist at entity-creation time, so the content must be set after phase 5.
 
 ```php
 $intro = new HtmlContent();
@@ -531,7 +440,7 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ### What the builder handles invisibly
 
-- `TimestampedDataPersister->persistTimestampedFields($entity, true)` on entities that have the `#[Timestamped]` annotation (Layout, Page, AbstractPageData, ComponentGroup). **Not** called on `AbstractComponent` subclasses — see open issue below.
+- `TimestampedDataPersister->persistTimestampedFields($entity, true)` on entities that have the `#[Timestamped]` annotation — Layout, Page, AbstractPageData, ComponentGroup, Route, and `AbstractComponent` subclasses (guarded by `isConfigured()`).
 - `$manager->persist()` for all entities
 - Layout/Page deduplication by reference string (calling `->layout('main', ...)` twice returns the same LayoutBuilder)
 - ComponentGroup deduplication by entity IRI + location name
@@ -560,74 +469,62 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
-These are known open issues with enough context to resume work without re-investigation.
+### #186 — `#[Publishable]` on AbstractPage / AbstractPageData — page-level draft/live toggle
 
-### ~~`CwaFixtureBuilder.component()` throws for non-timestamped entities~~ — FIXED
+Currently the only "draft" signal for a page is the absence of a Route. Once a page is live, there is no way to take it offline without deleting the route (losing URL history and redirects).
 
-**Fixed (commit `b438d60d`):** `TimestampedDataPersister.isConfigured()` added; `CwaFixtureBuilder.phaseOne()` now guards the `persistTimestampedFields` call with `isConfigured()`. Non-timestamped components (e.g. `HtmlContent`, `NavigationLink`) are persisted without crashing. Timestamped components (if any) still get timestamps set. Unit test added.
+**Desired behaviour:** `AbstractPage` gains a `publishedAt: ?\DateTimeInterface` column. Unpublished pages are invisible to unauthenticated users via the existing voter infrastructure (`AbstractRoutableVoter`, `RouteVoter`). Admins can still access and edit unpublished pages via the entity IRI.
 
----
+**Things to consider:**
+- `#[Publishable]` today lives on components; check whether voter logic extends cleanly to page-level entities
+- `Page.isTemplate` pages should be admin-accessible regardless of `publishedAt`
+- Draft page with an existing Route — route should return 403/404 for public traffic, not 500
+- Interaction with `cascadeChildPaths` and the children endpoint: should unpublished children be hidden from the public list?
+- Migration default: treat existing pages as already published (`now()`) for backwards compatibility
 
-### ~~ComponentPosition `sortValue` collision on insert — double-shifting~~ — FIXED
-
-**Fixed (commit `b438d60d`):** `ComponentPositionSortValueHelper.calculateSortValue()` now only shifts existing positions when an actual sortValue collision exists. Previously it always shifted all positions with `sortValue >= newSortValue`, causing double-shifts when the Nuxt module pre-shifted upstream. Behat test added for the no-collision case. The module's pre-shift workaround remains compatible (no collision → no shift).
-
-Related: Nuxt module issue `components-web-app/cwa-nuxt-module#224` Bug 2.
-
----
-
-### ~~#170 — Component group `allowedComponents` does not validate `pageDataProperty` positions on write~~ — FIXED
-
-**Read side fixed** (commit `2305ad89`): `ComponentPositionNormalizer.normalizeForPageData()` now skips populating the component if the resolved type is not in `componentGroup.allowedComponents`.
-
-**Write side fixed** (committed): `ComponentPosition` now stores a `pageDataClass` (FQCN) alongside `pageDataProperty`. `ComponentPositionValidator` validates the pair on every POST/PATCH: (1) `pageDataClass` must be a known API-registered PageData resource; (2) `pageDataProperty` must be a component-typed property on that class; (3) the resolved component type must be in `componentGroup.allowedComponents` if set. Both fields must be set together (entity-level `Assert\Expression` constraint).
-
-**`CwaFixtureBuilder` updated:** `GroupBuilder.pageDataPosition()` now takes `pageDataClass` as its first argument: `->pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null)`.
-
-Related Nuxt module issue: `components-web-app/cwa-nuxt-module#151` — closed; module now sends `pageDataClass` alongside `pageDataProperty`.
+**Acceptance criteria:**
+- Unauthenticated `GET /_/routes/{path}` to an unpublished page returns 403/404
+- Admin `GET /_/resource_manifest/{uuid}` for an unpublished page works for `ROLE_ADMIN`
+- Behat scenarios: public access denied, admin access allowed, publish via PATCH
 
 ---
 
-### ~~#98 — Mercure subscriptions not secured~~ — COMPLETE ✓
+### #188 — Feature: auto-apply uiClassNames to component root element
 
-**Fixed (commit `5ec68934`):** Added `mercure.secure_subscriptions: bool` config option (default: `false`). When `true`, `MercureAuthorization.getSubscribeIrisForResource()` evaluates each resource's AP4 security expression before including it in the subscriber JWT token. Class-level expressions (e.g. `is_granted('ROLE_ADMIN')`) are evaluated against the current user. Expressions referencing `object` (item-level security) are treated as always-accessible because access cannot be determined without a concrete instance. `DummySecuredMercureResource` test entity (ROLE_ADMIN, mercure: true) and three Behat scenarios in `features/user/security.feature` cover: excluded for non-admin, included for admin, excluded for anonymous. Test config sets `secure_subscriptions: true`.
+When a component, page, or layout has `uiClassNames` selected, the Nuxt module could automatically apply those class names to the root HTML element of the corresponding Vue component — without the developer having to wire up `:class="resource?.data?.uiClassNames"` manually.
 
----
-
----
-
-### ~~#115 — Symfony data collector / profiler integration~~ — COMPLETE ✓
-
-**Implemented (commit `8a7c95cf`):** `CwaCollectorData` (`src/DataCollector/CwaCollectorData.php`) is a shared `ResetInterface` service that bundle listeners push data into. `CwaDataCollector` (`src/DataCollector/CwaDataCollector.php`) reads from it at `collect()` time and renders via `@SilverbackApiComponents/Collector/cwa.html.twig`. The toolbar/panel shows three categories:
-
-- **JWT/authentication**: cookie presence (with name), refresh issued, cookie cleared
-- **Route resolution**: resolved path and route IRI from `RouteStateProvider`
-- **Mercure publications**: count and topic list from `MercureResourcePublisher`
-
-Services instrumented with optional `?CwaCollectorData` arg: `JWTEventListener`, `JWTClearTokenListener`, `MercureResourcePublisher`, `RouteStateProvider`. Unit tests in `tests/DataCollector/`.
+**Notes:**
+- Opt-in / opt-out per resource type or globally (some components may need to control where classes are applied)
+- Applies to layouts, pages, and components (root element)
+- This is a Nuxt module concern — update the Nuxt module CLAUDE.md to track implementation there
 
 ---
 
-### ~~#60 — Uploadable: Private files (S3 pre-signed URLs)~~ — COMPLETE ✓
+### #189 — Tool: generate fixtures from currently-populated database
 
-**Fixed (commit `3146fafc`):** `urlGenerator: 'public'` and `urlGenerator: 'temporary'` paths on `#[UploadableField]` are now tested and documented. When the adapter implements the corresponding Flysystem interface (`PublicUrlGenerator` / `TemporaryUrlGenerator`), the direct URL is used; otherwise the field falls back to the `'api'` generator (the bundle's download endpoint). `MediaObjectFactory` now type-hints `UploadableAttributeReaderInterface` instead of the concrete class. Four unit tests in `MediaObjectFactoryUrlGeneratorTest` and two Behat scenarios in `features/uploads/uploads.feature` cover all four paths.
+A console command that inspects the current database state and outputs a `AbstractCwaScaffold`-compatible PHP fixture class reproducing it.
 
----
+**Use case:** Capturing a client's live site state for a local dev/staging reset; migrating initial content from staging to production via fixtures.
 
-## ~~Bug: `CwaFixtureBuilder::createPositions()` does not timestamp components~~ — FIXED
-
-**Fix (committed `f1ddff5a`):** In `createPositions()`, before `$this->persistWithAssociations($component)`, guard with `isConfigured()` and call `persistTimestampedFields($component, true)` when the component is not already in `$persistedEntities`. PHPUnit test added to `tests/Fixture/CwaFixtureBuilderTest.php`.
+**Rough approach:** Walk the CWA resource graph (Layouts → Pages → ComponentGroups → ComponentPositions → Components + PageData) and emit PHP using the `CwaFixtureBuilder` API.
 
 ---
 
-## ~~Bug: `RouteNormalizer` mutates page/pageData entity state during serialization~~ — FIXED
+### #190 — Tool: find orphaned ComponentGroups and ComponentPositions
 
-**Fixed (committed below):** `RouteNormalizer.normalize()` previously called `$object->setPage($finalRoute->getPage())` and `$object->setPageData($finalRoute->getPageData())` before normalizing a redirect route. Both setters call `$page->setRoute($this)` as a side effect, which corrupts Doctrine's identity map by moving the page/pageData's owning-side FK away from its correct route. In worker mode (FrankenPHP), the entity manager persists between requests so this dirty state is eventually flushed to the DB, causing `page: null` on the chapter route and `pageData: null` on the redirect route.
+A console command (and optionally an admin UI panel) that identifies:
+- **Orphaned ComponentGroups** — groups whose owning Layout/Page/Component no longer references them
+- **Orphaned ComponentPositions** — positions not linked to any active group
+- **Unused components** — components that appear in no ComponentPosition
 
-**Fix:** Use `ReflectionProperty` to set `page` / `pageData` directly on the Route (bypassing the setters) before normalizing, then restore the original values after. Only sets from the final redirect target when the route has no own value (`null` check). Behat tests added for: route with page+redirect returns page IRI; route with pageData+redirect returns pageData IRI.
+Should be read-only by default (report mode) with an optional `--fix` flag to delete.
 
 ---
 
-## Known Configuration Quirks
+### #191 — Tool: migration command for renaming components (discriminator mapping)
 
-*(none)*
+A Maker command (`make:rename-component OldName NewName`) that generates a Doctrine migration to rename a component type — updating the discriminator map entry and any stored `uiComponent` references in `Page`, `Layout`, or `Component` rows.
+
+**Notes:**
+- Should output migration SQL and optionally a data migration
+- May need to print a checklist of front-end (Vue file rename) changes needed alongside the DB migration
