@@ -489,15 +489,6 @@ Currently the only "draft" signal for a page is the absence of a Route. Once a p
 
 ---
 
-### #188 — Feature: auto-apply uiClassNames to component root element
-
-When a component, page, or layout has `uiClassNames` selected, the Nuxt module could automatically apply those class names to the root HTML element of the corresponding Vue component — without the developer having to wire up `:class="resource?.data?.uiClassNames"` manually.
-
-**Notes:**
-- Opt-in / opt-out per resource type or globally (some components may need to control where classes are applied)
-- Applies to layouts, pages, and components (root element)
-- This is a Nuxt module concern — update the Nuxt module CLAUDE.md to track implementation there
-
 ---
 
 ### #189 — Tool: generate fixtures from currently-populated database
