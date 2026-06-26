@@ -42,7 +42,7 @@ final class MakeCwaScaffold extends AbstractMaker
         $command
             ->addArgument('name', InputArgument::OPTIONAL, 'The class name for your scaffold (e.g. <fg=yellow>AppScaffold</>)')
             ->addOption('layout-ref', null, InputOption::VALUE_REQUIRED, 'Layout reference key used in <comment>$cwa->layout()</comment>', 'main')
-            ->addOption('layout-component', null, InputOption::VALUE_REQUIRED, 'Layout UI component name (e.g. <comment>CwaLayoutPrimary</comment>)', 'CwaLayoutPrimary');
+            ->addOption('layout-component', null, InputOption::VALUE_REQUIRED, 'Layout UI component name (e.g. <comment>Primary</comment>)', 'Primary');
     }
 
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
@@ -52,8 +52,8 @@ final class MakeCwaScaffold extends AbstractMaker
             $input->setOption('layout-ref', $ref);
         }
 
-        if (!$input->getOption('layout-component') || 'CwaLayoutPrimary' === $input->getOption('layout-component')) {
-            $component = $io->ask('Layout UI component name', 'CwaLayoutPrimary');
+        if (!$input->getOption('layout-component') || 'Primary' === $input->getOption('layout-component')) {
+            $component = $io->ask('Layout UI component name', 'Primary');
             $input->setOption('layout-component', $component);
         }
     }

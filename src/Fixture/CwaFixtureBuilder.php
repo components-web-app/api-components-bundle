@@ -101,7 +101,7 @@ class CwaFixtureBuilder
         if (!isset($this->layoutBuilders[$ref])) {
             $layout = new Layout();
             $layout->reference = $ref;
-            $layout->uiComponent = $uiComponent;
+            $layout->uiComponent = '' !== $uiComponent ? 'CwaLayout' . $uiComponent : null;
             $layout->uiClassNames = $uiClassNames;
             $this->layoutBuilders[$ref] = new LayoutBuilder($layout);
         }
@@ -122,7 +122,7 @@ class CwaFixtureBuilder
         if (!isset($this->pageSpecs[$ref])) {
             $page = new Page();
             $page->reference = $ref;
-            $page->uiComponent = $uiComponent;
+            $page->uiComponent = '' !== $uiComponent ? 'CwaPage' . $uiComponent : null;
             $page->uiClassNames = $uiClassNames;
             $page->isTemplate = $isTemplate;
             if ($this->parentContext instanceof AbstractPageData) {

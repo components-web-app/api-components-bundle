@@ -22,6 +22,21 @@ class ComponentBuilder
     {
     }
 
+    public function uiComponent(string $suffix): self
+    {
+        $shortName = (new \ReflectionClass($this->component))->getShortName();
+        $this->component->uiComponent = 'CwaComponent' . $shortName . 'Ui' . $suffix;
+
+        return $this;
+    }
+
+    public function uiClassNames(string ...$classes): self
+    {
+        $this->component->uiClassNames = $classes;
+
+        return $this;
+    }
+
     public function group(string $name, array $allow = [], ?\Closure $configure = null, ?string $locationReference = null): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {

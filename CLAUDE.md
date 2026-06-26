@@ -352,19 +352,20 @@ Register `AppScaffold` as a service; it's ready to use as a Doctrine fixture wit
 
 ```
 CwaFixtureBuilder
-  ->layout(ref, uiComponent, ?uiClassNames): LayoutBuilder  (deduped by ref; returns same builder if called twice)
-  ->page(ref, uiComponent, layout, ?route, ?routeName, isTemplate=false, ?Closure, ?uiClassNames): PageBuilder
+  ->layout(ref, uiSuffix, ?uiClassNames): LayoutBuilder  (deduped by ref; prepends 'CwaLayout' to uiSuffix)
+  ->page(ref, uiSuffix, layout, ?route, ?routeName, isTemplate=false, ?Closure, ?uiClassNames): PageBuilder  (prepends 'CwaPage' to uiSuffix)
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
+  ->component(AbstractComponent): ComponentBuilder
   ->getRoute(routeName): Route                              (look up a named route already created)
 
 LayoutBuilder
   ->group(name, allow: [], ?Closure): GroupBuilder          (returns the GroupBuilder; same name = same group)
-  ->uiClassNames(array): self
+  ->uiClassNames(string ...$classes): self
 
 PageBuilder
   ->title(string): self
   ->metaDescription(string): self
-  ->uiClassNames(array): self
+  ->uiClassNames(string ...$classes): self
   ->group(name, ?Closure): GroupBuilder
   ->nested(Closure): void                                   (Closure receives CwaFixtureBuilder with parent context)
   ->getRoute(): ?Route                                      (route after builder flushes RouteGenerator)
@@ -373,6 +374,11 @@ PageDataBuilder
   ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
   ->onRoutesCreated(Closure): self                   (Closure receives array<PageBuilder> of direct child page builders; called after phaseThree so child route paths are available)
   ->getRoute(): ?Route
+
+ComponentBuilder
+  ->uiComponent(suffix): self                        (stores 'CwaComponent' + ShortClassName + 'Ui' + suffix)
+  ->uiClassNames(string ...$classes): self
+  ->group(name, allow: [], ?Closure): GroupBuilder
 
 GroupBuilder
   ->add(AbstractComponent, ?sort): self              (sort defaults to insertion order × 10)

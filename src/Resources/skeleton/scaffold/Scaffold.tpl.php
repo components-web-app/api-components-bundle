@@ -24,14 +24,14 @@ class <?php echo $class_name; ?> extends AbstractCwaScaffold
             ->group('top');
 
         // --- Pages ------------------------------------------------------------
-        $cwa->page('home', 'PrimaryPageTemplate', layout: '<?php echo $layout_ref; ?>', route: '/', routeName: 'home-page',
+        $cwa->page('home', 'PrimaryPage', layout: '<?php echo $layout_ref; ?>', route: '/', routeName: 'home-page',
             configure: fn (PageBuilder $page) => $page
                 ->title('Home')
                 ->group('primary')
         );
 
         // Add more pages here, e.g.:
-        // $cwa->page('about', 'PrimaryPageTemplate', layout: '<?php echo $layout_ref; ?>', route: '/about', routeName: 'about-page',
+        // $cwa->page('about', 'PrimaryPage', layout: '<?php echo $layout_ref; ?>', route: '/about', routeName: 'about-page',
         //     configure: fn (PageBuilder $page) => $page->title('About')->group('primary')
         // );
 

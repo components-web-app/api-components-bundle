@@ -107,7 +107,7 @@ class GenerateFixturesCommand extends Command
     {
         $varName = '$layout_' . $this->toVar($layout->reference ?? 'layout');
         $ref = var_export($layout->reference, true);
-        $ui = var_export($layout->uiComponent, true);
+        $ui = var_export($this->stripUiPrefix($layout->uiComponent, 'CwaLayout'), true);
 
         $extra = '';
         if (null !== $layout->uiClassNames) {
@@ -207,7 +207,7 @@ class GenerateFixturesCommand extends Command
         string $builderVar = '$cwa',
     ): string {
         $ref = var_export($page->reference, true);
-        $ui = var_export($page->uiComponent, true);
+        $ui = var_export($this->stripUiPrefix($page->uiComponent, 'CwaPage'), true);
         $layoutRef = var_export(isset($page->layout) ? $page->layout->reference : null, true);
 
         $args = "{$ref}, {$ui}, layout: {$layoutRef}";
@@ -401,6 +401,15 @@ class GenerateFixturesCommand extends Command
         $items = implode(', ', array_map(static fn ($v) => var_export($v, true), $arr));
 
         return '[' . $items . ']';
+    }
+
+    private function stripUiPrefix(?string $value, string $prefix): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return str_starts_with($value, $prefix) ? substr($value, \strlen($prefix)) : $value;
     }
 
     private function getRouteName(Route $route): ?string

@@ -48,7 +48,7 @@ class PageBuilder
         return $this;
     }
 
-    public function uiClassNames(array $classes): self
+    public function uiClassNames(string ...$classes): self
     {
         $this->page->uiClassNames = $classes;
 

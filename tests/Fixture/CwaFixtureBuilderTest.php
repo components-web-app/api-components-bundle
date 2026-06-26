@@ -93,7 +93,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/', routeName: 'home');
         $builder->flush();
 
@@ -106,7 +106,7 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame('main', $layouts[0]->reference);
 
         $this->assertCount(1, $pages);
-        $this->assertSame('PrimaryPageTemplate', $pages[0]->uiComponent);
+        $this->assertSame('CwaPagePrimaryPageTemplate', $pages[0]->uiComponent);
         $this->assertSame('home', $pages[0]->reference);
         $this->assertSame($layouts[0], $pages[0]->layout);
         $this->assertFalse($pages[0]->isTemplate);
@@ -124,7 +124,7 @@ class CwaFixtureBuilderTest extends TestCase
         $routeGenerator->expects($this->never())->method('create');
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('blog-template', 'BlogTemplate', layout: 'main', isTemplate: true);
         $builder->flush();
     }
@@ -135,7 +135,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main');
         $builder->flush();
 
@@ -149,7 +149,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_named_route_is_accessible_via_get_route_after_flush(): void
     {
         $builder = $this->makeBuilder();
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/', routeName: 'home-page');
         $builder->flush();
 
@@ -162,7 +162,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $routeGenerator = $this->autoRouteGenerator();
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
 
         $pageData = new class extends AbstractPageData {};
         $builder->pageData($pageData, routeName: 'my-pagedata');
@@ -194,7 +194,7 @@ class CwaFixtureBuilderTest extends TestCase
         );
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
-        $builder->layout('main', 'CwaLayoutPrimary')->group('nav', allow: [\stdClass::class]);
+        $builder->layout('main', 'Primary')->group('nav', allow: [\stdClass::class]);
         $builder->flush();
 
         $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
@@ -221,7 +221,7 @@ class CwaFixtureBuilderTest extends TestCase
         $iriConverter->method('getIriFromResource')->willReturn('/_api/_/pages/test-uuid');
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
             ->group('primary');
         $builder->flush();
@@ -248,7 +248,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component2 = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component1)
@@ -269,7 +269,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('blog-template', 'BlogTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
             ->pageDataPosition('App\Entity\BlogArticleData', 'image')
@@ -297,7 +297,7 @@ class CwaFixtureBuilderTest extends TestCase
         $pageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('blog-template', 'BlogTemplate', layout: 'main', isTemplate: true);
         $builder->pageData($pageData, template: 'blog-template');
         $builder->flush();
@@ -361,7 +361,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parentPageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'ChapterTemplate', layout: 'main');
@@ -379,7 +379,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('parent', 'ParentTemplate', layout: 'main')
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('child', 'ChildTemplate', layout: 'main');
@@ -416,7 +416,7 @@ class CwaFixtureBuilderTest extends TestCase
             });
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'ChapterTemplate', layout: 'main');
@@ -453,8 +453,8 @@ class CwaFixtureBuilderTest extends TestCase
 
         $routeGenerator = $this->autoRouteGenerator();
         $builder = $this->makeBuilder($em, $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
-        $navGroup = $builder->layout('main', 'CwaLayoutPrimary')->group('nav');
+        $builder->layout('main', 'Primary');
+        $navGroup = $builder->layout('main', 'Primary')->group('nav');
         $builder->page('home', 'Template', layout: 'main', route: '/');
 
         $navGroup->add($component1);
@@ -486,7 +486,7 @@ class CwaFixtureBuilderTest extends TestCase
             });
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main'); // will call routeGenerator->create() once
 
         $builder->flush();
@@ -500,7 +500,7 @@ class CwaFixtureBuilderTest extends TestCase
         $capturedChildRoute = null;
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'ChapterTemplate', layout: 'main');
@@ -582,7 +582,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parent = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $nested): void {
                 $nested->page('child', 'Template', layout: 'main');
@@ -602,7 +602,7 @@ class CwaFixtureBuilderTest extends TestCase
         $flushCount = 0;
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
@@ -632,7 +632,7 @@ class CwaFixtureBuilderTest extends TestCase
         $flushCount = 0;
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary'); // group exists but no components added
         $builder->flush();
@@ -646,7 +646,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -675,7 +675,7 @@ class CwaFixtureBuilderTest extends TestCase
         $pd = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($pd)
             ->nested(static function (CwaFixtureBuilder $nested): void {
                 $nested->page('child', 'Template', layout: 'main');
@@ -712,7 +712,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component, 99);
@@ -729,7 +729,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'BlogTemplate', layout: 'main', isTemplate: true)
             ->group('primary')
             ->pageDataPosition('App\Entity\BlogArticleData', 'image', 99);
@@ -748,7 +748,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $group = $builder->page('home', 'Template', layout: 'main', isTemplate: true)->group('primary');
 
         $group->pageDataPosition('App\Entity\BlogArticleData', 'image');
@@ -773,7 +773,7 @@ class CwaFixtureBuilderTest extends TestCase
         $pageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('parent', 'ParentTemplate', layout: 'main')
             ->nested(static function (CwaFixtureBuilder $nested) use ($pageData): void {
                 $nested->pageData($pageData);
@@ -811,7 +811,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('first', 'FirstTemplate', layout: 'main'); // no nested closure — must not break the loop
         $builder->page('second', 'SecondTemplate', layout: 'main')
             ->nested(static function (CwaFixtureBuilder $nested): void {
@@ -836,7 +836,7 @@ class CwaFixtureBuilderTest extends TestCase
         $capturedCount = null;
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('existing', 'ExistingTemplate', layout: 'main'); // pre-existing page spec
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $nested): void {
@@ -858,7 +858,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', routeName: 'home-page');
         $builder->flush();
 
@@ -875,7 +875,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/blog/articles');
         $builder->flush();
 
@@ -890,7 +890,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', route: '/');
         $builder->flush();
 
@@ -910,7 +910,7 @@ class CwaFixtureBuilderTest extends TestCase
         $iriConverter->method('getIriFromResource')->willReturn('/_api/_/layouts/test-uuid');
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
-        $builder->layout('main', 'CwaLayoutPrimary')
+        $builder->layout('main', 'Primary')
             ->group('nav', locationReference: 'global-nav');
         $builder->flush();
 
@@ -929,7 +929,7 @@ class CwaFixtureBuilderTest extends TestCase
         $iriConverter->method('getIriFromResource')->willReturn('/_api/_/pages/test-uuid');
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
             ->group('primary', locationReference: 'home-primary');
         $builder->flush();
@@ -952,8 +952,8 @@ class CwaFixtureBuilderTest extends TestCase
         );
 
         $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
-        $builder->layout('main', 'CwaLayoutPrimary')->group('nav', locationReference: 'global-nav');
-        $builder->layout('alt', 'CwaLayoutAlt')->group('nav', locationReference: 'global-nav');
+        $builder->layout('main', 'Primary')->group('nav', locationReference: 'global-nav');
+        $builder->layout('alt', 'Alt')->group('nav', locationReference: 'global-nav');
         $builder->flush();
 
         $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
@@ -1064,7 +1064,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm(flushCount: $flushCount);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main');
 
         $builder->flush();
@@ -1109,7 +1109,7 @@ class CwaFixtureBuilderTest extends TestCase
             $this->autoRouteGenerator(),
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('nested-child', 'Template', layout: 'main');
@@ -1129,7 +1129,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parent = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('child', 'Template', layout: 'main')
@@ -1147,7 +1147,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->flush();
 
         $layoutCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof Layout));
@@ -1163,7 +1163,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
@@ -1181,7 +1181,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $pageData = new class extends AbstractPageData {};
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('some-template', 'Template', layout: 'main', isTemplate: true);
         $builder->pageData($pageData); // no template= argument
         $builder->flush();
@@ -1238,7 +1238,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary')->group('nav');
+        $builder->layout('main', 'Primary')->group('nav');
         $builder->flush();
 
         $groupCalls = array_values(array_filter($calls, static fn ($c) => $c['entity'] instanceof ComponentGroup));
@@ -1254,7 +1254,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', route: '/home');
         $builder->flush();
 
@@ -1268,7 +1268,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_auto_route_page_with_null_route_name_does_not_register_named_route(): void
     {
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main'); // routeName is null
         $builder->flush();
 
@@ -1326,7 +1326,7 @@ class CwaFixtureBuilderTest extends TestCase
         $capturedBuilders = null;
 
         $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'Template', layout: 'main');
@@ -1349,7 +1349,7 @@ class CwaFixtureBuilderTest extends TestCase
         $capturedKeys = null;
 
         $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'Template', layout: 'main');
@@ -1368,7 +1368,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -1381,7 +1381,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $flushCount = 0;
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
@@ -1392,7 +1392,7 @@ class CwaFixtureBuilderTest extends TestCase
         $flushCount = 0;
         $component = new class extends AbstractComponent {};
         $builder2 = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder2->layout('main', 'CwaLayoutPrimary');
+        $builder2->layout('main', 'Primary');
         $builder2->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -1409,7 +1409,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -1429,7 +1429,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($em);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -1444,7 +1444,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
         );
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->pageDataPosition('App\Entity\ContentPageData', 'content');
@@ -1461,7 +1461,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $flushCount = 0;
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->pageDataPosition('App\Entity\ContentPageData', 'content');
@@ -1476,7 +1476,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $flushCount = 0;
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('template', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->pageDataPosition('App\Entity\ContentPageData', 'content');
@@ -1494,7 +1494,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary')
+        $builder->layout('main', 'Primary')
             ->group('nav')
             ->add($component);
         $builder->flush();
@@ -1508,7 +1508,7 @@ class CwaFixtureBuilderTest extends TestCase
         $flushCount = 0;
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->layout('main', 'CwaLayoutPrimary')
+        $builder->layout('main', 'Primary')
             ->group('nav'); // no positions added
         $builder->flush();
 
@@ -1595,7 +1595,7 @@ class CwaFixtureBuilderTest extends TestCase
         });
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', routeName: 'home-page');
         $builder->flush();
 
@@ -1710,7 +1710,7 @@ class CwaFixtureBuilderTest extends TestCase
             });
 
         $builder = $this->makeBuilder($em, $routeGenerator);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('first', 'Template', layout: 'main', route: '/first');
         $builder->page('second', 'Template', layout: 'main'); // auto-routed
         $builder->flush();
@@ -1911,7 +1911,7 @@ class CwaFixtureBuilderTest extends TestCase
         // The LogicalAnd mutant (&&→||) would store the route under the null→"" key when page->getRoute() is set.
         // This test calls getRoute('') to verify no such registration happens.
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main'); // routeName is null, but route IS created
         $builder->flush();
 
@@ -1941,7 +1941,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main')
             ->group('nav')
             ->add($component);
@@ -1965,7 +1965,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->flush(); // first flush: only layout
 
         $layoutsPersisted = \count(array_filter($persisted, static fn ($e) => $e instanceof Page));
@@ -1984,7 +1984,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parentPageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
                 $child->page('chapter', 'Template', layout: 'main');
@@ -2015,7 +2015,7 @@ class CwaFixtureBuilderTest extends TestCase
         );
 
         $builder = $this->makeBuilder(timestampedPersister: $persister);
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
             ->group('primary')
             ->add($component);
@@ -2078,7 +2078,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary', uiClassNames: ['bg-white', 'full-bleed']);
+        $builder->layout('main', 'Primary', uiClassNames: ['bg-white', 'full-bleed']);
         $builder->flush();
 
         $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
@@ -2092,7 +2092,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary')->uiClassNames(['bold', 'dark']);
+        $builder->layout('main', 'Primary')->uiClassNames('bold', 'dark');
         $builder->flush();
 
         $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
@@ -2106,7 +2106,7 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main', uiClassNames: ['hero', 'spaced']);
         $builder->flush();
 
@@ -2121,9 +2121,9 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->page('home', 'PrimaryPageTemplate', layout: 'main')
-            ->uiClassNames(['compact', 'inverted']);
+            ->uiClassNames('compact', 'inverted');
         $builder->flush();
 
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
@@ -2137,10 +2137,66 @@ class CwaFixtureBuilderTest extends TestCase
         $em = $this->collectingEm($persisted);
         $builder = $this->makeBuilder($em);
 
-        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->layout('main', 'Primary');
         $builder->flush();
 
         $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
         $this->assertNull($layouts[0]->uiClassNames);
+    }
+
+    // --- uiComponent prefix prepending ---
+
+    public function test_layout_ui_component_gets_cwa_layout_prefix(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'Primary');
+        $builder->flush();
+
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertSame('CwaLayoutPrimary', $layouts[0]->uiComponent);
+    }
+
+    public function test_page_ui_component_gets_cwa_page_prefix(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Blog', layout: 'main', isTemplate: true);
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertSame('CwaPageBlog', $pages[0]->uiComponent);
+    }
+
+    // --- ComponentBuilder::uiComponent() ---
+
+    public function test_component_builder_ui_component_stores_full_prefixed_name(): void
+    {
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder();
+
+        $builder->component($component)->uiComponent('YouTube');
+        $builder->flush();
+
+        $shortName = (new \ReflectionClass($component))->getShortName();
+        $this->assertSame('CwaComponent' . $shortName . 'UiYouTube', $component->uiComponent);
+    }
+
+    // --- ComponentBuilder::uiClassNames() ---
+
+    public function test_component_builder_ui_class_names_variadic_sets_array_on_entity(): void
+    {
+        $component = new class extends AbstractComponent {};
+        $builder = $this->makeBuilder();
+
+        $builder->component($component)->uiClassNames('bold', 'dark');
+        $builder->flush();
+
+        $this->assertSame(['bold', 'dark'], $component->uiClassNames);
     }
 }

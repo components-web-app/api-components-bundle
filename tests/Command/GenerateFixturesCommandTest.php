@@ -183,7 +183,8 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('->layout(', $content);
         $this->assertStringContainsString("'main'", $content);
-        $this->assertStringContainsString("'CwaLayoutPrimary'", $content);
+        $this->assertStringContainsString("'Primary'", $content);
+        $this->assertStringNotContainsString("'CwaLayoutPrimary'", $content);
     }
 
     public function test_page_with_route_appears_as_cwa_page_call(): void
