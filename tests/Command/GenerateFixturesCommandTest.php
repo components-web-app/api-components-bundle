@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Command;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +23,6 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -107,7 +105,7 @@ class GenerateFixturesCommandTest extends TestCase
         return $tester->execute(['--output' => $outputFile]);
     }
 
-    private function makeRoute(string $path, string $name = null): Route
+    private function makeRoute(string $path, ?string $name = null): Route
     {
         $route = new Route();
         $route->setPath($path);

@@ -14,10 +14,10 @@ namespace Silverback\ApiComponentsBundle\Command;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
-use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -63,7 +63,7 @@ class GenerateFixturesCommand extends Command
         $childPagesByParent = [];
         foreach ($pages as $page) {
             $parent = $page->getParentPageData() ?? $page->getParentPage();
-            if ($parent !== null) {
+            if (null !== $parent) {
                 $childPagesByParent[spl_object_id($parent)][] = $page;
             }
         }
@@ -71,7 +71,7 @@ class GenerateFixturesCommand extends Command
         $childPageDataByParent = [];
         foreach ($allPageData as $pd) {
             $parent = $pd->getParentPageData() ?? $pd->getParentPage();
-            if ($parent !== null) {
+            if (null !== $parent) {
                 $childPageDataByParent[spl_object_id($parent)][] = $pd;
             }
         }
@@ -83,14 +83,14 @@ class GenerateFixturesCommand extends Command
         }
 
         foreach ($pages as $page) {
-            if ($page->getParentPage() !== null || $page->getParentPageData() !== null) {
+            if (null !== $page->getParentPage() || null !== $page->getParentPageData()) {
                 continue;
             }
             $body .= $this->emitPage($page, $childPagesByParent, $childPageDataByParent);
         }
 
         foreach ($allPageData as $pd) {
-            if ($pd->getParentPage() !== null || $pd->getParentPageData() !== null) {
+            if (null !== $pd->getParentPage() || null !== $pd->getParentPageData()) {
                 continue;
             }
             $body .= $this->emitPageData($pd, $childPagesByParent, $childPageDataByParent);
@@ -98,7 +98,7 @@ class GenerateFixturesCommand extends Command
 
         file_put_contents($outputPath, $this->buildFile($body));
 
-        $output->writeln(sprintf('<info>Fixture class written to %s</info>', $outputPath));
+        $output->writeln(\sprintf('<info>Fixture class written to %s</info>', $outputPath));
 
         return Command::SUCCESS;
     }
@@ -110,7 +110,7 @@ class GenerateFixturesCommand extends Command
         $ui = var_export($layout->uiComponent, true);
 
         $extra = '';
-        if ($layout->uiClassNames !== null) {
+        if (null !== $layout->uiClassNames) {
             $extra .= ', uiClassNames: ' . $this->exportArray($layout->uiClassNames);
         }
 
@@ -133,7 +133,7 @@ class GenerateFixturesCommand extends Command
 
         $positions = $group->componentPositions;
         if ($positions->isEmpty()) {
-            return sprintf("%s%s->group(%s%s);\n", $indent, $ownerVar, var_export($groupName, true), $extra);
+            return \sprintf("%s%s->group(%s%s);\n", $indent, $ownerVar, var_export($groupName, true), $extra);
         }
 
         $posCode = '';
@@ -141,7 +141,7 @@ class GenerateFixturesCommand extends Command
             $posCode .= $this->emitPosition($position, $indent . '    ');
         }
 
-        return sprintf(
+        return \sprintf(
             "%s%s->group(%s%s, function (GroupBuilder \$g): void {\n%s%s});\n",
             $indent,
             $ownerVar,
@@ -154,8 +154,8 @@ class GenerateFixturesCommand extends Command
 
     private function emitPosition(ComponentPosition $position, string $indent): string
     {
-        if ($position->pageDataProperty !== null) {
-            return sprintf(
+        if (null !== $position->pageDataProperty) {
+            return \sprintf(
                 "%s\$g->pageDataPosition(%s, %s);\n",
                 $indent,
                 var_export($position->pageDataClass, true),
@@ -164,21 +164,21 @@ class GenerateFixturesCommand extends Command
         }
 
         $component = $position->component;
-        if ($component === null) {
+        if (null === $component) {
             return '';
         }
 
-        $fqcn = get_class($component);
+        $fqcn = $component::class;
         $shortName = (new \ReflectionClass($component))->getShortName();
         $this->addUseClass($fqcn);
 
         $varName = '$comp' . (++$this->compCounter);
         $code = "{$indent}{$varName} = new {$shortName}();\n";
 
-        if ($component->uiComponent !== null) {
+        if (null !== $component->uiComponent) {
             $code .= "{$indent}{$varName}->uiComponent = " . var_export($component->uiComponent, true) . ";\n";
         }
-        if ($component->uiClassNames !== null) {
+        if (null !== $component->uiClassNames) {
             $code .= "{$indent}{$varName}->uiClassNames = " . $this->exportArray($component->uiClassNames) . ";\n";
         }
 
@@ -188,7 +188,7 @@ class GenerateFixturesCommand extends Command
                 continue;
             }
             $value = $prop->getValue($component);
-            if ($value === null) {
+            if (null === $value) {
                 continue;
             }
             $code .= "{$indent}{$varName}->{$prop->getName()} = " . var_export($value, true) . ";\n";
@@ -213,10 +213,10 @@ class GenerateFixturesCommand extends Command
         $args = "{$ref}, {$ui}, layout: {$layoutRef}";
 
         $route = $page->getRoute();
-        if ($route !== null) {
+        if (null !== $route) {
             $args .= ', route: ' . var_export($route->getPath(), true);
             $routeName = $this->getRouteName($route);
-            if ($routeName !== null) {
+            if (null !== $routeName) {
                 $args .= ', routeName: ' . var_export($routeName, true);
             }
         }
@@ -225,7 +225,7 @@ class GenerateFixturesCommand extends Command
             $args .= ', isTemplate: true';
         }
 
-        if ($page->uiClassNames !== null) {
+        if (null !== $page->uiClassNames) {
             $args .= ', uiClassNames: ' . $this->exportArray($page->uiClassNames);
         }
 
@@ -235,12 +235,12 @@ class GenerateFixturesCommand extends Command
         $hasChildren = !empty($childPages) || !empty($childPd);
         $title = $page->getTitle();
 
-        if ($groups->isEmpty() && !$hasChildren && $title === null) {
+        if ($groups->isEmpty() && !$hasChildren && null === $title) {
             return "{$indent}{$builderVar}->page({$args});\n";
         }
 
         $configureLines = '';
-        if ($title !== null) {
+        if (null !== $title) {
             $configureLines .= "{$indent}        \$page->title(" . var_export($title, true) . ");\n";
         }
         foreach ($groups as $group) {
@@ -258,11 +258,11 @@ class GenerateFixturesCommand extends Command
         }
 
         return <<<CODE
-{$indent}{$builderVar}->page({$args},
-{$indent}    configure: function (PageBuilder \$page) use (\$cwa): void {
-{$configureLines}{$indent}    }
-{$indent});
-CODE . "\n";
+            {$indent}{$builderVar}->page({$args},
+            {$indent}    configure: function (PageBuilder \$page) use (\$cwa): void {
+            {$configureLines}{$indent}    }
+            {$indent});
+            CODE . "\n";
     }
 
     private function emitPageData(
@@ -272,7 +272,7 @@ CODE . "\n";
         string $indent = '        ',
         string $builderVar = '$cwa',
     ): string {
-        $fqcn = get_class($pd);
+        $fqcn = $pd::class;
         $shortName = (new \ReflectionClass($pd))->getShortName();
         $this->addUseClass($fqcn);
 
@@ -280,7 +280,7 @@ CODE . "\n";
         $code = "{$indent}{$varName} = new {$shortName}();\n";
 
         $title = $pd->getTitle();
-        if ($title !== null) {
+        if (null !== $title) {
             $code .= "{$indent}{$varName}->setTitle(" . var_export($title, true) . ");\n";
         }
 
@@ -293,7 +293,7 @@ CODE . "\n";
                 continue;
             }
             $value = $prop->getValue($pd);
-            if ($value === null) {
+            if (null === $value) {
                 continue;
             }
             $code .= "{$indent}{$varName}->{$prop->getName()} = " . var_export($value, true) . ";\n";
@@ -307,13 +307,13 @@ CODE . "\n";
         $route = $pd->getRoute();
 
         $pdArgs = $varName;
-        if ($templateRef !== null) {
+        if (null !== $templateRef) {
             $pdArgs .= ', template: ' . var_export($templateRef, true);
         }
-        if ($route !== null) {
+        if (null !== $route) {
             $pdArgs .= ', route: ' . var_export($route->getPath(), true);
             $routeName = $this->getRouteName($route);
-            if ($routeName !== null) {
+            if (null !== $routeName) {
                 $pdArgs .= ', routeName: ' . var_export($routeName, true);
             }
         }
@@ -351,23 +351,23 @@ CODE . "\n";
         $extraUses = '';
         if (!empty($this->useClasses)) {
             sort($this->useClasses);
-            $extraUses = "\n" . implode("\n", array_map(fn ($c) => "use {$c};", $this->useClasses));
+            $extraUses = "\n" . implode("\n", array_map(static fn ($c) => "use {$c};", $this->useClasses));
         }
 
         return <<<PHP
-<?php
+            <?php
 
-namespace App\\DataFixtures;
+            namespace App\\DataFixtures;
 
-{$coreUses}{$extraUses}
+            {$coreUses}{$extraUses}
 
-class GeneratedScaffold extends AbstractCwaScaffold
-{
-    public function build(CwaFixtureBuilder \$cwa): void
-    {
-{$body}    }
-}
-PHP;
+            class GeneratedScaffold extends AbstractCwaScaffold
+            {
+                public function build(CwaFixtureBuilder \$cwa): void
+                {
+            {$body}    }
+            }
+            PHP;
     }
 
     private function addUseClass(string $fqcn): void
@@ -381,7 +381,7 @@ PHP;
     {
         $reference = $group->reference ?? '';
         $location = $group->location ?? '';
-        if ($location !== '' && str_contains($reference, '_' . $location)) {
+        if ('' !== $location && str_contains($reference, '_' . $location)) {
             $name = substr($reference, 0, strpos($reference, '_' . $location));
             if (false !== $name && '' !== $name) {
                 return $name;
@@ -398,7 +398,7 @@ PHP;
 
     private function exportArray(array $arr): string
     {
-        $items = implode(', ', array_map(fn ($v) => var_export($v, true), $arr));
+        $items = implode(', ', array_map(static fn ($v) => var_export($v, true), $arr));
 
         return '[' . $items . ']';
     }

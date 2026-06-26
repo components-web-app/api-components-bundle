@@ -123,11 +123,11 @@ final class MakeRenameComponent extends AbstractMaker
         $groups = $this->registry->getRepository(ComponentGroup::class)->findAll();
         $affected = array_filter(
             $groups,
-            fn (ComponentGroup $g) => \in_array($oldIri, $g->allowedComponents ?? [], true)
+            static fn (ComponentGroup $g) => \in_array($oldIri, $g->allowedComponents ?? [], true)
         );
 
         if (\count($affected) > 0) {
-            $io->warning(sprintf(
+            $io->warning(\sprintf(
                 'The following ComponentGroups have allowedComponents referencing "%s". ' .
                 'The migration updates the DB automatically, but you must also update ' .
                 'any front-end components referencing these groups:',
@@ -135,15 +135,15 @@ final class MakeRenameComponent extends AbstractMaker
             ));
             $io->table(
                 ['Location (IRI)', 'Reference'],
-                array_map(fn (ComponentGroup $g) => [$g->location, $g->reference], $affected)
+                array_map(static fn (ComponentGroup $g) => [$g->location, $g->reference], $affected)
             );
         }
 
         $io->text([
             '<fg=yellow>Front-end checklist after renaming:</>',
             '',
-            sprintf('  1. Rename your Vue/front-end component file from <comment>%s</comment> to <comment>%s</comment>', $oldName, $newName),
-            sprintf('  2. Update any imports or registrations referencing <comment>%s</comment>', $oldName),
+            \sprintf('  1. Rename your Vue/front-end component file from <comment>%s</comment> to <comment>%s</comment>', $oldName, $newName),
+            \sprintf('  2. Update any imports or registrations referencing <comment>%s</comment>', $oldName),
             '  3. Run: <comment>php bin/console doctrine:migrations:migrate</comment>',
         ]);
     }
