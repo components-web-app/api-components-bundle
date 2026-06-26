@@ -34,6 +34,13 @@ class LayoutBuilder
         return $this->groupBuilders[$name];
     }
 
+    public function uiClassNames(array $classes): self
+    {
+        $this->layout->uiClassNames = $classes;
+
+        return $this;
+    }
+
     public function getLayout(): Layout
     {
         return $this->layout;

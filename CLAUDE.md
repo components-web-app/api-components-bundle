@@ -352,20 +352,22 @@ Register `AppScaffold` as a service; it's ready to use as a Doctrine fixture wit
 
 ```
 CwaFixtureBuilder
-  ->layout(ref, uiComponent): LayoutBuilder          (deduped by ref; returns same builder if called twice)
-  ->page(ref, uiComponent, layout, ?route, ?routeName, isTemplate=false, ?title, ?Closure): PageBuilder
+  ->layout(ref, uiComponent, ?uiClassNames): LayoutBuilder  (deduped by ref; returns same builder if called twice)
+  ->page(ref, uiComponent, layout, ?route, ?routeName, isTemplate=false, ?Closure, ?uiClassNames): PageBuilder
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
-  ->getRoute(routeName): Route                        (look up a named route already created)
+  ->getRoute(routeName): Route                              (look up a named route already created)
 
 LayoutBuilder
-  ->group(name, allow: [], ?Closure): GroupBuilder   (returns the GroupBuilder; same name = same group)
+  ->group(name, allow: [], ?Closure): GroupBuilder          (returns the GroupBuilder; same name = same group)
+  ->uiClassNames(array): self
 
 PageBuilder
   ->title(string): self
   ->metaDescription(string): self
+  ->uiClassNames(array): self
   ->group(name, ?Closure): GroupBuilder
-  ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
-  ->getRoute(): ?Route                               (route after builder flushes RouteGenerator)
+  ->nested(Closure): void                                   (Closure receives CwaFixtureBuilder with parent context)
+  ->getRoute(): ?Route                                      (route after builder flushes RouteGenerator)
 
 PageDataBuilder
   ->nested(Closure): void                            (Closure receives CwaFixtureBuilder with parent context)
@@ -491,13 +493,11 @@ Currently the only "draft" signal for a page is the absence of a Route. Once a p
 
 ---
 
-### #189 — Tool: generate fixtures from currently-populated database
+### #189 — Tool: generate fixtures from currently-populated database ✓ **DONE**
 
-A console command that inspects the current database state and outputs a `AbstractCwaScaffold`-compatible PHP fixture class reproducing it.
+Console command `silverback:api-components:generate-fixtures` (`src/Command/GenerateFixturesCommand.php`).
 
-**Use case:** Capturing a client's live site state for a local dev/staging reset; migrating initial content from staging to production via fixtures.
-
-**Rough approach:** Walk the CWA resource graph (Layouts → Pages → ComponentGroups → ComponentPositions → Components + PageData) and emit PHP using the `CwaFixtureBuilder` API.
+Walks the DB (Layouts → Pages → PageData → ComponentGroups → ComponentPositions → Components) and emits a complete `AbstractCwaScaffold`-compatible PHP file. Supports `--output` option (default `src/DataFixtures/GeneratedScaffold.php`). Emits `uiComponent`, `uiClassNames`, component own-properties, nested closures, and `pageDataPosition` calls. Unit-tested in `tests/Command/GenerateFixturesCommandTest.php`.
 
 ---
 
@@ -512,10 +512,8 @@ Should be read-only by default (report mode) with an optional `--fix` flag to de
 
 ---
 
-### #191 — Tool: migration command for renaming components (discriminator mapping)
+### #191 — Tool: migration command for renaming components (discriminator mapping) ✓ **DONE**
 
-A Maker command (`make:rename-component OldName NewName`) that generates a Doctrine migration to rename a component type — updating the discriminator map entry and any stored `uiComponent` references in `Page`, `Layout`, or `Component` rows.
+Maker command `make:rename-component` (`src/Maker/MakeRenameComponent.php`).
 
-**Notes:**
-- Should output migration SQL and optionally a data migration
-- May need to print a checklist of front-end (Vue file rename) changes needed alongside the DB migration
+Accepts `old-name` and `new-name` arguments (short class names). Derives dtype (`strtolower` of short name) and FQCN (`App\Entity\Component\X`) interactively, with `--old-fqcn`, `--new-fqcn`, `--old-dtype`, `--new-dtype` override options. Uses `IriConverterInterface` to resolve the collection IRI (falls back to derived `/component/kebab-name` if class not found). Generates a Doctrine migration (`src/Resources/skeleton/migration/RenameComponent.tpl.php`) that updates `dtype` in `abstract_component` and replaces the old IRI in `component_group.allowed_components` JSON. Outputs a per-group warning table (location IRI + reference) for any groups referencing the old component, plus a front-end rename checklist. Unit-tested in `tests/Maker/MakeRenameComponentTest.php`.

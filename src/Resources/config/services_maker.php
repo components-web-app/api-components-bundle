@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Resources\config;
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
 use Silverback\ApiComponentsBundle\Maker\MakePageData;
+use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container): void {
@@ -36,4 +37,10 @@ return static function (ContainerConfigurator $container): void {
         ->public();
 
     $services->alias(MakeCwaScaffold::class, 'silverback.api_components.maker.make_cwa_scaffold');
+
+    $services->set('silverback.api_components.maker.make_rename_component', MakeRenameComponent::class)
+        ->tag('maker.command')
+        ->public();
+
+    $services->alias(MakeRenameComponent::class, 'silverback.api_components.maker.make_rename_component');
 };

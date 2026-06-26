@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\CleanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
+use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
@@ -1370,6 +1371,14 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(CleanOrphanedCommand::class, 'silverback.api_components.command.clean_orphaned');
+
+    $services->set('silverback.api_components.command.generate_fixtures', GenerateFixturesCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference(ManagerRegistry::class),
+        ]);
+
+    $services->alias(GenerateFixturesCommand::class, 'silverback.api_components.command.generate_fixtures');
 
     $services
         ->set(UserStateProvider::class)

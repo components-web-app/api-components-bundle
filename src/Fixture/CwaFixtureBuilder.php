@@ -96,12 +96,13 @@ class CwaFixtureBuilder
         return $this;
     }
 
-    public function layout(string $ref, string $uiComponent): LayoutBuilder
+    public function layout(string $ref, string $uiComponent, ?array $uiClassNames = null): LayoutBuilder
     {
         if (!isset($this->layoutBuilders[$ref])) {
             $layout = new Layout();
             $layout->reference = $ref;
             $layout->uiComponent = $uiComponent;
+            $layout->uiClassNames = $uiClassNames;
             $this->layoutBuilders[$ref] = new LayoutBuilder($layout);
         }
 
@@ -116,11 +117,13 @@ class CwaFixtureBuilder
         ?string $routeName = null,
         bool $isTemplate = false,
         ?\Closure $configure = null,
+        ?array $uiClassNames = null,
     ): PageBuilder {
         if (!isset($this->pageSpecs[$ref])) {
             $page = new Page();
             $page->reference = $ref;
             $page->uiComponent = $uiComponent;
+            $page->uiClassNames = $uiClassNames;
             $page->isTemplate = $isTemplate;
             if ($this->parentContext instanceof AbstractPageData) {
                 $page->setParentPageData($this->parentContext);

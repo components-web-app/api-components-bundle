@@ -2071,4 +2071,76 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->assertContains($associated, $persisted, 'Property declared in the same class must be found by readProperty');
     }
+
+    public function test_layout_with_ui_class_names_sets_them_on_entity(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'CwaLayoutPrimary', uiClassNames: ['bg-white', 'full-bleed']);
+        $builder->flush();
+
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertCount(1, $layouts);
+        $this->assertSame(['bg-white', 'full-bleed'], $layouts[0]->uiClassNames);
+    }
+
+    public function test_layout_ui_class_names_can_be_set_via_fluent_method(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'CwaLayoutPrimary')->uiClassNames(['bold', 'dark']);
+        $builder->flush();
+
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertCount(1, $layouts);
+        $this->assertSame(['bold', 'dark'], $layouts[0]->uiClassNames);
+    }
+
+    public function test_page_with_ui_class_names_sets_them_on_entity(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', uiClassNames: ['hero', 'spaced']);
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages);
+        $this->assertSame(['hero', 'spaced'], $pages[0]->uiClassNames);
+    }
+
+    public function test_page_ui_class_names_can_be_set_via_fluent_method(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main')
+            ->uiClassNames(['compact', 'inverted']);
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages);
+        $this->assertSame(['compact', 'inverted'], $pages[0]->uiClassNames);
+    }
+
+    public function test_layout_null_ui_class_names_is_the_default(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $builder = $this->makeBuilder($em);
+
+        $builder->layout('main', 'CwaLayoutPrimary');
+        $builder->flush();
+
+        $layouts = array_values(array_filter($persisted, static fn ($e) => $e instanceof Layout));
+        $this->assertNull($layouts[0]->uiClassNames);
+    }
 }

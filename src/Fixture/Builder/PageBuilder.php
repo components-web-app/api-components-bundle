@@ -48,6 +48,13 @@ class PageBuilder
         return $this;
     }
 
+    public function uiClassNames(array $classes): self
+    {
+        $this->page->uiClassNames = $classes;
+
+        return $this;
+    }
+
     public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
