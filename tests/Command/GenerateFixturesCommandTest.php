@@ -1400,6 +1400,167 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('configure:', $content);
         $this->assertStringContainsString("->title('Welcome')", $content);
+        // no children — nested closure must NOT appear (kills LogicalOrAllSubExprNegation on $hasChildren)
+        $this->assertStringNotContainsString('->nested(', $content);
+    }
+
+    // --- explicit cases for the $groups->isEmpty() && !$hasChildren && null===$title condition ---
+
+    public function test_page_with_no_title_no_groups_no_children_emits_simple_one_liner(): void
+    {
+        // All three condition parts true → simple one-liner returned
+        // Kills LogicalAndSingleSubExprNegation (negates isEmpty → condition fails → empty configure closure emitted)
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $page = $this->makePage('empty', 'CwaPageEmpty', $layout, $this->makeRoute('/empty'));
+        $page->setTitle(null); // AbstractPage defaults to 'Unnamed Page'; clear it for true no-title case
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'empty'", $content);
+        // simple form: no configure closure
+        $this->assertStringNotContainsString('configure:', $content);
+        $this->assertStringNotContainsString('->nested(', $content);
+    }
+
+    public function test_page_with_groups_no_title_no_children_uses_configure_closure(): void
+    {
+        // groups → condition false → configure closure used (not simple form)
+        // Kills LogicalAnd (changes to OR logic), LogicalAndSingleSubExprNegation
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $page = $this->makePage('main', 'CwaPageMain', $layout, $this->makeRoute('/main'));
+        $page->setTitle(null); // clear default 'Unnamed Page' so groups alone trigger configure closure
+
+        $comp = new _TestHtmlComponent();
+        $comp->html = 'content';
+        $pos = new ComponentPosition();
+        $pos->setComponent($comp);
+        $pos->setSortValue(10);
+        $group = new ComponentGroup();
+        $group->reference = 'page-main-primary';
+        $group->location = '/_/pages/some-uuid';
+        $group->componentPositions->add($pos);
+        $page->getComponentGroups()->add($group);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('configure:', $content);
+        $this->assertStringContainsString('content', $content);
+    }
+
+    public function test_page_with_children_only_uses_configure_closure_with_nested(): void
+    {
+        // !$hasChildren=false → condition false → configure closure with nested block
+        // Kills LogicalNot (changes !$hasChildren to $hasChildren → condition true → simple form, no nested)
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $parent = $this->makePage('hub', 'CwaPageHub', $layout, $this->makeRoute('/hub'));
+        $parent->setTitle(null); // clear default so children alone trigger configure closure
+        $child = $this->makePage('sub', 'CwaPageSub', $layout, $this->makeRoute('/hub/sub'));
+        $child->setParentPage($parent);
+
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$parent, $child]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('configure:', $content);
+        $this->assertStringContainsString('->nested(', $content);
+    }
+
+    public function test_page_with_both_child_pages_and_child_page_data_emits_nested(): void
+    {
+        // $hasChildren = !empty(childPages) || !empty(childPd)
+        // Kills LogicalOrAllSubExprNegation: empty(childPages)||empty(childPd) = false||false = false
+        // → hasChildren=false → no children path → nested lost
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $templatePage = $this->makePage('tmpl', 'CwaPageTmpl', $layout, null, true);
+        $parent = $this->makePage('hub2', 'CwaPageHub2', $layout, $this->makeRoute('/hub2'));
+        $parent->setTitle(null); // clear default so both childPages and childPd together trigger $hasChildren
+
+        $childPage = $this->makePage('sub2', 'CwaPageSub2', $layout, $this->makeRoute('/hub2/sub2'));
+        $childPage->setParentPage($parent);
+
+        $childPd = new _TestArticleData();
+        $childPd->setTitle('Hub Article');
+        $childPd->setParentPage($parent);
+        $childPd->setRoute($this->makeRoute('/hub2/article'));
+        $childPd->page = $templatePage;
+
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$parent, $childPage, $templatePage], pageData: [$childPd]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('->nested(', $content);
+        $this->assertStringContainsString("'sub2'", $content);
+        $this->assertStringContainsString('Hub Article', $content);
+    }
+
+    public function test_page_data_with_title_emits_class_instantiation_and_set_title(): void
+    {
+        // Assignment mutant on setTitle line ($code = '...' instead of $code .= '...') resets $code,
+        // losing the class instantiation line.
+        $pd = new _TestArticleData();
+        $pd->setTitle('My Article');
+
+        $this->runCommand($this->registryWith(pageData: [$pd]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('new _TestArticleData()', $content);
+        $this->assertStringContainsString("->setTitle('My Article')", $content);
+    }
+
+    public function test_page_data_with_template_and_route_both_appear_in_pagedata_call(): void
+    {
+        // Assignment mutant on $pdArgs .= ', template: ...' resets $pdArgs, losing the $varName prefix
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $templatePage = $this->makePage('tmpl', 'CwaPageTmpl', $layout, null, true);
+        $templatePage->reference = 'blog-tmpl';
+
+        $pd = new _TestArticleData();
+        $pd->setTitle('Article');
+        $pd->page = $templatePage;
+        $pd->setRoute($this->makeRoute('/articles/first'));
+
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$templatePage], pageData: [$pd]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        // $varName (derived from title) AND template both must appear in the ->pageData(...) call
+        $this->assertStringContainsString('$pd_Article', $content);
+        $this->assertStringContainsString("template: 'blog-tmpl'", $content);
+    }
+
+    public function test_component_with_null_first_property_still_emits_second_non_null_property(): void
+    {
+        // Continue_ → break mutant on the null-value check: stops at the FIRST null property
+        // and never reaches subsequent non-null properties.
+        // _TestHtmlComponent: html (null here), cssClass (non-null here)
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $page = $this->makePage('home', 'CwaPageHome', $layout, $this->makeRoute('/'));
+
+        $comp = new _TestHtmlComponent();
+        // html = null (not set), cssClass = 'my-class' (set second)
+        $comp->cssClass = 'my-class';
+
+        $pos = new ComponentPosition();
+        $pos->setComponent($comp);
+        $pos->setSortValue(10);
+        $group = new ComponentGroup();
+        $group->reference = 'page-home-primary';
+        $group->location = '/_/pages/test';
+        $group->componentPositions->add($pos);
+        $page->getComponentGroups()->add($group);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("->cssClass = 'my-class';", $content);
     }
 
     // --- route + uiClassNames both appear in page args (kills Assignment .= → = mutant) ---
