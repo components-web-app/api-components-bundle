@@ -31,16 +31,57 @@ class ConstraintViolationBuilderStub implements ConstraintViolationBuilderInterf
     public bool $violationAdded = false;
     public array $parameters = [];
 
-    public function atPath(string $path): static { return $this; }
-    public function setParameter(string $key, string $value): static { $this->parameters[$key] = $value; return $this; }
-    public function setParameters(array $parameters): static { return $this; }
-    public function disableTranslation(): static { return $this; }
-    public function setTranslationDomain(string $translationDomain): static { return $this; }
-    public function setInvalidValue(mixed $invalidValue): static { return $this; }
-    public function setPlural(int $number): static { return $this; }
-    public function setCode(?string $code): static { return $this; }
-    public function setCause(mixed $cause): static { return $this; }
-    public function addViolation(): void { $this->violationAdded = true; }
+    public function atPath(string $path): static
+    {
+        return $this;
+    }
+
+    public function setParameter(string $key, string $value): static
+    {
+        $this->parameters[$key] = $value;
+
+        return $this;
+    }
+
+    public function setParameters(array $parameters): static
+    {
+        return $this;
+    }
+
+    public function disableTranslation(): static
+    {
+        return $this;
+    }
+
+    public function setTranslationDomain(string $translationDomain): static
+    {
+        return $this;
+    }
+
+    public function setInvalidValue(mixed $invalidValue): static
+    {
+        return $this;
+    }
+
+    public function setPlural(int $number): static
+    {
+        return $this;
+    }
+
+    public function setCode(?string $code): static
+    {
+        return $this;
+    }
+
+    public function setCause(mixed $cause): static
+    {
+        return $this;
+    }
+
+    public function addViolation(): void
+    {
+        $this->violationAdded = true;
+    }
 }
 
 #[AllowMockObjectsWithoutExpectations]
