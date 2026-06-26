@@ -900,7 +900,7 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('$pd_My_Great_Article', $content);
     }
 
-    public function test_page_data_with_null_title_uses_pageData_fallback_var_name(): void
+    public function test_page_data_with_null_title_uses_page_data_fallback_var_name(): void
     {
         $pd = new _TestArticleData();
         $pd->setTitle(null); // explicitly null — triggers the ?? 'pageData' fallback
@@ -1153,7 +1153,7 @@ class GenerateFixturesCommandTest extends TestCase
     public function test_success_message_written_to_output(): void
     {
         $command = $this->makeCommand($this->emptyRegistry());
-        $tester = new \Symfony\Component\Console\Tester\CommandTester($command);
+        $tester = new CommandTester($command);
         $tester->execute(['--output' => $this->outputFile]);
 
         $display = $tester->getDisplay();
@@ -1248,5 +1248,244 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("\$page->title('Parent Title')", $content);
         $this->assertStringContainsString('->nested(', $content);
+    }
+
+    // --- Coalesce mutant killers: child indexed via getParentPage() fallback ---
+
+    public function test_child_page_linked_via_parent_page_appears_in_nested_closure(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $parent = $this->makePage('parent', 'CwaPageParent', $layout, $this->makeRoute('/parent'));
+        $child = $this->makePage('child', 'CwaPageChild', $layout, $this->makeRoute('/parent/child'));
+        $child->setParentPage($parent);
+
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$parent, $child]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('->nested(', $content);
+        $this->assertStringContainsString("'child'", $content);
+    }
+
+    public function test_child_page_data_linked_via_parent_page_appears_in_nested_closure(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $templatePage = $this->makePage('tmpl', 'CwaPageTmpl', $layout, null, true);
+        $parent = $this->makePage('parent', 'CwaPageParent', $layout, $this->makeRoute('/parent'));
+
+        $childPd = new _TestArticleData();
+        $childPd->setTitle('Child Article');
+        $childPd->setParentPage($parent);
+        $childPd->setRoute($this->makeRoute('/parent/child'));
+        $childPd->page = $templatePage;
+
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$parent, $templatePage], pageData: [$childPd]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('->nested(', $content);
+        $this->assertStringContainsString('Child Article', $content);
+    }
+
+    // --- stripUiPrefix edge cases ---
+
+    public function test_layout_with_null_ui_component_emits_null(): void
+    {
+        $layout = $this->makeLayout('main', '');
+        $layout->uiComponent = null;
+
+        $this->runCommand($this->registryWith(layouts: [$layout]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('->layout(', $content);
+        $this->assertStringContainsString('NULL', $content);
+    }
+
+    public function test_layout_with_non_cwa_prefixed_ui_component_emits_as_is(): void
+    {
+        $layout = $this->makeLayout('main', 'MyCustomLayout');
+
+        $this->runCommand($this->registryWith(layouts: [$layout]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'MyCustomLayout'", $content);
+    }
+
+    public function test_page_with_cwa_page_prefixed_ui_component_strips_prefix(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $route = $this->makeRoute('/blog');
+        $page = $this->makePage('blog', 'CwaPageBlog', $layout, $route);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'Blog'", $content);
+        $this->assertStringNotContainsString("'CwaPageBlog'", $content);
+    }
+
+    public function test_page_with_non_cwa_prefixed_ui_component_emits_as_is(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $route = $this->makeRoute('/home');
+        $page = $this->makePage('home', 'CustomPageTemplate', $layout, $route);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'CustomPageTemplate'", $content);
+    }
+
+    // --- continue vs break in top-level iteration ---
+
+    public function test_second_top_level_page_is_emitted_when_first_page_in_array_is_a_child(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $parent = $this->makePage('parent', 'CwaPageParent', $layout, $this->makeRoute('/parent'));
+        $child = $this->makePage('child', 'CwaPageChild', $layout, $this->makeRoute('/parent/child'));
+        $child->setParentPage($parent);
+        $other = $this->makePage('other', 'CwaPageOther', $layout, $this->makeRoute('/other'));
+
+        // child is first in array — break mutant would stop after skipping it, losing 'other'
+        $this->runCommand(
+            $this->registryWith(layouts: [$layout], pages: [$child, $parent, $other]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'other'", $content);
+        $this->assertStringContainsString("'parent'", $content);
+    }
+
+    public function test_second_top_level_page_data_is_emitted_when_first_is_a_child(): void
+    {
+        $parentPd = new _TestArticleData();
+        $parentPd->setTitle('Parent');
+        $parentPd->setRoute($this->makeRoute('/parent'));
+
+        $childPd = new _TestArticleData();
+        $childPd->setTitle('Child');
+        $childPd->setParentPageData($parentPd);
+        $childPd->setRoute($this->makeRoute('/parent/child'));
+
+        $otherPd = new _TestArticleData();
+        $otherPd->setTitle('Other');
+        $otherPd->setRoute($this->makeRoute('/other'));
+
+        // child first — break mutant stops after skipping, losing 'other'
+        $this->runCommand(
+            $this->registryWith(pageData: [$childPd, $parentPd, $otherPd]),
+            $this->outputFile,
+        );
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'Other'", $content);
+        $this->assertStringContainsString("'Parent'", $content);
+    }
+
+    // --- page configure closure triggered by title alone ---
+
+    public function test_page_with_title_only_emits_configure_closure_with_title(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $page = $this->makePage('home', 'CwaPageHome', $layout, $this->makeRoute('/'));
+        $page->setTitle('Welcome');
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('configure:', $content);
+        $this->assertStringContainsString("->title('Welcome')", $content);
+    }
+
+    // --- route + uiClassNames both appear in page args (kills Assignment .= → = mutant) ---
+
+    public function test_page_ui_class_names_appended_alongside_route_in_args(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $route = $this->makeRoute('/home', 'home-page');
+        $page = $this->makePage('home', 'CwaPageHome', $layout, $route);
+        $page->uiClassNames = ['hero'];
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString("'/home'", $content);
+        $this->assertStringContainsString('uiClassNames', $content);
+        $this->assertStringContainsString("'hero'", $content);
+    }
+
+    // --- group with two positions emits both (kills posCode concat mutants) ---
+
+    public function test_group_with_two_components_emits_both_in_closure(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $route = $this->makeRoute('/home');
+        $page = $this->makePage('home', 'CwaPageHome', $layout, $route);
+
+        $comp1 = new _TestHtmlComponent();
+        $comp1->html = 'first';
+        $comp2 = new _TestHtmlComponent();
+        $comp2->html = 'second';
+
+        $pos1 = new ComponentPosition();
+        $pos1->setComponent($comp1);
+        $pos1->setSortValue(10);
+        $pos2 = new ComponentPosition();
+        $pos2->setComponent($comp2);
+        $pos2->setSortValue(20);
+
+        $group = new ComponentGroup();
+        $group->reference = 'page-home-primary';
+        $group->location = '/_/pages/some-uuid';
+        $group->componentPositions->add($pos1);
+        $group->componentPositions->add($pos2);
+        $page->getComponentGroups()->add($group);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        $this->assertStringContainsString('first', $content);
+        $this->assertStringContainsString('second', $content);
+    }
+
+    // --- component uiComponent and own-property both emitted (kills code .= Assignment/Concat mutants) ---
+
+    public function test_component_class_instantiation_uicomponent_and_property_all_appear(): void
+    {
+        $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
+        $route = $this->makeRoute('/home');
+        $page = $this->makePage('home', 'CwaPageHome', $layout, $route);
+
+        $comp = new _TestHtmlComponent();
+        $comp->uiComponent = 'FancyRenderer';
+        $comp->uiClassNames = ['bold', 'dark'];
+        $comp->html = 'body text';
+
+        $pos = new ComponentPosition();
+        $pos->setComponent($comp);
+        $pos->setSortValue(10);
+
+        $group = new ComponentGroup();
+        $group->reference = 'page-home-primary';
+        $group->location = '/_/pages/some-uuid';
+        $group->componentPositions->add($pos);
+        $page->getComponentGroups()->add($group);
+
+        $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
+
+        $content = file_get_contents($this->outputFile);
+        // class instantiation must appear (kills Assignment line 174/177 that resets $code)
+        $this->assertStringContainsString('new _TestHtmlComponent()', $content);
+        // full uiComponent assignment (kills Concat/ConcatOperandRemoval on line ~174)
+        $this->assertStringContainsString("->uiComponent = 'FancyRenderer';", $content);
+        // full uiClassNames assignment (kills Concat/ConcatOperandRemoval/Assignment on line ~177)
+        $this->assertStringContainsString("->uiClassNames = ['bold', 'dark'];", $content);
+        // full own-property assignment including value (kills ConcatOperandRemoval on line ~189)
+        $this->assertStringContainsString("->html = 'body text';", $content);
     }
 }
