@@ -18,11 +18,16 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(
+    name: 'silverback:api-components:generate-fixtures',
+    description: 'Walk the database and output an AbstractCwaScaffold-compatible PHP fixture class',
+)]
 class GenerateFixturesCommand extends Command
 {
     private array $useClasses;
@@ -31,16 +36,6 @@ class GenerateFixturesCommand extends Command
     public function __construct(private readonly ManagerRegistry $registry)
     {
         parent::__construct();
-    }
-
-    public static function getDefaultName(): string
-    {
-        return 'silverback:api-components:generate-fixtures';
-    }
-
-    public function getDescription(): string
-    {
-        return 'Walk the database and output an AbstractCwaScaffold-compatible PHP fixture class';
     }
 
     protected function configure(): void

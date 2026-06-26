@@ -141,7 +141,8 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_command_name(): void
     {
-        $this->assertSame('silverback:api-components:generate-fixtures', GenerateFixturesCommand::getDefaultName());
+        $command = $this->makeCommand();
+        $this->assertSame('silverback:api-components:generate-fixtures', $command->getName());
     }
 
     public function test_command_description(): void
