@@ -495,6 +495,13 @@ Currently the only "draft" signal for a page is the absence of a Route. Once a p
 - Admin `GET /_/resource_manifest/{uuid}` for an unpublished page works for `ROLE_ADMIN`
 - Behat scenarios: public access denied, admin access allowed, publish via PATCH
 
+**Additional considerations (unresolved — do not implement yet):**
+- **Component permission inheritance**: component access is currently derived from whether a routed page exists that the component is reachable from. Adding page-level `publishedAt` must account for this — an unpublished page should also make its components inaccessible to public users, which may require extending the voter chain rather than a simple field check.
+- **Front-end draft/live UX**: the right approach for the Nuxt module is still undecided. Two leading options are (a) a dedicated draft-preview URL scheme and (b) an admin-overlay flag on the normal URL. Neither is settled.
+- **Hero component editing conflict**: if a page title is edited from within a hero component (a common CWA pattern), the page entity and the hero component are two separate resources each with their own `publishedAt`. A live page could have a draft hero (or vice versa), producing incoherent states. This needs a clear resolution — e.g. page-level `publishedAt` drives visibility for the whole subtree, or component states are independent and the admin UI must handle the mismatch — before implementation begins.
+
+Leave this issue open until the front-end approach and component-state semantics are agreed.
+
 ---
 
 ---
