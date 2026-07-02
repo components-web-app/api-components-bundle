@@ -1800,6 +1800,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(TimestampedDataPersister::class),
             new Reference(RouteGeneratorInterface::class),
             new Reference(IriConverterInterface::class),
+            new Reference(UploadableFileManager::class),
+            new Reference(UploadableAttributeReader::class),
         ]);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
 

@@ -21,13 +21,17 @@ use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -40,12 +44,16 @@ class UploadsContext implements Context
     private ObjectManager $manager;
     private IriConverterInterface $iriConverter;
     private UploadableFileManager $uploadableHelper;
+    private UploadableAttributeReader $uploadableAttributeReader;
+    private FilesystemProvider $filesystemProvider;
 
-    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper)
+    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper, UploadableAttributeReader $uploadableAttributeReader, FilesystemProvider $filesystemProvider)
     {
         $this->manager = $doctrine->getManager();
         $this->iriConverter = $iriConverter;
         $this->uploadableHelper = $uploadableHelper;
+        $this->uploadableAttributeReader = $uploadableAttributeReader;
+        $this->filesystemProvider = $filesystemProvider;
     }
 
     /**
@@ -63,11 +71,13 @@ class UploadsContext implements Context
      */
     public function removeFile(): void
     {
-        if (isset($this->restContext->resources['dummy_uploadable'])) {
-            try {
-                $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources['dummy_uploadable']));
-            } catch (ItemNotFoundException $e) {
-                // we may heva just deleted this resource 'dummy_uploadable'
+        foreach (['dummy_uploadable', 'first_upload', 'second_upload'] as $key) {
+            if (isset($this->restContext->resources[$key])) {
+                try {
+                    $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources[$key]));
+                } catch (ItemNotFoundException $e) {
+                    // we may have just deleted this resource
+                }
             }
         }
     }
@@ -135,6 +145,19 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given there is a DummyUploadable with the file :file saved as :name
+     */
+    public function thereIsADummyUploadableWithTheFileSavedAs(string $file, string $name): void
+    {
+        $object = new DummyUploadable();
+        $object->file = new File(__DIR__ . '/../assets/files/' . $file);
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
      * @Then the JSON node :node should start with :prefix
      */
     public function theJsonNodeShouldStartWith(string $node, string $prefix): void
@@ -181,6 +204,61 @@ class UploadsContext implements Context
     {
         $item = $this->getUploadableResourceByName($name);
         Assert::assertNotNull($item->getFilename());
+    }
+
+    /**
+     * @Then the resource :name should have a filename matching :pattern
+     */
+    public function theResourceShouldHaveAFilenameMatching(string $name, string $pattern): void
+    {
+        // Manual checks + plain exceptions: PHPUnit 11's failure-message Exporter
+        // relies on its TextUI Configuration Registry, which Behat never bootstraps,
+        // so a failing Assert::assert* fatals while rendering rather than reporting.
+        $filename = $this->getUploadableResourceByName($name)->getFilename();
+        if (null === $filename || 1 !== preg_match($pattern, $filename)) {
+            throw new \RuntimeException(\sprintf('Expected the filename for "%s" to match %s, got "%s".', $name, $pattern, $filename ?? 'null'));
+        }
+    }
+
+    /**
+     * @Then the resource :name should have a different filename to the resource :other
+     */
+    public function theResourceShouldHaveADifferentFilenameToTheResource(string $name, string $other): void
+    {
+        $first = $this->getUploadableResourceByName($name)->getFilename();
+        $second = $this->getUploadableResourceByName($other)->getFilename();
+        if (null === $first || null === $second) {
+            throw new \RuntimeException(\sprintf('Both resources must have a filename ("%s"=%s, "%s"=%s).', $name, $first ?? 'null', $other, $second ?? 'null'));
+        }
+        if ($first === $second) {
+            throw new \RuntimeException(\sprintf('Resources "%s" and "%s" share the filename "%s"; one would overwrite the other.', $name, $other, $first));
+        }
+    }
+
+    /**
+     * @Then the file for the resource :name should exist in its configured filestore
+     */
+    public function theFileForTheResourceShouldExistInItsConfiguredFilestore(string $name): void
+    {
+        $item = $this->getUploadableResourceByName($name);
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+
+        $configuredProperties = $this->uploadableAttributeReader->getConfiguredProperties($item, true);
+        $checked = 0;
+        foreach ($configuredProperties as $fieldConfiguration) {
+            $filePath = $propertyAccessor->getValue($item, $fieldConfiguration->property);
+            if (empty($filePath)) {
+                continue;
+            }
+            ++$checked;
+            $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
+            if (!$filesystem->fileExists($filePath)) {
+                throw new \RuntimeException(\sprintf('Expected file "%s" to exist in adapter "%s" but it does not.', $filePath, $fieldConfiguration->adapter));
+            }
+        }
+        if (0 === $checked) {
+            throw new \RuntimeException(\sprintf('The resource "%s" has no stored file to check.', $name));
+        }
     }
 
     /**

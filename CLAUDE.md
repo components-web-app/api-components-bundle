@@ -399,6 +399,8 @@ GroupBuilder
 
 `->group('top', allow: [NavigationLink::class])` calls `ComponentGroup::addAllowedComponent()` with the class-level IRI obtained from `IriConverterInterface`. The builder handles the IRI lookup internally — callers pass PHP class names.
 
+**`allowedComponents` matches by class-level (collection) IRI**, not per-instance — the validator compares a component's collection IRI against the group's list. This is the type-level allow mechanism that the planned `explicitAllowOnly` opt-in restriction builds on (see Open Issues → #196).
+
 ### Internal flush ordering
 
 The builder manages persisting in the correct order. Roughly:
@@ -504,6 +506,35 @@ Leave this issue open until the front-end approach and component-state semantics
 
 ---
 
+### #196 — `explicitAllowOnly`: per-type opt-in component placement restriction (bundle side; front-end: cwa-nuxt-module #249)
+
+**Goal:** a component **type** can be marked so it may only be placed in a `ComponentGroup` that explicitly lists its collection IRI in `allowedComponents`. Everywhere else it is hidden from the admin add UI and rejected on save. Requested behaviour: "if a component of type X is flagged, it must be explicitly allowed by its type/IRI in a group to be added there."
+
+**Design decisions (agreed):**
+- **Per-type, declarative** — declared once on the component class, not per-instance. Named **`explicitAllowOnly`** (used as the annotation option, the metadata key, and the front-end property).
+- Declared as an **`#[ApiResource]`-level option** on the component class (e.g. `explicitAllowOnly: true`).
+- **Replaces `AbstractComponent::isPositionRestricted()`.** That method is per-instance and server-only and becomes redundant once the flag is declared via annotation. Remove the base method **and every per-subclass override**; entities set `explicitAllowOnly: true` on their `#[ApiResource]` attribute instead.
+- **`ComponentPositionValidator` reads the per-type `explicitAllowOnly` value** (from resource metadata) instead of calling `$component->isPositionRestricted()`. Existing `restrictedMessage` violation is retained. Server validation stays the source of truth.
+- **Expose `explicitAllowOnly` in the metadata the front-end reads.**
+
+**LOCKED interface contract (bundle ⇄ module):**
+The Nuxt module does **not** read a bespoke metadata endpoint. It derives component metadata from the **Hydra JSON-LD API docs** (`getComponentMetadata` → reads `docs['supportedClass']` / `supportedProperty`); `isPublishable` is inferred from the presence of a `publishedAt` *property*. `explicitAllowOnly` is **not an entity property**, so the contract is:
+
+- Expose a **boolean under the exact key `explicitAllowOnly`** on each component's Hydra **`supportedClass`** entry, in the same docs the module already fetches (the entrypoint/docs used for `isPublishable`) — **no separate endpoint**.
+- **Class-level** flag (not a `supportedProperty`), associated with the component by the same `title`/resource name the module keys on.
+- **Absent ⇒ `false`.** The module reads `supportedClass[n].explicitAllowOnly` with a `false` fallback, so the front-end can ship independently and simply activates once the bundle emits the key.
+- The bundle must ensure the value **compacts to exactly `explicitAllowOnly`** in the emitted docs — if API Platform surfaces custom class metadata namespaced (e.g. via `#[ApiResource(extraProperties: [...])]`), add a JSON-LD `@context` alias so it appears under the bare `explicitAllowOnly` term. No `extraProperties` precedent in the codebase today.
+- `allowedComponents` (group, collection-IRI/type-level) and `ComponentPositionValidator` (server = source of truth) are unchanged.
+
+The exact key `explicitAllowOnly` is the **locked** interface — both sides read/write that term.
+
+**Front-end (tracked in cwa-nuxt-module #249):** add `explicitAllowOnly` to `ApiDocumentationComponentMetadata`; `AddComponentDialog.findAvailableComponents` excludes such types from groups that don't list them; component **cloning** (#157) must respect it too.
+
+**Acceptance criteria (bundle side):**
+- A component type with `explicitAllowOnly: true` in its `#[ApiResource]` is rejected by `ComponentPositionValidator` when placed in a group whose `allowedComponents` does not list its collection IRI, and accepted when it does.
+- `explicitAllowOnly` is present in the metadata the front-end consumes for every component type.
+- `AbstractComponent::isPositionRestricted()` and all overrides are removed; no behaviour regression for previously-restricted components (they now use the annotation).
+
 ---
 
 ### #189 — Tool: generate fixtures from currently-populated database ✓ **DONE**
@@ -530,3 +561,115 @@ Should be read-only by default (report mode) with an optional `--fix` flag to de
 Maker command `make:rename-component` (`src/Maker/MakeRenameComponent.php`).
 
 Accepts `old-name` and `new-name` arguments (short class names). Derives dtype (`strtolower` of short name) and FQCN (`App\Entity\Component\X`) interactively, with `--old-fqcn`, `--new-fqcn`, `--old-dtype`, `--new-dtype` override options. Uses `IriConverterInterface` to resolve the collection IRI (falls back to derived `/component/kebab-name` if class not found). Generates a Doctrine migration (`src/Resources/skeleton/migration/RenameComponent.tpl.php`) that updates `dtype` in `abstract_component` and replaces the old IRI in `component_group.allowed_components` JSON. Outputs a per-group warning table (location IRI + reference) for any groups referencing the old component, plus a front-end rename checklist. Unit-tested in `tests/Maker/MakeRenameComponentTest.php`.
+
+---
+
+### #193 — Require a file on publish for Uploadable entities — configure via `#[UploadableField(requiredOnPublish: true)]`
+
+An `#[Uploadable]` entity can currently be **published without a file**. Apps work around this by hand-rolling a trait that adds a validation constraint in the `{ShortName}:published` group (see `RequiresUploadedFileTrait` in the `components-web-app` template / srnte). Move this into the bundle and configure it declaratively.
+
+**Sharp edge this fixes:** `$filename` is **private** on `UploadableTrait` (only a public `getFilename()`). An `Assert\Expression` using the natural `this.filename` throws a fatal *"Cannot access private property"* — apps must know to write `this.getFilename()`. A bundle-owned constraint hides this entirely.
+
+**Proposed design (mirrors the existing `TimestampedLoader`):**
+- Add `bool $requiredOnPublish = false` to `UploadableField` (`src/Annotation/UploadableField.php`).
+- Add `Validator\MappingLoader\UploadableValidatorMappingLoader` that, for each `#[Uploadable]` class, iterates `UploadableField` properties and — for each flagged `requiredOnPublish` — adds a constraint in the `{ShortName}:published` group passing when **either** the transient file property (e.g. `$file`) **or** the stored filename property (`UploadableField::$property`, default `filename`, read via getter/PropertyAccess) is non-null. Immune to `$filename` only being written at `PRE_WRITE`.
+- Register as `silverback.api_components.validator.mapping_loader.uploadable`, alongside `...mapping_loader.timestamped` in `src/Resources/config/services.php`.
+- Prefer `Assert\Callback` (or a dedicated `RequiresUploadedFile` constraint) over `Assert\Expression` so the private-property trap can't recur.
+
+**Multiple files:** the per-field flag scales for free — each `UploadableField` gets its own independent constraint keyed to its own file property + storage column (`property:`). No extra code.
+
+**Edge cases → docs, not the attribute:** *"at least N of these"*, *"exactly one of a group"*, conditional requiredness stay app-side via a custom `Assert\Callback` in the published group. Add a docs recipe covering (a) `requiredOnPublish: true`, (b) multiple files, (c) hand-rolled conditional rules — including the `getFilename()`-not-`filename` note.
+
+**Acceptance:** publishing with no file and no stored filename → 422 grouped under `{ShortName}:published`; `$file` set or existing filename passes; draft writes never require it; multiple fields validated independently; no app-side trait needed; no private-property fatal regardless of storage-property visibility.
+
+References: `src/Validator/MappingLoader/TimestampedLoader.php`, `src/Validator/PublishableValidator.php` (`getShortName() . ':published'`), `src/Entity/Utility/UploadableTrait.php`, `src/Annotation/UploadableField.php`.
+
+---
+
+### #194 — Uploads silently overwrite another resource's file on filename collision — store under original name + unique token ✓ **DONE**
+
+**Implemented** in `UploadableFileManager::persistFiles()`: files are now stored as `<sanitised-stem>-<token>.<ext>` (`tokeniseFilename()` — slugified stem, length-capped, `bin2hex(random_bytes(4))` token), with a `fileExists()` regeneration loop guaranteeing no upload ever overwrites another resource's file. Data-URI uploads (`UploadedDataUriFile`) keep their UUID name (no token). The original name is resolved by `resolveOriginalName()` which **prefers whichever candidate carries a file extension** — for real multipart uploads that's `getClientOriginalName()` (the on-disk file is a temp name), but in some contexts (incl. the Behat harness) the client name is absent/the form field and the file's own basename holds the real name+ext. Behat: `features/uploads/uploads.feature` "Uploading keeps the original filename with a unique token…" (one real multipart upload + a second same-source resource via a `persistFiles` helper — two consecutive authed multipart POSTs 401/415 in the harness, so that path is avoided). Content-disposition download scenarios switched from exact `filename=image.png` to `should contain "filename=image-"`.
+
+---
+<details><summary>Original issue context</summary>
+
+`UploadableFileManager::persistFiles()` writes to `prefix . $file->getFilename()` with **no collision handling**. Two resources whose uploads share a basename (both `image.png`) resolve to the **same** storage path — the second write silently overwrites the first, and deleting/replacing one removes the file the other still references. Confirmed: a multipart `image.png` upload is stored verbatim as `image.png`.
+
+**Desired behaviour:** every stored file gets the original filename as a readable stem plus a unique random token, so each upload is its own object and can never clobber a sibling.
+- Stored name = `slugify(stem) + '-' + token + '.' + ext`; token = `bin2hex(random_bytes(4))` (unguessable, collision-proof).
+- Applies to paths carrying a client/source filename: **multipart** (`UploadedFile::getClientOriginalName()`) and **fixtures** (source basename, see #195).
+- **Data-URI / base64 keeps UUID** — no client filename, UUID already unique+opaque; store as clean `<uuid>.<ext>`.
+- Replacing a resource's *own* file: `persistFiles()` deletes the field's current file first, so a replacement writes a fresh tokened name and removes the old — siblings untouched. Satisfies "don't overwrite, unless it's the same file being replaced."
+- **Mandatory sanitisation** (strip path separators / `..`, slugify, cap length) — client name becomes a storage key, so guard path traversal.
+- Belt-and-braces `fileExists()` regeneration loop upholds the no-overwrite invariant even on an astronomically unlikely token clash.
+
+**Test (written, currently red):** `features/uploads/uploads.feature` → "Uploading keeps the original filename with a unique token and never collides with another resource's file" — two multipart `image.png` uploads must yield two distinct `image-<token>.png` files, both present. New Behat steps + `FilesystemProvider`/`UploadableAttributeReader` injection added to `features/bootstrap/UploadsContext.php`. **Note:** assertion steps use manual checks + plain exceptions, not `Assert::assert*` — PHPUnit 11's failure-message `Exporter` needs its TextUI Configuration Registry, which Behat never bootstraps, so a failing `Assert::*` fatals while rendering.
+
+**Fallout to expect:** existing scenarios/helpers asserting bare `image.png` names change (e.g. `content-disposition: filename=…` download scenarios); several `UploadsContext` helpers create files via `persistFiles()` and will now get tokened names.
+
+References: `src/Helper/Uploadable/UploadableFileManager.php` (`persistFiles()`, existing `copyFilepath()` suffix convention), `src/Serializer/Normalizer/UploadableNormalizer.php` (data-URI → `Uuid::uuid4()`), `src/EventListener/Api/UploadableEventListener.php` (`onPreWrite` → `persistFiles`).
+</details>
+
+---
+
+### #195 — CwaFixtureBuilder: attach uploadable files from a local filepath (persist to configured filestore) ✓ **DONE**
+
+**Implemented**: `CwaFixtureBuilder` now takes optional `UploadableFileManager` + `UploadableAttributeReaderInterface` (wired in `services.php`; nullable so existing unit construction still works). In `persistWithAssociations()` it calls `persistUploadedFile($entity)` — which, when the entity `isConfigured()` as Uploadable, delegates to `persistFiles($entity)` (gated because `getConfiguredProperties(…, true)` **throws** for non-uploadable classes, so it is *not* a safe unconditional call). A developer just sets `$component->file = new File($localPath)` and the file is written to the field's configured adapter on flush with the unique tokenised name from #194. Unit tests in `tests/Fixture/CwaFixtureBuilderTest.php` (`test_uploadable_component_with_file_is_persisted_via_file_manager`, `test_non_uploadable_component_does_not_call_file_manager`).
+
+---
+<details><summary>Original issue context</summary>
+
+`CwaFixtureBuilder` / `AbstractCwaScaffold` can't seed resources with an `#[Uploadable]` file field — nothing fires the upload pipeline during a Doctrine fixture flush (`UploadableEventListener` is HTTP-only), so `filename` stays null and the resource is invalid/unrenderable.
+
+**Desired behaviour — auto-detect, no new builder methods:**
+```php
+$image = new Image();
+$image->file = new File(__DIR__ . '/assets/hero.jpg'); // local example file, by path
+$g->add($image);
+```
+During the persist phase the builder, for each uploadable entity (`UploadableAttributeReader::isConfigured`), inspects its `#[UploadableField]` transient properties; if one holds a `File`, it calls `UploadableFileManager::persistFiles($entity)` before the flush. Covers both `->add()` and `->component()` paths.
+- Reuses `persistFiles()` → filestore selection, `prefix`, Imagine metadata and the unique-filename / no-overwrite logic (#194) all come for free.
+- Each fixture file → its own stored object; a re-used example file never shares storage between instances.
+- File lands in whatever adapter the field resolves to in the current environment (local/memory in test; real store when seeding prod-like).
+
+**Follow-on:** `GenerateFixturesCommand` (#189) should emit file attachments for uploadable components when generating from a populated DB — out of scope here, note the seam.
+
+**Acceptance:** setting a `File` on an `#[UploadableField]` property of a fixture entity writes the file to the configured adapter and populates `filename` after flush; two entities using the same source file get independent stored files; non-uploadable / no-file entities unaffected; unit test in `tests/Fixture/CwaFixtureBuilderTest.php`.
+
+Depends on #194. References: `src/Fixture/CwaFixtureBuilder.php` (flush phases; inject `UploadableFileManager` + `UploadableAttributeReader`), `src/Helper/Uploadable/UploadableFileManager.php` (`persistFiles`), `features/bootstrap/UploadsContext.php` (existing `new File(...)` + `persistFiles(...)` pattern).
+</details>
+
+---
+
+### #197 — Manifest: each depth's payload becomes a nested resource tree (`NestedJsonStructure[]`) — front-end: cwa-nuxt-module #250
+
+Change the manifest endpoints (`GET /_/resource_manifest/{id}` and the `Route:manifest:read` output) so each depth's payload is a **nested resource tree** instead of a flat list of IRIs. The **outer array stays indexed by rendering depth** (root first) — only the inner element type changes.
+
+**Why:** the current inner `string[]` flattens away resource **containment** (route → pageData → page → componentGroup → position → component → nested groups/components). Keeping that containment as a tree gives the front-end a home for future per-node structural metadata, so it can render skeleton **placeholders that occupy the correct space before content loads** — mitigating cumulative layout shift (CLS). Keeping the outer array depth-indexed means the module's existing depth logic (`irisByDepth`, `pageIriAtDepth(depth)`) is preserved; only the per-depth payload changes.
+
+**Proposed shape** — outer index = depth (unchanged); each element is a recursive `NestedJsonStructure = { "iri": string, "children": NestedJsonStructure[] }`:
+```json
+{
+  "resource_iris": [
+    { "iri": "/_/routes//conference", "children": [
+      { "iri": "/_/page_data/parent-uuid", "children": [
+        { "iri": "/_/pages/parent-template-uuid", "children": [
+          { "iri": "/_/component_groups/cg-uuid", "children": [
+            { "iri": "/_/component_positions/pos-uuid", "children": [
+              { "iri": "/_/component/dummy-uuid", "children": [] } ] } ] } ] } ] }
+    ] },
+    { "iri": "/_/routes//conference/programme", "children": [ /* depth-1 tree */ ] }
+  ]
+}
+```
+Page nesting → outer array index (as today); component nesting → the per-depth tree. A flat page → single-element outer array, one tree. Each node is the future home for per-node placeholder metadata.
+
+**Scope:** refactor `ManifestDepthGroupTrait` — keep the parentPage/parentPageData boundary split that produces the depth array, but within each depth **preserve nesting** (build `NestedJsonStructure` nodes) instead of flattening to `string[]`; blank-node / skip-IRI rules still apply per node. Update the emit in `RouteNormalizer` + `ResourceManifestNormalizer`. Update Behat (`features/main/route.feature`, `features/main/page.feature`): the `resource_iris[0][5]` DummyComponent-IRI assertion becomes a tree traversal (a node with that `iri` exists under depth 0).
+
+**Open questions (agree before implementation):**
+- **Transition** — hard-swap `resource_iris` to `NestedJsonStructure[]`, or ship the nested form under a new key (e.g. `manifest`) and deprecate the flat one? **Coordinated breaking change** with cwa-nuxt-module #250 either way; the outer array staying depth-indexed limits the blast radius to the per-depth payload.
+- **Per-node placeholder metadata** — what each node carries beyond `iri`/`children` (UI component name, position sort, dimension hints). Follow-up once the tree lands.
+- **Node key** — `iri` + `children` (proposed) vs. `@id` to match JSON-LD conventions used elsewhere.
+- **Siblings** — sibling child pages (tab bars) still come from `GET /_/routes/{id}/children`, not the manifest. Recommend keeping out for v1.
+
+References: `src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`, `src/Serializer/Normalizer/RouteNormalizer.php`, `src/Serializer/Normalizer/ResourceManifestNormalizer.php`. **Note:** the `resource_iris: string[][]` shape described elsewhere in this file (manifest sections + design decisions) is the *current* contract; #197 keeps the depth-indexed outer array but replaces each inner `string[]` with a `NestedJsonStructure` tree.

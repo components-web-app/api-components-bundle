@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
@@ -24,15 +25,19 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Symfony\Component\HttpFoundation\File\File;
 
 class CwaFixtureBuilderTest extends TestCase
 {
-    private function makeBuilder(?ObjectManager $em = null, ?RouteGeneratorInterface $routeGenerator = null, ?IriConverterInterface $iriConverter = null, ?TimestampedDataPersister $timestampedPersister = null): CwaFixtureBuilder
+    private function makeBuilder(?ObjectManager $em = null, ?RouteGeneratorInterface $routeGenerator = null, ?IriConverterInterface $iriConverter = null, ?TimestampedDataPersister $timestampedPersister = null, ?UploadableFileManager $uploadableFileManager = null, ?UploadableAttributeReaderInterface $uploadableAttributeReader = null): CwaFixtureBuilder
     {
         $builder = new CwaFixtureBuilder(
             $timestampedPersister ?? $this->createStub(TimestampedDataPersister::class),
             $routeGenerator ?? $this->createStub(RouteGeneratorInterface::class),
             $iriConverter ?? $this->createStub(IriConverterInterface::class),
+            $uploadableFileManager,
+            $uploadableAttributeReader,
         );
         $builder->withManager($em ?? $this->createStub(ObjectManager::class));
 
@@ -261,6 +266,53 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(10, $positions[0]->sortValue);
         $this->assertSame($component2, $positions[1]->component);
         $this->assertSame(20, $positions[1]->sortValue);
+    }
+
+    // --- Uploadable files (#195) ---
+
+    public function test_uploadable_component_with_file_is_persisted_via_file_manager(): void
+    {
+        $em = $this->collectingEm();
+
+        $component = new class extends AbstractComponent {
+            public ?File $file = null;
+        };
+        $component->file = new File(__DIR__ . '/../../features/assets/files/image.png');
+
+        $reader = $this->createStub(UploadableAttributeReaderInterface::class);
+        $reader->method('isConfigured')->willReturnCallback(
+            static fn (object|string $c): bool => \is_object($c) && $c === $component
+        );
+
+        $fileManager = $this->createMock(UploadableFileManager::class);
+        $fileManager->expects($this->once())->method('persistFiles')->with($component);
+
+        $builder = $this->makeBuilder($em, uploadableFileManager: $fileManager, uploadableAttributeReader: $reader);
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
+    }
+
+    public function test_non_uploadable_component_does_not_call_file_manager(): void
+    {
+        $em = $this->collectingEm();
+
+        $component = new class extends AbstractComponent {};
+
+        $reader = $this->createStub(UploadableAttributeReaderInterface::class);
+        $reader->method('isConfigured')->willReturn(false);
+
+        $fileManager = $this->createMock(UploadableFileManager::class);
+        $fileManager->expects($this->never())->method('persistFiles');
+
+        $builder = $this->makeBuilder($em, uploadableFileManager: $fileManager, uploadableAttributeReader: $reader);
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', isTemplate: true)
+            ->group('primary')
+            ->add($component);
+        $builder->flush();
     }
 
     public function test_group_page_data_position_creates_positions_with_property(): void

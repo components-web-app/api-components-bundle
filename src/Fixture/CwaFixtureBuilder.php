@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Persistence\ObjectManager;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -30,6 +31,7 @@ use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 
 class CwaFixtureBuilder
 {
@@ -86,6 +88,8 @@ class CwaFixtureBuilder
         private readonly TimestampedDataPersister $timestampedPersister,
         private readonly RouteGeneratorInterface $routeGenerator,
         private readonly IriConverterInterface $iriConverter,
+        private readonly ?UploadableFileManager $uploadableFileManager = null,
+        private readonly ?UploadableAttributeReaderInterface $uploadableAttributeReader = null,
     ) {
     }
 
@@ -590,6 +594,7 @@ class CwaFixtureBuilder
         }
         $this->persistedEntities[$oid] = true;
         $this->manager->persist($entity);
+        $this->persistUploadedFile($entity);
 
         try {
             $metadata = $this->manager->getClassMetadata($entity::class);
@@ -614,6 +619,23 @@ class CwaFixtureBuilder
         } catch (\Exception) {
             // Entity class not in Doctrine metadata (e.g. during unit tests with stubs)
         }
+    }
+
+    /**
+     * If the entity is Uploadable and a file has been set on one of its #[UploadableField] properties,
+     * write it to the configured filestore (with a unique tokenised name) and set its stored filename —
+     * mirroring what the HTTP UploadableEventListener does, which never fires during a fixture flush.
+     * Runs once per entity (persistWithAssociations dedupes); persistFiles no-ops when no file is set.
+     */
+    private function persistUploadedFile(object $entity): void
+    {
+        if (null === $this->uploadableFileManager
+            || null === $this->uploadableAttributeReader
+            || !$this->uploadableAttributeReader->isConfigured($entity)) {
+            return;
+        }
+
+        $this->uploadableFileManager->persistFiles($entity);
     }
 
     private function readProperty(object $entity, string $property): mixed

@@ -90,7 +90,7 @@ Feature: API Resources which can have files uploaded
     When I request the download endpoint
     Then the response status code should be 200
     And the header "content-type" should be equal to "image/png"
-    And the header "content-disposition" should be equal to "inline; filename=image.png"
+    And the header "content-disposition" should contain "inline; filename=image-"
 
   @loginUser
   Scenario: I get get the endpoint of the default media object
@@ -98,7 +98,7 @@ Feature: API Resources which can have files uploaded
     When I request the download endpoint with the postfix "?download=true"
     Then the response status code should be 200
     And the header "content-type" should be equal to "image/png"
-    And the header "content-disposition" should be equal to "attachment; filename=image.png"
+    And the header "content-disposition" should contain "attachment; filename=image-"
 
   # POST/UPDATE
 
@@ -257,3 +257,24 @@ Feature: API Resources which can have files uploaded
       | file | @image.png |
     Then the response status code should be 201
     And there should be 1 mercure messages
+
+  # Files are stored under the uploaded file's own name plus a unique token, so
+  # two resources that upload the same source file each get their own stored file
+  # and one can never overwrite (or, when later deleted, remove) another's.
+  # One resource is uploaded through the real multipart pipeline; a second is created from the same
+  # source file via persistFiles directly. Both must be stored under a unique tokenised name derived
+  # from the original filename, so neither can overwrite (or, on delete, remove) the other's file.
+  @loginUser
+  Scenario: Uploading keeps the original filename with a unique token and never collides with another resource's file
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to "/dummy_uploadables/upload" with parameters:
+      | key  | value      |
+      | file | @image.png |
+    Then the response status code should be 201
+    And the response resource should be saved as "first_upload"
+    And there is a DummyUploadable with the file "image.png" saved as "second_upload"
+    And the resource "first_upload" should have a filename matching "/^image-[^\/]+\.png$/"
+    And the resource "second_upload" should have a filename matching "/^image-[^\/]+\.png$/"
+    And the resource "second_upload" should have a different filename to the resource "first_upload"
+    And the file for the resource "first_upload" should exist in its configured filestore
+    And the file for the resource "second_upload" should exist in its configured filestore

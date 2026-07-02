@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -147,11 +148,22 @@ class UploadableFileManager
                 continue;
             }
 
+            // Delete this resource's own current file first, freeing its slot so a
+            // replacement can reuse the name without being seen as a foreign collision.
             $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
 
-            $path = $fieldConfiguration->prefix ?? '';
-            $path .= $file->getFilename();
+            $prefix = $fieldConfiguration->prefix ?? '';
+            // Data-URI uploads carry no client filename and are given a unique UUID name at
+            // denormalization — keep it. Every other upload (multipart, fixtures) is stored under
+            // its original filename plus a unique token, so each resource owns its own file and can
+            // never overwrite (or, on delete, remove) another resource's file. The fileExists guard
+            // upholds that invariant even against an astronomically unlikely token clash.
+            $tokenise = !$file instanceof UploadedDataUriFile;
+            do {
+                $path = $prefix . $this->generateStoredFilename($file);
+            } while ($tokenise && $filesystem->fileExists($path));
+
             $stream = fopen($file->getRealPath(), 'r');
             $filesystem->writeStream(
                 $path,
@@ -166,6 +178,66 @@ class UploadableFileManager
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, $path);
             $propertyAccessor->setValue($object, $fileProperty, null);
         }
+    }
+
+    /**
+     * The basename to store an uploaded file under (excluding the field prefix).
+     *
+     * Data-URI uploads keep their unique UUID name assigned at denormalization. Multipart uploads
+     * use the client's original filename; fixtures use the source file's basename — both tokenised.
+     */
+    private function generateStoredFilename(File $file): string
+    {
+        if ($file instanceof UploadedDataUriFile) {
+            return $file->getClientOriginalName();
+        }
+
+        return $this->tokeniseFilename($this->resolveOriginalName($file));
+    }
+
+    /**
+     * The original filename to derive the stored name from. Prefers whichever candidate carries a
+     * file extension: for real multipart uploads that's the client's original name (the on-disk file
+     * is a temp name); in some upload/test contexts the client name is absent or is the form field,
+     * and the file's own basename holds the real name + extension.
+     */
+    private function resolveOriginalName(File $file): string
+    {
+        $clientName = $file instanceof UploadedFile ? $file->getClientOriginalName() : '';
+        $basename = $file->getFilename();
+
+        if ('' !== pathinfo($clientName, \PATHINFO_EXTENSION)) {
+            return $clientName;
+        }
+        if ('' !== pathinfo($basename, \PATHINFO_EXTENSION)) {
+            return $basename;
+        }
+
+        return '' !== $clientName ? $clientName : $basename;
+    }
+
+    /**
+     * Produces `<sanitised-stem>-<token>.<ext>` from an original filename. The stem is slugified and
+     * length-capped (path separators / traversal stripped by pathinfo + the slug), and a random token
+     * makes every stored name unique and unguessable.
+     */
+    private function tokeniseFilename(string $originalName): string
+    {
+        $stem = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '-', pathinfo($originalName, \PATHINFO_FILENAME)));
+        $stem = trim($stem, '-');
+        if ('' === $stem) {
+            $stem = 'file';
+        }
+        $stem = substr($stem, 0, 100);
+
+        $name = $stem . '-' . bin2hex(random_bytes(4));
+
+        $extension = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '', pathinfo($originalName, \PATHINFO_EXTENSION)));
+        if ('' !== $extension) {
+            $name .= '.' . $extension;
+        }
+
+        return $name;
     }
 
     public function deleteFiles(object $object): void
