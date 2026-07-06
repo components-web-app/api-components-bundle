@@ -33,7 +33,15 @@ class ManifestDepthGroupTraitTest extends TestCase
         $this->subject = new ConcreteManifestDepthGroup();
     }
 
-    public function test_flat_resource_returns_single_depth_group(): void
+    /**
+     * Build an expected nested node { iri, children }.
+     */
+    private function n(string $iri, array ...$children): array
+    {
+        return ['iri' => $iri, 'children' => $children];
+    }
+
+    public function test_flat_resource_returns_single_depth_tree(): void
     {
         $resource = [
             '@id' => '/_/routes/home',
@@ -41,12 +49,12 @@ class ManifestDepthGroupTraitTest extends TestCase
         ];
 
         $this->assertSame(
-            [['/_/routes/home', '/_/pages/abc']],
+            [$this->n('/_/routes/home', $this->n('/_/pages/abc'))],
             $this->subject->groups($resource)
         );
     }
 
-    public function test_resource_with_parent_page_returns_two_groups_root_first(): void
+    public function test_resource_with_parent_page_returns_two_trees_root_first(): void
     {
         $resource = [
             '@id' => '/_/abstract_page_data/child-uuid',
@@ -57,17 +65,16 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertCount(2, $groups);
-        $this->assertContains('/_/pages/parent-uuid', $groups[0]);
-        $this->assertContains('/_/routes/conference', $groups[0]);
-        $this->assertContains('/_/abstract_page_data/child-uuid', $groups[1]);
-        $this->assertContains('/_/pages/child-page-uuid', $groups[1]);
-        $this->assertNotContains('/_/pages/parent-uuid', $groups[1]);
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent-uuid', $this->n('/_/routes/conference')),
+                $this->n('/_/abstract_page_data/child-uuid', $this->n('/_/pages/child-page-uuid')),
+            ],
+            $this->subject->groups($resource)
+        );
     }
 
-    public function test_resource_with_parent_page_data_returns_two_groups_root_first(): void
+    public function test_resource_with_parent_page_data_returns_two_trees_root_first(): void
     {
         $resource = [
             '@id' => '/_/abstract_page_data/child-uuid',
@@ -77,14 +84,16 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertCount(2, $groups);
-        $this->assertContains('/_/abstract_page_data/parent-uuid', $groups[0]);
-        $this->assertContains('/_/abstract_page_data/child-uuid', $groups[1]);
+        $this->assertSame(
+            [
+                $this->n('/_/abstract_page_data/parent-uuid', $this->n('/_/routes/conference')),
+                $this->n('/_/abstract_page_data/child-uuid'),
+            ],
+            $this->subject->groups($resource)
+        );
     }
 
-    public function test_two_level_nesting_returns_three_groups(): void
+    public function test_two_level_nesting_returns_three_trees(): void
     {
         $resource = [
             '@id' => '/_/abstract_page_data/child-uuid',
@@ -96,12 +105,14 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertCount(3, $groups);
-        $this->assertContains('/_/pages/grandparent-uuid', $groups[0]);
-        $this->assertContains('/_/abstract_page_data/parent-uuid', $groups[1]);
-        $this->assertContains('/_/abstract_page_data/child-uuid', $groups[2]);
+        $this->assertSame(
+            [
+                $this->n('/_/pages/grandparent-uuid'),
+                $this->n('/_/abstract_page_data/parent-uuid'),
+                $this->n('/_/abstract_page_data/child-uuid'),
+            ],
+            $this->subject->groups($resource)
+        );
     }
 
     public function test_well_known_iris_are_filtered_out(): void
@@ -111,9 +122,7 @@ class ManifestDepthGroupTraitTest extends TestCase
             '_metadata' => ['@id' => '/.well-known/genid/abc123'],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home']], $groups);
+        $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
 
     public function test_resource_metadata_collection_iri_is_filtered_out(): void
@@ -123,12 +132,10 @@ class ManifestDepthGroupTraitTest extends TestCase
             'something' => ['@id' => '/_/resource_metadatas'],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home']], $groups);
+        $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
 
-    public function test_duplicate_iris_within_depth_group_are_deduplicated(): void
+    public function test_duplicate_iris_within_depth_tree_are_deduplicated(): void
     {
         $resource = [
             '@id' => '/_/routes/home',
@@ -138,9 +145,10 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home', '/_/pages/abc']], $groups);
+        $this->assertSame(
+            [$this->n('/_/routes/home', $this->n('/_/pages/abc'))],
+            $this->subject->groups($resource)
+        );
     }
 
     public function test_nested_arrays_of_sub_resources_are_walked(): void
@@ -153,45 +161,81 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([[
-            '/_/routes/home',
-            '/_/component_groups/cg1',
-            '/_/component_groups/cg2',
-        ]], $groups);
+        $this->assertSame(
+            [$this->n('/_/routes/home', $this->n('/_/component_groups/cg1'), $this->n('/_/component_groups/cg2'))],
+            $this->subject->groups($resource)
+        );
     }
 
-    public function test_parent_iri_does_not_appear_in_child_group(): void
+    public function test_containment_is_preserved_as_nesting(): void
+    {
+        // route → pageData → page → componentGroup → position → component
+        $resource = [
+            '@id' => '/_/routes/home',
+            'pageData' => [
+                '@id' => '/page_data/pd1',
+                'page' => [
+                    '@id' => '/_/pages/p1',
+                    'componentGroups' => [
+                        [
+                            '@id' => '/_/component_groups/cg1',
+                            'componentPositions' => [
+                                [
+                                    '@id' => '/_/component_positions/cp1',
+                                    'component' => '/component/dummy/c1',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $this->assertSame(
+            [$this->n('/_/routes/home',
+                $this->n('/page_data/pd1',
+                    $this->n('/_/pages/p1',
+                        $this->n('/_/component_groups/cg1',
+                            $this->n('/_/component_positions/cp1',
+                                $this->n('/component/dummy/c1')))))), ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_parent_iri_does_not_appear_in_child_tree(): void
     {
         $resource = [
             '@id' => '/_/abstract_page_data/child-uuid',
             'parentPage' => ['@id' => '/_/pages/parent-uuid'],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertNotContains('/_/pages/parent-uuid', $groups[1] ?? []);
-        $this->assertContains('/_/pages/parent-uuid', $groups[0]);
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent-uuid'),
+                $this->n('/_/abstract_page_data/child-uuid'),
+            ],
+            $this->subject->groups($resource)
+        );
     }
 
     public function test_string_iri_property_value_is_collected(): void
     {
-        // layout is a string IRI (not an embedded object) — must appear in groups
+        // layout is a string IRI (not an embedded object) — must appear as a child node
         $resource = [
             '@id' => '/_/routes/home',
             'layout' => '/_/layouts/abc',
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home', '/_/layouts/abc']], $groups);
+        $this->assertSame(
+            [$this->n('/_/routes/home', $this->n('/_/layouts/abc'))],
+            $this->subject->groups($resource)
+        );
     }
 
     public function test_blank_node_string_iri_properties_are_not_collected(): void
     {
         // AP4 blank-node resources (/.well-known/genid/...) must not contribute
-        // their string-valued properties to the IRI list — only real API resources should appear
+        // their string-valued properties to the tree — only real API resources should appear
         $resource = [
             '@id' => '/_/routes/home',
             'metadata' => [
@@ -200,9 +244,7 @@ class ManifestDepthGroupTraitTest extends TestCase
             ],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home']], $groups);
+        $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
 
     public function test_keys_after_parent_page_in_iteration_order_are_still_collected(): void
@@ -215,10 +257,13 @@ class ManifestDepthGroupTraitTest extends TestCase
             'page' => ['@id' => '/_/pages/child-page-uuid'],
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertCount(2, $groups);
-        $this->assertContains('/_/pages/child-page-uuid', $groups[1]);
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent-uuid'),
+                $this->n('/_/abstract_page_data/child-uuid', $this->n('/_/pages/child-page-uuid')),
+            ],
+            $this->subject->groups($resource)
+        );
     }
 
     public function test_at_prefixed_key_string_value_is_not_collected(): void
@@ -229,9 +274,7 @@ class ManifestDepthGroupTraitTest extends TestCase
             '@type' => '/some-vocabulary-type',
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home']], $groups);
+        $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
 
     public function test_non_path_string_property_is_not_collected(): void
@@ -242,8 +285,6 @@ class ManifestDepthGroupTraitTest extends TestCase
             'title' => 'My Page Title',
         ];
 
-        $groups = $this->subject->groups($resource);
-
-        $this->assertSame([['/_/routes/home']], $groups);
+        $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
 }

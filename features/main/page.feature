@@ -125,7 +125,7 @@ Feature: Page resources
     When I send a "GET" request to the resource "page_data_manifest"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 1 element
-    And the JSON node "resource_iris[0][0]" should be equal to the IRI of the resource "page_data"
+    And the manifest depth 0 root IRI should be the IRI of the resource "page_data"
 
   @loginAdmin
   Scenario: I can get a resource manifest for a nested PageData by UUID
@@ -133,7 +133,7 @@ Feature: Page resources
     When I send a "GET" request to the resource "page_data_manifest"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
-    And the JSON node "resource_iris[1][0]" should be equal to the IRI of the resource "page_data"
+    And the manifest depth 1 root IRI should be the IRI of the resource "page_data"
 
   @loginAdmin
   Scenario: I can PATCH a page when componentGroups are included in the request body
@@ -227,4 +227,4 @@ Feature: Page resources
     When I send a "GET" request to the resource "page_manifest"
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
-    And the JSON node "resource_iris[1][0]" should be equal to the IRI of the resource "page"
+    And the manifest depth 1 root IRI should be the IRI of the resource "page"

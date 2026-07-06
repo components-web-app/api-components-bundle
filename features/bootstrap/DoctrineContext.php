@@ -1494,6 +1494,111 @@ final class DoctrineContext implements Context
         }
     }
 
+    // --- Manifest resource_iris (nested tree per depth, #197) ---
+    // resource_iris is an array indexed by rendering depth; each element is a nested node
+    // { iri, children: [...] }. These steps flatten a depth's tree to assert on its IRI set.
+    // Manual checks + plain exceptions: a failing Assert::* fatals under Behat (PHPUnit Exporter).
+
+    /**
+     * @Then the manifest depth :depth root IRI should be :iri
+     */
+    public function theManifestDepthRootIriShouldBe(int $depth, string $iri): void
+    {
+        $actual = $this->manifestDepthNode($depth)['iri'] ?? null;
+        if ($actual !== $iri) {
+            throw new \RuntimeException(\sprintf('Manifest depth %d root IRI is "%s", expected "%s".', $depth, $actual ?? 'null', $iri));
+        }
+    }
+
+    /**
+     * @Then the manifest depth :depth root IRI should be the IRI of the resource :name
+     */
+    public function theManifestDepthRootIriShouldBeTheIriOfTheResource(int $depth, string $name): void
+    {
+        $this->theManifestDepthRootIriShouldBe($depth, $this->restContext->resources[$name]);
+    }
+
+    /**
+     * @Then the manifest depth :depth should have :count resource IRIs
+     */
+    public function theManifestDepthShouldHaveResourceIris(int $depth, int $count): void
+    {
+        $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
+        if (\count($iris) !== $count) {
+            throw new \RuntimeException(\sprintf('Manifest depth %d has %d IRIs, expected %d: %s', $depth, \count($iris), $count, implode(', ', $iris)));
+        }
+    }
+
+    /**
+     * @Then the manifest depth :depth should contain the IRI :iri
+     */
+    public function theManifestDepthShouldContainTheIri(int $depth, string $iri): void
+    {
+        $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
+        if (!\in_array($iri, $iris, true)) {
+            throw new \RuntimeException(\sprintf('Manifest depth %d does not contain "%s". Has: %s', $depth, $iri, implode(', ', $iris)));
+        }
+    }
+
+    /**
+     * @Then the manifest depth :depth should contain an IRI matching :pattern
+     */
+    public function theManifestDepthShouldContainAnIriMatching(int $depth, string $pattern): void
+    {
+        $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
+        foreach ($iris as $iri) {
+            if (1 === preg_match($pattern, $iri)) {
+                return;
+            }
+        }
+        throw new \RuntimeException(\sprintf('Manifest depth %d has no IRI matching %s. Has: %s', $depth, $pattern, implode(', ', $iris)));
+    }
+
+    /**
+     * @Then the manifest depth :depth should not contain an IRI matching :pattern
+     */
+    public function theManifestDepthShouldNotContainAnIriMatching(int $depth, string $pattern): void
+    {
+        $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
+        foreach ($iris as $iri) {
+            if (1 === preg_match($pattern, $iri)) {
+                throw new \RuntimeException(\sprintf('Manifest depth %d unexpectedly contains "%s" matching %s.', $depth, $iri, $pattern));
+            }
+        }
+    }
+
+    /**
+     * @return array{iri?: string, children?: array}
+     */
+    private function manifestDepthNode(int $depth): array
+    {
+        $json = $this->jsonContext->getJsonAsArray();
+        $node = $json['resource_iris'][$depth] ?? null;
+        if (!\is_array($node)) {
+            throw new \RuntimeException(\sprintf('Manifest has no depth %d.', $depth));
+        }
+
+        return $node;
+    }
+
+    /**
+     * @return string[] every iri in the node tree, depth-first
+     */
+    private function flattenManifestNode(array $node): array
+    {
+        $iris = [];
+        if (isset($node['iri'])) {
+            $iris[] = $node['iri'];
+        }
+        foreach ($node['children'] ?? [] as $child) {
+            if (\is_array($child)) {
+                $iris = array_merge($iris, $this->flattenManifestNode($child));
+            }
+        }
+
+        return $iris;
+    }
+
     /**
      * @Then the response resource should be saved as :name
      */
