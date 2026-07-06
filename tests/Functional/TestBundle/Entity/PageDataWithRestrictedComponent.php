@@ -1,0 +1,31 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
+
+/**
+ * A page data whose single component-typed property resolves to an ExplicitAllowOnly component,
+ * used to test that dynamic (pageDataProperty) positions enforce the explicitAllowOnly rule.
+ *
+ * @author Daniel West <daniel@silverback.is>
+ */
+#[ApiResource]
+#[ORM\Entity]
+class PageDataWithRestrictedComponent extends AbstractPageData
+{
+    #[ORM\ManyToOne(targetEntity: RestrictedComponent::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    public ?RestrictedComponent $restrictedComponent = null;
+}

@@ -38,6 +38,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResou
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentationNormalizer;
 use Silverback\ApiComponentsBundle\AttributeReader\AttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
@@ -347,6 +348,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(IriConverterInterface::class),
             new Reference('silverback.metadata_provider.page_data'),
+            new Reference(ExplicitAllowOnlyAttributeReader::class),
         ])
         ->tag('validator.constraint_validator');
     $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');
@@ -701,6 +703,12 @@ return static function (ContainerConfigurator $configurator) {
         ->class(PublishableAttributeReader::class)
         ->parent(AttributeReader::class);
     $services->alias(PublishableAttributeReader::class, 'silverback.api_components.attribute_reader.publishable');
+
+    $services
+        ->set('silverback.api_components.attribute_reader.explicit_allow_only')
+        ->class(ExplicitAllowOnlyAttributeReader::class)
+        ->parent(AttributeReader::class);
+    $services->alias(ExplicitAllowOnlyAttributeReader::class, 'silverback.api_components.attribute_reader.explicit_allow_only');
 
     $services
         ->set('silverback.api_components.serializer.context_builder.publishable')
@@ -1723,7 +1731,12 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.hydra.normalizer.versioned_documentation')
         ->class(VersionedDocumentationNormalizer::class)
         ->decorate('api_platform.hydra.normalizer.documentation')
-        ->args([new Reference('silverback.hydra.normalizer.versioned_documentation.inner')]);
+        ->args([
+            new Reference('silverback.hydra.normalizer.versioned_documentation.inner'),
+            new Reference(ResourceNameCollectionFactoryInterface::class),
+            new Reference(ResourceMetadataCollectionFactoryInterface::class),
+            new Reference(ExplicitAllowOnlyAttributeReader::class),
+        ]);
 
     $services
         ->set('silverback.api_components.api_platform.uuid_uri_variable_transformer')

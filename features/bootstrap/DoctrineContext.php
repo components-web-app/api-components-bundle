@@ -1467,6 +1467,34 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Then the API docs supportedClass :class should have explicitAllowOnly :expected
+     */
+    public function theApiDocsSupportedClassShouldHaveExplicitAllowOnly(string $class, string $expected): void
+    {
+        // Manual checks + plain exceptions: a failing Assert::* fatals under Behat (PHPUnit's
+        // failure-message Exporter needs its TextUI Configuration Registry, which Behat never boots).
+        $json = $this->jsonContext->getJsonAsArray();
+        $classes = $json['supportedClass'] ?? $json['hydra:supportedClass'] ?? [];
+
+        $entry = null;
+        foreach ($classes as $supportedClass) {
+            if (($supportedClass['title'] ?? null) === $class) {
+                $entry = $supportedClass;
+                break;
+            }
+        }
+        if (null === $entry) {
+            throw new \RuntimeException(\sprintf('supportedClass "%s" not found in the API docs.', $class));
+        }
+
+        $expectedBool = filter_var($expected, \FILTER_VALIDATE_BOOL);
+        $actualBool = true === ($entry['explicitAllowOnly'] ?? false);
+        if ($expectedBool !== $actualBool) {
+            throw new \RuntimeException(\sprintf('Expected supportedClass "%s" explicitAllowOnly=%s, got %s.', $class, $expectedBool ? 'true' : 'false', $actualBool ? 'true' : 'false'));
+        }
+    }
+
+    /**
      * @Then the response resource should be saved as :name
      */
     public function theResponseResourceShouldBeSavedAs($name): void

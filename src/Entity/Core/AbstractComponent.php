@@ -51,11 +51,6 @@ abstract class AbstractComponent implements ComponentInterface
         $this->componentPositions = new ArrayCollection();
     }
 
-    public function isPositionRestricted(): bool
-    {
-        return false;
-    }
-
     public function getComponentPositions()
     {
         return $this->componentPositions;

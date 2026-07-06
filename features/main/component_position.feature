@@ -217,6 +217,25 @@ Feature: Component positions
       | resource[component_group] | component        | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
     Then the response status code should be 201
 
+  # explicitAllowOnly must be enforced on the dynamic (pageDataProperty) path too, symmetrically with
+  # direct components — otherwise the server would accept a restricted type the admin UI already hides.
+  @loginUser
+  Scenario: Cannot create a dynamic position resolving to an explicitAllowOnly component type in a group without allowedComponents
+    Given there is a ComponentGroup with 0 components
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty    | pageDataClass                                                                                     |
+      | resource[component_group] | restrictedComponent | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRestrictedComponent |
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: Can create a dynamic position resolving to an explicitAllowOnly component type when the group explicitly allows it
+    Given there is a ComponentGroup with 0 components
+    And the ComponentGroup has the allowedComponent "/component/restricted_components"
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | pageDataProperty    | pageDataClass                                                                                     |
+      | resource[component_group] | restrictedComponent | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRestrictedComponent |
+    Then the response status code should be 201
+
   @loginAdmin
   Scenario: An admin can read pageDataClass from a dynamic position
     Given there is a PageData resource with the route path "/page-data"

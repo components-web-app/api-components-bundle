@@ -506,7 +506,14 @@ Leave this issue open until the front-end approach and component-state semantics
 
 ---
 
-### #196 — `explicitAllowOnly`: per-type opt-in component placement restriction (bundle side; front-end: cwa-nuxt-module #249)
+### #196 — `explicitAllowOnly`: per-type opt-in component placement restriction (bundle side; front-end: cwa-nuxt-module #249) ✓ **DONE (both placement paths)**
+
+**Implemented.** Declaration is a **Silverback class attribute** `#[Silverback\ExplicitAllowOnly]` (`src/Annotation/ExplicitAllowOnly.php`) read by `ExplicitAllowOnlyAttributeReader` (`src/AttributeReader/`, extends `AttributeReader`, service `silverback.api_components.attribute_reader.explicit_allow_only` — mirrors `Publishable`/`Timestamped`/`Uploadable`). This is the bundle's own attribute system — a component type declares the attribute, no interface to implement. `AbstractComponent::isPositionRestricted()` and the `RestrictedComponent` override are **removed**; `RestrictedComponent` carries `#[Silverback\ExplicitAllowOnly]`. `ComponentPositionValidator` now checks `$this->explicitAllowOnlyReader->isConfigured(...)` on **both** placement paths (was `isPositionRestricted()`): `validateDirectComponent` (the placed component) **and** `validateDynamicPosition` (the pageDataProperty's resolved `componentClass`) — the dynamic path was restructured to mirror the direct path so a restricted type can't be bound to a dynamic position in an unrestricted group and bypass the rule server-side. Exposure to the front-end matches the module's already-locked contract: `VersionedDocumentationNormalizer` adds `explicitAllowOnly => true` to each flagged component's Hydra `supportedClass` entry (matched by `title` = short name; flagged short names found by walking `ResourceNameCollectionFactory` and testing each class with the reader). The module already reads `supportedClass['explicitAllowOnly'] === true` (absent ⇒ false) in `getComponentMetadata`, so **no module code change is required**. Behat: `features/main/component_position.feature` covers both the direct path (RestrictedComponent) and the dynamic path (via new test entity `PageDataWithRestrictedComponent`, whose `restrictedComponent` property resolves to a RestrictedComponent) — rejected in an unrestricted group (422), accepted when the group lists it (201); new `features/main/explicit_allow_only.feature` asserts the docs flag (RestrictedComponent → true, DummyComponent → false).
+
+**⚠ Outstanding — dynamic page-data-property positions.** The reader check was added only to `ComponentPositionValidator::validateDirectComponent`. `validateDynamicPosition` still returns early when a group has no `allowedComponents`, so an `explicitAllowOnly` component surfaced as a **page-data property** can still be positioned into an unrestricted group — bypassing the restriction. Decision (cwa-nuxt-module #249): `explicitAllowOnly` applies to **both** placement paths. **TODO:** in `validateDynamicPosition`, after resolving `$componentClass = $propertyMetadata->getComponentClass()`, apply the same `ExplicitAllowOnlyAttributeReader` check (reject when the group doesn't explicitly allow that component class), mirroring `validateDirectComponent`. Add a Behat scenario for the dynamic-position case. The front-end (module) already blocks both paths (`AddComponentDialog` + `useDynamicPositionSelectOptions.getPropertyOptions`), so this closes the server-side bypass.
+
+---
+<details><summary>Original issue context</summary>
 
 **Goal:** a component **type** can be marked so it may only be placed in a `ComponentGroup` that explicitly lists its collection IRI in `allowedComponents`. Everywhere else it is hidden from the admin add UI and rejected on save. Requested behaviour: "if a component of type X is flagged, it must be explicitly allowed by its type/IRI in a group to be added there."
 
@@ -534,6 +541,7 @@ The exact key `explicitAllowOnly` is the **locked** interface — both sides rea
 - A component type with `explicitAllowOnly: true` in its `#[ApiResource]` is rejected by `ComponentPositionValidator` when placed in a group whose `allowedComponents` does not list its collection IRI, and accepted when it does.
 - `explicitAllowOnly` is present in the metadata the front-end consumes for every component type.
 - `AbstractComponent::isPositionRestricted()` and all overrides are removed; no behaviour regression for previously-restricted components (they now use the annotation).
+</details>
 
 ---
 

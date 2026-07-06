@@ -13,17 +13,15 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
+#[Silverback\ExplicitAllowOnly]
 #[ApiResource]
 #[ORM\Entity]
 class RestrictedComponent extends AbstractComponent
 {
-    public function isPositionRestricted(): bool
-    {
-        return true;
-    }
 }

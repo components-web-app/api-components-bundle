@@ -13,6 +13,9 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Serializer;
 
 use ApiPlatform\Documentation\Documentation;
 use ApiPlatform\Hydra\Serializer\DocumentationNormalizer;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -22,11 +25,15 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class VersionedDocumentationNormalizer implements NormalizerInterface
 {
-    private NormalizerInterface|DocumentationNormalizer $decorated;
+    /** @var array<string, true>|null short names of resources carrying #[Silverback\ExplicitAllowOnly] */
+    private ?array $explicitAllowOnlyTitles = null;
 
-    public function __construct(NormalizerInterface|DocumentationNormalizer $decorated)
-    {
-        $this->decorated = $decorated;
+    public function __construct(
+        private readonly NormalizerInterface|DocumentationNormalizer $decorated,
+        private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
+        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
+        private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
+    ) {
     }
 
     /**
@@ -41,7 +48,43 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
             $doc['info'] = ['version' => OpenApiFactory::getExtendedVersion($object->getVersion())];
         }
 
+        // Surface the per-type `explicitAllowOnly` flag on each flagged component's supportedClass
+        // entry so the front-end (which reads the Hydra API docs, not per-instance _metadata) can
+        // hide/reject opt-in-only component types. Matched by `title` (the class short name).
+        $scKey = isset($doc['supportedClass']) ? 'supportedClass' : (isset($doc['hydra:supportedClass']) ? 'hydra:supportedClass' : null);
+        if (null !== $scKey && \is_array($doc[$scKey])) {
+            $flagged = $this->getExplicitAllowOnlyTitles();
+            foreach ($doc[$scKey] as &$supportedClass) {
+                if (\is_array($supportedClass) && isset($supportedClass['title'], $flagged[$supportedClass['title']])) {
+                    $supportedClass['explicitAllowOnly'] = true;
+                }
+            }
+            unset($supportedClass);
+        }
+
         return $doc;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private function getExplicitAllowOnlyTitles(): array
+    {
+        if (null !== $this->explicitAllowOnlyTitles) {
+            return $this->explicitAllowOnlyTitles;
+        }
+
+        $titles = [];
+        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
+            if (!$this->explicitAllowOnlyReader->isConfigured($resourceClass)) {
+                continue;
+            }
+            foreach ($this->resourceMetadataCollectionFactory->create($resourceClass) as $resourceMetadata) {
+                $titles[$resourceMetadata->getShortName()] = true;
+            }
+        }
+
+        return $this->explicitAllowOnlyTitles = $titles;
     }
 
     public function supportsNormalization($data, ?string $format = null, array $context = []): bool

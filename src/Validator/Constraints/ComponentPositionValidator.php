@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
@@ -28,6 +29,7 @@ class ComponentPositionValidator extends ConstraintValidator
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         private readonly PageDataMetadataProvider $pageDataMetadataProvider,
+        private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
     ) {
     }
 
@@ -73,7 +75,7 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        if ($component->isPositionRestricted()) {
+        if ($this->explicitAllowOnlyReader->isConfigured($component)) {
             $this->context->buildViolation($constraint->restrictedMessage)
                 ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
@@ -116,18 +118,28 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        if (!$allowedComponents = $collection->allowedComponents) {
-            return;
-        }
-
+        // Mirror validateDirectComponent so the dynamic (pageDataProperty) path can't bypass the rule:
+        // the resolved component type must be listed when the group is restricted, and an
+        // explicitAllowOnly type is rejected outright in an unrestricted group.
         $componentClass = $propertyMetadata->getComponentClass();
         $iri = $this->iriConverter->getIriFromResource($componentClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($componentClass));
 
-        if (!\in_array($iri, $allowedComponents, true)) {
-            $this->context->buildViolation($constraint->message)
+        if ($allowedComponents = $collection->allowedComponents) {
+            if (!\in_array($iri, $allowedComponents, true)) {
+                $this->context->buildViolation($constraint->message)
+                    ->setParameter('{{ iri }}', $iri)
+                    ->setParameter('{{ reference }}', $collection->reference)
+                    ->setParameter('{{ allowed }}', implode(',', $allowedComponents))
+                    ->addViolation();
+            }
+
+            return;
+        }
+
+        if ($this->explicitAllowOnlyReader->isConfigured($componentClass)) {
+            $this->context->buildViolation($constraint->restrictedMessage)
                 ->setParameter('{{ iri }}', $iri)
                 ->setParameter('{{ reference }}', $collection->reference)
-                ->setParameter('{{ allowed }}', implode(',', $allowedComponents))
                 ->addViolation();
         }
     }
