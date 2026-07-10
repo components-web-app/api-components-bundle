@@ -97,7 +97,10 @@ class MediaObjectFactory
                 continue;
             }
 
-            if (!$this->isMediaObjectSvg($initialMediaObject)) {
+            // Imagine filters only make sense for raster images. Guard on the image mime type (and
+            // exclude SVG, which cannot be rasterised through the filter chain) so a non-image on a
+            // field that declares imagineFilters (e.g. a PDF/docx) never reaches Liip Imagine.
+            if ($this->isImagineProcessable($initialMediaObject->mimeType)) {
                 array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
             }
 
@@ -138,6 +141,15 @@ class MediaObjectFactory
     private function isMediaObjectSvg(MediaObject $mediaObject): bool
     {
         return 'image/svg+xml' === $mediaObject->mimeType;
+    }
+
+    /**
+     * Whether a stored file with this mime type can have imagine filters applied — a raster image,
+     * excluding SVG (vector, not rasterised through the filter chain).
+     */
+    private function isImagineProcessable(?string $mimeType): bool
+    {
+        return null !== $mimeType && str_contains($mimeType, 'image/') && 'image/svg+xml' !== $mimeType;
     }
 
     private function create(Filesystem $filesystem, string $filename, string $contentUrl): MediaObject

@@ -119,6 +119,12 @@ class UploadableFileManager
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if ($filename && $object instanceof ImagineFiltersInterface && $this->filterService) {
+                // Only warm imagine caches for raster images (never SVG or non-image files such as a
+                // PDF/docx) — Liip Imagine cannot process a non-image and would throw.
+                $mimeType = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter)->mimeType($filename);
+                if (!str_contains($mimeType, 'image/') || 'image/svg+xml' === $mimeType) {
+                    continue;
+                }
                 $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
                     // This will trigger the cached file to be store

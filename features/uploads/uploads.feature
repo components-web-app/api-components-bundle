@@ -249,6 +249,78 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
 
+  # Multiple independent uploadable fields on one resource.
+  # $file (generic, no imagine filters) and $preview (image, imagine filters) each have their own
+  # storage property, so uploading to one never touches the other, and imagine only ever runs on
+  # an actual image — never on a non-image (docx/pdf) even when the target field declares filters.
+
+  @loginUser
+  Scenario: Uploading a non-image to an imagine-filtered field does not attempt image processing
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to "/dummy_multiple_uploadables/upload" with parameters:
+      | key     | value           |
+      | preview | @test_file.docx |
+    Then the response status code should be 201
+    And the JSON node "_metadata.mediaObjects.preview[0].imagineFilter" should not exist
+    And the JSON node "_metadata.mediaObjects.preview[1]" should not exist
+
+  @loginUser
+  Scenario: Uploading an image to an imagine-filtered field still produces the imagine variant
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to "/dummy_multiple_uploadables/upload" with parameters:
+      | key     | value      |
+      | preview | @image.png |
+    Then the response status code should be 201
+    And the JSON node "_metadata.mediaObjects.preview[0].imagineFilter" should not exist
+    And the JSON node "_metadata.mediaObjects.preview[1].imagineFilter" should be equal to the string "thumbnail"
+
+  @loginUser
+  Scenario: Uploading to one uploadable field does not populate the other field
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to "/dummy_multiple_uploadables/upload" with parameters:
+      | key  | value      |
+      | file | @image.png |
+    Then the response status code should be 201
+    And the JSON node "_metadata.mediaObjects.file[0]" should exist
+    And the JSON node "_metadata.mediaObjects.preview" should not exist
+
+  # requiredOnPublish — a file must be present per flagged field before the resource can be published.
+
+  @loginAdmin
+  Scenario: Publishing is rejected per field when a requiredOnPublish file is missing
+    Given there is a draft DummyUploadableRequiredOnPublish
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt |
+      | now         |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 2 elements
+    And the JSON node "violations[0].propertyPath" should be equal to the string "file"
+    And the JSON node "violations[0].message" should be equal to the string "You must upload a file before publishing."
+    And the JSON node "violations[1].propertyPath" should be equal to the string "preview"
+    And the JSON node "violations[1].message" should be equal to the string "A file must be uploaded for the `preview` field before publishing."
+
+  @loginAdmin
+  Scenario: Publishing is still rejected when only some requiredOnPublish files are present
+    Given there is a draft DummyUploadableRequiredOnPublish with only the file uploaded
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt |
+      | now         |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to the string "preview"
+
+  @loginAdmin
+  Scenario: Publishing succeeds when all requiredOnPublish files are present
+    Given there is a draft DummyUploadableRequiredOnPublish with all files uploaded
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt |
+      | now         |
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.published" should be true
+
   @loginUser
   Scenario: A multipart file upload fires exactly one Mercure notification
     Given I add "Content-Type" header equal to "multipart/form-data"

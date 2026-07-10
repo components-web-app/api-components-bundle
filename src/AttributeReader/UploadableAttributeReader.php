@@ -88,14 +88,32 @@ final class UploadableAttributeReader extends AttributeReader implements Uploada
         }
 
         $found = false;
+        $seenStorageProperties = [];
         $reflectionProperties = (new \ReflectionClass($data))->getProperties();
         foreach ($reflectionProperties as $reflectionProperty) {
             try {
                 $config = $this->getPropertyConfiguration($reflectionProperty);
-                yield $reflectionProperty->getName() => $config;
-                $found = true;
             } catch (InvalidArgumentException $e) {
+                continue;
             }
+
+            // Two UploadableFields resolving to the same storage property would read and write the
+            // same column — uploading to one silently overwrites the other and both fields report the
+            // same file. Fail loudly instead of corrupting data: each field needs a distinct
+            // `property:` (with a matching nullable string entity property; the bundle maps the column).
+            if (isset($seenStorageProperties[$config->property])) {
+                throw new UnsupportedAnnotationException(\sprintf(
+                    'Uploadable %s has two UploadableField properties ("%s" and "%s") sharing the storage property "%s". Set a distinct `property:` on each UploadableField so uploads do not overwrite each other.',
+                    \is_string($data) ? $data : $data::class,
+                    $seenStorageProperties[$config->property],
+                    $reflectionProperty->getName(),
+                    $config->property
+                ));
+            }
+            $seenStorageProperties[$config->property] = $reflectionProperty->getName();
+
+            yield $reflectionProperty->getName() => $config;
+            $found = true;
         }
         if (!$found) {
             throw new UnsupportedAnnotationException(\sprintf('No field configurations on your Uploadable component %s.', \is_string($data) ? $data : $data::class));

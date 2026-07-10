@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader;
+use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -25,6 +26,7 @@ final class ValidatorCompilerPass implements CompilerPassInterface
     {
         $container
             ->getDefinition('validator.builder')
-            ->addMethodCall('addLoader', [new Reference(TimestampedLoader::class)]);
+            ->addMethodCall('addLoader', [new Reference(TimestampedLoader::class)])
+            ->addMethodCall('addLoader', [new Reference(UploadableLoader::class)]);
     }
 }

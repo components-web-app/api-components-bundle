@@ -175,9 +175,11 @@ use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFileValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
+use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader as UploadableValidatorMappingLoader;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -1223,6 +1225,22 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(TimestampedValidatorMappingLoader::class, 'silverback.api_components.validator.mapping_loader.timestamped');
+
+    $services
+        ->set('silverback.api_components.validator.mapping_loader.uploadable')
+        ->class(UploadableValidatorMappingLoader::class)
+        ->args(
+            [
+                new Reference(UploadableAttributeReader::class),
+            ]
+        );
+    $services->alias(UploadableValidatorMappingLoader::class, 'silverback.api_components.validator.mapping_loader.uploadable');
+
+    $services
+        ->set('silverback.api_components.validator.requires_uploaded_file')
+        ->class(RequiresUploadedFileValidator::class)
+        ->tag('validator.constraint_validator');
+    $services->alias(RequiresUploadedFileValidator::class, 'silverback.api_components.validator.requires_uploaded_file');
 
     $services
         ->set('silverback.api_components.validator.timestamped')

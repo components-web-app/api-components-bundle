@@ -162,6 +162,47 @@ class MediaObjectFactoryTest extends TestCase
         $this->assertSame('thumbnail', $imagineMediaObject->imagineFilter);
     }
 
+    public function test_non_image_file_with_imagine_filters_does_not_invoke_imagine(): void
+    {
+        // A non-image (e.g. a PDF/docx) uploaded to a field that declares imagineFilters must NOT
+        // reach Liip Imagine — the image-mime guard replaces the previous SVG-only guard.
+        $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail']);
+        $fieldConfig->property = 'filename';
+
+        $annotationReader = $this->createStub(UploadableAttributeReaderInterface::class);
+        $annotationReader->method('getConfiguredProperties')->willReturn(['file' => $fieldConfig]);
+
+        $filesystem = $this->createStub(Filesystem::class);
+        $filesystem->method('mimeType')->willReturn('application/pdf');
+        $filesystem->method('fileSize')->willReturn(2048);
+
+        $filesystemProvider = $this->createStub(FilesystemProvider::class);
+        $filesystemProvider->method('getFilesystem')->willReturn($filesystem);
+
+        $fileInfo = new FileInfo(self::FILE_PATH, 'application/pdf', 2048, null, null);
+        $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
+        $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+
+        // filterService present — the guard must ensure it is never called for a non-image
+        $filterService = $this->createMock(FilterService::class);
+        $filterService->expects($this->never())->method('getUrlOfFilteredImage');
+
+        $factory = $this->buildFactory(
+            annotationReader: $annotationReader,
+            fileInfoCacheManager: $fileInfoCacheManager,
+            filesystemProvider: $filesystemProvider,
+            filesystem: $filesystem,
+            filterService: $filterService,
+        );
+
+        $collection = $factory->createMediaObjects(new \stdClass());
+
+        $this->assertNotNull($collection);
+        $mediaObjects = $collection->get('file');
+        $this->assertCount(1, $mediaObjects, 'A non-image must not add imagine-filter media objects');
+        $this->assertNull($mediaObjects[0]->imagineFilter);
+    }
+
     public function test_svg_image_does_not_add_imagine_filter_media_objects(): void
     {
         // Mutant 37: if(!isMediaObjectSvg) → if(isMediaObjectSvg) — for SVG, no imagine filters should be added

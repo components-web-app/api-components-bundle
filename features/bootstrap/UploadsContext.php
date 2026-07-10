@@ -28,6 +28,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublish;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
@@ -116,6 +117,47 @@ class UploadsContext implements Context
         }
 
         return $object;
+    }
+
+    /**
+     * @Given there is a draft DummyUploadableRequiredOnPublish
+     */
+    public function thereIsADraftDummyUploadableRequiredOnPublish(): void
+    {
+        $object = new DummyUploadableRequiredOnPublish();
+        $object->setPublishedAt(null);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given there is a draft DummyUploadableRequiredOnPublish with all files uploaded
+     */
+    public function thereIsADraftDummyUploadableRequiredOnPublishWithFiles(): void
+    {
+        $object = new DummyUploadableRequiredOnPublish();
+        $object->setPublishedAt(null);
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $object->preview = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given there is a draft DummyUploadableRequiredOnPublish with only the file uploaded
+     */
+    public function thereIsADraftDummyUploadableRequiredOnPublishWithFileOnly(): void
+    {
+        $object = new DummyUploadableRequiredOnPublish();
+        $object->setPublishedAt(null);
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
     }
 
     /**
