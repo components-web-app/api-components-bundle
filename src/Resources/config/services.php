@@ -66,6 +66,7 @@ use Silverback\ApiComponentsBundle\Event\ImagineRemoveEvent;
 use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
+use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
@@ -1711,6 +1712,19 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+
+    $services
+        ->set('silverback.api_components.event_listener.api.cache_headers')
+        ->class(CacheHeadersEventListener::class)
+        ->args(
+            [
+                new Reference(TokenStorageInterface::class),
+                new Reference(PublishableStatusChecker::class),
+                [],
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+    $services->alias(CacheHeadersEventListener::class, 'silverback.api_components.event_listener.api.cache_headers');
 
     $services
         ->set('silverback.metadata_provider.page_data')

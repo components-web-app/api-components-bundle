@@ -11,6 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
+use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -39,8 +42,31 @@ class Configuration implements ConfigurationInterface
         $this->addPublishableNode($rootNode);
         $this->addEnabledComponentsNode($rootNode);
         $this->addUserNode($rootNode);
+        $this->addHttpCacheNode($rootNode);
 
         return $treeBuilder;
+    }
+
+    private function addHttpCacheNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('http_cache')
+                    ->addDefaultsIfNotSet()
+                    ->info('Cache-safety headers for responses that vary by the authenticated session.')
+                    ->children()
+                        ->arrayNode('personalised_resource_classes')
+                            ->info('Resource classes whose GET responses are marked `private, no-store` for authenticated users. Publishable resources are always treated as personalised in addition to this list.')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([
+                                Route::class,
+                                ResourceManifest::class,
+                                ComponentPosition::class,
+                            ])
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     private function addMercureNode(ArrayNodeDefinition $rootNode): void
