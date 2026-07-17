@@ -50,8 +50,8 @@ trait ManifestDepthGroupTrait
      * or already-seen (deduplicated) resource — so blank-node metadata and back-references never
      * appear as nodes, matching the flat behaviour this replaced.
      *
-     * @param array<int, array> $parentResources collected boundary resources (by reference)
-     * @param array<string, true> $seen           per-depth IRI dedup set (by reference)
+     * @param array<int, array>   $parentResources collected boundary resources (by reference)
+     * @param array<string, true> $seen            per-depth IRI dedup set (by reference)
      *
      * @return list<array{iri: string, children: array}>
      */
