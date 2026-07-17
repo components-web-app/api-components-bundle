@@ -192,12 +192,22 @@ class ManifestDepthGroupTraitTest extends TestCase
         ];
 
         $this->assertSame(
-            [$this->n('/_/routes/home',
-                $this->n('/page_data/pd1',
-                    $this->n('/_/pages/p1',
-                        $this->n('/_/component_groups/cg1',
-                            $this->n('/_/component_positions/cp1',
-                                $this->n('/component/dummy/c1')))))), ],
+            [$this->n(
+                '/_/routes/home',
+                $this->n(
+                    '/page_data/pd1',
+                    $this->n(
+                        '/_/pages/p1',
+                        $this->n(
+                            '/_/component_groups/cg1',
+                            $this->n(
+                                '/_/component_positions/cp1',
+                                $this->n('/component/dummy/c1')
+                            )
+                        )
+                    )
+                )
+            ), ],
             $this->subject->groups($resource)
         );
     }
