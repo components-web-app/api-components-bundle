@@ -694,3 +694,18 @@ References: `src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`, `src/
 </details>
 
 > **⚠ Note:** the older `resource_iris: string[][]` description in the manifest architecture sections and design-decisions list above (e.g. "`resource_iris` is `string[][]`") is now **superseded by #197** — the shape is `NestedJsonStructure[]` (depth-indexed array of `{ iri, children }` trees).
+
+---
+
+### #200 — Cache-safety headers: mark auth-scoped responses non-cacheable so shared caches can distinguish public from personalised (front-end: cwa-nuxt-module #258) ✓ **DONE**
+
+**Implemented.** Several responses are served from an identical URL but vary by the authenticated session — `Route` and `ResourceManifest` return a draft to a permitted user and the published version otherwise; `ComponentPosition` rewrites its component IRI / exposes admin-only groups by role — with no distinguishing URL or query marker. New `kernel.response` listener `CacheHeadersEventListener` (`src/EventListener/Api/CacheHeadersEventListener.php`, service `silverback.api_components.event_listener.api.cache_headers`, tagged `POST_RESPOND`) marks such responses **`Cache-Control: private, no-store`** (via `Response::setPrivate()` + `addCacheControlDirective('no-store')`, and drops `s-maxage`) **only when the request is authenticated** (`TokenStorageInterface` token whose user is a `UserInterface`) **and** the resource is affected. Anonymous requests are left untouched on API Platform's default `public` (set upstream by `AddHeadersProcessor`, a state processor that runs before this listener), so the only variant a shared cache ever stores is the published one — matching the rule Souin already enforces at the edge by excluding cookie-bearing requests. `no-store` is the authoritative marker the module's service-worker `cacheWillUpdate` drops on (cwa-nuxt-module #258).
+
+**Design decisions (agreed with Daniel):**
+- **No `Vary: Cookie`.** Many cookies churn, so varying on `Cookie` would collapse the shared-cache hit rate. Instead of varying, an authenticated response is simply marked non-cacheable; the cacheable anonymous variant needs no cookie dimension. (The existing `Vary: path` on dynamic `ComponentPosition` GETs — `ComponentPositionEventListener` — is unrelated and untouched.)
+- **Personalisation gate = authenticated token**, not cookie presence — a stale/invalid cookie on an otherwise-anonymous request keeps the response cacheable.
+- **Affected-resource set is an explicit, configurable allow-list**, maximising static cache hits. Config node `silverback_api_components.http_cache.personalised_resource_classes` (default `[Route, ResourceManifest, ComponentPosition]`, wired via `SilverbackApiComponentsExtension` → `$personalisedResourceClasses` arg). Any **Publishable**-configured resource is treated as personalised *in addition* to the list (matched dynamically via `PublishableAttributeReader::isConfigured()`), so app-defined publishable components are covered without enumeration. A resource **not** in the set (e.g. `Layout`) stays publicly cacheable even for authenticated users.
+
+**Behat:** `features/main/cache_headers.feature` — scenario outlines assert authenticated GETs of Route / ResourceManifest / ComponentPosition / Publishable → `private` + `no-store`; anonymous GETs of the same → `public`, no `no-store`; and an authenticated GET of an unaffected type (`Layout`) → still `public`.
+
+References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/DependencyInjection/Configuration.php` (`addHttpCacheNode`), `src/DependencyInjection/SilverbackApiComponentsExtension.php`, `src/Resources/config/services.php`.
