@@ -186,4 +186,95 @@ class FormTypeClassValidatorTest extends TestCase
         $constraint = new FormTypeClass(message: 'different message option');
         $this->assertEquals('different message option', $constraint->message);
     }
+
+    // --- Deterministic single-branch coverage (kills surviving mutants) ---
+
+    /**
+     * Captures the messages of every violation raised for a single validate() call.
+     *
+     * @return list<string>
+     */
+    private function captureMessages(mixed $value, Constraint $constraint, iterable $formTypes = [new TestType()]): array
+    {
+        $validator = new FormTypeClassValidator($formTypes);
+
+        $messages = [];
+        $builder = $this->createStub(ConstraintViolationBuilderInterface::class);
+        $builder->method('setParameter')->willReturn($builder);
+        $builder->method('atPath')->willReturn($builder);
+
+        $context = $this->createStub(ExecutionContextInterface::class);
+        $context->method('buildViolation')->willReturnCallback(static function (string $message) use (&$messages, $builder): ConstraintViolationBuilderInterface {
+            $messages[] = $message;
+
+            return $builder;
+        });
+
+        $validator->initialize($context);
+        $validator->validate($value, $constraint);
+
+        return $messages;
+    }
+
+    public function test_empty_string_value_raises_no_violation(): void
+    {
+        // Kills LogicalNot (line 34) and ReturnRemoval (line 35): an empty string is falsy and must
+        // return immediately. Without the early return it reaches ClassNameValidator, which throws on
+        // the non-existent class '' and produces a spurious violation.
+        $messages = $this->captureMessages('', new FormTypeClass());
+
+        self::assertSame([], $messages);
+    }
+
+    public function test_non_string_value_throws_invalid_argument(): void
+    {
+        // Kills LogicalNot (line 37) and Throw_ (line 38): a non-string value must throw before any
+        // validation runs.
+        $validator = new FormTypeClassValidator([new TestType()]);
+        $validator->initialize($this->executionContextMock);
+
+        $this->expectException(InvalidArgumentException::class);
+        $validator->validate(new TestType(), new FormTypeClass());
+    }
+
+    public function test_unexpected_constraint_type_throws_invalid_argument(): void
+    {
+        // Kills InstanceOf_ / LogicalNot (line 40) and Throw_ (line 41): a constraint that is not a
+        // FormTypeClass must throw.
+        $validator = new FormTypeClassValidator([new TestType()]);
+        $validator->initialize($this->executionContextMock);
+
+        $this->expectException(InvalidArgumentException::class);
+        $validator->validate(TestType::class, new class extends Constraint {
+        });
+    }
+
+    public function test_class_not_in_form_types_raises_message_violation(): void
+    {
+        // Kills LogicalNot (line 46) and MethodCallRemoval (line 47): a real class that is not among
+        // the configured form types must raise exactly `message`.
+        $constraint = new FormTypeClass();
+        $messages = $this->captureMessages(__CLASS__, $constraint);
+
+        self::assertSame([$constraint->message], $messages);
+    }
+
+    public function test_non_class_string_raises_exception_message_violation(): void
+    {
+        // Kills MethodCallRemoval (line 53): a string that is not a class makes ClassNameValidator
+        // throw; the catch block must raise a violation carrying the exception message.
+        $messages = $this->captureMessages('NotAClass', new FormTypeClass());
+
+        self::assertCount(1, $messages);
+        self::assertStringContainsString('NotAClass', $messages[0]);
+    }
+
+    public function test_valid_form_type_class_raises_no_violation(): void
+    {
+        // Confirms the happy path: a configured form type must produce no violation (pins line 46 in
+        // the other direction).
+        $messages = $this->captureMessages(TestType::class, new FormTypeClass());
+
+        self::assertSame([], $messages);
+    }
 }

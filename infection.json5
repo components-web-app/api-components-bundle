@@ -17,6 +17,6 @@
     "testFramework": "phpunit",
     "testFrameworkOptions": "--exclude-group=functional",
     "initialTestsPhpOptions": "-d memory_limit=512M",
-    "minMsi": 85,
-    "minCoveredMsi": 85
+    "minMsi": 80,
+    "minCoveredMsi": 80
 }

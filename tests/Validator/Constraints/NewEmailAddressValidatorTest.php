@@ -188,4 +188,134 @@ class NewEmailAddressValidatorTest extends TestCase
             ->setNewEmailAddress('new@email.com');
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
+
+    // --- Deterministic single-branch coverage (kills surviving mutants) ---
+
+    /**
+     * Captures the messages and atPath targets of every violation the validator raises for a
+     * single validate() call, without relying on ordered mock expectations across branches.
+     *
+     * @return array{messages: list<string>, paths: list<string>}
+     */
+    private function captureViolations(NewEmailAddressValidator $validator, AbstractUser $user, NewEmailAddress $constraint): array
+    {
+        $messages = [];
+        $paths = [];
+
+        $builder = $this->createStub(ConstraintViolationBuilderInterface::class);
+        $builder->method('atPath')->willReturnCallback(static function (string $path) use (&$paths, $builder): ConstraintViolationBuilderInterface {
+            $paths[] = $path;
+
+            return $builder;
+        });
+
+        $context = $this->createStub(ExecutionContextInterface::class);
+        $context->method('buildViolation')->willReturnCallback(static function (string $message) use (&$messages, $builder): ConstraintViolationBuilderInterface {
+            $messages[] = $message;
+
+            return $builder;
+        });
+
+        $validator->initialize($context);
+        $validator->validate($user, $constraint);
+
+        return ['messages' => $messages, 'paths' => $paths];
+    }
+
+    /**
+     * @param AbstractUser|null $repoResult what the repository returns for findExistingUserByNewEmail
+     */
+    private function makeValidator(?AbstractUser $repoResult): NewEmailAddressValidator
+    {
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findExistingUserByNewEmail')->willReturn($repoResult);
+
+        return new NewEmailAddressValidator($repo);
+    }
+
+    public function test_empty_new_email_returns_before_match_check(): void
+    {
+        // Kills LogicalNot (line 44) and ReturnRemoval (line 45): with an empty new email that equals
+        // the (empty) current address and a verified state, only the early return prevents a spurious
+        // "same as previous" violation. The mutant reaches line 48 ('' === '') and raises `message`.
+        $validator = $this->makeValidator(null);
+
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerified(true);
+        $user->setEmailAddress('')->setNewEmailAddress('');
+
+        $result = $this->captureViolations($validator, $user, new NewEmailAddress());
+
+        self::assertSame([], $result['messages']);
+    }
+
+    public function test_verified_matching_email_adds_only_the_match_message(): void
+    {
+        // Kills Identical (=== → !==), MethodCallRemoval (line 49) and ReturnRemoval (line 53). The
+        // repository is primed to return a user, so if the code failed to return after the match it
+        // would add a SECOND (uniqueMessage) violation — the exact-array assertion catches that.
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerified(true);
+        $user->setEmailAddress('same@example.com')->setNewEmailAddress('same@example.com');
+
+        $validator = $this->makeValidator($user);
+
+        $constraint = new NewEmailAddress();
+        $result = $this->captureViolations($validator, $user, $constraint);
+
+        self::assertSame([$constraint->message], $result['messages']);
+        self::assertSame(['newEmailAddress'], $result['paths']);
+    }
+
+    public function test_verified_but_different_email_raises_no_match_violation(): void
+    {
+        // Kills the second-operand negation and LogicalAndNegation on line 48: a DIFFERENT new email
+        // must not trigger the match branch, and the repository (primed null) adds nothing.
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerified(true);
+        $user->setEmailAddress('current@example.com')->setNewEmailAddress('changed@example.com');
+
+        $validator = $this->makeValidator(null);
+
+        $result = $this->captureViolations($validator, $user, new NewEmailAddress());
+
+        self::assertSame([], $result['messages']);
+    }
+
+    public function test_unverified_matching_email_raises_no_match_violation(): void
+    {
+        // Kills LogicalAnd (&& → ||) and the first-operand negation on line 48: when the address is
+        // NOT verified, an identical new email must not trigger the match violation.
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerified(false);
+        $user->setEmailAddress('same@example.com')->setNewEmailAddress('same@example.com');
+
+        $validator = $this->makeValidator(null);
+
+        $result = $this->captureViolations($validator, $user, new NewEmailAddress());
+
+        self::assertSame([], $result['messages']);
+    }
+
+    public function test_existing_user_with_new_email_raises_unique_message(): void
+    {
+        // Kills IfNegation (line 56) and MethodCallRemoval (line 57): when the repository finds an
+        // existing user for the new email, exactly `uniqueMessage` must fire on `newEmailAddress`.
+        $user = new class extends AbstractUser {
+        };
+        $user->setEmailAddressVerified(false);
+        $user->setEmailAddress('current@example.com')->setNewEmailAddress('taken@example.com');
+
+        $validator = $this->makeValidator($user);
+
+        $constraint = new NewEmailAddress();
+        $result = $this->captureViolations($validator, $user, $constraint);
+
+        self::assertSame([$constraint->uniqueMessage], $result['messages']);
+        self::assertSame(['newEmailAddress'], $result['paths']);
+    }
 }
