@@ -199,9 +199,10 @@ class FormTypeClassValidatorTest extends TestCase
         $validator = new FormTypeClassValidator($formTypes);
 
         $messages = [];
-        $builder = $this->createStub(ConstraintViolationBuilderInterface::class);
-        $builder->method('setParameter')->willReturn($builder);
-        $builder->method('atPath')->willReturn($builder);
+        // Reuse the concrete stub: ConstraintViolationBuilderInterface's fluent methods return
+        // `static`, which the PHPUnit version pinned by simple-phpunit on the Symfony 8.x matrix
+        // (12.2) cannot mock via createStub() (works on 12.5 locally, fails on CI).
+        $builder = new ConstraintViolationBuilderStub();
 
         $context = $this->createStub(ExecutionContextInterface::class);
         $context->method('buildViolation')->willReturnCallback(static function (string $message) use (&$messages, $builder): ConstraintViolationBuilderInterface {
