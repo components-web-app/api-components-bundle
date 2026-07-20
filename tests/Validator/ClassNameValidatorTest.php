@@ -65,4 +65,15 @@ class ClassNameValidatorTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         ClassNameValidator::isClassSame('NotAClass', $this->class);
     }
+
+    /**
+     * Kills FalseValue (line 32): when no candidate matches, validate() must return false. A mutant
+     * flipping the fall-through to `true` would make every unrelated class validate as a form type.
+     *
+     * @throws \ReflectionException
+     */
+    public function test_validate_returns_false_when_no_candidate_matches(): void
+    {
+        $this->assertFalse(ClassNameValidator::validate(User::class, [$this->class]));
+    }
 }
