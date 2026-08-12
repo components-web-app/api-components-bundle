@@ -40,10 +40,66 @@ class _LeakTestUploadable
 }
 
 /**
+ * Named stub for the clone path: a field with a `prefix:` so the copy has a directory to preserve.
+ */
+#[Silverback\Uploadable]
+class _PrefixedTestUploadable
+{
+    #[Silverback\UploadableField(adapter: 'local', prefix: 'documents/')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+}
+
+/**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadableFileManagerTest extends TestCase
 {
+    /**
+     * Creating a draft of a publishable uploadable clones the stored file so the two resources own
+     * their files independently. The copy belongs beside the original — the field's prefix is part of
+     * the stored path — and carries a unique token like every other stored name.
+     */
+    public function test_cloning_an_uploadable_copies_the_file_alongside_the_original_with_a_tokenised_name(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('documents/report-aaaaaaaa.pdf', 'the original');
+
+        $manager = $this->createFileManager($filesystem);
+
+        $published = new _PrefixedTestUploadable();
+        $published->filename = 'documents/report-aaaaaaaa.pdf';
+        $draft = new _PrefixedTestUploadable();
+
+        $manager->processClonedUploadable($published, $draft);
+
+        self::assertMatchesRegularExpression('#^documents/report-[0-9a-f]{8}\.pdf$#', (string) $draft->filename);
+        self::assertNotSame($published->filename, $draft->filename);
+        self::assertTrue($filesystem->fileExists((string) $draft->filename));
+        self::assertTrue($filesystem->fileExists($published->filename), 'The clone must not disturb the original.');
+    }
+
+    /**
+     * A stored file missing from the filestore is a recoverable storage problem. Nulling the clone's
+     * path would discard the only record of what the file was, and publishing that draft would then
+     * copy the null onto the published resource — turning a missing object into permanent loss.
+     */
+    public function test_cloning_an_uploadable_whose_stored_file_is_missing_keeps_the_original_path(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+
+        $manager = $this->createFileManager($filesystem);
+
+        $published = new _PrefixedTestUploadable();
+        $published->filename = 'documents/gone-aaaaaaaa.pdf';
+        $draft = new _PrefixedTestUploadable();
+
+        $manager->processClonedUploadable($published, $draft);
+
+        self::assertSame('documents/gone-aaaaaaaa.pdf', $draft->filename);
+    }
+
     /**
      * A "delete this file" marker belongs to the resource being written, not to the storage property
      * name. It used to be recorded on this shared service as the bare string 'filename' — the default

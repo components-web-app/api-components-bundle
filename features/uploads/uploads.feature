@@ -157,7 +157,7 @@ Feature: API Resources which can have files uploaded
     And the response should be the resource "dummy_uploadable"
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
     And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
-    And the resource "dummy_uploadable" should have a filename matching "/^image-[^\/]+\.svg$/"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
   # DELETE
@@ -200,7 +200,7 @@ Feature: API Resources which can have files uploaded
       | 1970-11-11T23:59:59+00:00  |
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should exist
-    And the resource "dummy_uploadable" should have a filename matching "/^image-[^\/]+\.png$/"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.png$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
   @loginAdmin
@@ -260,7 +260,7 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the response should be the resource "dummy_uploadable"
     And the JSON node "_metadata.publishable.published" should be true
-    And the resource "dummy_uploadable" should have a filename matching "/^image-[^\/]+\.svg$/"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
   # A draft that was never published has no publishedResource, so checkMergeDraftIntoPublished returns
@@ -279,7 +279,7 @@ Feature: API Resources which can have files uploaded
       | 1970-11-11T23:59:59+00:00 |
     Then the response status code should be 200
     And the JSON node "_metadata.publishable.published" should be true
-    And the resource "dummy_uploadable_draft" should have a filename matching "/^image-[^\/]+\.svg$/"
+    And the resource "dummy_uploadable_draft" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
     And the file for the resource "dummy_uploadable_draft" should exist in its configured filestore
 
   @loginUser

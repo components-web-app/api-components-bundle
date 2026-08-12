@@ -352,6 +352,12 @@ class UploadableFileManager
         }
     }
 
+    /**
+     * Copies a resource's stored file so a clone (a publishable draft) owns its own object. The copy
+     * is written beside the original — the field's prefix is part of the stored path, so a copy built
+     * from the basename alone would escape it — under the same tokenised naming as every other stored
+     * file, which also guarantees it cannot collide with an existing object.
+     */
     private function copyFilepath(object $object, UploadableField $fieldConfiguration): ?string
     {
         $classMetadata = $this->getClassMetadata($object);
@@ -359,18 +365,25 @@ class UploadableFileManager
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
         if (!$filesystem->fileExists($currentFilepath)) {
-            return null;
+            // The stored object is gone. Keep the clone pointing at the same path rather than nulling
+            // it: a missing file is a recoverable storage problem, whereas nulling discards the only
+            // record of what the file was and, on the next publish, copies that null over the
+            // published resource's own path.
+            return $currentFilepath;
         }
+
         $pathInfo = pathinfo($currentFilepath);
-        $basename = $pathInfo['filename'];
-        $extension = $pathInfo['extension'] ?? null;
-        if (!empty($extension)) {
-            $extension = \sprintf('.%s', $extension);
-        }
-        $num = 1;
-        while ($filesystem->fileExists($newFilepath = \sprintf('%s_%d%s', $basename, $num, $extension))) {
-            ++$num;
-        }
+        $directory = '.' === $pathInfo['dirname'] ? '' : $pathInfo['dirname'] . '/';
+
+        // Strip the token off an already-tokenised name before adding a new one, so a resource that
+        // is drafted and published repeatedly does not accumulate a token per cycle.
+        $stem = (string) preg_replace('/-[0-9a-f]{8}$/', '', $pathInfo['filename']);
+        $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
+
+        do {
+            $newFilepath = $directory . $this->tokeniseFilename($stem . $extension);
+        } while ($filesystem->fileExists($newFilepath));
+
         $filesystem->copy($currentFilepath, $newFilepath);
 
         return $newFilepath;
