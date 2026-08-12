@@ -642,7 +642,9 @@ References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePat
 
 Tagged explicitly: `mercure.resource_publisher` and `http_cache.purger` (queue changed objects), `data_collector.data` (profiler panel data), `jwt_event_listener` (holds the JWT to write as a cookie). `MercureResourcePublisher::reset()` also lowers `isPropagating`, so a request dying inside `propagate()` cannot leave the re-entrancy guard raised and suppress every publish for the rest of a worker's life.
 
-`tests/DependencyInjection/ServicesResetterTest.php` asserts each is registered with the `services_resetter`. **Add to its list whenever a bundle service gains mutable per-request state** — or better, scope the state so it cannot outlive its request, as `UploadableFileManager` does with a `WeakMap`. (The test is reported Risky: booting a kernel in debug registers Symfony's ErrorHandler and it cannot be handed back. Risky is not a failure and `failOnRisky` is unset.)
+`tests/DependencyInjection/ServicesResetterTest.php` loads the config files into a bare `ContainerBuilder` and asserts the tag is on each **definition**. It deliberately does not boot a kernel: autoconfiguration would add the tag there and mask a missing one, so a booted-kernel test would assert the wrong thing. **Add to its list whenever a bundle service gains mutable per-request state** — or better, scope the state so it cannot outlive its request, as `UploadableFileManager` does with a `WeakMap`.
+
+> **Do not write kernel-booting tests casually.** Booting in debug registers Symfony's ErrorHandler, which PHPUnit reports as Risky, and **Infection's initial test run fails on Risky** — so a single risky test aborts the whole mutation gate in CI (`PHPUnit (Symfony 7.4)`, the coverage job) even though `failOnRisky` is unset for the normal suite. The first version of this test did exactly that and broke the build.
 
 ---
 
