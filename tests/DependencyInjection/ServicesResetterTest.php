@@ -11,8 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 /**
  * Under a long-running runtime — FrankenPHP worker mode, RoadRunner — one kernel serves many
@@ -23,50 +25,53 @@ use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
  * `ResetInterface` alone does nothing — a service is only reset if it carries the `kernel.reset`
  * tag. Autoconfiguration adds that tag, but this is a bundle: applications may disable
  * autoconfiguration, and several of the bundle's own definitions already opt out of it. So the tag
- * must be explicit on every service that holds request-scoped state.
+ * must be on the definition itself, which is what this asserts — the service definitions are read
+ * straight from the config files rather than from a booted kernel, where autoconfiguration would
+ * mask a missing tag.
  *
  * @author Daniel West <daniel@silverback.is>
  */
-class ServicesResetterTest extends KernelTestCase
+class ServicesResetterTest extends TestCase
 {
     /**
-     * Services that accumulate state during a request and must be emptied between requests.
+     * Config file => service ids defined in it that accumulate state during a request and must be
+     * emptied between requests.
      *
-     * Add to this list whenever a bundle service gains mutable per-request state — or, better,
-     * scope the state so it cannot outlive its request (UploadableFileManager keys its markers in a
-     * WeakMap by the resource they belong to, so it needs no reset at all).
+     * Add here whenever a bundle service gains mutable per-request state — or, better, scope the
+     * state so it cannot outlive its request (UploadableFileManager keys its markers in a WeakMap by
+     * the resource they belong to, so it needs no reset at all).
      */
     private const MUST_BE_RESETTABLE = [
+        'services.php' => [
+            // Profiler panel data gathered across the request
+            'silverback.api_components.data_collector.data',
+            // Holds the JWT to be written as a cookie on the response
+            'silverback.security.jwt_event_listener',
+        ],
         // Queues objects changed during the request, flushed on propagate()
-        'silverback.api_components.mercure.resource_publisher',
+        'services_doctrine_orm_mercure_publisher.php' => ['silverback.api_components.mercure.resource_publisher'],
         // Same, for cache invalidation
-        'silverback.api_components.http_cache.purger',
-        // Profiler panel data gathered across the request
-        'silverback.api_components.data_collector.data',
-        // Holds the JWT to be written as a cookie on the response
-        'silverback.security.jwt_event_listener',
+        'services_doctrine_orm_http_cache_purger.php' => ['silverback.api_components.http_cache.purger'],
     ];
 
-    public function test_bundle_services_holding_request_state_are_registered_with_the_services_resetter(): void
+    public function test_bundle_services_holding_request_state_are_tagged_kernel_reset(): void
     {
-        self::bootKernel();
+        $container = new ContainerBuilder();
+        $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../src/Resources/config'));
 
-        $resetter = self::getContainer()->get('services_resetter');
-        self::assertInstanceOf(ServicesResetter::class, $resetter);
+        foreach (self::MUST_BE_RESETTABLE as $file => $serviceIds) {
+            $loader->load($file);
 
-        $resetMethods = (new \ReflectionProperty(ServicesResetter::class, 'resetMethods'))->getValue($resetter);
-
-        foreach (self::MUST_BE_RESETTABLE as $serviceId) {
-            self::assertArrayHasKey(
-                $serviceId,
-                $resetMethods,
-                \sprintf('"%s" holds per-request state but is not tagged kernel.reset, so it would carry that state into the next request in worker mode.', $serviceId)
-            );
+            foreach ($serviceIds as $serviceId) {
+                self::assertTrue(
+                    $container->hasDefinition($serviceId),
+                    \sprintf('"%s" is not defined in %s — has it been renamed?', $serviceId, $file)
+                );
+                self::assertTrue(
+                    $container->getDefinition($serviceId)->hasTag('kernel.reset'),
+                    \sprintf('"%s" holds per-request state but is not tagged kernel.reset, so it would carry that state into the next request in worker mode.', $serviceId)
+                );
+            }
         }
-
-        // Booting a kernel in debug registers Symfony's ErrorHandler, which PHPUnit reports as a
-        // risky test. It cannot be handed back from here (restore_exception_handler does not clear
-        // it), and risky is not a failure, so the notice is accepted.
-        self::ensureKernelShutdown();
     }
 }
