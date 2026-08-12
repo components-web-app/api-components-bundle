@@ -300,6 +300,55 @@ class UploadableFileManager
         }
     }
 
+    /**
+     * The stored path of each uploadable field, keyed by storage property. Empty for a resource that
+     * is not uploadable, so callers need no is-uploadable dance before taking a snapshot.
+     *
+     * @return array<string, string|null>
+     */
+    public function getStoredFilePaths(object $object): array
+    {
+        if (!$this->annotationReader->isConfigured($object)) {
+            return [];
+        }
+
+        $classMetadata = $this->getClassMetadata($object);
+
+        $paths = [];
+        foreach ($this->annotationReader->getConfiguredProperties($object, true) as $fieldConfiguration) {
+            $paths[$fieldConfiguration->property] = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Deletes the files a resource has stopped referencing, given the paths it held before a write.
+     *
+     * A path it still points at is never deleted: replacing a file must not delete the file that
+     * replaced it, and a field the write left alone must keep its file. Deleting up front instead —
+     * before the new values are in place — destroys the file with nothing yet known to have
+     * succeeded, and destroys it even when the incoming value is the very same path.
+     *
+     * @param array<string, string|null> $previousPaths from getStoredFilePaths(), taken before the write
+     */
+    public function deleteOrphanedFiles(object $object, array $previousPaths): void
+    {
+        if (!$this->annotationReader->isConfigured($object)) {
+            return;
+        }
+
+        $classMetadata = $this->getClassMetadata($object);
+
+        foreach ($this->annotationReader->getConfiguredProperties($object, true) as $fieldConfiguration) {
+            $previousFilepath = $previousPaths[$fieldConfiguration->property] ?? null;
+            if (!$previousFilepath || $previousFilepath === $classMetadata->getFieldValue($object, $fieldConfiguration->property)) {
+                continue;
+            }
+            $this->removeFilepathValue($fieldConfiguration, $previousFilepath);
+        }
+    }
+
     public function getFileResponse(object $object, string $property, bool $forceDownload = false): Response
     {
         try {
@@ -339,16 +388,24 @@ class UploadableFileManager
 
     private function removeFilepath(object $object, UploadableField $fieldConfiguration): void
     {
-        $classMetadata = $this->getClassMetadata($object);
+        $currentFilepath = $this->getClassMetadata($object)->getFieldValue($object, $fieldConfiguration->property);
 
+        $this->removeFilepathValue($fieldConfiguration, $currentFilepath);
+    }
+
+    /**
+     * Takes the path rather than reading it off the resource, so a path the resource has already
+     * stopped referencing can still be cleaned up.
+     */
+    private function removeFilepathValue(UploadableField $fieldConfiguration, string $filepath): void
+    {
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
-        $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-        $this->fileInfoCacheManager->deleteCaches([$currentFilepath], [null]);
+        $this->fileInfoCacheManager->deleteCaches([$filepath], [null]);
         if ($this->imagineCacheManager) {
-            $this->imagineCacheManager->remove([$currentFilepath], null);
+            $this->imagineCacheManager->remove([$filepath], null);
         }
-        if ($filesystem->fileExists($currentFilepath)) {
-            $filesystem->delete($currentFilepath);
+        if ($filesystem->fileExists($filepath)) {
+            $filesystem->delete($filepath);
         }
     }
 

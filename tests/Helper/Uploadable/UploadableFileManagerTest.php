@@ -52,10 +52,103 @@ class _PrefixedTestUploadable
 }
 
 /**
+ * Named stub for the not-uploadable path — no `#[Uploadable]` attribute.
+ */
+class _NotUploadableStub
+{
+    public ?string $filename = null;
+}
+
+/**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadableFileManagerTest extends TestCase
 {
+    /**
+     * Publishing a draft replaces the published resource's stored path with the draft's. The file it
+     * has stopped referencing is then orphaned and should go.
+     */
+    public function test_orphaned_file_deletion_removes_a_path_the_resource_no_longer_references(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('components/old-aaaaaaaa.png', 'the replaced file');
+        $filesystem->write('components/new-bbbbbbbb.png', 'the replacement');
+
+        $manager = $this->createFileManager($filesystem);
+
+        $resource = new _LeakTestUploadable();
+        $resource->filename = 'components/old-aaaaaaaa.png';
+
+        $previousPaths = $manager->getStoredFilePaths($resource);
+        self::assertSame(['filename' => 'components/old-aaaaaaaa.png'], $previousPaths);
+
+        $resource->filename = 'components/new-bbbbbbbb.png';
+        $manager->deleteOrphanedFiles($resource, $previousPaths);
+
+        self::assertFalse($filesystem->fileExists('components/old-aaaaaaaa.png'));
+        self::assertTrue($filesystem->fileExists('components/new-bbbbbbbb.png'));
+    }
+
+    /**
+     * The case the old delete-then-copy order got wrong: when the draft carries the same stored path
+     * as the published resource, deleting "the published resource's file" destroys the very file the
+     * resource still points at.
+     */
+    public function test_orphaned_file_deletion_keeps_a_path_the_resource_still_references(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('components/kept-aaaaaaaa.png', 'the file both resources point at');
+
+        $manager = $this->createFileManager($filesystem);
+
+        $resource = new _LeakTestUploadable();
+        $resource->filename = 'components/kept-aaaaaaaa.png';
+
+        $previousPaths = $manager->getStoredFilePaths($resource);
+        $manager->deleteOrphanedFiles($resource, $previousPaths);
+
+        self::assertTrue($filesystem->fileExists('components/kept-aaaaaaaa.png'));
+        self::assertSame('components/kept-aaaaaaaa.png', $resource->filename);
+    }
+
+    /**
+     * Publishing a draft that genuinely has no file still removes the published resource's file.
+     */
+    public function test_orphaned_file_deletion_removes_the_previous_file_when_the_field_is_now_empty(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('components/old-aaaaaaaa.png', 'the file being dropped');
+
+        $manager = $this->createFileManager($filesystem);
+
+        $resource = new _LeakTestUploadable();
+        $resource->filename = 'components/old-aaaaaaaa.png';
+
+        $previousPaths = $manager->getStoredFilePaths($resource);
+
+        $resource->filename = null;
+        $manager->deleteOrphanedFiles($resource, $previousPaths);
+
+        self::assertFalse($filesystem->fileExists('components/old-aaaaaaaa.png'));
+    }
+
+    /**
+     * Callers should not have to ask whether a resource is uploadable before using either method.
+     */
+    public function test_orphaned_file_deletion_is_a_no_op_for_a_resource_that_is_not_uploadable(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('components/old-aaaaaaaa.png', 'nothing to do with this resource');
+
+        $manager = $this->createFileManager($filesystem);
+
+        self::assertSame([], $manager->getStoredFilePaths(new _NotUploadableStub()));
+
+        $manager->deleteOrphanedFiles(new _NotUploadableStub(), ['filename' => 'components/old-aaaaaaaa.png']);
+
+        self::assertTrue($filesystem->fileExists('components/old-aaaaaaaa.png'));
+    }
+
     /**
      * Creating a draft of a publishable uploadable clones the stored file so the two resources own
      * their files independently. The copy belongs beside the original — the field's prefix is part of

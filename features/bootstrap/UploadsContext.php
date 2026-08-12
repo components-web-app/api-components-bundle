@@ -218,6 +218,22 @@ class UploadsContext implements Context
     }
 
     /**
+     * Two resources referencing one stored file cannot be produced through the API — cloning a draft
+     * copies the file. It happens in the wild when the copy could not be made (the source was missing
+     * at draft time) or when app code assigns a path directly, and it is the case a publish must not
+     * get wrong: the file the published resource ends up pointing at must survive the merge.
+     *
+     * @Given the resource :resource has the same file as the resource :other
+     */
+    public function theResourceHasTheSameFileAsTheResource(string $resourceName, string $otherName): void
+    {
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resourceName]);
+        $other = $this->iriConverter->getResourceFromIri($this->restContext->resources[$otherName]);
+        $resource->setFilename($other->getFilename());
+        $this->manager->flush();
+    }
+
+    /**
      * @When /^I request the download endpoint(?: with the postfix "(.+)")?$/
      */
     public function iRequestTheDownloadEndpoint(?string $postfix = null)

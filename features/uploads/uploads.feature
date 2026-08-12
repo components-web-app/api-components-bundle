@@ -263,6 +263,22 @@ Feature: API Resources which can have files uploaded
     And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
+  # The merge deletes the file the published resource stops referencing. When the draft carries the
+  # same stored path, that file is the one the published resource still points at, so nothing may be
+  # deleted — the old delete-before-copy order destroyed it and left a dangling path behind.
+  @loginAdmin
+  Scenario: Publishing a draft that shares the published resource's stored file keeps that file
+    Given there is a DummyUploadableAndPublishable with a draft
+    And the resource "dummy_uploadable_draft" has the same file as the resource "dummy_uploadable"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt               |
+      | 1970-11-11T23:59:59+00:00 |
+    Then the response status code should be 200
+    And the response should be the resource "dummy_uploadable"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.png$#"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+
   # A draft that was never published has no publishedResource, so checkMergeDraftIntoPublished returns
   # early - no merge and no file deletion - and the resource keeps its own IRI once published.
   @loginAdmin

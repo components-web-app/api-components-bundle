@@ -619,6 +619,33 @@ References: `src/Helper/Uploadable/UploadableFileManager.php`, `src/Serializer/N
 
 ---
 
+### Stored files are never deleted before their replacement is in place ✓ **DONE**
+
+Two rules govern every write that changes an uploadable's stored path:
+
+1. **Delete after, not before.** `PublishableEventListener::mergeDraftIntoPublished()` snapshots the published resource's paths with `getStoredFilePaths()`, runs the copy, then calls `deleteOrphanedFiles($publishedResource, $previousPaths)`. It used to call `deleteFiles($publishedResource)` *first*, inside a `catch` that swallowed the exception, so any failure in the copy left the resource pointing at a file that no longer existed.
+2. **Never delete a path the resource still references.** `deleteOrphanedFiles()` compares each field's previous path with its current one and skips anything unchanged. Draft and published can legitimately share a stored path — `copyFilepath()` keeps the original path when the source is missing from the filestore — and the old code deleted it, taking the file the published resource had just inherited.
+
+Publishing a draft that genuinely has no file still clears the published file (previous path set, current null → delete): that behaviour is unchanged.
+
+`copyFilepath()` writes a clone's copy **beside the original**, preserving the field's `prefix` (it previously built the path from `pathinfo()['filename']`, dropping the directory), under the same tokenised naming as every other stored file, stripping an existing token first so repeated draft/publish cycles do not accumulate one per cycle. When the source object is missing it returns the **original path** rather than null — nulling turned a recoverable storage problem into permanent loss, because the next publish copied that null over the published resource's own path.
+
+**Behat cannot reach the shared-path case through the API** (cloning always copies the file), so `the resource :resource has the same file as the resource :other` sets it up directly. Verified to fail against the old ordering before the fix landed.
+
+References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePaths`, `deleteOrphanedFiles`, `removeFilepathValue`, `copyFilepath`), `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
+### Services holding request-scoped state must be tagged `kernel.reset` ✓ **DONE**
+
+`ResetInterface` alone does nothing — a service is only reset between requests if it carries the `kernel.reset` tag. Autoconfiguration adds it, but **this is a bundle**: an application may disable autoconfiguration, and several of the bundle's own definitions already opt out with `->autoconfigure(false)`. Nothing was tagged, so `CwaCollectorData::reset()` and `JWTEventListener::reset()` were unreachable as far as the framework was concerned.
+
+Tagged explicitly: `mercure.resource_publisher` and `http_cache.purger` (queue changed objects), `data_collector.data` (profiler panel data), `jwt_event_listener` (holds the JWT to write as a cookie). `MercureResourcePublisher::reset()` also lowers `isPropagating`, so a request dying inside `propagate()` cannot leave the re-entrancy guard raised and suppress every publish for the rest of a worker's life.
+
+`tests/DependencyInjection/ServicesResetterTest.php` asserts each is registered with the `services_resetter`. **Add to its list whenever a bundle service gains mutable per-request state** — or better, scope the state so it cannot outlive its request, as `UploadableFileManager` does with a `WeakMap`. (The test is reported Risky: booting a kernel in debug registers Symfony's ErrorHandler and it cannot be handed back. Risky is not a failure and `failOnRisky` is unset.)
+
+---
+
 ### #194 — Uploads silently overwrite another resource's file on filename collision — store under original name + unique token ✓ **DONE**
 
 **Implemented** in `UploadableFileManager::persistFiles()`: files are now stored as `<sanitised-stem>-<token>.<ext>` (`tokeniseFilename()` — slugified stem, length-capped, `bin2hex(random_bytes(4))` token), with a `fileExists()` regeneration loop guaranteeing no upload ever overwrites another resource's file. Data-URI uploads (`UploadedDataUriFile`) keep their UUID name (no token). The original name is resolved by `resolveOriginalName()` which **prefers whichever candidate carries a file extension** — for real multipart uploads that's `getClientOriginalName()` (the on-disk file is a temp name), but in some contexts (incl. the Behat harness) the client name is absent/the form field and the file's own basename holds the real name+ext. Behat: `features/uploads/uploads.feature` "Uploading keeps the original filename with a unique token…" (one real multipart upload + a second same-source resource via a `persistFiles` helper — two consecutive authed multipart POSTs 401/415 in the harness, so that path is avoided). Content-disposition download scenarios switched from exact `filename=image.png` to `should contain "filename=image-"`.
