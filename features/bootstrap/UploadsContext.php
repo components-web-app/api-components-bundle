@@ -72,7 +72,7 @@ class UploadsContext implements Context
      */
     public function removeFile(): void
     {
-        foreach (['dummy_uploadable', 'first_upload', 'second_upload'] as $key) {
+        foreach (['dummy_uploadable', 'dummy_uploadable_draft', 'first_upload', 'second_upload'] as $key) {
             if (isset($this->restContext->resources[$key])) {
                 try {
                     $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources[$key]));

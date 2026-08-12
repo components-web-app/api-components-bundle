@@ -65,7 +65,10 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
         return !isset($context[self::ALREADY_CALLED]) && $this->annotationReader->isConfigured($type);
     }
 
-    private function findConfiguredFields(iterable $data, string $type): iterable
+    /**
+     * @param list<string> $deletedProperties storage properties the payload explicitly cleared
+     */
+    private function findConfiguredFields(iterable $data, string $type, array &$deletedProperties): iterable
     {
         foreach ($data as $fieldName => $value) {
             try {
@@ -83,7 +86,7 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
             // Value is empty: set it to null. Might be blank string
             if (empty($value)) {
                 $fieldConfig = $this->annotationReader->getPropertyConfiguration($reflectionProperty);
-                $this->uploadableFileManager->addDeletedField($fieldConfig->property);
+                $deletedProperties[] = $fieldConfig->property;
                 $data[$fieldName] = null;
                 continue;
             }
@@ -106,11 +109,25 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
     {
         $context[self::ALREADY_CALLED] = true;
 
+        $deletedProperties = [];
         if (is_iterable($data)) {
-            $data = $this->findConfiguredFields($data, $type);
+            $data = $this->findConfiguredFields($data, $type, $deletedProperties);
         }
 
-        return $this->denormalizer->denormalize($data, $type, $format, $context);
+        $object = $this->denormalizer->denormalize($data, $type, $format, $context);
+
+        // Register the cleared fields against the resource the denormalizer produced, not against the
+        // property name alone — `filename` is the default storage property for every UploadableField,
+        // so a name-only marker applies to whatever is written next. For a published publishable
+        // resource the object here is the draft created during denormalization, so clearing a file
+        // clears it on the draft and leaves the published resource's file alone.
+        if (\is_object($object)) {
+            foreach ($deletedProperties as $property) {
+                $this->uploadableFileManager->addDeletedField($object, $property);
+            }
+        }
+
+        return $object;
     }
 
     public function supportsNormalization($data, $format = null, array $context = []): bool

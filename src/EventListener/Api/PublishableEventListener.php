@@ -243,6 +243,10 @@ final class PublishableEventListener
             }
         }
 
+        // The write continues against the published resource from here, so any field the payload
+        // cleared on the draft must stay cleared — the marker is keyed on the resource it was set on.
+        $this->uploadableFileManager->transferDeletedFields($draftResource, $publishedResource);
+
         $entityManager = $this->getEntityManager($draftResource);
         $entityManager->remove($draftResource);
 

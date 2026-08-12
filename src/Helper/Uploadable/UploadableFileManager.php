@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
@@ -45,7 +44,19 @@ class UploadableFileManager
     private FileInfoCacheManager $fileInfoCacheManager;
     private ?CacheManager $imagineCacheManager;
     private ?FilterService $filterService;
-    private ArrayCollection $deletedFields;
+
+    /**
+     * Storage properties the request payload explicitly cleared, keyed by the resource they were
+     * cleared on. Keyed by object because the marker belongs to a resource, not to a property name:
+     * `filename` is the default storage property for every UploadableField, so a marker held as a
+     * bare name would apply to any resource written afterwards. A WeakMap rather than a plain map so
+     * entries die with the objects — nothing accumulates on this shared service between requests
+     * under a long-running runtime (FrankenPHP worker mode, RoadRunner), where a leaked marker would
+     * silently delete the file of every later write that carries no new file, a publish being one.
+     *
+     * @var \WeakMap<object, list<string>>
+     */
+    private \WeakMap $deletedFields;
 
     public function __construct(
         ManagerRegistry $registry,
@@ -63,12 +74,33 @@ class UploadableFileManager
         $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
-        $this->deletedFields = new ArrayCollection();
+        $this->deletedFields = new \WeakMap();
     }
 
-    public function addDeletedField($field): void
+    public function addDeletedField(object $object, string $field): void
     {
-        $this->deletedFields->add($field);
+        $fields = $this->deletedFields[$object] ?? [];
+        if (!\in_array($field, $fields, true)) {
+            $fields[] = $field;
+        }
+        $this->deletedFields[$object] = $fields;
+    }
+
+    /**
+     * Hands a resource's deleted-field markers to the resource replacing it. Publishing a draft
+     * merges it into the published resource and continues the write against that instance, so a
+     * request that clears a file and publishes in one go must carry the marker across with it.
+     */
+    public function transferDeletedFields(object $from, object $to): void
+    {
+        foreach ($this->deletedFields[$from] ?? [] as $field) {
+            $this->addDeletedField($to, $field);
+        }
+    }
+
+    private function isFieldDeleted(object $object, string $field): bool
+    {
+        return \in_array($field, $this->deletedFields[$object] ?? [], true);
     }
 
     public function processClonedUploadable(object $oldObject, object $newObject): object
@@ -147,7 +179,7 @@ class UploadableFileManager
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
                 // so we need to know if it was a deleted field from the denormalizer
-                if ($this->deletedFields->contains($fieldConfiguration->property)) {
+                if ($this->isFieldDeleted($object, $fieldConfiguration->property)) {
                     $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
                     $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
                 }

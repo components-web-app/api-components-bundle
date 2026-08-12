@@ -600,6 +600,25 @@ References: `src/Factory/Uploadable/MediaObjectFactory.php` (`isImagineProcessab
 
 ---
 
+### Deleted-file markers are keyed per resource, never per property name ✓ **DONE**
+
+A `PATCH {"file": null}` clears an uploadable field. `UploadableNormalizer` records that intent so `UploadableFileManager::persistFiles()` can tell "no file submitted" from "the file was explicitly removed" — the payload looks identical either way.
+
+That marker **must be keyed on the resource being written**, held in the `\WeakMap<object, list<string>> $deletedFields` on `UploadableFileManager`. It was previously an `ArrayCollection` of bare storage-property names. `filename` is the default storage property of *every* `UploadableField`, so the marker matched any resource written afterwards, and nothing ever cleared the collection. Under **FrankenPHP worker mode** the shared service outlives the request: one admin file deletion poisoned every later write in that worker that carried no new file — a publish `PATCH {publishedAt}` being exactly that — silently deleting an unrelated resource's file and nulling its path. Symptom: the component survives with its text intact, only the file vanishes, intermittently, and never in dev (which does not run the worker Caddyfile).
+
+Consequences for future work here:
+- `addDeletedField(object $object, string $field)` takes the resource. `UploadableNormalizer::denormalize()` registers markers **after** `$this->denormalizer->denormalize(...)` returns, because only then does the object exist. For a published publishable resource that object is the draft from `PublishableNormalizer::createDraft`, which is why clearing a file on a published resource clears it on the draft and leaves the published file alone.
+- Publishing continues the write against the *published* instance, so `PublishableEventListener::mergeDraftIntoPublished()` calls `transferDeletedFields($draft, $published)`. Without it, a single request that clears a file **and** publishes would silently stop clearing.
+- A `WeakMap` (not a plain map plus `kernel.reset`) so entries die with the objects — the service cannot accumulate state across requests under any runtime.
+
+**Worker mode makes request-scoped state on a shared service a whole class of bug.** Any new bundle service holding mutable per-request state needs the same treatment.
+
+Tests: `tests/Helper/Uploadable/UploadableFileManagerTest.php` (cross-object leak, marker still works for its own object, no marker means no deletion, marker follows a merge). Behat asserts the *stored object* survives a publish — `the file for the resource :name should exist in its configured filestore` — on all four merge scenarios in `features/uploads/uploads.feature`; the pre-existing "valid download link" step only string-compares a URL built from the IRI, and the schemas only prove `filename` is non-null, so neither could catch a deleted file.
+
+References: `src/Helper/Uploadable/UploadableFileManager.php`, `src/Serializer/Normalizer/UploadableNormalizer.php`, `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
 ### #194 — Uploads silently overwrite another resource's file on filename collision — store under original name + unique token ✓ **DONE**
 
 **Implemented** in `UploadableFileManager::persistFiles()`: files are now stored as `<sanitised-stem>-<token>.<ext>` (`tokeniseFilename()` — slugified stem, length-capped, `bin2hex(random_bytes(4))` token), with a `fileExists()` regeneration loop guaranteeing no upload ever overwrites another resource's file. Data-URI uploads (`UploadedDataUriFile`) keep their UUID name (no token). The original name is resolved by `resolveOriginalName()` which **prefers whichever candidate carries a file extension** — for real multipart uploads that's `getClientOriginalName()` (the on-disk file is a temp name), but in some contexts (incl. the Behat harness) the client name is absent/the form field and the file's own basename holds the real name+ext. Behat: `features/uploads/uploads.feature` "Uploading keeps the original filename with a unique token…" (one real multipart upload + a second same-source resource via a `persistFiles` helper — two consecutive authed multipart POSTs 401/415 in the harness, so that path is avoided). Content-disposition download scenarios switched from exact `filename=image.png` to `should contain "filename=image-"`.
