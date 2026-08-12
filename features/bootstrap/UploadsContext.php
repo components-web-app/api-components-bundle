@@ -72,7 +72,7 @@ class UploadsContext implements Context
      */
     public function removeFile(): void
     {
-        foreach (['dummy_uploadable', 'first_upload', 'second_upload'] as $key) {
+        foreach (['dummy_uploadable', 'dummy_uploadable_draft', 'first_upload', 'second_upload'] as $key) {
             if (isset($this->restContext->resources[$key])) {
                 try {
                     $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources[$key]));
@@ -214,6 +214,22 @@ class UploadsContext implements Context
     {
         $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resourceName]);
         $resource->setFilename($file);
+        $this->manager->flush();
+    }
+
+    /**
+     * Two resources referencing one stored file cannot be produced through the API — cloning a draft
+     * copies the file. It happens in the wild when the copy could not be made (the source was missing
+     * at draft time) or when app code assigns a path directly, and it is the case a publish must not
+     * get wrong: the file the published resource ends up pointing at must survive the merge.
+     *
+     * @Given the resource :resource has the same file as the resource :other
+     */
+    public function theResourceHasTheSameFileAsTheResource(string $resourceName, string $otherName): void
+    {
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resourceName]);
+        $other = $this->iriConverter->getResourceFromIri($this->restContext->resources[$otherName]);
+        $resource->setFilename($other->getFilename());
         $this->manager->flush();
     }
 

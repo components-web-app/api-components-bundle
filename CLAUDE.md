@@ -600,6 +600,52 @@ References: `src/Factory/Uploadable/MediaObjectFactory.php` (`isImagineProcessab
 
 ---
 
+### Deleted-file markers are keyed per resource, never per property name ✓ **DONE**
+
+A `PATCH {"file": null}` clears an uploadable field. `UploadableNormalizer` records that intent so `UploadableFileManager::persistFiles()` can tell "no file submitted" from "the file was explicitly removed" — the payload looks identical either way.
+
+That marker **must be keyed on the resource being written**, held in the `\WeakMap<object, list<string>> $deletedFields` on `UploadableFileManager`. It was previously an `ArrayCollection` of bare storage-property names. `filename` is the default storage property of *every* `UploadableField`, so the marker matched any resource written afterwards, and nothing ever cleared the collection. Under **FrankenPHP worker mode** the shared service outlives the request: one admin file deletion poisoned every later write in that worker that carried no new file — a publish `PATCH {publishedAt}` being exactly that — silently deleting an unrelated resource's file and nulling its path. Symptom: the component survives with its text intact, only the file vanishes, intermittently, and never in dev (which does not run the worker Caddyfile).
+
+Consequences for future work here:
+- `addDeletedField(object $object, string $field)` takes the resource. `UploadableNormalizer::denormalize()` registers markers **after** `$this->denormalizer->denormalize(...)` returns, because only then does the object exist. For a published publishable resource that object is the draft from `PublishableNormalizer::createDraft`, which is why clearing a file on a published resource clears it on the draft and leaves the published file alone.
+- Publishing continues the write against the *published* instance, so `PublishableEventListener::mergeDraftIntoPublished()` calls `transferDeletedFields($draft, $published)`. Without it, a single request that clears a file **and** publishes would silently stop clearing.
+- A `WeakMap` (not a plain map plus `kernel.reset`) so entries die with the objects — the service cannot accumulate state across requests under any runtime.
+
+**Worker mode makes request-scoped state on a shared service a whole class of bug.** Any new bundle service holding mutable per-request state needs the same treatment.
+
+Tests: `tests/Helper/Uploadable/UploadableFileManagerTest.php` (cross-object leak, marker still works for its own object, no marker means no deletion, marker follows a merge). Behat asserts the *stored object* survives a publish — `the file for the resource :name should exist in its configured filestore` — on all four merge scenarios in `features/uploads/uploads.feature`; the pre-existing "valid download link" step only string-compares a URL built from the IRI, and the schemas only prove `filename` is non-null, so neither could catch a deleted file.
+
+References: `src/Helper/Uploadable/UploadableFileManager.php`, `src/Serializer/Normalizer/UploadableNormalizer.php`, `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
+### Stored files are never deleted before their replacement is in place ✓ **DONE**
+
+Two rules govern every write that changes an uploadable's stored path:
+
+1. **Delete after, not before.** `PublishableEventListener::mergeDraftIntoPublished()` snapshots the published resource's paths with `getStoredFilePaths()`, runs the copy, then calls `deleteOrphanedFiles($publishedResource, $previousPaths)`. It used to call `deleteFiles($publishedResource)` *first*, inside a `catch` that swallowed the exception, so any failure in the copy left the resource pointing at a file that no longer existed.
+2. **Never delete a path the resource still references.** `deleteOrphanedFiles()` compares each field's previous path with its current one and skips anything unchanged. Draft and published can legitimately share a stored path — `copyFilepath()` keeps the original path when the source is missing from the filestore — and the old code deleted it, taking the file the published resource had just inherited.
+
+Publishing a draft that genuinely has no file still clears the published file (previous path set, current null → delete): that behaviour is unchanged.
+
+`copyFilepath()` writes a clone's copy **beside the original**, preserving the field's `prefix` (it previously built the path from `pathinfo()['filename']`, dropping the directory), under the same tokenised naming as every other stored file, stripping an existing token first so repeated draft/publish cycles do not accumulate one per cycle. When the source object is missing it returns the **original path** rather than null — nulling turned a recoverable storage problem into permanent loss, because the next publish copied that null over the published resource's own path.
+
+**Behat cannot reach the shared-path case through the API** (cloning always copies the file), so `the resource :resource has the same file as the resource :other` sets it up directly. Verified to fail against the old ordering before the fix landed.
+
+References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePaths`, `deleteOrphanedFiles`, `removeFilepathValue`, `copyFilepath`), `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
+### Services holding request-scoped state must be tagged `kernel.reset` ✓ **DONE**
+
+`ResetInterface` alone does nothing — a service is only reset between requests if it carries the `kernel.reset` tag. Autoconfiguration adds it, but **this is a bundle**: an application may disable autoconfiguration, and several of the bundle's own definitions already opt out with `->autoconfigure(false)`. Nothing was tagged, so `CwaCollectorData::reset()` and `JWTEventListener::reset()` were unreachable as far as the framework was concerned.
+
+Tagged explicitly: `mercure.resource_publisher` and `http_cache.purger` (queue changed objects), `data_collector.data` (profiler panel data), `jwt_event_listener` (holds the JWT to write as a cookie). `MercureResourcePublisher::reset()` also lowers `isPropagating`, so a request dying inside `propagate()` cannot leave the re-entrancy guard raised and suppress every publish for the rest of a worker's life.
+
+`tests/DependencyInjection/ServicesResetterTest.php` asserts each is registered with the `services_resetter`. **Add to its list whenever a bundle service gains mutable per-request state** — or better, scope the state so it cannot outlive its request, as `UploadableFileManager` does with a `WeakMap`. (The test is reported Risky: booting a kernel in debug registers Symfony's ErrorHandler and it cannot be handed back. Risky is not a failure and `failOnRisky` is unset.)
+
+---
+
 ### #194 — Uploads silently overwrite another resource's file on filename collision — store under original name + unique token ✓ **DONE**
 
 **Implemented** in `UploadableFileManager::persistFiles()`: files are now stored as `<sanitised-stem>-<token>.<ext>` (`tokeniseFilename()` — slugified stem, length-capped, `bin2hex(random_bytes(4))` token), with a `fileExists()` regeneration loop guaranteeing no upload ever overwrites another resource's file. Data-URI uploads (`UploadedDataUriFile`) keep their UUID name (no token). The original name is resolved by `resolveOriginalName()` which **prefers whichever candidate carries a file extension** — for real multipart uploads that's `getClientOriginalName()` (the on-disk file is a temp name), but in some contexts (incl. the Behat harness) the client name is absent/the form field and the file's own basename holds the real name+ext. Behat: `features/uploads/uploads.feature` "Uploading keeps the original filename with a unique token…" (one real multipart upload + a second same-source resource via a `persistFiles` helper — two consecutive authed multipart POSTs 401/415 in the harness, so that path is avoided). Content-disposition download scenarios switched from exact `filename=image.png` to `should contain "filename=image-"`.

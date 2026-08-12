@@ -31,6 +31,8 @@ class DummyUploadableAndPublishable extends AbstractComponent
     use PublishableTrait;
     use UploadableTrait;
 
-    #[Silverback\UploadableField(adapter: 'local')]
+    // A prefix so the draft-clone and publish-merge paths are exercised against a stored path that
+    // has a directory to preserve, not just a bare basename.
+    #[Silverback\UploadableField(adapter: 'local', prefix: 'components/')]
     public ?File $file = null;
 }

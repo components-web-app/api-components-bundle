@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Liip\ImagineBundle\Service\FilterService;
@@ -45,7 +44,19 @@ class UploadableFileManager
     private FileInfoCacheManager $fileInfoCacheManager;
     private ?CacheManager $imagineCacheManager;
     private ?FilterService $filterService;
-    private ArrayCollection $deletedFields;
+
+    /**
+     * Storage properties the request payload explicitly cleared, keyed by the resource they were
+     * cleared on. Keyed by object because the marker belongs to a resource, not to a property name:
+     * `filename` is the default storage property for every UploadableField, so a marker held as a
+     * bare name would apply to any resource written afterwards. A WeakMap rather than a plain map so
+     * entries die with the objects — nothing accumulates on this shared service between requests
+     * under a long-running runtime (FrankenPHP worker mode, RoadRunner), where a leaked marker would
+     * silently delete the file of every later write that carries no new file, a publish being one.
+     *
+     * @var \WeakMap<object, list<string>>
+     */
+    private \WeakMap $deletedFields;
 
     public function __construct(
         ManagerRegistry $registry,
@@ -63,12 +74,33 @@ class UploadableFileManager
         $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->filterService = $filterService;
-        $this->deletedFields = new ArrayCollection();
+        $this->deletedFields = new \WeakMap();
     }
 
-    public function addDeletedField($field): void
+    public function addDeletedField(object $object, string $field): void
     {
-        $this->deletedFields->add($field);
+        $fields = $this->deletedFields[$object] ?? [];
+        if (!\in_array($field, $fields, true)) {
+            $fields[] = $field;
+        }
+        $this->deletedFields[$object] = $fields;
+    }
+
+    /**
+     * Hands a resource's deleted-field markers to the resource replacing it. Publishing a draft
+     * merges it into the published resource and continues the write against that instance, so a
+     * request that clears a file and publishes in one go must carry the marker across with it.
+     */
+    public function transferDeletedFields(object $from, object $to): void
+    {
+        foreach ($this->deletedFields[$from] ?? [] as $field) {
+            $this->addDeletedField($to, $field);
+        }
+    }
+
+    private function isFieldDeleted(object $object, string $field): bool
+    {
+        return \in_array($field, $this->deletedFields[$object] ?? [], true);
     }
 
     public function processClonedUploadable(object $oldObject, object $newObject): object
@@ -147,7 +179,7 @@ class UploadableFileManager
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
                 // so we need to know if it was a deleted field from the denormalizer
-                if ($this->deletedFields->contains($fieldConfiguration->property)) {
+                if ($this->isFieldDeleted($object, $fieldConfiguration->property)) {
                     $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
                     $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
                 }
@@ -268,6 +300,55 @@ class UploadableFileManager
         }
     }
 
+    /**
+     * The stored path of each uploadable field, keyed by storage property. Empty for a resource that
+     * is not uploadable, so callers need no is-uploadable dance before taking a snapshot.
+     *
+     * @return array<string, string|null>
+     */
+    public function getStoredFilePaths(object $object): array
+    {
+        if (!$this->annotationReader->isConfigured($object)) {
+            return [];
+        }
+
+        $classMetadata = $this->getClassMetadata($object);
+
+        $paths = [];
+        foreach ($this->annotationReader->getConfiguredProperties($object, true) as $fieldConfiguration) {
+            $paths[$fieldConfiguration->property] = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Deletes the files a resource has stopped referencing, given the paths it held before a write.
+     *
+     * A path it still points at is never deleted: replacing a file must not delete the file that
+     * replaced it, and a field the write left alone must keep its file. Deleting up front instead —
+     * before the new values are in place — destroys the file with nothing yet known to have
+     * succeeded, and destroys it even when the incoming value is the very same path.
+     *
+     * @param array<string, string|null> $previousPaths from getStoredFilePaths(), taken before the write
+     */
+    public function deleteOrphanedFiles(object $object, array $previousPaths): void
+    {
+        if (!$this->annotationReader->isConfigured($object)) {
+            return;
+        }
+
+        $classMetadata = $this->getClassMetadata($object);
+
+        foreach ($this->annotationReader->getConfiguredProperties($object, true) as $fieldConfiguration) {
+            $previousFilepath = $previousPaths[$fieldConfiguration->property] ?? null;
+            if (!$previousFilepath || $previousFilepath === $classMetadata->getFieldValue($object, $fieldConfiguration->property)) {
+                continue;
+            }
+            $this->removeFilepathValue($fieldConfiguration, $previousFilepath);
+        }
+    }
+
     public function getFileResponse(object $object, string $property, bool $forceDownload = false): Response
     {
         try {
@@ -307,19 +388,33 @@ class UploadableFileManager
 
     private function removeFilepath(object $object, UploadableField $fieldConfiguration): void
     {
-        $classMetadata = $this->getClassMetadata($object);
+        $currentFilepath = $this->getClassMetadata($object)->getFieldValue($object, $fieldConfiguration->property);
 
+        $this->removeFilepathValue($fieldConfiguration, $currentFilepath);
+    }
+
+    /**
+     * Takes the path rather than reading it off the resource, so a path the resource has already
+     * stopped referencing can still be cleaned up.
+     */
+    private function removeFilepathValue(UploadableField $fieldConfiguration, string $filepath): void
+    {
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
-        $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-        $this->fileInfoCacheManager->deleteCaches([$currentFilepath], [null]);
+        $this->fileInfoCacheManager->deleteCaches([$filepath], [null]);
         if ($this->imagineCacheManager) {
-            $this->imagineCacheManager->remove([$currentFilepath], null);
+            $this->imagineCacheManager->remove([$filepath], null);
         }
-        if ($filesystem->fileExists($currentFilepath)) {
-            $filesystem->delete($currentFilepath);
+        if ($filesystem->fileExists($filepath)) {
+            $filesystem->delete($filepath);
         }
     }
 
+    /**
+     * Copies a resource's stored file so a clone (a publishable draft) owns its own object. The copy
+     * is written beside the original — the field's prefix is part of the stored path, so a copy built
+     * from the basename alone would escape it — under the same tokenised naming as every other stored
+     * file, which also guarantees it cannot collide with an existing object.
+     */
     private function copyFilepath(object $object, UploadableField $fieldConfiguration): ?string
     {
         $classMetadata = $this->getClassMetadata($object);
@@ -327,18 +422,25 @@ class UploadableFileManager
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
         if (!$filesystem->fileExists($currentFilepath)) {
-            return null;
+            // The stored object is gone. Keep the clone pointing at the same path rather than nulling
+            // it: a missing file is a recoverable storage problem, whereas nulling discards the only
+            // record of what the file was and, on the next publish, copies that null over the
+            // published resource's own path.
+            return $currentFilepath;
         }
+
         $pathInfo = pathinfo($currentFilepath);
-        $basename = $pathInfo['filename'];
-        $extension = $pathInfo['extension'] ?? null;
-        if (!empty($extension)) {
-            $extension = \sprintf('.%s', $extension);
-        }
-        $num = 1;
-        while ($filesystem->fileExists($newFilepath = \sprintf('%s_%d%s', $basename, $num, $extension))) {
-            ++$num;
-        }
+        $directory = '.' === $pathInfo['dirname'] ? '' : $pathInfo['dirname'] . '/';
+
+        // Strip the token off an already-tokenised name before adding a new one, so a resource that
+        // is drafted and published repeatedly does not accumulate a token per cycle.
+        $stem = (string) preg_replace('/-[0-9a-f]{8}$/', '', $pathInfo['filename']);
+        $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
+
+        do {
+            $newFilepath = $directory . $this->tokeniseFilename($stem . $extension);
+        } while ($filesystem->fileExists($newFilepath));
+
         $filesystem->copy($currentFilepath, $newFilepath);
 
         return $newFilepath;

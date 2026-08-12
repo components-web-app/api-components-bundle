@@ -43,6 +43,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(CwaCollectorData::class),
         ])
         ->call('setSerializer', [new Reference('serializer')])
-        ->tag('silverback_api_components.resource_changed_propagator');
+        ->tag('silverback_api_components.resource_changed_propagator')
+        // Queues objects changed during the request. Tagged explicitly rather than relying on
+        // autoconfiguration, which an application may disable — see ServicesResetterTest.
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(MercureResourcePublisher::class, 'silverback.api_components.mercure.resource_publisher');
 };

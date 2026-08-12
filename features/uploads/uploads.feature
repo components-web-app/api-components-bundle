@@ -157,6 +157,8 @@ Feature: API Resources which can have files uploaded
     And the response should be the resource "dummy_uploadable"
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files_with_imagine.schema.json"
     And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
   # DELETE
 
@@ -198,6 +200,8 @@ Feature: API Resources which can have files uploaded
       | 1970-11-11T23:59:59+00:00  |
     Then the response status code should be 200
     And the JSON node "componentPositions[0]" should exist
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.png$#"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
   @loginAdmin
   Scenario Outline: When I upload a new file to a publishable uploadable, the new draft should not have a component position and the original image should still exist
@@ -234,6 +238,65 @@ Feature: API Resources which can have files uploaded
       | key  | value      |
       | file | @image.svg |
     Then the response status code should be 201
+
+  # Publishing a draft that has a published resource runs the draft->published merge
+  # (PublishableEventListener::mergeDraftIntoPublished), which deletes the published resource's own
+  # file from the filestore before copying the draft's fields over it. Asserting the filename column
+  # is not enough - the download link step only compares a URL built from the IRI, and the schema only
+  # proves filename is non-null. These scenarios assert the stored object itself survives the merge.
+
+  @loginAdmin
+  Scenario: When I upload a file to an existing draft and then publish it, the published resource keeps the uploaded file
+    Given there is a DummyUploadableAndPublishable with a draft
+    And I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to the resource "dummy_uploadable_draft" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.svg |
+    Then the response status code should be 201
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    And I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt               |
+      | 1970-11-11T23:59:59+00:00 |
+    Then the response status code should be 200
+    And the response should be the resource "dummy_uploadable"
+    And the JSON node "_metadata.publishable.published" should be true
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+
+  # The merge deletes the file the published resource stops referencing. When the draft carries the
+  # same stored path, that file is the one the published resource still points at, so nothing may be
+  # deleted — the old delete-before-copy order destroyed it and left a dangling path behind.
+  @loginAdmin
+  Scenario: Publishing a draft that shares the published resource's stored file keeps that file
+    Given there is a DummyUploadableAndPublishable with a draft
+    And the resource "dummy_uploadable_draft" has the same file as the resource "dummy_uploadable"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt               |
+      | 1970-11-11T23:59:59+00:00 |
+    Then the response status code should be 200
+    And the response should be the resource "dummy_uploadable"
+    And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.png$#"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+
+  # A draft that was never published has no publishedResource, so checkMergeDraftIntoPublished returns
+  # early - no merge and no file deletion - and the resource keeps its own IRI once published.
+  @loginAdmin
+  Scenario: When I upload a file to a draft that has never been published and then publish it, the file is kept
+    Given there is a draft DummyUploadableAndPublishable
+    And I add "Content-Type" header equal to "multipart/form-data"
+    When I send a "POST" request to the resource "dummy_uploadable_draft" and the postfix "/upload" with parameters:
+      | key  | value      |
+      | file | @image.svg |
+    Then the response status code should be 201
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    And I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt               |
+      | 1970-11-11T23:59:59+00:00 |
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.published" should be true
+    And the resource "dummy_uploadable_draft" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
+    And the file for the resource "dummy_uploadable_draft" should exist in its configured filestore
 
   @loginUser
   Scenario: An uploadable field configured with urlGenerator public returns a direct public URL
