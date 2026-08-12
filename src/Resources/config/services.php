@@ -859,7 +859,10 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => Events::AUTHENTICATION_SUCCESS, 'method' => 'onJWTAuthenticationSuccess'])
         ->tag('kernel.event_listener', ['event' => Events::JWT_CREATED, 'method' => 'onJWTCreated'])
         ->tag('kernel.event_listener', ['event' => JWTRefreshedEvent::class, 'method' => 'onJWTRefreshed'])
-        ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse']);
+        ->tag('kernel.event_listener', ['event' => KernelEvents::RESPONSE, 'method' => 'onKernelResponse'])
+        // Holds the JWT to write as a cookie. onKernelResponse consumes it, but a request that never
+        // reaches that listener must not leave one user's token to be written for the next.
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(JWTEventListener::class, 'silverback.security.jwt_event_listener');
 
     $services
@@ -1877,7 +1880,10 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set('silverback.api_components.data_collector.data')
-        ->class(CwaCollectorData::class);
+        ->class(CwaCollectorData::class)
+        // Gathers profiler panel data across the request. CwaDataCollector::reset() also clears it,
+        // but the tag makes the guarantee independent of the profiler being enabled.
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(CwaCollectorData::class, 'silverback.api_components.data_collector.data');
 
     $services

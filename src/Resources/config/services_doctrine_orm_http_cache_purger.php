@@ -31,6 +31,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference(CwaCollectorData::class),
         ])
-        ->tag('silverback_api_components.resource_changed_propagator');
+        ->tag('silverback_api_components.resource_changed_propagator')
+        // Queues IRIs to invalidate during the request. Tagged explicitly rather than relying on
+        // autoconfiguration, which an application may disable — see ServicesResetterTest.
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(HttpCachePurger::class, 'silverback.api_components.http_cache.purger');
 };
