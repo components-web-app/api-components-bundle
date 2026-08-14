@@ -484,7 +484,15 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
-### [#216](https://github.com/components-web-app/api-components-bundle/issues/216) — `/resend-verify-email/{username}` is not routable, a duplicate path shadows it
+### #222 — Config guards that are declared but never enforced (follow-up to #214)
+
+`user.class_name`, `refresh_token.*`, `publishable.permission`, and `refresh_token.options.class` share the pattern #214 fixed: a node with a default plus `isRequired()` children, so `ArrayNode::finalizeValue` inserts the default and never finalizes it — the guard reads as working and never runs. The extension then reads missing keys directly, wiring `null` into typed scalars.
+
+Not fixed alongside #214 because each needs a per-setting judgement: an inert default that preserves current behaviour (as #214 took) only works where a sensible one exists. `user.class_name` may have none, in which case the right answer is a clear compile-time failure — **which is a breaking change** for anyone relying on the silent-null path today. None are verified to the depth #214 was; confirm each empirically before deciding.
+
+---
+
+<details><summary>#216 — `/resend-verify-email/{username}` not routable ✓ <b>DONE</b> (see "Security routes: one path each" below)</summary>
 
 Found 2026-08-14 from the Nuxt module side (module issue #281). Filed as bundle issue #216.
 
@@ -497,6 +505,8 @@ The Nuxt module calls exactly that path — `Auth.resendVerifyEmail()` → `/res
 **Why it went unnoticed:** the module's `useResendVerifyEmail()` composable had a separate bug (module #281, now fixed) where any non-`'current'` type fell through to the *new email* endpoint, so the broken route was rarely exercised. With the module fixed, "resend verification for my current address" will now hit the missing path and surface as a 404 (rendered as "Username not found" by the composable's error handling) until this is corrected.
 
 **Worth a Behat scenario** pinning that each of the four security routes resolves to its intended controller — a duplicate path is invisible to unit tests.
+
+</details>
 
 
 ### #186 — `#[Publishable]` on AbstractPage / AbstractPageData — page-level draft/live toggle
@@ -523,6 +533,8 @@ Currently the only "draft" signal for a page is the absence of a Route. Once a p
 - **Hero component editing conflict**: if a page title is edited from within a hero component (a common CWA pattern), the page entity and the hero component are two separate resources each with their own `publishedAt`. A live page could have a draft hero (or vice versa), producing incoherent states. This needs a clear resolution — e.g. page-level `publishedAt` drives visibility for the whole subtree, or component states are independent and the admin UI must handle the mismatch — before implementation begins.
 
 Leave this issue open until the front-end approach and component-state semantics are agreed.
+
+> **2026-08-14 — Daniel: not doing this now.** Reviewed and deferred again, deliberately, not for lack of time. The three unresolved points above (component permission inheritance, front-end draft/live UX, hero-component state conflict) are still unresolved, and none of them is settled by writing the API side first — building `publishedAt` onto `AbstractPage` before the front-end approach is agreed would lock in answers to questions nobody has decided. **Do not start this**, and do not treat "the column is easy to add" as a reason to; the column is not the hard part.
 
 ---
 
