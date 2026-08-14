@@ -176,27 +176,48 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('email_verification')
                             ->canBeDisabled()
                             ->addDefaultsIfNotSet()
+                            // Every child resolves to a value. An `isRequired()` child under a node
+                            // that carries a default is never enforced — ArrayNode::finalizeValue()
+                            // inserts the default and skips finalisation for an omitted node — so
+                            // the extension read keys that were not there. Defaults are all-off:
+                            // an application that never mentions email verification must not start
+                            // sending verification emails it has given no redirect target for, and
+                            // must not have its users locked out of logging in.
                             ->children()
                                 ->arrayNode('email')
+                                    ->addDefaultsIfNotSet()
                                     ->children()
-                                        ->scalarNode('redirect_path_query')->end()
-                                        ->scalarNode('default_redirect_path')->isRequired()->end()
+                                        ->scalarNode('redirect_path_query')->defaultNull()->end()
+                                        ->scalarNode('default_redirect_path')->defaultNull()->end()
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Please verify your email')->end()
                                     ->end()
                                 ->end()
-                                ->booleanNode('default_value')->isRequired()->end()
-                                ->booleanNode('verify_on_change')->isRequired()->end()
-                                ->booleanNode('verify_on_register')->isRequired()->end()
-                                ->booleanNode('deny_unverified_login')->isRequired()->end()
+                                ->booleanNode('default_value')->defaultFalse()->end()
+                                ->booleanNode('verify_on_change')->defaultFalse()->end()
+                                ->booleanNode('verify_on_register')->defaultFalse()->end()
+                                ->booleanNode('deny_unverified_login')->defaultFalse()->end()
+                            ->end()
+                            // Only reachable when the node is present in the configuration, which is
+                            // exactly when it can be wrong: asking for verification emails without
+                            // telling the bundle where the link points can only fail later, inside
+                            // AbstractUserEmailFactory::getTokenPath(), at the moment a user
+                            // registers. Fail at compile time instead.
+                            ->validate()
+                                ->ifTrue(static fn (array $v): bool => ($v['enabled'] ?? true)
+                                    && ($v['verify_on_register'] || $v['verify_on_change'])
+                                    && null === $v['email']['default_redirect_path']
+                                    && null === $v['email']['redirect_path_query'])
+                                ->thenInvalid('One of "silverback_api_components.user.email_verification.email.default_redirect_path" or "…email.redirect_path_query" must be set to send verification emails.')
                             ->end()
                         ->end()
                         ->arrayNode('new_email_confirmation')
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->arrayNode('email')
+                                    ->addDefaultsIfNotSet()
                                     ->children()
-                                        ->scalarNode('redirect_path_query')->end()
-                                        ->scalarNode('default_redirect_path')->isRequired()->end()
+                                        ->scalarNode('redirect_path_query')->defaultNull()->end()
+                                        ->scalarNode('default_redirect_path')->defaultNull()->end()
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Please confirm your new email address')->end()
                                     ->end()
                                 ->end()
@@ -207,9 +228,10 @@ class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->arrayNode('email')
+                                    ->addDefaultsIfNotSet()
                                     ->children()
-                                        ->scalarNode('redirect_path_query')->end()
-                                        ->scalarNode('default_redirect_path')->isRequired()->end()
+                                        ->scalarNode('redirect_path_query')->defaultNull()->end()
+                                        ->scalarNode('default_redirect_path')->defaultNull()->end()
                                         ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Your password reset request')->end()
                                     ->end()
                                 ->end()
