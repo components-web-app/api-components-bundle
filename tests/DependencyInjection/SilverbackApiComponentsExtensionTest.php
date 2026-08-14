@@ -74,8 +74,16 @@ class SilverbackApiComponentsExtensionTest extends TestCase
     }
 
     /**
-     * @return array{0: ContainerBuilder, 1: list<string>} the built container and any PHP
-     *                                                     errors raised while loading it
+     * Warnings and notices only. Reading a key that is not there raises E_WARNING, which is the
+     * symptom under test; deprecations are third-party noise (a lowest-dependencies MakerBundle
+     * raises one while its classes autoload here) and are handed back to the normal handler so the
+     * phpunit-bridge still accounts for them.
+     */
+    private const REPORTED_LEVELS = \E_WARNING | \E_NOTICE | \E_USER_WARNING | \E_USER_NOTICE;
+
+    /**
+     * @return array{0: ContainerBuilder, 1: list<string>} the built container and any warnings or
+     *                                                     notices raised while loading it
      */
     private function load(array $config): array
     {
@@ -86,6 +94,10 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         $errors = [];
         set_error_handler(static function (int $errno, string $message) use (&$errors): bool {
+            if (!($errno & self::REPORTED_LEVELS)) {
+                return false;
+            }
+
             $errors[] = $message;
 
             return true;
