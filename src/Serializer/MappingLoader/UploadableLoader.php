@@ -17,7 +17,8 @@ use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
 /**
- * Adds {CLASS}:timestamped serialization group on {CLASS}.createdAt and {CLASS}.updatedAt for Timestamped entities.
+ * Adds {CLASS}:uploadable:read and {CLASS}:uploadable:write serialization groups to every
+ * #[UploadableField] property of an Uploadable entity.
  *
  * @author Daniel West <daniel@silverback.is>
  */
