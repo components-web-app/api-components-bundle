@@ -197,17 +197,28 @@ jobs:
         run: |
           mkdir -p build/logs/behat
           if [ "$COVERAGE" = '1' ]; then
-            php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default-coverage --no-interaction --colors --tags='~@wip'
+            php -d memory_limit=-1 -d pcov.enabled=1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default-coverage --no-interaction --colors --tags='~@wip'
           else
             php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" vendor/bin/behat --format=progress --out=std --format=junit --out=build/logs/behat/junit --profile=default --no-interaction --colors --tags='~@wip'
           fi
-      - name: Merge code coverage reports
+      - name: Verify code coverage report is not empty
         if: matrix.coverage
         run: |
-          wget -qO /usr/local/bin/phpcov https://phar.phpunit.de/phpcov.phar
-          chmod +x /usr/local/bin/phpcov
-          phpcov merge --clover build/logs/behat/clover.xml build/coverage
-        continue-on-error: true
+          report=build/logs/behat/clover.xml
+          if [ ! -s "$report" ]; then
+            echo "::error::Behat coverage report $report is missing or empty"
+            exit 1
+          fi
+          php -r '
+            $metrics = simplexml_load_file($argv[1])->project->metrics;
+            $covered = (int) $metrics["coveredstatements"];
+            $total = (int) $metrics["statements"];
+            printf("Behat coverage: %d/%d covered statements across %d files%s", $covered, $total, (int) $metrics["files"], PHP_EOL);
+            if ($covered < 1000) {
+                fwrite(STDERR, "::error::Behat coverage report contains too few covered statements - the coverage pipeline is broken" . PHP_EOL);
+                exit(1);
+            }
+          ' "$report"
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
