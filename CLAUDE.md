@@ -479,6 +479,21 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
+### [#216](https://github.com/components-web-app/api-components-bundle/issues/216) — `/resend-verify-email/{username}` is not routable, a duplicate path shadows it
+
+Found 2026-08-14 from the Nuxt module side (module issue #281). Filed as bundle issue #216.
+
+`src/Resources/config/routing/security.php:42-45` registers `api_components_resend_email_verification` at **`/verify-email/{username}/{token}`** — byte-identical to `api_components_verify_email` two entries above (`:37-40`), which points at `VerifyEmailAddressAction`. Symfony resolves duplicate paths to the **first** match, so `ResendVerifyEmailAddressAction` is unreachable: the route it is presumably meant to serve, **`/resend-verify-email/{username}`**, is registered nowhere.
+
+The Nuxt module calls exactly that path — `Auth.resendVerifyEmail()` → `/resend-verify-email/{username}` (`cwa-nuxt-3-module/src/runtime/api/auth.ts:97`). Compare the sibling entry `api_components_resend_new_email_verification` at `/resend-verify-new-email/{username}` (`:47-50`), which is correct and is what `resendVerifyNewEmail()` hits.
+
+**Expected fix:** change the `api_components_resend_email_verification` path to `/resend-verify-email/{username}` and drop the `{token}` placeholder (a resend needs only the username — `ResendVerifyEmailAddressAction` generates a fresh token).
+
+**Why it went unnoticed:** the module's `useResendVerifyEmail()` composable had a separate bug (module #281, now fixed) where any non-`'current'` type fell through to the *new email* endpoint, so the broken route was rarely exercised. With the module fixed, "resend verification for my current address" will now hit the missing path and surface as a 404 (rendered as "Username not found" by the composable's error handling) until this is corrected.
+
+**Worth a Behat scenario** pinning that each of the four security routes resolves to its intended controller — a duplicate path is invisible to unit tests.
+
+
 ### #186 — `#[Publishable]` on AbstractPage / AbstractPageData — page-level draft/live toggle
 
 Currently the only "draft" signal for a page is the absence of a Route. Once a page is live, there is no way to take it offline without deleting the route (losing URL history and redirects).
@@ -633,6 +648,16 @@ Publishing a draft that genuinely has no file still clears the published file (p
 **Behat cannot reach the shared-path case through the API** (cloning always copies the file), so `the resource :resource has the same file as the resource :other` sets it up directly. Verified to fail against the old ordering before the fix landed.
 
 References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePaths`, `deleteOrphanedFiles`, `removeFilepathValue`, `copyFilepath`), `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
+### Security routes: one path each, and unknown usernames are 404 ✓ **DONE**
+
+`src/Resources/config/routing/security.php` had `api_components_resend_email_verification` registered at `/verify-email/{username}/{token}` — **the same path as `api_components_verify_email`**. Symfony resolves a duplicate path to the first match, so `ResendVerifyEmailAddressAction` was unreachable and the path the Nuxt module calls (`/resend-verify-email/{username}`, `auth.ts:97`) was registered nowhere. Correct path: username only, no token — the action *generates* a token, and its sibling `/resend-verify-new-email/{username}` already had that shape.
+
+**A duplicate path fails nothing.** No test errors; one route silently never runs. It survived because no scenario had ever hit that route — every other security route did have one. `bin/console debug:router` is the quick check.
+
+`UserDataProcessor::findUserByUsername()` **throws** `InvalidArgumentException('Username not found')` rather than returning null, so the `if (!$user)` guards after it are only reachable via the request-limit path. Every action calling into it must catch and return **404** (as `PasswordRequestAction` always did); without the catch an unknown username is a 500 leaking the exception message. `ResendVerifyEmailAddressAction` and `ResendVerifyNewEmailAddressAction` now do — the latter's 500 was already live, just untested.
 
 ---
 
