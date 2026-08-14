@@ -787,3 +787,19 @@ References: `src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`, `src/
 **Behat:** `features/main/cache_headers.feature` — scenario outlines assert authenticated GETs of Route / ResourceManifest / ComponentPosition / Publishable → `private` + `no-store`; anonymous GETs of the same → `public`, no `no-store`; and an authenticated GET of an unaffected type (`Layout`) → still `public`.
 
 References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/DependencyInjection/Configuration.php` (`addHttpCacheNode`), `src/DependencyInjection/SilverbackApiComponentsExtension.php`, `src/Resources/config/services.php`.
+
+---
+
+### #211 / #212 / #215 — Maker DX: `make:page-data` prompts + correct nuxt.config snippet, `make:api-component` help text ✓ **DONE**
+
+Three papercuts found by the docs accuracy audit, all in `src/Maker/`.
+
+**#211 — `MakePageData` had no `interact()`.** `make:page-data ConferenceData` produced an entity with zero properties, silently. It now has an `interact()` that loops "property name → property type" until a blank name (type defaults to `?string`), matching the pattern in `MakeApiComponent`/`MakeCwaScaffold`, plus an `$io->warning()` in `generate()` when the property list ends up empty. The `--properties` option is still `VALUE_IS_ARRAY` (so `--properties a:?string --properties b:?string` works) but each value is now **split on commas**, so the natural one-liner `--properties a:?string,b:?string` works too. It was also switched from `VALUE_OPTIONAL` to `VALUE_REQUIRED`, so a bare `--properties` errors instead of injecting `null` into the parser. The space-separated form `--properties a:?string b:?string` still fails with Symfony's "Too many arguments" — that is thrown during input binding, before any maker code runs, so it cannot be intercepted; `setHelp()`/`addUsage()` document the two forms that do work and name that trap explicitly. `parseProperties()` also fixes an "Undefined array key 1" on a value with no colon (now defaults the type) and rejects an empty property name with a `RuntimeCommandException`.
+
+**#212 — the printed nuxt.config snippet used the wrong shape.** It emitted `properties: ['headline', ...]`; the module's type is `properties?: { [propertyName: string]: string }` (`cwa-nuxt-3-module/src/runtime/types/index.ts`), a property name → admin label map read by `useDynamicPositionSelectOptions`. It now emits `properties: { headline: 'Headline', heroImage: 'Hero Image' }` with a humanised default label, and includes `name: 'Conference Data'` (also part of that config entry, read by `useDataType` → `pageDataClassName`).
+
+**#215 — `make:api-component --timestamped` help said `updatedAt`.** `TimestampedTrait` declares `$createdAt` and `$modifiedAt`; there is no `updatedAt`. Both the option description and the interactive question now say `modifiedAt`, and `MakeApiComponentTest` reflects over `TimestampedTrait` so a future rename of the trait fields fails the test rather than silently desyncing the help text.
+
+Two stale `updatedAt` mentions remain in unrelated docblocks (`src/Serializer/MappingLoader/TimestampedLoader.php`, `src/Serializer/MappingLoader/UploadableLoader.php`) — left alone to avoid colliding with concurrent work in `src/Serializer/`.
+
+Tests: `tests/Maker/MakePageDataTest.php`, `tests/Maker/MakeApiComponentTest.php`.
