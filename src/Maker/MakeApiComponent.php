@@ -43,7 +43,7 @@ final class MakeApiComponent extends AbstractMaker
     {
         $command
             ->addArgument('name', InputArgument::OPTIONAL, 'The class name for the component (e.g. <fg=yellow>HeroBlock</>)')
-            ->addOption('timestamped', null, InputOption::VALUE_NONE, 'Add <comment>#[Timestamped]</comment> behaviour (createdAt / updatedAt)')
+            ->addOption('timestamped', null, InputOption::VALUE_NONE, 'Add <comment>#[Timestamped]</comment> behaviour (createdAt / modifiedAt)')
             ->addOption('publishable', null, InputOption::VALUE_NONE, 'Add <comment>#[Publishable]</comment> behaviour (draft/published lifecycle)')
             ->addOption('uploadable', null, InputOption::VALUE_NONE, 'Add <comment>#[Uploadable]</comment> behaviour (includes a file property)');
     }
@@ -51,7 +51,7 @@ final class MakeApiComponent extends AbstractMaker
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
     {
         if (!$input->getOption('timestamped')) {
-            $input->setOption('timestamped', $io->confirm('Add <comment>#[Timestamped]</comment> behaviour (createdAt / updatedAt)?', false));
+            $input->setOption('timestamped', $io->confirm('Add <comment>#[Timestamped]</comment> behaviour (createdAt / modifiedAt)?', false));
         }
         if (!$input->getOption('publishable')) {
             $input->setOption('publishable', $io->confirm('Add <comment>#[Publishable]</comment> behaviour (draft/published lifecycle)?', false));

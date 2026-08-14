@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Maker;
 
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\Generator;
@@ -408,6 +409,58 @@ class MakeApiComponentTest extends TestCase
 
         $text = $output->fetch();
         $this->assertStringContainsString('success', strtolower($text));
+    }
+
+    public function test_timestamped_option_help_names_the_real_trait_fields(): void
+    {
+        // #215 — the help text used to say "createdAt / updatedAt". TimestampedTrait declares
+        // $createdAt and $modifiedAt; there is no updatedAt field anywhere.
+        $description = $this->configuredCommand()->getDefinition()->getOption('timestamped')->getDescription();
+
+        $this->assertStringContainsString('createdAt', $description);
+        $this->assertStringContainsString('modifiedAt', $description);
+        $this->assertStringNotContainsString('updatedAt', $description);
+    }
+
+    public function test_timestamped_question_names_the_real_trait_fields(): void
+    {
+        // #215 — the interactive question carried the same wrong field name as the option description.
+        $command = $this->configuredCommand();
+
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, "no\nno\nno\n");
+        rewind($stream);
+
+        $input = new ArrayInput(['name' => 'MyComponent'], $command->getDefinition());
+        $input->setStream($stream);
+        $input->setInteractive(true);
+
+        $output = new BufferedOutput();
+        $this->makeMaker()->interact($input, new ConsoleStyle($input, $output), $command);
+
+        $text = $output->fetch();
+        $this->assertStringContainsString('modifiedAt', $text);
+        $this->assertStringNotContainsString('updatedAt', $text);
+
+        fclose($stream);
+    }
+
+    public function test_timestamped_trait_declares_the_fields_named_in_the_help_text(): void
+    {
+        // Guards the pairing rather than the strings: if TimestampedTrait is renamed/refactored
+        // the help text must follow, which is exactly how #215 was introduced.
+        $description = $this->configuredCommand()->getDefinition()->getOption('timestamped')->getDescription();
+
+        $properties = array_map(
+            static fn (\ReflectionProperty $property) => $property->getName(),
+            (new \ReflectionClass(TimestampedTrait::class))->getProperties()
+        );
+
+        $this->assertContains('createdAt', $properties);
+        $this->assertContains('modifiedAt', $properties);
+        foreach ($properties as $property) {
+            $this->assertStringContainsString($property, $description);
+        }
     }
 
     public function test_generate_template_path_points_to_component_skeleton(): void
