@@ -32,6 +32,34 @@ Feature: Timestamped resources
     And the Mercure message should contain timestamped fields
 
   @loginUser
+  Scenario: I should not be able to overwrite createdAt with a PATCH request
+    Given there is a DummyTimestamped resource created at "2001-02-03T04:05:06+00:00"
+    When I send a "PATCH" request to the resource "dummy_timestamped" with body:
+    """
+    {
+      "createdAt": "1970-01-01T00:00:00+00:00",
+      "modifiedAt": "1970-01-01T00:00:00+00:00"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "createdAt" should be equal to "2001-02-03T04:05:06+00:00"
+    And the JSON node "modifiedAt" should be now
+
+  @loginUser
+  Scenario: I should not be able to overwrite createdAt with a PATCH request on a resource without a guarded setter
+    Given there is a DummyUnguardedTimestamped resource created at "2001-02-03T04:05:06+00:00"
+    When I send a "PATCH" request to the resource "dummy_unguarded_timestamped" with body:
+    """
+    {
+      "createdAt": "1970-01-01T00:00:00+00:00",
+      "modifiedAt": "1970-01-01T00:00:00+00:00"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "createdAt" should be equal to "2001-02-03T04:05:06+00:00"
+    And the JSON node "modifiedAt" should be now
+
+  @loginUser
   Scenario: Use custom timestamped fields
     Given there is a DummyCustomTimestamped resource
     When I send a "GET" request to the resource "dummy_custom_timestamped"

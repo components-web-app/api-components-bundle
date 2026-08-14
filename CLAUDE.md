@@ -800,6 +800,32 @@ Three papercuts found by the docs accuracy audit, all in `src/Maker/`.
 
 **#215 — `make:api-component --timestamped` help said `updatedAt`.** `TimestampedTrait` declares `$createdAt` and `$modifiedAt`; there is no `updatedAt`. Both the option description and the interactive question now say `modifiedAt`, and `MakeApiComponentTest` reflects over `TimestampedTrait` so a future rename of the trait fields fails the test rather than silently desyncing the help text.
 
-Two stale `updatedAt` mentions remain in unrelated docblocks (`src/Serializer/MappingLoader/TimestampedLoader.php`, `src/Serializer/MappingLoader/UploadableLoader.php`) — left alone to avoid colliding with concurrent work in `src/Serializer/`.
+The two stale `updatedAt` mentions in `src/Serializer/MappingLoader/TimestampedLoader.php` and `src/Serializer/MappingLoader/UploadableLoader.php` were corrected on the #213/#214 branch (`UploadableLoader`'s was additionally a copy-paste describing the *timestamped* groups).
 
 Tests: `tests/Maker/MakePageDataTest.php`, `tests/Maker/MakeApiComponentTest.php`.
+
+---
+
+### #213 / #214 — Two guards that looked like they worked and never ran ✓ **DONE**
+
+Both found by the docs accuracy audit. Neither was quite what the issue described, and in both cases the correction changed which fix was right.
+
+**#213 — `createdAt` was writable, but only on entities that skip `TimestampedTrait`.** `TimestampedDataPersister` keeps whatever `createdAt` an existing object carries, and the serializer has already written the request body onto that object by the time it runs. `TimestampedTrait::setCreatedAt()` ignores a second value, and PropertyAccess prefers the setter over the public property — so every entity in the bundle was shielded and the bug was invisible. An application entity is under no obligation to use the trait.
+
+**Dropping the `:timestamped:write` group is not enough on its own.** `TimestampedContextBuilder` returns early when `$context['groups']` is empty, so a resource that declares no serialization groups gets no group filtering at all. Enforcement therefore lives in `TimestampedNormalizer::denormalize()`: capture `createdAt` off the object being populated *before* denormalizing, restore it after. The write group is still dropped from `createdAt`, but that only stops it being advertised as writable in the generated input schema — it is documentation, not enforcement. `persistTimestampedFields($entity, true)` is untouched, so every seeding path (`CwaFixtureBuilder`, `RouteGenerator`, `UserFactory`, `DoctrineContext`) is unaffected.
+
+> **`OBJECT_TO_POPULATE` is not always an instance of `$type`.** Denormalizing a collection property (e.g. `ComponentGroup.pages`) leaves the Doctrine `PersistentCollection` in that context key while `$type` is still the entity class. Anything reading bundle metadata off the object-to-populate must gate on `instanceof $type` — the first version of this fix asked the attribute reader for a `Timestamped` configuration on a `PersistentCollection` and 500'd two unrelated Behat scenarios.
+
+**#214 — `isRequired()` under a node that carries a default is never enforced.** `ArrayNode::finalizeValue()` inserts the default and `continue`s without finalising, so the required-child check never runs for an omitted node. `user.email_verification` resolved to `['enabled' => true]`, the extension read keys that were not there (26 undefined-array-key warnings on a minimal config), and services typed `bool` were wired with `null`. The same declaration made the node impossible to configure *partially* — supplying anything, including `enabled: false`, ran finalisation and hard-failed on the first missing required child.
+
+**Convention going forward: never put `isRequired()` under a node with `addDefaultsIfNotSet()` or `canBeDisabled()`.** Give the child a real default instead. If a combination is genuinely invalid, express it as a node-level `->validate()` — that runs only when the node is present, which is the only time the combination can be expressed, so it cannot break an application that omits the node. `user.email_verification` now rejects `verify_on_register`/`verify_on_change` without a redirect target that way.
+
+Defaults were chosen to be **all-off** rather than "correct": `deny_unverified_login: true` would lock users out of an application that never configured verification, and `verify_on_register: true` would send emails for which no redirect target exists (`AbstractUserEmailFactory::getTokenPath()` throws). Making the children genuinely required was rejected as a breaking change — it would force config on every application currently omitting the node.
+
+The `email` sub-node had no default of its own, so `new_email_confirmation` and `password_reset` had the same defect; all three now use `addDefaultsIfNotSet()` with `default_redirect_path` defaulting to null (which is exactly the previous effective behaviour — `AbstractUserEmailFactory` accepts null and throws a clear exception at send time). `email_verification.enabled` is now actually honoured by `VerifyEmailFactory`, which previously received a hardcoded `true`.
+
+**Still carrying the same latent pattern, deliberately unfixed** because every fix forces configuration onto existing applications — decide before touching: `user.class_name`, `refresh_token.*`, `publishable.permission`, and `refresh_token.options.class` (read unguarded under the doctrine storage branch).
+
+Tests: `tests/DependencyInjection/ConfigurationTest.php` and `tests/DependencyInjection/SilverbackApiComponentsExtensionTest.php` (bare `ContainerBuilder`, no kernel boot — see the Risky/Infection warning above), `tests/Serializer/MappingLoader/TimestampedLoaderTest.php`, `tests/Serializer/Normalizer/TimestampedNormalizerTest.php`, and `features/timestamped/timestamped.feature` (PATCH scenarios for both the guarded and unguarded entity shapes).
+
+> **Newly covering a large declarative file costs MSI.** These DI tests pulled `Configuration.php` and `SilverbackApiComponentsExtension.php` into the covered set for the first time, so their mutants started counting where `--only-covered` had been skipping them — MSI fell from 85% to 82% against an 80% gate. The fix was to broaden the extension test to assert the wiring it performs, not to exclude the files.

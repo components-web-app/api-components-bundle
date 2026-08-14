@@ -45,7 +45,9 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnguardedTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken;
@@ -373,6 +375,32 @@ final class DoctrineContext implements Context
         $this->manager->persist($component);
         $this->manager->flush();
         $this->restContext->resources['dummy_custom_timestamped'] = $this->iriConverter->getIriFromResource($component);
+    }
+
+    /**
+     * @Given there is a DummyTimestamped resource created at :createdAt
+     */
+    public function thereIsADummyTimestampedResourceCreatedAt(string $createdAt): void
+    {
+        $component = new DummyTimestamped();
+        $component->createdAt = new \DateTimeImmutable($createdAt);
+        $component->modifiedAt = new \DateTime($createdAt);
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_timestamped'] = $this->iriConverter->getIriFromResource($component);
+    }
+
+    /**
+     * @Given there is a DummyUnguardedTimestamped resource created at :createdAt
+     */
+    public function thereIsADummyUnguardedTimestampedResourceCreatedAt(string $createdAt): void
+    {
+        $component = new DummyUnguardedTimestamped();
+        $component->createdAt = new \DateTimeImmutable($createdAt);
+        $component->modifiedAt = new \DateTime($createdAt);
+        $this->manager->persist($component);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_unguarded_timestamped'] = $this->iriConverter->getIriFromResource($component);
     }
 
     /**

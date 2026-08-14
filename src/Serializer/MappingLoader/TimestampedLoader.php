@@ -16,7 +16,9 @@ use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
 /**
- * Adds {CLASS}:timestamped serialization group on {CLASS}.createdAt and {CLASS}.updatedAt for Timestamped entities.
+ * Adds {CLASS}:timestamped:read to both timestamp fields of a Timestamped entity, and
+ * {CLASS}:timestamped:write to the modified date only — the creation date is never the client's to
+ * set. Field names come from the #[Timestamped] attribute and default to createdAt and modifiedAt.
  *
  * @author Daniel West <daniel@silverback.is>
  */
@@ -46,7 +48,6 @@ final class TimestampedLoader implements LoaderInterface
             && empty($attributeMetadata->getGroups())
         ) {
             $attributeMetadata->addGroup($readGroup);
-            $attributeMetadata->addGroup($writeGroup);
         }
 
         if (

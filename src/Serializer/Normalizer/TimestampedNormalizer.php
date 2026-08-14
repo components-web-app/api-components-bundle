@@ -55,12 +55,40 @@ class TimestampedNormalizer implements DenormalizerInterface, DenormalizerAwareI
     {
         $context[self::ALREADY_CALLED][] = $type;
 
-        $isNew = !isset($context[AbstractNormalizer::OBJECT_TO_POPULATE]);
+        $objectToPopulate = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
+        $isNew = null === $objectToPopulate;
+
+        // The creation date is not the client's to set. TimestampedDataPersister keeps whatever
+        // value the object carries when it is not new, so a `createdAt` in the request body would
+        // otherwise be written straight through. Capture the persisted value up front and put it
+        // back afterwards: reading it after denormalization is too late, it has already been
+        // replaced. TimestampedTrait's setCreatedAt() ignores a second value and so happens to
+        // block this, but an application entity is under no obligation to use the trait or to
+        // guard its own setter, so the protection has to live here.
+        //
+        // Only the resource being written has a creation date worth keeping. Denormalizing a
+        // collection property puts the Doctrine PersistentCollection in OBJECT_TO_POPULATE while
+        // $type is still the entity, so the instance check is what keeps this off anything that is
+        // not the object under construction.
+        $persistedCreatedAt = $objectToPopulate instanceof $type ? $this->getCreatedAt($objectToPopulate) : null;
 
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
+
+        if (null !== $persistedCreatedAt) {
+            $configuration = $this->annotationReader->getConfiguration($object);
+            $this->getClassMetadata($object)->setFieldValue($object, $configuration->createdAtField, $persistedCreatedAt);
+        }
+
         $this->timestampedDataPersister->persistTimestampedFields($object, $isNew);
 
         return $object;
+    }
+
+    private function getCreatedAt(object $object): ?\DateTimeInterface
+    {
+        $configuration = $this->annotationReader->getConfiguration($object);
+
+        return $this->getClassMetadata($object)->getFieldValue($object, $configuration->createdAtField);
     }
 
     public function getSupportedTypes(?string $format): array
