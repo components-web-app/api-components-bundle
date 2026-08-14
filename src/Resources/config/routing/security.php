@@ -40,7 +40,11 @@ return static function (RoutingConfigurator $routes): void {
         ->controller(VerifyEmailAddressAction::class);
 
     $routes
-        ->add('api_components_resend_email_verification', '/verify-email/{username}/{token}')
+        // Takes a username and no token: this action generates a fresh one. Sibling of
+        // /resend-verify-new-email/{username} below. Registering it at the same path as
+        // api_components_verify_email above made it unreachable — Symfony resolves a duplicate path
+        // to the first match — and left the path the Nuxt module calls registered nowhere.
+        ->add('api_components_resend_email_verification', '/resend-verify-email/{username}')
         ->methods(['GET'])
         ->controller(ResendVerifyEmailAddressAction::class);
 
