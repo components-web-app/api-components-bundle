@@ -14,6 +14,8 @@
 /infection.json
 /infection.phar
 /clover.xml
+# Written to the repo root when phpunit.coverage.xml.dist runs without an explicit --coverage-xml
+/infection-coverage-xml/
 /tests/Functional/app/vendor/
 /tests/Functional/app/public/uploads/
 /tools/
