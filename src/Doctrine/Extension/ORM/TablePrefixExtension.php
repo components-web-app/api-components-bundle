@@ -71,7 +71,6 @@ class TablePrefixExtension
 
             $mapping->joinTable->name = $this->prefix . $mapping->joinTable->name;
 
-            // May not be needed, because $mapping is already the same object stored internally.
             $classMetadata->associationMappings[$fieldName] = $mapping;
         }
     }

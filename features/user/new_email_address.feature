@@ -171,8 +171,6 @@ Feature: Register process via a form
     Then the response status code should be 200
     And I should get a "change_email_confirmation" email sent to the email address "user@example.com"
 
-  # Same uncaught InvalidArgumentException as its resend-verify-email sibling: this route has always
-  # been reachable, so the 500 was live — it just had no scenario for an unknown username.
   Scenario: Requesting a new email address confirmation for an unknown username is a 404, not an error
     Given I add "referer" header equal to "http://www.website.com"
     When I send a "GET" request to "/resend-verify-new-email/no_user"

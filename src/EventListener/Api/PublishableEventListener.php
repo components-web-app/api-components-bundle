@@ -81,7 +81,6 @@ final class PublishableEventListener
             return;
         }
 
-        // this will merge the draft into published on a GET request if the publish date is reached.
         $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
     }
 
@@ -224,31 +223,22 @@ final class PublishableEventListener
         $publishedReflection = new \ReflectionClass($publishedResource);
         $properties = $publishedReflection->getProperties();
 
-        // Capture what the published resource points at before the copy overwrites it. Deleting up
-        // front destroys the file with nothing yet known to have succeeded, and destroys it even
-        // when the draft carries the same path.
         $previousFilePaths = $this->uploadableFileManager->getStoredFilePaths($publishedResource);
 
         foreach ($properties as $property) {
-            //            $property->setAccessible(true);
             $name = $property->getName();
             if ($identifierFieldName === $name) {
                 continue;
             }
             $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
             if ($draftProperty) {
-                //                $draftProperty->setAccessible(true);
                 $draftValue = $draftProperty->getValue($draftResource);
                 $property->setValue($publishedResource, $draftValue);
             }
         }
 
-        // The write continues against the published resource from here, so any field the payload
-        // cleared on the draft must stay cleared — the marker is keyed on the resource it was set on.
         $this->uploadableFileManager->transferDeletedFields($draftResource, $publishedResource);
 
-        // The published resource now holds the draft's paths: delete only the files it has stopped
-        // referencing, never one it still points at.
         $this->uploadableFileManager->deleteOrphanedFiles($publishedResource, $previousFilePaths);
 
         $entityManager = $this->getEntityManager($draftResource);

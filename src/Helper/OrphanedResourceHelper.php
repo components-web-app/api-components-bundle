@@ -136,8 +136,6 @@ final readonly class OrphanedResourceHelper
         $groupManager = $this->registry->getManagerForClass(ComponentGroup::class);
         $groupManager?->remove($componentGroup);
 
-        // delete it AND check for orphaned component positions to delete because even if they delete
-        // automatically, we may have orphaned components too
         $positionManager = $this->registry->getManagerForClass(ComponentPosition::class);
         foreach ($componentGroup->componentPositions as $componentPosition) {
             $positionManager?->remove($componentPosition);

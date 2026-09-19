@@ -64,9 +64,6 @@ final class CacheHeadersEventListener
         }
 
         $response = $event->getResponse();
-        // The body may carry draft or role-specific data tied to this authenticated session, so it
-        // must never be stored by a shared cache. `private` overrides API Platform's default
-        // `public`; `no-store` is the authoritative marker a service worker's cacheWillUpdate drops.
         $response->setPrivate();
         $response->headers->removeCacheControlDirective('s-maxage');
         $response->headers->addCacheControlDirective('no-store');
@@ -80,8 +77,6 @@ final class CacheHeadersEventListener
             }
         }
 
-        // Any resource configured as Publishable varies by auth (draft vs published) even when it is
-        // an app-defined component that cannot be enumerated in the configured list above.
         return $this->publishableAttributeReader->isConfigured($resourceClass);
     }
 

@@ -161,7 +161,6 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             try {
                 $pageData = $this->pageDataProvider->getPageData();
             } catch (UnprocessableEntityHttpException $e) {
-                // when serializing for mercure, we do not need the path header
                 $this->collectorData?->recordPageDataResolution($property, null, 'no_path');
 
                 return $object;
@@ -198,7 +197,6 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $property));
         }
 
-        // skip draft components for users without permission to see unpublished content
         if (
             $this->publishableStatusChecker->getAttributeReader()->isConfigured($component)
             && !$this->publishableStatusChecker->isActivePublishedAt($component)
@@ -209,7 +207,6 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             return $object;
         }
 
-        // skip if the resolved component type is not in the group's allowedComponents
         if ($object->componentGroup && null !== $object->componentGroup->allowedComponents) {
             $resourceClass = $component instanceof Proxy ? get_parent_class($component) : $component::class;
             $iri = $this->iriConverter->getIriFromResource(

@@ -94,7 +94,7 @@ class RouteEventListener
         }
 
         $newParentPath = $parentRoute->getPath();
-        $childUpdates = []; // oldChildPath => childRoute
+        $childUpdates = [];
 
         foreach ($this->findDirectChildren($pageOrPageData, $em) as $child) {
             $childRoute = $child->getRoute();
@@ -116,9 +116,6 @@ class RouteEventListener
             return;
         }
 
-        // Flush path updates so old paths are freed in the DB before creating redirects with those paths.
-        // Doctrine processes INSERTs before UPDATEs, so without this flush the redirect INSERT would
-        // conflict with the child route that still holds the old path in the database.
         $em->flush();
 
         foreach ($childUpdates as $oldChildPath => $childRoute) {

@@ -21,42 +21,31 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 final class CwaCollectorData implements ResetInterface
 {
-    // --- JWT ---
     private bool $jwtCookiePresent = false;
     private ?string $jwtCookieName = null;
     private bool $jwtRefreshIssued = false;
     private bool $jwtCookieCleared = false;
 
-    // --- Route resolution ---
     private ?string $resolvedPath = null;
     private ?string $resolvedRouteIri = null;
     private bool $pageDataFound = false;
 
-    // --- Mercure publications ---
     /** @var list<string> */
     private array $publishedTopics = [];
 
-    // --- Publishable ORM queries ---
     /** @var list<array{class: string, mode: string, queryType: string}> */
     private array $publishableQueries = [];
 
-    // --- PageDataProperty resolutions ---
     /** @var list<array{property: string, resolvedClass: string|null, skipReason: string|null}> */
     private array $pageDataResolutions = [];
 
-    // --- Write invalidation fan-out ---
     /** @var array{created: int, updated: int, deleted: int} */
     private array $invalidationCounts = ['created' => 0, 'updated' => 0, 'deleted' => 0];
     /** @var list<string> */
     private array $cachePurgedIris = [];
 
-    // --- Private Mercure upgrades ---
     /** @var list<array{topics: list<string>, resourceClass: string}> */
     private array $mercurePrivateUpgrades = [];
-
-    // -----------------------------------------------------------------------
-    // JWT
-    // -----------------------------------------------------------------------
 
     public function recordJwtCookiePresent(string $cookieName): void
     {
@@ -94,10 +83,6 @@ final class CwaCollectorData implements ResetInterface
         return $this->jwtCookieCleared;
     }
 
-    // -----------------------------------------------------------------------
-    // Route resolution
-    // -----------------------------------------------------------------------
-
     public function recordPathResolution(string $path, string $routeIri): void
     {
         $this->resolvedPath = $path;
@@ -124,10 +109,6 @@ final class CwaCollectorData implements ResetInterface
         return $this->pageDataFound;
     }
 
-    // -----------------------------------------------------------------------
-    // Mercure publications
-    // -----------------------------------------------------------------------
-
     public function recordMercurePublication(string $topic): void
     {
         $this->publishedTopics[] = $topic;
@@ -143,10 +124,6 @@ final class CwaCollectorData implements ResetInterface
     {
         return \count($this->publishedTopics);
     }
-
-    // -----------------------------------------------------------------------
-    // Publishable ORM queries
-    // -----------------------------------------------------------------------
 
     public function recordPublishableQuery(string $class, string $mode, string $queryType): void
     {
@@ -164,10 +141,6 @@ final class CwaCollectorData implements ResetInterface
         return \count($this->publishableQueries);
     }
 
-    // -----------------------------------------------------------------------
-    // PageDataProperty resolutions
-    // -----------------------------------------------------------------------
-
     public function recordPageDataResolution(string $property, ?string $resolvedClass, ?string $skipReason): void
     {
         $this->pageDataResolutions[] = ['property' => $property, 'resolvedClass' => $resolvedClass, 'skipReason' => $skipReason];
@@ -183,10 +156,6 @@ final class CwaCollectorData implements ResetInterface
     {
         return \count($this->pageDataResolutions);
     }
-
-    // -----------------------------------------------------------------------
-    // Write invalidation fan-out
-    // -----------------------------------------------------------------------
 
     public function recordInvalidationCount(string $type): void
     {
@@ -223,10 +192,6 @@ final class CwaCollectorData implements ResetInterface
         return \count($this->cachePurgedIris);
     }
 
-    // -----------------------------------------------------------------------
-    // Private Mercure upgrades
-    // -----------------------------------------------------------------------
-
     /** @param list<string> $topics */
     public function recordMercurePrivateUpgrade(array $topics, string $resourceClass): void
     {
@@ -243,10 +208,6 @@ final class CwaCollectorData implements ResetInterface
     {
         return \count($this->mercurePrivateUpgrades);
     }
-
-    // -----------------------------------------------------------------------
-    // ResetInterface
-    // -----------------------------------------------------------------------
 
     public function reset(): void
     {

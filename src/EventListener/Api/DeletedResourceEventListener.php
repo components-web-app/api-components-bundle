@@ -37,7 +37,6 @@ readonly class DeletedResourceEventListener
         $request = $event->getRequest();
         $data = $request->attributes->get('data');
         $resourceClass = $request->attributes->get('_api_resource_class');
-        // only listen for deleted
         if (!$request->isMethod(Request::METHOD_DELETE)) {
             return;
         }

@@ -74,11 +74,9 @@ final class JWTEventListener implements ResetInterface
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        // Consume and clear the token so it is never reused across requests in worker mode
         $token = $this->token;
         $this->token = null;
 
-        // Record whether a JWT cookie was present on the incoming request
         $request = $event->getRequest();
         if ($request->cookies->has($this->jwtCookieName)) {
             $this->collectorData?->recordJwtCookiePresent($this->jwtCookieName);

@@ -54,7 +54,6 @@ class JWTClearTokenListener
         if ($response->isSuccessful()) {
             return;
         }
-        // Only clear the JWT cookie if it was present in the request (not anonymous /me)
         $clearCookie = $this->cookieProvider->createCookie('x.x.x', null, 1);
         if ($request->cookies->has($clearCookie->getName())) {
             $response->headers->setCookie($clearCookie);

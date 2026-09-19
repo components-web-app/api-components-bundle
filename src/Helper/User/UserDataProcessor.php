@@ -91,7 +91,6 @@ readonly class UserDataProcessor
                 } else {
                     // invalidate any existing requests
                     $user->setNewEmailConfirmationToken(null);
-                    // revert any tokens for the new primary saved email address as this was converted from the update
                     if ($previousUser->getNewEmailAddress() === $user->getEmailAddress() && $user->plainEmailAddressVerifyToken) {
                         $user->plainEmailAddressVerifyToken = null;
                         $user->setEmailAddressVerifyToken(null);

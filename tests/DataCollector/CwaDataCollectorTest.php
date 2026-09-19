@@ -120,13 +120,10 @@ class CwaDataCollectorTest extends TestCase
 
         $this->collector->collect(new Request(), new Response());
 
-        // Verify data was collected
         self::assertTrue($this->collector->isJwtCookiePresent());
 
-        // Reset
         $this->collector->reset();
 
-        // After reset, data should be cleared
         self::assertFalse($this->collector->isJwtCookiePresent());
         self::assertNull($this->collector->getJwtCookieName());
         self::assertFalse($this->collector->isJwtRefreshIssued());
@@ -138,7 +135,6 @@ class CwaDataCollectorTest extends TestCase
         $exception = new \RuntimeException('Something went wrong');
         $this->collector->collect(new Request(), new Response(), $exception);
 
-        // Should not throw; data is still accessible (empty)
         self::assertFalse($this->collector->isJwtCookiePresent());
     }
 
@@ -274,7 +270,6 @@ class CwaDataCollectorTest extends TestCase
         $this->collector->collect(new Request(), new Response());
         $this->collector->reset();
 
-        // Re-collect from now-empty collectorData to confirm it was cleared
         $this->collector->collect(new Request(), new Response());
 
         self::assertSame(0, $this->collector->getPublishableQueryCount());
@@ -286,7 +281,6 @@ class CwaDataCollectorTest extends TestCase
 
     public function test_is_jwt_cookie_present_returns_false_without_collect(): void
     {
-        // Before collect(), data is empty — accessor must return false via ?? false fallback
         self::assertFalse($this->collector->isJwtCookiePresent());
     }
 
@@ -312,7 +306,6 @@ class CwaDataCollectorTest extends TestCase
 
     public function test_publishable_query_count_returns_zero_without_collect(): void
     {
-        // Kills DecrementInteger/IncrementInteger/CastInt mutants on ?? 0 default
         self::assertSame(0, $this->collector->getPublishableQueryCount());
     }
 
@@ -338,7 +331,6 @@ class CwaDataCollectorTest extends TestCase
 
     public function test_invalidation_counts_returns_zeros_without_collect(): void
     {
-        // Kills ArrayItemRemoval mutant on the default ['created' => 0, 'updated' => 0, 'deleted' => 0]
         $counts = $this->collector->getInvalidationCounts();
         self::assertSame(0, $counts['created']);
         self::assertSame(0, $counts['updated']);
@@ -347,7 +339,6 @@ class CwaDataCollectorTest extends TestCase
 
     public function test_collect_records_more_than_one_publishable_query(): void
     {
-        // Extra precision test: count must be 2, not 1 or -1 — kills Increment/Decrement on non-zero counts
         $this->collectorData->recordPublishableQuery('App\Entity\A', 'published-only', 'select');
         $this->collectorData->recordPublishableQuery('App\Entity\B', 'draft', 'select');
 

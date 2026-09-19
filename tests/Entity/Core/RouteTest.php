@@ -37,7 +37,6 @@ class RouteTest extends TestCase
 
     public function test_set_path_empty_string_is_stored_as_is(): void
     {
-        // Empty string '' !== '' is false, so the condition is skipped and path stays ''
         $route = new Route();
         $route->setPath('');
 
@@ -53,7 +52,6 @@ class RouteTest extends TestCase
         $route = new Route();
         $route->setPageData($pageData);
 
-        // The bidirectional link must be established: pageData.route === route
         self::assertSame($route, $pageData->getRoute());
         self::assertSame($pageData, $route->getPageData());
     }

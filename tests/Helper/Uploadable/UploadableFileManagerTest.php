@@ -215,16 +215,12 @@ class UploadableFileManagerTest extends TestCase
         $unrelatedResource = new _LeakTestUploadable();
         $unrelatedResource->filename = 'image-bbb.png';
 
-        // The admin clears a file: PATCH {"file": null}, which the denormalizer records as a deleted
-        // field against the resource it is denormalizing before the file manager acts on it.
         $manager->addDeletedField($clearedResource, 'filename');
         $manager->persistFiles($clearedResource);
 
         self::assertFalse($filesystem->fileExists('image-aaa.png'));
         self::assertNull($clearedResource->filename);
 
-        // A later write carrying no new file — a publish PATCH is exactly this — must not inherit
-        // the marker, whether it happens in the same request or later in the same worker process.
         $manager->persistFiles($unrelatedResource);
 
         self::assertTrue(

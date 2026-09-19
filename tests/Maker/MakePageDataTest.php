@@ -237,14 +237,11 @@ class MakePageDataTest extends TestCase
 
         $this->makeMaker()->generate($input, $this->makeIo($output), $generator);
 
-        // Must contain "ConferenceData: {" as a nuxt.config key (ConsoleStyle strips tag formatting)
         $this->assertMatchesRegularExpression('/ConferenceData\s*:\s*\{/i', $output->fetch());
     }
 
     public function test_property_type_with_colon_is_preserved_as_full_type(): void
     {
-        // explode(':', $raw, 2) ensures the type portion keeps any colons it contains.
-        // If the limit were changed to 3, a type like "?Acme\\Type:extra" would be truncated.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['field:?string:ignored']]);
@@ -316,8 +313,6 @@ class MakePageDataTest extends TestCase
 
     public function test_nuxt_config_output_contains_property_names_not_raw_arrays(): void
     {
-        // array_column($properties, 'name') must extract names — not pass full property arrays.
-        // If mutated to $properties, the map keys would render as 'Array'.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['headline:?string', 'body:string']]);
@@ -329,18 +324,11 @@ class MakePageDataTest extends TestCase
         $this->assertStringContainsString("headline: 'Headline',", $text);
         $this->assertStringContainsString("body: 'Body',", $text);
         $this->assertStringNotContainsString('Array', $text);
-        // Ensure the label quotes are present — mutations like $p."'" produce "Headline'" not "'Headline'"
         $this->assertMatchesRegularExpression("/'\w+'/", $text);
     }
 
-    // ---------------------------------------------------------------------
-    // #212 — the nuxt.config snippet must be a name => label map, not an array
-    // ---------------------------------------------------------------------
-
     public function test_nuxt_config_properties_is_a_label_map_not_an_array(): void
     {
-        // The module's config type is `properties?: { [propertyName: string]: string }`
-        // (cwa-nuxt-3-module src/runtime/types/index.ts). An array is invalid there.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['headline:?string,body:?string']]);
@@ -358,8 +346,6 @@ class MakePageDataTest extends TestCase
 
     public function test_nuxt_config_snippet_is_rendered_verbatim(): void
     {
-        // Pins the whole pasteable block — indentation, key order, braces and trailing
-        // commas — so an accidental change to any one line is caught.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['headline:?string,heroImage:?string']]);
@@ -443,8 +429,6 @@ class MakePageDataTest extends TestCase
 
     public function test_nuxt_config_includes_a_humanized_name_for_the_entity(): void
     {
-        // `name` is read by the module (useDataType → pageDataClassName) and is part of the
-        // same pageData config entry, so the snippet should be complete.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['headline:?string']]);
@@ -469,10 +453,6 @@ class MakePageDataTest extends TestCase
         $this->assertStringNotContainsString('properties: [', $text);
         $this->assertStringContainsString("name: 'Conference Data',", $text);
     }
-
-    // ---------------------------------------------------------------------
-    // #211 — interact() + a --properties option that survives a one-liner
-    // ---------------------------------------------------------------------
 
     public function test_properties_accepts_a_single_comma_separated_list(): void
     {
@@ -510,8 +490,6 @@ class MakePageDataTest extends TestCase
 
     public function test_empty_property_entries_are_skipped(): void
     {
-        // The empty entries deliberately surround a real one: skipping must `continue`,
-        // not `break`, or everything after the first blank would be dropped.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => [',headline:?string,, ,body:string,', '  ']]);
@@ -526,8 +504,6 @@ class MakePageDataTest extends TestCase
 
     public function test_property_without_a_type_defaults_to_nullable_string(): void
     {
-        // Previously `explode(':', $raw, 2)` on a value with no colon emitted an
-        // "Undefined array key 1" error and produced a property with a null type.
         $vars = [];
         $generator = $this->makeGenerator('App\\Entity\\PageData\\ConferenceData', $vars);
         $input = $this->boundInput(['name' => 'ConferenceData', '--properties' => ['headline']]);
@@ -567,7 +543,6 @@ class MakePageDataTest extends TestCase
 
     public function test_properties_option_is_an_array_and_requires_a_value(): void
     {
-        // VALUE_REQUIRED means a bare `--properties` errors clearly instead of injecting null.
         $option = $this->configuredCommand()->getDefinition()->getOption('properties');
 
         $this->assertTrue($option->isArray());

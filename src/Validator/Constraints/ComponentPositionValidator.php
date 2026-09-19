@@ -118,9 +118,6 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
-        // Mirror validateDirectComponent so the dynamic (pageDataProperty) path can't bypass the rule:
-        // the resolved component type must be listed when the group is restricted, and an
-        // explicitAllowOnly type is rejected outright in an unrestricted group.
         $componentClass = $propertyMetadata->getComponentClass();
         $iri = $this->iriConverter->getIriFromResource($componentClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($componentClass));
 

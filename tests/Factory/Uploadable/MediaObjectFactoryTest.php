@@ -107,7 +107,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_get_configured_properties_called_with_skip_uploadable_check_true(): void
     {
-        // Mutant 36: changes true to false — verify the argument IS true
         $annotationReader = $this->createMock(UploadableAttributeReaderInterface::class);
         $annotationReader->expects($this->once())
             ->method('getConfiguredProperties')
@@ -120,8 +119,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_non_svg_image_adds_imagine_filter_media_objects(): void
     {
-        // Mutant 37: if(!isMediaObjectSvg) → if(isMediaObjectSvg) — for PNG, imagine filters must be added
-        // Mutant 38: array_push removed — imagine filters not added without it
         $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail']);
         $fieldConfig->property = 'filename';
 
@@ -153,7 +150,6 @@ class MediaObjectFactoryTest extends TestCase
 
         $collection = $factory->createMediaObjects(new \stdClass());
 
-        // For a non-SVG PNG with a filter, the result must include the imagine-filter media object
         $this->assertNotNull($collection);
         $mediaObjects = $collection->get('file');
         $this->assertGreaterThan(1, \count($mediaObjects), 'PNG image must include additional imagine-filter media objects');
@@ -164,8 +160,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_non_image_file_with_imagine_filters_does_not_invoke_imagine(): void
     {
-        // A non-image (e.g. a PDF/docx) uploaded to a field that declares imagineFilters must NOT
-        // reach Liip Imagine — the image-mime guard replaces the previous SVG-only guard.
         $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail']);
         $fieldConfig->property = 'filename';
 
@@ -183,7 +177,6 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
 
-        // filterService present — the guard must ensure it is never called for a non-image
         $filterService = $this->createMock(FilterService::class);
         $filterService->expects($this->never())->method('getUrlOfFilteredImage');
 
@@ -205,7 +198,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_svg_image_does_not_add_imagine_filter_media_objects(): void
     {
-        // Mutant 37: if(!isMediaObjectSvg) → if(isMediaObjectSvg) — for SVG, no imagine filters should be added
         $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail']);
         $fieldConfig->property = 'filename';
 
@@ -245,8 +237,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_no_filter_service_returns_only_primary_media_object(): void
     {
-        // Mutants 39, 40: if(!$this->filterService) → if($this->filterService); return removed
-        // Without filterService, getMediaObjectsForImagineFilters must return empty array
         $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail']);
         $fieldConfig->property = 'filename';
 
@@ -255,7 +245,7 @@ class MediaObjectFactoryTest extends TestCase
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
-            filterService: null, // no filterService
+            filterService: null,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -268,9 +258,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_is_media_object_svg_returns_true_for_svg_mime_type(): void
     {
-        // Mutant 42: 'image/svg+xml' === $mimeType → !== — SVG detection is inverted
-        // We test indirectly: SVG image must NOT add imagine filters; PNG must add them
-        // This is covered by the SVG/non-SVG tests above, but we also verify via mime type
         $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumb']);
         $fieldConfig->property = 'filename';
 
@@ -290,7 +277,6 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn(null);
 
-        // filterService is present — if SVG detection is correct, it must NOT be called
         $filterService = $this->createMock(FilterService::class);
         $filterService->expects($this->never())->method('getUrlOfFilteredImage');
 
@@ -310,7 +296,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_cache_hit_populates_from_cache_without_filesystem_calls(): void
     {
-        // Mutants 43, 44: if($fileInfo) negated or return removed — cache is not used
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects($this->never())->method('fileSize');
         $filesystem->expects($this->never())->method('mimeType');
@@ -334,7 +319,6 @@ class MediaObjectFactoryTest extends TestCase
         $this->assertNotNull($collection);
         $mediaObject = $collection->get('file')[0];
 
-        // Data must come from cache, not filesystem
         $this->assertSame(999, $mediaObject->fileSize);
         $this->assertSame('image/png', $mediaObject->mimeType);
         $this->assertSame(200, $mediaObject->width);
@@ -343,7 +327,6 @@ class MediaObjectFactoryTest extends TestCase
 
     public function test_cache_miss_reads_from_filesystem(): void
     {
-        // Complement to cache hit test — ensures the non-cache path also works
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->method('fileSize')->willReturn(2048);
         $filesystem->method('mimeType')->willReturn('application/pdf');

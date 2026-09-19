@@ -45,8 +45,6 @@ final class CoverageContext implements Context
         $projectDir = self::projectDir();
 
         $filter = new Filter();
-        // Filter::includeFile() takes a single file - a directory registers a path that matches
-        // nothing, so every file would be excluded and no coverage recorded at all.
         $filter->includeFiles(
             (new FileIteratorFacade())->getFilesAsArray(
                 $projectDir . '/src',

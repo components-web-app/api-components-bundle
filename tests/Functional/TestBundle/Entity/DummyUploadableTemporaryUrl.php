@@ -26,7 +26,6 @@ class DummyUploadableTemporaryUrl
     use IdTrait;
     use UploadableTrait;
 
-    // Uses local adapter, which does not implement TemporaryUrlGenerator — verifies the fallback to the API download endpoint
     #[Silverback\UploadableField(adapter: 'local', urlGenerator: 'temporary')]
     public ?File $file = null;
 }

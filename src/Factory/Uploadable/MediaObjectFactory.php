@@ -97,9 +97,6 @@ class MediaObjectFactory
                 continue;
             }
 
-            // Imagine filters only make sense for raster images. Guard on the image mime type (and
-            // exclude SVG, which cannot be rasterised through the filter chain) so a non-image on a
-            // field that declares imagineFilters (e.g. a PDF/docx) never reaches Liip Imagine.
             if ($this->isImagineProcessable($initialMediaObject->mimeType)) {
                 array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
             }

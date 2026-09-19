@@ -38,36 +38,29 @@ final class CwaDataCollector extends DataCollector
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         $this->data = [
-            // JWT
             'jwt_cookie_present' => $this->collectorData->isJwtCookiePresent(),
             'jwt_cookie_name' => $this->collectorData->getJwtCookieName(),
             'jwt_refresh_issued' => $this->collectorData->isJwtRefreshIssued(),
             'jwt_cookie_cleared' => $this->collectorData->isJwtCookieCleared(),
 
-            // Route resolution
             'resolved_path' => $this->collectorData->getResolvedPath(),
             'resolved_route_iri' => $this->collectorData->getResolvedRouteIri(),
             'page_data_found' => $this->collectorData->isPageDataFound(),
 
-            // Mercure publications
             'published_topics' => $this->collectorData->getPublishedTopics(),
             'published_topics_count' => $this->collectorData->getPublishedTopicsCount(),
 
-            // Publishable ORM queries
             'publishable_queries' => $this->collectorData->getPublishableQueries(),
             'publishable_query_count' => $this->collectorData->getPublishableQueryCount(),
 
-            // PageDataProperty resolutions
             'page_data_resolutions' => $this->collectorData->getPageDataResolutions(),
             'page_data_resolution_count' => $this->collectorData->getPageDataResolutionCount(),
 
-            // Write invalidation fan-out
             'invalidation_counts' => $this->collectorData->getInvalidationCounts(),
             'total_invalidated' => $this->collectorData->getTotalInvalidated(),
             'cache_purged_iris' => $this->collectorData->getCachePurgedIris(),
             'cache_purged_count' => $this->collectorData->getCachePurgedCount(),
 
-            // Private Mercure upgrades
             'mercure_private_upgrades' => $this->collectorData->getMercurePrivateUpgrades(),
             'mercure_private_upgrade_count' => $this->collectorData->getMercurePrivateUpgradeCount(),
         ];
@@ -83,10 +76,6 @@ final class CwaDataCollector extends DataCollector
         $this->data = [];
         $this->collectorData->reset();
     }
-
-    // -----------------------------------------------------------------------
-    // Accessors used in the Twig template
-    // -----------------------------------------------------------------------
 
     public function isJwtCookiePresent(): bool
     {

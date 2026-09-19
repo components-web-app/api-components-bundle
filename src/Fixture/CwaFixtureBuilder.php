@@ -393,8 +393,6 @@ class CwaFixtureBuilder
             }
         }
 
-        // Add to the owning side BEFORE the first flush so Doctrine writes the join table.
-        // Sync the inverse side for in-memory consistency (Doctrine populates it from DB on load).
         if ($owner instanceof Layout) {
             $owner->getComponentGroups()->add($componentGroup);
             $componentGroup->layouts->add($owner);
@@ -617,7 +615,6 @@ class CwaFixtureBuilder
                 }
             }
         } catch (\Exception) {
-            // Entity class not in Doctrine metadata (e.g. during unit tests with stubs)
         }
     }
 

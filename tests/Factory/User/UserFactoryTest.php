@@ -80,7 +80,6 @@ class UserFactoryTest extends TestCase
 
     public function test_null_email_falls_back_to_username(): void
     {
-        // Mutant 59: if(!$email) → if($email) — email fallback to username inverted
         $this->buildFactory($captured)->create('bob@example.com', 'pass', null);
 
         self::assertSame('bob@example.com', $captured->getEmailAddress());
@@ -88,7 +87,6 @@ class UserFactoryTest extends TestCase
 
     public function test_explicit_email_is_used_not_username(): void
     {
-        // Complement to above — verifies the email is used when provided, not the username
         $this->buildFactory($captured)->create('bob', 'pass', 'bob@example.com');
 
         self::assertSame('bob@example.com', $captured->getEmailAddress());
@@ -97,7 +95,6 @@ class UserFactoryTest extends TestCase
 
     public function test_inactive_flag_disables_user(): void
     {
-        // Mutant 61: setEnabled(!$inactive) → setEnabled($inactive) — enabled is inverted
         $this->buildFactory($captured)->create('bob', 'pass', 'bob@example.com', true);
 
         self::assertFalse($captured->isEnabled(), 'Inactive=true must produce an enabled=false user');
@@ -105,7 +102,6 @@ class UserFactoryTest extends TestCase
 
     public function test_active_flag_keeps_user_enabled(): void
     {
-        // Complement to inactive test
         $this->buildFactory($captured)->create('bob', 'pass', 'bob@example.com', false);
 
         self::assertTrue($captured->isEnabled(), 'Inactive=false must produce an enabled=true user');
@@ -113,7 +109,6 @@ class UserFactoryTest extends TestCase
 
     public function test_email_address_is_verified_after_create(): void
     {
-        // Mutant 62: setEmailAddressVerified(true) → false — email address should always be verified
         $this->buildFactory($captured)->create('bob', 'pass', 'bob@example.com');
 
         self::assertTrue($captured->isEmailAddressVerified(), 'Email address must be verified=true after factory create');
@@ -121,8 +116,6 @@ class UserFactoryTest extends TestCase
 
     public function test_timestamped_persister_called_with_is_new_true(): void
     {
-        // Mutant 63: persistTimestampedFields($user, true) → false
-        // Mutant 64: call removed
         $timestampedPersister = $this->createMock(TimestampedDataPersister::class);
         $timestampedPersister->expects(self::once())
             ->method('persistTimestampedFields')
@@ -133,7 +126,6 @@ class UserFactoryTest extends TestCase
 
     public function test_validator_is_called(): void
     {
-        // Mutant 65: validator->validate() call removed
         $validator = $this->createMock(ValidatorInterface::class);
         $validator->expects(self::once())
             ->method('validate')
@@ -145,7 +137,6 @@ class UserFactoryTest extends TestCase
 
     public function test_overwrite_true_loads_existing_user_by_identifier(): void
     {
-        // Mutant 60: Ternary swap — overwrite? repo->load : null → overwrite? null : repo->load
         $existingUser = new class extends AbstractUser {};
         $existingUser->setUsername('bob');
 
@@ -158,20 +149,17 @@ class UserFactoryTest extends TestCase
         $captured = null;
         $this->buildFactory($captured, userRepository: $userRepository)->create('bob', 'pass', 'bob@example.com', false, false, false, true);
 
-        // When overwrite=true, the existing user object must be used (not a new one)
         self::assertSame($existingUser, $captured);
     }
 
     public function test_overwrite_false_does_not_load_existing_user(): void
     {
-        // Complement: overwrite=false must NOT call loadUserByIdentifier
         $userRepository = $this->createMock(UserRepositoryInterface::class);
         $userRepository->expects(self::never())->method('loadUserByIdentifier');
 
         $captured = null;
         $this->buildFactory($captured, userRepository: $userRepository)->create('bob', 'pass', 'bob@example.com', false, false, false, false);
 
-        // A new user must be created (not the existing one)
         self::assertInstanceOf(AbstractUser::class, $captured);
     }
 }

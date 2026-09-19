@@ -62,7 +62,6 @@ class ConfigurationTest extends TestCase
     {
         $emailVerification = $this->process(self::minimalConfig())['user']['email_verification'];
 
-        // SilverbackApiComponentsExtension::setEmailVerificationArguments() reads all four.
         self::assertArrayHasKey('deny_unverified_login', $emailVerification);
         self::assertArrayHasKey('default_value', $emailVerification);
         self::assertArrayHasKey('verify_on_register', $emailVerification);
@@ -73,9 +72,6 @@ class ConfigurationTest extends TestCase
     {
         $emailVerification = $this->process(self::minimalConfig())['user']['email_verification'];
 
-        // An application that never mentions email verification must not start sending verification
-        // emails it has given no redirect target for, and must not have its users locked out of
-        // logging in.
         self::assertFalse($emailVerification['verify_on_register']);
         self::assertFalse($emailVerification['verify_on_change']);
         self::assertFalse($emailVerification['deny_unverified_login']);
@@ -85,9 +81,6 @@ class ConfigurationTest extends TestCase
     #[DataProvider('emailNodeProvider')]
     public function test_email_redirect_keys_are_always_resolved(string $node): void
     {
-        // SilverbackApiComponentsExtension::setMailerServiceArguments() reads both keys for each of
-        // these three nodes. The `email` node had no default of its own, so omitting the parent left
-        // no `email` key at all.
         $email = $this->process(self::minimalConfig())['user'][$node]['email'];
 
         self::assertArrayHasKey('default_redirect_path', $email);
@@ -153,9 +146,6 @@ class ConfigurationTest extends TestCase
     #[DataProvider('verificationTriggerProvider')]
     public function test_requesting_verification_emails_without_a_redirect_target_is_rejected(string $trigger): void
     {
-        // AbstractUserEmailFactory::getTokenPath() throws when it has neither value, so this
-        // combination can only ever fail at the point a user registers. Fail at compile time
-        // instead.
         $config = self::minimalConfig();
         $config['user']['email_verification'] = [$trigger => true];
 

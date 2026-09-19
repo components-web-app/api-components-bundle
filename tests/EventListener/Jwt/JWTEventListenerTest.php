@@ -66,7 +66,6 @@ class JWTEventListenerTest extends TestCase
 
         $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
 
-        // Simulate worker-mode reset between requests
         $listener->reset();
 
         $responseEvent = $this->makeResponseEvent();
@@ -81,13 +80,11 @@ class JWTEventListenerTest extends TestCase
 
     public function test_on_jwt_refreshed_records_refresh_in_collector_data(): void
     {
-        // Mutant 33 removes the recordJwtRefreshIssued() call — this test kills it
         $collectorData = new CwaCollectorData();
         $listener = $this->buildListener($collectorData);
 
         $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
 
-        // Collect into a data collector to expose the recorded state
         $collector = new \Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector($collectorData);
         $collector->collect(new Request(), new Response());
 
@@ -96,7 +93,6 @@ class JWTEventListenerTest extends TestCase
 
     public function test_on_kernel_response_records_jwt_cookie_present_when_cookie_in_request(): void
     {
-        // Mutant 34 negates the if condition — this test kills it
         $collectorData = new CwaCollectorData();
         $listener = $this->buildListener($collectorData);
 
@@ -119,7 +115,6 @@ class JWTEventListenerTest extends TestCase
 
     public function test_on_kernel_response_does_not_record_jwt_cookie_present_when_cookie_absent(): void
     {
-        // Complements test above — no cookie in request must NOT trigger recordJwtCookiePresent
         $collectorData = new CwaCollectorData();
         $listener = $this->buildListener($collectorData);
 
@@ -134,7 +129,6 @@ class JWTEventListenerTest extends TestCase
 
     public function test_on_kernel_response_sets_mercure_authorization_cookie_when_token_present(): void
     {
-        // Mutant 35 removes the mercureAuthorization->getAuthorizationCookie() call — this test kills it
         $listener = $this->buildListener();
         $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
 
@@ -155,13 +149,11 @@ class JWTEventListenerTest extends TestCase
 
         $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
 
-        // First response: JWT cookie is set
         $first = $this->makeResponseEvent();
         $listener->onKernelResponse($first);
         $firstCookieNames = array_map(static fn (Cookie $c) => $c->getName(), $first->getResponse()->headers->getCookies());
         self::assertContains('api_components', $firstCookieNames);
 
-        // Second response without reset or new refresh: token already consumed
         $second = $this->makeResponseEvent();
         $listener->onKernelResponse($second);
         $secondCookieNames = array_map(static fn (Cookie $c) => $c->getName(), $second->getResponse()->headers->getCookies());

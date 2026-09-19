@@ -127,8 +127,6 @@ final class MakePageData extends AbstractMaker
             ]);
         }
 
-        // The module's config type is `properties?: { [propertyName: string]: string }` — a map of
-        // property name to the label shown in the admin, not a list of property names.
         $propertiesLines = $propertyNames ? array_merge(
             ['    properties: {'],
             array_map(fn (string $propName) => '      ' . $propName . ': \'' . $this->humanize($propName) . '\',', $propertyNames),

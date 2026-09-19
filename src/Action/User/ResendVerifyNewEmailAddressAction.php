@@ -32,13 +32,9 @@ final readonly class ResendVerifyNewEmailAddressAction
         try {
             $user = $this->userDataProcessor->updateNewEmailToken($username);
         } catch (InvalidArgumentException $e) {
-            // findUserByUsername throws rather than returning null for an unknown username, so
-            // without this the response is a 500 leaking "Username not found". Matches
-            // PasswordRequestAction.
             return new Response(null, Response::HTTP_NOT_FOUND);
         }
 
-        // A null user here means the request limit was reached: accept quietly and send nothing.
         if (!$user) {
             $response = new Response(null, Response::HTTP_OK);
             $response->setCache([

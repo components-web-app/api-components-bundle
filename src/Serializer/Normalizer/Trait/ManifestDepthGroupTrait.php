@@ -104,8 +104,6 @@ trait ManifestDepthGroupTrait
             return [$ownNode];
         }
 
-        // Skipped/blank/duplicate resource: it contributes no node of its own, so its descendant
-        // nodes are hoisted to the caller (keeps the tree free of blank-node/back-reference noise).
         return $childBucket;
     }
 

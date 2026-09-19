@@ -45,8 +45,6 @@ class TimestampedLoaderTest extends TestCase
     {
         $groups = $this->loadGroups(TimestampedLoaderFixture::class, 'createdAt', 'modifiedAt');
 
-        // createdAt must not carry the write group: a resource declaring its own serialization
-        // groups would otherwise advertise the creation date as a writable input field.
         self::assertSame(['TimestampedLoaderFixture:timestamped:read'], $groups['createdAt']);
         self::assertSame(
             ['TimestampedLoaderFixture:timestamped:read', 'TimestampedLoaderFixture:timestamped:write'],

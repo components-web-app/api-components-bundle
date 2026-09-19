@@ -90,8 +90,6 @@ class CwaFixtureBuilderTest extends TestCase
         return $gen;
     }
 
-    // --- Layout & Page ---
-
     public function test_layout_and_page_with_explicit_route_are_persisted(): void
     {
         $persisted = [];
@@ -186,8 +184,6 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->getRoute('home-page');
     }
 
-    // --- Layout groups ---
-
     public function test_layout_group_creates_component_group_with_correct_properties(): void
     {
         $persisted = [];
@@ -214,8 +210,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertTrue($layouts[0]->getComponentGroups()->contains($groups[0]));
         $this->assertTrue($groups[0]->layouts->contains($layouts[0]));
     }
-
-    // --- Page groups ---
 
     public function test_page_group_creates_component_group_linked_to_page(): void
     {
@@ -267,8 +261,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($component2, $positions[1]->component);
         $this->assertSame(20, $positions[1]->sortValue);
     }
-
-    // --- Uploadable files (#195) ---
 
     public function test_uploadable_component_with_file_is_persisted_via_file_manager(): void
     {
@@ -339,8 +331,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(20, $positions[1]->sortValue);
     }
 
-    // --- PageData + templates ---
-
     public function test_pagedata_links_to_template_page(): void
     {
         $persisted = [];
@@ -375,8 +365,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($pageData, $routes[0]->getPageData());
         $this->assertSame($routes[0], $builder->getRoute('article-0'));
     }
-
-    // --- Nested relationships ---
 
     public function test_nested_pagedata_sets_parent_relationship(): void
     {
@@ -448,8 +436,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($pages['parent'], $pages['child']->getParentPage());
     }
 
-    // --- Route ordering ---
-
     public function test_parent_route_is_created_before_child_route(): void
     {
         $createOrder = [];
@@ -478,8 +464,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertCount(2, $createOrder);
         $this->assertSame(spl_object_id($parentPageData), $createOrder[0]);
     }
-
-    // --- Association graph auto-persist ---
 
     public function test_public_persist_persists_entity_via_manager(): void
     {
@@ -510,13 +494,12 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->page('home', 'Template', layout: 'main', route: '/');
 
         $navGroup->add($component1);
-        $builder->flush(); // first flush — component1 processed
+        $builder->flush();
 
         $navGroup->add($component2);
-        $builder->flush(); // second flush — only component2 should be processed
+        $builder->flush();
 
         $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
-        // component1 → position1 in flush 1; component2 → position2 in flush 2
         $this->assertCount(2, $positions);
         $components = array_map(static fn ($p) => $p->component, $positions);
         $this->assertContains($component1, $components);
@@ -526,7 +509,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_phases_one_to_three_run_only_once_across_multiple_flushes(): void
     {
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
-        $routeGenerator->expects($this->once()) // must be called exactly once despite two flush() calls
+        $routeGenerator->expects($this->once())
             ->method('create')
             ->willReturnCallback(static function (object $entity): Route {
                 $route = new Route();
@@ -539,10 +522,10 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Template', layout: 'main'); // will call routeGenerator->create() once
+        $builder->page('home', 'Template', layout: 'main');
 
         $builder->flush();
-        $builder->flush(); // second flush must NOT call routeGenerator->create() again
+        $builder->flush();
     }
 
     public function test_on_routes_created_fires_after_child_routes_exist_with_child_builders(): void
@@ -577,7 +560,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->pageData($parentPageData);
         $builder->flush();
 
-        $this->assertFalse($called); // trivially passes; confirms no exception thrown
+        $this->assertFalse($called);
     }
 
     public function test_parent_pagedata_route_created_before_child_pagedata_route(): void
@@ -609,8 +592,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(spl_object_id($parentPageData), $createOrder[0]);
         $this->assertSame(spl_object_id($childPageData), $createOrder[1]);
     }
-
-    // --- Nested entity persistence in evaluateNested ---
 
     public function test_nested_pagedata_entity_is_persisted_in_evaluatenested(): void
     {
@@ -647,8 +628,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($layouts[0], $pages[0]->layout);
     }
 
-    // --- Flush counting: evaluateNested ---
-
     public function test_evaluate_nested_does_not_flush_when_no_new_nested_entities(): void
     {
         $flushCount = 0;
@@ -658,7 +637,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
-        $this->assertSame(1, $flushCount); // phaseOne only; template page has no route → phaseThree skips; evaluateNested must not flush
+        $this->assertSame(1, $flushCount);
     }
 
     public function test_evaluate_nested_flushes_when_new_nested_entities_added(): void
@@ -674,10 +653,8 @@ class CwaFixtureBuilderTest extends TestCase
             });
         $builder->flush();
 
-        $this->assertSame(3, $flushCount); // phaseOne + evaluateNested + phaseThree
+        $this->assertSame(3, $flushCount);
     }
-
-    // --- Flush counting: phaseFour ---
 
     public function test_phase_four_does_not_flush_when_no_positions(): void
     {
@@ -686,10 +663,10 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
         $builder->layout('main', 'Primary');
         $builder->page('home', 'Template', layout: 'main', isTemplate: true)
-            ->group('primary'); // group exists but no components added
+            ->group('primary');
         $builder->flush();
 
-        $this->assertSame(1, $flushCount); // phaseOne only; template page → phaseThree skips; phaseFour must not flush
+        $this->assertSame(1, $flushCount);
     }
 
     public function test_phase_four_flushes_when_positions_are_created(): void
@@ -704,10 +681,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->add($component);
         $builder->flush();
 
-        $this->assertSame(2, $flushCount); // phaseOne + phaseFour (template page → phaseThree skips)
+        $this->assertSame(2, $flushCount);
     }
-
-    // --- Flush counting: phaseThreePointFive ---
 
     public function test_phase_three_point_five_does_not_flush_when_no_callbacks(): void
     {
@@ -718,7 +693,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->pageData($pd);
         $builder->flush();
 
-        $this->assertSame(2, $flushCount); // phaseOne + phaseThree (route created); phaseThreePointFive must not flush
+        $this->assertSame(2, $flushCount);
     }
 
     public function test_phase_three_point_five_flushes_when_on_routes_created_fires(): void
@@ -735,7 +710,7 @@ class CwaFixtureBuilderTest extends TestCase
             ->onRoutesCreated(static function (array $builders): void {});
         $builder->flush();
 
-        $this->assertSame(4, $flushCount); // phaseOne + evaluateNested + phaseThree + phaseThreePointFive
+        $this->assertSame(4, $flushCount);
     }
 
     public function test_multiple_pagedata_specs_all_on_routes_created_callbacks_evaluated(): void
@@ -745,7 +720,7 @@ class CwaFixtureBuilderTest extends TestCase
         $callbackCalled = false;
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->pageData($pd1); // no callback — must not break the loop
+        $builder->pageData($pd1);
         $builder->pageData($pd2)
             ->onRoutesCreated(static function (array $builders) use (&$callbackCalled): void {
                 $callbackCalled = true;
@@ -754,8 +729,6 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->assertTrue($callbackCalled);
     }
-
-    // --- Custom sort values ---
 
     public function test_group_add_uses_explicit_sort_when_provided(): void
     {
@@ -792,8 +765,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(99, $positions[0]->sortValue);
     }
 
-    // --- getNewPageDataPositions incremental ---
-
     public function test_flush_second_call_only_processes_new_page_data_positions(): void
     {
         $persisted = [];
@@ -816,8 +787,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertContains('htmlContent', $properties);
     }
 
-    // --- pageData nested under a Page parent ---
-
     public function test_nested_pagedata_under_page_sets_parent_page_relationship(): void
     {
         $persisted = [];
@@ -838,8 +807,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNull($pageData->getParentPageData());
     }
 
-    // --- Multiple specs where only later entries have nested closures ---
-
     public function test_multiple_pagedata_specs_all_nested_closures_evaluated(): void
     {
         $childPageData = new class extends AbstractPageData {};
@@ -847,7 +814,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parent2 = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->pageData($parent1); // no nested closure — must not break the loop
+        $builder->pageData($parent1);
         $builder->pageData($parent2)
             ->nested(static function (CwaFixtureBuilder $nested) use ($childPageData): void {
                 $nested->pageData($childPageData);
@@ -864,7 +831,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('first', 'FirstTemplate', layout: 'main'); // no nested closure — must not break the loop
+        $builder->page('first', 'FirstTemplate', layout: 'main');
         $builder->page('second', 'SecondTemplate', layout: 'main')
             ->nested(static function (CwaFixtureBuilder $nested): void {
                 $nested->page('child', 'ChildTemplate', layout: 'main');
@@ -880,8 +847,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($pages['second'], $pages['child']->getParentPage());
     }
 
-    // --- onRoutesCreated receives only child builders, not pre-existing page specs ---
-
     public function test_on_routes_created_receives_only_child_page_builders_not_pre_existing_pages(): void
     {
         $parentPageData = new class extends AbstractPageData {};
@@ -889,7 +854,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('existing', 'ExistingTemplate', layout: 'main'); // pre-existing page spec
+        $builder->page('existing', 'ExistingTemplate', layout: 'main');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $nested): void {
                 $nested->page('chapter', 'ChapterTemplate', layout: 'main');
@@ -901,8 +866,6 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->assertSame(1, $capturedCount);
     }
-
-    // --- Named route via RouteGenerator for a Page ---
 
     public function test_named_route_via_generator_for_page_is_accessible_after_flush(): void
     {
@@ -918,8 +881,6 @@ class CwaFixtureBuilderTest extends TestCase
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
         $this->assertSame($route, $pages[0]->getRoute());
     }
-
-    // --- deriveRouteName ---
 
     public function test_explicit_route_without_name_derives_name_from_path(): void
     {
@@ -950,8 +911,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertCount(1, $routes);
         $this->assertSame('root', $routes[0]->getName());
     }
-
-    // --- locationReference on groups ---
 
     public function test_layout_group_with_location_reference_uses_custom_reference_suffix(): void
     {
@@ -1017,8 +976,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertTrue($groups[0]->layouts->contains($layouts[0]));
         $this->assertTrue($groups[0]->layouts->contains($layouts[1]));
     }
-
-    // --- component() groups ---
 
     public function test_component_group_creates_component_group_linked_to_component(): void
     {
@@ -1098,7 +1055,6 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->component($component)->group('items');
         $builder->flush();
 
-        // Component must appear before the ComponentGroup in persisted order (phase 1 ordering)
         $componentIndex = array_search($component, $persisted, true);
         $groupIndex = array_search(
             array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup))[0] ?? null,
@@ -1123,7 +1079,6 @@ class CwaFixtureBuilderTest extends TestCase
         $firstFlushCount = $flushCount;
         $builder->flush();
 
-        // Second flush should not re-run phases 1-3
         $this->assertSame($firstFlushCount, $flushCount, 'Second flush must not repeat phases 1-3');
     }
 
@@ -1235,7 +1190,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->page('some-template', 'Template', layout: 'main', isTemplate: true);
-        $builder->pageData($pageData); // no template= argument
+        $builder->pageData($pageData);
         $builder->flush();
 
         $prop = (new \ReflectionClass($pageData))->getProperty('page');
@@ -1321,7 +1276,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Template', layout: 'main'); // routeName is null
+        $builder->page('home', 'Template', layout: 'main');
         $builder->flush();
 
         $this->expectException(\LogicException::class);
@@ -1365,7 +1320,7 @@ class CwaFixtureBuilderTest extends TestCase
         $pageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->pageData($pageData); // routeName is null
+        $builder->pageData($pageData);
         $builder->flush();
 
         $this->expectException(\LogicException::class);
@@ -1437,10 +1392,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->page('home', 'Template', layout: 'main', isTemplate: true);
         $builder->flush();
 
-        // Store the flush count after flushing with no positions
         $countWithNoPositions = $flushCount;
 
-        // Now do same but WITH a position
         $flushCount = 0;
         $component = new class extends AbstractComponent {};
         $builder2 = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
@@ -1522,8 +1475,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertGreaterThan(0, $flushCount, 'phaseFour must flush when only pageDataPositions are created');
     }
 
-    // --- Exact flush count: page data positions only (kills TrueValue mutant on line 514) ---
-
     public function test_phase_four_flushes_exactly_once_when_only_page_data_positions_exist(): void
     {
         $flushCount = 0;
@@ -1534,11 +1485,8 @@ class CwaFixtureBuilderTest extends TestCase
             ->pageDataPosition('App\Entity\ContentPageData', 'content');
         $builder->flush();
 
-        // phaseOne + phaseFour (template page → phaseThree skips; pageDataPosition creates a ComponentPosition — $hasAny must be true)
         $this->assertSame(2, $flushCount, 'phaseFour must flush when only pageDataPositions are created ($hasAny = true path)');
     }
-
-    // --- Layout group positions trigger phaseFour flush (kills IfNegation/TrueValue mutants 13+14) ---
 
     public function test_phase_four_flushes_when_layout_group_has_component_position(): void
     {
@@ -1551,7 +1499,6 @@ class CwaFixtureBuilderTest extends TestCase
             ->add($component);
         $builder->flush();
 
-        // phaseOne + phaseFour (no route specs → phaseThree skips; component position triggers $hasPositions = true)
         $this->assertSame(2, $flushCount, 'phaseFour must flush when a layout group has component positions');
     }
 
@@ -1561,14 +1508,11 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
         $builder->layout('main', 'Primary')
-            ->group('nav'); // no positions added
+            ->group('nav');
         $builder->flush();
 
-        // phaseOne only; no route specs → phaseThree skips; phaseFour must not flush
         $this->assertSame(1, $flushCount, 'phaseFour must not flush when layout group has no positions');
     }
-
-    // --- Component builder group positions trigger phaseFour flush (kills IfNegation/TrueValue mutants 15+16) ---
 
     public function test_phase_four_flushes_when_component_builder_group_has_position(): void
     {
@@ -1580,7 +1524,6 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->component($outerComponent)->group('items')->add($innerComponent);
         $builder->flush();
 
-        // phaseOne + phaseFour (no route specs → phaseThree skips; inner component position triggers $hasPositions = true)
         $this->assertSame(2, $flushCount, 'phaseFour must flush when a component builder group has positions');
     }
 
@@ -1590,14 +1533,11 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {};
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
-        $builder->component($component)->group('items'); // no add() calls
+        $builder->component($component)->group('items');
         $builder->flush();
 
-        // phaseOne only; no route specs → phaseThree skips; phaseFour must not flush since no positions were created
         $this->assertSame(1, $flushCount, 'phaseFour must not flush when component builder group has no positions');
     }
-
-    // --- timestampedPersister called with isNew=true for AbstractComponent in componentBuilders (kills mutants 7+8) ---
 
     public function test_timestamped_persister_called_with_is_new_true_for_component_builder_component(): void
     {
@@ -1632,17 +1572,13 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertEmpty($componentCalls, 'persistTimestampedFields must NOT be called for non-timestamped components');
     }
 
-    // --- LogicalAnd: routeName only stored when route IS set on entity (kills mutants 9+10) ---
-
     public function test_named_route_for_page_not_stored_when_route_generator_does_not_set_route_on_entity(): void
     {
-        // routeGenerator returns a Route but does NOT call setRoute() on the page entity
         $routeGenerator = $this->createStub(RouteGeneratorInterface::class);
         $routeGenerator->method('create')->willReturnCallback(static function (object $entity): Route {
             $route = new Route();
             $route->setPath('/whatever');
 
-            // Deliberately NOT calling $entity->setRoute($route) — page->getRoute() stays null
             return $route;
         });
 
@@ -1652,18 +1588,16 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
 
         $this->expectException(\LogicException::class);
-        $builder->getRoute('home-page'); // must NOT be stored because page->getRoute() was null after create()
+        $builder->getRoute('home-page');
     }
 
     public function test_named_route_for_pagedata_not_stored_when_route_generator_does_not_set_route_on_entity(): void
     {
-        // routeGenerator returns a Route but does NOT call setRoute() on the pageData entity
         $routeGenerator = $this->createStub(RouteGeneratorInterface::class);
         $routeGenerator->method('create')->willReturnCallback(static function (object $entity): Route {
             $route = new Route();
             $route->setPath('/whatever');
 
-            // Deliberately NOT calling $entity->setRoute($route) — pageData->getRoute() stays null
             return $route;
         });
 
@@ -1674,10 +1608,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
 
         $this->expectException(\LogicException::class);
-        $builder->getRoute('article'); // must NOT be stored because pageData->getRoute() was null after create()
+        $builder->getRoute('article');
     }
-
-    // --- persistedEntities deduplication: manager->persist() called only once per entity (kills mutant 18) ---
 
     public function test_manager_persist_called_only_once_per_entity_object_identity(): void
     {
@@ -1696,13 +1628,11 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($em);
         $builder->persist($component);
-        $builder->persist($component); // second call must be a no-op
+        $builder->persist($component);
         $builder->flush();
 
         $this->assertSame(1, $persistCount, 'manager->persist() must be called exactly once per entity regardless of duplicate persist() calls');
     }
-
-    // --- Continue vs break: processing continues when an entity already has a route (kills not-covered Continue_ mutants) ---
 
     public function test_second_pagedata_gets_route_when_first_already_has_one(): void
     {
@@ -1712,13 +1642,11 @@ class CwaFixtureBuilderTest extends TestCase
         $firstPd = new class extends AbstractPageData {};
         $secondPd = new class extends AbstractPageData {};
 
-        // Pre-assign a route to the first pageData so phaseThree skips it (continue, not break)
         $existingRoute = new Route();
         $existingRoute->setPath('/first');
         $existingRoute->setName('first');
         $firstPd->setRoute($existingRoute);
 
-        // routeGenerator must be called exactly once (only for the second pageData)
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->once())
             ->method('create')
@@ -1747,8 +1675,6 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->collectingEm($persisted);
 
-        // First page gets an explicit route (set during phaseThree via createExplicitRoute).
-        // Second page must still get auto-routed (verifies continue not break).
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->once())
             ->method('create')
@@ -1764,7 +1690,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder($em, $routeGenerator);
         $builder->layout('main', 'Primary');
         $builder->page('first', 'Template', layout: 'main', route: '/first');
-        $builder->page('second', 'Template', layout: 'main'); // auto-routed
+        $builder->page('second', 'Template', layout: 'main');
         $builder->flush();
 
         $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
@@ -1773,8 +1699,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertContains('/first', $paths);
         $this->assertContains('/second', $paths);
     }
-
-    // --- persistWithAssociations with ClassMetadata stub (kills not-covered association traversal mutants) ---
 
     public function test_persist_with_associations_persists_owning_side_single_valued_association(): void
     {
@@ -1892,17 +1816,13 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->persist($mainEntity);
         $builder->flush();
 
-        // Only mainEntity itself should be persisted; the null association must be skipped
         $this->assertSame(1, $persistCount, 'Null association value must not trigger additional persist() calls');
     }
-
-    // --- readProperty: uninitialized property treated as null (kills not-covered Ternary mutant line 582) ---
 
     public function test_persist_with_associations_treats_uninitialized_property_as_null_not_value(): void
     {
         $persistCount = 0;
 
-        // Entity with a typed property that is declared but never initialized
         $mainEntity = new class extends AbstractComponent {
             public string $uninitializedProp;
         };
@@ -1922,11 +1842,8 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->persist($mainEntity);
         $builder->flush();
 
-        // Only mainEntity persisted; uninitialized property returns null from readProperty, not the value
         $this->assertSame(1, $persistCount, 'Uninitialized typed property must return null (not a value) and skip further persist calls');
     }
-
-    // --- readProperty: initialized property value is returned (kills Ternary mutant via initialized path) ---
 
     public function test_persist_with_associations_returns_value_of_initialized_property(): void
     {
@@ -1936,7 +1853,7 @@ class CwaFixtureBuilderTest extends TestCase
         $mainEntity = new class extends AbstractComponent {
             public ?object $initializedProp = null;
         };
-        $mainEntity->initializedProp = $associated; // explicitly initialized
+        $mainEntity->initializedProp = $associated;
 
         $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['initializedProp']);
@@ -1956,35 +1873,28 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertContains($associated, $persisted, 'Initialized property value must be returned and the associated entity persisted');
     }
 
-    // --- LogicalAnd kills mutants 70/71: null routeName must never register under empty-string key ---
-
     public function test_auto_route_page_with_null_route_name_does_not_register_empty_string_route(): void
     {
-        // The LogicalAnd mutant (&&→||) would store the route under the null→"" key when page->getRoute() is set.
-        // This test calls getRoute('') to verify no such registration happens.
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Template', layout: 'main'); // routeName is null, but route IS created
+        $builder->page('home', 'Template', layout: 'main');
         $builder->flush();
 
         $this->expectException(\LogicException::class);
-        $builder->getRoute(''); // must throw — null routeName must not be stored under "" key
+        $builder->getRoute('');
     }
 
     public function test_auto_route_pagedata_with_null_route_name_does_not_register_empty_string_route(): void
     {
-        // Same as above but for PageData
         $pageData = new class extends AbstractPageData {};
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
-        $builder->pageData($pageData); // routeName is null, but route IS created
+        $builder->pageData($pageData);
         $builder->flush();
 
         $this->expectException(\LogicException::class);
-        $builder->getRoute(''); // must throw — null routeName must not be stored under "" key
+        $builder->getRoute('');
     }
-
-    // --- #183: flush() idempotency ---
 
     public function test_double_flush_does_not_duplicate_entity_persists(): void
     {
@@ -2000,11 +1910,10 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
         $firstCount = \count($persisted);
 
-        $builder->flush(); // second flush must not persist any entity again
+        $builder->flush();
 
         $this->assertCount($firstCount, $persisted, 'Second flush must not add duplicate persists');
 
-        // Each entity object must appear at most once in $persisted
         $entities = array_filter($persisted, static fn ($e) => $e instanceof Layout || $e instanceof Page || $e instanceof ComponentGroup);
         foreach (array_count_values(array_map(static fn ($e) => spl_object_id($e), array_values($entities))) as $count) {
             $this->assertSame(1, $count, 'Each entity must be persisted exactly once across multiple flush() calls');
@@ -2018,13 +1927,13 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->flush(); // first flush: only layout
+        $builder->flush();
 
         $layoutsPersisted = \count(array_filter($persisted, static fn ($e) => $e instanceof Page));
         $this->assertSame(0, $layoutsPersisted, 'No pages should be persisted after first flush');
 
         $builder->page('home', 'Template', layout: 'main');
-        $builder->flush(); // second flush: page registered since last flush
+        $builder->flush();
 
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
         $this->assertCount(1, $pages, 'Page registered between flushes must be persisted on second flush');
@@ -2046,7 +1955,7 @@ class CwaFixtureBuilderTest extends TestCase
             });
 
         $builder->flush();
-        $builder->flush(); // second flush must not re-fire the callback
+        $builder->flush();
 
         $this->assertSame(1, $callCount, 'onRoutesCreated must fire exactly once even when flush() is called multiple times');
     }
@@ -2080,31 +1989,22 @@ class CwaFixtureBuilderTest extends TestCase
         }
     }
 
-    // --- readProperty: DoWhile traverses parent class hierarchy (kills not-covered DoWhile mutant line 578) ---
-
     public function test_read_property_finds_property_declared_only_in_parent_class(): void
     {
         $persisted = [];
 
         $associated = new class extends AbstractComponent {};
 
-        // Create a child class whose parent declares the property
         $parentEntity = new class extends AbstractComponent {
             public ?object $parentDeclaredProp = null;
         };
         $parentEntity->parentDeclaredProp = $associated;
 
-        // Wrap in a child class that does NOT redeclare the property — ReflectionClass on child
-        // will need to walk up to the parent class to find it.
         $childEntity = new class($parentEntity) extends AbstractComponent {
             public function __construct(private object $proto)
             {
             }
         };
-        // We can't easily extend a dynamic class, so test directly using the parent entity
-        // which already exercises the readProperty fallback for its own properties.
-        // The real DoWhile test: if property only exists on parent, use parent's class context.
-        // We simulate by reading a property declared in AbstractComponent's parent hierarchy.
 
         $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['parentDeclaredProp']);
@@ -2196,8 +2096,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNull($layouts[0]->uiClassNames);
     }
 
-    // --- uiComponent prefix prepending ---
-
     public function test_layout_ui_component_gets_cwa_layout_prefix(): void
     {
         $persisted = [];
@@ -2225,8 +2123,6 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame('CwaPageBlog', $pages[0]->uiComponent);
     }
 
-    // --- ComponentBuilder::uiComponent() ---
-
     public function test_component_builder_ui_component_stores_full_prefixed_name(): void
     {
         $component = new class extends AbstractComponent {};
@@ -2238,8 +2134,6 @@ class CwaFixtureBuilderTest extends TestCase
         $shortName = (new \ReflectionClass($component))->getShortName();
         $this->assertSame('CwaComponent' . $shortName . 'UiYouTube', $component->uiComponent);
     }
-
-    // --- ComponentBuilder::uiClassNames() ---
 
     public function test_component_builder_ui_class_names_variadic_sets_array_on_entity(): void
     {

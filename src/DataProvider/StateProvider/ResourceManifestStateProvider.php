@@ -34,7 +34,6 @@ class ResourceManifestStateProvider implements ProviderInterface
     {
         $id = $uriVariables['id'];
 
-        // Route paths always start with '/', UUIDs do not
         if (str_starts_with($id, '/')) {
             $entity = $this->routeRepository->findOneByIdOrPath($id);
         } else {

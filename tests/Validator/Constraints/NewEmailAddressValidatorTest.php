@@ -189,8 +189,6 @@ class NewEmailAddressValidatorTest extends TestCase
         $this->newEmailAddressValidator->validate($dummyUser, $constraint);
     }
 
-    // --- Deterministic single-branch coverage (kills surviving mutants) ---
-
     /**
      * Captures the messages and atPath targets of every violation the validator raises for a
      * single validate() call, without relying on ordered mock expectations across branches.
@@ -235,9 +233,6 @@ class NewEmailAddressValidatorTest extends TestCase
 
     public function test_empty_new_email_returns_before_match_check(): void
     {
-        // Kills LogicalNot (line 44) and ReturnRemoval (line 45): with an empty new email that equals
-        // the (empty) current address and a verified state, only the early return prevents a spurious
-        // "same as previous" violation. The mutant reaches line 48 ('' === '') and raises `message`.
         $validator = $this->makeValidator(null);
 
         $user = new class extends AbstractUser {
@@ -252,9 +247,6 @@ class NewEmailAddressValidatorTest extends TestCase
 
     public function test_verified_matching_email_adds_only_the_match_message(): void
     {
-        // Kills Identical (=== → !==), MethodCallRemoval (line 49) and ReturnRemoval (line 53). The
-        // repository is primed to return a user, so if the code failed to return after the match it
-        // would add a SECOND (uniqueMessage) violation — the exact-array assertion catches that.
         $user = new class extends AbstractUser {
         };
         $user->setEmailAddressVerified(true);
@@ -271,8 +263,6 @@ class NewEmailAddressValidatorTest extends TestCase
 
     public function test_verified_but_different_email_raises_no_match_violation(): void
     {
-        // Kills the second-operand negation and LogicalAndNegation on line 48: a DIFFERENT new email
-        // must not trigger the match branch, and the repository (primed null) adds nothing.
         $user = new class extends AbstractUser {
         };
         $user->setEmailAddressVerified(true);
@@ -287,8 +277,6 @@ class NewEmailAddressValidatorTest extends TestCase
 
     public function test_unverified_matching_email_raises_no_match_violation(): void
     {
-        // Kills LogicalAnd (&& → ||) and the first-operand negation on line 48: when the address is
-        // NOT verified, an identical new email must not trigger the match violation.
         $user = new class extends AbstractUser {
         };
         $user->setEmailAddressVerified(false);
@@ -303,8 +291,6 @@ class NewEmailAddressValidatorTest extends TestCase
 
     public function test_existing_user_with_new_email_raises_unique_message(): void
     {
-        // Kills IfNegation (line 56) and MethodCallRemoval (line 57): when the repository finds an
-        // existing user for the new email, exactly `uniqueMessage` must fire on `newEmailAddress`.
         $user = new class extends AbstractUser {
         };
         $user->setEmailAddressVerified(false);

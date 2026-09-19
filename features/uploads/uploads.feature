@@ -137,7 +137,6 @@ Feature: API Resources which can have files uploaded
     And the JSON should be valid according to the schema "features/assets/schema/uploadable_has_files.schema.json"
     And the JSON node "_metadata.publishable.published" should be true
 
-  # Replicate a published resource not having an image, creating a draft by uploading and then publishing this draft and the published resource should have the image
   @loginAdmin
   Scenario: When we create a draft through means of an upload to the published, and then publish the draft, the new published resource should still have a file
     Given I add "Content-Type" header equal to "multipart/form-data"
@@ -239,11 +238,6 @@ Feature: API Resources which can have files uploaded
       | file | @image.svg |
     Then the response status code should be 201
 
-  # Publishing a draft that has a published resource runs the draft->published merge
-  # (PublishableEventListener::mergeDraftIntoPublished), which deletes the published resource's own
-  # file from the filestore before copying the draft's fields over it. Asserting the filename column
-  # is not enough - the download link step only compares a URL built from the IRI, and the schema only
-  # proves filename is non-null. These scenarios assert the stored object itself survives the merge.
 
   @loginAdmin
   Scenario: When I upload a file to an existing draft and then publish it, the published resource keeps the uploaded file
@@ -263,9 +257,6 @@ Feature: API Resources which can have files uploaded
     And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.svg$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
-  # The merge deletes the file the published resource stops referencing. When the draft carries the
-  # same stored path, that file is the one the published resource still points at, so nothing may be
-  # deleted — the old delete-before-copy order destroyed it and left a dangling path behind.
   @loginAdmin
   Scenario: Publishing a draft that shares the published resource's stored file keeps that file
     Given there is a DummyUploadableAndPublishable with a draft
@@ -279,8 +270,6 @@ Feature: API Resources which can have files uploaded
     And the resource "dummy_uploadable" should have a filename matching "#^components/image-[0-9a-f]{8}\.png$#"
     And the file for the resource "dummy_uploadable" should exist in its configured filestore
 
-  # A draft that was never published has no publishedResource, so checkMergeDraftIntoPublished returns
-  # early - no merge and no file deletion - and the resource keeps its own IRI once published.
   @loginAdmin
   Scenario: When I upload a file to a draft that has never been published and then publish it, the file is kept
     Given there is a draft DummyUploadableAndPublishable
@@ -312,10 +301,6 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
 
-  # Multiple independent uploadable fields on one resource.
-  # $file (generic, no imagine filters) and $preview (image, imagine filters) each have their own
-  # storage property, so uploading to one never touches the other, and imagine only ever runs on
-  # an actual image — never on a non-image (docx/pdf) even when the target field declares filters.
 
   @loginUser
   Scenario: Uploading a non-image to an imagine-filtered field does not attempt image processing
@@ -347,7 +332,6 @@ Feature: API Resources which can have files uploaded
     And the JSON node "_metadata.mediaObjects.file[0]" should exist
     And the JSON node "_metadata.mediaObjects.preview" should not exist
 
-  # requiredOnPublish — a file must be present per flagged field before the resource can be published.
 
   @loginAdmin
   Scenario: Publishing is rejected per field when a requiredOnPublish file is missing
@@ -393,12 +377,6 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 201
     And there should be 1 mercure messages
 
-  # Files are stored under the uploaded file's own name plus a unique token, so
-  # two resources that upload the same source file each get their own stored file
-  # and one can never overwrite (or, when later deleted, remove) another's.
-  # One resource is uploaded through the real multipart pipeline; a second is created from the same
-  # source file via persistFiles directly. Both must be stored under a unique tokenised name derived
-  # from the original filename, so neither can overwrite (or, on delete, remove) the other's file.
   @loginUser
   Scenario: Uploading keeps the original filename with a unique token and never collides with another resource's file
     Given I add "Content-Type" header equal to "multipart/form-data"
