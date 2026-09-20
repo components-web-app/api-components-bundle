@@ -111,10 +111,12 @@ class Route
 
     #[ORM\Column(name: 'live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
     #[ApiProperty(security: self::API_PUBLICATION_SECURITY, securityPostDenormalize: self::API_PUBLICATION_SECURITY)]
+    #[Groups(['Route:redirect:read'])]
     private ?\DateTimeImmutable $liveAt = null;
 
     #[ORM\Column(name: 'effective_live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
-    #[ApiProperty(readable: false, writable: false)]
+    #[ApiProperty(writable: false, security: self::API_PUBLICATION_SECURITY)]
+    #[Groups(['Route:redirect:read'])]
     private ?\DateTimeImmutable $effectiveLiveAt = null;
 
     #[ApiProperty(readable: false)]
