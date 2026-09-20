@@ -22,6 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -130,11 +131,7 @@ final class PublishableExtension implements QueryItemExtensionInterface, QueryCo
 
     private function updateQueryBuilderForUnauthorizedUsers(QueryBuilder $queryBuilder, Publishable $configuration): void
     {
-        $alias = $queryBuilder->getRootAliases()[0];
-        $queryBuilder
-            ->andWhere("$alias.$configuration->fieldName IS NOT NULL")
-            ->andWhere("$alias.$configuration->fieldName <= :currentTime")
-            ->setParameter('currentTime', new \DateTime());
+        PublicationDate::andWhereActive($queryBuilder, $queryBuilder->getRootAliases()[0], $configuration->fieldName);
     }
 
     private function getConfiguration(string $resourceClass): ?Publishable

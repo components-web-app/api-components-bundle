@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -26,7 +27,7 @@ class RouteExtension implements QueryCollectionExtensionInterface
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker)
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
     {
         $this->config = $config;
         $this->resourceAccessChecker = $resourceAccessChecker;
@@ -34,11 +35,16 @@ class RouteExtension implements QueryCollectionExtensionInterface
 
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (!$this->config || Route::class !== $resourceClass) {
+        if (Route::class !== $resourceClass) {
             return;
         }
         $alias = $queryBuilder->getRootAliases()[0];
-        foreach ($this->config as $index => $routeConfig) {
+
+        if (!$this->resourceAccessChecker->isGranted($resourceClass, $this->publicationPermission)) {
+            PublicationDate::andWhereActive($queryBuilder, $alias, 'effectiveLiveAt');
+        }
+
+        foreach ($this->config ?? [] as $index => $routeConfig) {
             if ($this->resourceAccessChecker->isGranted($resourceClass, $routeConfig['security'])) {
                 continue;
             }

@@ -74,10 +74,12 @@ use Silverback\ApiComponentsBundle\EventListener\Api\DeletedResourceEventListene
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\RouteLiveAtListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
@@ -124,6 +126,7 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -192,6 +195,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -962,6 +966,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.doctrine.repository.route'),
                 new Reference('api_platform.state_provider'),
+                new Reference(RouteLiveResolver::class),
                 new Reference(CwaCollectorData::class),
             ]
         )
@@ -1022,10 +1027,29 @@ return static function (ContainerConfigurator $configurator) {
             [
                 '', // added in dependency injection
                 new Reference('api_platform.security.resource_access_checker'),
+                '', // added in dependency injection
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
     $services->alias(RouteExtension::class, 'silverback.api_components.doctrine.orm.extension.route');
+
+    $services
+        ->set('silverback.api_components.helper.route.live_resolver')
+        ->class(RouteLiveResolver::class);
+    $services->alias(RouteLiveResolver::class, 'silverback.api_components.helper.route.live_resolver');
+
+    $services
+        ->set('silverback.api_components.doctrine.event_listener.route_live_at')
+        ->class(RouteLiveAtListener::class)
+        ->args([new Reference(RouteLiveResolver::class)])
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush]);
+    $services->alias(RouteLiveAtListener::class, 'silverback.api_components.doctrine.event_listener.route_live_at');
+
+    $services
+        ->set('silverback.api_components.event_listener.api.unpublished_route_exception')
+        ->class(UnpublishedRouteExceptionListener::class)
+        ->tag('kernel.event_listener', ['event' => ExceptionEvent::class, 'priority' => 10, 'method' => 'onKernelException']);
+    $services->alias(UnpublishedRouteExceptionListener::class, 'silverback.api_components.event_listener.api.unpublished_route_exception');
 
     $services
         ->set('silverback.helper.route_generator')
@@ -1067,6 +1091,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
+            new Reference(RouteLiveResolver::class),
+            '', // added in dependency injection
         ])
         ->tag('security.voter');
     $services->alias(RouteVoter::class, 'silverback.api_components.security.voter.route');
@@ -1118,6 +1144,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('silverback.doctrine.repository.route'),
             new Reference(EntityManagerInterface::class),
+            new Reference(RouteLiveResolver::class),
         ])
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
@@ -1721,6 +1748,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(TokenStorageInterface::class),
                 new Reference(PublishableStatusChecker::class),
+                new Reference('silverback.doctrine.repository.route'),
                 [],
             ]
         )

@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -28,6 +30,13 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
     private const ALREADY_CALLED = 'ROUTE_NORMALIZER_ALREADY_CALLED';
 
+    public function __construct(
+        private readonly RouteLiveResolver $routeLiveResolver,
+        private readonly ResourceAccessCheckerInterface $resourceAccessChecker,
+        private readonly string $publicationPermission,
+    ) {
+    }
+
     /**
      * @param Route      $object
      * @param mixed|null $format
@@ -40,7 +49,6 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
         $redirectedRoutes = [$finalRoute->getId()];
         while ($nextRedirect = $finalRoute->getRedirect()) {
-            // if a route has just been deleted which had other routes redirecting to it, then they will delete - but appear here as a redirect still without an ID for some reason
             if (!$nextRedirect->getId()) {
                 break;
             }
@@ -52,8 +60,10 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         }
 
         $isRedirect = $finalRoute !== $object;
+        $mayReadUnpublished = $this->mayReadUnpublished();
+        $propagateTarget = $isRedirect && ($mayReadUnpublished || $this->routeLiveResolver->isLive($finalRoute));
 
-        if ($isRedirect) {
+        if ($propagateTarget) {
             $reflPage = new \ReflectionProperty($object, 'page');
             $reflPageData = new \ReflectionProperty($object, 'pageData');
             $originalPage = $reflPage->getValue($object);
@@ -68,10 +78,20 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
         $normalized = $this->normalizer->normalize($object, $format, $context);
 
-        if ($isRedirect) {
-            $normalized['redirectPath'] = $finalRoute->getPath();
+        if ($propagateTarget) {
             $reflPage->setValue($object, $originalPage);
             $reflPageData->setValue($object, $originalPageData);
+        }
+
+        if ($isRedirect && \is_array($normalized)) {
+            $normalized['redirectPath'] = $finalRoute->getPath();
+        }
+
+        if (!$mayReadUnpublished && \is_array($normalized) && \array_key_exists('redirectedFrom', $normalized)) {
+            $nonLivePaths = [];
+            $visited = [];
+            $this->collectNonLivePaths($object, $nonLivePaths, $visited);
+            $normalized = $this->pruneRedirectedFrom($normalized, $nonLivePaths);
         }
 
         return $normalized;
@@ -85,5 +105,56 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
     public function getSupportedTypes(?string $format): array
     {
         return [Route::class => false];
+    }
+
+    private function mayReadUnpublished(): bool
+    {
+        return $this->resourceAccessChecker->isGranted(Route::class, $this->publicationPermission);
+    }
+
+    /**
+     * @param array<string, true> $paths
+     * @param array<string, true> $visited
+     */
+    private function collectNonLivePaths(Route $route, array &$paths, array &$visited): void
+    {
+        foreach ($route->getRedirectedFrom() as $redirectedFrom) {
+            $id = $redirectedFrom->getId()?->toString();
+            if (null !== $id) {
+                if (isset($visited[$id])) {
+                    continue;
+                }
+                $visited[$id] = true;
+            }
+            if (!$this->routeLiveResolver->isLive($redirectedFrom)) {
+                $paths[$redirectedFrom->getPath()] = true;
+            }
+            $this->collectNonLivePaths($redirectedFrom, $paths, $visited);
+        }
+    }
+
+    /**
+     * @param array<string, true> $nonLivePaths
+     */
+    private function pruneRedirectedFrom(array $node, array $nonLivePaths): array
+    {
+        if (!isset($node['redirectedFrom']) || !\is_array($node['redirectedFrom'])) {
+            return $node;
+        }
+
+        $kept = [];
+        foreach ($node['redirectedFrom'] as $child) {
+            if (!\is_array($child)) {
+                $kept[] = $child;
+                continue;
+            }
+            if (isset($child['path']) && isset($nonLivePaths[$child['path']])) {
+                continue;
+            }
+            $kept[] = $this->pruneRedirectedFrom($child, $nonLivePaths);
+        }
+        $node['redirectedFrom'] = $kept;
+
+        return $node;
     }
 }

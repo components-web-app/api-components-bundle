@@ -73,6 +73,38 @@ This is why parent/child hierarchy lives on `AbstractPage` (via `$parentPage`/`$
 - `RouteGenerator` reads `getParentPageRoute()` (computed from `$parentPage?->getRoute() ?? $parentPageData?->getRoute()`) at route-generation time to construct the correct prefixed path
 - Moving hierarchy to `Route` would mean you can't establish parent/child until both pages are already published
 
+### Route publication — `liveAt` and `effectiveLiveAt` (#224)
+
+A Route's *existence* is no longer the whole publication signal. `Route.liveAt` (nullable, admin-only via `#[ApiProperty(security:)]`) adds three states:
+
+| `liveAt` | Meaning |
+|---|---|
+| a past date | live |
+| a future date | scheduled — publicly invisible until that moment, then live with no further action |
+| `null` | draft / taken offline, URL reserved |
+
+**Existing behaviour is preserved by defaults, not by semantics.** `Route::__construct()` sets `liveAt` to now and the ORM column carries `options: ['default' => 'CURRENT_TIMESTAMP']`, so an application's generated migration backfills existing rows and every existing call site (`RouteGenerator`, `POST /_/routes`, `CwaFixtureBuilder`, fixtures, `DoctrineContext`) still produces a live route. Going draft is an explicit act.
+
+**The effective date is inherited down the page hierarchy**, resolved by `RouteLiveResolver::resolveEffectiveLiveAt()` (`src/Helper/Route/RouteLiveResolver.php`):
+
+- Walk `Route → page/pageData → parentPage ?? parentPageData` upwards.
+- An ancestor **that has a Route** contributes that route's `liveAt`. If it is `null`, the whole chain is not live.
+- An ancestor **with no Route contributes nothing and is skipped** — it is not a publication gate. `getParentPageRoute()` returning null means "keep walking", never "not live". This matters: the nested-pages design rests on a parent being editable before it has a public URL, so a routed child under an unrouted template page must stay live.
+- Effective = the **latest** date collected, including the route's own. A parent at 2999 gates a child at 2000; a child at 2999 gates itself under a live parent.
+- The walk is cycle-safe with a visited-id set, mirroring `AbstractPage::validateNoCircularParent()`. Do not rely on that validator for protection — fixtures, `CwaFixtureBuilder` and direct SQL all bypass it.
+
+**Resolution is denormalised** into `Route.effectiveLiveAt` (not API-exposed) so the collection filters stay a single flat predicate, the voters stay cheap, and the cache cap can do a plain `SELECT MIN(...)`. `RouteLiveAtListener` (`src/EventListener/Doctrine/RouteLiveAtListener.php`, `onFlush`) maintains it: it collects routes from scheduled insertions and from updates whose changeset touches `liveAt`/`page`/`pageData` (on `Route`) or `route`/`parentPage`/`parentPageData` (on `AbstractPage`), expands to already-persisted descendants with the `findDirectChildren` pattern, and writes back with `computeChangeSet` for insertions / `recomputeSingleEntityChangeSet` for the rest. Hooking `onFlush` rather than individual call sites is deliberate — it catches every path that goes through the entity manager, so there is no silent drift for fixtures or the builder. Direct SQL is out of scope.
+
+**Public status is 404, not 401/403.** `RouteVoter` still returns `false`, so the voter chain is untouched; `RouteStateProvider` / `ResourceManifestStateProvider` flag the request and `UnpublishedRouteExceptionListener` (main request + cacheable method only) rewrites 401/403 to 404.
+
+> The rewritten `NotFoundHttpException` **must not** carry the original exception as `previous`. Symfony's firewall `ExceptionListener` walks the `getPrevious()` chain looking for an `AccessDeniedException`/`AuthenticationException`, finds it, and converts the response straight back to 401.
+
+**Known and accepted boundary:** a component reachable only via a gated route still returns **401**, not 404. `ComponentVoter` reaches the route through a `SUB_REQUEST` (`ComponentVoter.php`), which the rewrite deliberately skips so the voter keeps seeing the 403 it knows how to swallow. Do not extend the rewrite to components — it would break that chain. `features/main/route_schedule.feature` pins the 401 so the boundary is explicit.
+
+**Redirects still point at a gated target.** `/old` → `/launch` returns 200 with `redirectPath: /launch`; the client follows it and gets the 404 at the destination. What `RouteNormalizer` no longer does is reflect the gated target's `page`/`pageData` IRI onto the redirecting route, which would have let an anonymous client render the unpublished page without following the redirect. Gated nodes are also pruned from the `redirectedFrom` tree on `/routes/{id}/redirects` for non-admins.
+
+**`#[Silverback\Publishable]` must never be applied to `Route`.** The attribute is a draft/published *pair* — `PublishableListener` would add unusable `publishedResource`/`draftResource` FKs to the `route` table, `PublishableExtension::applyToItem` would rewrite the item query and collide with `RouteStateProvider`'s path lookup, and `?published=`, the `Route:published:*` groups and `_metadata.publishable` would all appear on a resource with no twin. Only the scheduling *predicate* is shared, via `Silverback\ApiComponentsBundle\Utility\PublicationDate` (`isActive()` + `andWhereActive()`), which `PublishableExtension` and `PublishableStatusChecker` now both use.
+
 ### Route generation (`src/Helper/Route/RouteGenerator.php`)
 
 `RouteGenerator::create()` is called when a `Page`/`PageData` gets its route generated:
@@ -136,7 +168,7 @@ Key current group assignments:
 | `POST /routes/generate` | Auto-generate a Route for a Page/PageData |
 | `GET /routes/{id}/redirects` | Follow the redirect chain for a Route |
 | `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks direct children and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. |
-| `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. |
+| `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. |
 
 ---
 
@@ -487,6 +519,30 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
+### #224 — Route-level live / scheduled publication date ✓ **DONE**
+
+`Route.liveAt` + the inherited, denormalised `Route.effectiveLiveAt`. Full semantics are in **Route publication — `liveAt` and `effectiveLiveAt`** above; this entry records only what is easy to get wrong.
+
+- **Decided against the first instinct on every one of these:** `null` means *not live* (not "no schedule, therefore live") — backwards compatibility comes from the constructor default plus the column's `CURRENT_TIMESTAMP` default, not from the semantics. Public status is **404**, not 401/403. Redirects to a gated target are **not** truncated — only the reflected page IRI is withheld.
+- **The inheritance rule has two halves and only one is obvious.** A routed ancestor with `liveAt = null` gates everything below it. An ancestor with **no Route at all** is skipped entirely. Getting the second half wrong silently takes live child pages offline the moment someone sets a parent relationship on an unrouted template — `features/main/route_schedule.feature` carries a regression guard for it that passes both before and after the change.
+- **Gates that needed nothing.** `ResourceManifestVoter`, `RoutableVoter`, `DenyAccessListener::isPageDataAllowedByRoute` and `ComponentVoter::voteByRoute` all reach `RouteVoter`, so gating the voter covered them for free. `cascadeChildPaths` runs post-authorisation on the entity graph and is untouched. `/routes/{id}/children` was already `ROLE_ADMIN`-only.
+- **`recomputeSingleEntityChangeSet`, never `computeChangeSet`, when writing `effectiveLiveAt` during `onFlush`** — including for scheduled *insertions*. Doctrine has already computed the insert changeset by then, and `computeChangeSet` **replaces** it with a diff against `originalEntityData`, which by that point contains only `effectiveLiveAt`; the INSERT then omits every other column and dies on `NOT NULL constraint failed: route.name`. `recomputeSingleEntityChangeSet` merges into the existing changeset instead, and for an unchanged managed descendant it also schedules the update. This only bites when a **new** route resolves to something other than its own `liveAt` — i.e. a child created under a scheduled or draft parent, which is the feature's main use case and was caught only by the `POST /_/routes/generate` scenario.
+- **Every write path is covered because the hook is `onFlush`, not the call sites.** `RouteGenerator::create()` in particular sets only the owning side (`$object->setRoute($route)`) and leaves `Route.page`/`Route.pageData` null, so the listener pairs each collected route with the `AbstractPage` it was collected from and hands that to the resolver rather than trusting the inverse side. `CwaFixtureBuilder` and `DoctrineContext` need no special handling for the same reason.
+- **Tests:** `features/main/route_schedule.feature` (38 scenarios), two appended to `features/main/cache_headers.feature`, and unit tests for `RouteLiveResolver`, `UnpublishedRouteExceptionListener` and the cache cap. New Behat steps: `the Route :path goes live at/in :x`, `the Route :path has no go-live date`, `the Route :path should (not) be live`, `there is a PageData resource with the route path :path whose parent page has no route`, `the response shared max age should be at most :seconds`.
+- **Test-app config change:** `tests/Functional/app/config/packages/api_platform.yaml` now sets `defaults.cache_headers.shared_max_age`. Without it the bundle emits no `s-maxage` at all (`api_platform.http_cache.shared_max_age` defaults to null) and the cap is untestable.
+
+---
+
+### `RouteVoter::supports()` must not depend on `route_security` being configured ✓ **DONE**
+
+`supports()` used to read `self::READ_ROUTE === $attribute && $subject instanceof Route && $this->config`. `route_security` defaults to `[]`, so in any application that omitted the setting the voter **abstained on every route** — and `AffirmativeStrategy::decide()` returns `allowIfAllAbstainDecisions` (default `false`) when every voter abstains. The result was that `is_granted('read_route', object)` denied every route read, for everyone, silently.
+
+Nothing caught it because the test app *does* configure `route_security`, so every scenario exercised the configured path. A voter that opts out of `supports()` is not neutral — under the affirmative strategy it is a denial unless some other voter grants.
+
+The guard is gone (the loop now iterates `$this->config ?? []`), which was mandatory for #224 anyway: the publication check lives in this voter and has to run whether or not `route_security` is set.
+
+---
+
 ### #222 — Config guards that are declared but never enforced (follow-up to #214)
 
 `user.class_name`, `refresh_token.*`, `publishable.permission`, and `refresh_token.options.class` share the pattern #214 fixed: a node with a default plus `isRequired()` children, so `ArrayNode::finalizeValue` inserts the default and never finalizes it — the guard reads as working and never runs. The extension then reads missing keys directly, wiring `null` into typed scalars.
@@ -538,6 +594,8 @@ Currently the only "draft" signal for a page is the absence of a Route. Once a p
 Leave this issue open until the front-end approach and component-state semantics are agreed.
 
 > **2026-08-14 — Daniel: not doing this now.** Reviewed and deferred again, deliberately, not for lack of time. The three unresolved points above (component permission inheritance, front-end draft/live UX, hero-component state conflict) are still unresolved, and none of them is settled by writing the API side first — building `publishedAt` onto `AbstractPage` before the front-end approach is agreed would lock in answers to questions nobody has decided. **Do not start this**, and do not treat "the column is easy to add" as a reason to; the column is not the hard part.
+
+> **2026-09-20 — #224 does not supersede this; it complements it, and #186 stays open and deferred.** #224 gates *URL resolution*, so none of the three blockers applies to it: there is no second `publishedAt` on the page or its components to disagree with (Route is not `#[Publishable]` and has no draft twin); component permission inheritance is not a new question because component reachability is *already* derived through routes via `ComponentVoter::voteByRoute` → `RouteVoter`, which is the mechanism #224 gates rather than a new one; and no draft-preview scheme is needed because admins already fetch by IRI/UUID. What #224 still cannot express is #186's other half — "this page is a draft while its URL is live". Taking a page offline is now possible (clear `liveAt`); decoupling the entity's draft state from its URL is not. The blockers above remain the reason to leave this alone.
 
 ---
 

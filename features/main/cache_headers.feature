@@ -41,3 +41,17 @@ Feature: Cache-safety headers so shared caches can distinguish public from perso
     Then the response status code should be 200
     And the header "Cache-Control" should contain "public"
     And the header "Cache-Control" should not contain "no-store"
+
+  Scenario: An anonymous denial for a route which is not yet live is never stored by a shared cache
+    Given there is a Route "/launch" with a page
+    And the Route "/launch" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/routes//launch"
+    Then the response status code should be 404
+    And the header "Cache-Control" should contain "no-store"
+
+  Scenario: The anonymous route collection cannot be cached beyond the next go-live moment
+    Given there is a Route "/launch" with a page
+    And the Route "/launch" goes live in 60 seconds
+    When I send a "GET" request to "/_/routes"
+    Then the response status code should be 200
+    And the response shared max age should be at most 60

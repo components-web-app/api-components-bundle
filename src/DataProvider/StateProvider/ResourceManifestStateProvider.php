@@ -17,6 +17,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
@@ -27,6 +30,7 @@ class ResourceManifestStateProvider implements ProviderInterface
     public function __construct(
         private readonly RouteRepository $routeRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RouteLiveResolver $routeLiveResolver = new RouteLiveResolver(),
     ) {
     }
 
@@ -43,6 +47,11 @@ class ResourceManifestStateProvider implements ProviderInterface
 
         if (!$entity) {
             return null;
+        }
+
+        $gatingRoute = $entity instanceof Route ? $entity : $entity->getRoute();
+        if ($gatingRoute && !$this->routeLiveResolver->isLive($gatingRoute)) {
+            ($context['request'] ?? null)?->attributes->set(UnpublishedRouteExceptionListener::REQUEST_ATTRIBUTE, true);
         }
 
         $manifest = new ResourceManifest();
