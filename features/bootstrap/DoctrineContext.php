@@ -1138,6 +1138,45 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a PageData resource with the route path :path whose parent page has no route
+     */
+    public function thereIsAPageDataResourceUnderAnUnroutedParent(string $path): void
+    {
+        $parentPage = new Page();
+        $parentPage->isTemplate = true;
+        $parentPage->reference = 'unrouted parent page';
+        $this->timestampedHelper->persistTimestampedFields($parentPage, true);
+        $this->manager->persist($parentPage);
+
+        $parentPageData = new PageData();
+        $parentPageData->page = $parentPage;
+        $this->timestampedHelper->persistTimestampedFields($parentPageData, true);
+        $this->manager->persist($parentPageData);
+
+        $childPage = new Page();
+        $childPage->isTemplate = true;
+        $childPage->reference = 'child page';
+        $this->timestampedHelper->persistTimestampedFields($childPage, true);
+        $this->manager->persist($childPage);
+
+        $childPageData = new PageData();
+        $childPageData->page = $childPage;
+        $childPageData->setParentPageData($parentPageData);
+        $this->timestampedHelper->persistTimestampedFields($childPageData, true);
+        $this->manager->persist($childPageData);
+
+        $childRoute = new Route();
+        $childRoute->setPath($path)->setName($path)->setPageData($childPageData);
+        $this->timestampedHelper->persistTimestampedFields($childRoute, true);
+        $this->manager->persist($childRoute);
+
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
+        $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childRoute);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there is a Page resource with the route path :childPath nested within the route :parentPath
      */
     public function thereIsANestedPageResource(string $childPath, string $parentPath): void
@@ -1757,6 +1796,65 @@ final class DoctrineContext implements Context
             ]
         );
         Assert::assertFalse($user->isEmailAddressVerified());
+    }
+
+    /**
+     * @Given the Route :path goes live at :dateTime
+     */
+    public function theRouteGoesLiveAt(string $path, string $dateTime): void
+    {
+        $this->setRouteLiveAt($path, new \DateTimeImmutable($dateTime));
+    }
+
+    /**
+     * @Given the Route :path goes live in :seconds seconds
+     */
+    public function theRouteGoesLiveInSeconds(string $path, int $seconds): void
+    {
+        $this->setRouteLiveAt($path, (new \DateTimeImmutable())->modify(\sprintf('+%d seconds', $seconds)));
+    }
+
+    /**
+     * @Given the Route :path has no go-live date
+     */
+    public function theRouteHasNoGoLiveDate(string $path): void
+    {
+        $this->setRouteLiveAt($path, null);
+    }
+
+    /**
+     * @Then the Route :path should be live
+     */
+    public function theRouteShouldBeLive(string $path): void
+    {
+        Assert::assertTrue($this->isRouteLive($path), \sprintf('The route "%s" is not live.', $path));
+    }
+
+    /**
+     * @Then the Route :path should not be live
+     */
+    public function theRouteShouldNotBeLive(string $path): void
+    {
+        Assert::assertFalse($this->isRouteLive($path), \sprintf('The route "%s" is live.', $path));
+    }
+
+    private function setRouteLiveAt(string $path, ?\DateTimeImmutable $liveAt): void
+    {
+        $route = $this->manager->getRepository(Route::class)->findOneBy(['path' => $path]);
+        Assert::assertNotNull($route, \sprintf('No route found with the path "%s".', $path));
+        $route->setLiveAt($liveAt);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    private function isRouteLive(string $path): bool
+    {
+        $this->manager->clear();
+        $route = $this->manager->getRepository(Route::class)->findOneBy(['path' => $path]);
+        Assert::assertNotNull($route, \sprintf('No route found with the path "%s".', $path));
+        $effective = $route->getEffectiveLiveAt();
+
+        return null !== $effective && new \DateTimeImmutable() >= $effective;
     }
 
     /**

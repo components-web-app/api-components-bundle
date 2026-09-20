@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
+use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -47,13 +48,9 @@ class RoutableExtension implements QueryCollectionExtensionInterface
             return;
         }
 
-        // we may want to include pages which are routable - but if they are included in a routable page data with a
-        // publicly accessible route... should we not be trying to restrict routes further to what the routevoter says?
-        // .. or the route extension... ??
         $alias = $queryBuilder->getRootAliases()[0];
-        $queryBuilder
-            ->andWhere(
-                $queryBuilder->expr()->isNotNull("$alias.route")
-            );
+        $routeAlias = $queryNameGenerator->generateJoinAlias('route');
+        $queryBuilder->innerJoin("$alias.route", $routeAlias);
+        PublicationDate::andWhereActive($queryBuilder, $routeAlias, 'effectiveLiveAt');
     }
 }

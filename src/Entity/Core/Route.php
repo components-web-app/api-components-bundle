@@ -80,6 +80,7 @@ class Route
 
     private const array API_REQUIREMENTS = ['id' => '(.+)'];
     private const string API_SECURITY = "is_granted('read_route', object)";
+    private const string API_PUBLICATION_SECURITY = "is_granted('ROLE_ADMIN')";
 
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
@@ -108,12 +109,46 @@ class Route
     #[Groups(['Route:manifest:read', 'Route:redirect:read'])]
     private ?AbstractPageData $pageData = null;
 
+    #[ORM\Column(name: 'live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ApiProperty(security: self::API_PUBLICATION_SECURITY, securityPostDenormalize: self::API_PUBLICATION_SECURITY)]
+    private ?\DateTimeImmutable $liveAt = null;
+
+    #[ORM\Column(name: 'effective_live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ApiProperty(readable: false, writable: false)]
+    private ?\DateTimeImmutable $effectiveLiveAt = null;
+
     #[ApiProperty(readable: false)]
     public bool $cascadeChildPaths = false;
 
     public function __construct()
     {
         $this->redirectedFrom = new ArrayCollection();
+        $this->liveAt = new \DateTimeImmutable();
+        $this->effectiveLiveAt = $this->liveAt;
+    }
+
+    public function getLiveAt(): ?\DateTimeImmutable
+    {
+        return $this->liveAt;
+    }
+
+    public function setLiveAt(?\DateTimeImmutable $liveAt): self
+    {
+        $this->liveAt = $liveAt;
+
+        return $this;
+    }
+
+    public function getEffectiveLiveAt(): ?\DateTimeImmutable
+    {
+        return $this->effectiveLiveAt;
+    }
+
+    public function setEffectiveLiveAt(?\DateTimeImmutable $effectiveLiveAt): self
+    {
+        $this->effectiveLiveAt = $effectiveLiveAt;
+
+        return $this;
     }
 
     public function getPath(): string

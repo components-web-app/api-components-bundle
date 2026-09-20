@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Security\Voter;
 
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -26,7 +27,7 @@ class RouteVoter extends Voter
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker)
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteLiveResolver $routeLiveResolver = new RouteLiveResolver(), private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
     {
         $this->config = $config;
         $this->resourceAccessChecker = $resourceAccessChecker;
@@ -34,7 +35,7 @@ class RouteVoter extends Voter
 
     protected function supports($attribute, $subject): bool
     {
-        return self::READ_ROUTE === $attribute && $subject instanceof Route && $this->config;
+        return self::READ_ROUTE === $attribute && $subject instanceof Route;
     }
 
     /**
@@ -42,7 +43,11 @@ class RouteVoter extends Voter
      */
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
-        foreach ($this->config as $routeConfig) {
+        if (!$this->routeLiveResolver->isLive($subject) && !$this->resourceAccessChecker->isGranted($subject::class, $this->publicationPermission)) {
+            return false;
+        }
+
+        foreach ($this->config ?? [] as $routeConfig) {
             $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
             if (!$this->resourceAccessChecker->isGranted($subject::class, $routeConfig['security']) && preg_match(\sprintf('#%s#', $routeRegex), $subject->getPath())) {
                 return false;

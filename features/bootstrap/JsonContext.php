@@ -244,6 +244,23 @@ class JsonContext implements Context
     }
 
     /**
+     * @Then the response shared max age should be at most :seconds
+     */
+    public function theResponseSharedMaxAgeShouldBeAtMost(int $seconds): void
+    {
+        $cacheControl = '';
+        foreach ($this->jsonContext->getSession()->getResponseHeaders() as $name => $value) {
+            if ('cache-control' === strtolower((string) $name)) {
+                $cacheControl = \is_array($value) ? implode(', ', $value) : (string) $value;
+            }
+        }
+        Assert::assertNotEmpty($cacheControl, 'The response has no Cache-Control header.');
+        Assert::assertMatchesRegularExpression('/s-maxage=(\\d+)/', $cacheControl, \sprintf('The Cache-Control header "%s" has no s-maxage directive.', $cacheControl));
+        preg_match('/s-maxage=(\\d+)/', $cacheControl, $matches);
+        Assert::assertLessThanOrEqual($seconds, (int) $matches[1], \sprintf('The s-maxage directive in "%s" exceeds "%d" seconds.', $cacheControl, $seconds));
+    }
+
+    /**
      * @Then the response should have a :name cookie with max age less than :seconds
      */
     public function theResponseShouldHaveACookieWithMaxAgeLessThan(string $name, int $seconds): void

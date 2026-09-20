@@ -12,7 +12,12 @@
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -30,6 +35,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Platform's public cache headers, so the only variant a shared cache retains is the published one —
  * the same rule the edge cache already enforces by excluding cookie-bearing requests.
  *
+ * A scheduled route changes state when the clock passes its go-live moment, with no write to
+ * invalidate anything, so an anonymous response whose content depends on which routes are live is
+ * additionally capped so it cannot outlive the next go-live moment.
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 final class CacheHeadersEventListener
@@ -42,6 +51,7 @@ final class CacheHeadersEventListener
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
         PublishableStatusChecker $publishableStatusChecker,
+        private readonly RouteRepository $routeRepository,
         private readonly array $personalisedResourceClasses = [],
     ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
@@ -54,19 +64,67 @@ final class CacheHeadersEventListener
             return;
         }
 
-        $resourceClass = $request->attributes->get('_api_resource_class');
-        if (!\is_string($resourceClass) || !$this->isPersonalisableResource($resourceClass)) {
-            return;
-        }
-
-        if (!$this->isAuthenticated()) {
-            return;
-        }
-
         $response = $event->getResponse();
+
+        if (true === $request->attributes->get(UnpublishedRouteExceptionListener::REQUEST_ATTRIBUTE)) {
+            $this->markNeverStored($response);
+
+            return;
+        }
+
+        $resourceClass = $request->attributes->get('_api_resource_class');
+        if (!\is_string($resourceClass)) {
+            return;
+        }
+
+        if ($this->isAuthenticated()) {
+            if ($this->isPersonalisableResource($resourceClass)) {
+                $this->markNeverStored($response);
+            }
+
+            return;
+        }
+
+        $this->capAtNextPublicationChange($request, $response, $resourceClass);
+    }
+
+    private function markNeverStored(Response $response): void
+    {
         $response->setPrivate();
         $response->headers->removeCacheControlDirective('s-maxage');
         $response->headers->addCacheControlDirective('no-store');
+    }
+
+    private function capAtNextPublicationChange(Request $request, Response $response, string $resourceClass): void
+    {
+        if (!$response->isSuccessful()) {
+            return;
+        }
+
+        if (!is_a($resourceClass, Route::class, true) && !is_a($resourceClass, RoutableInterface::class, true)) {
+            return;
+        }
+
+        $sharedMaxAge = $response->headers->getCacheControlDirective('s-maxage');
+        $maxAge = $response->headers->getCacheControlDirective('max-age');
+        if (null === $sharedMaxAge && null === $maxAge) {
+            return;
+        }
+
+        $now = new \DateTimeImmutable();
+        $next = $this->routeRepository->findNextEffectiveLiveAt($now);
+        if (null === $next) {
+            return;
+        }
+
+        $seconds = max(0, $next->getTimestamp() - $now->getTimestamp());
+
+        if (null !== $sharedMaxAge && (int) $sharedMaxAge > $seconds) {
+            $response->headers->addCacheControlDirective('s-maxage', (string) $seconds);
+        }
+        if (null !== $maxAge && (int) $maxAge > $seconds) {
+            $response->headers->addCacheControlDirective('max-age', (string) $seconds);
+        }
     }
 
     private function isPersonalisableResource(string $resourceClass): bool

@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Helper\Publishable;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -58,7 +59,7 @@ class PublishableStatusChecker
 
         $value = $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
 
-        return null !== $value && new \DateTimeImmutable() >= $value;
+        return PublicationDate::isActive($value);
     }
 
     public function hasPublicationDate(object $object): bool

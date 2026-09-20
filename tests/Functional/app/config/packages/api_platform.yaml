@@ -36,6 +36,7 @@ api_platform:
         extra_properties:
             rfc_7807_compliant_errors: true
         cache_headers:
+            shared_max_age: 3600
             invalidation:
                 xkey:
                     glue: ' '

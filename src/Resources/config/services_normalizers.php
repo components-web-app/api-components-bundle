@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
@@ -198,6 +199,11 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.serializer.normalizer.route')
         ->class(RouteNormalizer::class)
+        ->args([
+            new Reference(RouteLiveResolver::class),
+            new Reference('api_platform.security.resource_access_checker'),
+            '', // injected in dependency injection
+        ])
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(RouteNormalizer::class, 'silverback.api_components.serializer.normalizer.route');

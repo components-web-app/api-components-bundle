@@ -18,6 +18,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
 /**
@@ -31,6 +33,7 @@ class RouteStateProvider implements ProviderInterface
     public function __construct(
         RouteRepository $routeRepository,
         ProviderInterface $defaultProvider,
+        private readonly RouteLiveResolver $routeLiveResolver = new RouteLiveResolver(),
         private readonly ?CwaCollectorData $collectorData = null,
     ) {
         $this->routeRepository = $routeRepository;
@@ -52,6 +55,9 @@ class RouteStateProvider implements ProviderInterface
 
         if ($route instanceof Route) {
             $this->collectorData?->recordPathResolution($id, $route->getPath());
+            if (!$this->routeLiveResolver->isLive($route)) {
+                ($context['request'] ?? null)?->attributes->set(UnpublishedRouteExceptionListener::REQUEST_ATTRIBUTE, true);
+            }
         }
 
         return $route;
