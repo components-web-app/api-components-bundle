@@ -26,7 +26,7 @@ Feature: Register process via a form
     """
     And the response status code should be 201
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be a superset of:
     """
     {

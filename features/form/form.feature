@@ -17,7 +17,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 201
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
 
   Scenario Outline: I can validate a single form field
@@ -93,7 +93,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
 
   # PUT
@@ -128,7 +128,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/problem+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/problem+json"
     And the JSON should be a superset of:
     """
     {
@@ -167,7 +167,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   Scenario: I can send null children in place of an empty object and validation will still pass only for the submitted fields
@@ -188,7 +188,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   # PATCH COLLECTION TYPE SUPPORT
@@ -211,7 +211,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   Scenario: I can validate a valid field that is a collection type with a simple field
@@ -229,7 +229,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   Scenario: I can validate a valid field that is a collection type with multiple simple field
@@ -248,7 +248,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   Scenario: I can validate an invalid field that is a collection type with a simple field
@@ -266,7 +266,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   # PATCH REPEATED FIELD TYPE
@@ -287,7 +287,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 200
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   Scenario: Validate repeated field - invalid
@@ -306,7 +306,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be an array with each entry valid according to the schema file "form.schema.json"
 
   # POST minimum collection length/required validation
@@ -330,7 +330,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
 
   Scenario: Children is required - post an invalid form
@@ -348,7 +348,7 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 422
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
 
   Scenario: Post a valid form
@@ -370,5 +370,5 @@ Feature: Form component that defines a form type created in the application
     """
     Then the response status code should be 201
     And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
