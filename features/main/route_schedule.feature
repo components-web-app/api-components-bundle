@@ -145,6 +145,47 @@ Feature: Scheduled and draft route publication
     Then the response status code should be 200
     And the JSON node "liveAt" should not exist
 
+  @loginAdmin
+  Scenario: An admin loading a route through the redirects endpoint can see its go-live date
+    Given there is a Route "/launch" with a page
+    And the Route "/launch" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to the resource "route" and the postfix "/redirects"
+    Then the response status code should be 200
+    And the JSON node "liveAt" should exist
+
+  @loginAdmin
+  Scenario: An admin loading a route through the redirects endpoint can see its effective go-live date
+    Given there is a Route "/launch" with a page
+    When I send a "GET" request to the resource "route" and the postfix "/redirects"
+    Then the response status code should be 200
+    And the JSON node "effectiveLiveAt" should exist
+
+  @loginAdmin
+  Scenario: A live child route under a scheduled parent reports the parent's date as its effective date
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    And the Route "/conference/programme" goes live at "2000-01-01T00:00:00+00:00"
+    When I send a "GET" request to the resource "page_data_route" and the postfix "/redirects"
+    Then the response status code should be 200
+    And the JSON node "liveAt" should match the regex "/^2000-01-01/"
+    And the JSON node "effectiveLiveAt" should match the regex "/^2999-01-01/"
+
+  Scenario: Neither go-live date is exposed to anonymous users through the redirects endpoint
+    Given there is a Route "/launch" with a page
+    When I send a "GET" request to the resource "route" and the postfix "/redirects"
+    Then the response status code should be 200
+    And the JSON node "liveAt" should not exist
+    And the JSON node "effectiveLiveAt" should not exist
+
+  @loginAdmin
+  Scenario: The effective go-live date cannot be written
+    Given there is a Route "/launch" with a page
+    When I send a "PATCH" request to the resource "route" with data:
+      | effectiveLiveAt           |
+      | 2999-01-01T00:00:00+00:00 |
+    Then the response status code should be 200
+    And the Route "/launch" should be live
+
   # Manifests
 
   Scenario: An anonymous user cannot get the manifest for a route before its go-live date
