@@ -43,14 +43,10 @@ class ServicesResetterTest extends TestCase
      */
     private const MUST_BE_RESETTABLE = [
         'services.php' => [
-            // Profiler panel data gathered across the request
             'silverback.api_components.data_collector.data',
-            // Holds the JWT to be written as a cookie on the response
             'silverback.security.jwt_event_listener',
         ],
-        // Queues objects changed during the request, flushed on propagate()
         'services_doctrine_orm_mercure_publisher.php' => ['silverback.api_components.mercure.resource_publisher'],
-        // Same, for cache invalidation
         'services_doctrine_orm_http_cache_purger.php' => ['silverback.api_components.http_cache.purger'],
     ];
 

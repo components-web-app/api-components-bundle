@@ -34,7 +34,6 @@ class UploadableAttributeReaderTest extends TestCase
         $this->expectException(UnsupportedAnnotationException::class);
         $this->expectExceptionMessage('sharing the storage property "filename"');
 
-        // Iterating the generator triggers the collision guard.
         iterator_to_array($reader->getConfiguredProperties(CollidingUploadableFixture::class, true));
     }
 
@@ -57,10 +56,6 @@ class UploadableAttributeReaderTest extends TestCase
 
     public function test_default_skip_check_false_rejects_non_uploadable_class(): void
     {
-        // Kills FalseValue (line 84 default arg) and the LogicalNot/LogicalAnd guards (line 86): with
-        // the default $skipUploadableCheck the Uploadable check must run, so a non-uploadable class
-        // fails with the "is it not configured as Uploadable" message (not the later "No field
-        // configurations" message a skipped check would produce).
         $reader = $this->buildReader();
 
         $this->expectException(UnsupportedAnnotationException::class);
@@ -71,9 +66,6 @@ class UploadableAttributeReaderTest extends TestCase
 
     public function test_uploadable_class_without_fields_throws_no_field_configurations(): void
     {
-        // Kills FalseValue (line 90, $found = false): an Uploadable class with no UploadableField must
-        // throw "No field configurations". If $found started true the guard would be skipped and the
-        // generator would complete silently.
         $reader = $this->buildReader();
 
         $this->expectException(UnsupportedAnnotationException::class);
@@ -84,8 +76,6 @@ class UploadableAttributeReaderTest extends TestCase
 
     public function test_imagine_filters_without_bundle_throws(): void
     {
-        // Kills the LogicalNot / NotIdentical / LogicalAnd chain on line 74: with the Imagine bundle
-        // disabled, a field declaring imagineFilters must be rejected.
         $reader = $this->buildReaderWithoutImagine();
         $property = new \ReflectionProperty(ImagineFilterUploadableFixture::class, 'file');
 
@@ -95,8 +85,6 @@ class UploadableAttributeReaderTest extends TestCase
 
     public function test_field_without_imagine_filters_is_allowed_when_bundle_disabled(): void
     {
-        // Kills the LogicalOr-direction mutants on line 74: a field with no imagineFilters must be
-        // returned even when the Imagine bundle is disabled (the guard must NOT fire).
         $reader = $this->buildReaderWithoutImagine();
         $property = new \ReflectionProperty(ValidMultiUploadableFixture::class, 'file');
 

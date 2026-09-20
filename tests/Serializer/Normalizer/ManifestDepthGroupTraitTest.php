@@ -169,7 +169,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_containment_is_preserved_as_nesting(): void
     {
-        // route → pageData → page → componentGroup → position → component
         $resource = [
             '@id' => '/_/routes/home',
             'pageData' => [
@@ -230,7 +229,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_string_iri_property_value_is_collected(): void
     {
-        // layout is a string IRI (not an embedded object) — must appear as a child node
         $resource = [
             '@id' => '/_/routes/home',
             'layout' => '/_/layouts/abc',
@@ -244,8 +242,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_blank_node_string_iri_properties_are_not_collected(): void
     {
-        // AP4 blank-node resources (/.well-known/genid/...) must not contribute
-        // their string-valued properties to the tree — only real API resources should appear
         $resource = [
             '@id' => '/_/routes/home',
             'metadata' => [
@@ -259,8 +255,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_keys_after_parent_page_in_iteration_order_are_still_collected(): void
     {
-        // parentPage must appear BEFORE 'page' in the array to verify continue (not break) is used.
-        // If break were used instead, 'page' would never be visited.
         $resource = [
             '@id' => '/_/abstract_page_data/child-uuid',
             'parentPage' => ['@id' => '/_/pages/parent-uuid'],
@@ -278,7 +272,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_at_prefixed_key_string_value_is_not_collected(): void
     {
-        // String values under @-prefixed keys (e.g. @type) must not be collected
         $resource = [
             '@id' => '/_/routes/home',
             '@type' => '/some-vocabulary-type',
@@ -289,7 +282,6 @@ class ManifestDepthGroupTraitTest extends TestCase
 
     public function test_non_path_string_property_is_not_collected(): void
     {
-        // String values that do not start with '/' are not IRIs and must not be collected
         $resource = [
             '@id' => '/_/routes/home',
             'title' => 'My Page Title',

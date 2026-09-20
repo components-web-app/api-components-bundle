@@ -217,8 +217,6 @@ Feature: Component positions
       | resource[component_group] | component        | Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent |
     Then the response status code should be 201
 
-  # explicitAllowOnly must be enforced on the dynamic (pageDataProperty) path too, symmetrically with
-  # direct components — otherwise the server would accept a restricted type the admin UI already hides.
   @loginUser
   Scenario: Cannot create a dynamic position resolving to an explicitAllowOnly component type in a group without allowedComponents
     Given there is a ComponentGroup with 0 components

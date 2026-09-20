@@ -96,8 +96,6 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $this->createdObjects = new \SplObjectStorage();
         $this->updatedObjects = new \SplObjectStorage();
         $this->deletedObjects = new \SplObjectStorage();
-        // A request that dies inside propagate() would otherwise leave the re-entrancy guard raised,
-        // silently suppressing every publish for the rest of a worker's life.
         $this->isPropagating = false;
     }
 

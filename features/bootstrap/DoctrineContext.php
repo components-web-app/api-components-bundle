@@ -479,7 +479,6 @@ final class DoctrineContext implements Context
         if ($id) {
             $reflection = new \ReflectionClass($componentGroup);
             $reflectionProp = $reflection->getProperty('id');
-            //            $reflectionProp->setAccessible(true);
             $reflectionProp->setValue($componentGroup, Uuid::fromString($id));
             $this->manager->flush();
             $repo = $this->manager->getRepository(ComponentGroup::class);
@@ -1499,8 +1498,6 @@ final class DoctrineContext implements Context
      */
     public function theApiDocsSupportedClassShouldHaveExplicitAllowOnly(string $class, string $expected): void
     {
-        // Manual checks + plain exceptions: a failing Assert::* fatals under Behat (PHPUnit's
-        // failure-message Exporter needs its TextUI Configuration Registry, which Behat never boots).
         $json = $this->jsonContext->getJsonAsArray();
         $classes = $json['supportedClass'] ?? $json['hydra:supportedClass'] ?? [];
 
@@ -1521,11 +1518,6 @@ final class DoctrineContext implements Context
             throw new \RuntimeException(\sprintf('Expected supportedClass "%s" explicitAllowOnly=%s, got %s.', $class, $expectedBool ? 'true' : 'false', $actualBool ? 'true' : 'false'));
         }
     }
-
-    // --- Manifest resource_iris (nested tree per depth, #197) ---
-    // resource_iris is an array indexed by rendering depth; each element is a nested node
-    // { iri, children: [...] }. These steps flatten a depth's tree to assert on its IRI set.
-    // Manual checks + plain exceptions: a failing Assert::* fatals under Behat (PHPUnit Exporter).
 
     /**
      * @Then the manifest depth :depth root IRI should be :iri

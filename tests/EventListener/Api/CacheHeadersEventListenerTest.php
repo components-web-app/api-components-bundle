@@ -55,7 +55,6 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_authenticated_request_for_subclass_of_configured_resource_is_marked_private(): void
     {
-        // is_a(..., true) must match subclasses; a FalseValue mutant on the third arg breaks this.
         $this->authenticateAsUser();
         $response = $this->dispatch(
             resourceClass: CacheHeadersConfiguredChildResource::class,
@@ -69,7 +68,6 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_authenticated_request_for_publishable_resource_is_marked_private(): void
     {
-        // Not in the configured list — matched via the PublishableAttributeReader fallback only.
         $this->authenticateAsUser();
         $response = $this->dispatch(
             resourceClass: CacheHeadersPublishableResource::class,
@@ -113,7 +111,6 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_missing_resource_class_is_left_untouched(): void
     {
-        // The token storage must never be consulted once the resource class check bails out.
         $tokenStorage = $this->createMock(TokenStorageInterface::class);
         $tokenStorage->expects(self::never())->method('getToken');
         $this->tokenStorage = $tokenStorage;
@@ -158,8 +155,6 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_token_without_user_interface_keeps_public_cache(): void
     {
-        // A token exists but its user is not a UserInterface (e.g. a string 'anon.'); the resource
-        // must stay public. Kills the LogicalAnd->LogicalOr and instanceof mutants in isAuthenticated().
         $token = $this->createStub(TokenInterface::class);
         $token->method('getUser')->willReturn(null);
         $this->tokenStorage->method('getToken')->willReturn($token);

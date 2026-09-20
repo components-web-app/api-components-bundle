@@ -284,7 +284,6 @@ class GenerateFixturesCommandTest extends TestCase
 
         $component = new _TestHtmlComponent();
         $component->html = 'has content';
-        // $cssClass intentionally left null
 
         $position = new ComponentPosition();
         $position->setComponent($component);
@@ -446,8 +445,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('styled', $content);
     }
 
-    // --- Multiple-item accumulation tests (kills Assignment .= vs = mutants) ---
-
     public function test_multiple_layouts_both_appear_in_output(): void
     {
         $layout1 = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -500,8 +497,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertSame(2, substr_count($content, '->pageData('));
     }
 
-    // --- Child-page filtering (kills LogicalOr at lines 81/88, Continue_ at 82) ---
-
     public function test_page_with_parent_page_does_not_appear_at_top_level(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -515,7 +510,6 @@ class GenerateFixturesCommandTest extends TestCase
         );
 
         $content = file_get_contents($this->outputFile);
-        // child page should only appear once (inside nested closure, not at top level)
         $this->assertSame(1, substr_count($content, "'child'"), 'Child page reference must appear exactly once (only in nested closure, not at top level)');
     }
 
@@ -538,7 +532,6 @@ class GenerateFixturesCommandTest extends TestCase
         );
 
         $content = file_get_contents($this->outputFile);
-        // child page appears in nested closure but not at top-level loop
         $this->assertSame(1, substr_count($content, "'child'"), 'Child page with parentPageData must appear exactly once (only in nested closure)');
     }
 
@@ -558,9 +551,7 @@ class GenerateFixturesCommandTest extends TestCase
         );
 
         $content = file_get_contents($this->outputFile);
-        // Child pageData must NOT appear as a top-level $cwa->pageData() call (kills LogicalOr at line 88)
         $this->assertSame(0, substr_count($content, '$cwa->pageData('), 'Child pageData with parentPage must not appear at top-level');
-        // It should appear in nested closure
         $this->assertStringContainsString('->nested(', $content);
     }
 
@@ -589,8 +580,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('->nested(', $content);
     }
 
-    // --- Layout var name format (kills Concat/ConcatOperandRemoval at line 103) ---
-
     public function test_layout_var_name_has_layout_prefix_and_reference(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -600,8 +589,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('$layout_main', $content);
     }
-
-    // --- Layout uiClassNames exact format (kills Concat at line 109) ---
 
     public function test_layout_ui_class_names_exact_format_in_output(): void
     {
@@ -613,8 +600,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("uiClassNames: ['bg-white']", $content);
     }
-
-    // --- Layout multiple groups - both appear (kills Assignment at line 115) ---
 
     public function test_layout_with_multiple_groups_both_appear_in_output(): void
     {
@@ -636,8 +621,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertSame(2, substr_count($content, '->group('), 'Both groups must appear in output');
     }
 
-    // --- Allowed components exact format (kills Concat at line 126) ---
-
     public function test_allowed_components_exact_format(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -654,8 +637,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("allow: ['/component/nav-links']", $content);
     }
 
-    // --- Empty group produces single-line output (kills ReturnRemoval at line 131) ---
-
     public function test_empty_group_emits_single_line_group_call_without_closure(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -671,8 +652,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("->group('nav');\n", $content);
         $this->assertStringNotContainsString('function (GroupBuilder', $content);
     }
-
-    // --- Position indentation in group (kills Concat/ConcatOperandRemoval at line 136) ---
 
     public function test_position_in_group_has_extra_indentation_vs_group(): void
     {
@@ -696,12 +675,8 @@ class GenerateFixturesCommandTest extends TestCase
         $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // The position lines (e.g. "$comp1 = new ...") should be indented more than the group call
-        // At top-level indent='        ' (8 spaces), position indent = '            ' (12 spaces)
         $this->assertStringContainsString('            $comp1', $content);
     }
-
-    // --- Multiple components have distinct variable names (kills Increment at line 170) ---
 
     public function test_two_components_in_group_have_distinct_variable_names(): void
     {
@@ -738,8 +713,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringNotContainsString('$comp-', $content);
     }
 
-    // --- Component FQCN generates use statement (kills MethodCallRemoval at line 168) ---
-
     public function test_component_fqcn_generates_use_statement(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -764,8 +737,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('use Silverback\ApiComponentsBundle\Tests\Command\_TestHtmlComponent;', $content);
     }
-
-    // --- uiComponent exact format (kills Concat/ConcatOperandRemoval at line 174) ---
 
     public function test_component_ui_component_emitted_with_property_assignment_format(): void
     {
@@ -792,8 +763,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("->uiComponent = 'CustomUi';", $content);
     }
 
-    // --- Page without layout emits null for layout (kills Ternary at line 206) ---
-
     public function test_page_without_layout_emits_null_layout_arg(): void
     {
         $page = new Page();
@@ -805,11 +774,8 @@ class GenerateFixturesCommandTest extends TestCase
         $this->runCommand($this->registryWith(pages: [$page]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // var_export(null, true) returns 'NULL' (uppercase)
         $this->assertStringContainsString('layout: NULL', $content);
     }
-
-    // --- Page with title emits configure block with title (kills NotIdentical at 238, Assignment at 239) ---
 
     public function test_page_with_title_emits_configure_block_with_title_call(): void
     {
@@ -823,8 +789,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("\$page->title('Welcome Home')", $content);
     }
-
-    // --- Group call inside page configure block (kills Assignment at 242) ---
 
     public function test_page_with_group_and_title_emits_both_in_configure_block(): void
     {
@@ -844,8 +808,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("\$page->title('My Page')", $content);
         $this->assertStringContainsString("\$page->group('primary')", $content);
     }
-
-    // --- Nested child pageData inside pageData (kills Foreach_ at lines 67, 325, 328) ---
 
     public function test_nested_child_page_data_inside_page_data_emits_nested_closure(): void
     {
@@ -872,8 +834,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("'Sub Topic'", $content);
     }
 
-    // --- PageData FQCN generates use statement (kills MethodCallRemoval at line 272) ---
-
     public function test_page_data_fqcn_generates_use_statement(): void
     {
         $pd = new _TestArticleData();
@@ -885,8 +845,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('use Silverback\ApiComponentsBundle\Tests\Command\_TestArticleData;', $content);
     }
-
-    // --- PageData var name format (kills Concat/ConcatOperandRemoval at line 274) ---
 
     public function test_page_data_var_name_has_pd_prefix_and_slugified_title(): void
     {
@@ -903,7 +861,7 @@ class GenerateFixturesCommandTest extends TestCase
     public function test_page_data_with_null_title_uses_page_data_fallback_var_name(): void
     {
         $pd = new _TestArticleData();
-        $pd->setTitle(null); // explicitly null — triggers the ?? 'pageData' fallback
+        $pd->setTitle(null);
         $pd->setRoute($this->makeRoute('/no-title'));
 
         $this->runCommand($this->registryWith(pageData: [$pd]), $this->outputFile);
@@ -911,8 +869,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('$pd_pageData', $content);
     }
-
-    // --- PageData set title in output (kills NotIdentical at line 278, Concat at 279) ---
 
     public function test_page_data_title_emitted_as_set_title_call(): void
     {
@@ -925,8 +881,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("->setTitle('My Article')", $content);
     }
-
-    // --- PageData public properties emitted (kills NotIdentical/Identical at lines 284, 291) ---
 
     public function test_page_data_public_property_emitted_as_assignment(): void
     {
@@ -945,7 +899,6 @@ class GenerateFixturesCommandTest extends TestCase
     {
         $pd = new _TestArticleData();
         $pd->setTitle('Article');
-        // summary left null
         $pd->setRoute($this->makeRoute('/article'));
 
         $this->runCommand($this->registryWith(pageData: [$pd]), $this->outputFile);
@@ -953,8 +906,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringNotContainsString('summary', $content);
     }
-
-    // --- PageData templateRef in output (kills NotIdentical at 305, Concat at 306) ---
 
     public function test_page_data_template_ref_emitted_in_page_data_call(): void
     {
@@ -974,8 +925,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("template: 'blog-tmpl'", $content);
     }
-
-    // --- PageData route name in output (kills NotIdentical at 311, Concat at 312) ---
 
     public function test_page_data_route_with_name_emits_route_name(): void
     {
@@ -1001,8 +950,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringNotContainsString('routeName:', $content);
     }
 
-    // --- PageData with nested child page (kills Foreach_ at line 325) ---
-
     public function test_nested_child_page_inside_page_data_emits_nested_closure(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -1026,8 +973,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("'chapter'", $content);
     }
 
-    // --- buildFile contains core use statements (kills various at lines 305-349) ---
-
     public function test_build_file_contains_core_use_statements(): void
     {
         $this->runCommand($this->emptyRegistry(), $this->outputFile);
@@ -1045,8 +990,6 @@ class GenerateFixturesCommandTest extends TestCase
         $route = $this->makeRoute('/home');
         $page = $this->makePage('home', 'PrimaryTemplate', $layout, $route);
 
-        // Adding two components creates two different use classes.
-        // Using separate groups to get two components in output.
         $comp1 = new _TestHtmlComponent();
         $comp1->html = 'first';
 
@@ -1063,18 +1006,14 @@ class GenerateFixturesCommandTest extends TestCase
         $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // The extra use statement for the component must appear after a newline separator
         $this->assertStringContainsString("\nuse Silverback\ApiComponentsBundle\Tests\Command\_TestHtmlComponent;", $content);
     }
-
-    // --- extractGroupName: name extracted from reference when location matches (kills LogicalAnd at 379) ---
 
     public function test_extract_group_name_strips_location_suffix_from_reference(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
 
         $group = new ComponentGroup();
-        // reference = 'nav_/_/layouts/abc' → location matches '_/_/layouts/abc' suffix → name = 'nav'
         $group->reference = 'nav_/_/layouts/abc';
         $group->location = '/_/layouts/abc';
         $layout->getComponentGroups()->add($group);
@@ -1103,25 +1042,19 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_extract_group_name_returns_full_reference_when_location_is_empty(): void
     {
-        // Kills LogicalOr mutation at line 379:
-        // Original: '' !== $location && str_contains(...) → false && any → false (returns full reference)
-        // Mutation: '' !== $location || str_contains($reference, '_') → false || true → true → extracts prefix 'nav'
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
 
         $group = new ComponentGroup();
-        $group->reference = 'nav_top';  // contains underscore — mutation would extract 'nav' incorrectly
-        $group->location = null;        // null → '' via '??'
+        $group->reference = 'nav_top';
+        $group->location = null;
         $layout->getComponentGroups()->add($group);
 
         $this->runCommand($this->registryWith(layouts: [$layout]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // Full reference must be used as group name when location is empty
         $this->assertStringContainsString("->group('nav_top')", $content);
         $this->assertStringNotContainsString("->group('nav')", $content);
     }
-
-    // --- exportArray exact format (kills Concat/ConcatOperandRemoval at lines 396-398) ---
 
     public function test_export_array_format_wraps_with_square_brackets(): void
     {
@@ -1131,9 +1064,7 @@ class GenerateFixturesCommandTest extends TestCase
         $this->runCommand($this->registryWith(layouts: [$layout]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // Must be wrapped in square brackets — '[' before the value and ']' after
         $this->assertStringContainsString("['class-a']", $content);
-        // The opening bracket must precede the value, not trail it
         $this->assertStringContainsString("uiClassNames: ['class-a']", $content);
     }
 
@@ -1148,8 +1079,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("['first', 'second']", $content);
     }
 
-    // --- Success message appears (kills MethodCallRemoval at line 96) ---
-
     public function test_success_message_written_to_output(): void
     {
         $command = $this->makeCommand($this->emptyRegistry());
@@ -1160,8 +1089,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('Fixture class written to', $display);
         $this->assertStringContainsString($this->outputFile, $display);
     }
-
-    // --- pageDataPosition output (kills Concat/ConcatOperandRemoval on position lines) ---
 
     public function test_page_data_position_emits_page_data_position_call(): void
     {
@@ -1182,12 +1109,9 @@ class GenerateFixturesCommandTest extends TestCase
 
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('pageDataPosition(', $content);
-        // var_export escapes backslashes: 'App\Entity\ArticleData' → 'App\\Entity\\ArticleData' in the file
         $this->assertStringContainsString('introContent', $content);
         $this->assertStringContainsString('ArticleData', $content);
     }
-
-    // --- page route name output (kills NotIdentical at page->routeName, Concat at route string) ---
 
     public function test_page_route_with_name_emits_route_name(): void
     {
@@ -1204,7 +1128,7 @@ class GenerateFixturesCommandTest extends TestCase
     public function test_page_route_without_name_does_not_emit_route_name(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
-        $route = $this->makeRoute('/home'); // no name
+        $route = $this->makeRoute('/home');
         $page = $this->makePage('home', 'PrimaryTemplate', $layout, $route);
 
         $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
@@ -1212,8 +1136,6 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringNotContainsString('routeName:', $content);
     }
-
-    // --- stripUiPrefix: page uiComponent prefix stripped (kills mutations on line 205/407) ---
 
     public function test_page_ui_component_prefix_is_stripped_in_output(): void
     {
@@ -1227,8 +1149,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("'PrimaryTemplate'", $content);
         $this->assertStringNotContainsString("'CwaPagePrimaryTemplate'", $content);
     }
-
-    // --- hasChildren combined with title (kills LogicalOr/LogicalAnd at line 230/233) ---
 
     public function test_page_with_title_and_children_emits_both_title_and_nested_in_configure(): void
     {
@@ -1249,8 +1169,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("\$page->title('Parent Title')", $content);
         $this->assertStringContainsString('->nested(', $content);
     }
-
-    // --- Coalesce mutant killers: child indexed via getParentPage() fallback ---
 
     public function test_child_page_linked_via_parent_page_appears_in_nested_closure(): void
     {
@@ -1290,8 +1208,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('->nested(', $content);
         $this->assertStringContainsString('Child Article', $content);
     }
-
-    // --- stripUiPrefix edge cases ---
 
     public function test_layout_with_null_ui_component_emits_null(): void
     {
@@ -1340,8 +1256,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("'CustomPageTemplate'", $content);
     }
 
-    // --- continue vs break in top-level iteration ---
-
     public function test_second_top_level_page_is_emitted_when_first_page_in_array_is_a_child(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -1350,7 +1264,6 @@ class GenerateFixturesCommandTest extends TestCase
         $child->setParentPage($parent);
         $other = $this->makePage('other', 'CwaPageOther', $layout, $this->makeRoute('/other'));
 
-        // child is first in array — break mutant would stop after skipping it, losing 'other'
         $this->runCommand(
             $this->registryWith(layouts: [$layout], pages: [$child, $parent, $other]),
             $this->outputFile,
@@ -1376,7 +1289,6 @@ class GenerateFixturesCommandTest extends TestCase
         $otherPd->setTitle('Other');
         $otherPd->setRoute($this->makeRoute('/other'));
 
-        // child first — break mutant stops after skipping, losing 'other'
         $this->runCommand(
             $this->registryWith(pageData: [$childPd, $parentPd, $otherPd]),
             $this->outputFile,
@@ -1386,8 +1298,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("'Other'", $content);
         $this->assertStringContainsString("'Parent'", $content);
     }
-
-    // --- page configure closure triggered by title alone ---
 
     public function test_page_with_title_only_emits_configure_closure_with_title(): void
     {
@@ -1400,36 +1310,28 @@ class GenerateFixturesCommandTest extends TestCase
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString('configure:', $content);
         $this->assertStringContainsString("->title('Welcome')", $content);
-        // no children — nested closure must NOT appear (kills LogicalOrAllSubExprNegation on $hasChildren)
         $this->assertStringNotContainsString('->nested(', $content);
     }
 
-    // --- explicit cases for the $groups->isEmpty() && !$hasChildren && null===$title condition ---
-
     public function test_page_with_no_title_no_groups_no_children_emits_simple_one_liner(): void
     {
-        // All three condition parts true → simple one-liner returned
-        // Kills LogicalAndSingleSubExprNegation (negates isEmpty → condition fails → empty configure closure emitted)
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $page = $this->makePage('empty', 'CwaPageEmpty', $layout, $this->makeRoute('/empty'));
-        $page->setTitle(null); // AbstractPage defaults to 'Unnamed Page'; clear it for true no-title case
+        $page->setTitle(null);
 
         $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
         $this->assertStringContainsString("'empty'", $content);
-        // simple form: no configure closure
         $this->assertStringNotContainsString('configure:', $content);
         $this->assertStringNotContainsString('->nested(', $content);
     }
 
     public function test_page_with_groups_no_title_no_children_uses_configure_closure(): void
     {
-        // groups → condition false → configure closure used (not simple form)
-        // Kills LogicalAnd (changes to OR logic), LogicalAndSingleSubExprNegation
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $page = $this->makePage('main', 'CwaPageMain', $layout, $this->makeRoute('/main'));
-        $page->setTitle(null); // clear default 'Unnamed Page' so groups alone trigger configure closure
+        $page->setTitle(null);
 
         $comp = new _TestHtmlComponent();
         $comp->html = 'content';
@@ -1451,11 +1353,9 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_page_with_children_only_uses_configure_closure_with_nested(): void
     {
-        // !$hasChildren=false → condition false → configure closure with nested block
-        // Kills LogicalNot (changes !$hasChildren to $hasChildren → condition true → simple form, no nested)
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $parent = $this->makePage('hub', 'CwaPageHub', $layout, $this->makeRoute('/hub'));
-        $parent->setTitle(null); // clear default so children alone trigger configure closure
+        $parent->setTitle(null);
         $child = $this->makePage('sub', 'CwaPageSub', $layout, $this->makeRoute('/hub/sub'));
         $child->setParentPage($parent);
 
@@ -1471,13 +1371,10 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_page_with_both_child_pages_and_child_page_data_emits_nested(): void
     {
-        // $hasChildren = !empty(childPages) || !empty(childPd)
-        // Kills LogicalOrAllSubExprNegation: empty(childPages)||empty(childPd) = false||false = false
-        // → hasChildren=false → no children path → nested lost
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $templatePage = $this->makePage('tmpl', 'CwaPageTmpl', $layout, null, true);
         $parent = $this->makePage('hub2', 'CwaPageHub2', $layout, $this->makeRoute('/hub2'));
-        $parent->setTitle(null); // clear default so both childPages and childPd together trigger $hasChildren
+        $parent->setTitle(null);
 
         $childPage = $this->makePage('sub2', 'CwaPageSub2', $layout, $this->makeRoute('/hub2/sub2'));
         $childPage->setParentPage($parent);
@@ -1501,8 +1398,6 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_page_data_with_title_emits_class_instantiation_and_set_title(): void
     {
-        // Assignment mutant on setTitle line ($code = '...' instead of $code .= '...') resets $code,
-        // losing the class instantiation line.
         $pd = new _TestArticleData();
         $pd->setTitle('My Article');
 
@@ -1515,7 +1410,6 @@ class GenerateFixturesCommandTest extends TestCase
 
     public function test_page_data_with_template_and_route_both_appear_in_pagedata_call(): void
     {
-        // Assignment mutant on $pdArgs .= ', template: ...' resets $pdArgs, losing the $varName prefix
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $templatePage = $this->makePage('tmpl', 'CwaPageTmpl', $layout, null, true);
         $templatePage->reference = 'blog-tmpl';
@@ -1531,21 +1425,16 @@ class GenerateFixturesCommandTest extends TestCase
         );
 
         $content = file_get_contents($this->outputFile);
-        // $varName (derived from title) AND template both must appear in the ->pageData(...) call
         $this->assertStringContainsString('$pd_Article', $content);
         $this->assertStringContainsString("template: 'blog-tmpl'", $content);
     }
 
     public function test_component_with_null_first_property_still_emits_second_non_null_property(): void
     {
-        // Continue_ → break mutant on the null-value check: stops at the FIRST null property
-        // and never reaches subsequent non-null properties.
-        // _TestHtmlComponent: html (null here), cssClass (non-null here)
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
         $page = $this->makePage('home', 'CwaPageHome', $layout, $this->makeRoute('/'));
 
         $comp = new _TestHtmlComponent();
-        // html = null (not set), cssClass = 'my-class' (set second)
         $comp->cssClass = 'my-class';
 
         $pos = new ComponentPosition();
@@ -1563,8 +1452,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString("->cssClass = 'my-class';", $content);
     }
 
-    // --- route + uiClassNames both appear in page args (kills Assignment .= → = mutant) ---
-
     public function test_page_ui_class_names_appended_alongside_route_in_args(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -1579,8 +1466,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('uiClassNames', $content);
         $this->assertStringContainsString("'hero'", $content);
     }
-
-    // --- group with two positions emits both (kills posCode concat mutants) ---
 
     public function test_group_with_two_components_emits_both_in_closure(): void
     {
@@ -1614,8 +1499,6 @@ class GenerateFixturesCommandTest extends TestCase
         $this->assertStringContainsString('second', $content);
     }
 
-    // --- component uiComponent and own-property both emitted (kills code .= Assignment/Concat mutants) ---
-
     public function test_component_class_instantiation_uicomponent_and_property_all_appear(): void
     {
         $layout = $this->makeLayout('main', 'CwaLayoutPrimary');
@@ -1640,13 +1523,9 @@ class GenerateFixturesCommandTest extends TestCase
         $this->runCommand($this->registryWith(layouts: [$layout], pages: [$page]), $this->outputFile);
 
         $content = file_get_contents($this->outputFile);
-        // class instantiation must appear (kills Assignment line 174/177 that resets $code)
         $this->assertStringContainsString('new _TestHtmlComponent()', $content);
-        // full uiComponent assignment (kills Concat/ConcatOperandRemoval on line ~174)
         $this->assertStringContainsString("->uiComponent = 'FancyRenderer';", $content);
-        // full uiClassNames assignment (kills Concat/ConcatOperandRemoval/Assignment on line ~177)
         $this->assertStringContainsString("->uiClassNames = ['bold', 'dark'];", $content);
-        // full own-property assignment including value (kills ConcatOperandRemoval on line ~189)
         $this->assertStringContainsString("->html = 'body text';", $content);
     }
 }

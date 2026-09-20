@@ -64,8 +64,6 @@ class TimestampedNormalizerTest extends TestCase
         $persisted->createdAt = new \DateTimeImmutable('2001-02-03 04:05:06');
         $persisted->modifiedAt = new \DateTime('2001-02-03 04:05:06');
 
-        // The inner denormalizer writes the request body onto the managed object, as the real
-        // serializer does — by the time it returns, the original createdAt is already gone.
         $normalizer = $this->buildNormalizer(static function (array $context) {
             $object = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
             $object->createdAt = new \DateTimeImmutable('1970-01-01 00:00:00');
@@ -122,10 +120,6 @@ class TimestampedNormalizerTest extends TestCase
 
     public function test_an_object_to_populate_of_another_type_is_ignored(): void
     {
-        // Denormalizing a collection property (e.g. ComponentGroup.pages) leaves the Doctrine
-        // PersistentCollection in OBJECT_TO_POPULATE while $type is still the entity class. Reading
-        // a creation date off it asks the attribute reader for a Timestamped configuration the
-        // collection does not have, which throws and turns the request into a 500.
         $normalizer = $this->buildNormalizer(static function () {
             $object = new TimestampedNormalizerFixture();
             $object->createdAt = new \DateTimeImmutable('1970-01-01 00:00:00');

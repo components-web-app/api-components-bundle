@@ -304,8 +304,6 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
 
     public function test_null_path_variable_placeholder_is_not_replaced(): void
     {
-        // Path contains {{new_email}} but new_email is null (not passed to getTokenUrl).
-        // The placeholder must stay in the path, not be replaced with empty string.
         $userEmailFactory = new DummyUserEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/path/{{new_email}}');
 
         $request = new Request();

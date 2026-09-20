@@ -151,8 +151,6 @@ class UploadableFileManager
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
             if ($filename && $object instanceof ImagineFiltersInterface && $this->filterService) {
-                // Only warm imagine caches for raster images (never SVG or non-image files such as a
-                // PDF/docx) — Liip Imagine cannot process a non-image and would throw.
                 $mimeType = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter)->mimeType($filename);
                 if (!str_contains($mimeType, 'image/') || 'image/svg+xml' === $mimeType) {
                     continue;
@@ -186,17 +184,10 @@ class UploadableFileManager
                 continue;
             }
 
-            // Delete this resource's own current file first, freeing its slot so a
-            // replacement can reuse the name without being seen as a foreign collision.
             $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
 
             $prefix = $fieldConfiguration->prefix ?? '';
-            // Data-URI uploads carry no client filename and are given a unique UUID name at
-            // denormalization — keep it. Every other upload (multipart, fixtures) is stored under
-            // its original filename plus a unique token, so each resource owns its own file and can
-            // never overwrite (or, on delete, remove) another resource's file. The fileExists guard
-            // upholds that invariant even against an astronomically unlikely token clash.
             $tokenise = !$file instanceof UploadedDataUriFile;
             do {
                 $path = $prefix . $this->generateStoredFilename($file);
@@ -422,18 +413,12 @@ class UploadableFileManager
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $currentFilepath = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
         if (!$filesystem->fileExists($currentFilepath)) {
-            // The stored object is gone. Keep the clone pointing at the same path rather than nulling
-            // it: a missing file is a recoverable storage problem, whereas nulling discards the only
-            // record of what the file was and, on the next publish, copies that null over the
-            // published resource's own path.
             return $currentFilepath;
         }
 
         $pathInfo = pathinfo($currentFilepath);
         $directory = '.' === $pathInfo['dirname'] ? '' : $pathInfo['dirname'] . '/';
 
-        // Strip the token off an already-tokenised name before adding a new one, so a resource that
-        // is drafted and published repeatedly does not accumulate a token per cycle.
         $stem = (string) preg_replace('/-[0-9a-f]{8}$/', '', $pathInfo['filename']);
         $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
 

@@ -33,7 +33,6 @@ class ResourceManifestNormalizer implements NormalizerInterface, NormalizerAware
 
         $normalized = $this->normalizer->normalize($object->entity, $format, $context);
 
-        // AP3 may generate @id from the manifest URI template; rewrite to the canonical route IRI
         if (isset($normalized['@id']) && str_contains($normalized['@id'], '/resource_manifest/')) {
             $normalized['@id'] = str_replace('/resource_manifest/', '/routes/', $normalized['@id']);
         }

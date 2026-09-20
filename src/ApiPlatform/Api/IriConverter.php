@@ -35,11 +35,6 @@ class IriConverter implements IriConverterInterface
 
     private function getUserGetOperation(?Operation $operation = null): Operation
     {
-        // we do not want to return the /me IRI if a Get endpoint is configured. The IRI should be canonical to the user's ID etc.
-
-        // get the API metadata of the class
-        // find the Get operation - ApiPlatform\Metadata\Get
-        // use this uriTemplate instead, overwrite $operation and the operation in context
         $resourceIterator = $this->resourceMetadataCollectionFactory->create($operation->getClass())->getIterator();
         while ($resourceIterator->valid()) {
             $current = $resourceIterator->current();
@@ -61,7 +56,6 @@ class IriConverter implements IriConverterInterface
         return $operation;
     }
 
-    // We want relations when they are found, to use the IRI with the path
     public function getIriFromResource($resource, int $referenceType = UrlGeneratorInterface::ABS_PATH, ?Operation $operation = null, array $context = []): ?string
     {
         if ('_api_me' === $operation?->getName()) {
@@ -78,8 +72,6 @@ class IriConverter implements IriConverterInterface
 
         $id = $resource->getId();
         if (!$id) {
-            // id may not exist on object anymore. Deleting a page data resource with the route on will cascade,
-            // then mercure will want to publish the change with the IRI
             $parts = explode('/', $originalIri);
             array_pop($parts);
             $parts[] = $path;

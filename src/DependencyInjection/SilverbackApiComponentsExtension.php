@@ -232,9 +232,6 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         foreach ($mapping as $class => $key) {
             $definition = $container->findDefinition($class);
             $definition->setArgument('$subject', $config['user'][$key]['email']['subject']);
-            // Only email_verification carries an on/off switch; the other two are always available.
-            // The switch was previously unreachable — the node could not be configured at all — so
-            // honouring it here cannot change the behaviour of any existing configuration.
             $definition->setArgument('$enabled', $config['user'][$key]['enabled'] ?? true);
             $definition->setArgument('$defaultRedirectPath', $config['user'][$key]['email']['default_redirect_path']);
             $definition->setArgument('$redirectPathQueryKey', $config['user'][$key]['email']['redirect_path_query']);

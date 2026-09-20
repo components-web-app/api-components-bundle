@@ -40,7 +40,6 @@ class RequiresUploadedFileValidator extends ConstraintValidator
             ? $accessor->getValue($value, $constraint->filenameProperty)
             : null;
 
-        // Passes if either a new file is being uploaded or a file is already stored.
         if (null !== $file || (null !== $filename && '' !== $filename)) {
             return;
         }

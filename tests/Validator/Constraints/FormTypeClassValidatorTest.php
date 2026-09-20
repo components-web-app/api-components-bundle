@@ -187,8 +187,6 @@ class FormTypeClassValidatorTest extends TestCase
         $this->assertEquals('different message option', $constraint->message);
     }
 
-    // --- Deterministic single-branch coverage (kills surviving mutants) ---
-
     /**
      * Captures the messages of every violation raised for a single validate() call.
      *
@@ -199,9 +197,6 @@ class FormTypeClassValidatorTest extends TestCase
         $validator = new FormTypeClassValidator($formTypes);
 
         $messages = [];
-        // Reuse the concrete stub: ConstraintViolationBuilderInterface's fluent methods return
-        // `static`, which the PHPUnit version pinned by simple-phpunit on the Symfony 8.x matrix
-        // (12.2) cannot mock via createStub() (works on 12.5 locally, fails on CI).
         $builder = new ConstraintViolationBuilderStub();
 
         $context = $this->createStub(ExecutionContextInterface::class);
@@ -219,9 +214,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_empty_string_value_raises_no_violation(): void
     {
-        // Kills LogicalNot (line 34) and ReturnRemoval (line 35): an empty string is falsy and must
-        // return immediately. Without the early return it reaches ClassNameValidator, which throws on
-        // the non-existent class '' and produces a spurious violation.
         $messages = $this->captureMessages('', new FormTypeClass());
 
         self::assertSame([], $messages);
@@ -229,8 +221,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_non_string_value_throws_invalid_argument(): void
     {
-        // Kills LogicalNot (line 37) and Throw_ (line 38): a non-string value must throw before any
-        // validation runs.
         $validator = new FormTypeClassValidator([new TestType()]);
         $validator->initialize($this->executionContextMock);
 
@@ -240,8 +230,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_unexpected_constraint_type_throws_invalid_argument(): void
     {
-        // Kills InstanceOf_ / LogicalNot (line 40) and Throw_ (line 41): a constraint that is not a
-        // FormTypeClass must throw.
         $validator = new FormTypeClassValidator([new TestType()]);
         $validator->initialize($this->executionContextMock);
 
@@ -252,8 +240,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_class_not_in_form_types_raises_message_violation(): void
     {
-        // Kills LogicalNot (line 46) and MethodCallRemoval (line 47): a real class that is not among
-        // the configured form types must raise exactly `message`.
         $constraint = new FormTypeClass();
         $messages = $this->captureMessages(__CLASS__, $constraint);
 
@@ -262,8 +248,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_non_class_string_raises_exception_message_violation(): void
     {
-        // Kills MethodCallRemoval (line 53): a string that is not a class makes ClassNameValidator
-        // throw; the catch block must raise a violation carrying the exception message.
         $messages = $this->captureMessages('NotAClass', new FormTypeClass());
 
         self::assertCount(1, $messages);
@@ -272,8 +256,6 @@ class FormTypeClassValidatorTest extends TestCase
 
     public function test_valid_form_type_class_raises_no_violation(): void
     {
-        // Confirms the happy path: a configured form type must produce no violation (pins line 46 in
-        // the other direction).
         $messages = $this->captureMessages(TestType::class, new FormTypeClass());
 
         self::assertSame([], $messages);

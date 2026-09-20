@@ -77,7 +77,6 @@ class PropagateUpdatesListener
             $this->gatherResourceAndAssociated($entity, 'deleted', $em, $uow);
         }
 
-        // ManyToMany join table changes — purge the owning entity's cache
         foreach ($uow->getScheduledCollectionUpdates() as $collection) {
             if ($owner = $collection->getOwner()) {
                 $this->collectUpdatedResource($owner, 'updated');

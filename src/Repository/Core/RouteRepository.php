@@ -41,7 +41,6 @@ class RouteRepository extends ServiceEntityRepository
             return $route;
         }
 
-        // Strip format extension (e.g. /contact.json → /contact) and retry
         $stripped = preg_replace('/\.[^.\/]+$/', '', $idOrRoute);
         if ($stripped !== $idOrRoute) {
             $route = $this->findOneBy(['path' => $stripped]);

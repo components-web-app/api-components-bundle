@@ -56,14 +56,10 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
                     }
 
                     if (HttpOperation::METHOD_POST === $operation->getMethod()) {
-                        // POST (creation) — apply securityStr directly since the voter cannot
-                        // check the subject pre-denormalize. No restriction if securityStr is null.
                         if ($this->securityStr) {
                             $operation = $operation->withSecurity($this->securityStr);
                         }
                     } elseif (!$operation instanceof CollectionOperationInterface) {
-                        // Item operations (GET, PATCH, DELETE, PUT) — delegate to the routable voter
-                        // which checks the route or falls back to securityStr.
                         $operation = $operation->withSecurity(\sprintf("is_granted('%s', object)", AbstractRoutableVoter::READ_ROUTABLE));
                     }
 

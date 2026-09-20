@@ -119,7 +119,7 @@ class AbstractPageTest extends TestCase
     public function test_new_page_without_id_with_parent_produces_no_violation(): void
     {
         $parent = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
-        $newPage = $this->makePage(); // no ID — not yet persisted
+        $newPage = $this->makePage();
 
         $newPage->setParentPage($parent);
 
@@ -137,30 +137,20 @@ class AbstractPageTest extends TestCase
 
     public function test_initial_parent_selection_uses_parent_page_over_parent_page_data(): void
     {
-        // Subject has BOTH parentPage (cyclic) and parentPageData (safe) set simultaneously.
-        // The initial parent selection on line 100 must pick parentPage first.
-        // With the coalesce swapped (parentPageData ?? parentPage), the safe path is followed
-        // and the cycle through parentPage goes undetected.
         $subject = $this->makePage('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
         $cyclingPage = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
         $safe = new TestPageData();
         $safe->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
 
-        $cyclingPage->setParentPage($subject);  // B → A
-        $subject->setParentPage($cyclingPage);   // A → B (cycle)
-        $subject->setParentPageData($safe);      // safe path: no further parents
+        $cyclingPage->setParentPage($subject);
+        $subject->setParentPage($cyclingPage);
+        $subject->setParentPageData($safe);
 
         $subject->validateNoCircularParent($this->makeContext(1, 'parentPage'));
     }
 
     public function test_parent_page_is_checked_before_parent_page_data_in_cycle_detection(): void
     {
-        // $subject → $intermediate, where $intermediate has BOTH parentPage=$subject (cycle)
-        // AND parentPageData=$safe (no cycle). The mutation swaps the coalesce order on
-        // line 124 of AbstractPage, so only the correct order detects the cycle.
-        //
-        // Original:  $intermediate->getParentPage() ?? ...  = $subject (id=A, in visited) → VIOLATION
-        // Mutated:   $intermediate->getParentPageData() ?? ... = $safe (id=C, not in visited) → no violation
         $subject = $this->makePage('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
         $intermediate = $this->makePage('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
 
@@ -168,8 +158,8 @@ class AbstractPageTest extends TestCase
         $safe->withId(Uuid::fromString('cccccccc-cccc-cccc-cccc-cccccccccccc'));
 
         $subject->setParentPage($intermediate);
-        $intermediate->setParentPage($subject);    // cycle: A→B→A
-        $intermediate->setParentPageData($safe);   // safe path: no further parents
+        $intermediate->setParentPage($subject);
+        $intermediate->setParentPageData($safe);
 
         $subject->validateNoCircularParent($this->makeContext(1, 'parentPage'));
     }
@@ -188,9 +178,6 @@ class AbstractPageTest extends TestCase
 
     public function test_get_parent_page_route_prefers_parent_page_over_parent_page_data(): void
     {
-        // Exercises the coalesce in getParentPageRoute: parentPage?->getRoute() ?? parentPageData?->getRoute()
-        // Both parents have routes; the parentPage route must win.
-        // A swapped coalesce (parentPageData?->getRoute() ?? parentPage?->getRoute()) would return routeB instead.
         $routeA = new Route();
         $routeA->setPath('/page-route');
 

@@ -48,9 +48,6 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
             $doc['info'] = ['version' => OpenApiFactory::getExtendedVersion($object->getVersion())];
         }
 
-        // Surface the per-type `explicitAllowOnly` flag on each flagged component's supportedClass
-        // entry so the front-end (which reads the Hydra API docs, not per-instance _metadata) can
-        // hide/reject opt-in-only component types. Matched by `title` (the class short name).
         $scKey = isset($doc['supportedClass']) ? 'supportedClass' : (isset($doc['hydra:supportedClass']) ? 'hydra:supportedClass' : null);
         if (null !== $scKey && \is_array($doc[$scKey])) {
             $flagged = $this->getExplicitAllowOnlyTitles();

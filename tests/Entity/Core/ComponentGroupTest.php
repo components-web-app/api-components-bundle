@@ -20,7 +20,6 @@ class ComponentGroupTest extends TestCase
     public function test_add_allowed_component_initialises_array_when_null(): void
     {
         $group = new ComponentGroup();
-        // allowedComponents starts null
         self::assertNull($group->allowedComponents);
 
         $group->addAllowedComponent('/_/some_components/123');

@@ -112,8 +112,6 @@ class FormApiEventListener
             }
         }
 
-        // AP4 uses the submit operation's uriTemplate to generate @id, giving /{uuid}/submit.
-        // Use the IRI converter to get the canonical IRI and correct @id when it differs.
         $content = $response->getContent();
         if ($content) {
             $decoded = json_decode($content, true);

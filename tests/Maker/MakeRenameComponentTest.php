@@ -204,7 +204,6 @@ class MakeRenameComponentTest extends TestCase
         $command = $this->configuredCommand();
 
         $stream = fopen('php://memory', 'r+');
-        // Answers in order: old-fqcn, old-dtype, new-fqcn, new-dtype
         fwrite($stream, "App\\Entity\\Component\\HtmlContent\ncustom_html\nApp\\Entity\\Component\\RichText\ncustom_rich\n");
         rewind($stream);
 

@@ -116,9 +116,6 @@ class MercureAuthorization
 
         $securityStr = (string) $security;
 
-        // Item-level security expressions reference `object` (the specific entity instance).
-        // At subscription time we have no instance, so we cannot determine class-level access.
-        // Include the topic: some instances of this resource may be accessible.
         if (preg_match('/\bobject\b/', $securityStr)) {
             return true;
         }
@@ -128,8 +125,6 @@ class MercureAuthorization
         } catch (AuthenticationCredentialsNotFoundException) {
             return false;
         } catch (\Throwable) {
-            // Expression evaluation failed for an unexpected reason.
-            // Treat as accessible to avoid accidentally blocking legitimate subscribers.
             return true;
         }
     }

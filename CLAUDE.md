@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Principle of least exposure
 Only expose API fields and serialization groups when they are concretely needed by a consumer. Add serialization only when there is a real, tested requirement for it.
 
+### No code comments
+Do not write explanatory comments in code. The behaviour and the reason for a change belong in the test that covers it — a named Behat scenario or PHPUnit test method — not in prose beside the implementation. Remove narrative comments from any file you touch. Keep file licence headers and type-carrying annotations (`@var`, `@param`, `@return`, `@template`) that static analysis or the framework needs.
+
 ### TDD process
 All feature work follows this cycle:
 1. Explain what we're about to do and why, with a proposed test (Behat scenario or PHPUnit test)

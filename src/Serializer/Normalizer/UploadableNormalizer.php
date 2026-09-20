@@ -116,11 +116,6 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
 
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
 
-        // Register the cleared fields against the resource the denormalizer produced, not against the
-        // property name alone — `filename` is the default storage property for every UploadableField,
-        // so a name-only marker applies to whatever is written next. For a published publishable
-        // resource the object here is the draft created during denormalization, so clearing a file
-        // clears it on the draft and leaves the published resource's file alone.
         if (\is_object($object)) {
             foreach ($deletedProperties as $property) {
                 $this->uploadableFileManager->addDeletedField($object, $property);

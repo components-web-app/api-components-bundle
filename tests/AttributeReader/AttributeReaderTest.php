@@ -34,16 +34,11 @@ class AttributeReaderTest extends TestCase
 
     public function test_attribute_declared_on_grandparent_is_found(): void
     {
-        // Kills While_ (line 121) and LogicalNot (line 123): the parent-class walk must climb past the
-        // intermediate class (no attribute) up to the grandparent that carries it. A broken loop or an
-        // un-negated condition stops after the first parent and reports "not configured".
         self::assertTrue($this->buildReader()->isConfigured(GrandchildOfPublishableStub::class));
     }
 
     public function test_attribute_declared_on_trait_is_found(): void
     {
-        // Kills Foreach_ (line 139): the trait walk must iterate the class's traits to find the one
-        // carrying the attribute.
         self::assertTrue($this->buildReader()->isConfigured(UsesPublishableTraitStub::class));
     }
 

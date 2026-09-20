@@ -163,8 +163,6 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
     public function test_disabling_email_verification_disables_the_verification_email(): void
     {
-        // canBeDisabled() was decorative: the flag could not be set (the node hard-failed on its
-        // required children) and VerifyEmailFactory was wired with a hardcoded true regardless.
         $config = self::minimalConfig();
         $config['user']['email_verification'] = false;
 
@@ -254,7 +252,6 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertTrue($this->argument($container, WelcomeEmailFactory::class, '$enabled'));
         self::assertSame(['website_name' => 'Test Website'], $this->argument($container, UserMailer::class, '$context'));
 
-        // The other two are always available; only email_verification has a switch.
         self::assertTrue($this->argument($container, PasswordResetEmailFactory::class, '$enabled'));
         self::assertTrue($this->argument($container, ChangeEmailConfirmationEmailFactory::class, '$enabled'));
     }

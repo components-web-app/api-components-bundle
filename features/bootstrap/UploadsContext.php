@@ -77,7 +77,6 @@ class UploadsContext implements Context
                 try {
                     $this->uploadableHelper->deleteFiles($this->iriConverter->getResourceFromIri($this->restContext->resources[$key]));
                 } catch (ItemNotFoundException $e) {
-                    // we may have just deleted this resource
                 }
             }
         }
@@ -269,9 +268,6 @@ class UploadsContext implements Context
      */
     public function theResourceShouldHaveAFilenameMatching(string $name, string $pattern): void
     {
-        // Manual checks + plain exceptions: PHPUnit 11's failure-message Exporter
-        // relies on its TextUI Configuration Registry, which Behat never bootstraps,
-        // so a failing Assert::assert* fatals while rendering rather than reporting.
         $filename = $this->getUploadableResourceByName($name)->getFilename();
         if (null === $filename || 1 !== preg_match($pattern, $filename)) {
             throw new \RuntimeException(\sprintf('Expected the filename for "%s" to match %s, got "%s".', $name, $pattern, $filename ?? 'null'));

@@ -242,14 +242,11 @@ class AbstractUserTest extends TestCase
             }
         };
 
-        // Non-null non-empty string is truthy — timestamp must be set
         $user->setEmailAddress('user@example.com');
         $this->assertNotNull($user->getEmailLastUpdatedAt());
         $firstTimestamp = $user->getEmailLastUpdatedAt();
 
-        // Null is falsy — timestamp must NOT be updated
         $user->setEmailAddress(null);
-        // timestamp remains at the first value (not reset, not updated)
         $this->assertSame($firstTimestamp, $user->getEmailLastUpdatedAt());
     }
 }
