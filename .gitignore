@@ -8,6 +8,7 @@
 /.php-cs-fixer.cache
 /.phpunit.result.cache
 /tests/Functional/app/var/
+/tests/Functional/app/db.sqlite
 /tests/Functional/app/public/bundles/
 /tests/Functional/app/public/media/
 /infection.log
