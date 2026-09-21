@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
 use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 
 /**
@@ -27,7 +28,7 @@ class RouteExtension implements QueryCollectionExtensionInterface
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteAncestorGateResolver $routeAncestorGateResolver, private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
     {
         $this->config = $config;
         $this->resourceAccessChecker = $resourceAccessChecker;
@@ -42,6 +43,7 @@ class RouteExtension implements QueryCollectionExtensionInterface
 
         if (!$this->resourceAccessChecker->isGranted($resourceClass, $this->publicationPermission)) {
             PublicationDate::andWhereActive($queryBuilder, $alias, 'liveAt');
+            $this->routeAncestorGateResolver->andWhereNotGated($queryBuilder, $queryNameGenerator, $alias);
         }
 
         foreach ($this->config ?? [] as $index => $routeConfig) {

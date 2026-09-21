@@ -325,14 +325,107 @@ Feature: Scheduled and draft route publication
     And the Route "/conference" should redirect to "/new-conference"
     And the Route "/conference/programme" should redirect to "/new-conference/programme"
 
-  # Collections can only filter on a route's own go-live date: effective liveness is resolved by
-  # walking the ancestor chain, which cannot be expressed in DQL. The item itself stays gated.
+  # Collections resolve the inherited go-live date, so a listing never advertises a URL which
+  # cannot be resolved. An ancestor with no Route is still not a publication gate.
 
-  Scenario: A live route under a scheduled parent is listed anonymously even though it cannot be resolved
+  Scenario: A live route under a scheduled parent is not listed anonymously and cannot be resolved
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
     And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
-    When I send a "GET" request to "/_/routes?path=conference/programme"
+    When I send a "GET" request to "/_/routes"
     Then the response status code should be 200
-    And the JSON node "member[0]" should exist
+    And the JSON node "member[0]" should not exist
     When I send a "GET" request to "/_/routes//conference/programme"
     Then the response status code should be 404
+
+  Scenario: A live route under a draft parent is not listed anonymously
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" has no go-live date
+    When I send a "GET" request to "/_/routes"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should not exist
+
+  Scenario: A live route under a scheduled grandparent is not listed anonymously
+    Given there is a PageData resource with the route path "/conference/programme/day-one" nested within the route "/conference/programme" which is nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/routes"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should not exist
+
+  Scenario: A routed child under an unrouted ancestor is still listed anonymously
+    Given there is a PageData resource with the route path "/child-path" whose parent page has no route
+    When I send a "GET" request to "/_/routes"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "1"
+    And the JSON node "member[0].path" should be equal to the string "/child-path"
+
+  Scenario: A route with no parent is still listed anonymously
+    Given there is a Route "/launch" with a page
+    When I send a "GET" request to "/_/routes"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "1"
+    And the JSON node "member[0].path" should be equal to the string "/launch"
+
+  Scenario: The anonymous route collection count excludes a route gated by its ancestor
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    And there is a Route "/launch" with a page
+    When I send a "GET" request to "/_/routes?itemsPerPage=10"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "1"
+    And the JSON node "member" should have 1 element
+    And the JSON node "member[0].path" should be equal to the string "/launch"
+
+  @loginSuperAdmin
+  Scenario: An admin still sees a route gated by its ancestor in the route collection
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/routes?itemsPerPage=10"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "2"
+
+  Scenario: A cycle in the page hierarchy still returns the anonymous route collection
+    Given there are two Pages which are each other's parent with the routes "/cycle-one" and "/cycle-two"
+    When I send a "GET" request to "/_/routes?itemsPerPage=10"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "2"
+
+  Scenario: A cycle in the page hierarchy does not hide a route gated within it
+    Given there are two Pages which are each other's parent with the routes "/cycle-one" and "/cycle-two"
+    And the Route "/cycle-two" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/routes?itemsPerPage=10"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "0"
+
+  Scenario: A page whose route is gated by a scheduled ancestor does not appear in the anonymous page collection
+    Given there is a Page resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/pages"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should not exist
+
+  @loginSuperAdmin
+  Scenario: An admin still sees a page whose route is gated by a scheduled ancestor
+    Given there is a Page resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/pages"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should exist
+
+  Scenario: A routed page under an unrouted ancestor still appears in the anonymous page collection
+    Given there is a Page resource with the route path "/child-path" whose parent page has no route
+    When I send a "GET" request to "/_/pages"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should exist
+
+  Scenario: Page data whose route is gated by a scheduled ancestor does not appear in the anonymous page data collection
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/page_data/page_datas"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should not exist
+
+  Scenario: Page data under an unrouted ancestor still appears in the anonymous page data collection
+    Given there is a PageData resource with the route path "/child-path" whose parent page has no route
+    When I send a "GET" request to "/page_data/page_datas"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should exist
