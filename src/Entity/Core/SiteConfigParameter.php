@@ -33,7 +33,7 @@ use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
     paginationEnabled: false,
 )]
 #[GetCollection(paginationItemsPerPage: 100)]
-#[Post]
+#[Post(securityPostDenormalize: SiteConfigParameter::API_SECURITY)]
 #[Delete(security: SiteConfigParameter::API_SECURITY)]
 #[Put(security: SiteConfigParameter::API_SECURITY)]
 #[Patch(security: SiteConfigParameter::API_SECURITY)]

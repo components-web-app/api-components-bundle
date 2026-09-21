@@ -30,6 +30,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.resource_class_resolver'),
             new Reference('api_platform.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference(CwaCollectorData::class),
+            [],
         ])
         ->tag('silverback_api_components.resource_changed_propagator')
         ->tag('kernel.reset', ['method' => 'reset']);
