@@ -17,6 +17,17 @@ A resource is publicly readable **if and only if** it is reachable from a Route 
 
 The rule cuts both ways, and both directions are enforced (#225): a routeless page with a live routed descendant **is** public, because a visitor on the descendant's URL needs it to render; a page nothing routes to is **not** public, however it is reached in the object graph.
 
+### Abstention is a decision, not a neutral one
+
+A voter or guard that abstains has not "stayed out of it" — the access-decision strategy decides what abstention means, and in this codebase it has meant opposite things in different places. This has produced four separate bugs, each found by accident:
+
+- **`RouteVoter::supports()`** returned false when `route_security` was unconfigured, so every voter abstained and `AffirmativeStrategy::decide()` denied via `allowIfAllAbstainDecisions` (default `false`) — every routed page 401 for everyone, silently (#224).
+- **`ComponentVoter`** returned true when all three sub-votes abstained, so a component in a page nothing routes to was public (#225).
+- **`SiteConfigParameterVoter::supports()`** requires `$subject instanceof SiteConfigParameter`. A plain `security:` expression on a `Post` runs before denormalization with no object, so every voter abstains and the write is denied — including for admins. `securityPostDenormalize:` is required instead (#232).
+- **`voteByPageTemplate`** abstains only when a `Page` has no page data at all, which is why a routeless *template* page was already protected while a routeless *plain* page leaked its components — the two shapes are not interchangeable in a regression test (#225).
+
+**Before relying on a voter, state what happens when it abstains**, and write the scenario that pins it. If a guard is meant to deny, returning `null` is not how to do it; if it is meant to stay silent, confirm the strategy agrees. `supports()` returning false is abstention, not denial — the most common way to get this wrong is to put a configuration check there.
+
 ### TDD process
 All feature work follows this cycle:
 1. Explain what we're about to do and why, with a proposed test (Behat scenario or PHPUnit test)
