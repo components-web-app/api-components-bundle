@@ -22,11 +22,6 @@ use SebastianBergmann\FileIterator\Facade as FileIteratorFacade;
 /**
  * Behat coverage.
  *
- * Writes a Clover XML report directly. The report is consumed as-is by Codecov -
- * there is deliberately no intermediate `.cov` + `phpcov merge` step: current
- * phpcov releases only read the newer php-code-coverage serialization format,
- * which the version this project installs cannot write.
- *
  * @author eliecharra
  * @author Kévin Dunglas <dunglas@gmail.com>
  * @copyright Adapted from https://gist.github.com/eliecharra/9c8b3ba57998b50e14a6
@@ -69,7 +64,7 @@ final class CoverageContext implements Context
             return;
         }
 
-        (new Clover())->process(self::$coverage, self::target());
+        (new Clover())->process(self::$coverage->getReport(), self::target());
     }
 
     /**

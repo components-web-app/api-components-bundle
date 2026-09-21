@@ -66,7 +66,7 @@ php tests/Functional/app/bin/console -e test doctrine:schema:validate
 
 Behat features live in `features/`. PHPUnit tests in `tests/`. Behat coverage is more extensive than unit — prefer adding Behat scenarios for new API behaviour, unit tests for pure logic.
 
-**Behat coverage convention**: `CoverageContext` (registered in the `default-coverage` profile) writes Clover XML **directly** to `build/logs/behat/clover.xml`, which Codecov consumes as-is. Do not reintroduce an intermediate `.cov` + `phpcov merge` step — current `phpcov` releases only read php-code-coverage's newer serialization format, which the version installed here cannot write. The filter must be populated with individual file paths (`Filter::includeFiles()` over a file iterator); `Filter::includeFile()` given a directory silently records nothing. CI fails the Behat job if the report has fewer than 1000 covered statements.
+**Behat coverage convention**: `CoverageContext` (registered in the `default-coverage` profile) writes Clover XML **directly** to `build/logs/behat/clover.xml`, which Codecov consumes as-is. Do not reintroduce an intermediate `.cov` + `phpcov merge` step — current `phpcov` releases only read php-code-coverage's newer serialization format, which the version installed here cannot write. The filter must be populated with individual file paths (`Filter::includeFiles()` over a file iterator); `Filter::includeFile()` given a directory silently records nothing. From php-code-coverage 14 (PHPUnit 13) the report writers take `$coverage->getReport()`, not the `CodeCoverage` object. CI fails the Behat job if the report has fewer than 1000 covered statements.
 
 ### CI must not depend on runtime network downloads it can avoid
 
