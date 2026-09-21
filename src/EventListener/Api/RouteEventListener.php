@@ -71,7 +71,6 @@ class RouteEventListener
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
         }
 
-        // create a redirect from the old route
         $previousRouteData = $request->attributes->get('previous_data');
         $previousPath = $previousRouteData->getPath();
         if ($previousPath !== $data->getPath()) {
@@ -93,12 +92,18 @@ class RouteEventListener
             return;
         }
 
-        $newParentPath = $parentRoute->getPath();
-        $childUpdates = [];
+        $this->cascadeFromPage($pageOrPageData, $oldParentPath, $parentRoute->getPath(), $em);
+    }
 
-        foreach ($this->findDirectChildren($pageOrPageData, $em) as $child) {
+    private function cascadeFromPage(AbstractPage $page, string $oldParentPath, string $newParentPath, EntityManagerInterface $em): void
+    {
+        $childUpdates = [];
+        $unroutedChildren = [];
+
+        foreach ($this->findDirectChildren($page, $em) as $child) {
             $childRoute = $child->getRoute();
             if (null === $childRoute) {
+                $unroutedChildren[] = $child;
                 continue;
             }
 
@@ -109,7 +114,11 @@ class RouteEventListener
 
             $newChildPath = $newParentPath . substr($oldChildPath, \strlen($oldParentPath));
             $childRoute->setPath($newChildPath)->setName($newChildPath);
-            $childUpdates[$oldChildPath] = $childRoute;
+            $childUpdates[$oldChildPath] = [$child, $childRoute];
+        }
+
+        foreach ($unroutedChildren as $child) {
+            $this->cascadeFromPage($child, $oldParentPath, $newParentPath, $em);
         }
 
         if (empty($childUpdates)) {
@@ -118,10 +127,10 @@ class RouteEventListener
 
         $em->flush();
 
-        foreach ($childUpdates as $oldChildPath => $childRoute) {
-            $redirect = $this->routeGenerator->createRedirect($oldChildPath, $childRoute);
+        foreach ($childUpdates as $oldChildPath => [$child, $childRoute]) {
+            $redirect = $this->routeGenerator->createRedirect((string) $oldChildPath, $childRoute);
             $em->persist($redirect);
-            $this->cascadeChildPaths($childRoute, $oldChildPath, $em);
+            $this->cascadeFromPage($child, (string) $oldChildPath, $childRoute->getPath(), $em);
         }
     }
 

@@ -57,17 +57,36 @@ class RouteChildrenStateProvider implements ProviderInterface
             return [];
         }
 
+        $visited = [];
+
+        return $this->buildChildNodesForPage($pageOrPageData, $em, $visited);
+    }
+
+    /**
+     * @param array<string, true> $visited
+     *
+     * @return RouteChildrenNode[]
+     */
+    private function buildChildNodesForPage(AbstractPage $page, object $em, array &$visited): array
+    {
+        $visited[(string) $page->getId()] = true;
+
         $nodes = [];
-        foreach ($this->findDirectChildren($pageOrPageData, $em) as $child) {
+        foreach ($this->findDirectChildren($page, $em) as $child) {
+            if (isset($visited[(string) $child->getId()])) {
+                continue;
+            }
+
             $childRoute = $child->getRoute();
             if (null === $childRoute) {
+                array_push($nodes, ...$this->buildChildNodesForPage($child, $em, $visited));
                 continue;
             }
 
             $node = new RouteChildrenNode();
             $node->route = $this->iriConverter->getIriFromResource($childRoute);
             $node->path = $childRoute->getPath();
-            $node->children = $this->buildChildNodes($childRoute, $em);
+            $node->children = $this->buildChildNodesForPage($child, $em, $visited);
             $nodes[] = $node;
         }
 

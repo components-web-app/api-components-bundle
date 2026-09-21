@@ -1585,6 +1585,62 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a PageData resource with the route path :childPath nested within an unrouted page nested within the route :grandParentPath
+     */
+    public function thereIsARoutedPageDataUnderAnUnroutedIntermediatePage(string $childPath, string $grandParentPath): void
+    {
+        $grandParentPageData = $this->createRoutedPageData($grandParentPath, 'grandparent page', null);
+        $this->restContext->resources['grandparent_route'] = $this->iriConverter->getIriFromResource($grandParentPageData->getRoute());
+
+        $intermediatePage = new Page();
+        $intermediatePage->isTemplate = true;
+        $intermediatePage->reference = 'unrouted intermediate page';
+        $this->timestampedHelper->persistTimestampedFields($intermediatePage, true);
+        $this->manager->persist($intermediatePage);
+
+        $intermediatePageData = new PageData();
+        $intermediatePageData->page = $intermediatePage;
+        $intermediatePageData->setParentPageData($grandParentPageData);
+        $this->timestampedHelper->persistTimestampedFields($intermediatePageData, true);
+        $this->manager->persist($intermediatePageData);
+
+        $childPageData = $this->createRoutedPageData($childPath, 'child page', $intermediatePageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
+        $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childPageData->getRoute());
+
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a Page with the route :path and an unrouted Page which are each other's parent
+     */
+    public function thereIsARoutedPageAndAnUnroutedPageWhichAreEachOthersParent(string $path): void
+    {
+        $routedPage = new Page();
+        $routedPage->isTemplate = true;
+        $routedPage->reference = 'routed cycle page';
+        $this->timestampedHelper->persistTimestampedFields($routedPage, true);
+        $this->manager->persist($routedPage);
+
+        $unroutedPage = new Page();
+        $unroutedPage->isTemplate = true;
+        $unroutedPage->reference = 'unrouted cycle page';
+        $this->timestampedHelper->persistTimestampedFields($unroutedPage, true);
+        $this->manager->persist($unroutedPage);
+
+        $routedPage->setParentPage($unroutedPage);
+        $unroutedPage->setParentPage($routedPage);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPage($routedPage);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->restContext->resources['cycle_route'] = $this->iriConverter->getIriFromResource($route);
+
+        $this->manager->flush();
+    }
+
+    /**
      * @Given there are two Pages which are each other's parent with the routes :pathOne and :pathTwo
      */
     public function thereAreTwoPagesWhichAreEachOthersParent(string $pathOne, string $pathTwo): void
@@ -2303,13 +2359,11 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $repository = $this->manager->getRepository(Route::class);
 
-        /** @var Route $route */
-        $route = $repository->findOneBy(
-            [
-                'path' => $oldPath,
-            ]
-        );
-        Assert::assertEquals($newPath, $route->getRedirect()->getPath());
+        $route = $repository->findOneBy(['path' => $oldPath]);
+        $redirectPath = $route?->getRedirect()?->getPath();
+        if ($newPath !== $redirectPath) {
+            throw new ExpectationException(\sprintf('Expected the Route "%s" to redirect to "%s", but it redirects to %s.', $oldPath, $newPath, null === $redirectPath ? 'nothing' : \sprintf('"%s"', $redirectPath)), $this->minkContext->getSession()->getDriver());
+        }
     }
 
     /**
