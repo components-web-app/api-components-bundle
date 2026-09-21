@@ -68,6 +68,18 @@ Behat features live in `features/`. PHPUnit tests in `tests/`. Behat coverage is
 
 **Behat coverage convention**: `CoverageContext` (registered in the `default-coverage` profile) writes Clover XML **directly** to `build/logs/behat/clover.xml`, which Codecov consumes as-is. Do not reintroduce an intermediate `.cov` + `phpcov merge` step — current `phpcov` releases only read php-code-coverage's newer serialization format, which the version installed here cannot write. The filter must be populated with individual file paths (`Filter::includeFiles()` over a file iterator); `Filter::includeFile()` given a directory silently records nothing. CI fails the Behat job if the report has fewer than 1000 covered statements.
 
+### CI must not depend on runtime network downloads it can avoid
+
+A job that fetches something at runtime fails whenever that host is slow, down or rate-limiting, and a gate people routinely re-run is one where a real failure eventually gets waved through. Before adding any download to CI, check whether the thing is already on disk (in `vendor`, in the repo) or can be committed. Each case below was proven by reproducing the failure first, not assumed from the config.
+
+| Fetch | How it failed | Fix |
+|---|---|---|
+| Infection's signing key from `keyserver.ubuntu.com` | key fetch timed out, failing the mutation gate | #239: the key is committed at `.github/infection-signing-key.asc` and imported locally |
+| The PHPUnit XSD from `schema.phpunit.de` | Infection schema-validates the PHPUnit config through libxml before running a single mutant, so an unreachable URL fails the gate with `Failed to locate the main schema resource` | #272: `phpunit.xml.dist` and `phpunit.coverage.xml.dist` point at `vendor/phpunit/phpunit/phpunit.xsd`. Infection resolves a relative path against the config directory; PHPUnit itself always validates against its own bundled schema and never reads this attribute, and it deliberately leaves a relative location alone when migrating. The vendored copy always matches the installed PHPUnit |
+| The `behatch/contexts` fork (`silverbackdan/contexts`) through the GitHub REST API | Composer resolves a GitHub VCS repository with 68 API calls per cold resolve (tags, branches, `composer.json` at every ref). CI is **already authenticated**: `setup-php` writes the workflow's `COMPOSER_TOKEN` into Composer's `auth.json`. That token's limit is 1,000 requests per hour **for the whole repository**, shared by every job, and nine jobs per run exhaust it within a couple of busy runs. Composer then reports `Could not authenticate against github.com` | #272: `"no-api": true` on the repository in `composer.json`, so Composer mirrors it with `git clone` instead of calling the API. Adding `COMPOSER_AUTH` with `GITHUB_TOKEN` would have changed nothing, since that is the token already being exhausted. Packagist dist downloads (`api.github.com/.../zipball`) do not count against the limit |
+
+Diagnosing a Composer GitHub failure: `Could not authenticate` is Composer's non-interactive message for a 401/403 from GitHub, including rate limiting, so it does not mean no token was sent. Reproduce with `composer update -vvv` against an empty `COMPOSER_CACHE_DIR` and `COMPOSER_HOME` and count the `api.github.com` requests. To prove a CI step makes no network calls, run it locally under `sandbox-exec` with a profile that denies `network-outbound`.
+
 ## Architecture
 
 ### Core entities (`src/Entity/Core/`)
