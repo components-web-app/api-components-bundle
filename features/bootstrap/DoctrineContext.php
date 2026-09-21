@@ -76,13 +76,6 @@ final class DoctrineContext implements Context
     private JsonContext $jsonContext;
     private RouteLiveResolver $routeLiveResolver;
 
-    /**
-     * Initializes context.
-     *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
-     */
     public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver)
     {
         $this->routeLiveResolver = $routeLiveResolver;
@@ -2100,6 +2093,18 @@ final class DoctrineContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
         Assert::assertArrayHasKey('@id', $response);
         $this->restContext->resources[$name] = $response['@id'];
+    }
+
+    /**
+     * @Then there should be :count Route resources
+     */
+    public function thereShouldBeRouteResources(int $count): void
+    {
+        $this->manager->clear();
+        $actual = \count($this->manager->getRepository(Route::class)->findAll());
+        if ($actual !== $count) {
+            throw new ExpectationException(\sprintf('Expected %d Route resources, found %d.', $count, $actual), $this->minkContext->getSession()->getDriver());
+        }
     }
 
     /**
