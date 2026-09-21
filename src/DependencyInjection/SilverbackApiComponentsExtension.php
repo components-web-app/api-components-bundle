@@ -336,6 +336,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             [
                 'title' => $websiteName,
                 'description' => \sprintf('API for %s', $websiteName),
+                'use_symfony_listeners' => true,
                 'defaults' => [
                     'pagination_client_items_per_page' => true,
                     'pagination_maximum_items_per_page' => 100,
