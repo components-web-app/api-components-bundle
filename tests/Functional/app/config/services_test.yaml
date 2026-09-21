@@ -28,6 +28,10 @@ services:
         calls:
             - [includeStacktraces]
     
+    app.monolog.test_handler:
+        class: Monolog\Handler\TestHandler
+        public: true
+
     mercure.hub.default:
         class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub
         arguments:

@@ -15,6 +15,9 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
+use Monolog\Handler\TestHandler;
+use Monolog\Level;
+use Monolog\LogRecord;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
@@ -26,6 +29,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
@@ -33,6 +37,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
+use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeException;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -62,6 +67,65 @@ class ProfilerContext implements Context
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
         $this->client = $this->minkContext->getSession()->getDriver()->getClient();
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetMercureHub(): void
+    {
+        HubStub::setUnreachable(false);
+    }
+
+    /**
+     * @Given the Mercure hub is unreachable
+     */
+    public function theMercureHubIsUnreachable(): void
+    {
+        HubStub::setUnreachable(true);
+    }
+
+    /**
+     * @return LogRecord[]
+     */
+    private function getMercurePublishFailureRecords(): array
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+
+        return array_values(array_filter(
+            $handler->getRecords(),
+            static fn (LogRecord $record): bool => ($record->context['exception'] ?? null) instanceof MercureRuntimeException
+        ));
+    }
+
+    /**
+     * @Then the Mercure publish failure for the resource :name should have been logged
+     */
+    public function theMercurePublishFailureForTheResourceShouldHaveBeenLogged(string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        foreach ($this->getMercurePublishFailureRecords() as $record) {
+            $topics = $record->context['topics'] ?? [];
+            if (Level::Error === $record->level && \is_string($record->context['resource'] ?? null) && str_ends_with($record->context['resource'], $iri) && \in_array($record->context['resource'], $topics, true)) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No error was logged for the failed Mercure update of %s.', $iri), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then no Mercure publish failure should have been logged
+     */
+    public function noMercurePublishFailureShouldHaveBeenLogged(): void
+    {
+        $records = $this->getMercurePublishFailureRecords();
+        if ([] !== $records) {
+            throw new ExpectationException(\sprintf('%d Mercure publish failures were logged.', \count($records)), $this->minkContext->getSession()->getDriver());
+        }
     }
 
     /**
