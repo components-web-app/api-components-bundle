@@ -119,17 +119,42 @@ class RouteLiveResolverTest extends TestCase
         self::assertEquals($liveAt, $this->resolver->resolveEffectiveLiveAt($route));
     }
 
-    public function test_is_live_reads_the_effective_date(): void
+    public function test_is_live_resolves_the_effective_date(): void
     {
         $route = new Route();
 
-        $route->setEffectiveLiveAt(new \DateTimeImmutable('2000-01-01T00:00:00+00:00'));
+        $route->setLiveAt(new \DateTimeImmutable('2000-01-01T00:00:00+00:00'));
         self::assertTrue($this->resolver->isLive($route));
 
-        $route->setEffectiveLiveAt(new \DateTimeImmutable('2999-01-01T00:00:00+00:00'));
+        $route->setLiveAt(new \DateTimeImmutable('2999-01-01T00:00:00+00:00'));
         self::assertFalse($this->resolver->isLive($route));
 
-        $route->setEffectiveLiveAt(null);
+        $route->setLiveAt(null);
+        self::assertFalse($this->resolver->isLive($route));
+    }
+
+    public function test_is_live_follows_an_ancestor_which_is_not_yet_live(): void
+    {
+        $parent = $this->createPage();
+        $child = $this->createPage();
+        $child->setParentPage($parent);
+
+        $parentRoute = $this->createRoute(new \DateTimeImmutable('2999-01-01T00:00:00+00:00'), $parent);
+        $parent->setRoute($parentRoute);
+
+        $route = $this->createRoute(new \DateTimeImmutable('2000-01-01T00:00:00+00:00'), $child);
+
+        self::assertFalse($this->resolver->isLive($route));
+    }
+
+    public function test_a_resolved_answer_is_recomputed_when_the_route_own_date_changes(): void
+    {
+        $route = new Route();
+
+        $route->setLiveAt(new \DateTimeImmutable('2000-01-01T00:00:00+00:00'));
+        self::assertTrue($this->resolver->isLive($route));
+
+        $route->setLiveAt(new \DateTimeImmutable('2999-01-01T00:00:00+00:00'));
         self::assertFalse($this->resolver->isLive($route));
     }
 

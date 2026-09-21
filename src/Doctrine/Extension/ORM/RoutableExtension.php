@@ -51,6 +51,6 @@ class RoutableExtension implements QueryCollectionExtensionInterface
         $alias = $queryBuilder->getRootAliases()[0];
         $routeAlias = $queryNameGenerator->generateJoinAlias('route');
         $queryBuilder->innerJoin("$alias.route", $routeAlias);
-        PublicationDate::andWhereActive($queryBuilder, $routeAlias, 'effectiveLiveAt');
+        PublicationDate::andWhereActive($queryBuilder, $routeAlias, 'liveAt');
     }
 }

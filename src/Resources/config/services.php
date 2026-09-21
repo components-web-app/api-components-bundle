@@ -79,7 +79,6 @@ use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\RouteLiveAtListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
@@ -127,6 +126,7 @@ use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -1039,11 +1039,13 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(RouteLiveResolver::class, 'silverback.api_components.helper.route.live_resolver');
 
     $services
-        ->set('silverback.api_components.doctrine.event_listener.route_live_at')
-        ->class(RouteLiveAtListener::class)
-        ->args([new Reference(RouteLiveResolver::class)])
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush]);
-    $services->alias(RouteLiveAtListener::class, 'silverback.api_components.doctrine.event_listener.route_live_at');
+        ->set('silverback.api_components.helper.route.reachability_resolver')
+        ->class(RouteReachabilityResolver::class)
+        ->args([
+            new Reference('doctrine'),
+            new Reference('security.helper'),
+        ]);
+    $services->alias(RouteReachabilityResolver::class, 'silverback.api_components.helper.route.reachability_resolver');
 
     $services
         ->set('silverback.api_components.event_listener.api.unpublished_route_exception')
@@ -1125,9 +1127,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '', // added in dependency injection
             new Reference('api_platform.security.resource_access_checker'),
-            new Reference(Security::class),
             new Reference('silverback.doctrine.repository.page_data'),
-            new Reference(DenyAccessListener::class),
+            new Reference(RouteReachabilityResolver::class),
         ])
         ->tag('security.voter');
     $services->alias(RoutableVoter::class, 'silverback.api_components.security.voter.routable');
@@ -1785,8 +1786,11 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('request_stack'),
             new Reference(PublishableStatusChecker::class),
             new Reference('doctrine'),
+            new Reference(RouteReachabilityResolver::class),
+            new Reference('api_platform.security.resource_access_checker'),
         ])
         ->tag('security.voter');
+    $services->alias(ComponentVoter::class, 'silverback.security.voter.component_voter');
 
     $services
         ->set('silverback.hydra.normalizer.versioned_documentation')

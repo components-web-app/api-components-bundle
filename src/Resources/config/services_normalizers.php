@@ -203,6 +203,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(RouteLiveResolver::class),
             new Reference('api_platform.security.resource_access_checker'),
             '', // injected in dependency injection
+            new Reference(ResourceMetadataProvider::class),
         ])
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);

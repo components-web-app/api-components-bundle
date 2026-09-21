@@ -34,12 +34,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class CacheHeadersEventListenerTest extends TestCase
 {
     private TokenStorageInterface $tokenStorage;
-    private ?\DateTimeImmutable $nextEffectiveLiveAt = null;
+    private ?\DateTimeImmutable $nextLiveAt = null;
 
     protected function setUp(): void
     {
         $this->tokenStorage = $this->createStub(TokenStorageInterface::class);
-        $this->nextEffectiveLiveAt = null;
+        $this->nextLiveAt = null;
     }
 
     public function test_authenticated_request_for_configured_resource_is_marked_private_no_store(): void
@@ -194,7 +194,7 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_an_anonymous_route_response_is_capped_at_the_next_go_live_moment(): void
     {
-        $this->nextEffectiveLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
 
         $response = $this->dispatch(Route::class, 'GET', [], 3600);
 
@@ -203,7 +203,7 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_an_anonymous_route_response_is_not_extended_when_the_next_go_live_moment_is_further_away(): void
     {
-        $this->nextEffectiveLiveAt = (new \DateTimeImmutable())->modify('+7200 seconds');
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+7200 seconds');
 
         $response = $this->dispatch(Route::class, 'GET', [], 3600);
 
@@ -212,7 +212,7 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_an_anonymous_route_response_is_left_untouched_when_nothing_is_scheduled(): void
     {
-        $this->nextEffectiveLiveAt = null;
+        $this->nextLiveAt = null;
 
         $response = $this->dispatch(Route::class, 'GET', [], 3600);
 
@@ -221,7 +221,7 @@ class CacheHeadersEventListenerTest extends TestCase
 
     public function test_an_unrelated_resource_response_is_not_capped(): void
     {
-        $this->nextEffectiveLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
 
         $response = $this->dispatch(CacheHeadersUnaffectedResource::class, 'GET', [], 3600);
 
@@ -243,7 +243,7 @@ class CacheHeadersEventListenerTest extends TestCase
         $statusChecker->method('getAttributeReader')->willReturn($publishableReader);
 
         $routeRepository = $this->createStub(RouteRepository::class);
-        $routeRepository->method('findNextEffectiveLiveAt')->willReturn($this->nextEffectiveLiveAt);
+        $routeRepository->method('findNextLiveAt')->willReturn($this->nextLiveAt);
 
         $listener = new CacheHeadersEventListener(
             $this->tokenStorage,

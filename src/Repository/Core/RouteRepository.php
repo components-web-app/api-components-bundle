@@ -78,11 +78,11 @@ class RouteRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findNextEffectiveLiveAt(\DateTimeInterface $after): ?\DateTimeImmutable
+    public function findNextLiveAt(\DateTimeInterface $after): ?\DateTimeImmutable
     {
         $result = $this->createQueryBuilder('route')
-            ->select('MIN(route.effectiveLiveAt)')
-            ->andWhere('route.effectiveLiveAt > :after')
+            ->select('MIN(route.liveAt)')
+            ->andWhere('route.liveAt > :after')
             ->setParameter('after', $after)
             ->getQuery()
             ->getSingleScalarResult();

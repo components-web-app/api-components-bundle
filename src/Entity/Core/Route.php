@@ -114,11 +114,6 @@ class Route
     #[Groups(['Route:redirect:read'])]
     private ?\DateTimeImmutable $liveAt = null;
 
-    #[ORM\Column(name: 'effective_live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
-    #[ApiProperty(writable: false, security: self::API_PUBLICATION_SECURITY)]
-    #[Groups(['Route:redirect:read'])]
-    private ?\DateTimeImmutable $effectiveLiveAt = null;
-
     #[ApiProperty(readable: false)]
     public bool $cascadeChildPaths = false;
 
@@ -126,7 +121,6 @@ class Route
     {
         $this->redirectedFrom = new ArrayCollection();
         $this->liveAt = new \DateTimeImmutable();
-        $this->effectiveLiveAt = $this->liveAt;
     }
 
     public function getLiveAt(): ?\DateTimeImmutable
@@ -137,18 +131,6 @@ class Route
     public function setLiveAt(?\DateTimeImmutable $liveAt): self
     {
         $this->liveAt = $liveAt;
-
-        return $this;
-    }
-
-    public function getEffectiveLiveAt(): ?\DateTimeImmutable
-    {
-        return $this->effectiveLiveAt;
-    }
-
-    public function setEffectiveLiveAt(?\DateTimeImmutable $effectiveLiveAt): self
-    {
-        $this->effectiveLiveAt = $effectiveLiveAt;
 
         return $this;
     }
