@@ -1,0 +1,149 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\Maker;
+
+use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\AbstractMigration;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectRepository;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
+use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\Generator;
+use Symfony\Bundle\MakerBundle\InputConfiguration;
+use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+
+class RenameComponentMigrationTest extends TestCase
+{
+    private const COMPONENT_TABLE = '_acb_abstract_component';
+    private const GROUP_TABLE = '_acb_component_group';
+    private const OLD_IRI = '/component/html_contents';
+    private const NEW_IRI = '/component/rich_texts';
+
+    private static int $classCounter = 0;
+
+    private Connection $connection;
+
+    protected function setUp(): void
+    {
+        $this->connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $this->connection->executeStatement(\sprintf('CREATE TABLE %s (id VARCHAR(36) PRIMARY KEY, dtype VARCHAR(255) NOT NULL)', self::COMPONENT_TABLE));
+        $this->connection->executeStatement(\sprintf('CREATE TABLE %s (id VARCHAR(36) PRIMARY KEY, allowed_components CLOB DEFAULT NULL)', self::GROUP_TABLE));
+    }
+
+    public function test_up_renames_the_discriminator_in_the_mapped_component_table(): void
+    {
+        $this->connection->insert(self::COMPONENT_TABLE, ['id' => 'c1', 'dtype' => 'htmlcontent']);
+
+        $this->runMigration('up');
+
+        $this->assertSame('richtext', $this->connection->fetchOne(\sprintf('SELECT dtype FROM %s WHERE id = ?', self::COMPONENT_TABLE), ['c1']));
+    }
+
+    public function test_down_reverts_the_discriminator_in_the_mapped_component_table(): void
+    {
+        $this->connection->insert(self::COMPONENT_TABLE, ['id' => 'c1', 'dtype' => 'richtext']);
+
+        $this->runMigration('down');
+
+        $this->assertSame('htmlcontent', $this->connection->fetchOne(\sprintf('SELECT dtype FROM %s WHERE id = ?', self::COMPONENT_TABLE), ['c1']));
+    }
+
+    private function runMigration(string $direction): void
+    {
+        $migration = $this->generateMigration();
+        $migration->{$direction}($this->connection->createSchemaManager()->introspectSchema());
+        foreach ($migration->getSql() as $query) {
+            $this->connection->executeStatement($query->getStatement(), $query->getParameters());
+        }
+    }
+
+    private function generateMigration(): AbstractMigration
+    {
+        $className = 'RenameComponentMigrationUnderTest' . ++self::$classCounter;
+        $namespace = 'Silverback\\ApiComponentsBundle\\Tests\\Maker\\Generated';
+        $rendered = null;
+
+        $generator = $this->createStub(Generator::class);
+        $generator->method('createClassNameDetails')->willReturn(new ClassNameDetails($namespace . '\\' . $className, 'Migrations\\'));
+        $generator->method('generateClass')->willReturnCallback(static function (string $class, string $template, array $variables) use ($namespace, $className, &$rendered): string {
+            $variables['namespace'] = $namespace;
+            $variables['class_name'] = $className;
+            extract($variables);
+            ob_start();
+            include $template;
+            $rendered = ob_get_clean();
+
+            return 'migrations/' . $className . '.php';
+        });
+
+        $command = new Command('make:rename-component');
+        $maker = new MakeRenameComponent($this->iriConverter(), $this->registry());
+        $maker->configureCommand($command, new InputConfiguration());
+        $input = new ArrayInput([
+            'old-name' => 'HtmlContent',
+            'new-name' => 'RichText',
+            '--old-fqcn' => 'App\\Entity\\Component\\HtmlContent',
+            '--new-fqcn' => 'App\\Entity\\Component\\RichText',
+            '--old-dtype' => 'htmlcontent',
+            '--new-dtype' => 'richtext',
+        ], $command->getDefinition());
+        $input->setInteractive(false);
+
+        $maker->generate($input, new ConsoleStyle(new ArrayInput([]), new BufferedOutput()), $generator);
+
+        eval(substr((string) $rendered, \strlen('<?php')));
+        $fqcn = $namespace . '\\' . $className;
+
+        return new $fqcn($this->connection, new NullLogger());
+    }
+
+    private function iriConverter(): IriConverterInterface
+    {
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnOnConsecutiveCalls(self::OLD_IRI, self::NEW_IRI);
+
+        return $iriConverter;
+    }
+
+    private function registry(): ManagerRegistry
+    {
+        $tables = [AbstractComponent::class => self::COMPONENT_TABLE, ComponentGroup::class => self::GROUP_TABLE];
+
+        $manager = $this->createStub(ObjectManager::class);
+        $manager->method('getClassMetadata')->willReturnCallback(static function (string $class) use ($tables): ClassMetadata {
+            $metadata = new ClassMetadata($class);
+            $metadata->setPrimaryTable(['name' => $tables[$class]]);
+
+            return $metadata;
+        });
+
+        $repository = $this->createStub(ObjectRepository::class);
+        $repository->method('findAll')->willReturn([]);
+
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($manager);
+        $registry->method('getRepository')->willReturn($repository);
+
+        return $registry;
+    }
+}
