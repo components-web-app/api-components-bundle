@@ -15,20 +15,16 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
-use Doctrine\Migrations\AbstractMigration;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
-use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
-use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -39,8 +35,7 @@ class RenameComponentMigrationTest extends TestCase
     private const GROUP_TABLE = '_acb_component_group';
     private const OLD_IRI = '/component/html_contents';
     private const NEW_IRI = '/component/rich_texts';
-
-    private static int $classCounter = 0;
+    private const BLANK_NODE = '/.well-known/genid/956539f238167984af66';
 
     private Connection $connection;
 
@@ -103,36 +98,26 @@ class RenameComponentMigrationTest extends TestCase
         return json_decode((string) $this->connection->fetchOne(\sprintf('SELECT allowed_components FROM %s WHERE id = ?', self::GROUP_TABLE), [$id]), true);
     }
 
-    private function runMigration(string $direction): void
+    public function test_up_rewrites_allowed_components_to_the_given_iri_when_the_new_class_is_a_blank_node(): void
     {
-        $migration = $this->generateMigration();
-        $migration->{$direction}($this->connection->createSchemaManager()->introspectSchema());
-        foreach ($migration->getSql() as $query) {
-            $this->connection->executeStatement($query->getStatement(), $query->getParameters());
-        }
+        $this->insertGroup('g1', [self::OLD_IRI]);
+
+        $generator = $this->generate(['--new-iri' => self::NEW_IRI], self::OLD_IRI, self::BLANK_NODE);
+        $generator->migrate($this->connection, 'up');
+
+        $this->assertSame([self::NEW_IRI], $this->allowedComponents('g1'));
+        $this->assertStringNotContainsString('/.well-known/genid/', $generator->getSource());
     }
 
-    private function generateMigration(): AbstractMigration
+    private function runMigration(string $direction): void
     {
-        $className = 'RenameComponentMigrationUnderTest' . ++self::$classCounter;
-        $namespace = 'Silverback\\ApiComponentsBundle\\Tests\\Maker\\Generated';
-        $rendered = null;
+        $this->generate([], self::OLD_IRI, self::NEW_IRI)->migrate($this->connection, $direction);
+    }
 
-        $generator = $this->createStub(Generator::class);
-        $generator->method('createClassNameDetails')->willReturn(new ClassNameDetails($namespace . '\\' . $className, 'Migrations\\'));
-        $generator->method('generateClass')->willReturnCallback(static function (string $class, string $template, array $variables) use ($namespace, $className, &$rendered): string {
-            $variables['namespace'] = $namespace;
-            $variables['class_name'] = $className;
-            extract($variables);
-            ob_start();
-            include $template;
-            $rendered = ob_get_clean();
-
-            return 'migrations/' . $className . '.php';
-        });
-
+    private function generate(array $options, string $oldIri, string $newIri): RenderingMigrationGenerator
+    {
         $command = new Command('make:rename-component');
-        $maker = new MakeRenameComponent($this->iriConverter(), $this->registry());
+        $maker = new MakeRenameComponent($this->iriConverter($oldIri, $newIri), $this->registry());
         $maker->configureCommand($command, new InputConfiguration());
         $input = new ArrayInput([
             'old-name' => 'HtmlContent',
@@ -141,21 +126,19 @@ class RenameComponentMigrationTest extends TestCase
             '--new-fqcn' => 'App\\Entity\\Component\\RichText',
             '--old-dtype' => 'htmlcontent',
             '--new-dtype' => 'richtext',
-        ], $command->getDefinition());
+        ] + $options, $command->getDefinition());
         $input->setInteractive(false);
 
-        $maker->generate($input, new ConsoleStyle(new ArrayInput([]), new BufferedOutput()), $generator);
+        $generator = new RenderingMigrationGenerator();
+        $maker->generate($input, new ConsoleStyle($input, new BufferedOutput()), $generator);
 
-        eval(substr((string) $rendered, \strlen('<?php')));
-        $fqcn = $namespace . '\\' . $className;
-
-        return new $fqcn($this->connection, new NullLogger());
+        return $generator;
     }
 
-    private function iriConverter(): IriConverterInterface
+    private function iriConverter(string $oldIri, string $newIri): IriConverterInterface
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willReturnOnConsecutiveCalls(self::OLD_IRI, self::NEW_IRI);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (string $class): string => str_ends_with($class, 'HtmlContent') ? $oldIri : $newIri);
 
         return $iriConverter;
     }

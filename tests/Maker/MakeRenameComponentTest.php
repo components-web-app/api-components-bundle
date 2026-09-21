@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
@@ -30,6 +31,8 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 class MakeRenameComponentTest extends TestCase
 {
+    private const BLANK_NODE = '/.well-known/genid/956539f238167984af66';
+
     private function makeMaker(
         ?IriConverterInterface $iriConverter = null,
         ?ManagerRegistry $registry = null,
@@ -59,7 +62,44 @@ class MakeRenameComponentTest extends TestCase
 
     private function makeIo(?BufferedOutput $output = null): ConsoleStyle
     {
-        return new ConsoleStyle(new ArrayInput([]), $output ?? new BufferedOutput());
+        $input = new ArrayInput([]);
+        $input->setInteractive(false);
+
+        return new ConsoleStyle($input, $output ?? new BufferedOutput());
+    }
+
+    private function interactiveInput(Command $command, array $params, string $answers): ArrayInput
+    {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $answers);
+        rewind($stream);
+
+        $input = new ArrayInput($params, $command->getDefinition());
+        $input->setStream($stream);
+        $input->setInteractive(true);
+
+        return $input;
+    }
+
+    private function fullyQualifiedParams(): array
+    {
+        return [
+            'old-name' => 'HtmlContent',
+            'new-name' => 'RichText',
+            '--old-fqcn' => 'App\\Entity\\Component\\HtmlContent',
+            '--new-fqcn' => 'App\\Entity\\Component\\RichText',
+            '--old-dtype' => 'htmlcontent',
+            '--new-dtype' => 'richtext',
+        ];
+    }
+
+    private function iriConverterByClass(string $oldIri, string $newIri): IriConverterInterface
+    {
+        $mock = $this->createStub(IriConverterInterface::class);
+        $mock->method('getIriFromResource')
+            ->willReturnCallback(static fn (string $class): string => str_ends_with($class, 'HtmlContent') ? $oldIri : $newIri);
+
+        return $mock;
     }
 
     private function makeGenerator(array &$capturedVars): Generator
@@ -229,7 +269,7 @@ class MakeRenameComponentTest extends TestCase
         $input->setInteractive(true);
 
         $output = new BufferedOutput();
-        $this->makeMaker()->interact($input, new ConsoleStyle($input, $output), $command);
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'))->interact($input, new ConsoleStyle($input, $output), $command);
 
         $this->assertSame('custom_html', $input->getOption('old-dtype'));
         $this->assertSame('custom_rich', $input->getOption('new-dtype'));
@@ -261,28 +301,159 @@ class MakeRenameComponentTest extends TestCase
         $this->assertSame('/component/rich-text', $vars['new_iri']);
     }
 
-    public function test_generate_falls_back_to_derived_old_iri_when_iri_converter_throws(): void
+    public function test_generate_refuses_a_blank_node_old_iri_and_names_the_option(): void
     {
-        $vars = [];
-        $iriConverter = $this->createMock(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willThrowException(new \RuntimeException('Class not found'));
+        $generator = new RenderingMigrationGenerator();
 
-        $this->makeMaker($iriConverter, $this->emptyRegistry())
-            ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+        try {
+            $this->makeMaker($this->iriConverterByClass(self::BLANK_NODE, '/component/rich_texts'), $this->emptyRegistry())
+                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+            $this->fail('Expected the maker to refuse an unresolvable old IRI.');
+        } catch (RuntimeCommandException $e) {
+            $this->assertStringContainsString('--old-iri', $e->getMessage());
+            $this->assertStringContainsString('App\\Entity\\Component\\HtmlContent', $e->getMessage());
+        }
 
-        $this->assertSame('/component/html-content', $vars['old_iri']);
+        $this->assertFalse($generator->hasGenerated());
     }
 
-    public function test_generate_falls_back_to_derived_new_iri_when_iri_converter_throws(): void
+    public function test_generate_refuses_a_blank_node_new_iri_and_names_the_option(): void
     {
-        $vars = [];
-        $iriConverter = $this->createMock(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willThrowException(new \RuntimeException('Class not found'));
+        $generator = new RenderingMigrationGenerator();
+
+        try {
+            $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
+                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+            $this->fail('Expected the maker to refuse an unresolvable new IRI.');
+        } catch (RuntimeCommandException $e) {
+            $this->assertStringContainsString('--new-iri', $e->getMessage());
+            $this->assertStringNotContainsString('--old-iri', $e->getMessage());
+        }
+
+        $this->assertFalse($generator->hasGenerated());
+    }
+
+    public function test_generate_refuses_when_the_iri_converter_throws(): void
+    {
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willThrowException(new \RuntimeException('Not a resource'));
+
+        $this->expectException(RuntimeCommandException::class);
+        $this->expectExceptionMessage('--old-iri');
 
         $this->makeMaker($iriConverter, $this->emptyRegistry())
-            ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+            ->generate($this->defaultInput(), $this->makeIo(), new RenderingMigrationGenerator());
+    }
 
-        $this->assertSame('/component/rich-text', $vars['new_iri']);
+    public function test_generate_uses_the_iri_options_for_unresolvable_classes(): void
+    {
+        $generator = new RenderingMigrationGenerator();
+        $this->makeMaker($this->iriConverterByClass(self::BLANK_NODE, self::BLANK_NODE), $this->emptyRegistry())
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/html_contents', '--new-iri' => '/component/rich_texts']), $this->makeIo(), $generator);
+
+        $this->assertSame('/component/html_contents', $generator->getVariables()['old_iri']);
+        $this->assertSame('/component/rich_texts', $generator->getVariables()['new_iri']);
+    }
+
+    public function test_generate_never_writes_a_blank_node_into_the_migration(): void
+    {
+        $generator = new RenderingMigrationGenerator();
+
+        try {
+            $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
+                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+        } catch (RuntimeCommandException) {
+        }
+
+        $this->assertFalse($generator->hasGenerated() && str_contains($generator->getSource(), '/.well-known/genid/'));
+    }
+
+    public function test_generate_rejects_a_blank_node_passed_as_an_iri_option(): void
+    {
+        $generator = new RenderingMigrationGenerator();
+
+        try {
+            $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
+                ->generate($this->boundInput($this->fullyQualifiedParams() + ['--new-iri' => self::BLANK_NODE]), $this->makeIo(), $generator);
+            $this->fail('Expected the maker to reject a blank node IRI option.');
+        } catch (RuntimeCommandException $e) {
+            $this->assertStringContainsString('--new-iri', $e->getMessage());
+        }
+
+        $this->assertFalse($generator->hasGenerated());
+    }
+
+    public function test_generate_rejects_an_iri_option_that_is_not_a_path(): void
+    {
+        $this->expectException(RuntimeCommandException::class);
+        $this->expectExceptionMessage('--old-iri');
+
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'), $this->emptyRegistry())
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => 'html_contents']), $this->makeIo(), new RenderingMigrationGenerator());
+    }
+
+    public function test_generate_prefers_an_explicit_iri_option_over_the_resolved_iri(): void
+    {
+        $generator = new RenderingMigrationGenerator();
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'), $this->emptyRegistry())
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/legacy_html']), $this->makeIo(), $generator);
+
+        $this->assertSame('/component/legacy_html', $generator->getVariables()['old_iri']);
+        $this->assertSame('/component/rich_texts', $generator->getVariables()['new_iri']);
+    }
+
+    public function test_interact_prompts_only_for_the_iri_that_cannot_be_resolved(): void
+    {
+        $command = $this->configuredCommand();
+        $input = $this->interactiveInput($command, $this->fullyQualifiedParams(), "/component/rich_texts\n");
+        $output = new BufferedOutput();
+
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE))
+            ->interact($input, new ConsoleStyle($input, $output), $command);
+
+        $this->assertSame('/component/rich_texts', $input->getOption('new-iri'));
+        $this->assertNull($input->getOption('old-iri'));
+        $text = $output->fetch();
+        $this->assertStringContainsString('NEW component', $text);
+        $this->assertStringNotContainsString('OLD component', $text);
+        $this->assertStringContainsString('App\\Entity\\Component\\RichText', $text);
+    }
+
+    public function test_interact_asks_again_when_the_answer_is_a_blank_node(): void
+    {
+        $command = $this->configuredCommand();
+        $input = $this->interactiveInput($command, $this->fullyQualifiedParams(), self::BLANK_NODE . "\n/component/html_contents\n");
+
+        $this->makeMaker($this->iriConverterByClass(self::BLANK_NODE, '/component/rich_texts'))
+            ->interact($input, new ConsoleStyle($input, new BufferedOutput()), $command);
+
+        $this->assertSame('/component/html_contents', $input->getOption('old-iri'));
+        $this->assertNull($input->getOption('new-iri'));
+    }
+
+    public function test_interact_does_not_prompt_for_iris_when_both_classes_resolve(): void
+    {
+        $command = $this->configuredCommand();
+        $input = $this->interactiveInput($command, $this->fullyQualifiedParams(), '');
+        $output = new BufferedOutput();
+
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'))
+            ->interact($input, new ConsoleStyle($input, $output), $command);
+
+        $this->assertNull($input->getOption('old-iri'));
+        $this->assertNull($input->getOption('new-iri'));
+        $this->assertStringNotContainsString('Collection IRI', $output->fetch());
+    }
+
+    public function test_interact_does_not_prompt_when_the_iri_option_is_given(): void
+    {
+        $command = $this->configuredCommand();
+        $input = $this->interactiveInput($command, $this->fullyQualifiedParams() + ['--new-iri' => '/component/rich_texts'], '');
+
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE))
+            ->interact($input, new ConsoleStyle($input, new BufferedOutput()), $command);
+
+        $this->assertSame('/component/rich_texts', $input->getOption('new-iri'));
     }
 
     public function test_generate_passes_the_orm_mapped_table_names_to_template(): void
