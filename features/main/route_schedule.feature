@@ -158,7 +158,7 @@ Feature: Scheduled and draft route publication
     Given there is a Route "/launch" with a page
     When I send a "GET" request to the resource "route" and the postfix "/redirects"
     Then the response status code should be 200
-    And the JSON node "effectiveLiveAt" should exist
+    And the JSON node "_metadata.effectiveLiveAt" should exist
 
   @loginAdmin
   Scenario: A live child route under a scheduled parent reports the parent's date as its effective date
@@ -168,23 +168,15 @@ Feature: Scheduled and draft route publication
     When I send a "GET" request to the resource "page_data_route" and the postfix "/redirects"
     Then the response status code should be 200
     And the JSON node "liveAt" should match the regex "/^2000-01-01/"
-    And the JSON node "effectiveLiveAt" should match the regex "/^2999-01-01/"
+    And the JSON node "_metadata.effectiveLiveAt" should match the regex "/^2999-01-01/"
+    And the Route "/conference/programme" should not be live
 
   Scenario: Neither go-live date is exposed to anonymous users through the redirects endpoint
     Given there is a Route "/launch" with a page
     When I send a "GET" request to the resource "route" and the postfix "/redirects"
     Then the response status code should be 200
     And the JSON node "liveAt" should not exist
-    And the JSON node "effectiveLiveAt" should not exist
-
-  @loginAdmin
-  Scenario: The effective go-live date cannot be written
-    Given there is a Route "/launch" with a page
-    When I send a "PATCH" request to the resource "route" with data:
-      | effectiveLiveAt           |
-      | 2999-01-01T00:00:00+00:00 |
-    Then the response status code should be 200
-    And the Route "/launch" should be live
+    And the JSON node "_metadata.effectiveLiveAt" should not exist
 
   # Manifests
 
@@ -332,3 +324,15 @@ Feature: Scheduled and draft route publication
     Then the response status code should be 200
     And the Route "/conference" should redirect to "/new-conference"
     And the Route "/conference/programme" should redirect to "/new-conference/programme"
+
+  # Collections can only filter on a route's own go-live date: effective liveness is resolved by
+  # walking the ancestor chain, which cannot be expressed in DQL. The item itself stays gated.
+
+  Scenario: A live route under a scheduled parent is listed anonymously even though it cannot be resolved
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
+    When I send a "GET" request to "/_/routes?path=conference/programme"
+    Then the response status code should be 200
+    And the JSON node "member[0]" should exist
+    When I send a "GET" request to "/_/routes//conference/programme"
+    Then the response status code should be 404

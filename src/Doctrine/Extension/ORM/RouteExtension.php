@@ -41,7 +41,7 @@ class RouteExtension implements QueryCollectionExtensionInterface
         $alias = $queryBuilder->getRootAliases()[0];
 
         if (!$this->resourceAccessChecker->isGranted($resourceClass, $this->publicationPermission)) {
-            PublicationDate::andWhereActive($queryBuilder, $alias, 'effectiveLiveAt');
+            PublicationDate::andWhereActive($queryBuilder, $alias, 'liveAt');
         }
 
         foreach ($this->config ?? [] as $index => $routeConfig) {

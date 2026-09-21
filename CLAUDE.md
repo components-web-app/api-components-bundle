@@ -10,6 +10,13 @@ Only expose API fields and serialization groups when they are concretely needed 
 ### No code comments
 Do not write explanatory comments in code. The behaviour and the reason for a change belong in the test that covers it — a named Behat scenario or PHPUnit test method — not in prose beside the implementation. Remove narrative comments from any file you touch. Keep file licence headers and type-carrying annotations (`@var`, `@param`, `@return`, `@template`) that static analysis or the framework needs.
 
+### Public readability is reachability from a live route
+> *"If a user should be able to load that component because the route that it is part of exists and is available now to the public. Simple as that in the theory of it."* — Daniel
+
+A resource is publicly readable **if and only if** it is reachable from a Route that **exists** and is **live now**. That is the yardstick for every decision in the security area — test a proposed rule against it rather than against what the voters currently do. "Live now" is `RouteVoter`'s job and already folds in both the `liveAt` publication gate and `route_security`, so `is_granted('read_route', $route)` is the complete per-request answer for one route; reachability is the question of *which* routes reach a resource.
+
+The rule cuts both ways, and both directions are enforced (#225): a routeless page with a live routed descendant **is** public, because a visitor on the descendant's URL needs it to render; a page nothing routes to is **not** public, however it is reached in the object graph.
+
 ### TDD process
 All feature work follows this cycle:
 1. Explain what we're about to do and why, with a proposed test (Behat scenario or PHPUnit test)
@@ -73,7 +80,7 @@ This is why parent/child hierarchy lives on `AbstractPage` (via `$parentPage`/`$
 - `RouteGenerator` reads `getParentPageRoute()` (computed from `$parentPage?->getRoute() ?? $parentPageData?->getRoute()`) at route-generation time to construct the correct prefixed path
 - Moving hierarchy to `Route` would mean you can't establish parent/child until both pages are already published
 
-### Route publication — `liveAt` and `effectiveLiveAt` (#224)
+### Route publication — `liveAt` and the effective date (#224)
 
 A Route's *existence* is no longer the whole publication signal. `Route.liveAt` (nullable, admin-only via `#[ApiProperty(security:)]`) adds three states:
 
@@ -82,6 +89,8 @@ A Route's *existence* is no longer the whole publication signal. `Route.liveAt` 
 | a past date | live |
 | a future date | scheduled — publicly invisible until that moment, then live with no further action |
 | `null` | draft / taken offline, URL reserved |
+
+> **Migration note.** Applications generate their own migrations. `route.live_at` is the only column this feature adds. An application that already generated a migration against an earlier build of #224 also created `route.effective_live_at`, which no longer exists — regenerate, or hand-write a migration dropping it. No released version carried it, so no BC promise is broken.
 
 **Existing behaviour is preserved by defaults, not by semantics.** `Route::__construct()` sets `liveAt` to now and the ORM column carries `options: ['default' => 'CURRENT_TIMESTAMP']`, so an application's generated migration backfills existing rows and every existing call site (`RouteGenerator`, `POST /_/routes`, `CwaFixtureBuilder`, fixtures, `DoctrineContext`) still produces a live route. Going draft is an explicit act.
 
@@ -93,7 +102,30 @@ A Route's *existence* is no longer the whole publication signal. `Route.liveAt` 
 - Effective = the **latest** date collected, including the route's own. A parent at 2999 gates a child at 2000; a child at 2999 gates itself under a live parent.
 - The walk is cycle-safe with a visited-id set, mirroring `AbstractPage::validateNoCircularParent()`. Do not rely on that validator for protection — fixtures, `CwaFixtureBuilder` and direct SQL all bypass it.
 
-**Resolution is denormalised** into `Route.effectiveLiveAt` (not API-exposed) so the collection filters stay a single flat predicate, the voters stay cheap, and the cache cap can do a plain `SELECT MIN(...)`. `RouteLiveAtListener` (`src/EventListener/Doctrine/RouteLiveAtListener.php`, `onFlush`) maintains it: it collects routes from scheduled insertions and from updates whose changeset touches `liveAt`/`page`/`pageData` (on `Route`) or `route`/`parentPage`/`parentPageData` (on `AbstractPage`), expands to already-persisted descendants with the `findDirectChildren` pattern, and writes back with `computeChangeSet` for insertions / `recomputeSingleEntityChangeSet` for the rest. Hooking `onFlush` rather than individual call sites is deliberate — it catches every path that goes through the entity manager, so there is no silent drift for fixtures or the builder. Direct SQL is out of scope.
+**The effective date is resolved at request time, never stored.** `liveAt` is the only persisted value: what an admin authored on that route. The effective answer is derived by the walk above, memoised per request, and asked for by `RouteVoter` when it gates and by `MetadataNormalizer` when an admin needs to display it.
+
+An earlier implementation denormalised it into a `Route.effectiveLiveAt` column maintained by an `onFlush` listener. That was removed: the codebase already answers "is this reachable" by traversing at request time (`ComponentVoter` has always done so), and a second, inconsistent mechanism for the same class of question was not worth the maintained state. The column's only real justification had been a flat SQL predicate for collection filtering — see the limitation below for what that actually cost.
+
+**Admins read the effective date from `_metadata`, not a property.** `ResourceMetadata::$effectiveLiveAt` (group `cwa_resource:metadata`) carries it, resolved from the same memo the voter uses so the chain is walked once. It is derived state, so it is not a mapped column and not writable. It is admin-only by construction rather than by an added check: a non-admin cannot retrieve a non-live route at all.
+
+> **Known limitation — collections filter on `liveAt` only.** Traversal is not expressible in DQL, so `RouteExtension` and `RoutableExtension` can only test a route's own date. An anonymous `GET /_/routes` therefore lists a route whose own date has passed but whose parent is still scheduled. The item stays correctly gated — the voter 404s it — so this is an existence leak in a listing, not an access leak. Pinned by a scenario in `features/main/route_schedule.feature` so it is documented behaviour rather than an accident.
+
+**The cache cap uses `MIN(liveAt)`** (`RouteRepository::findNextLiveAt()`). That is safe without the column: an effective date is always the *latest* date in a chain, so every effective transition is some route's own `liveAt`, and the minimum over own dates is never later than the earliest real transition. It can expire a cached response slightly early, never too late.
+
+### Route reachability — which routes make a resource public (#225)
+
+Publication answers *is this route live*; reachability answers *which routes reach this resource*. Together they are the invariant above.
+
+A Route reaches its own page **and every ancestor of that page** through `parentPage`/`parentPageData`. That is the whole rule: rendering `/conference/programme` requires the parent's template, groups and components, so the child's Route is what makes them public.
+
+**Resolution is by traversal at request time**, matching how `ComponentVoter` has always answered the same question — no denormalised state, no maintained table, no upgrade step. `RouteReachabilityResolver` asks, for a routable with no route of its own, whether any descendant has a Route that passes `RouteVoter`. Descendants are found with the two-repository `findBy(['parentPage' => …])` / `findBy(['parentPageData' => …])` pattern that `RouteChildrenStateProvider` already uses, so no inverse collection is added to the mapping. The walk is cycle-safe with a visited-id set and early-exits on the first granted route; results are memoised per request.
+
+Consumers:
+- `RoutableVoter` — grants when the resource's own route passes `RouteVoter`, or when the resolver finds a reaching route that does; for a `Page` it also checks the `AbstractPageData` instances using it as a template, since a template is reached through its page data rather than through the hierarchy.
+- `ComponentVoter::voteByRoute` — the same question for each page a component sits in.
+- `RoutableExtension` — own route plus the liveness predicate, unchanged from #224. A routeless page is absent from `GET /_/pages`, which is where it was before #225; see the collection limitation above, which has the same root cause.
+
+**Why not denormalise it.** An "earliest live date among reaching routes" column would have made the collection filter trivial, but it cannot express `route_security`, which is per-token and path-matched — an anonymous visitor would be granted a page reachable only via `/user-area/...`. Storing the *edges* instead was tried and rejected for a different reason: it introduced a maintained join table, a rebuild command and an upgrade step for a question the existing architecture already answers by traversal.
 
 **Public status is 404, not 401/403.** `RouteVoter` still returns `false`, so the voter chain is untouched; `RouteStateProvider` / `ResourceManifestStateProvider` flag the request and `UnpublishedRouteExceptionListener` (main request + cacheable method only) rewrites 401/403 to 404.
 
@@ -519,14 +551,29 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
+### #225 — Nested child page whose parent has no Route: the parent was invisible to the public ✓ **DONE**
+
+The voter chain never treated `parentPage`/`parentPageData` as a reachability edge, so it was wrong in **both** directions. Full mechanism in **Route reachability** above; this entry records the judgement calls.
+
+- **Two bugs, one root cause.** A routeless parent with a live routed child was 401 for the public (its `PageData`, its template `Page` and its components), while a routeless page with *no* routed descendant leaked its **components** to the public. Fixing only the first would have left the chain half-taught.
+- **It is 401, not 403, for an anonymous request** — the entry point converts the denial. The manifest was never the broken part: `GET /_/resource_manifest//child-path` already returned 200 *and already published the parent depth's IRIs anonymously*; only the follow-up per-IRI fetches failed. That is why the fix is in the voters and not in manifest filtering.
+- **The case 2 tightening is a behaviour change for existing applications.** A component that is *placed* in a page structure nothing routes to is now admin-only (`routable_security`), where it used to be public. It is scoped deliberately: `ComponentVoter::voteByRoute` returns `null` (abstain → public, unchanged) when the component is in **no** page at all, and `false` when it is in pages but none is reachable. The first version denied both, and **86 existing scenarios failed** — bare `Form`, `Collection`, publishable and persisted components that fixtures create without placing. That failure was the signal the rule was too broad, not a reason to edit the scenarios. An application relying on the old behaviour either leaves `routable_security` unset (the voter then returns `true` before reaching any of this) or places the component in a routed page.
+- **Admins are unaffected in both directions** because the unreachable path falls through to `routable_security` rather than returning a flat `false`. That also means an admin now reads a component behind a `route_security` route they lack the role for — previously denied. Deliberate: it matches the posture everywhere else that admins can see the whole structure.
+- **Reachability is not `liveAt`, and neither is denormalised.** An "earliest live date among reaching routes" column cannot express `route_security`, which is per-token and path-matched, so it would have granted anonymous access to a page reachable only via `/user-area/...`. Storing the edges in a join table was then built and rejected: it added a maintained table, a rebuild command and an upgrade step for a question `ComponentVoter` already answers by traversal. Both questions are now resolved by walking at request time. The cost is that neither is expressible in DQL — see the collection limitation in **Route publication** above.
+- **Tests:** 21 scenarios in `features/main/security.feature`, 2 in `features/main/dynamic_page.feature`, and unit tests for `RouteReachabilityResolver`. Both halves were watched failing first — the case 1 scenarios 401 without the edge, the case 2 scenario 200 without the tightening. New Behat steps: `there is a routeless parent PageData/Page with a component and a routed child Page with the path :path`, `… with an unrouted child Page`, `there is a routeless Page with a component and no routed descendant`, `there is a chain of :depth routeless Pages ending in a routed Page with the path :path`, `there are two routeless PageData resources which are each other's parent`, `there is a routeless parent PageData with a dynamic position and a routed child Page with the path :path`.
+- **The case 2 scenario that matters is the orphan *plain* `Page`.** A routeless template `Page` used by a `PageData` was already denied, because `voteByPageTemplate` sub-requests the page data and gets a 401. The leak only existed where `voteByPageTemplate` abstains — a page with no page data at all. A first attempt at the regression scenario used the template shape and passed with the fix reverted.
+- **Half B (`cwa-nuxt-module#288`) needed no API change.** `PageDataProvider::getPageData()` already falls back to `iriConverter->getResourceFromIri($path)` and accepts an `AbstractPageData`, and `ComponentPositionEventListener` emits `Vary: path` on dynamic positions regardless of whether the header holds a route path or an IRI — two values that resolve to the same page data simply make two cache entries. Both are now pinned by scenarios asserting the resolved component IRI rather than relying on the schema's `required`.
+
+---
+
 ### #224 — Route-level live / scheduled publication date ✓ **DONE**
 
-`Route.liveAt` + the inherited, denormalised `Route.effectiveLiveAt`. Full semantics are in **Route publication — `liveAt` and `effectiveLiveAt`** above; this entry records only what is easy to get wrong.
+`Route.liveAt` plus an effective date inherited down the page hierarchy and resolved at request time. Full semantics are in **Route publication — `liveAt` and the effective date** above; this entry records only what is easy to get wrong.
 
 - **Decided against the first instinct on every one of these:** `null` means *not live* (not "no schedule, therefore live") — backwards compatibility comes from the constructor default plus the column's `CURRENT_TIMESTAMP` default, not from the semantics. Public status is **404**, not 401/403. Redirects to a gated target are **not** truncated — only the reflected page IRI is withheld.
 - **The inheritance rule has two halves and only one is obvious.** A routed ancestor with `liveAt = null` gates everything below it. An ancestor with **no Route at all** is skipped entirely. Getting the second half wrong silently takes live child pages offline the moment someone sets a parent relationship on an unrouted template — `features/main/route_schedule.feature` carries a regression guard for it that passes both before and after the change.
 - **Gates that needed nothing.** `ResourceManifestVoter`, `RoutableVoter`, `DenyAccessListener::isPageDataAllowedByRoute` and `ComponentVoter::voteByRoute` all reach `RouteVoter`, so gating the voter covered them for free. `cascadeChildPaths` runs post-authorisation on the entity graph and is untouched. `/routes/{id}/children` was already `ROLE_ADMIN`-only.
-- **`recomputeSingleEntityChangeSet`, never `computeChangeSet`, when writing `effectiveLiveAt` during `onFlush`** — including for scheduled *insertions*. Doctrine has already computed the insert changeset by then, and `computeChangeSet` **replaces** it with a diff against `originalEntityData`, which by that point contains only `effectiveLiveAt`; the INSERT then omits every other column and dies on `NOT NULL constraint failed: route.name`. `recomputeSingleEntityChangeSet` merges into the existing changeset instead, and for an unchanged managed descendant it also schedules the update. This only bites when a **new** route resolves to something other than its own `liveAt` — i.e. a child created under a scheduled or draft parent, which is the feature's main use case and was caught only by the `POST /_/routes/generate` scenario.
+- **A Doctrine trap worth keeping, though the listener that hit it is gone.** When an `onFlush` listener writes to an entity, use `recomputeSingleEntityChangeSet`, never `computeChangeSet` — including for scheduled *insertions*. Doctrine has already computed the insert changeset by then, and `computeChangeSet` **replaces** it with a diff against `originalEntityData`, so the INSERT omits every other column and dies on `NOT NULL constraint failed: route.name`. This cost a full debugging cycle on the denormalised `effectiveLiveAt` listener before that listener was removed entirely.
 - **Every write path is covered because the hook is `onFlush`, not the call sites.** `RouteGenerator::create()` in particular sets only the owning side (`$object->setRoute($route)`) and leaves `Route.page`/`Route.pageData` null, so the listener pairs each collected route with the `AbstractPage` it was collected from and hands that to the resolver rather than trusting the inverse side. `CwaFixtureBuilder` and `DoctrineContext` need no special handling for the same reason.
 - **Tests:** `features/main/route_schedule.feature` (38 scenarios), two appended to `features/main/cache_headers.feature`, and unit tests for `RouteLiveResolver`, `UnpublishedRouteExceptionListener` and the cache cap. New Behat steps: `the Route :path goes live at/in :x`, `the Route :path has no go-live date`, `the Route :path should (not) be live`, `there is a PageData resource with the route path :path whose parent page has no route`, `the response shared max age should be at most :seconds`.
 - **Test-app config change:** `tests/Functional/app/config/packages/api_platform.yaml` now sets `defaults.cache_headers.shared_max_age`. Without it the bundle emits no `s-maxage` at all (`api_platform.http_cache.shared_max_age` defaults to null) and the cap is untestable.

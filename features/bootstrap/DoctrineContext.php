@@ -40,6 +40,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -72,6 +73,7 @@ final class DoctrineContext implements Context
     private UserPasswordHasherInterface $passwordHasher;
     private JWTEncoderInterface $jwtEncoder;
     private JsonContext $jsonContext;
+    private RouteLiveResolver $routeLiveResolver;
 
     /**
      * Initializes context.
@@ -80,8 +82,9 @@ final class DoctrineContext implements Context
      * You can also pass arbitrary arguments to the
      * context constructor through behat.yml.
      */
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver)
     {
+        $this->routeLiveResolver = $routeLiveResolver;
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
         $this->iriConverter = $iriConverter;
@@ -614,6 +617,253 @@ final class DoctrineContext implements Context
         $this->restContext->resources[$reference] = $this->iriConverter->getIriFromResource($page);
 
         return $page;
+    }
+
+    private function buildReachabilityComponentGroup(string $reference): ComponentGroup
+    {
+        $component = new DummyComponent();
+        $this->manager->persist($component);
+
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = $reference;
+        $componentGroup->location = $reference;
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+
+        $position = new ComponentPosition();
+        $position->componentGroup = $componentGroup;
+        $position->component = $component;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+
+        $this->restContext->resources['parent_component'] = $this->iriConverter->getIriFromResource($component);
+        $this->restContext->resources['parent_component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+
+        return $componentGroup;
+    }
+
+    private function buildRoutelessParentPageData(string $groupReference): PageData
+    {
+        $parentTemplate = new Page();
+        $parentTemplate->isTemplate = true;
+        $parentTemplate->reference = 'routeless parent template';
+        $parentTemplate->addComponentGroup($this->buildReachabilityComponentGroup($groupReference));
+        $this->timestampedHelper->persistTimestampedFields($parentTemplate, true);
+        $this->manager->persist($parentTemplate);
+
+        $parentPageData = new PageData();
+        $parentPageData->page = $parentTemplate;
+        $this->timestampedHelper->persistTimestampedFields($parentPageData, true);
+        $this->manager->persist($parentPageData);
+
+        $this->restContext->resources['parent_template'] = $this->iriConverter->getIriFromResource($parentTemplate);
+        $this->restContext->resources['parent_page_data'] = $this->iriConverter->getIriFromResource($parentPageData);
+
+        return $parentPageData;
+    }
+
+    private function buildChildPage(string $reference): Page
+    {
+        $childPage = new Page();
+        $childPage->isTemplate = false;
+        $childPage->reference = $reference;
+        $this->timestampedHelper->persistTimestampedFields($childPage, true);
+        $this->manager->persist($childPage);
+
+        return $childPage;
+    }
+
+    private function buildRouteForPage(Page $page, string $path): Route
+    {
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        return $route;
+    }
+
+    /**
+     * @Given there is a routeless parent PageData with a component and a routed child Page with the path :path
+     */
+    public function thereIsARoutelessParentPageDataWithARoutedChild(string $path): void
+    {
+        $parentPageData = $this->buildRoutelessParentPageData('routeless parent group');
+
+        $childPage = $this->buildChildPage('routed child page');
+        $childPage->setParentPageData($parentPageData);
+        $childRoute = $this->buildRouteForPage($childPage, $path);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['child_page'] = $this->iriConverter->getIriFromResource($childPage);
+        $this->restContext->resources['child_route'] = $this->iriConverter->getIriFromResource($childRoute);
+        $this->restContext->resources['parent_manifest'] = '/_/resource_manifest/' . $parentPageData->getId();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routeless Page with a component and no routed descendant
+     */
+    public function thereIsARoutelessPageWithNoRoutedDescendant(): void
+    {
+        $page = new Page();
+        $page->isTemplate = false;
+        $page->reference = 'orphan routeless page';
+        $page->addComponentGroup($this->buildReachabilityComponentGroup('orphan group'));
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['orphan_page'] = $this->iriConverter->getIriFromResource($page);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routeless parent PageData with a component and an unrouted child Page
+     */
+    public function thereIsARoutelessParentPageDataWithAnUnroutedChild(): void
+    {
+        $parentPageData = $this->buildRoutelessParentPageData('unreachable parent group');
+
+        $childPage = $this->buildChildPage('unrouted child page');
+        $childPage->setParentPageData($parentPageData);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['child_page'] = $this->iriConverter->getIriFromResource($childPage);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routeless parent Page with a component and a routed child Page with the path :path
+     */
+    public function thereIsARoutelessParentPageWithARoutedChild(string $path): void
+    {
+        $parentPage = new Page();
+        $parentPage->isTemplate = false;
+        $parentPage->reference = 'routeless parent page';
+        $parentPage->addComponentGroup($this->buildReachabilityComponentGroup('routeless parent page group'));
+        $this->timestampedHelper->persistTimestampedFields($parentPage, true);
+        $this->manager->persist($parentPage);
+
+        $childPage = $this->buildChildPage('routed child page');
+        $childPage->setParentPage($parentPage);
+        $this->buildRouteForPage($childPage, $path);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['parent_page'] = $this->iriConverter->getIriFromResource($parentPage);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a chain of :depth routeless Pages ending in a routed Page with the path :path
+     */
+    public function thereIsAChainOfRoutelessPages(int $depth, string $path): void
+    {
+        $root = null;
+        $parent = null;
+        for ($i = 0; $i < $depth; ++$i) {
+            $page = new Page();
+            $page->isTemplate = false;
+            $page->reference = 'chain page ' . $i;
+            if (0 === $i) {
+                $page->addComponentGroup($this->buildReachabilityComponentGroup('chain group'));
+            }
+            if (null !== $parent) {
+                $page->setParentPage($parent);
+            }
+            $this->timestampedHelper->persistTimestampedFields($page, true);
+            $this->manager->persist($page);
+            $root ??= $page;
+            $parent = $page;
+        }
+
+        $leaf = $this->buildChildPage('chain leaf');
+        $leaf->setParentPage($parent);
+        $this->buildRouteForPage($leaf, $path);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['chain_root'] = $this->iriConverter->getIriFromResource($root);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there are two routeless PageData resources which are each other's parent
+     */
+    public function thereAreTwoPageDataResourcesWhichAreEachOthersParent(): void
+    {
+        $pageOne = new Page();
+        $pageOne->isTemplate = true;
+        $pageOne->reference = 'cycle template one';
+        $this->timestampedHelper->persistTimestampedFields($pageOne, true);
+        $this->manager->persist($pageOne);
+
+        $first = new PageData();
+        $first->page = $pageOne;
+        $this->timestampedHelper->persistTimestampedFields($first, true);
+        $this->manager->persist($first);
+
+        $second = new PageData();
+        $second->page = $pageOne;
+        $this->timestampedHelper->persistTimestampedFields($second, true);
+        $this->manager->persist($second);
+
+        $this->manager->flush();
+
+        $first->setParentPageData($second);
+        $second->setParentPageData($first);
+        $this->manager->flush();
+
+        $this->restContext->resources['cycle_page_data'] = $this->iriConverter->getIriFromResource($first);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routeless parent PageData with a dynamic position and a routed child Page with the path :path
+     */
+    public function thereIsARoutelessParentPageDataWithADynamicPosition(string $path): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'dynamic parent group';
+        $componentGroup->location = 'dynamic parent group';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+
+        $position = new ComponentPosition();
+        $position->pageDataProperty = 'component';
+        $position->pageDataClass = PageDataWithComponent::class;
+        $position->componentGroup = $componentGroup;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+
+        $parentTemplate = new Page();
+        $parentTemplate->isTemplate = true;
+        $parentTemplate->reference = 'dynamic parent template';
+        $parentTemplate->addComponentGroup($componentGroup);
+        $this->timestampedHelper->persistTimestampedFields($parentTemplate, true);
+        $this->manager->persist($parentTemplate);
+
+        $parentPageData = new PageDataWithComponent();
+        $parentPageData->component = $this->thereIsADummyComponent();
+        $parentPageData->page = $parentTemplate;
+        $this->timestampedHelper->persistTimestampedFields($parentPageData, true);
+        $this->manager->persist($parentPageData);
+
+        $childPage = $this->buildChildPage('dynamic routed child');
+        $childPage->setParentPageData($parentPageData);
+        $this->buildRouteForPage($childPage, $path);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['parent_page_data'] = $this->iriConverter->getIriFromResource($parentPageData);
+        $this->restContext->resources['parent_position'] = $this->iriConverter->getIriFromResource($position);
+        $this->manager->clear();
     }
 
     /**
@@ -1852,9 +2102,8 @@ final class DoctrineContext implements Context
         $this->manager->clear();
         $route = $this->manager->getRepository(Route::class)->findOneBy(['path' => $path]);
         Assert::assertNotNull($route, \sprintf('No route found with the path "%s".', $path));
-        $effective = $route->getEffectiveLiveAt();
 
-        return null !== $effective && new \DateTimeImmutable() >= $effective;
+        return $this->routeLiveResolver->isLive($route);
     }
 
     /**

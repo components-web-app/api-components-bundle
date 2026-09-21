@@ -112,7 +112,7 @@ final class CacheHeadersEventListener
         }
 
         $now = new \DateTimeImmutable();
-        $next = $this->routeRepository->findNextEffectiveLiveAt($now);
+        $next = $this->routeRepository->findNextLiveAt($now);
         if (null === $next) {
             return;
         }

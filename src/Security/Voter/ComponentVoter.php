@@ -12,12 +12,13 @@
 namespace Silverback\ApiComponentsBundle\Security\Voter;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -45,6 +46,9 @@ class ComponentVoter extends Voter
         private readonly RequestStack $requestStack,
         private readonly PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
+        private readonly RouteReachabilityResolver $reachabilityResolver,
+        private readonly ?ResourceAccessCheckerInterface $resourceAccessChecker = null,
+        private readonly ?string $securityStr = null,
     ) {
         $this->initRegistry($registry);
     }
@@ -69,26 +73,35 @@ class ComponentVoter extends Voter
         $pagesGenerator = $this->getComponentPages($subject);
         $pages = iterator_to_array($pagesGenerator);
 
-        // 1. Check if accessible via any route
-        $routeVoteResult = $this->voteByRoute($pages, $request);
+        $routeVoteResult = $this->voteByRoute($pages);
         if ($routeVoteResult) {
             return true;
         }
 
-        // 2. as a page data property
         $pageDataResult = $this->voteByPageData($subject, $request);
         if ($pageDataResult) {
             return true;
         }
 
-        // 3. as a component in the page template being used by page data
         $pageTemplateResult = $this->voteByPageTemplate($pages, $request);
         if ($pageTemplateResult) {
             return true;
         }
 
-        // vote is ok if all sub votes abstain
-        return null === $routeVoteResult && null === $pageDataResult && null === $pageTemplateResult;
+        if (null === $routeVoteResult && null === $pageDataResult && null === $pageTemplateResult) {
+            return true;
+        }
+
+        return $this->isGrantedWithoutRoute($subject);
+    }
+
+    private function isGrantedWithoutRoute(AbstractComponent $subject): bool
+    {
+        if (!$this->securityStr || !$this->resourceAccessChecker) {
+            return true;
+        }
+
+        return $this->resourceAccessChecker->isGranted($subject::class, $this->securityStr);
     }
 
     private function voteByPageTemplate($pages, Request $request): ?bool
@@ -122,18 +135,19 @@ class ComponentVoter extends Voter
         return $pageDataCount ? false : null;
     }
 
-    private function voteByRoute($pages, Request $request): ?bool
+    private function voteByRoute($pages): ?bool
     {
-        $routes = $this->getComponentRoutesFromPages($pages);
-        $routeCount = 0;
-        foreach ($routes as $route) {
-            ++$routeCount;
-            if ($this->isRouteReachableResource($route, $request)) {
+        if (!\count($pages)) {
+            return null;
+        }
+
+        foreach ($pages as $page) {
+            if ($this->reachabilityResolver->isReachable($page)) {
                 return true;
             }
         }
 
-        return $routeCount ? false : null;
+        return false;
     }
 
     private function getPublishedSubject($subject)
@@ -151,13 +165,6 @@ class ComponentVoter extends Voter
         }
 
         return $subject;
-    }
-
-    private function isRouteReachableResource(Route $route, Request $request): bool
-    {
-        $path = $this->iriConverter->getIriFromResource($route);
-
-        return $this->isPathReachable($path, $request);
     }
 
     private function isPageDataReachableResource(AbstractPageData $pageData, Request $request): bool
@@ -218,16 +225,6 @@ class ComponentVoter extends Voter
                 yield from $this->getComponentPages($parentComponent);
             }
             yield from $componentGroup->pages;
-        }
-    }
-
-    private function getComponentRoutesFromPages(array $pages): iterable
-    {
-        foreach ($pages as $page) {
-            $route = $page->getRoute();
-            if ($route) {
-                yield $route;
-            }
         }
     }
 }

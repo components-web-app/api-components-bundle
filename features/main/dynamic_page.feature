@@ -31,12 +31,22 @@ Feature: Dynamic pages
     And the JSON should be valid according to the schema file "component_position.schema.json"
     And the JSON node "_metadata.staticComponent" should be null
 
-  Scenario: Populating the component from a page data property
+  Scenario: A dynamic position resolves its component from a page data IRI in the path header
     Given there is a PageData resource with the route path "/page-data"
     And I add "path" header equal to the resource "page_data"
     When I send a "GET" request to the resource "component_position"
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "component_position.schema.json"
+    And the JSON node "component" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+    And the header "Vary" should contain "path"
+
+  Scenario: A dynamic position resolves its component from the IRI of a page data which has no route
+    Given there is a routeless parent PageData with a dynamic position and a routed child Page with the path "/child-path"
+    And I add "path" header equal to the resource "parent_page_data"
+    When I send a "GET" request to the resource "parent_position"
+    Then the response status code should be 200
+    And the JSON node "component" should match the regex "/\/component\/dummy_components\/[a-z0-9\-]+/"
+    And the header "Vary" should contain "path"
 
   @loginAdmin
   Scenario: When a dynamic component is deleted, related component positions should be purged from the cache

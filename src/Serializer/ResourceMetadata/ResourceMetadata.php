@@ -51,6 +51,9 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?array $mercureSubscribeTopics = null;
 
+    #[Groups('cwa_resource:metadata')]
+    private ?string $effectiveLiveAt = null;
+
     public function getResourceMetadata(): ?ResourceMetadataInterface
     {
         return $this;
@@ -104,6 +107,16 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setCollection(bool $collection): void
     {
         $this->collection = $collection;
+    }
+
+    public function getEffectiveLiveAt(): ?string
+    {
+        return $this->effectiveLiveAt;
+    }
+
+    public function setEffectiveLiveAt(?string $effectiveLiveAt): void
+    {
+        $this->effectiveLiveAt = $effectiveLiveAt;
     }
 
     public function getPersisted(): ?bool

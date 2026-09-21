@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -34,6 +35,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
         private readonly RouteLiveResolver $routeLiveResolver,
         private readonly ResourceAccessCheckerInterface $resourceAccessChecker,
         private readonly string $publicationPermission,
+        private readonly ?ResourceMetadataProvider $resourceMetadataProvider = null,
     ) {
     }
 
@@ -61,6 +63,12 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
         $isRedirect = $finalRoute !== $object;
         $mayReadUnpublished = $this->mayReadUnpublished();
+
+        if ($mayReadUnpublished && $this->resourceMetadataProvider) {
+            $this->resourceMetadataProvider
+                ->findResourceMetadata($object)
+                ->setEffectiveLiveAt($this->routeLiveResolver->resolveEffectiveLiveAt($object)?->format(\DateTimeInterface::ATOM));
+        }
         $propagateTarget = $isRedirect && ($mayReadUnpublished || $this->routeLiveResolver->isLive($finalRoute));
 
         if ($propagateTarget) {

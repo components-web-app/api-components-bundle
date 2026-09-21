@@ -46,6 +46,7 @@ use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
@@ -163,6 +164,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$securityStr', $config['routable_security']);
 
         $definition = $container->findDefinition(RoutableVoter::class);
+        $definition->setArgument('$securityStr', $config['routable_security']);
+
+        $definition = $container->findDefinition(ComponentVoter::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
         $definition = $container->findDefinition(RoutableResourceMetadataCollectionFactory::class);
