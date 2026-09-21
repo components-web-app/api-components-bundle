@@ -14,7 +14,8 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/silverbackdan/contexts"
+            "url": "https://github.com/silverbackdan/contexts",
+            "no-api": true
         }
     ],
     "require": {
