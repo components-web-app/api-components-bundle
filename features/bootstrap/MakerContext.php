@@ -24,8 +24,9 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
-use Silverback\ApiComponentsBundle\Tests\Maker\RenderingMigrationGenerator;
+use Silverback\ApiComponentsBundle\Tests\Maker\DoctrineMigrationsFixture;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -35,12 +36,11 @@ class MakerContext implements Context
 {
     private const BLANK_NODE_PATH = '/.well-known/genid/';
 
-    private ?RenderingMigrationGenerator $generator = null;
+    private ?DoctrineMigrationsFixture $migrations = null;
     private ?\Throwable $failure = null;
     private MinkContext $minkContext;
 
     public function __construct(
-        private readonly MakeRenameComponent $makeRenameComponent,
         private readonly IriConverterInterface $iriConverter,
         private readonly ManagerRegistry $registry,
     ) {
@@ -64,15 +64,17 @@ class MakerContext implements Context
             $params[\in_array($name, ['old-name', 'new-name'], true) ? $name : '--' . $name] = $value;
         }
 
+        $this->migrations = new DoctrineMigrationsFixture($this->connection());
+        $maker = new MakeRenameComponent($this->iriConverter, $this->registry, $this->migrations->dependencyFactory);
+
         $command = new Command('make:rename-component');
-        $this->makeRenameComponent->configureCommand($command, new InputConfiguration());
+        $maker->configureCommand($command, new InputConfiguration());
         $input = new ArrayInput($params, $command->getDefinition());
         $input->setInteractive(false);
 
-        $this->generator = new RenderingMigrationGenerator();
         $this->failure = null;
         try {
-            $this->makeRenameComponent->generate($input, new ConsoleStyle($input, new BufferedOutput()), $this->generator);
+            $maker->generate($input, new ConsoleStyle($input, new BufferedOutput()), (new \ReflectionClass(Generator::class))->newInstanceWithoutConstructor());
         } catch (\Throwable $e) {
             $this->failure = $e;
         }
@@ -108,7 +110,7 @@ class MakerContext implements Context
         if (!str_contains($this->failure->getMessage(), $option)) {
             throw $this->expectation(\sprintf('Expected the refusal to name "%s", got: %s', $option, $this->failure->getMessage()));
         }
-        if ($this->generator?->hasGenerated()) {
+        if ($this->migrations?->hasGenerated()) {
             throw $this->expectation('A migration was generated even though the maker refused.');
         }
     }
@@ -118,11 +120,12 @@ class MakerContext implements Context
      */
     public function theGeneratedRenameComponentMigrationShouldRename(string $oldIri, string $newIri): void
     {
-        $variables = $this->generatedMigration()->getVariables();
-        if ($variables['old_iri'] !== $oldIri || $variables['new_iri'] !== $newIri) {
-            throw $this->expectation(\sprintf('Expected "%s" -> "%s", got "%s" -> "%s".', $oldIri, $newIri, $variables['old_iri'], $variables['new_iri']));
+        $source = $this->generatedMigration()->generatedSource();
+        $rename = \sprintf('%s === $c ? %s : $c', var_export($oldIri, true), var_export($newIri, true));
+        if (!str_contains($source, $rename)) {
+            throw $this->expectation(\sprintf('Expected the migration to rename "%s" to "%s" on the way up.', $oldIri, $newIri));
         }
-        if (str_contains($this->generatedMigration()->getSource(), self::BLANK_NODE_PATH)) {
+        if (str_contains($source, self::BLANK_NODE_PATH)) {
             throw $this->expectation('The generated migration contains a blank node IRI.');
         }
     }
@@ -160,16 +163,16 @@ class MakerContext implements Context
         }
     }
 
-    private function generatedMigration(): RenderingMigrationGenerator
+    private function generatedMigration(): DoctrineMigrationsFixture
     {
         if (null !== $this->failure) {
             throw $this->expectation('The maker failed: ' . $this->failure->getMessage());
         }
-        if (!$this->generator?->hasGenerated()) {
+        if (!$this->migrations?->hasGenerated()) {
             throw $this->expectation('No rename component migration has been generated.');
         }
 
-        return $this->generator;
+        return $this->migrations;
     }
 
     private function connection(): Connection
