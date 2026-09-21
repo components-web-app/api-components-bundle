@@ -46,11 +46,70 @@ class ConfigurationTest extends TestCase
                 'cookie_name' => 'api_components',
                 'ttl' => 604800,
                 'database_user_provider' => 'database',
+                'options' => ['class' => 'App\\Entity\\RefreshToken'],
             ],
             'website_name' => 'Test Website',
             'user' => ['class_name' => 'App\Entity\User'],
             'publishable' => ['permission' => "is_granted('ROLE_ADMIN')"],
         ];
+    }
+
+    #[DataProvider('requiredNodeProvider')]
+    public function test_omitting_a_required_node_is_rejected_by_name(string $node): void
+    {
+        $config = self::minimalConfig();
+        unset($config[$node]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(\sprintf('The child config "%s" under "silverback_api_components" must be configured.', $node));
+
+        $this->process($config);
+    }
+
+    public static function requiredNodeProvider(): iterable
+    {
+        yield 'user' => ['user'];
+        yield 'refresh_token' => ['refresh_token'];
+        yield 'publishable' => ['publishable'];
+    }
+
+    public function test_a_required_node_still_resolves_its_defaulted_children(): void
+    {
+        $user = $this->process(self::minimalConfig())['user'];
+
+        self::assertArrayHasKey('email_verification', $user);
+        self::assertSame(86400, $user['password_reset']['repeat_ttl_seconds']);
+    }
+
+    public function test_the_doctrine_refresh_token_storage_demands_an_entity_class(): void
+    {
+        $config = self::minimalConfig();
+        unset($config['refresh_token']['options']);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('silverback_api_components.refresh_token.options.class');
+
+        $this->process($config);
+    }
+
+    public function test_a_custom_refresh_token_storage_needs_no_entity_class(): void
+    {
+        $config = self::minimalConfig();
+        $config['refresh_token']['handler_id'] = 'app.refresh_token.storage';
+        unset($config['refresh_token']['options']);
+
+        self::assertSame([], $this->process($config)['refresh_token']['options']);
+    }
+
+    public function test_an_empty_user_class_name_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['class_name'] = '';
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('cannot contain an empty value');
+
+        $this->process($config);
     }
 
     private function process(array $config): array
