@@ -18,12 +18,11 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Component\Mercure\ProtocolVersion;
+use Symfony\Component\Mercure\RemoteHubInterface;
 use Symfony\Component\Mercure\Update;
 
-/**
- * @description Force draft resources to be private updates
- */
-class PublishableAwareHub implements HubInterface
+class PublishableAwareHub implements RemoteHubInterface
 {
     public function __construct(private HubInterface $decorated, private PublishableStatusChecker $publishableStatusChecker, private IriConverterInterface $iriConverter, private readonly ?CwaCollectorData $collectorData = null)
     {
@@ -31,6 +30,10 @@ class PublishableAwareHub implements HubInterface
 
     public function getUrl(): string
     {
+        if (!method_exists($this->decorated, 'getUrl')) {
+            throw new \LogicException(\sprintf('The decorated hub "%s" has no internal URL.', $this->decorated::class));
+        }
+
         return $this->decorated->getUrl();
     }
 
@@ -41,12 +44,26 @@ class PublishableAwareHub implements HubInterface
 
     public function getProvider(): TokenProviderInterface
     {
+        if (!method_exists($this->decorated, 'getProvider')) {
+            throw new \LogicException(\sprintf('The decorated hub "%s" has no token provider.', $this->decorated::class));
+        }
+
         return $this->decorated->getProvider();
     }
 
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->decorated->getFactory();
+    }
+
+    public function getProtocolVersion(): ProtocolVersion
+    {
+        return $this->decorated->getProtocolVersion();
+    }
+
+    public function getCookieName(): string
+    {
+        return $this->decorated->getCookieName();
     }
 
     public function publish(Update $update): string
