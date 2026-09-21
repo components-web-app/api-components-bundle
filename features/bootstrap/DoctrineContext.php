@@ -901,6 +901,24 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given /^there are (\d+) SiteConfigParameters$/
+     */
+    public function thereAreSiteConfigParameters(int $count): void
+    {
+        $params = [];
+        for ($i = 0; $i < $count; ++$i) {
+            $param = new SiteConfigParameter();
+            $param->setKey(\sprintf('key_%d', $i))->setValue(\sprintf('value_%d', $i));
+            $this->manager->persist($param);
+            $params[$i] = $param;
+        }
+        $this->manager->flush();
+        foreach ($params as $i => $param) {
+            $this->restContext->resources[\sprintf('site_config_param_%d', $i)] = $this->iriConverter->getIriFromResource($param);
+        }
+    }
+
+    /**
      * @Given /^there (?:is|are) (\d+) Route(?:s)?$/
      */
     public function thereAreRoutes(int $count): void

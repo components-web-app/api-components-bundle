@@ -41,6 +41,8 @@ use Symfony\Component\VarDumper\Cloner\Data;
  */
 class ProfilerContext implements Context
 {
+    private const PURGE_HEADER_NAMES = ['xkey', 'surrogate-key'];
+
     private ?AbstractBrowser $client;
     private ?RestContext $restContext;
     private ?MinkContext $minkContext;
@@ -159,11 +161,10 @@ class ProfilerContext implements Context
     }
 
     /**
-     * @Then the resource :resource_name should be purged from the cache
+     * @return list<string>
      */
-    public function theResourceShouldBePurgedFromTheCache(string $resourceName)
+    private function collectPurgedTags(): array
     {
-        $expectedIri = $this->restContext->resources[$resourceName];
         /** @var HttpClientDataCollector $collector */
         $collector = $this->getProfile()->getCollector('http_client');
         $purged = [];
@@ -171,18 +172,70 @@ class ProfilerContext implements Context
             foreach ($clientInfo['traces'] as $trace) {
                 /** @var Data $data */
                 $data = $trace['options']->getValue()['normalized_headers'];
-                $xkeyHeaders = $data->getValue()['xkey']->getValue();
-                foreach ($xkeyHeaders as $xkeyHeader) {
-                    $iri = preg_replace('/^xkey\: /', '', $xkeyHeader->getValue());
-                    $iris = explode(' ', $iri);
-                    array_push($purged, ...$iris);
-                    if (\in_array($expectedIri, $iris, true)) {
-                        return true;
+                $normalizedHeaders = $data->getValue();
+                foreach (self::PURGE_HEADER_NAMES as $headerName) {
+                    if (!isset($normalizedHeaders[$headerName])) {
+                        continue;
+                    }
+                    foreach ($normalizedHeaders[$headerName]->getValue() as $header) {
+                        $value = preg_replace('/^' . preg_quote($headerName, '/') . ':\s*/i', '', $header->getValue());
+                        array_push($purged, ...preg_split('/[,\s]+/', trim($value), -1, \PREG_SPLIT_NO_EMPTY));
                     }
                 }
             }
         }
-        throw new ExpectationException(\sprintf('The resource %s was not found in any xkey headers sent to be purged. IRIs that were purged were `%s`', $expectedIri, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+
+        return $purged;
+    }
+
+    /**
+     * @Then the resource :resource_name should be purged from the cache
+     */
+    public function theResourceShouldBePurgedFromTheCache(string $resourceName)
+    {
+        $expectedIri = $this->restContext->resources[$resourceName];
+        $purged = $this->collectPurgedTags();
+        if (\in_array($expectedIri, $purged, true)) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The resource %s was not found in any purge headers sent. Tags that were purged were `%s`', $expectedIri, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then the cache tag :tag should be purged
+     */
+    public function theCacheTagShouldBePurged(string $tag)
+    {
+        $purged = $this->collectPurgedTags();
+        if (\in_array($tag, $purged, true)) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tag %s was not found in any purge headers sent. Tags that were purged were `%s`', $tag, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then the cache tag :tag should not be purged
+     */
+    public function theCacheTagShouldNotBePurged(string $tag)
+    {
+        $purged = $this->collectPurgedTags();
+        if (!\in_array($tag, $purged, true)) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tag %s should not have been purged. Tags that were purged were `%s`', $tag, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then /^the cache tag "([^"]*)" should be purged (\d+) times?$/
+     */
+    public function theCacheTagShouldBePurgedTimes(string $tag, int $count)
+    {
+        $purged = $this->collectPurgedTags();
+        $actual = \count(array_filter($purged, static fn (string $purgedTag): bool => $purgedTag === $tag));
+        if ($actual === $count) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tag %s was purged %d time(s) but %d was expected. Tags that were purged were `%s`', $tag, $actual, $count, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
     }
 
     /**

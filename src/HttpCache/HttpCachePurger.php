@@ -24,13 +24,20 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface
 {
-    private array $tags;
+    public const string RENDERED_HTML_TAG = 'cwa-html';
 
+    private array $tags;
+    private bool $purgeRenderedHtml;
+
+    /**
+     * @param array<class-string> $purgeRenderedHtmlClasses
+     */
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
         private readonly ?PurgerInterface $httpCachePurger,
         private readonly ?CwaCollectorData $collectorData = null,
+        private readonly array $purgeRenderedHtmlClasses = [],
     ) {
         $this->reset();
     }
@@ -61,6 +68,8 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         try {
             $resourceClass = $this->resourceClassResolver->getResourceClass($entity);
 
+            $this->collectRenderedHtml($resourceClass);
+
             // collect cache of any collections being fetched
             $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
             $this->collectIri($resourceIri);
@@ -87,13 +96,32 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         }
     }
 
-    public function propagate(): void
+    private function collectRenderedHtml(string $resourceClass): void
     {
-        if (empty($this->tags)) {
+        if ($this->purgeRenderedHtml) {
             return;
         }
 
+        foreach ($this->purgeRenderedHtmlClasses as $purgeRenderedHtmlClass) {
+            if (is_a($resourceClass, $purgeRenderedHtmlClass, true)) {
+                $this->purgeRenderedHtml = true;
+
+                return;
+            }
+        }
+    }
+
+    public function propagate(): void
+    {
         $iris = array_values($this->tags);
+        if ($this->purgeRenderedHtml) {
+            $iris[] = self::RENDERED_HTML_TAG;
+        }
+
+        if (empty($iris)) {
+            return;
+        }
+
         $this->collectorData?->recordCachePurge($iris);
         $this->httpCachePurger && $this->httpCachePurger->purge($iris);
         $this->reset();
@@ -102,5 +130,6 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     public function reset(): void
     {
         $this->tags = [];
+        $this->purgeRenderedHtml = false;
     }
 }

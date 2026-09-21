@@ -14,6 +14,8 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -53,7 +55,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('http_cache')
                     ->addDefaultsIfNotSet()
-                    ->info('Cache-safety headers for responses that vary by the authenticated session.')
+                    ->info('Cache-safety headers for responses that vary by the authenticated session, and the resource classes whose writes invalidate the front end\'s rendered HTML.')
                     ->children()
                         ->arrayNode('personalised_resource_classes')
                             ->info('Resource classes whose GET responses are marked `private, no-store` for authenticated users. Publishable resources are always treated as personalised in addition to this list.')
@@ -62,6 +64,13 @@ class Configuration implements ConfigurationInterface
                                 Route::class,
                                 ResourceManifest::class,
                                 ComponentPosition::class,
+                            ])
+                        ->end()
+                        ->arrayNode('purge_rendered_html_classes')
+                            ->info('Resource classes whose writes also purge the `' . HttpCachePurger::RENDERED_HTML_TAG . '` surrogate key, dropping every cached page the front end has rendered. Purging this key drops the whole HTML cache at once, so keep the list short and deliberate, and list only leaf resources that are not reachable as an association of another resource.')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([
+                                SiteConfigParameter::class,
                             ])
                         ->end()
                     ->end()
