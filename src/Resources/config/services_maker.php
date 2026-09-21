@@ -11,11 +11,14 @@
 
 namespace Silverback\ApiComponentsBundle\Resources\config;
 
+use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
 use Silverback\ApiComponentsBundle\Maker\MakePageData;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Reference;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -39,6 +42,10 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(MakeCwaScaffold::class, 'silverback.api_components.maker.make_cwa_scaffold');
 
     $services->set('silverback.api_components.maker.make_rename_component', MakeRenameComponent::class)
+        ->args([
+            new Reference(IriConverterInterface::class),
+            new Reference(ManagerRegistry::class),
+        ])
         ->tag('maker.command')
         ->public();
 

@@ -1,0 +1,52 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
+
+use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
+use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
+use Silverback\ApiComponentsBundle\Maker\MakePageData;
+use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+
+class MakerServicesTest extends TestCase
+{
+    public static function makerProvider(): iterable
+    {
+        yield 'make:api-component' => ['silverback.api_components.maker.make_api_component', MakeApiComponent::class];
+        yield 'make:page-data' => ['silverback.api_components.maker.make_page_data', MakePageData::class];
+        yield 'make:cwa-scaffold' => ['silverback.api_components.maker.make_cwa_scaffold', MakeCwaScaffold::class];
+        yield 'make:rename-component' => ['silverback.api_components.maker.make_rename_component', MakeRenameComponent::class];
+    }
+
+    #[DataProvider('makerProvider')]
+    public function test_every_maker_is_a_tagged_maker_command_constructible_from_its_service_definition(string $serviceId, string $class): void
+    {
+        $container = new ContainerBuilder();
+        $container->register(IriConverterInterface::class)->setSynthetic(true)->setPublic(true);
+        $container->register(ManagerRegistry::class)->setSynthetic(true)->setPublic(true);
+
+        (new PhpFileLoader($container, new FileLocator(\dirname(__DIR__, 2) . '/src/Resources/config')))->load('services_maker.php');
+        $container->compile();
+
+        $container->set(IriConverterInterface::class, $this->createStub(IriConverterInterface::class));
+        $container->set(ManagerRegistry::class, $this->createStub(ManagerRegistry::class));
+
+        self::assertTrue($container->getDefinition($serviceId)->hasTag('maker.command'));
+        self::assertInstanceOf($class, $container->get($serviceId));
+    }
+}
