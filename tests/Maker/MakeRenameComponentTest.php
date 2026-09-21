@@ -40,8 +40,8 @@ class MakeRenameComponentTest extends TestCase
         $this->migrations ??= new DoctrineMigrationsFixture();
 
         return new MakeRenameComponent(
-            $iriConverter ?? $this->createMock(IriConverterInterface::class),
-            $registry ?? $this->createMock(ManagerRegistry::class),
+            $iriConverter ?? $this->createStub(IriConverterInterface::class),
+            $registry ?? $this->createStub(ManagerRegistry::class),
             $this->migrations->dependencyFactory,
         );
     }
@@ -125,10 +125,10 @@ class MakeRenameComponentTest extends TestCase
 
     private function registryWithGroups(array $groups): ManagerRegistry
     {
-        $registry = $this->createMock(ManagerRegistry::class);
-        $repo = $this->createMock(ObjectRepository::class);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $repo = $this->createStub(ObjectRepository::class);
         $repo->method('findAll')->willReturn($groups);
-        $registry->method('getRepository')->with(ComponentGroup::class)->willReturn($repo);
+        $registry->method('getRepository')->willReturnCallback(static fn (string $class): ObjectRepository => ComponentGroup::class === $class ? $repo : throw new \LogicException(\sprintf('Unexpected repository requested for "%s".', $class)));
 
         $manager = $this->createStub(ObjectManager::class);
         $manager->method('getClassMetadata')->willReturnCallback(static function (string $class): ClassMetadata {
@@ -156,7 +156,7 @@ class MakeRenameComponentTest extends TestCase
 
     private function iriConverterReturning(string $oldIri, string $newIri): IriConverterInterface
     {
-        $mock = $this->createMock(IriConverterInterface::class);
+        $mock = $this->createStub(IriConverterInterface::class);
         $mock->method('getIriFromResource')
             ->willReturnOnConsecutiveCalls($oldIri, $newIri);
 

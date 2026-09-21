@@ -328,8 +328,8 @@ class MediaObjectFactoryTest extends TestCase
     public function test_cache_miss_reads_from_filesystem(): void
     {
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->method('fileSize')->willReturn(2048);
-        $filesystem->method('mimeType')->willReturn('application/pdf');
+        $filesystem->expects($this->once())->method('fileSize')->willReturn(2048);
+        $filesystem->expects($this->once())->method('mimeType')->willReturn('application/pdf');
 
         $filesystemProvider = $this->createStub(FilesystemProvider::class);
         $filesystemProvider->method('getFilesystem')->willReturn($filesystem);

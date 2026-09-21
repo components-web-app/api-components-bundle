@@ -20,7 +20,7 @@ class PublicUrlGeneratorTest extends TestCase
     public function test_generates_public_url_from_filesystem(): void
     {
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->method('publicUrl')
+        $filesystem->expects($this->once())->method('publicUrl')
             ->with('/uploads/image.png', [])
             ->willReturn('https://cdn.example.com/uploads/image.png');
 
@@ -36,7 +36,7 @@ class PublicUrlGeneratorTest extends TestCase
         $config = ['visibility' => 'public'];
 
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->method('publicUrl')
+        $filesystem->expects($this->once())->method('publicUrl')
             ->with('/file.png', $config)
             ->willReturn('https://cdn.example.com/file.png');
 

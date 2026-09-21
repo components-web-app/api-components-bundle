@@ -240,7 +240,7 @@ class HttpCachePurgerTest extends TestCase
             ->method('getResourceClass')
             ->willReturnCallback(static fn (object $value): string => $value::class);
 
-        $httpCachePurger = $this->createMock(PurgerInterface::class);
+        $httpCachePurger = $this->createStub(PurgerInterface::class);
         $httpCachePurger
             ->method('purge')
             ->willReturnCallback(function (array $iris): void {

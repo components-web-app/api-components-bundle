@@ -12,7 +12,7 @@ on:
 env:
   COMPOSER_ALLOW_SUPERUSER: '1' # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
   COVERAGE: '0'
-  INFECTION_VERSION: '0.29.14'
+  INFECTION_VERSION: '0.35.4'
   COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -130,7 +130,7 @@ jobs:
           gpg --import .github/infection-signing-key.asc
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --only-covered --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
+          ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
       - name: Upload Infection Mutation Logs
         if: matrix.coverage
         uses: actions/upload-artifact@v4
