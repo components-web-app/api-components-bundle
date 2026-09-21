@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -236,6 +237,81 @@ class ProfilerContext implements Context
             return;
         }
         throw new ExpectationException(\sprintf('The cache tag %s was purged %d time(s) but %d was expected. Tags that were purged were `%s`', $tag, $actual, $count, implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then the manifest cache tag for the resource :resource_name should be purged
+     */
+    public function theManifestCacheTagForTheResourceShouldBePurged(string $resourceName)
+    {
+        $this->theCacheTagShouldBePurged($this->manifestTagForResource($resourceName));
+    }
+
+    /**
+     * @Then the manifest cache tag for the resource :resource_name should not be purged
+     */
+    public function theManifestCacheTagForTheResourceShouldNotBePurged(string $resourceName)
+    {
+        $this->theCacheTagShouldNotBePurged($this->manifestTagForResource($resourceName));
+    }
+
+    /**
+     * @Then the manifest cache tag for the resource :resource_name should be in the response
+     */
+    public function theManifestCacheTagForTheResourceShouldBeInTheResponse(string $resourceName)
+    {
+        $this->theCacheTagShouldBeInTheResponse($this->manifestTagForResource($resourceName));
+    }
+
+    /**
+     * @Then the cache tag for the resource :resource_name should be in the response
+     */
+    public function theCacheTagForTheResourceShouldBeInTheResponse(string $resourceName)
+    {
+        $this->theCacheTagShouldBeInTheResponse($this->restContext->resources[$resourceName]);
+    }
+
+    /**
+     * @Then the cache tag for the resource :resource_name should not be in the response
+     */
+    public function theCacheTagForTheResourceShouldNotBeInTheResponse(string $resourceName)
+    {
+        $tag = $this->restContext->resources[$resourceName];
+        $tags = $this->collectResponseTags();
+        if (!\in_array($tag, $tags, true)) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tag %s should not have been in the response. Tags in the response were `%s`', $tag, implode('`, `', $tags)), $this->minkContext->getSession()->getDriver());
+    }
+
+    private function theCacheTagShouldBeInTheResponse(string $tag): void
+    {
+        $tags = $this->collectResponseTags();
+        if (\in_array($tag, $tags, true)) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tag %s was not in the response. Tags in the response were `%s`', $tag, implode('`, `', $tags)), $this->minkContext->getSession()->getDriver());
+    }
+
+    private function manifestTagForResource(string $resourceName): string
+    {
+        return CwaTagCollector::MANIFEST_TAG_PREFIX . $this->restContext->resources[$resourceName];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function collectResponseTags(): array
+    {
+        $headers = array_change_key_case($this->minkContext->getSession()->getResponseHeaders());
+        $tags = [];
+        foreach (self::PURGE_HEADER_NAMES as $headerName) {
+            foreach ((array) ($headers[$headerName] ?? []) as $value) {
+                array_push($tags, ...preg_split('/[,\s]+/', trim((string) $value), -1, \PREG_SPLIT_NO_EMPTY));
+            }
+        }
+
+        return $tags;
     }
 
     /**

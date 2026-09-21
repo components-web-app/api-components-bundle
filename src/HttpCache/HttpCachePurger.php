@@ -38,6 +38,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         private readonly ?PurgerInterface $httpCachePurger,
         private readonly ?CwaCollectorData $collectorData = null,
         private readonly array $purgeRenderedHtmlClasses = [],
+        private readonly ?ManifestKeyResolver $manifestKeyResolver = null,
     ) {
         $this->reset();
     }
@@ -70,6 +71,8 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
 
             $this->collectRenderedHtml($resourceClass);
 
+            $this->collectManifestKeys($entity);
+
             // collect cache of any collections being fetched
             $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
             $this->collectIri($resourceIri);
@@ -93,6 +96,17 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     {
         if (!\in_array($iri, $this->tags, true)) {
             $this->tags[$iri] = $iri;
+        }
+    }
+
+    private function collectManifestKeys(object $entity): void
+    {
+        if (null === $this->manifestKeyResolver) {
+            return;
+        }
+
+        foreach ($this->manifestKeyResolver->resolve($entity) as $iri) {
+            $this->collectIri(CwaTagCollector::MANIFEST_TAG_PREFIX . $iri);
         }
     }
 

@@ -456,6 +456,53 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a routed Page with a component group and a component with the path :path
+     */
+    public function thereIsARoutedPageWithAComponentGroupAndComponent(string $path): void
+    {
+        $layout = $this->thereIsALayout('manifest-tag-layout');
+
+        $page = new Page();
+        $page->reference = 'manifest-tag-page';
+        $page->uiComponent = 'TestComponent';
+        $page->isTemplate = false;
+        $page->layout = $layout;
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'manifest-tag-group';
+        $componentGroup->location = 'manifest-tag-group';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $page->addComponentGroup($componentGroup);
+
+        $component = new DummyComponent();
+        $this->manager->persist($component);
+
+        $position = new ComponentPosition();
+        $position->componentGroup = $componentGroup;
+        $position->component = $component;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($route);
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
+        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+        $this->restContext->resources['component'] = $this->iriConverter->getIriFromResource($component);
+        $this->restContext->resources['position'] = $this->iriConverter->getIriFromResource($position);
+        $this->restContext->resources['page_manifest'] = '/_/resource_manifest/' . $page->getId();
+    }
+
+    /**
      * @Given /^there is a ComponentGroup in a Page and a Layout$/
      */
     public function thereIsAComponentGroupInAPageAndALayout()
@@ -1168,6 +1215,8 @@ final class DoctrineContext implements Context
         $this->manager->persist($pageData);
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($pageData);
         $this->restContext->resources['page_data_manifest'] = '/_/resource_manifest/' . $pageData->getId();
+        $this->restContext->resources['page_data_page'] = $this->iriConverter->getIriFromResource($page);
+        $this->restContext->resources['page_data_component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
 
         if ($path) {
             $route = new Route();
@@ -1416,6 +1465,7 @@ final class DoctrineContext implements Context
         $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
         $this->restContext->resources['page_data_manifest'] = '/_/resource_manifest/' . $childPageData->getId();
         $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childRoute);
+        $this->restContext->resources['parent_page_data'] = $this->iriConverter->getIriFromResource($parentPageData);
 
         $this->manager->flush();
     }

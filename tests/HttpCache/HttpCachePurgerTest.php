@@ -16,8 +16,14 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
+use Silverback\ApiComponentsBundle\HttpCache\ManifestKeyResolver;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -119,6 +125,44 @@ class HttpCachePurgerTest extends TestCase
         self::assertSame([], $this->purged);
     }
 
+    public function test_a_structural_write_collects_a_manifest_grouping_key_for_the_page_it_belongs_to(): void
+    {
+        $purger = $this->createPurger([]);
+
+        $page = new Page();
+        $page->isTemplate = false;
+        $componentGroup = new ComponentGroup();
+        $componentGroup->pages->add($page);
+
+        $purger->add($componentGroup);
+        $purger->propagate();
+
+        self::assertContains(CwaTagCollector::MANIFEST_TAG_PREFIX . '/_/page/id', $this->purged[0]);
+    }
+
+    public function test_a_component_content_write_collects_no_manifest_grouping_key(): void
+    {
+        $purger = $this->createPurger([]);
+
+        $page = new Page();
+        $page->isTemplate = false;
+        $componentGroup = new ComponentGroup();
+        $componentGroup->pages->add($page);
+
+        $component = new DummyComponent();
+        $position = new ComponentPosition();
+        $position->componentGroup = $componentGroup;
+        $component->addComponentPosition($position);
+
+        $purger->add($component);
+        $purger->propagate();
+
+        self::assertSame([], array_filter(
+            $this->purged[0],
+            static fn (string $tag): bool => str_starts_with($tag, CwaTagCollector::MANIFEST_TAG_PREFIX)
+        ));
+    }
+
     private function siteConfigParameter(string $key): SiteConfigParameter
     {
         return (new SiteConfigParameter())->setKey($key)->setValue('value');
@@ -155,7 +199,7 @@ class HttpCachePurgerTest extends TestCase
                 $this->purged[] = $iris;
             });
 
-        return new HttpCachePurger($iriConverter, $resourceClassResolver, $httpCachePurger, null, $purgeRenderedHtmlClasses);
+        return new HttpCachePurger($iriConverter, $resourceClassResolver, $httpCachePurger, null, $purgeRenderedHtmlClasses, new ManifestKeyResolver($iriConverter));
     }
 }
 

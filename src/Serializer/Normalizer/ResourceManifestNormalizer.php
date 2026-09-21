@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -30,6 +31,7 @@ class ResourceManifestNormalizer implements NormalizerInterface, NormalizerAware
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED] = true;
+        $context[CwaTagCollector::MANIFEST_CONTEXT_KEY] = true;
 
         $normalized = $this->normalizer->normalize($object->entity, $format, $context);
 

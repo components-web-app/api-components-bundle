@@ -23,6 +23,8 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait;
  */
 trait ManifestDepthGroupTrait
 {
+    use ManifestIriFilterTrait;
+
     /**
      * @return list<array{iri: string, children: array}> one nested tree per depth, root first
      */
@@ -105,10 +107,5 @@ trait ManifestDepthGroupTrait
         }
 
         return $childBucket;
-    }
-
-    private function shouldSkipIri(string $iri): bool
-    {
-        return str_contains($iri, '/.well-known/') || str_ends_with($iri, '/_/resource_metadatas');
     }
 }
