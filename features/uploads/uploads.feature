@@ -368,6 +368,27 @@ Feature: API Resources which can have files uploaded
     Then the response status code should be 200
     And the JSON node "_metadata.publishable.published" should be true
 
+  @loginAdmin
+  Scenario: requiredOnPublish follows custom Publishable validation groups
+    Given there is a draft DummyUploadableRequiredOnPublishCustomGroup
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt |
+      | now         |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to the string "file"
+
+  @loginAdmin
+  Scenario: Publishing with custom Publishable validation groups succeeds when the required file is present
+    Given there is a draft DummyUploadableRequiredOnPublishCustomGroup with the file uploaded
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "dummy_uploadable_draft" with data:
+      | publishedAt |
+      | now         |
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.published" should be true
+
   @loginUser
   Scenario: A multipart file upload fires exactly one Mercure notification
     Given I add "Content-Type" header equal to "multipart/form-data"

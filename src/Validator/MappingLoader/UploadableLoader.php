@@ -11,21 +11,21 @@
 
 namespace Silverback\ApiComponentsBundle\Validator\MappingLoader;
 
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFile;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
 
 /**
- * Adds a RequiresUploadedFile class constraint (in the `{ShortName}:published` group) for every
- * `#[UploadableField(requiredOnPublish: true)]`, so publishing requires a file per flagged field.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 final class UploadableLoader implements LoaderInterface
 {
-    public function __construct(private readonly UploadableAttributeReader $annotationReader)
-    {
+    public function __construct(
+        private readonly UploadableAttributeReader $annotationReader,
+        private readonly PublishableAttributeReader $publishableAttributeReader,
+    ) {
     }
 
     public function loadClassMetadata(ClassMetadata $metadata): bool
@@ -35,7 +35,7 @@ final class UploadableLoader implements LoaderInterface
             return false;
         }
 
-        $shortName = (new \ReflectionClass($className))->getShortName();
+        $groups = $this->getPublishedValidationGroups($className);
 
         $added = false;
         foreach ($this->annotationReader->getConfiguredProperties($className, true) as $fileProperty => $fieldConfiguration) {
@@ -43,7 +43,7 @@ final class UploadableLoader implements LoaderInterface
                 continue;
             }
 
-            $constraint = new RequiresUploadedFile(groups: [\sprintf('%s:published', $shortName)]);
+            $constraint = new RequiresUploadedFile(groups: $groups);
             $constraint->fileProperty = $fileProperty;
             $constraint->filenameProperty = $fieldConfiguration->property;
             if (null !== $fieldConfiguration->requiredOnPublishMessage) {
@@ -55,5 +55,20 @@ final class UploadableLoader implements LoaderInterface
         }
 
         return $added;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getPublishedValidationGroups(string $className): array
+    {
+        if ($this->publishableAttributeReader->isConfigured($className)) {
+            $validationGroups = $this->publishableAttributeReader->getConfiguration($className)->validationGroups;
+            if (!empty($validationGroups)) {
+                return $validationGroups;
+            }
+        }
+
+        return [\sprintf('%s:published', (new \ReflectionClass($className))->getShortName())];
     }
 }
