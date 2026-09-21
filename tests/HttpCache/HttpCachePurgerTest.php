@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
@@ -163,6 +164,53 @@ class HttpCachePurgerTest extends TestCase
         ));
     }
 
+    public function test_purging_the_rendered_html_sends_only_the_rendered_html_tag(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        $purger->purgeRenderedHtml();
+
+        self::assertSame([[HttpCachePurger::RENDERED_HTML_TAG]], $this->purged);
+    }
+
+    public function test_purging_the_rendered_html_does_not_send_tags_already_collected_in_the_request(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        $purger->add($this->siteConfigParameter('siteName'));
+        $purger->purgeRenderedHtml();
+
+        self::assertSame([[HttpCachePurger::RENDERED_HTML_TAG]], $this->purged);
+    }
+
+    public function test_purging_the_rendered_html_leaves_collected_tags_for_the_next_propagate(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        $purger->add($this->siteConfigParameter('siteName'));
+        $purger->purgeRenderedHtml();
+        $purger->propagate();
+
+        self::assertSame(
+            [
+                '/_/siteconfigparameter',
+                '/_/siteconfigparameter/siteName',
+                HttpCachePurger::RENDERED_HTML_TAG,
+            ],
+            $this->purged[1]
+        );
+    }
+
+    public function test_purging_the_rendered_html_is_recorded_on_the_collector(): void
+    {
+        $collectorData = new CwaCollectorData();
+        $purger = $this->createPurger([], $collectorData);
+
+        $purger->purgeRenderedHtml();
+
+        self::assertSame([HttpCachePurger::RENDERED_HTML_TAG], $collectorData->getCachePurgedIris());
+    }
+
     private function siteConfigParameter(string $key): SiteConfigParameter
     {
         return (new SiteConfigParameter())->setKey($key)->setValue('value');
@@ -171,7 +219,7 @@ class HttpCachePurgerTest extends TestCase
     /**
      * @param array<class-string> $purgeRenderedHtmlClasses
      */
-    private function createPurger(array $purgeRenderedHtmlClasses): HttpCachePurger
+    private function createPurger(array $purgeRenderedHtmlClasses, ?CwaCollectorData $collectorData = null): HttpCachePurger
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter
@@ -199,7 +247,7 @@ class HttpCachePurgerTest extends TestCase
                 $this->purged[] = $iris;
             });
 
-        return new HttpCachePurger($iriConverter, $resourceClassResolver, $httpCachePurger, null, $purgeRenderedHtmlClasses, new ManifestKeyResolver($iriConverter));
+        return new HttpCachePurger($iriConverter, $resourceClassResolver, $httpCachePurger, $collectorData, $purgeRenderedHtmlClasses, new ManifestKeyResolver($iriConverter));
     }
 }
 

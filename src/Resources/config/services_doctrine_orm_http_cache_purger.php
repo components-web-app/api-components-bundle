@@ -13,7 +13,9 @@
  * @author Daniel West <daniel@silverback.is>
  */
 
+use Silverback\ApiComponentsBundle\Command\PurgeRenderedHtmlCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RenderedHtmlPurgeStateProcessor;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\HttpCache\ManifestKeyResolver;
@@ -54,4 +56,22 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('silverback_api_components.resource_changed_propagator')
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(HttpCachePurger::class, 'silverback.api_components.http_cache.purger');
+
+    $services
+        ->set('silverback.api_components.command.purge_rendered_html')
+        ->class(PurgeRenderedHtmlCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(PurgeRenderedHtmlCommand::class, 'silverback.api_components.command.purge_rendered_html');
+
+    $services
+        ->set(RenderedHtmlPurgeStateProcessor::class)
+        ->args([
+            new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_processor');
+    $services->alias('silverback.api_components.api_platform.state_processor.rendered_html_purge', RenderedHtmlPurgeStateProcessor::class);
 };

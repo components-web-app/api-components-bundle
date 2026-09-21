@@ -73,11 +73,9 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
 
             $this->collectManifestKeys($entity);
 
-            // collect cache of any collections being fetched
             $resourceIri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
             $this->collectIri($resourceIri);
 
-            // clear cache of anything containing this item
             $this->collectItem($entity);
         } catch (OperationNotFoundException|InvalidArgumentException) {
         }
@@ -136,9 +134,19 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
             return;
         }
 
+        $this->send($iris);
+        $this->reset();
+    }
+
+    public function purgeRenderedHtml(): void
+    {
+        $this->send([self::RENDERED_HTML_TAG]);
+    }
+
+    private function send(array $iris): void
+    {
         $this->collectorData?->recordCachePurge($iris);
         $this->httpCachePurger && $this->httpCachePurger->purge($iris);
-        $this->reset();
     }
 
     public function reset(): void
