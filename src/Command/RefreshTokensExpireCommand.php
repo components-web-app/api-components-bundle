@@ -44,21 +44,18 @@ final class RefreshTokensExpireCommand extends Command
             ->setDefinition(
                 [
                     new InputArgument('username', InputArgument::OPTIONAL, 'The username'),
-                    new InputOption('field', null, InputOption::VALUE_REQUIRED, 'The user field (username, email)', 'username'),
+                    new InputOption('field', null, InputOption::VALUE_REQUIRED, 'The user field (username, emailAddress)', 'username'),
                 ]
             )
             ->setHelp(
                 <<<EOT
-                    The <info>silverback:api-components:refresh-token:expire</info> command expires all refresh-tokens or by user:
+                    The <info>%command.name%</info> command expires all refresh-tokens or by user:
                       <info>php %command.full_name%</info>
                       <info>php %command.full_name% username</info>
                     EOT
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($username = (string) $input->getArgument('username')) {
