@@ -18,7 +18,9 @@ use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserFactoryTest extends TestCase
@@ -161,5 +163,36 @@ class UserFactoryTest extends TestCase
         $this->buildFactory($captured, userRepository: $userRepository)->create('bob', 'pass', 'bob@example.com', false, false, false, false);
 
         self::assertInstanceOf(AbstractUser::class, $captured);
+    }
+
+    public function test_violations_throw_and_nothing_is_persisted(): void
+    {
+        $violations = new ConstraintViolationList([new ConstraintViolation('Sorry, that user already exists in the database.', null, [], null, 'username', 'bob')]);
+        $validator = $this->createStub(ValidatorInterface::class);
+        $validator->method('validate')->willReturn($violations);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('persist');
+        $em->expects(self::never())->method('flush');
+
+        $hasher = $this->createStub(UserPasswordHasherInterface::class);
+        $hasher->method('hashPassword')->willReturn('hashed');
+
+        $factory = new UserFactory(
+            $em,
+            $validator,
+            $this->createStub(UserRepositoryInterface::class),
+            $this->createStub(TimestampedDataPersister::class),
+            $hasher,
+            $this->userClass,
+        );
+
+        try {
+            $factory->create('bob', 'pass', 'bob@example.com');
+            self::fail('Expected a ValidationFailedException');
+        } catch (ValidationFailedException $exception) {
+            self::assertSame($violations, $exception->getViolations());
+            self::assertInstanceOf(AbstractUser::class, $exception->getValue());
+        }
     }
 }
