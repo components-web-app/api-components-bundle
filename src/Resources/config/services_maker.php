@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
 use Silverback\ApiComponentsBundle\Maker\MakePageData;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -45,6 +46,7 @@ return static function (ContainerConfigurator $container): void {
         ->args([
             new Reference(IriConverterInterface::class),
             new Reference(ManagerRegistry::class),
+            new Reference('doctrine.migrations.dependency_factory', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->tag('maker.command')
         ->public();

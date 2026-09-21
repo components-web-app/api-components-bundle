@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Maker;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\Migrations\DependencyFactory;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -36,6 +37,7 @@ final class MakeRenameComponent extends AbstractMaker
     public function __construct(
         private readonly IriConverterInterface $iriConverter,
         private readonly ManagerRegistry $registry,
+        private readonly ?DependencyFactory $migrationsDependencyFactory = null,
     ) {
     }
 
@@ -59,7 +61,8 @@ final class MakeRenameComponent extends AbstractMaker
             ->addOption('old-dtype', null, InputOption::VALUE_REQUIRED, 'Discriminator value (dtype) stored in the database for the old component')
             ->addOption('new-dtype', null, InputOption::VALUE_REQUIRED, 'Discriminator value (dtype) stored in the database for the new component')
             ->addOption('old-iri', null, InputOption::VALUE_REQUIRED, 'Collection IRI of the old component (e.g. <fg=yellow>/component/html_contents</>), required when it cannot be resolved from the old class')
-            ->addOption('new-iri', null, InputOption::VALUE_REQUIRED, 'Collection IRI of the new component (e.g. <fg=yellow>/component/rich_texts</>), required when it cannot be resolved from the new class');
+            ->addOption('new-iri', null, InputOption::VALUE_REQUIRED, 'Collection IRI of the new component (e.g. <fg=yellow>/component/rich_texts</>), required when it cannot be resolved from the new class')
+            ->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'The Doctrine Migrations namespace to generate the migration in (defaults to the first configured one)');
     }
 
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
@@ -89,6 +92,13 @@ final class MakeRenameComponent extends AbstractMaker
 
         $this->askForUnresolvableIri($input, $io, 'old');
         $this->askForUnresolvableIri($input, $io, 'new');
+
+        if (!$input->getOption('namespace') && null !== $this->migrationsDependencyFactory) {
+            $namespaces = array_keys($this->migrationsDependencyFactory->getConfiguration()->getMigrationDirectories());
+            if (\count($namespaces) > 1) {
+                $input->setOption('namespace', $io->choice('Doctrine Migrations namespace to generate the migration in', $namespaces, $namespaces[0]));
+            }
+        }
     }
 
     private function askForUnresolvableIri(InputInterface $input, ConsoleStyle $io, string $side): void
@@ -129,27 +139,21 @@ final class MakeRenameComponent extends AbstractMaker
         $oldIri = $this->iriFor($input, 'old', $oldFqcn);
         $newIri = $this->iriFor($input, 'new', $newFqcn);
 
-        $classNameDetails = $generator->createClassNameDetails(
-            'RenameComponent' . $oldName . 'To' . $newName,
-            'Migrations\\'
+        $dependencyFactory = $this->migrationsDependencyFactory ?? throw new RuntimeCommandException('make:rename-component generates a Doctrine migration, so DoctrineMigrationsBundle must be enabled and configured with at least one migrations path.');
+        $namespace = $this->resolveMigrationsNamespace($dependencyFactory, $input->getOption('namespace'));
+
+        $tables = [
+            'component_table' => $this->resolveTableName(AbstractComponent::class),
+            'group_table' => $this->resolveTableName(ComponentGroup::class),
+        ];
+
+        $path = $dependencyFactory->getMigrationGenerator()->generateMigration(
+            $dependencyFactory->getClassNameGenerator()->generateClassName($namespace),
+            $this->renderBody($tables + ['from_dtype' => $oldDtype, 'to_dtype' => $newDtype, 'from_iri' => $oldIri, 'to_iri' => $newIri]),
+            $this->renderBody($tables + ['from_dtype' => $newDtype, 'to_dtype' => $oldDtype, 'from_iri' => $newIri, 'to_iri' => $oldIri]),
         );
 
-        $generator->generateClass(
-            $classNameDetails->getFullName(),
-            __DIR__ . '/../Resources/skeleton/migration/RenameComponent.tpl.php',
-            [
-                'old_dtype' => $oldDtype,
-                'new_dtype' => $newDtype,
-                'old_iri' => $oldIri,
-                'new_iri' => $newIri,
-                'old_name' => $oldName,
-                'new_name' => $newName,
-                'component_table' => $this->resolveTableName(AbstractComponent::class),
-                'group_table' => $this->resolveTableName(ComponentGroup::class),
-            ]
-        );
-
-        $generator->writeChanges();
+        $io->writeln(\sprintf(' <fg=blue>created</>: %s', $path));
         $this->writeSuccessMessage($io);
 
         $groups = $this->registry->getRepository(ComponentGroup::class)->findAll();
@@ -178,6 +182,34 @@ final class MakeRenameComponent extends AbstractMaker
             \sprintf('  2. Update any imports or registrations referencing <comment>%s</comment>', $oldName),
             '  3. Run: <comment>php bin/console doctrine:migrations:migrate</comment>',
         ]);
+    }
+
+    private function resolveMigrationsNamespace(DependencyFactory $dependencyFactory, ?string $namespace): string
+    {
+        $namespaces = array_keys($dependencyFactory->getConfiguration()->getMigrationDirectories());
+        if ([] === $namespaces) {
+            throw new RuntimeCommandException('No Doctrine Migrations path is configured. Add one under doctrine_migrations.migrations_paths.');
+        }
+        if (null === $namespace || '' === $namespace) {
+            return $namespaces[0];
+        }
+        if (!\in_array($namespace, $namespaces, true)) {
+            throw new RuntimeCommandException(\sprintf('The migrations namespace "%s" is not configured. Configured namespaces: "%s".', $namespace, implode('", "', $namespaces)));
+        }
+
+        return $namespace;
+    }
+
+    /**
+     * @param array<string, string> $variables
+     */
+    private function renderBody(array $variables): string
+    {
+        extract($variables);
+        ob_start();
+        include __DIR__ . '/../Resources/skeleton/migration/RenameComponentBody.tpl.php';
+
+        return rtrim((string) ob_get_clean());
     }
 
     /**

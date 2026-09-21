@@ -24,7 +24,6 @@ use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
-use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -32,14 +31,18 @@ use Symfony\Component\Console\Output\BufferedOutput;
 class MakeRenameComponentTest extends TestCase
 {
     private const BLANK_NODE = '/.well-known/genid/956539f238167984af66';
+    private ?DoctrineMigrationsFixture $migrations = null;
 
     private function makeMaker(
         ?IriConverterInterface $iriConverter = null,
         ?ManagerRegistry $registry = null,
     ): MakeRenameComponent {
+        $this->migrations ??= new DoctrineMigrationsFixture();
+
         return new MakeRenameComponent(
             $iriConverter ?? $this->createMock(IriConverterInterface::class),
             $registry ?? $this->createMock(ManagerRegistry::class),
+            $this->migrations->dependencyFactory,
         );
     }
 
@@ -102,21 +105,17 @@ class MakeRenameComponentTest extends TestCase
         return $mock;
     }
 
-    private function makeGenerator(array &$capturedVars): Generator
+    private function makeGenerator(): Generator
     {
         $generator = $this->createMock(Generator::class);
-        $generator->method('createClassNameDetails')
-            ->willReturn(new ClassNameDetails('App\\Migrations\\VersionRename', 'Migrations\\'));
-        $generator->expects($this->once())
-            ->method('generateClass')
-            ->willReturnCallback(static function (string $class, string $template, array $vars) use (&$capturedVars): string {
-                $capturedVars = $vars;
-
-                return 'migrations/VersionRename.php';
-            });
-        $generator->expects($this->once())->method('writeChanges');
+        $generator->expects($this->never())->method('generateClass');
 
         return $generator;
+    }
+
+    private function generatedSource(): string
+    {
+        return $this->migrations?->generatedSource() ?? throw new \LogicException('No maker has been created.');
     }
 
     private function emptyRegistry(): ManagerRegistry
@@ -277,60 +276,54 @@ class MakeRenameComponentTest extends TestCase
         fclose($stream);
     }
 
-    public function test_generate_passes_old_and_new_dtype_to_template(): void
+    public function test_generate_writes_old_and_new_dtype_into_the_migration(): void
     {
-        $vars = [];
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $this->emptyRegistry(),
-        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
 
-        $this->assertSame('htmlcontent', $vars['old_dtype']);
-        $this->assertSame('richtext', $vars['new_dtype']);
+        $this->assertStringContainsString("['to' => 'richtext', 'from' => 'htmlcontent']", $this->generatedSource());
+        $this->assertStringContainsString("['to' => 'htmlcontent', 'from' => 'richtext']", $this->generatedSource());
     }
 
-    public function test_generate_passes_iris_from_iri_converter_to_template(): void
+    public function test_generate_writes_iris_from_iri_converter_into_the_migration(): void
     {
-        $vars = [];
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $this->emptyRegistry(),
-        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
 
-        $this->assertSame('/component/html-content', $vars['old_iri']);
-        $this->assertSame('/component/rich-text', $vars['new_iri']);
+        $this->assertStringContainsString("'/component/html-content' === \$c ? '/component/rich-text' : \$c", $this->generatedSource());
+        $this->assertStringContainsString("'/component/rich-text' === \$c ? '/component/html-content' : \$c", $this->generatedSource());
     }
 
     public function test_generate_refuses_a_blank_node_old_iri_and_names_the_option(): void
     {
-        $generator = new RenderingMigrationGenerator();
-
         try {
             $this->makeMaker($this->iriConverterByClass(self::BLANK_NODE, '/component/rich_texts'), $this->emptyRegistry())
-                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+                ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
             $this->fail('Expected the maker to refuse an unresolvable old IRI.');
         } catch (RuntimeCommandException $e) {
             $this->assertStringContainsString('--old-iri', $e->getMessage());
             $this->assertStringContainsString('App\\Entity\\Component\\HtmlContent', $e->getMessage());
         }
 
-        $this->assertFalse($generator->hasGenerated());
+        $this->assertFalse($this->migrations->hasGenerated());
     }
 
     public function test_generate_refuses_a_blank_node_new_iri_and_names_the_option(): void
     {
-        $generator = new RenderingMigrationGenerator();
-
         try {
             $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
-                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+                ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
             $this->fail('Expected the maker to refuse an unresolvable new IRI.');
         } catch (RuntimeCommandException $e) {
             $this->assertStringContainsString('--new-iri', $e->getMessage());
             $this->assertStringNotContainsString('--old-iri', $e->getMessage());
         }
 
-        $this->assertFalse($generator->hasGenerated());
+        $this->assertFalse($this->migrations->hasGenerated());
     }
 
     public function test_generate_refuses_when_the_iri_converter_throws(): void
@@ -342,45 +335,39 @@ class MakeRenameComponentTest extends TestCase
         $this->expectExceptionMessage('--old-iri');
 
         $this->makeMaker($iriConverter, $this->emptyRegistry())
-            ->generate($this->defaultInput(), $this->makeIo(), new RenderingMigrationGenerator());
+            ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
     }
 
     public function test_generate_uses_the_iri_options_for_unresolvable_classes(): void
     {
-        $generator = new RenderingMigrationGenerator();
         $this->makeMaker($this->iriConverterByClass(self::BLANK_NODE, self::BLANK_NODE), $this->emptyRegistry())
-            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/html_contents', '--new-iri' => '/component/rich_texts']), $this->makeIo(), $generator);
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/html_contents', '--new-iri' => '/component/rich_texts']), $this->makeIo(), $this->makeGenerator());
 
-        $this->assertSame('/component/html_contents', $generator->getVariables()['old_iri']);
-        $this->assertSame('/component/rich_texts', $generator->getVariables()['new_iri']);
+        $this->assertStringContainsString("'/component/html_contents' === \$c ? '/component/rich_texts' : \$c", $this->generatedSource());
     }
 
     public function test_generate_never_writes_a_blank_node_into_the_migration(): void
     {
-        $generator = new RenderingMigrationGenerator();
-
         try {
             $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
-                ->generate($this->defaultInput(), $this->makeIo(), $generator);
+                ->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
         } catch (RuntimeCommandException) {
         }
 
-        $this->assertFalse($generator->hasGenerated() && str_contains($generator->getSource(), '/.well-known/genid/'));
+        $this->assertFalse($this->migrations->hasGenerated() && str_contains($this->generatedSource(), '/.well-known/genid/'));
     }
 
     public function test_generate_rejects_a_blank_node_passed_as_an_iri_option(): void
     {
-        $generator = new RenderingMigrationGenerator();
-
         try {
             $this->makeMaker($this->iriConverterByClass('/component/html_contents', self::BLANK_NODE), $this->emptyRegistry())
-                ->generate($this->boundInput($this->fullyQualifiedParams() + ['--new-iri' => self::BLANK_NODE]), $this->makeIo(), $generator);
+                ->generate($this->boundInput($this->fullyQualifiedParams() + ['--new-iri' => self::BLANK_NODE]), $this->makeIo(), $this->makeGenerator());
             $this->fail('Expected the maker to reject a blank node IRI option.');
         } catch (RuntimeCommandException $e) {
             $this->assertStringContainsString('--new-iri', $e->getMessage());
         }
 
-        $this->assertFalse($generator->hasGenerated());
+        $this->assertFalse($this->migrations->hasGenerated());
     }
 
     public function test_generate_rejects_an_iri_option_that_is_not_a_path(): void
@@ -389,17 +376,15 @@ class MakeRenameComponentTest extends TestCase
         $this->expectExceptionMessage('--old-iri');
 
         $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'), $this->emptyRegistry())
-            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => 'html_contents']), $this->makeIo(), new RenderingMigrationGenerator());
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => 'html_contents']), $this->makeIo(), $this->makeGenerator());
     }
 
     public function test_generate_prefers_an_explicit_iri_option_over_the_resolved_iri(): void
     {
-        $generator = new RenderingMigrationGenerator();
         $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'), $this->emptyRegistry())
-            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/legacy_html']), $this->makeIo(), $generator);
+            ->generate($this->boundInput($this->fullyQualifiedParams() + ['--old-iri' => '/component/legacy_html']), $this->makeIo(), $this->makeGenerator());
 
-        $this->assertSame('/component/legacy_html', $generator->getVariables()['old_iri']);
-        $this->assertSame('/component/rich_texts', $generator->getVariables()['new_iri']);
+        $this->assertStringContainsString("'/component/legacy_html' === \$c ? '/component/rich_texts' : \$c", $this->generatedSource());
     }
 
     public function test_interact_prompts_only_for_the_iri_that_cannot_be_resolved(): void
@@ -456,16 +441,15 @@ class MakeRenameComponentTest extends TestCase
         $this->assertSame('/component/rich_texts', $input->getOption('new-iri'));
     }
 
-    public function test_generate_passes_the_orm_mapped_table_names_to_template(): void
+    public function test_generate_writes_the_orm_mapped_table_names_into_the_migration(): void
     {
-        $vars = [];
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $this->emptyRegistry(),
-        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
 
-        $this->assertSame('_acb_abstract_component', $vars['component_table']);
-        $this->assertSame('_acb_component_group', $vars['group_table']);
+        $this->assertStringContainsString('UPDATE _acb_abstract_component SET dtype', $this->generatedSource());
+        $this->assertStringContainsString('FROM _acb_component_group WHERE', $this->generatedSource());
     }
 
     public function test_generate_refuses_when_the_component_tables_are_not_mapped(): void
@@ -473,43 +457,62 @@ class MakeRenameComponentTest extends TestCase
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn(null);
 
-        $generator = $this->createStub(Generator::class);
-        $generator->method('createClassNameDetails')
-            ->willReturn(new ClassNameDetails('App\\Migrations\\VersionRename', 'Migrations\\'));
-
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage(AbstractComponent::class);
 
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $registry,
-        )->generate($this->defaultInput(), $this->makeIo(), $generator);
+        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator());
     }
 
-    public function test_generate_uses_migration_skeleton_template(): void
+    public function test_generate_reports_the_path_doctrine_wrote_the_migration_to(): void
     {
-        $capturedTemplate = null;
-        $generator = $this->createMock(Generator::class);
-        $generator->method('createClassNameDetails')
-            ->willReturn(new ClassNameDetails('App\\Migrations\\Version', 'Migrations\\'));
-        $generator->expects($this->once())
-            ->method('generateClass')
-            ->willReturnCallback(static function (string $class, string $template) use (&$capturedTemplate): string {
-                $capturedTemplate = $template;
-
-                return 'migrations/Version.php';
-            });
-        $generator->method('writeChanges');
-
+        $output = new BufferedOutput();
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $this->emptyRegistry(),
-        )->generate($this->defaultInput(), $this->makeIo(), $generator);
+        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator());
 
-        $this->assertNotNull($capturedTemplate);
-        $this->assertStringContainsString('migration', strtolower($capturedTemplate));
-        $this->assertStringEndsWith('.tpl.php', $capturedTemplate);
-        $this->assertFileExists($capturedTemplate);
+        $this->assertStringContainsString(basename($this->migrations->generatedPath()), $output->fetch());
+    }
+
+    public function test_interact_asks_for_the_migrations_namespace_when_several_are_configured(): void
+    {
+        $other = new DoctrineMigrationsFixture();
+        $this->migrations = new DoctrineMigrationsFixture(null, [$other->namespace => $other->directory]);
+        $command = $this->configuredCommand();
+
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $other->namespace . "\n");
+        rewind($stream);
+        $input = new ArrayInput([
+            'old-name' => 'HtmlContent',
+            'new-name' => 'RichText',
+            '--old-fqcn' => 'App\\Entity\\Component\\HtmlContent',
+            '--new-fqcn' => 'App\\Entity\\Component\\RichText',
+            '--old-dtype' => 'htmlcontent',
+            '--new-dtype' => 'richtext',
+        ], $command->getDefinition());
+        $input->setStream($stream);
+        $input->setInteractive(true);
+
+        $this->makeMaker($this->iriConverterByClass('/component/html_contents', '/component/rich_texts'))
+            ->interact($input, new ConsoleStyle($input, new BufferedOutput()), $command);
+
+        $this->assertSame($other->namespace, $input->getOption('namespace'));
+        fclose($stream);
+    }
+
+    public function test_interact_does_not_ask_for_the_namespace_when_only_one_is_configured(): void
+    {
+        $command = $this->configuredCommand();
+        $input = new ArrayInput(['old-name' => 'HtmlContent', 'new-name' => 'RichText'], $command->getDefinition());
+        $input->setInteractive(false);
+
+        $this->makeMaker()->interact($input, $this->makeIo(), $command);
+
+        $this->assertNull($input->getOption('namespace'));
     }
 
     public function test_generate_outputs_warning_per_affected_component_group(): void
@@ -522,12 +525,11 @@ class MakeRenameComponentTest extends TestCase
         $registry = $this->registryWithGroups([$group]);
 
         $output = new BufferedOutput();
-        $vars = [];
 
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $registry,
-        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator());
 
         $text = $output->fetch();
         $this->assertStringContainsString('/component/html-content', $text);
@@ -545,12 +547,11 @@ class MakeRenameComponentTest extends TestCase
         $registry = $this->registryWithGroups([$group]);
 
         $output = new BufferedOutput();
-        $vars = [];
 
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $registry,
-        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator());
 
         $text = $output->fetch();
         $this->assertStringNotContainsString('/page/abc123', $text);
@@ -559,12 +560,11 @@ class MakeRenameComponentTest extends TestCase
     public function test_generate_outputs_frontend_rename_checklist(): void
     {
         $output = new BufferedOutput();
-        $vars = [];
 
         $this->makeMaker(
             $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
             $this->emptyRegistry(),
-        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator($vars));
+        )->generate($this->defaultInput(), $this->makeIo($output), $this->makeGenerator());
 
         $text = $output->fetch();
         $this->assertStringContainsString('HtmlContent', $text);

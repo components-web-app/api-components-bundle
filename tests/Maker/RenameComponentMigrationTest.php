@@ -24,7 +24,10 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
+use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
+use Symfony\Bundle\MakerBundle\Util\ClassNameDetails;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -102,22 +105,84 @@ class RenameComponentMigrationTest extends TestCase
     {
         $this->insertGroup('g1', [self::OLD_IRI]);
 
-        $generator = $this->generate(['--new-iri' => self::NEW_IRI], self::OLD_IRI, self::BLANK_NODE);
-        $generator->migrate($this->connection, 'up');
+        $fixture = $this->generate(['--new-iri' => self::NEW_IRI], newIri: self::BLANK_NODE);
+        $fixture->migrate($this->connection, 'up');
 
         $this->assertSame([self::NEW_IRI], $this->allowedComponents('g1'));
-        $this->assertStringNotContainsString('/.well-known/genid/', $generator->getSource());
+        $this->assertStringNotContainsString('/.well-known/genid/', $fixture->generatedSource());
+    }
+
+    public function test_the_migration_is_written_by_doctrine_into_the_configured_migrations_directory(): void
+    {
+        $fixture = $this->generate();
+
+        $this->assertSame(realpath($fixture->directory), realpath(\dirname($fixture->generatedPath())));
+    }
+
+    public function test_the_migration_is_a_doctrine_version_class_in_the_configured_namespace(): void
+    {
+        $fixture = $this->generate();
+
+        $this->assertMatchesRegularExpression('/^Version\d{14}\.php$/', basename($fixture->generatedPath()));
+        $this->assertStringContainsString('namespace ' . $fixture->namespace . ';', $fixture->generatedSource());
+    }
+
+    public function test_the_migration_is_generated_in_the_namespace_option_when_several_are_configured(): void
+    {
+        $other = new DoctrineMigrationsFixture();
+        $fixture = new DoctrineMigrationsFixture($this->connection, [$other->namespace => $other->directory]);
+
+        $this->generate(['--namespace' => $other->namespace], $fixture);
+
+        $this->assertFalse($fixture->hasGenerated());
+        $this->assertCount(1, $other->generatedFiles());
+    }
+
+    public function test_the_migration_defaults_to_the_first_configured_namespace(): void
+    {
+        $other = new DoctrineMigrationsFixture();
+        $fixture = new DoctrineMigrationsFixture($this->connection, [$other->namespace => $other->directory]);
+
+        $this->generate([], $fixture);
+
+        $this->assertTrue($fixture->hasGenerated());
+        $this->assertFalse($other->hasGenerated());
+    }
+
+    public function test_an_unconfigured_namespace_is_refused(): void
+    {
+        $fixture = new DoctrineMigrationsFixture($this->connection);
+
+        try {
+            $this->generate(['--namespace' => 'App\\Migrations'], $fixture);
+            $this->fail('Expected an unconfigured namespace to be refused.');
+        } catch (RuntimeCommandException $e) {
+            $this->assertStringContainsString('App\\Migrations', $e->getMessage());
+            $this->assertStringContainsString($fixture->namespace, $e->getMessage());
+        }
+
+        $this->assertFalse($fixture->hasGenerated());
+    }
+
+    public function test_the_maker_refuses_without_doctrine_migrations(): void
+    {
+        $this->expectException(RuntimeCommandException::class);
+        $this->expectExceptionMessage('DoctrineMigrationsBundle');
+
+        $this->generate([], null, false);
     }
 
     private function runMigration(string $direction): void
     {
-        $this->generate([], self::OLD_IRI, self::NEW_IRI)->migrate($this->connection, $direction);
+        $this->generate()->migrate($this->connection, $direction);
     }
 
-    private function generate(array $options, string $oldIri, string $newIri): RenderingMigrationGenerator
+    private function generate(array $options = [], ?DoctrineMigrationsFixture $fixture = null, bool $withMigrations = true, string $oldIri = self::OLD_IRI, string $newIri = self::NEW_IRI): DoctrineMigrationsFixture
     {
+        $fixture ??= new DoctrineMigrationsFixture($this->connection);
+
         $command = new Command('make:rename-component');
-        $maker = new MakeRenameComponent($this->iriConverter($oldIri, $newIri), $this->registry());
+        $maker = new MakeRenameComponent($this->iriConverter($oldIri, $newIri), $this->registry(), $withMigrations ? $fixture->dependencyFactory : null);
         $maker->configureCommand($command, new InputConfiguration());
         $input = new ArrayInput([
             'old-name' => 'HtmlContent',
@@ -129,10 +194,32 @@ class RenameComponentMigrationTest extends TestCase
         ] + $options, $command->getDefinition());
         $input->setInteractive(false);
 
-        $generator = new RenderingMigrationGenerator();
-        $maker->generate($input, new ConsoleStyle($input, new BufferedOutput()), $generator);
+        $maker->generate($input, new ConsoleStyle($input, new BufferedOutput()), $this->makerBundleGenerator());
 
-        return $generator;
+        return $fixture;
+    }
+
+    private function makerBundleGenerator(): Generator
+    {
+        return new class extends Generator {
+            public function __construct()
+            {
+            }
+
+            public function createClassNameDetails(string $name, string $namespacePrefix, string $suffix = '', string $validationErrorMessage = ''): ClassNameDetails
+            {
+                return new ClassNameDetails('App\\' . $namespacePrefix . $name, 'App\\' . $namespacePrefix);
+            }
+
+            public function generateClass(string $className, string $templateName, array $variables = []): string
+            {
+                return 'src/' . str_replace('\\', '/', substr($className, 4)) . '.php';
+            }
+
+            public function writeChanges(): void
+            {
+            }
+        };
     }
 
     private function iriConverter(string $oldIri, string $newIri): IriConverterInterface
