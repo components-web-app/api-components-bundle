@@ -1159,16 +1159,28 @@ References: `src/HttpCache/HttpCachePurger.php`, `src/Command/PurgeRenderedHtmlC
 
 ### #251 — A PATCH to `/submit` only validates; it never fires `FormSuccessEvent` ✓ **DONE**
 
-`FormApiEventListener::handleFormData()` calls `FormSubmitHelper::handleSuccess()` only for **POST and PUT**. A valid **PATCH** returns the form view (200) and nothing else: no `FormSuccessEvent`, so no `EntityPersistFormListener` write and no email.
+`FormApiEventListener::handleFormData()` calls `FormSubmitHelper::handleSuccess()` only for **POST** (PUT handling was removed under #276). A valid **PATCH** returns the form view (200) and nothing else: no `FormSuccessEvent`, so no `EntityPersistFormListener` write and no email.
 
 Why: the Nuxt module's real-time validation (`Forms.validateField()`) always PATCHes `/submit` with **every** registered field value, not just the one being edited. Once a user had filled in the last field of the register form, the debounced validation request was a complete, valid submission, so the user was registered and sent the welcome email before pressing submit, and their real submit then 422'd with "user already exists".
 
 Consequences:
 - **A form whose final submit is a PATCH can no longer succeed.** The module sends the final submit as PATCH when the root form's `vars.method` is `PATCH` (`cwa-form.ts`). No form type in this bundle or the test app sets a `method` option, so all resolve to POST, but an application form that sets `method: 'PATCH'` needs the module to send its final submit as POST.
-- **PUT has no HTTP route.** `Form` declares `/submit` operations for PATCH and POST only; a PUT returns 405. The listener still treats PUT as a full submit, which is covered by `tests/EventListener/Api/FormApiEventListenerTest.php`, not Behat.
-- **Unchanged and still live:** POST is a *partial* submit (`clearMissing` is only true for PUT), so a POST that omits a required field on a form without a `data_class` succeeds (201). This change does not affect that.
+- **PUT has no HTTP route.** `Form` declares `/submit` operations for PATCH and POST only; a PUT returns 405. The listener's PUT handling was removed under #276.
+- POST was still a *partial* submit here, so a POST omitting a required field succeeded. Fixed under #276.
 
 Tests: `features/user/register_form.feature` (valid PATCH registers nobody and sends no email; invalid PATCH still returns errors), `tests/EventListener/Api/FormApiEventListenerTest.php`.
+
+### #276 — A POST to `/submit` is a full submit; a PATCH stays partial and validate-only ✓ **DONE**
+
+`FormApiEventListener::handleFormData()` passed `METHOD_PUT !== method` as `FormSubmitHelper::process()`'s partial-submit flag, so **POST was a partial submit** (`clearMissing = false`). Symfony never validates a field a partial submit leaves out, so a POST omitting a required field on a form with no `data_class` returned 201 — and after #251 made PATCH validate-only, POST was the one path that actually succeeds.
+
+- **POST is a full submit** (`clearMissing = true`). A field the request omits is submitted as empty and validated; a POST missing a required field is a 422 carrying that field's violation.
+- **PATCH is a partial submit and validate-only**, as #251 made it. It validates only the fields it sends and never fires `FormSuccessEvent`. This is what the module's real-time validation relies on.
+- **PUT handling was removed, not replaced.** `/submit` never had a PUT operation (405), so the listener's PUT branch — `METHOD_PUT` in `getData()` and the full-submit-only-for-PUT flag — was unreachable. A PUT operation was deliberately not added: it would do exactly what POST now does, and API Platform's old treatment of PUT as a partial update is deprecated and against its own recommendations. The listener now handles only POST and PATCH.
+
+**Behaviour change:** a client that deliberately POSTs a subset of a form's fields now gets a 422 for every required field it omitted. Send the whole form on POST; use PATCH to validate a subset.
+
+Tests: `features/form/form.feature` — "A POST submit validates a required field the request omits" (inverted from the old 201 on the same request, watched failing first) and "A PATCH submit validates only the fields it sends and never succeeds"; the canonical-`@id` POST scenario now sends the whole form. `tests/EventListener/Api/FormApiEventListenerTest.php` asserts the partial flag passed for each method and that PUT is not handled at all.
 
 ### #254 — `user:create` fails on validation violations instead of writing the user ✓ **DONE**
 

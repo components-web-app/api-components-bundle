@@ -54,10 +54,33 @@ Feature: Form component that defines a form type created in the application
     Given there is a "test" form
     When I send a "POST" request to the resource "test_form" and the postfix "/submit" with body:
     """
-    {"test": {"name": "John Smith"}}
+    {"test": {"name": "John Smith", "company": "Silverback"}}
     """
     Then the response status code should be 201
     And the JSON node "@id" should be equal to the IRI of the resource "test_form"
+
+  Scenario: A POST submit validates a required field the request omits
+    Given there is a "test" form
+    When I send a "POST" request to the resource "test_form" and the postfix "/submit" with body:
+    """
+    {"test": {"name": "John Smith"}}
+    """
+    Then the response status code should be 422
+    And the JSON node "formView.vars.valid" should be false
+    And the JSON node "formView.children[0].vars.errors" should have 0 elements
+    And the JSON node "formView.children[1].vars.errors[0]" should be equal to "Please provide your company"
+
+  Scenario: A PATCH submit validates only the fields it sends and never succeeds
+    Given there is a "test" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "test_form" and the postfix "/submit" with body:
+    """
+    {"test": {"name": "John Smith"}}
+    """
+    Then the response status code should be 200
+    And the JSON node "@type" should be equal to "Form"
+    And the JSON node "formView.vars.valid" should be true
+    And the JSON node "formView.children[1].vars.errors" should have 0 elements
 
   # PATCH
 
@@ -96,7 +119,7 @@ Feature: Form component that defines a form type created in the application
     And the header "Content-Type" should contain "application/ld+json"
     And the JSON should be valid according to the schema file "form.schema.json"
 
-  # PUT
+  # POST
 
   Scenario Outline: I send a POST request to the form with fields
     Given there is a "test" form
