@@ -24,6 +24,10 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
+use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
+use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
@@ -87,6 +91,21 @@ class SilverbackApiComponentsExtensionTest extends TestCase
      * @return array{0: ContainerBuilder, 1: list<string>} the built container and any warnings or
      *                                                     notices raised while loading it
      */
+    public function test_bundle_exceptions_are_mapped_to_their_http_status(): void
+    {
+        $container = new ContainerBuilder();
+        $container->prependExtensionConfig('silverback_api_components', self::minimalConfig());
+
+        (new SilverbackApiComponentsExtension())->prepend($container);
+
+        $mapped = array_merge(...array_column($container->getExtensionConfig('api_platform'), 'exception_to_status'));
+
+        self::assertSame(400, $mapped[UnparseableRequestHeaderException::class]);
+        self::assertSame(401, $mapped[ApiPlatformAuthenticationException::class]);
+        self::assertSame(401, $mapped[UserDisabledException::class]);
+        self::assertSame(422, $mapped[UnroutedParentException::class]);
+    }
+
     private function load(array $config): array
     {
         $container = new ContainerBuilder();
