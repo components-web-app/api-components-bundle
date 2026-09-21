@@ -18,5 +18,9 @@ framework:
         utf8: true
     http_method_override: true
     handle_all_throwables: true
-    http_client:
-        mock_response_factory: Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback
+    http_client: ~
+
+when@test:
+    framework:
+        http_client:
+            mock_response_factory: Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback
