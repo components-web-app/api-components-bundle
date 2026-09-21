@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behatch\Context\RestContext as BehatchRestContext;
@@ -521,6 +522,50 @@ final class DoctrineContext implements Context
      */
     public function thereIsAComponentGroupWithComponents(int $count, ?string $id = null, string $collectionReference = 'collection'): ComponentGroup
     {
+        return $this->createComponentGroupWithComponents($count, $id, $collectionReference);
+    }
+
+    /**
+     * @Given there is another ComponentGroup with :count components
+     */
+    public function thereIsAnotherComponentGroupWithComponents(int $count): ComponentGroup
+    {
+        return $this->createComponentGroupWithComponents($count, null, 'other_collection', 'other_');
+    }
+
+    /**
+     * @Given the ComponentPosition :name has the sortValue :sortValue
+     */
+    public function theComponentPositionHasTheSortValue(string $name, int $sortValue): void
+    {
+        /** @var ComponentPosition $position */
+        $position = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $position->sortValue = $sortValue;
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the ComponentPosition sort values should be:
+     */
+    public function theComponentPositionSortValuesShouldBe(TableNode $table): void
+    {
+        $this->manager->clear();
+        $mismatches = [];
+        foreach ($table->getHash() as $row) {
+            /** @var ComponentPosition $position */
+            $position = $this->iriConverter->getResourceFromIri($this->restContext->resources[$row['position']]);
+            if ($position->sortValue !== (int) $row['sortValue']) {
+                $mismatches[] = \sprintf('%s: expected %s, got %s', $row['position'], $row['sortValue'], var_export($position->sortValue, true));
+            }
+        }
+        if ($mismatches) {
+            throw new ExpectationException(implode('; ', $mismatches), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    private function createComponentGroupWithComponents(int $count, ?string $id, string $collectionReference, string $prefix = ''): ComponentGroup
+    {
         $componentGroup = new ComponentGroup();
         $componentGroup->reference = $collectionReference;
         $componentGroup->location = $collectionReference;
@@ -544,12 +589,12 @@ final class DoctrineContext implements Context
             $position->componentGroup = $componentGroup;
             $position->component = $component;
             $this->manager->persist($position);
-            $this->restContext->resources['component_' . $x] = $this->iriConverter->getIriFromResource($component);
-            $this->restContext->resources['position_' . $x] = $this->iriConverter->getIriFromResource($position);
+            $this->restContext->resources[$prefix . 'component_' . $x] = $this->iriConverter->getIriFromResource($component);
+            $this->restContext->resources[$prefix . 'position_' . $x] = $this->iriConverter->getIriFromResource($position);
         }
         $this->manager->flush();
 
-        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+        $this->restContext->resources[$prefix . 'component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
 
         return $componentGroup;
     }

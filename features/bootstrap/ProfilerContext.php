@@ -141,6 +141,32 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Then Mercure updates should have been published for exactly the ComponentPositions :names
+     */
+    public function mercureUpdatesShouldHaveBeenPublishedForExactlyTheComponentPositions(string $names): void
+    {
+        $expected = [];
+        foreach (array_map('trim', explode(',', $names)) as $name) {
+            $expected[] = $this->restContext->resources[$name];
+        }
+        $published = [];
+        foreach ($this->getMercureMessageObjects() as $messageObject) {
+            foreach ($messageObject->getTopics() as $topic) {
+                $path = parse_url($topic, \PHP_URL_PATH) ?: $topic;
+                if (str_contains($path, '/component_positions/')) {
+                    $published[] = $path;
+                }
+            }
+        }
+        $published = array_values(array_unique($published));
+        sort($expected);
+        sort($published);
+        if ($expected !== $published) {
+            throw new ExpectationException(\sprintf('Expected Mercure updates for the ComponentPositions [%s] but they were published for [%s]', implode(', ', $expected), implode(', ', $published)), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
      * @Then there should be :count mercure messages for draft resources
      */
     public function thereShouldMercureMessagesForDraftResources(int $count)
