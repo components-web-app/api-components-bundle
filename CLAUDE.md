@@ -104,11 +104,24 @@ A Route's *existence* is no longer the whole publication signal. `Route.liveAt` 
 
 **The effective date is resolved at request time, never stored.** `liveAt` is the only persisted value: what an admin authored on that route. The effective answer is derived by the walk above, memoised per request, and asked for by `RouteVoter` when it gates and by `MetadataNormalizer` when an admin needs to display it.
 
-An earlier implementation denormalised it into a `Route.effectiveLiveAt` column maintained by an `onFlush` listener. That was removed: the codebase already answers "is this reachable" by traversing at request time (`ComponentVoter` has always done so), and a second, inconsistent mechanism for the same class of question was not worth the maintained state. The column's only real justification had been a flat SQL predicate for collection filtering — see the limitation below for what that actually cost.
+An earlier implementation denormalised it into a `Route.effectiveLiveAt` column maintained by an `onFlush` listener. That was removed: the codebase already answers "is this reachable" by traversing at request time (`ComponentVoter` has always done so), and a second, inconsistent mechanism for the same class of question was not worth the maintained state. The column's only real justification had been a flat SQL predicate for collection filtering, which the recursive CTE below supplies without any stored state.
 
 **Admins read the effective date from `_metadata`, not a property.** `ResourceMetadata::$effectiveLiveAt` (group `cwa_resource:metadata`) carries it, resolved from the same memo the voter uses so the chain is walked once. It is derived state, so it is not a mapped column and not writable. It is admin-only by construction rather than by an added check: a non-admin cannot retrieve a non-live route at all.
 
-> **Known limitation — collections filter on `liveAt` only.** Traversal is not expressible in DQL, so `RouteExtension` and `RoutableExtension` can only test a route's own date. An anonymous `GET /_/routes` therefore lists a route whose own date has passed but whose parent is still scheduled. The item stays correctly gated — the voter 404s it — so this is an existence leak in a listing, not an access leak. Pinned by a scenario in `features/main/route_schedule.feature` so it is documented behaviour rather than an accident.
+**Collections filter on the inherited date too (#234).** `RouteExtension` and `RoutableExtension` once tested a route's own date only, so an anonymous `GET /_/routes` listed a route whose own date had passed but whose parent was still scheduled. That mattered more than an ordinary listing inconsistency because `GET /_/routes` is the **sitemap source**: it does not fetch what it lists, it publishes it, so every affected URL went to search engines as a soft-404. The module could not filter them either — `liveAt` and `_metadata.effectiveLiveAt` are both admin-only, so an anonymous sitemap build has no signal at all.
+
+`RouteAncestorGateResolver` (`src/Helper/Route/RouteAncestorGateResolver.php`) closes it with **one native recursive CTE** returning the ids of routes gated by an ancestor; `andWhereNotGated()` then applies `NOT IN` against that id set. This is `PublishableExtension`'s shape — exclude a set, so pagination and `totalItems` stay correct — with the id set coming from one extra query instead of a DQL subquery, because unbounded ancestor recursion is the one thing DQL cannot express.
+
+- **The predicate is the simple form of the rule, not a re-derivation of the effective date.** Effective is the *latest* date in the chain, so it is active exactly when *every* date in the chain is non-null and past. The CTE therefore only has to find chains containing one non-active routed ancestor; the route's own date stays with `PublicationDate::andWhereActive()`.
+- **The CTE walks parent pointers, not routes.** Anchor row per route = its page's/page data's parent pointer; each iteration replaces the pointer with the grandparent's. A `LEFT JOIN` to both `page` and `abstract_page_data` with `COALESCE` keeps it to **one** self-reference, which PostgreSQL requires — two recursive branches (one per parent type) is the obvious shape and PostgreSQL rejects it.
+- **An ancestor with no Route is still skipped**, per #224: the final join only gates on ancestors that actually have a route. The `#[ORM\OneToOne]` is owned by `AbstractPage`, so the FK is `page.route_id` / `abstract_page_data.route_id` — there is no `page_id` on the `route` table.
+- **Cycles terminate** by `UNION` (distinct), not `UNION ALL` — a repeated pointer row is dropped and the recursion ends. Mirrors the visited-id set in `RouteLiveResolver`.
+- **No per-request memoisation and no cached state.** The resolver holds nothing between calls, so it needs no `kernel.reset` tag and cannot leak across requests under worker mode.
+- Table and column names come from `ClassMetadata` (`getTableName()`, `getSingleAssociationJoinColumnName()`), so the `_acb_` table prefix and any application override are honoured rather than hardcoded.
+
+> **Portability was verified, not assumed.** The exact generated statement was run against **SQLite 3.43.2 / 3.53.4 (the harness), MySQL 8.0.46, MariaDB 10.11.19 and PostgreSQL 16.15** on identical fixtures covering flat, one-level, two-level, unrouted-ancestor, null-`liveAt`-ancestor and cyclic hierarchies. All four returned the identical gated set, so **no platform branch is needed** and none exists. Recursive CTEs require SQLite 3.8.3+, MySQL 8.0+, MariaDB 10.2+ or PostgreSQL — the bundle's whole supported range. **Not exercised:** MySQL 5.7 and MariaDB 10.0/10.1, which have no CTE support at all and on which this query cannot run.
+
+> **Extension and voter answer different questions — the asymmetry is deliberate.** The query extension answers *which rows may this anonymous caller see*; the voter answers *may this caller read this resource*. The CTE does **not** replace the per-request traversal in `RouteVoter`, and must not try to: `RouteVoter` folds in `route_security`, which is per-token and path-matched and cannot go into SQL. Both are needed, they overlap on the `liveAt` chain, and that overlap is the cost of the split.
 
 **The cache cap uses `MIN(liveAt)`** (`RouteRepository::findNextLiveAt()`). That is safe without the column: an effective date is always the *latest* date in a chain, so every effective transition is some route's own `liveAt`, and the minimum over own dates is never later than the earliest real transition. It can expire a cached response slightly early, never too late.
 
@@ -123,7 +136,7 @@ A Route reaches its own page **and every ancestor of that page** through `parent
 Consumers:
 - `RoutableVoter` — grants when the resource's own route passes `RouteVoter`, or when the resolver finds a reaching route that does; for a `Page` it also checks the `AbstractPageData` instances using it as a template, since a template is reached through its page data rather than through the hierarchy.
 - `ComponentVoter::voteByRoute` — the same question for each page a component sits in.
-- `RoutableExtension` — own route plus the liveness predicate, unchanged from #224. A routeless page is absent from `GET /_/pages`, which is where it was before #225; see the collection limitation above, which has the same root cause.
+- `RoutableExtension` — the joined route's own liveness predicate, plus the inherited gate from #234. A routeless page is absent from `GET /_/pages`, which is where it was before #225: reachability-by-descendant is a voter answer, and it needs `route_security`, so it stays out of SQL.
 
 **Why not denormalise it.** An "earliest live date among reaching routes" column would have made the collection filter trivial, but it cannot express `route_security`, which is per-token and path-matched — an anonymous visitor would be granted a page reachable only via `/user-area/...`. Storing the *edges* instead was tried and rejected for a different reason: it introduced a maintained join table, a rebuild command and an upgrade step for a question the existing architecture already answers by traversal.
 
@@ -550,6 +563,16 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 ---
 
 ## Open Issues — Context for Future Work
+
+### #234 — Anonymous route and page collections ignored the inherited `liveAt` ✓ **DONE**
+
+Follow-up to #224/#225. `GET /_/routes` is the sitemap source, so listing a route gated by a scheduled ancestor handed search engines a soft-404 to crawl — and the module had no way to filter it, because both `liveAt` and `_metadata.effectiveLiveAt` are admin-only. Fixed with `RouteAncestorGateResolver` and a native recursive CTE; see **Route publication** above for the mechanism, the one-self-reference constraint, and the verified portability matrix.
+
+Built the way `PublishableExtension` already builds — exclude a set so pagination and `totalItems` stay correct. The bounded-depth pure-DQL alternative was rejected: each level branches two ways (`parentPage` / `parentPageData`), so the query doubles per level and it imposes a depth ceiling nothing else in the feature has. No denormalised state was reintroduced — a join table and a derived column were both built and rejected on #225, and the CTE makes neither necessary.
+
+Behat in `features/main/route_schedule.feature` covers scheduled parent, draft parent, scheduled grandparent, the #224 unrouted-ancestor guard, a route with no parent, `totalItems` correctness, admin still seeing everything, both cycle directions, and the `GET /_/pages` and `GET /page_data/page_datas` halves. The scenario that pinned the old leak was inverted, not deleted.
+
+> **Found while inverting it: `OrSearchFilter` defeats every extension predicate, including a route's own `liveAt`.** `addWhereByStrategy()` calls `$queryBuilder->orWhere(...)`, which ORs against the *entire* accumulated WHERE rather than only among the filter's own clauses. On `main`, an anonymous `GET /_/routes?path=launch` lists a route scheduled for 2999 — no ancestry involved. The old pinned scenario used `?path=`, so it was demonstrating this bug, not the inheritance one; the inverted scenarios query the unfiltered collection instead. **Not fixed here** — it is a separate defect in a public filter with its own blast radius. Needs its own issue.
 
 ### #225 — Nested child page whose parent has no Route: the parent was invisible to the public ✓ **DONE**
 

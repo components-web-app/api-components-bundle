@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
 use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 
 /**
@@ -27,7 +28,7 @@ class RoutableExtension implements QueryCollectionExtensionInterface
     private ?string $securityStr;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?string $securityStr, ResourceAccessCheckerInterface $resourceAccessChecker)
+    public function __construct(?string $securityStr, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteAncestorGateResolver $routeAncestorGateResolver)
     {
         $this->securityStr = $securityStr;
         $this->resourceAccessChecker = $resourceAccessChecker;
@@ -52,5 +53,6 @@ class RoutableExtension implements QueryCollectionExtensionInterface
         $routeAlias = $queryNameGenerator->generateJoinAlias('route');
         $queryBuilder->innerJoin("$alias.route", $routeAlias);
         PublicationDate::andWhereActive($queryBuilder, $routeAlias, 'liveAt');
+        $this->routeAncestorGateResolver->andWhereNotGated($queryBuilder, $queryNameGenerator, $routeAlias);
     }
 }

@@ -123,6 +123,7 @@ use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
@@ -1027,6 +1028,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 '', // added in dependency injection
                 new Reference('api_platform.security.resource_access_checker'),
+                new Reference(RouteAncestorGateResolver::class),
                 '', // added in dependency injection
             ]
         )
@@ -1037,6 +1039,14 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.helper.route.live_resolver')
         ->class(RouteLiveResolver::class);
     $services->alias(RouteLiveResolver::class, 'silverback.api_components.helper.route.live_resolver');
+
+    $services
+        ->set('silverback.api_components.helper.route.ancestor_gate_resolver')
+        ->class(RouteAncestorGateResolver::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+        ]);
+    $services->alias(RouteAncestorGateResolver::class, 'silverback.api_components.helper.route.ancestor_gate_resolver');
 
     $services
         ->set('silverback.api_components.helper.route.reachability_resolver')
@@ -1116,6 +1126,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 '', // added in dependency injection
                 new Reference('api_platform.security.resource_access_checker'),
+                new Reference(RouteAncestorGateResolver::class),
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');

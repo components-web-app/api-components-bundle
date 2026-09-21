@@ -1462,6 +1462,107 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a Page resource with the route path :path whose parent page has no route
+     */
+    public function thereIsAPageResourceUnderAnUnroutedParent(string $path): void
+    {
+        $parentPage = new Page();
+        $parentPage->isTemplate = true;
+        $parentPage->reference = 'unrouted parent page';
+        $this->timestampedHelper->persistTimestampedFields($parentPage, true);
+        $this->manager->persist($parentPage);
+
+        $childPage = new Page();
+        $childPage->isTemplate = true;
+        $childPage->reference = 'child page';
+        $childPage->setParentPage($parentPage);
+        $this->timestampedHelper->persistTimestampedFields($childPage, true);
+        $this->manager->persist($childPage);
+
+        $childRoute = new Route();
+        $childRoute->setPath($path)->setName($path)->setPage($childPage);
+        $this->timestampedHelper->persistTimestampedFields($childRoute, true);
+        $this->manager->persist($childRoute);
+
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($childPage);
+        $this->restContext->resources['page_route'] = $this->iriConverter->getIriFromResource($childRoute);
+
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a PageData resource with the route path :childPath nested within the route :parentPath which is nested within the route :grandParentPath
+     */
+    public function thereIsAThreeLevelNestedPageDataResource(string $childPath, string $parentPath, string $grandParentPath): void
+    {
+        $grandParentPageData = $this->createRoutedPageData($grandParentPath, 'grandparent page', null);
+        $this->restContext->resources['grandparent_route'] = $this->iriConverter->getIriFromResource($grandParentPageData->getRoute());
+
+        $parentPageData = $this->createRoutedPageData($parentPath, 'parent page', $grandParentPageData);
+        $this->restContext->resources['parent_route'] = $this->iriConverter->getIriFromResource($parentPageData->getRoute());
+
+        $childPageData = $this->createRoutedPageData($childPath, 'child page', $parentPageData);
+        $this->restContext->resources['page_data'] = $this->iriConverter->getIriFromResource($childPageData);
+        $this->restContext->resources['page_data_route'] = $this->iriConverter->getIriFromResource($childPageData->getRoute());
+
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there are two Pages which are each other's parent with the routes :pathOne and :pathTwo
+     */
+    public function thereAreTwoPagesWhichAreEachOthersParent(string $pathOne, string $pathTwo): void
+    {
+        $pageOne = new Page();
+        $pageOne->isTemplate = true;
+        $pageOne->reference = 'cycle page one';
+        $this->timestampedHelper->persistTimestampedFields($pageOne, true);
+        $this->manager->persist($pageOne);
+
+        $pageTwo = new Page();
+        $pageTwo->isTemplate = true;
+        $pageTwo->reference = 'cycle page two';
+        $this->timestampedHelper->persistTimestampedFields($pageTwo, true);
+        $this->manager->persist($pageTwo);
+
+        $pageOne->setParentPage($pageTwo);
+        $pageTwo->setParentPage($pageOne);
+
+        foreach ([$pathOne => $pageOne, $pathTwo => $pageTwo] as $path => $page) {
+            $route = new Route();
+            $route->setPath($path)->setName($path)->setPage($page);
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+        }
+
+        $this->manager->flush();
+    }
+
+    private function createRoutedPageData(string $path, string $pageReference, ?PageData $parentPageData): PageData
+    {
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = $pageReference;
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $pageData = new PageData();
+        $pageData->page = $page;
+        if (null !== $parentPageData) {
+            $pageData->setParentPageData($parentPageData);
+        }
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPageData($pageData);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        return $pageData;
+    }
+
+    /**
      * @When I patch the page with the component group in the request body
      */
     public function iPatchPageWithComponentGroupInBody(): void
