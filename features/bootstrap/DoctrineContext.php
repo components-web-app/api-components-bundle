@@ -2206,6 +2206,18 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Then there should be no user with the username :username
+     */
+    public function thereShouldBeNoUserWithTheUsername(string $username): void
+    {
+        $this->manager->clear();
+        $count = \count($this->manager->getRepository(User::class)->findBy(['username' => $username]));
+        if (0 !== $count) {
+            throw new ExpectationException(\sprintf('Expected no user with the username "%s" but found %d', $username, $count), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
      * @Then the user :username should have a verified email address
      */
     public function theUserShouldHaveAVerifiedEmailAddress(string $username): void

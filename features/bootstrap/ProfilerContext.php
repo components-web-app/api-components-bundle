@@ -334,7 +334,9 @@ class ProfilerContext implements Context
         /** @var MessageDataCollector $collector */
         $collector = $this->getProfile()->getCollector('mailer');
         $messages = $collector->getEvents()->getMessages();
-        Assert::assertCount(0, $messages);
+        if (0 !== \count($messages)) {
+            throw new ExpectationException(\sprintf('Expected no emails but %d were sent', \count($messages)), $this->minkContext->getSession()->getDriver());
+        }
     }
 
     /**

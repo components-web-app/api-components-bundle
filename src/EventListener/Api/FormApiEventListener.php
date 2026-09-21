@@ -64,13 +64,12 @@ class FormApiEventListener
             return;
         }
 
-        // Handle post/patch requests
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
         $requestContent = $this->serializer->decode($request->getContent(), $format, []);
 
         $data = $this->formSubmitHelper->process($data, $requestContent, Request::METHOD_PUT !== $request->getMethod());
 
-        if ($data->formView->getForm()->isValid()) {
+        if (Request::METHOD_PATCH !== $request->getMethod() && $data->formView->getForm()->isValid()) {
             $result = $this->formSubmitHelper->handleSuccess($data);
             if ($result) {
                 $data = $result;
