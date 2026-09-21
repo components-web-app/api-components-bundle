@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator as FlysystemPublicUrlGenerator;
 use League\Flysystem\UrlGeneration\TemporaryUrlGenerator as FlysystemTemporaryUrlGenerator;
 use PHPUnit\Framework\TestCase;
@@ -43,29 +44,29 @@ class MediaObjectFactoryUrlGeneratorTest extends TestCase
         $fieldConfig = new UploadableField(adapter: 'test_adapter', urlGenerator: $urlGeneratorReference);
         $fieldConfig->property = 'filename';
 
-        $annotationReader = $this->createMock(UploadableAttributeReaderInterface::class);
+        $annotationReader = $this->createStub(UploadableAttributeReaderInterface::class);
         $annotationReader->method('getConfiguredProperties')->willReturn(['file' => $fieldConfig]);
 
-        $classMetadata = $this->createMock(ClassMetadata::class);
+        $classMetadata = $this->createStub(ClassMetadata::class);
         $classMetadata->method('getFieldValue')->willReturn(self::FILE_PATH);
 
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em = $this->createStub(EntityManagerInterface::class);
         $em->method('getClassMetadata')->willReturn($classMetadata);
 
-        $registry = $this->createMock(ManagerRegistry::class);
+        $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($em);
 
-        $filesystemProvider = $this->createMock(FilesystemProvider::class);
+        $filesystemProvider = $this->createStub(FilesystemProvider::class);
         $filesystemProvider->method('getFilesystem')->willReturn($filesystem);
 
-        $filesystemFactory = $this->createMock(FilesystemFactory::class);
+        $filesystemFactory = $this->createStub(FilesystemFactory::class);
         $filesystemFactory->method('getAdapter')->willReturn($adapter);
 
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100);
-        $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
+        $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
 
-        $apiGenerator = $this->createMock(ApiUrlGenerator::class);
+        $apiGenerator = $this->createStub(ApiUrlGenerator::class);
         $apiGenerator->method('generateUrl')->willReturn('http://example.com/api/download');
 
         $urlGenerators = new ServiceLocator([
@@ -89,29 +90,43 @@ class MediaObjectFactoryUrlGeneratorTest extends TestCase
 
     public function test_uses_public_url_when_adapter_supports_public_url_generator(): void
     {
-        $adapter = new class implements FlysystemPublicUrlGenerator {
+        $adapter = new class extends InMemoryFilesystemAdapter implements FlysystemPublicUrlGenerator {
             public function publicUrl(string $path, Config $config): string
             {
-                return 'https://cdn.example.com/' . $path;
+                return 'https://adapter.example.com/' . $path;
             }
         };
 
-        $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->method('publicUrl')->willReturn('https://cdn.example.com/' . self::FILE_PATH);
+        $collection = $this->buildFactory('public', $adapter, new Filesystem($adapter))->createMediaObjects(new \stdClass());
 
-        $factory = $this->buildFactory('public', $adapter, $filesystem);
-        $collection = $factory->createMediaObjects(new \stdClass());
+        $this->assertSame('https://adapter.example.com/' . self::FILE_PATH, $collection->get('file')[0]->contentUrl);
+    }
+
+    public function test_uses_the_filesystem_public_url_config_when_the_adapter_has_no_public_url_generator(): void
+    {
+        $adapter = new InMemoryFilesystemAdapter();
+        $filesystem = new Filesystem($adapter, ['public_url' => 'https://cdn.example.com/']);
+
+        $collection = $this->buildFactory('public', $adapter, $filesystem)->createMediaObjects(new \stdClass());
 
         $this->assertSame('https://cdn.example.com/' . self::FILE_PATH, $collection->get('file')[0]->contentUrl);
     }
 
-    public function test_falls_back_to_api_when_adapter_does_not_support_public_url_generator(): void
+    public function test_falls_back_to_api_when_neither_the_adapter_nor_the_filesystem_can_generate_a_public_url(): void
     {
-        $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects($this->never())->method('publicUrl');
+        $adapter = new InMemoryFilesystemAdapter();
 
-        $factory = $this->buildFactory('public', new \stdClass(), $filesystem);
-        $collection = $factory->createMediaObjects(new \stdClass());
+        $collection = $this->buildFactory('public', $adapter, new Filesystem($adapter))->createMediaObjects(new \stdClass());
+
+        $this->assertSame('http://example.com/api/download', $collection->get('file')[0]->contentUrl);
+    }
+
+    public function test_the_api_generator_produces_the_api_url_even_when_a_public_url_is_configured(): void
+    {
+        $adapter = new InMemoryFilesystemAdapter();
+        $filesystem = new Filesystem($adapter, ['public_url' => 'https://cdn.example.com/']);
+
+        $collection = $this->buildFactory('api', $adapter, $filesystem)->createMediaObjects(new \stdClass());
 
         $this->assertSame('http://example.com/api/download', $collection->get('file')[0]->contentUrl);
     }
@@ -125,7 +140,7 @@ class MediaObjectFactoryUrlGeneratorTest extends TestCase
             }
         };
 
-        $filesystem = $this->createMock(Filesystem::class);
+        $filesystem = $this->createStub(Filesystem::class);
         $filesystem->method('temporaryUrl')->willReturn('https://s3.example.com/' . self::FILE_PATH . '?signed=abc');
 
         $factory = $this->buildFactory('temporary', $adapter, $filesystem);
