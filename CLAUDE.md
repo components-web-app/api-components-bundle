@@ -1141,6 +1141,21 @@ References: `src/HttpCache/HttpCachePurger.php`, `src/Command/PurgeRenderedHtmlC
 
 ---
 
+### #251 — A PATCH to `/submit` only validates; it never fires `FormSuccessEvent` ✓ **DONE**
+
+`FormApiEventListener::handleFormData()` calls `FormSubmitHelper::handleSuccess()` only for **POST and PUT**. A valid **PATCH** returns the form view (200) and nothing else: no `FormSuccessEvent`, so no `EntityPersistFormListener` write and no email.
+
+Why: the Nuxt module's real-time validation (`Forms.validateField()`) always PATCHes `/submit` with **every** registered field value, not just the one being edited. Once a user had filled in the last field of the register form, the debounced validation request was a complete, valid submission, so the user was registered and sent the welcome email before pressing submit, and their real submit then 422'd with "user already exists".
+
+Consequences:
+- **A form whose final submit is a PATCH can no longer succeed.** The module sends the final submit as PATCH when the root form's `vars.method` is `PATCH` (`cwa-form.ts`). No form type in this bundle or the test app sets a `method` option, so all resolve to POST, but an application form that sets `method: 'PATCH'` needs the module to send its final submit as POST.
+- **PUT has no HTTP route.** `Form` declares `/submit` operations for PATCH and POST only; a PUT returns 405. The listener still treats PUT as a full submit, which is covered by `tests/EventListener/Api/FormApiEventListenerTest.php`, not Behat.
+- **Unchanged and still live:** POST is a *partial* submit (`clearMissing` is only true for PUT), so a POST that omits a required field on a form without a `data_class` succeeds (201). This change does not affect that.
+
+Tests: `features/user/register_form.feature` (valid PATCH registers nobody and sends no email; invalid PATCH still returns errors), `tests/EventListener/Api/FormApiEventListenerTest.php`.
+
+---
+
 ### #211 / #212 / #215 — Maker DX: `make:page-data` prompts + correct nuxt.config snippet, `make:api-component` help text ✓ **DONE**
 
 Three papercuts found by the docs accuracy audit, all in `src/Maker/`.

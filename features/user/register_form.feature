@@ -85,3 +85,42 @@ Feature: Register process via a form
     And the JSON node "formView.children[1].vars.errors[0]" should be equal to "Please enter your email address."
     And the JSON node "formView.children[2].children[0].vars.errors[0]" should be equal to "Please enter your desired password."
     And the JSON should be valid according to the schema file "form.schema.json"
+
+  Scenario: A valid PATCH to the register form only validates and never registers the user
+    Given there is a "register" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "register_form" and the postfix "/submit" with body:
+    """
+    {
+      "user_register": {
+        "username": "typing_user",
+        "emailAddress": "typing@example.com",
+        "plainPassword": {
+          "first": "password",
+          "second": "password"
+        }
+      }
+    }
+    """
+    Then the response status code should be 200
+    And there should be no user with the username "typing_user"
+    And I should not receive any emails
+    And the JSON node "@type" should be equal to "Form"
+    And the JSON node "formView.vars.valid" should be true
+
+  Scenario: An invalid PATCH to the register form still returns the validation errors
+    Given there is a "register" form
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "register_form" and the postfix "/submit" with body:
+    """
+    {
+      "user_register": {
+        "username": "",
+        "emailAddress": "not-an-email"
+      }
+    }
+    """
+    Then the response status code should be 422
+    And the JSON node "formView.children[0].vars.errors[0]" should be equal to "Please enter a username."
+    And there should be no user with the username ""
+
