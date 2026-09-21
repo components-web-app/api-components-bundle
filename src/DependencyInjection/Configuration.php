@@ -27,6 +27,8 @@ use Symfony\Component\HttpFoundation\Cookie;
  */
 class Configuration implements ConfigurationInterface
 {
+    private const string DOCTRINE_REFRESH_TOKEN_STORAGE = 'silverback.api_components.refresh_token.storage.doctrine';
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('silverback_api_components');
@@ -140,6 +142,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('refresh_token')
+                    ->isRequired()
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('handler_id')->cannotBeEmpty()->isRequired()->end()
@@ -151,6 +154,10 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('ttl')->cannotBeEmpty()->isRequired()->end()
                         ->scalarNode('database_user_provider')->cannotBeEmpty()->isRequired()->end()
                     ->end()
+                    ->validate()
+                        ->ifTrue(static fn (array $v): bool => self::DOCTRINE_REFRESH_TOKEN_STORAGE === $v['handler_id'] && empty($v['options']['class']))
+                        ->thenInvalid('"silverback_api_components.refresh_token.options.class" must name your RefreshToken entity when using the doctrine storage handler.')
+                    ->end()
                 ->end()
             ->end();
     }
@@ -160,6 +167,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('publishable')
+                    ->isRequired()
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('permission')->cannotBeEmpty()->isRequired()->end()
@@ -187,9 +195,11 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('user')
+                    ->isRequired()
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('class_name')
+                            ->cannotBeEmpty()
                             ->isRequired()
                         ->end()
                         ->arrayNode('email_verification')
