@@ -847,6 +847,8 @@ Accepts `old-name` and `new-name` arguments (short class names). Derives dtype (
 
 **Table names come from ORM metadata, never literals (#253).** The template's SQL names its tables through `component_table`/`group_table`, which the maker reads from `ClassMetadata::getTableName()` at generation time — so `table_prefix` (default `_acb_`, applied by `TablePrefixExtension` on `loadClassMetadata`) is always honoured. Hardcoded `abstract_component`/`component_group` produced a migration that failed with "no such table" on every default install. `tests/Maker/RenameComponentMigrationTest.php` renders the template and **executes** the migration against in-memory SQLite; asserting on template variables alone could not catch this.
 
+**Never `LIKE`-match an IRI inside a `json` column.** Doctrine's `JsonType` encodes without `JSON_UNESCAPED_SLASHES`, so `allowed_components` is stored as `["\/component\/html_contents"]` and `LIKE '%/component/html_contents%'` matches nothing on SQLite/MariaDB (Postgres `json` rejects `LIKE` outright). The migration selects every non-null row and matches the decoded array in PHP.
+
 ---
 
 ### #193 — Require a file on publish for Uploadable entities — configure via `#[UploadableField(requiredOnPublish: true)]` ✓ **DONE**
