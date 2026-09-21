@@ -14,7 +14,9 @@ namespace Silverback\ApiComponentsBundle\Maker;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
@@ -114,6 +116,8 @@ final class MakeRenameComponent extends AbstractMaker
                 'new_iri' => $newIri,
                 'old_name' => $oldName,
                 'new_name' => $newName,
+                'component_table' => $this->resolveTableName(AbstractComponent::class),
+                'group_table' => $this->resolveTableName(ComponentGroup::class),
             ]
         );
 
@@ -146,6 +150,19 @@ final class MakeRenameComponent extends AbstractMaker
             \sprintf('  2. Update any imports or registrations referencing <comment>%s</comment>', $oldName),
             '  3. Run: <comment>php bin/console doctrine:migrations:migrate</comment>',
         ]);
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function resolveTableName(string $class): string
+    {
+        $metadata = $this->registry->getManagerForClass($class)?->getClassMetadata($class);
+        if (!$metadata instanceof ClassMetadata) {
+            throw new \LogicException(\sprintf('Unable to resolve the database table for "%s": it is not managed by the Doctrine ORM.', $class));
+        }
+
+        return $metadata->getTableName();
     }
 
     private function resolveIri(string $fqcn, string $shortName): string

@@ -819,6 +819,8 @@ Maker command `make:rename-component` (`src/Maker/MakeRenameComponent.php`).
 
 Accepts `old-name` and `new-name` arguments (short class names). Derives dtype (`strtolower` of short name) and FQCN (`App\Entity\Component\X`) interactively, with `--old-fqcn`, `--new-fqcn`, `--old-dtype`, `--new-dtype` override options. Uses `IriConverterInterface` to resolve the collection IRI (falls back to derived `/component/kebab-name` if class not found). Generates a Doctrine migration (`src/Resources/skeleton/migration/RenameComponent.tpl.php`) that updates `dtype` in `abstract_component` and replaces the old IRI in `component_group.allowed_components` JSON. Outputs a per-group warning table (location IRI + reference) for any groups referencing the old component, plus a front-end rename checklist. Unit-tested in `tests/Maker/MakeRenameComponentTest.php`.
 
+**Table names come from ORM metadata, never literals (#253).** The template's SQL names its tables through `component_table`/`group_table`, which the maker reads from `ClassMetadata::getTableName()` at generation time — so `table_prefix` (default `_acb_`, applied by `TablePrefixExtension` on `loadClassMetadata`) is always honoured. Hardcoded `abstract_component`/`component_group` produced a migration that failed with "no such table" on every default install. `tests/Maker/RenameComponentMigrationTest.php` renders the template and **executes** the migration against in-memory SQLite; asserting on template variables alone could not catch this.
+
 ---
 
 ### #193 — Require a file on publish for Uploadable entities — configure via `#[UploadableField(requiredOnPublish: true)]` ✓ **DONE**

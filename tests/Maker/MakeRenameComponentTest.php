@@ -12,9 +12,12 @@
 namespace Silverback\ApiComponentsBundle\Tests\Maker;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Maker\MakeRenameComponent;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
@@ -78,10 +81,24 @@ class MakeRenameComponentTest extends TestCase
 
     private function emptyRegistry(): ManagerRegistry
     {
+        return $this->registryWithGroups([]);
+    }
+
+    private function registryWithGroups(array $groups): ManagerRegistry
+    {
         $registry = $this->createMock(ManagerRegistry::class);
         $repo = $this->createMock(ObjectRepository::class);
-        $repo->method('findAll')->willReturn([]);
+        $repo->method('findAll')->willReturn($groups);
         $registry->method('getRepository')->with(ComponentGroup::class)->willReturn($repo);
+
+        $manager = $this->createStub(ObjectManager::class);
+        $manager->method('getClassMetadata')->willReturnCallback(static function (string $class): ClassMetadata {
+            $metadata = new ClassMetadata($class);
+            $metadata->setPrimaryTable(['name' => '_acb_' . (ComponentGroup::class === $class ? 'component_group' : 'abstract_component')]);
+
+            return $metadata;
+        });
+        $registry->method('getManagerForClass')->willReturn($manager);
 
         return $registry;
     }
@@ -268,6 +285,36 @@ class MakeRenameComponentTest extends TestCase
         $this->assertSame('/component/rich-text', $vars['new_iri']);
     }
 
+    public function test_generate_passes_the_orm_mapped_table_names_to_template(): void
+    {
+        $vars = [];
+        $this->makeMaker(
+            $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
+            $this->emptyRegistry(),
+        )->generate($this->defaultInput(), $this->makeIo(), $this->makeGenerator($vars));
+
+        $this->assertSame('_acb_abstract_component', $vars['component_table']);
+        $this->assertSame('_acb_component_group', $vars['group_table']);
+    }
+
+    public function test_generate_refuses_when_the_component_tables_are_not_mapped(): void
+    {
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn(null);
+
+        $generator = $this->createStub(Generator::class);
+        $generator->method('createClassNameDetails')
+            ->willReturn(new ClassNameDetails('App\\Migrations\\VersionRename', 'Migrations\\'));
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(AbstractComponent::class);
+
+        $this->makeMaker(
+            $this->iriConverterReturning('/component/html-content', '/component/rich-text'),
+            $registry,
+        )->generate($this->defaultInput(), $this->makeIo(), $generator);
+    }
+
     public function test_generate_uses_migration_skeleton_template(): void
     {
         $capturedTemplate = null;
@@ -301,10 +348,7 @@ class MakeRenameComponentTest extends TestCase
         $group->reference = 'primary';
         $group->allowedComponents = ['/component/html-content'];
 
-        $registry = $this->createMock(ManagerRegistry::class);
-        $repo = $this->createMock(ObjectRepository::class);
-        $repo->method('findAll')->willReturn([$group]);
-        $registry->method('getRepository')->with(ComponentGroup::class)->willReturn($repo);
+        $registry = $this->registryWithGroups([$group]);
 
         $output = new BufferedOutput();
         $vars = [];
@@ -327,10 +371,7 @@ class MakeRenameComponentTest extends TestCase
         $group->reference = 'nav';
         $group->allowedComponents = ['/component/navigation-link'];
 
-        $registry = $this->createMock(ManagerRegistry::class);
-        $repo = $this->createMock(ObjectRepository::class);
-        $repo->method('findAll')->willReturn([$group]);
-        $registry->method('getRepository')->with(ComponentGroup::class)->willReturn($repo);
+        $registry = $this->registryWithGroups([$group]);
 
         $output = new BufferedOutput();
         $vars = [];
