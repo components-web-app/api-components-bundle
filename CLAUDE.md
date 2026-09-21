@@ -1245,3 +1245,17 @@ Doctrine's DDC-1237 handling in `Expr\Composite::processQueryPart()` parenthesis
 **`addWhereByStrategy()`'s five single-value branches are unreachable from `filterProperty()`** — `normalizeValues((array) $value, ...)` always hands it an array — but they were fixed too, since the method is `protected`.
 
 Tests: `tests/Filter/OrSearchFilterTest.php` asserts the DQL shape across all five strategies (case-sensitive and `i`-prefixed, single and multi-value) plus cross-field OR, the `word_start` parenthesisation and non-leakage between two `apply()` calls; `features/main/or_search_filter.feature` covers the scheduled, draft and ancestor-gated route cases, the publishable draft case, and two guards proving the filter still ORs across fields and across multiple values for one field. `DummyOrSearchFilterable` had existed with no coverage of any kind, which is why this survived.
+
+---
+
+### #278 — A `ComponentPosition` move can no longer leave duplicate `sortValue`s ✓ **DONE**
+
+`ComponentPositionSortValueHelper::calculateSortValue()` protected inserts against duplicates but trusted a move's target. A move shifts the other positions between the original and target values by one, **by value**, so it creates or keeps a duplicate whenever the group already holds one, or when the position moves into another group, because the original value then belongs to a different group. Once a group holds duplicates, ties sort arbitrarily and later reorders land in the wrong place.
+
+After the shift, the move path now walks the other positions in `sortValue` order and raises a position only if it collides with the one before it or with the moved position's value. The moved position keeps the value the client sent, just as an insert keeps its value and the positions at or above it shift. A move with a null `sortValue` now returns before shifting anything and is left to `NotNull` validation; it used to shift the others first.
+
+**Repair only on a detected collision, never a renumber.** Every changed position is a Mercure update, and every client has to mirror the change. Renumbering the group on every move would multiply the updates per reorder. The walk leaves a position untouched unless it collides, so a normal move changes exactly the positions it changed before. That is pinned by the Behat scenario that asserts which positions were published to Mercure, not only their values.
+
+Infection leaves three mutants on the shift's boundary conditions. They are equivalent: when the shift gets a boundary wrong, the repair raises that position by the same amount.
+
+Tests: `tests/Helper/ComponentPosition/ComponentPositionSortValueHelperTest.php`; `features/main/component_position.feature` (a move into an occupied value in another group, a move within a group already holding a duplicate, and a normal move that publishes the same Mercure updates as before). New steps: `there is another ComponentGroup with :count components` (resources prefixed `other_`), `the ComponentPosition :name has the sortValue :sortValue`, `the ComponentPosition sort values should be:` (DoctrineContext) and `Mercure updates should have been published for exactly the ComponentPositions :names` (ProfilerContext).

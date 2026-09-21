@@ -160,6 +160,56 @@ Feature: Component positions
     And the JSON node "sortValue" should be equal to the number 2
 
   @loginUser
+  Scenario: Moving a ComponentPosition that collides with no other position changes only the positions in the moved range
+    Given there is a ComponentGroup with 5 components
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "position_1" with data:
+      | sortValue |
+      | 3         |
+    Then the response status code should be 200
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_0 | 0         |
+      | position_1 | 3         |
+      | position_2 | 1         |
+      | position_3 | 2         |
+      | position_4 | 4         |
+    And Mercure updates should have been published for exactly the ComponentPositions "position_1, position_2, position_3"
+
+  @loginUser
+  Scenario: Moving a ComponentPosition into another group at an occupied sortValue resolves to unique sort values
+    Given there is a ComponentGroup with 3 components
+    And there is another ComponentGroup with 2 components
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "other_position_0" with data:
+      | componentGroup            | sortValue |
+      | resource[component_group] | 1         |
+    Then the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 1
+    And the ComponentPosition sort values should be:
+      | position         | sortValue |
+      | position_0       | 0         |
+      | other_position_0 | 1         |
+      | position_1       | 2         |
+      | position_2       | 3         |
+
+  @loginUser
+  Scenario: Moving a ComponentPosition within a group that already holds a duplicate sortValue resolves to unique sort values
+    Given there is a ComponentGroup with 4 components
+    And the ComponentPosition "position_2" has the sortValue 1
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to the resource "position_0" with data:
+      | sortValue |
+      | 3         |
+    Then the response status code should be 200
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_1 | 0         |
+      | position_2 | 1         |
+      | position_3 | 2         |
+      | position_0 | 3         |
+
+  @loginUser
   Scenario: Cannot create a dynamic position with pageDataProperty but no pageDataClass
     Given there is a ComponentGroup with 0 components
     When I send a "POST" request to "/_/component_positions" with data:

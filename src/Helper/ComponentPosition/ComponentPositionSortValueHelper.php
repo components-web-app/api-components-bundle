@@ -30,48 +30,31 @@ class ComponentPositionSortValueHelper
             return;
         }
 
-        // we are moving a that already existed with a sort value
         if (null !== $originalSortValue) {
             $moveTo = $componentPosition->sortValue;
 
-            // same position as original, do nothing
-            if ($moveTo === $originalSortValue) {
+            if (null === $moveTo || $moveTo === $originalSortValue) {
                 return;
             }
 
-            $positionIsSame = static function (ComponentPosition $posA, ComponentPosition $posB) {
-                return $posA->getId() === $posB->getId();
-            };
+            $otherPositions = [];
+            foreach ($sortCollection as $existingComponentPosition) {
+                if ($existingComponentPosition->getId() !== $componentPosition->getId()) {
+                    $otherPositions[] = $existingComponentPosition;
+                }
+            }
 
-            // value increased
-            if ($moveTo > $originalSortValue) {
-                foreach ($sortCollection as $existingComponentPosition) {
-                    if ($positionIsSame($existingComponentPosition, $componentPosition)) {
-                        continue;
-                    }
-                    if (
-                        $existingComponentPosition->sortValue > $originalSortValue
-                        && $existingComponentPosition->sortValue <= $moveTo
-                    ) {
+            foreach ($otherPositions as $existingComponentPosition) {
+                if ($moveTo > $originalSortValue) {
+                    if ($existingComponentPosition->sortValue > $originalSortValue && $existingComponentPosition->sortValue <= $moveTo) {
                         --$existingComponentPosition->sortValue;
                     }
-                }
-
-                return;
-            }
-
-            // value decreased
-            foreach ($sortCollection as $existingComponentPosition) {
-                if ($positionIsSame($existingComponentPosition, $componentPosition)) {
-                    continue;
-                }
-                if (
-                    $existingComponentPosition->sortValue < $originalSortValue
-                    && $existingComponentPosition->sortValue >= $moveTo
-                ) {
+                } elseif ($existingComponentPosition->sortValue < $originalSortValue && $existingComponentPosition->sortValue >= $moveTo) {
                     ++$existingComponentPosition->sortValue;
                 }
             }
+
+            $this->resolveMoveCollisions($otherPositions, $moveTo);
 
             return;
         }
@@ -101,6 +84,24 @@ class ComponentPositionSortValueHelper
                     ++$existingComponentPosition->sortValue;
                 }
             }
+        }
+    }
+
+    /**
+     * @param list<ComponentPosition> $otherPositions
+     */
+    private function resolveMoveCollisions(array $otherPositions, int $moveTo): void
+    {
+        usort($otherPositions, static fn (ComponentPosition $a, ComponentPosition $b) => $a->sortValue <=> $b->sortValue);
+
+        $previousSortValue = null;
+        foreach ($otherPositions as $position) {
+            $sortValue = null === $previousSortValue ? $position->sortValue : max($position->sortValue, $previousSortValue + 1);
+            if ($sortValue === $moveTo) {
+                ++$sortValue;
+            }
+            $position->sortValue = $sortValue;
+            $previousSortValue = $sortValue;
         }
     }
 }
