@@ -200,6 +200,42 @@ Feature: Route resources
     Then the response status code should be 200
     And the JSON node "children" should have 0 elements
 
+  @loginAdmin
+  Scenario: GET a route's children includes routed descendants of a child page that has no route
+    Given there is a PageData resource with the route path "/conference/2027/programme" nested within an unrouted page nested within the route "/conference"
+    When I send a "GET" request to the resource "grandparent_route" and the postfix "/children"
+    Then the response status code should be 200
+    And the JSON node "children" should have 1 element
+    And the JSON node "children[0].route" should be equal to "/_/routes//conference/2027/programme"
+    And the JSON node "children[0].path" should be equal to the string "/conference/2027/programme"
+    And the JSON node "children[0].children" should have 0 elements
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths updates routed descendants of a child page that has no route
+    Given there is a PageData resource with the route path "/conference/2027/programme" nested within an unrouted page nested within the route "/conference"
+    When I send a "PATCH" request to the resource "grandparent_route" with data:
+      | path            | cascadeChildPaths |
+      | /new-conference | true              |
+    Then the response status code should be 200
+    And the Route "/conference" should redirect to "/new-conference"
+    And the Route "/conference/2027/programme" should redirect to "/new-conference/2027/programme"
+
+  @loginAdmin
+  Scenario: GET a route's children terminates when an unrouted child page loops back to it
+    Given there is a Page with the route "/cycle" and an unrouted Page which are each other's parent
+    When I send a "GET" request to the resource "cycle_route" and the postfix "/children"
+    Then the response status code should be 200
+    And the JSON node "children" should have 0 elements
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths terminates when an unrouted child page loops back to it
+    Given there is a Page with the route "/cycle" and an unrouted Page which are each other's parent
+    When I send a "PATCH" request to the resource "cycle_route" with data:
+      | path       | cascadeChildPaths |
+      | /new-cycle | true              |
+    Then the response status code should be 200
+    And the Route "/cycle" should redirect to "/new-cycle"
+
   Scenario: Anonymous users cannot access route children
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
     When I send a "GET" request to the resource "parent_route" and the postfix "/children"

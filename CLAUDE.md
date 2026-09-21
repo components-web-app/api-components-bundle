@@ -234,8 +234,8 @@ Key current group assignments:
 | `GET /_/resource_manifest/{id}` | Unified manifest endpoint — `{id}` starting with `/` resolves to a Route by path; a UUID resolves to a `Page` or `AbstractPageData` entity. Returns `{ "resource_iris": string[][] }`. |
 | `POST /routes/generate` | Auto-generate a Route for a Page/PageData |
 | `GET /routes/{id}/redirects` | Follow the redirect chain for a Route |
-| `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks direct children and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. |
-| `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. |
+| `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks descendants and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. A descendant page with no route is passed through, not a dead end: its routed descendants are still cascaded (#256). |
+| `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. A page with no route gets no node; its routed descendants are listed in its place (#256). |
 | `POST /_/rendered_html/purge` | Purges the `cwa-html` rendered-HTML cache tag and nothing else (`ROLE_ADMIN`, no body, 204). The deploy path is the console command `silverback:api-components:purge-rendered-html`; this endpoint is for the admin button. See #243. |
 
 ---
@@ -660,6 +660,18 @@ Behat in `features/main/route_schedule.feature` covers scheduled parent, draft p
 
 > **Found while inverting it: `OrSearchFilter` defeats every extension predicate, including a route's own `liveAt`.** `addWhereByStrategy()` calls `$queryBuilder->orWhere(...)`, which ORs against the *entire* accumulated WHERE rather than only among the filter's own clauses. On `main`, an anonymous `GET /_/routes?path=launch` lists a route scheduled for 2999 — no ancestry involved. The old pinned scenario used `?path=`, so it was demonstrating this bug, not the inheritance one; the inverted scenarios query the unfiltered collection instead. **Not fixed here** — it is a separate defect in a public filter with its own blast radius. Needs its own issue.
 
+### #256 — An unrouted intermediate page no longer cuts its routed descendants out of `/children` and path cascades ✓ **DONE**
+
+`RouteChildrenStateProvider` and `RouteEventListener::cascadeChildPaths` both walked the hierarchy route-to-route and `continue`d past a child with no route, so everything beneath it disappeared from the tree and kept its old path on a cascade. That is the dead-end behaviour #224 and #225 ruled out elsewhere: **a routeless page is skipped, not a boundary.** Both walks are now page-to-page. An unrouted page contributes no node and no path segment, and its descendants are handled against the nearest routed ancestor, so a routed grandchild at `/conference/2027/programme` is listed as a direct child of `/conference` and is renamed to `/new-conference/2027/programme`.
+
+The shape only arises through explicit route creation, since the generator refuses under an unrouted parent (#245). The `children` contract is unchanged: every node still has a `route` and a `path`. Emitting a node for the unrouted page with a null route was the alternative, and it was not taken because it would change what the module consumes.
+
+**The children walk needs a visited set; the cascade does not.** Every page has exactly one parent, so a walk down from the starting page can only revisit the starting page itself. The children walk would then emit that page's route as its own descendant and recurse until the process segfaults. The cascade is saved by its own prefix check, because a route's path never starts with `its own old path + '/'`. A visited set there would be unreachable code, and Infection would report it.
+
+Behat: `features/main/route.feature`, which covers the children and cascade scenarios through an unrouted intermediate plus the cycle scenarios for both.
+
+---
+
 ### #225 — Nested child page whose parent has no Route: the parent was invisible to the public ✓ **DONE**
 
 The voter chain never treated `parentPage`/`parentPageData` as a reachability edge, so it was wrong in **both** directions. Full mechanism in **Route reachability** above; this entry records the judgement calls.
@@ -810,6 +822,8 @@ A console command (and optionally an admin UI panel) that identifies:
 - **Unused components** — components that appear in no ComponentPosition
 
 Should be read-only by default (report mode) with an optional `--fix` flag to delete.
+
+**Where orphaned positions come from (verified for #260).** `ComponentPosition.component` is `ON DELETE SET NULL`, and that is load-bearing: a dynamic (`pageDataProperty`) position must survive the deletion of its fallback component, which `features/main/component.feature` pins. Do not change it to `CASCADE`. Static positions are removed in the application layer by `ComponentPositionEventListener::removeEmptyPositions` (PRE_WRITE on an API `DELETE` of a component), not by `OrphanedResourceHelper`. That listener reassigns positions to the draft instead when a published component with a draft is deleted. A component removed through Doctrine directly (fixtures, console, application code) bypasses the listener and leaves a static position with a null component. That is the case this tool would report.
 
 ---
 
