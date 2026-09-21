@@ -171,6 +171,15 @@ Consumers:
 3. Resolves name/path conflicts with a numeric suffix
 4. Creates or updates the `Route` entity and calls `setRoute()` on the `PageData`
 
+**Generation refuses when the page has a parent but the parent has no route (#245).** If `parentPage` or `parentPageData` is set and `getParentPageRoute()` returns null, `create()` throws `UnroutedParentException` before touching anything. It used to skip the prefix silently and hand the child a bare top-level path — frequently the parent's own natural path (a child at `/2027` under an unrouted conference whose natural path is `/2027`). The parent could then never take its route: `UniqueEntity('path')` rejected it with a 422 on a later, unrelated write, naming a path the user never created. The reason is **path squatting, not rendering** — rendering depth comes from the manifest either way (see **Route path concatenation — recommended, not required**). The generator must not claim a path that is not the page's to claim, so it fails where the cause is.
+
+- `POST /_/routes/generate` returns **422** (`application/problem+json`, the message in `detail`), via `exception_to_status` in `prependApiPlatformConfig()`. 422 matches the endpoint's existing refusals (page/pageData both or neither), which are 422 validation violations. No Route is created.
+- **Pages with no parent are unaffected** and still get a top-level path.
+- **Explicit creation is unaffected.** `POST /_/routes` with a path, `DoctrineContext` and `CwaFixtureBuilder`'s `route:` argument never call the generator, so a routed child under an unrouted parent remains possible and remains live (the #224 guard). Refusing to *generate* a path is not refusing the page a route.
+- `CwaFixtureBuilder` propagates the exception out of `flush()`: a page nested under a parent that gets no route (an `isTemplate: true` page with no `route:`) must be given an explicit `route:`.
+
+Tests: `tests/Helper/Route/RouteGeneratorTest.php`; `features/main/route.feature` (refused with 422 and zero Routes, prefixed under a routed parent, explicit creation still 201).
+
 ### Caching architecture
 
 Resources are designed as **individual, piecemeal, independently cacheable entities**. The API does not bundle data into large grouped responses. Each resource (Route, Page, Layout, ComponentGroup, Component, etc.) is fetched and cached separately. When a resource changes, only that resource's cache entry is invalidated — not anything that merely references it.
@@ -253,7 +262,7 @@ Pages support sub-pages. A conference page at `/best-conference-ever` renders a 
 
 A validation constraint (`Assert\Expression`) ensures both cannot be set simultaneously.
 
-`getParentPageRoute(): ?Route` is a computed helper (no DB column) returning `$parentPage?->getRoute() ?? $parentPageData?->getRoute()`. Used by `RouteGenerator` to prefix paths. Returns null gracefully when the parent is still in draft (no public Route yet).
+`getParentPageRoute(): ?Route` is a computed helper (no DB column) returning `$parentPage?->getRoute() ?? $parentPageData?->getRoute()`. Used by `RouteGenerator` to prefix paths. Returns null when the parent is still in draft (no public Route yet), in which case `RouteGenerator` refuses to generate a route for the child (#245).
 
 ### How the manifest carries parent resources
 
@@ -302,7 +311,7 @@ This means:
 
 - **No `$nested` boolean** — parent = nested, full stop. The presence of `$parentPage`/`$parentPageData` is the complete signal.
 - **Two FK properties, not one** — `AbstractPage` is a mapped superclass with no discriminator map; `?AbstractPage` cannot be a Doctrine FK target. `?Page` + `?AbstractPageData` mirrors `Route.$page`/`Route.$pageData`.
-- **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null safely when the parent has no route yet.
+- **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null when the parent has no route yet, and `RouteGenerator` then refuses to generate (#245).
 - **Route concatenation is recommended, not required** — `RouteGenerator` prefixes child paths for clean URLs and SEO, but the module's `<CwaPage />` renders depth from manifest data, not URL structure.
 - **`resource_iris` is `string[][]`, not `string[]`** — depth-grouped, root first. The module reads the array index as the rendering depth without any client-side traversal.
 - **Single rendering mechanism** — `<CwaPage />` uses a manifest in both public and admin/draft contexts. Both contexts use the same `/_/resource_manifest/{id}` endpoint — route path for public, UUID for admin/draft. The chain walk (`parentPage`/`parentPageData`) is a fallback only. No URL-depth dependency.
@@ -492,6 +501,7 @@ GroupBuilder
 | no `route:` on `->page()` + `isTemplate: true` | no Route created |
 | no `route:` on `->page()` without template flag | RouteGenerator called from title (slug) |
 | `->pageData(...)` inside `->nested()`, no route | RouteGenerator called → `/parent-path/slug-from-title` |
+| `->page(...)`/`->pageData(...)` inside `->nested()` of a parent that gets no route (e.g. `isTemplate: true`), no route | `UnroutedParentException` from `flush()` — pass an explicit `route:` (#245) |
 | `->pageData(...)` or `->page(...)` at top level, no route, no title | no Route created (draft) |
 
 ### Allowed components on groups
@@ -564,7 +574,7 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 - **No `$nested` boolean** — parent = nested, full stop. The presence of `$parentPage`/`$parentPageData` is the complete signal.
 - **Two FK properties, not one** — `AbstractPage` is a mapped superclass with no discriminator map; `?AbstractPage` cannot be a Doctrine FK target. `?Page` + `?AbstractPageData` mirrors `Route.$page`/`Route.$pageData`.
-- **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null safely when the parent has no route yet.
+- **`getParentPageRoute()` is computed** — no DB column; used by `RouteGenerator` only; returns null when the parent has no route yet, and `RouteGenerator` then refuses to generate (#245).
 - **Route concatenation is recommended, not required** — `RouteGenerator` prefixes child paths for clean URLs and SEO, but the module's `<CwaPage />` renders depth from manifest data, not URL structure.
 - **`resource_iris` is `string[][]`, not `string[]`** — depth-grouped, root first. The module reads the array index as the rendering depth without any client-side traversal.
 - **Single rendering mechanism** — `<CwaPage />` uses a manifest in both public and admin/draft contexts. Both contexts use the same `/_/resource_manifest/{id}` endpoint — route path for public, UUID for admin/draft. The chain walk (`parentPage`/`parentPageData`) is a fallback only. No URL-depth dependency.

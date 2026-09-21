@@ -108,6 +108,34 @@ Feature: Route resources
     And the Route "/original" should redirect to "/unnamed-page"
 
   @loginUser
+  Scenario: A route cannot be generated for a nested page whose parent page has no route
+    Given there is a routeless parent PageData with a component and an unrouted child Page
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | page                 |
+      | resource[child_page] |
+    Then the response status code should be 422
+    And the JSON node "detail" should contain "parent page has no route"
+    And there should be 0 Route resources
+
+  @loginUser
+  Scenario: A route generated for a nested page whose parent page has a route is prefixed with the parent path
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | pageData            |
+      | resource[page_data] |
+    Then the response status code should be 201
+    And the JSON node "path" should be equal to the string "/conference/unnamed-page"
+
+  @loginUser
+  Scenario: A route can still be created explicitly for a nested page whose parent page has no route
+    Given there is a routeless parent PageData with a component and an unrouted child Page
+    When I send a "POST" request to "/_/routes" with data:
+      | path  | name            | page                 |
+      | /2027 | conference-2027 | resource[child_page] |
+    Then the response status code should be 201
+    And the JSON node "path" should be equal to the string "/2027"
+
+  @loginUser
   Scenario: I update a route path. A new redirect will be created.
     Given there is a PageData resource with the route path "/original"
     When I send a "PATCH" request to "/_/routes//original" with data:

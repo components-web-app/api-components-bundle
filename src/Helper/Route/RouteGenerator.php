@@ -16,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 
@@ -57,6 +58,11 @@ class RouteGenerator implements RouteGeneratorInterface
 
     public function create(RoutableInterface $object, ?Route $route = null): Route
     {
+        $parentPageRoute = $object->getParentPageRoute();
+        if (null === $parentPageRoute && (null !== $object->getParentPage() || null !== $object->getParentPageData())) {
+            throw new UnroutedParentException('Cannot generate a route for this page because its parent page has no route. Give the parent page a route first, or create this page\'s route explicitly.');
+        }
+
         $entityManager = $this->registry->getManagerForClass($className = $object::class);
         if (!$entityManager) {
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
@@ -75,7 +81,7 @@ class RouteGenerator implements RouteGeneratorInterface
 
         $path = '/' . ltrim($titleSlug, '/');
 
-        if ($parentPageRoute = $object->getParentPageRoute()) {
+        if ($parentPageRoute) {
             $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
         }
 
@@ -88,10 +94,6 @@ class RouteGenerator implements RouteGeneratorInterface
 
         if ($existingRoute) {
             $existingRoute->setRedirect($route);
-            // When we enabled patch endpoint for route, this was required.
-            // The existing route is found in uow, perhaps this is why..
-            // Future investigation would be nice to know reasoning for this breaking tests and pageData becoming null
-            // on the $route and staying on the existingRoute only when patch enabled.
             $route->setPage($existingRoute->getPage());
             $route->setpageData($existingRoute->getPageData());
         }

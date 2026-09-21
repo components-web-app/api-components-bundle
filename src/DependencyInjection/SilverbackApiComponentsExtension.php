@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
+use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -365,6 +366,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                     UnparseableRequestHeaderException::class => 400,
                     ApiPlatformAuthenticationException::class => 401,
                     UserDisabledException::class => 401,
+                    UnroutedParentException::class => 422,
                 ],
             ]
         );
