@@ -80,7 +80,7 @@ final class UserCommandContext implements Context
     }
 
     /**
-     * @Then there should be :count user(s) with the username :username
+     * @Then /^there should be (?P<count>\d+) users? with the username "(?P<username>[^"]*)"$/
      */
     public function thereShouldBeUsersWithTheUsername(int $count, string $username): void
     {
