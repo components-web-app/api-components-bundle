@@ -897,6 +897,21 @@ References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePat
 
 ---
 
+### #266 — Code typed against `UserRepositoryInterface` may only call what it declares ✓ **DONE**
+
+`refresh-tokens:expire` called `findOneBy()` on `UserRepositoryInterface`, which does not declare it. It only worked because the bundle's `UserRepository` extends Doctrine's `ServiceEntityRepository`. An application that replaces the `UserRepositoryInterface` service with its own implementation got "call to undefined method". **The `@method` docblock tags on the interface are not a contract.** Nothing forces an implementation to provide them, so never call them through the interface. `tests/Command/InMemoryUserRepository.php` is a plain implementation to test against.
+
+The fix uses only declared methods, so the interface is unchanged and there is no BC break:
+- `--field emailAddress` goes to `findOneByEmail()`.
+- `--field username` goes to `loadUserByIdentifier()`, then the command checks that the returned user's username equals the argument, case-insensitively. Anything else counts as not found. **`loadUserByIdentifier()` is not a username lookup.** The bundle's version matches username *or* email address, and a custom implementation may match whatever its application logs in with. Without the check, the command could expire the wrong user's tokens.
+- If one user's username equals another user's email address, `loadUserByIdentifier()` throws `NonUniqueResultException`. The command catches it and says the user cannot be identified.
+
+**Behaviour change:** `--field` used to accept any Doctrine-mapped field (`id`, `newEmailAddress`, token columns...), though that was never documented. It now accepts only `username` and `emailAddress`, and rejects anything else before expiring anything, naming the allowed fields. The username lookup is now case-insensitive, matching login.
+
+Tests: `tests/Command/RefreshTokensExpireCommandTest.php` (against the in-memory repository) and `features/user/refresh_tokens_expire.feature` (through the real container and the Doctrine repository).
+
+---
+
 ### Services holding request-scoped state must be tagged `kernel.reset` ✓ **DONE**
 
 `ResetInterface` alone does nothing — a service is only reset between requests if it carries the `kernel.reset` tag. Autoconfiguration adds it, but **this is a bundle**: an application may disable autoconfiguration, and several of the bundle's own definitions already opt out with `->autoconfigure(false)`. Nothing was tagged, so `CwaCollectorData::reset()` and `JWTEventListener::reset()` were unreachable as far as the framework was concerned.

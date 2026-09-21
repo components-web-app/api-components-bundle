@@ -59,6 +59,9 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class DoctrineContext implements Context
@@ -75,9 +78,12 @@ final class DoctrineContext implements Context
     private JWTEncoderInterface $jwtEncoder;
     private JsonContext $jsonContext;
     private RouteLiveResolver $routeLiveResolver;
+    private KernelInterface $kernel;
+    private ?\Throwable $commandException = null;
 
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel)
     {
+        $this->kernel = $kernel;
         $this->routeLiveResolver = $routeLiveResolver;
         $this->doctrine = $doctrine;
         $this->jwtManager = $jwtManager;
@@ -2131,17 +2137,60 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Then the refresh token should be expired
+     * @Then /^the refresh token should (not )?be expired$/
      */
-    public function theRefreshTokenShouldBeExpired(): void
+    public function theRefreshTokenShouldBeExpired(string $not = ''): void
     {
         $this->manager->clear();
         $repo = $this->manager->getRepository(RefreshToken::class);
         $token = $repo->findOneBy([
             'user' => $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']),
         ]);
-        if (!$token->isExpired()) {
-            throw new ExpectationException(\sprintf('The token with ID %s is not expired', $this->restContext->resources['refresh_token']), $this->minkContext->getSession()->getDriver());
+        $expectExpired = '' === $not;
+        if ($token->isExpired() !== $expectExpired) {
+            throw new ExpectationException(\sprintf('The token with ID %s is %s', $this->restContext->resources['refresh_token'], $expectExpired ? 'not expired' : 'expired'), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @When /^I run the refresh tokens expire command for "([^"]*)"(?: using the field "([^"]*)")?$/
+     */
+    public function iRunTheRefreshTokensExpireCommandFor(string $value, string $field = ''): void
+    {
+        $input = ['username' => $value];
+        if ('' !== $field) {
+            $input['--field'] = $field;
+        }
+        $application = new Application($this->kernel);
+        $tester = new CommandTester($application->find('silverback:api-components:refresh-tokens:expire'));
+        $this->commandException = null;
+        try {
+            $tester->execute($input);
+        } catch (\Throwable $exception) {
+            $this->commandException = $exception;
+        }
+    }
+
+    /**
+     * @Then the command should have succeeded
+     */
+    public function theCommandShouldHaveSucceeded(): void
+    {
+        if (null !== $this->commandException) {
+            throw new ExpectationException(\sprintf('The command failed: %s', $this->commandException->getMessage()), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then the command should have failed with a message containing :text
+     */
+    public function theCommandShouldHaveFailedWithAMessageContaining(string $text): void
+    {
+        if (null === $this->commandException) {
+            throw new ExpectationException('The command succeeded', $this->minkContext->getSession()->getDriver());
+        }
+        if (!str_contains($this->commandException->getMessage(), $text)) {
+            throw new ExpectationException(\sprintf('The command failed with "%s", which does not contain "%s"', $this->commandException->getMessage(), $text), $this->minkContext->getSession()->getDriver());
         }
     }
 

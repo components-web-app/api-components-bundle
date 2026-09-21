@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Command;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 
@@ -46,13 +47,16 @@ final class InMemoryUserRepository implements UserRepositoryInterface
 
     public function loadUserByIdentifier(string $identifier): ?AbstractUser
     {
-        foreach ($this->users as $user) {
-            if (strtolower((string) $user->getUsername()) === strtolower($identifier)) {
-                return $user;
-            }
+        $matches = array_values(array_filter(
+            $this->users,
+            static fn (AbstractUser $user): bool => \in_array(strtolower($identifier), [strtolower((string) $user->getUsername()), strtolower((string) $user->getEmailAddress())], true)
+        ));
+
+        if (\count($matches) > 1) {
+            throw new NonUniqueResultException();
         }
 
-        return null;
+        return $matches[0] ?? null;
     }
 
     public function findExistingUserByNewEmail(AbstractUser $user): ?AbstractUser

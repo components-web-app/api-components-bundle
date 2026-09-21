@@ -12,10 +12,14 @@
 namespace Silverback\ApiComponentsBundle\Command;
 
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\NonUniqueResultException;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidOptionException;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -27,6 +31,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'silverback:api-components:refresh-tokens:expire')]
 final class RefreshTokensExpireCommand extends Command
 {
+    private const FIELDS = ['username', 'emailAddress'];
+
     private RefreshTokenStorageInterface $storage;
     private UserRepositoryInterface $repository;
 
@@ -44,7 +50,7 @@ final class RefreshTokensExpireCommand extends Command
             ->setDefinition(
                 [
                     new InputArgument('username', InputArgument::OPTIONAL, 'The username'),
-                    new InputOption('field', null, InputOption::VALUE_REQUIRED, 'The user field (username, emailAddress)', 'username'),
+                    new InputOption('field', null, InputOption::VALUE_REQUIRED, \sprintf('The user field (%s)', implode(', ', self::FIELDS)), 'username'),
                 ]
             )
             ->setHelp(
@@ -58,10 +64,15 @@ final class RefreshTokensExpireCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $field = (string) $input->getOption('field');
+        if (!\in_array($field, self::FIELDS, true)) {
+            throw new InvalidOptionException(\sprintf('The field "%s" is not supported. Use one of: %s.', $field, implode(', ', self::FIELDS)));
+        }
+
         if ($username = (string) $input->getArgument('username')) {
-            $user = $this->repository->findOneBy([$input->getOption('field') => $username]);
+            $user = $this->findUser($field, $username);
             if (!$user) {
-                throw new EntityNotFoundException(\sprintf('User with username "%s" not found.', $username));
+                throw new EntityNotFoundException(\sprintf('User with %s "%s" not found.', $field, $username));
             }
             $this->storage->expireAll($user);
             $output->writeln(\sprintf('RefreshTokens for user <comment>%s</comment> successfully expired.', $username));
@@ -71,5 +82,24 @@ final class RefreshTokensExpireCommand extends Command
         }
 
         return 0;
+    }
+
+    private function findUser(string $field, string $value): ?AbstractUser
+    {
+        if ('emailAddress' === $field) {
+            return $this->repository->findOneByEmail($value);
+        }
+
+        try {
+            $user = $this->repository->loadUserByIdentifier($value);
+        } catch (NonUniqueResultException $exception) {
+            throw new RuntimeException(\sprintf('More than one user matches "%s" as a username or email address, so the user with that username cannot be identified. No refresh-tokens were expired.', $value), 0, $exception);
+        }
+
+        if (!$user || strtolower((string) $user->getUsername()) !== strtolower($value)) {
+            return null;
+        }
+
+        return $user;
     }
 }
