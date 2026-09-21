@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 /**
  * Based on FOSUserBundle: https://github.com/FriendsOfSymfony/FOSUserBundle/blob/master/Command/CreateUserCommand.php.
@@ -82,11 +83,20 @@ class UserCreateCommand extends Command
         $admin = $input->getOption('admin');
         $overwrite = $input->getOption('overwrite');
 
-        $this->userFactory->create($username, $password, $email, $inactive, $superAdmin, $admin, $overwrite);
+        try {
+            $this->userFactory->create($username, $password, $email, $inactive, $superAdmin, $admin, $overwrite);
+        } catch (ValidationFailedException $exception) {
+            $output->writeln(\sprintf('<error>Could not create user: %s</error>', $username));
+            foreach ($exception->getViolations() as $violation) {
+                $output->writeln(\sprintf('  %s: %s', $violation->getPropertyPath(), $violation->getMessage()));
+            }
+
+            return Command::FAILURE;
+        }
 
         $output->writeln(\sprintf('Created user: <comment>%s</comment>', $username));
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     /**

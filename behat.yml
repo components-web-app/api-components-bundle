@@ -12,6 +12,7 @@ default:
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\ProfilerContext': ~
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UserCommandContext': ~
 
   extensions:
     'FriendsOfBehat\SymfonyExtension':
@@ -44,6 +45,7 @@ default-coverage:
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UploadsContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\ProfilerContext': ~
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UserCommandContext': ~
 
 default-legacy:
   suites:

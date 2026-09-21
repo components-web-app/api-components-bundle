@@ -1154,6 +1154,16 @@ Consequences:
 
 Tests: `features/user/register_form.feature` (valid PATCH registers nobody and sends no email; invalid PATCH still returns errors), `tests/EventListener/Api/FormApiEventListenerTest.php`.
 
+### #254 — `user:create` fails on validation violations instead of writing the user ✓ **DONE**
+
+`UserFactory::create()` used to call the validator and ignore the result. There is **no database unique constraint** on `username` or `email_address` (uniqueness is only `UniqueEntity`, a validator constraint), so `user:create` without `--overwrite` for an existing username wrote a second row, exited 0, and every later `loadUserByIdentifier()` (the lookup login uses) threw `NonUniqueResultException`. An invalid email address was stored as-is.
+
+The factory now throws Symfony's `ValidationFailedException` (the user and the violation list) before persisting, and `UserCreateCommand` catches it, prints each violation as `propertyPath: message`, and returns `Command::FAILURE`.
+
+**Behaviour change:** a deploy or seed script that runs `user:create` for a user that already exists, without `--overwrite`, now **fails** instead of silently writing a duplicate. Use `--overwrite` to update an existing user. No unique index was added (that would be a schema change for every application), so a duplicate can still be written by code that bypasses validation.
+
+Tests: `features/user/user_create_command.feature` runs the real command from the container through `UserCommandContext` (duplicate username fails with the violation and no second row; invalid email fails; valid user succeeds; `--overwrite` still works), `tests/Factory/User/UserFactoryTest.php`, `tests/Command/UserCreateCommandTest.php`.
+
 ---
 
 ### #211 / #212 / #215 — Maker DX: `make:page-data` prompts + correct nuxt.config snippet, `make:api-component` help text ✓ **DONE**

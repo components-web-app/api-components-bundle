@@ -16,6 +16,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -71,7 +72,10 @@ class UserFactory
             ->setRoles($roles);
 
         $this->timestampedDataPersister->persistTimestampedFields($user, true);
-        $this->validator->validate($user);
+        $violations = $this->validator->validate($user);
+        if (\count($violations) > 0) {
+            throw new ValidationFailedException($user, $violations);
+        }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
