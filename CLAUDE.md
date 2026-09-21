@@ -204,7 +204,7 @@ This factory (`src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCo
 - **Symfony 8.2 null-for-typed-string**: Symfony 8.2 converts a null value for a non-nullable typed string property into a proper validation violation rather than a raw TypeError. Prefer `?string = null` (nullable PHP type + nullable ORM column) so null passes through deserialization to the `#[Assert\NotBlank]` validator consistently across all Symfony versions. AP4's `AbstractItemNormalizer` reads serializer metadata (including the ORM `nullable` flag), so `?string` with `nullable: false` on the ORM column still triggers the TypeError path.
 - **Behat / Symfony 8.x**: The `behat/behat` and `friends-of-behat/symfony-extension` packages do not yet support Symfony 8.x (their constraints cap at `^7.0`). This holds `symfony/console`, `symfony/event-dispatcher`, `symfony/property-access`, `symfony/http-kernel`, and the full security stack at 7.x in the test environment. The production bundle code is Symfony 8.x-compatible; only the test tooling is blocked. Watch for a `behat/behat` 4.x stable release or updated `friends-of-behat/symfony-extension` to unblock.
 - **Service ID convention — two mandatory exceptions**: All bundle services use stable `silverback.api_components.*` string IDs with FQCN class-name aliases. Two categories **must** keep the FQCN as the primary service ID (with the string ID as alias) because they are looked up by class name at runtime:
-  1. **AP4 state providers** tagged `api_platform.state_provider` and referenced as `provider: SomeClass::class` on an operation — AP4 builds its `CallableProvider` service locator keyed by tagged service ID. If the service ID is a string (not the FQCN), AP4 throws `ProviderNotFoundException`.
+  1. **AP4 state providers and state processors** tagged `api_platform.state_provider` / `api_platform.state_processor` and referenced as `provider:` / `processor: SomeClass::class` on an operation — AP4 builds its `CallableProvider` / `CallableProcessor` service locator keyed by tagged service ID. If the service ID is a string (not the FQCN), AP4 throws `ProviderNotFoundException` / `ProcessorNotFoundException`.
   2. **Controller action services** tagged `controller.service_arguments` — Symfony's `RegisterControllerArgumentLocatorsPass` keys argument locators by service ID. Routes resolve controllers by FQCN; if the ID is a string the locator can't be matched and `__invoke` method argument injection fails.
   Pattern: `->set(SomeClass::class)->...->tag(...)` then `->alias('silverback.api_components.*', SomeClass::class)->public()`. All other services use the reverse.
 
@@ -227,6 +227,7 @@ Key current group assignments:
 | `GET /routes/{id}/redirects` | Follow the redirect chain for a Route |
 | `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks direct children and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. |
 | `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. |
+| `POST /_/rendered_html/purge` | Purges the `cwa-html` rendered-HTML cache tag and nothing else (`ROLE_ADMIN`, no body, 204). The deploy path is the console command `silverback:api-components:purge-rendered-html`; this endpoint is for the admin button. See #243. |
 
 ---
 
@@ -1032,13 +1033,58 @@ References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/Dependen
 
 > **Listed classes should be association-free leaf resources.** `HttpCachePurger::collectResource()` is reached for resources collected as **associations** of another write (`PropagateUpdatesListener::gatherAllAssociatedEntities`), not only for the resource actually written. `$type` cannot discriminate — associated resources are collected as `'updated'` too — so filtering on it is not an option and was deliberately not attempted. `SiteConfigParameter` has no associations, so this is inert today; listing a class that *is* reachable as an association would let unrelated writes drop the whole HTML cache.
 
-**Deploys need no tag.** A new build changes the `/_nuxt` hashes with no resource IRI changing, which is not expressible as a resource purge — but Souin's in-memory `otter` store dies with the pod on redeploy, so it is already handled.
+**Deploys were thought to need no tag, and #243 overturned that.** The reasoning here was that Souin's in-memory `otter` store dies with the pod on redeploy. It does not hold: the API and PWA deploy **separately**, so a front-end-only deploy restarts no API pod, and the cached HTML keeps pointing at `/_nuxt` assets the new build has removed — a blank page, not merely stale content. A CDN or a persistent Souin store would outlive the pod anyway. A front-end deploy now purges `cwa-html` explicitly; see #243.
 
 **Behat:** `features/main/purge_rendered_html.feature` — a listed class purging the tag on PUT / POST / DELETE; an unlisted class (`Layout` via `ComponentGroup`) purging its own IRI but **not** the tag; and a single write emitting the tag exactly once. The "several listed resources in one flush yield exactly one tag" case is **not expressible through the API** (no batch operation ⇒ never more than one written resource per request), so it lives in `tests/HttpCache/HttpCachePurgerTest.php` alongside subclass matching, no-carry-over between purges, and `reset()`.
 
 > **Test-harness coverage gap — the Behat app does not run Souin.** `tests/Functional/app/config/packages/api_platform.yaml` selects `api_platform.http_cache.purger.varnish.xkey` with `xkey.glue: ' '`, so Behat exercises an `xkey` header joined with spaces, while production uses Souin's `Surrogate-Key` joined with `', '` and chunked at 1500 bytes. Neither the `', '` separator nor the chunking is covered. Switching the test app was considered and rejected as out of scope. Instead `ProfilerContext::collectPurgedTags()` — the single shared parser that `the resource :name should be purged from the cache` and the three new `the cache tag :tag should …` steps all use — reads whichever of `xkey` / `surrogate-key` is present and splits on `/[,\s]+/`, so it asserts correctly under either purger and a later switch is free. **Never assert an exact purge header string**: the purger, its glue and its chunking are all dependency-resolved, and `composer.lock` is gitignored so CI resolves API Platform fresh.
 
 References: `src/HttpCache/HttpCachePurger.php`, `src/DependencyInjection/Configuration.php` (`addHttpCacheNode`), `src/DependencyInjection/SilverbackApiComponentsExtension.php`, `src/Resources/config/services_doctrine_orm_http_cache_purger.php`, `src/Entity/Core/SiteConfigParameter.php`, `features/bootstrap/ProfilerContext.php`.
+
+---
+
+### #243 — Purge the rendered HTML on request, for deploys and manual admin purges (front-end: cwa-nuxt-module #291, deploy hook: components-web-app #70) ✓ **DONE**
+
+**Implemented.** `HttpCachePurger::purgeRenderedHtml()` sends `[RENDERED_HTML_TAG]` straight to the purger and records it on the collector. Two callers:
+
+- **Console command `silverback:api-components:purge-rendered-html`** (`src/Command/PurgeRenderedHtmlCommand.php`) — **the deploy path**.
+- **`POST /_/rendered_html/purge`** — DTO `src/ApiResource/RenderedHtmlPurge.php`, state processor `src/DataProcessor/StateProcessor/RenderedHtmlPurgeStateProcessor.php`. `input: false`, `output: false`, `status: 204`, `security: "is_granted('ROLE_ADMIN')"`. **The only HTTP caller is the admin button** in the front end.
+
+**`purgeRenderedHtml()` never touches the collected state.** It does not read `$tags` or the `$purgeRenderedHtml` flag and does not call `reset()`; the send step is a private `send()` shared with `propagate()`. Calling `propagate()` out of band would have carried whatever the request had already collected and cleared request-scoped state early. Pinned in `HttpCachePurgerTest`: it sends exactly `['cwa-html']`, ignores tags already collected, and a later `propagate()` still sends them.
+
+**"Only the tag" is structural, not filtered.** With no input and a parameterless method, an arbitrary key is unrepresentable rather than rejected. Behat pins that neither a body nor a query string naming other tags widens the purge.
+
+**Why a console command is the deploy path — settled with Daniel, do not re-derive.**
+
+- In the CWA template **all traffic enters through the API pod's Caddy**, which reverse-proxies to Nuxt and caches its HTML in Souin (`components-web-app/api/frankenphp/Caddyfile`). Souin's purge endpoint is bound to `localhost:2019` **inside the API pod**, so nothing outside that container can send the purge itself.
+- The template already has the precedent: `components-web-app/bin/devops/k8s.sh` `load_fixtures()` waits with `kubectl rollout status`, then runs a console command inside the API pod with `kubectl exec`. A front-end deploy does the same with this command.
+- **No new credential.** The pipeline already holds `kubectl exec` on the API pod, which is strictly more powerful than "purge the HTML cache". No token, no scoped credential, no HTTP.
+- **Plain `ROLE_ADMIN`, no named voter attribute.** A dedicated attribute was only justified by a non-admin HTTP deployer, and that caller does not exist. A plain role check also has no subject, which matters: `SiteConfigParameterVoter::supports()` requires a `SiteConfigParameter` instance, so on a bodyless POST every voter would abstain and deny admins too (see "Abstention is a decision").
+- **Rejected:** a helm `post-upgrade` Job is Kubernetes-specific, and a future Vercel front end has no helm. A PWA `postStart` hook runs per pod, so it also fires on every HPA scale-up and drops the whole HTML cache exactly when under load. An API-pod startup hook either never fires on a front-end-only deploy or fires when the in-memory cache has already died with the pod.
+- **On Vercel** the HTML does not pass through the API pod, so Souin never holds it and this purge is a harmless no-op.
+
+**No coalescing, deliberately.** The issue suggested collapsing repeated purges within N seconds. A leading-edge coalesce drops the *later* call, and the later call reflects the newest state: an admin purge mid-rollout would swallow the one that runs after the new assets exist, which is exactly the blank-page case this exists to fix. A repeated purge is a cheap no-op at the edge. **Do not build a debounce** (same conclusion as #232, for a different reason).
+
+**No purger configured.** `ApiPlatformCompilerPass` removes `silverback.api_components.http_cache.purger` when API Platform has no `http_cache.invalidation` purger, so the command and processor take it as `?HttpCachePurger` via `NULL_ON_INVALID_REFERENCE`. The command then prints that nothing was purged and still succeeds, so a deploy step on an application with no cache does not fail. The endpoint returns 204.
+
+**`read: true` is required on the operation.** Under `use_symfony_listeners: true` (the test app), AP's `PlaceholderAction::__invoke($data)` needs a `data` request attribute. A POST neither reads nor deserializes by default, and with `input: false` nothing sets it, so the request 500s with "Could not resolve argument $data". `read: true` makes `ReadProvider` run. There is no provider, so it logs `ProviderNotFoundException` at debug, sets `data` to null, and does not 404 on a POST. The body is never read.
+
+**CSRF position.** `input: false` accepts any `Content-Type`. Verified: a `text/plain` POST reaches the processor. That makes this the one bundle POST a cross-site `text/plain` form could reach. It relies on lexik's default JWT cookie `samesite: lax`, under which the cookie is not sent on a cross-site POST. **An application that sets `SameSite=None` on the JWT cookie exposes this endpoint to CSRF.**
+
+**Wiring**, in `src/Resources/config/services_doctrine_orm_http_cache_purger.php` beside the purger they depend on, all registered explicitly with no reliance on autoconfiguration. The command is `silverback.api_components.command.purge_rendered_html` + FQCN alias, tagged `console.command`, like the bundle's other commands. The processor keeps its **FQCN as the primary id** with `silverback.api_components.api_platform.state_processor.rendered_html_purge` as the alias, tagged `api_platform.state_processor`, `->autoconfigure(false)`. That is the state-provider exception, for the same reason: `CallableProcessor`.
+
+**Tests.** Behat: `features/main/purge_rendered_html_operation.feature` covers these cases:
+
+- an admin purges exactly once, and `cwa-html` is the only tag
+- a body or a query string cannot widen the purge
+- GET → 405
+- `@loginUser` → 403, which is **the scenario that proves the operation's own `security`**
+- anonymous → 401, which proves only **the test app's firewall** (`access_control` rejects unauthenticated POSTs before the operation runs), not the operation
+- repeats are safe
+
+The new `ProfilerContext` step `:tag should be the only cache tag purged` is built on `collectPurgedTags()`. Unit tests: `tests/Command/PurgeRenderedHtmlCommandTest.php` and `tests/DataProcessor/StateProcessor/RenderedHtmlPurgeStateProcessorTest.php`. Both build the service **from its definition** in a bare `ContainerBuilder`, with the purger replaced by a mock, rather than constructing the class directly, so a definition that cannot construct its class fails the test. No kernel is booted (see the Risky/Infection warning under `kernel.reset`).
+
+References: `src/HttpCache/HttpCachePurger.php`, `src/Command/PurgeRenderedHtmlCommand.php`, `src/ApiResource/RenderedHtmlPurge.php`, `src/DataProcessor/StateProcessor/RenderedHtmlPurgeStateProcessor.php`, `src/Resources/config/services_doctrine_orm_http_cache_purger.php`, `features/bootstrap/ProfilerContext.php`.
 
 ---
 
