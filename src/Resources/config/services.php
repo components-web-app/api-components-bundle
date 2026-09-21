@@ -1273,6 +1273,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UploadableAttributeReader::class),
+                new Reference(PublishableAttributeReader::class),
             ]
         );
     $services->alias(UploadableValidatorMappingLoader::class, 'silverback.api_components.validator.mapping_loader.uploadable');

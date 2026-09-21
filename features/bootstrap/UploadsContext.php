@@ -29,6 +29,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublish;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublishCustomGroup;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
@@ -125,6 +126,32 @@ class UploadsContext implements Context
     {
         $object = new DummyUploadableRequiredOnPublish();
         $object->setPublishedAt(null);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given there is a draft DummyUploadableRequiredOnPublishCustomGroup
+     */
+    public function thereIsADraftDummyUploadableRequiredOnPublishCustomGroup(): void
+    {
+        $object = new DummyUploadableRequiredOnPublishCustomGroup();
+        $object->setPublishedAt(null);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given there is a draft DummyUploadableRequiredOnPublishCustomGroup with the file uploaded
+     */
+    public function thereIsADraftDummyUploadableRequiredOnPublishCustomGroupWithFile(): void
+    {
+        $object = new DummyUploadableRequiredOnPublishCustomGroup();
+        $object->setPublishedAt(null);
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();
         $this->restContext->resources['dummy_uploadable_draft'] = $this->iriConverter->getIriFromResource($object);
