@@ -142,5 +142,10 @@
         "symfony/var-exporter": "<6.1",
         "symfony/web-link": "<=6.0",
         "doctrine/collections": "<1.7"
+    },
+    "suggest": {
+        "ext-pdo_mysql": "To use MySQL 8.0 or above, or MariaDB 10.10 or above",
+        "ext-pdo_pgsql": "To use PostgreSQL 12 or above",
+        "ext-pdo_sqlite": "To use SQLite 3.8.3 or above"
     }
 }
