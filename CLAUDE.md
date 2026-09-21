@@ -1004,3 +1004,25 @@ The `email` sub-node had no default of its own, so `new_email_confirmation` and 
 Tests: `tests/DependencyInjection/ConfigurationTest.php` and `tests/DependencyInjection/SilverbackApiComponentsExtensionTest.php` (bare `ContainerBuilder`, no kernel boot — see the Risky/Infection warning above), `tests/Serializer/MappingLoader/TimestampedLoaderTest.php`, `tests/Serializer/Normalizer/TimestampedNormalizerTest.php`, and `features/timestamped/timestamped.feature` (PATCH scenarios for both the guarded and unguarded entity shapes).
 
 > **Newly covering a large declarative file costs MSI.** These DI tests pulled `Configuration.php` and `SilverbackApiComponentsExtension.php` into the covered set for the first time, so their mutants started counting where `--only-covered` had been skipping them — MSI fell from 85% to 82% against an 80% gate. The fix was to broaden the extension test to assert the wiring it performs, not to exclude the files.
+
+---
+
+### #237 — `orWhere()` in a Doctrine filter silently discards every query-extension predicate ✓ **DONE**
+
+`OrSearchFilter::addWhereByStrategy()` built its clauses with `$queryBuilder->orWhere(...)`. **Doctrine's `orWhere()` ORs against the entire accumulated WHERE, not just among the filter's own clauses.** AP4 registers `FilterExtension` at priority `-16` while this bundle's query extensions carry no explicit priority and therefore default to `0` — higher priority runs first, so the extensions add their predicates **before** the filter runs and the filter then ORs them away:
+
+```
+(liveAt IS NOT NULL AND liveAt <= :now) OR (o.path LIKE :path)
+```
+
+An anonymous `GET /_/routes?path=launch` therefore listed a route scheduled for 2999. The filter parameter is attacker-controlled, so the predicate being defeated is a security one. Confirmed empirically to defeat `RouteExtension` (own `liveAt`), `RouteAncestorGateResolver` (ancestor gate, #234) **and** `PublishableExtension` (an anonymous filtered collection returned every draft alongside the published resources).
+
+**The general trap, not a one-off: never use `orWhere()` in an API Platform filter.** Anything already on the query — a publication gate, a draft exclusion, an application's own extension — is inside the left operand of that OR and is discarded the moment the filter matches. Collect the filter's own clauses and apply them with a **single `andWhere()`** wrapping one `Expr\Orx`, which is the shape API Platform's own `SearchFilter` uses.
+
+**The accumulator must be shared across `addWhereByStrategy()` calls.** `AbstractFilter::apply()` calls `filterProperty()` once per query parameter, and each of those calls `addWhereByStrategy()` once — so an `Orx` built *inside* `addWhereByStrategy()` would turn multi-field search into AND and destroy the filter's whole purpose. `apply()` is overridden to clear the accumulator, delegate to the parent, then apply the single `andWhere()`; the accumulator is cleared again in a `finally` so no state survives the request under worker mode.
+
+Doctrine's DDC-1237 handling in `Expr\Composite::processQueryPart()` parenthesises any part whose string contains ` OR ` / ` AND `, which is what keeps the `word_start` strategy (a two-`LIKE` string clause) from capturing the preceding predicate once it is ANDed on.
+
+**`addWhereByStrategy()`'s five single-value branches are unreachable from `filterProperty()`** — `normalizeValues((array) $value, ...)` always hands it an array — but they were fixed too, since the method is `protected`.
+
+Tests: `tests/Filter/OrSearchFilterTest.php` asserts the DQL shape across all five strategies (case-sensitive and `i`-prefixed, single and multi-value) plus cross-field OR, the `word_start` parenthesisation and non-leakage between two `apply()` calls; `features/main/or_search_filter.feature` covers the scheduled, draft and ancestor-gated route cases, the publishable draft case, and two guards proving the filter still ORs across fields and across multiple values for one field. `DummyOrSearchFilterable` had existed with no coverage of any kind, which is why this survived.
