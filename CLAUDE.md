@@ -1271,3 +1271,17 @@ After the shift, the move path now walks the other positions in `sortValue` orde
 Infection leaves three mutants on the shift's boundary conditions. They are equivalent: when the shift gets a boundary wrong, the repair raises that position by the same amount.
 
 Tests: `tests/Helper/ComponentPosition/ComponentPositionSortValueHelperTest.php`; `features/main/component_position.feature` (a move into an occupied value in another group, a move within a group already holding a duplicate, and a normal move that publishes the same Mercure updates as before). New steps: `there is another ComponentGroup with :count components` (resources prefixed `other_`), `the ComponentPosition :name has the sortValue :sortValue`, `the ComponentPosition sort values should be:` (DoctrineContext) and `Mercure updates should have been published for exactly the ComponentPositions :names` (ProfilerContext).
+
+---
+
+### #270 — Mercure is a runtime dependency, and `PublishableAwareHub` supports symfony/mercure 0.8 ✓ **DONE**
+
+`symfony/mercure` and `symfony/mercure-bundle` were in `require-dev` only, while `services.php` decorates `mercure.hub.default` unconditionally and `MercureAuthorization`, `MercureResourcePublisher` and `PublishableAwareHub` use the component directly. An application installing the bundle without them got `non-existent service "mercure.hub.default"`. Real-time push is a core feature, so both are now in `require`: `symfony/mercure: ^0.7.1 || ^0.8` and `symfony/mercure-bundle: ^0.4.3 || ^0.5`.
+
+**What 0.8 broke.** 0.8 added `getProtocolVersion(): ProtocolVersion` and `getCookieName(): string` to `HubInterface`, so `PublishableAwareHub` fataled on load ("contains 2 abstract methods"). `Authorization::createCookie()` now calls `$hub->getCookieName()`, so the decorator must forward both. It now mirrors symfony/mercure's own decorator, `Debug\TraceableHub`: it implements `RemoteHubInterface`, forwards every method, and throws a `LogicException` from `getUrl()`/`getProvider()` when the decorated hub has neither (`FrankenPhpHub`). The test stub `HubStub` gained the same two methods.
+
+**Why the lower bounds.** 0.7.0 moved `getUrl()`/`getProvider()` from `HubInterface` to the new `RemoteHubInterface`, which the decorator implements, so 0.6 cannot be supported without a conditional class. 0.6 also does not allow Symfony 8, and 0.7.1 is the first release declaring PHP 8.5 compatibility. mercure-bundle 0.4.3 is the first 0.4 release that caps `symfony/mercure` below 0.8; 0.4.0–0.4.2 accept any version and could resolve into a bundle/component mismatch. Declaring `getProtocolVersion(): ProtocolVersion` is harmless on 0.7, where the enum does not exist, because a return type is only resolved when the method runs and nothing on 0.7 calls it.
+
+Tests: `tests/Mercure/PublishableAwareHubTest.php`, against the real `MockHub`. The two 0.8-only forwarding tests carry `#[RequiresMethod(HubInterface::class, 'getProtocolVersion'/'getCookieName')]`, so the lowest-dependencies job skips them on 0.7.
+
+> **Not fixed here, separate:** `MercureResourcePublisher::publishUpdate()` publishes synchronously from `PropagateUpdatesListener::postFlush()`, after the transaction commits, with no `catch`. An unreachable hub makes `Hub::publish()` throw `RuntimeException('Failed to send an update.')`, so the write is saved and the response is a 500. API Platform's own `PublishMercureUpdatesListener`, which this bundle replaces, behaves the same way. The Behat harness cannot see it because `HubStub` never makes a network call.

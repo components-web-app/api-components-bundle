@@ -16,6 +16,7 @@ use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Symfony\Component\Mercure\Update;
 
 /**
@@ -62,5 +63,15 @@ class HubStub implements HubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->factory;
+    }
+
+    public function getProtocolVersion(): ProtocolVersion
+    {
+        return ProtocolVersion::Legacy;
+    }
+
+    public function getCookieName(): string
+    {
+        return 'mercureAuthorization';
     }
 }
