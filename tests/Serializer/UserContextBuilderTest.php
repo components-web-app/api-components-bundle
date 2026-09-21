@@ -153,10 +153,12 @@ class UserContextBuilderTest extends TestCase
     public function test_existing_array_groups_are_preserved_not_reset(): void
     {
         $this->serializerContextBuilderMock
+            ->expects(self::once())
             ->method('createFromRequest')
             ->willReturn(['groups' => ['existing_group'], 'resource_class' => User::class]);
 
         $this->authorizationCheckerMock
+            ->expects(self::once())
             ->method('isGranted')
             ->willReturn(false);
 
@@ -168,10 +170,12 @@ class UserContextBuilderTest extends TestCase
     public function test_non_array_groups_are_reset_to_empty_before_appending(): void
     {
         $this->serializerContextBuilderMock
+            ->expects(self::once())
             ->method('createFromRequest')
             ->willReturn(['groups' => 'not_an_array', 'resource_class' => User::class]);
 
         $this->authorizationCheckerMock
+            ->expects(self::once())
             ->method('isGranted')
             ->willReturn(false);
 

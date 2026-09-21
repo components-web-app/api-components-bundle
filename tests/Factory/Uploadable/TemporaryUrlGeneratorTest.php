@@ -19,7 +19,7 @@ class TemporaryUrlGeneratorTest extends TestCase
 {
     public function test_generates_temporary_url_from_filesystem(): void
     {
-        $filesystem = $this->createMock(Filesystem::class);
+        $filesystem = $this->createStub(Filesystem::class);
         $filesystem->method('temporaryUrl')
             ->willReturn('https://s3.example.com/file.png?signed=abc');
 
@@ -33,7 +33,7 @@ class TemporaryUrlGeneratorTest extends TestCase
     public function test_uses_configured_expiry_string(): void
     {
         $capturedExpiry = null;
-        $filesystem = $this->createMock(Filesystem::class);
+        $filesystem = $this->createStub(Filesystem::class);
         $filesystem->method('temporaryUrl')
             ->willReturnCallback(static function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedExpiry): string {
                 $capturedExpiry = $expiry;
@@ -55,7 +55,7 @@ class TemporaryUrlGeneratorTest extends TestCase
         $config = ['ServerSideEncryption' => 'AES256'];
 
         $capturedConfig = null;
-        $filesystem = $this->createMock(Filesystem::class);
+        $filesystem = $this->createStub(Filesystem::class);
         $filesystem->method('temporaryUrl')
             ->willReturnCallback(static function (string $path, \DateTimeInterface $expiry, array $config) use (&$capturedConfig): string {
                 $capturedConfig = $config;

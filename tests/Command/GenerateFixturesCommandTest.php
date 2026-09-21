@@ -61,15 +61,15 @@ class GenerateFixturesCommandTest extends TestCase
     private function makeCommand(?ManagerRegistry $registry = null): GenerateFixturesCommand
     {
         return new GenerateFixturesCommand(
-            $registry ?? $this->createMock(ManagerRegistry::class),
+            $registry ?? $this->createStub(ManagerRegistry::class),
         );
     }
 
     private function emptyRegistry(): ManagerRegistry
     {
-        $registry = $this->createMock(ManagerRegistry::class);
+        $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getRepository')->willReturnCallback(function (string $class) {
-            $repo = $this->createMock(ObjectRepository::class);
+            $repo = $this->createStub(ObjectRepository::class);
             $repo->method('findAll')->willReturn([]);
 
             return $repo;
@@ -80,10 +80,10 @@ class GenerateFixturesCommandTest extends TestCase
 
     private function registryWith(array $layouts = [], array $pages = [], array $pageData = []): ManagerRegistry
     {
-        $registry = $this->createMock(ManagerRegistry::class);
+        $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getRepository')->willReturnCallback(
             function (string $class) use ($layouts, $pages, $pageData) {
-                $repo = $this->createMock(ObjectRepository::class);
+                $repo = $this->createStub(ObjectRepository::class);
                 $repo->method('findAll')->willReturn(match ($class) {
                     Layout::class => $layouts,
                     Page::class => $pages,

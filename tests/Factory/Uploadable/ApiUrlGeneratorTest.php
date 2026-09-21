@@ -34,11 +34,11 @@ class ApiUrlGeneratorTest extends TestCase
         $object = new \stdClass();
 
         $iriConverter = $this->createMock(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->with($object)->willReturn('/_/component_groups/abc-123');
+        $iriConverter->expects($this->once())->method('getIriFromResource')->with($object)->willReturn('/_/component_groups/abc-123');
 
         $generator = new ApiUrlGenerator($iriConverter, $this->buildUrlHelper());
 
-        $result = $generator->generateUrl($object, 'fileName', $this->createMock(Filesystem::class), '/path/to/file.png');
+        $result = $generator->generateUrl($object, 'fileName', $this->createStub(Filesystem::class), '/path/to/file.png');
 
         $this->assertSame('https://example.com/_/component_groups/abc-123/download/file_name', $result);
     }
@@ -47,12 +47,12 @@ class ApiUrlGeneratorTest extends TestCase
     {
         $object = new \stdClass();
 
-        $iriConverter = $this->createMock(IriConverterInterface::class);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturn('/resource/1');
 
         $generator = new ApiUrlGenerator($iriConverter, $this->buildUrlHelper());
 
-        $result = $generator->generateUrl($object, 'myUploadedFile', $this->createMock(Filesystem::class), 'file.png');
+        $result = $generator->generateUrl($object, 'myUploadedFile', $this->createStub(Filesystem::class), 'file.png');
 
         $this->assertStringEndsWith('/download/my_uploaded_file', $result);
     }

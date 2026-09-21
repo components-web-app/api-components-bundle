@@ -442,7 +442,7 @@ class CwaFixtureBuilderTest extends TestCase
         $parentPageData = new class extends AbstractPageData {};
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
-        $routeGenerator->method('create')
+        $routeGenerator->expects($this->exactly(2))->method('create')
             ->willReturnCallback(static function (object $entity) use (&$createOrder): Route {
                 $createOrder[] = spl_object_id($entity);
                 $route = new Route();
@@ -570,7 +570,7 @@ class CwaFixtureBuilderTest extends TestCase
         $childPageData = new class extends AbstractPageData {};
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
-        $routeGenerator->method('create')
+        $routeGenerator->expects($this->exactly(2))->method('create')
             ->willReturnCallback(static function (object $entity) use (&$createOrder): Route {
                 $createOrder[] = spl_object_id($entity);
                 $route = new Route();
