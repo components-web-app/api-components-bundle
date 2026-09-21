@@ -13,6 +13,7 @@ default:
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\ProfilerContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UserCommandContext': ~
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\MakerContext': ~
 
   extensions:
     'FriendsOfBehat\SymfonyExtension':
@@ -46,6 +47,7 @@ default-coverage:
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\CollectionContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\ProfilerContext': ~
         - 'Silverback\ApiComponentsBundle\Features\Bootstrap\UserCommandContext': ~
+        - 'Silverback\ApiComponentsBundle\Features\Bootstrap\MakerContext': ~
 
 default-legacy:
   suites:

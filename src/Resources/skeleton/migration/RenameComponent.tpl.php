@@ -29,11 +29,13 @@ final class <?php echo $class_name; ?> extends AbstractMigration
     private function updateAllowedComponents(string $fromIri, string $toIri): void
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT id, allowed_components FROM <?php echo $group_table; ?> WHERE allowed_components IS NOT NULL AND allowed_components LIKE :pattern',
-            ['pattern' => '%' . $fromIri . '%']
+            'SELECT id, allowed_components FROM <?php echo $group_table; ?> WHERE allowed_components IS NOT NULL'
         );
         foreach ($rows as $row) {
             $components = json_decode((string) $row['allowed_components'], true);
+            if (!\is_array($components) || !\in_array($fromIri, $components, true)) {
+                continue;
+            }
             $updated = array_map(static fn (string $c): string => $c === $fromIri ? $toIri : $c, $components);
             $this->connection->executeStatement(
                 'UPDATE <?php echo $group_table; ?> SET allowed_components = :components WHERE id = :id',
