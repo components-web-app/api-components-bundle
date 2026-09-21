@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
@@ -64,6 +65,15 @@ class Configuration implements ConfigurationInterface
                                 Route::class,
                                 ResourceManifest::class,
                                 ComponentPosition::class,
+                            ])
+                        ->end()
+                        ->arrayNode('scheduled_expiry_resource_classes')
+                            ->info('Resource classes whose anonymous GET responses have `s-maxage` and `max-age` capped to the soonest future route go-live date, so a shared cache cannot serve them past a scheduled publication.')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([
+                                Route::class,
+                                RoutableInterface::class,
+                                ResourceManifest::class,
                             ])
                         ->end()
                         ->arrayNode('purge_rendered_html_classes')

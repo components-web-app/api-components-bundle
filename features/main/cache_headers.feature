@@ -55,3 +55,24 @@ Feature: Cache-safety headers so shared caches can distinguish public from perso
     When I send a "GET" request to "/_/routes"
     Then the response status code should be 200
     And the response shared max age should be at most 60
+
+  Scenario: A scheduled go-live caps a manifest which has no relationship to the scheduled route
+    Given there is a PageData resource with the route path "/my-route"
+    And there is a Route "/launch" with a page
+    And the Route "/launch" goes live in 60 seconds
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the response shared max age should be at most 60
+
+  Scenario: A pending publication caps the shared cache lifetime, not just the Expires header
+    Given there is a published resource with a draft set to publish in 60 seconds
+    When I send a "GET" request to the resource "publishable_published"
+    Then the response status code should be 200
+    And the header "Expires" should match "/GMT$/"
+    And the response shared max age should be at most 60
+
+  Scenario: A response with no pending transition keeps its configured shared cache lifetime
+    Given there is a PageData resource with the route path "/my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the response shared max age should be at least 600

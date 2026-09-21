@@ -125,6 +125,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->getDefinition('silverback.api_components.event_listener.api.cache_headers');
         $definition->setArgument('$personalisedResourceClasses', $config['http_cache']['personalised_resource_classes']);
+        $definition->setArgument('$scheduledExpiryResourceClasses', $config['http_cache']['scheduled_expiry_resource_classes']);
 
         $definition = $container->getDefinition('silverback.api_components.http_cache.purger');
         $definition->setArgument('$purgeRenderedHtmlClasses', $config['http_cache']['purge_rendered_html_classes']);

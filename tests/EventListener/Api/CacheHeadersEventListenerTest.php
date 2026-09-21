@@ -228,8 +228,107 @@ class CacheHeadersEventListenerTest extends TestCase
         self::assertSame(3600, (int) $response->headers->getCacheControlDirective('s-maxage'));
     }
 
+    public function test_a_resource_listed_for_scheduled_expiry_by_interface_is_capped(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersConfiguredChildResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            scheduledExpiryResourceClasses: [CacheHeadersConfiguredResource::class],
+        );
+
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_pending_expires_caps_a_resource_which_is_not_listed_for_scheduled_expiry(): void
+    {
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: (new \DateTimeImmutable())->modify('+60 seconds'),
+        );
+
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_past_expires_does_not_cap(): void
+    {
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: (new \DateTimeImmutable())->modify('-60 seconds'),
+        );
+
+        self::assertSame(3600, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_the_soonest_of_a_pending_expires_and_the_next_go_live_moment_wins(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+1800 seconds');
+
+        $response = $this->dispatch(
+            resourceClass: Route::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: (new \DateTimeImmutable())->modify('+60 seconds'),
+        );
+
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_the_next_go_live_moment_wins_when_it_precedes_a_pending_expires(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+
+        $response = $this->dispatch(
+            resourceClass: Route::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: (new \DateTimeImmutable())->modify('+1800 seconds'),
+        );
+
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_max_age_is_capped_alongside_shared_max_age(): void
+    {
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: (new \DateTimeImmutable())->modify('+60 seconds'),
+            initialMaxAge: 3600,
+        );
+
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('max-age'));
+    }
+
+    public function test_a_response_with_no_cache_directives_is_left_untouched(): void
+    {
+        $response = $this->dispatch(
+            resourceClass: Route::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            expires: (new \DateTimeImmutable())->modify('+60 seconds'),
+        );
+
+        self::assertFalse($response->headers->hasCacheControlDirective('s-maxage'));
+        self::assertFalse($response->headers->hasCacheControlDirective('max-age'));
+    }
+
     /**
      * @param array<class-string> $personalisedResourceClasses
+     * @param array<class-string> $scheduledExpiryResourceClasses
      */
     private function dispatch(
         mixed $resourceClass,
@@ -237,6 +336,9 @@ class CacheHeadersEventListenerTest extends TestCase
         array $personalisedResourceClasses,
         ?int $initialSharedMaxAge = null,
         bool $unpublishedRoute = false,
+        array $scheduledExpiryResourceClasses = [Route::class],
+        ?\DateTimeInterface $expires = null,
+        ?int $initialMaxAge = null,
     ): Response {
         $publishableReader = new PublishableAttributeReader($this->createStub(ManagerRegistry::class));
         $statusChecker = $this->createStub(PublishableStatusChecker::class);
@@ -250,6 +352,7 @@ class CacheHeadersEventListenerTest extends TestCase
             $statusChecker,
             $routeRepository,
             $personalisedResourceClasses,
+            $scheduledExpiryResourceClasses,
         );
 
         $request = new Request();
@@ -265,6 +368,12 @@ class CacheHeadersEventListenerTest extends TestCase
         $response->setPublic();
         if (null !== $initialSharedMaxAge) {
             $response->setSharedMaxAge($initialSharedMaxAge);
+        }
+        if (null !== $initialMaxAge) {
+            $response->setMaxAge($initialMaxAge);
+        }
+        if (null !== $expires) {
+            $response->setExpires($expires);
         }
 
         $event = new ResponseEvent(

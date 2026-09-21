@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -206,6 +207,11 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         );
 
         self::assertSame(
+            [Route::class, RoutableInterface::class, ResourceManifest::class],
+            $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses')
+        );
+
+        self::assertSame(
             [SiteConfigParameter::class],
             $this->argument($container, 'silverback.api_components.http_cache.purger', '$purgeRenderedHtmlClasses')
         );
@@ -221,7 +227,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         $config['routable_security'] = "is_granted('ROLE_ADMIN')";
         $config['route_security'] = [['route' => '/user-area*', 'security' => "is_granted('ROLE_USER')"]];
         $config['mercure'] = ['hub_name' => 'default', 'secure_subscriptions' => true, 'cookie' => ['samesite' => Cookie::SAMESITE_LAX]];
-        $config['http_cache'] = ['personalised_resource_classes' => [Route::class], 'purge_rendered_html_classes' => [ComponentPosition::class]];
+        $config['http_cache'] = ['personalised_resource_classes' => [Route::class], 'scheduled_expiry_resource_classes' => [ResourceManifest::class], 'purge_rendered_html_classes' => [ComponentPosition::class]];
         $config['user']['password_reset'] = ['repeat_ttl_seconds' => 60, 'request_timeout_seconds' => 120];
         $config['user']['new_email_confirmation'] = ['request_timeout_seconds' => 180];
 
@@ -245,6 +251,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('default', $this->argument($container, MercureAuthorization::class, '$hubName'));
         self::assertTrue($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
         self::assertSame([Route::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses'));
+        self::assertSame([ResourceManifest::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses'));
         self::assertSame([ComponentPosition::class], $this->argument($container, 'silverback.api_components.http_cache.purger', '$purgeRenderedHtmlClasses'));
     }
 
