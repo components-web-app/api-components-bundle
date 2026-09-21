@@ -174,7 +174,7 @@ class MakerContext implements Context
 
     private function connection(): Connection
     {
-        /** @var Connection $connection */
+        /* @var Connection $connection */
         return $this->registry->getConnection();
     }
 
