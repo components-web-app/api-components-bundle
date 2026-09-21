@@ -16,6 +16,8 @@ use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInterface;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class RefreshTokensExpireCommandTest extends TestCase
 {
@@ -34,6 +36,37 @@ class RefreshTokensExpireCommandTest extends TestCase
         $command = $this->command();
 
         self::assertStringContainsString(\sprintf('The <info>%s</info> command', $command->getName()), $command->getProcessedHelp());
+    }
+
+    public function test_a_user_is_found_by_username_through_a_repository_that_is_not_doctrine(): void
+    {
+        $user = new User('alice', 'alice@example.com');
+        $other = new User('bob', 'bob@example.com');
+
+        $this->assertTokensExpiredFor($user, [$other, $user], ['username' => 'alice']);
+    }
+
+    public function test_a_user_is_found_by_email_address_through_a_repository_that_is_not_doctrine(): void
+    {
+        $user = new User('alice', 'alice@example.com');
+        $other = new User('bob', 'bob@example.com');
+
+        $this->assertTokensExpiredFor($user, [$other, $user], ['username' => 'alice@example.com', '--field' => 'emailAddress']);
+    }
+
+    /**
+     * @param AbstractUser[]       $users
+     * @param array<string, mixed> $input
+     */
+    private function assertTokensExpiredFor(AbstractUser $expected, array $users, array $input): void
+    {
+        $storage = $this->createMock(RefreshTokenStorageInterface::class);
+        $storage->expects(self::once())->method('expireAll')->with(self::identicalTo($expected));
+
+        $tester = new CommandTester(new RefreshTokensExpireCommand($storage, new InMemoryUserRepository($users)));
+        $tester->execute($input);
+
+        $tester->assertCommandIsSuccessful();
     }
 
     private function command(): RefreshTokensExpireCommand
