@@ -106,6 +106,18 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(422, $mapped[UnroutedParentException::class]);
     }
 
+    public function test_api_platform_runs_on_symfony_listeners(): void
+    {
+        $container = new ContainerBuilder();
+        $container->prependExtensionConfig('silverback_api_components', self::minimalConfig());
+
+        (new SilverbackApiComponentsExtension())->prepend($container);
+
+        $enabled = array_column($container->getExtensionConfig('api_platform'), 'use_symfony_listeners');
+
+        self::assertSame([true], $enabled);
+    }
+
     private function load(array $config): array
     {
         $container = new ContainerBuilder();
