@@ -54,7 +54,7 @@ class CleanOrphanedCommand extends Command
 
         $componentRepository = $this->registry->getRepository(AbstractComponent::class);
         $components = $componentRepository->findAll();
-        $componentsProgressBar = new ProgressBar($output, \count($componentGroups));
+        $componentsProgressBar = new ProgressBar($output, \count($components));
         $componentsProgressBar->start();
         foreach ($components as $component) {
             $componentsProgressBar->advance();
