@@ -16,7 +16,6 @@ use League\Flysystem\Local\LocalFilesystemAdapter;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Flysystem\PublicUrlLocalFilesystemAdapter;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -54,12 +53,11 @@ return static function (ContainerConfigurator $container) {
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
 
     $services
-        ->set(PublicUrlLocalFilesystemAdapter::class)
+        ->set('silverback.api_components.test.filesystem_adapter.public_url_local', LocalFilesystemAdapter::class)
         ->args([
             '%kernel.project_dir%/public/uploads',
-            'http://localhost/uploads',
         ])
-        ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'public_url_local']);
+        ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'public_url_local', 'config' => ['public_url' => 'http://localhost/uploads']]);
 
     $services
         ->set(FlysystemCacheResolver::class)

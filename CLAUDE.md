@@ -849,6 +849,18 @@ References: `src/Factory/Uploadable/MediaObjectFactory.php` (`isImagineProcessab
 
 ---
 
+### #257 — `urlGenerator: 'public'` asks the Filesystem, not the adapter ✓ **DONE**
+
+`MediaObjectFactory` used to decide whether `urlGenerator: 'public'` could work by checking the **adapter** for Flysystem's `PublicUrlGenerator`, and fell back to `api` when it did not. But `PublicUrlGenerator::generateUrl()` calls `Filesystem::publicUrl()`, which also honours the filesystem's own `public_url` config — the `config: { public_url: ... }` the adapter tag accepts. `LocalFilesystemAdapter` (and most adapters) do not implement the interface, so that documented config was dead: every such field silently served the API download URL. The surrounding `'api' !== $urlGenerator` compared a string to an object and was always true.
+
+Now the factory calls the `public` generator and falls back to the `api` generator only on `UnableToGeneratePublicUrl` — i.e. when neither the adapter nor the filesystem config can produce one. The comparison is on `$urlGeneratorReference`. The `temporary` path is unchanged (adapter check, then `api`), because the adapter-tag `config` has no way to supply a temporary URL generator.
+
+> **Behaviour change for existing applications (accepted by Daniel).** An application with `public_url` in an adapter tag's `config` and `urlGenerator: 'public'` on a field now gets the public URL in `_metadata.mediaObjects.*.contentUrl` instead of the `/download/{property}` API URL.
+
+The test app's `PublicUrlLocalFilesystemAdapter` existed only to work around this and is removed: the `public_url_local` adapter is now a plain `LocalFilesystemAdapter` tagged with `config: { public_url: 'http://localhost/uploads' }`, so the `urlGenerator public` scenario in `features/uploads/uploads.feature` exercises the documented configuration (it fails against the old factory). Unit tests: `tests/Factory/Uploadable/MediaObjectFactoryUrlGeneratorTest.php`.
+
+---
+
 ### Deleted-file markers are keyed per resource, never per property name ✓ **DONE**
 
 A `PATCH {"file": null}` clears an uploadable field. `UploadableNormalizer` records that intent so `UploadableFileManager::persistFiles()` can tell "no file submitted" from "the file was explicitly removed" — the payload looks identical either way.

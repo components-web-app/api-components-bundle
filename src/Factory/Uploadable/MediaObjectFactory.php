@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Factory\Uploadable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
+use League\Flysystem\UnableToGeneratePublicUrl;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Service\FilterService;
@@ -70,26 +71,18 @@ class MediaObjectFactory
                 continue;
             }
 
-            // todo: consultation on perhaps attributes which can be configured with environment variables or best way to achieve easier implementation
             $urlGeneratorReference = $fieldConfiguration->urlGenerator ?? 'api';
             $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
-            if ('api' !== $urlGenerator) {
-                $adapter = $this->filesystemFactory->getAdapter($fieldConfiguration->adapter);
-                if (
-                    ($urlGenerator instanceof TemporaryUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator))
-                    || ($urlGenerator instanceof PublicUrlGenerator && !($adapter instanceof \League\Flysystem\UrlGeneration\PublicUrlGenerator))
-                ) {
-                    $urlGeneratorReference = 'api';
-                    $urlGenerator = $this->urlGenerators->get($urlGeneratorReference);
-                }
+            if (
+                'api' !== $urlGeneratorReference
+                && $urlGenerator instanceof TemporaryUrlGenerator
+                && !$this->filesystemFactory->getAdapter($fieldConfiguration->adapter) instanceof \League\Flysystem\UrlGeneration\TemporaryUrlGenerator
+            ) {
+                $urlGenerator = $this->urlGenerators->get('api');
             }
 
-            if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
-                throw new InvalidArgumentException(\sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
-            }
-            $contentUrl = $urlGenerator->generateUrl($object, $fileProperty, $filesystem, $path);
+            $contentUrl = $this->generateContentUrl($urlGenerator, $object, $fileProperty, $filesystem, $path);
 
-            // Populate the primary MediaObject
             try {
                 $initialMediaObject = $this->create($filesystem, $path, $contentUrl);
                 $propertyMediaObjects[] = $initialMediaObject;
@@ -107,6 +100,24 @@ class MediaObjectFactory
         return $collection->count() ? $collection : null;
     }
 
+    private function generateContentUrl(object $urlGenerator, object $object, string $fileProperty, Filesystem $filesystem, string $path): string
+    {
+        try {
+            return $this->assertUrlGenerator($urlGenerator)->generateUrl($object, $fileProperty, $filesystem, $path);
+        } catch (UnableToGeneratePublicUrl) {
+            return $this->assertUrlGenerator($this->urlGenerators->get('api'))->generateUrl($object, $fileProperty, $filesystem, $path);
+        }
+    }
+
+    private function assertUrlGenerator(object $urlGenerator): UploadableUrlGeneratorInterface
+    {
+        if (!$urlGenerator instanceof UploadableUrlGeneratorInterface) {
+            throw new InvalidArgumentException(\sprintf('The url generator provided must implement %s', UploadableUrlGeneratorInterface::class));
+        }
+
+        return $urlGenerator;
+    }
+
     /**
      * @return MediaObject[]
      */
@@ -117,7 +128,6 @@ class MediaObjectFactory
             return $mediaObjects;
         }
 
-        // Let the data loader which should be configured for imagine to know which adapter to use
         $this->flysystemDataLoader->setAdapter($uploadableField->adapter);
 
         $filters = $uploadableField->imagineFilters;
@@ -126,7 +136,6 @@ class MediaObjectFactory
             array_push($filters, ...$object->getImagineFilters($fileProperty, $request));
         }
 
-        // only if not an svg
         foreach ($filters as $filter) {
             $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
             $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
@@ -140,10 +149,6 @@ class MediaObjectFactory
         return 'image/svg+xml' === $mediaObject->mimeType;
     }
 
-    /**
-     * Whether a stored file with this mime type can have imagine filters applied — a raster image,
-     * excluding SVG (vector, not rasterised through the filter chain).
-     */
     private function isImagineProcessable(?string $mimeType): bool
     {
         return null !== $mimeType && str_contains($mimeType, 'image/') && 'image/svg+xml' !== $mimeType;
