@@ -67,9 +67,10 @@ class FormApiEventListener
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
         $requestContent = $this->serializer->decode($request->getContent(), $format, []);
 
-        $data = $this->formSubmitHelper->process($data, $requestContent, Request::METHOD_PUT !== $request->getMethod());
+        $isPatch = Request::METHOD_PATCH === $request->getMethod();
+        $data = $this->formSubmitHelper->process($data, $requestContent, $isPatch);
 
-        if (Request::METHOD_PATCH !== $request->getMethod() && $data->formView->getForm()->isValid()) {
+        if (!$isPatch && $data->formView->getForm()->isValid()) {
             $result = $this->formSubmitHelper->handleSuccess($data);
             if ($result) {
                 $data = $result;
@@ -133,7 +134,7 @@ class FormApiEventListener
         if (
             empty($data)
             || !$data instanceof Form
-            || !\in_array($method, [Request::METHOD_POST, Request::METHOD_PATCH, Request::METHOD_PUT], true)
+            || !\in_array($method, [Request::METHOD_POST, Request::METHOD_PATCH], true)
             || 0 !== substr_compare($request->getPathInfo(), $postfix, -\strlen($postfix))
         ) {
             return null;

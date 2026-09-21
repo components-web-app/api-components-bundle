@@ -32,49 +32,80 @@ class FormApiEventListenerTest extends TestCase
 {
     public static function methodProvider(): iterable
     {
-        yield 'POST submits' => [Request::METHOD_POST, true, 1];
-        yield 'PUT submits' => [Request::METHOD_PUT, true, 1];
-        yield 'PATCH only validates' => [Request::METHOD_PATCH, true, 0];
-        yield 'invalid POST does not submit' => [Request::METHOD_POST, false, 0];
-        yield 'invalid PUT does not submit' => [Request::METHOD_PUT, false, 0];
-        yield 'invalid PATCH does not submit' => [Request::METHOD_PATCH, false, 0];
+        yield 'valid POST is a full submit and succeeds' => [Request::METHOD_POST, true, false, 1];
+        yield 'invalid POST is a full submit and does not succeed' => [Request::METHOD_POST, false, false, 0];
+        yield 'valid PATCH is a partial submit and only validates' => [Request::METHOD_PATCH, true, true, 0];
+        yield 'invalid PATCH is a partial submit and does not succeed' => [Request::METHOD_PATCH, false, true, 0];
     }
 
     #[DataProvider('methodProvider')]
-    public function test_form_success_is_handled_only_for_valid_post_and_put(string $method, bool $valid, int $expectedSuccessCalls): void
+    public function test_post_is_a_full_submit_and_patch_is_a_partial_validate_only_submit(string $method, bool $valid, bool $expectedPartialSubmit, int $expectedSuccessCalls): void
+    {
+        $formView = $this->createFormView($valid);
+
+        $formSubmitHelper = $this->createMock(FormSubmitHelper::class);
+        $formSubmitHelper->expects(self::once())
+            ->method('process')
+            ->with(self::isInstanceOf(Form::class), ['test' => ['name' => 'John']], $expectedPartialSubmit)
+            ->willReturnCallback(static function (Form $form) use ($formView) {
+                $form->formView = $formView;
+
+                return $form;
+            });
+        $formSubmitHelper->expects(self::exactly($expectedSuccessCalls))->method('handleSuccess')->willReturn(null);
+
+        $form = new Form();
+        $event = $this->createViewEvent($method, $form);
+        $this->createListener($formSubmitHelper, $formView)->onPreSerialize($event);
+
+        self::assertSame($form, $event->getControllerResult());
+    }
+
+    public function test_put_is_not_handled_as_a_submission(): void
+    {
+        $formView = $this->createFormView(true);
+
+        $formSubmitHelper = $this->createMock(FormSubmitHelper::class);
+        $formSubmitHelper->expects(self::never())->method('process');
+        $formSubmitHelper->expects(self::never())->method('handleSuccess');
+
+        $form = new Form();
+        $event = $this->createViewEvent(Request::METHOD_PUT, $form);
+        $this->createListener($formSubmitHelper, $formView)->onPreSerialize($event);
+
+        self::assertSame($form, $event->getControllerResult());
+    }
+
+    private function createFormView(bool $valid): FormView
     {
         $symfonyForm = $this->createStub(FormInterface::class);
         $symfonyForm->method('isValid')->willReturn($valid);
         $formView = $this->createStub(FormView::class);
         $formView->method('getForm')->willReturn($symfonyForm);
 
-        $formSubmitHelper = $this->createMock(FormSubmitHelper::class);
-        $formSubmitHelper->method('process')->willReturnCallback(static function (Form $form) use ($formView) {
-            $form->formView = $formView;
+        return $formView;
+    }
 
-            return $form;
-        });
-        $formSubmitHelper->expects(self::exactly($expectedSuccessCalls))->method('handleSuccess')->willReturn(null);
-
+    private function createListener(FormSubmitHelper $formSubmitHelper, FormView $formView): FormApiEventListener
+    {
         $formViewFactory = $this->createStub(FormViewFactory::class);
         $formViewFactory->method('create')->willReturn($formView);
 
-        $listener = new FormApiEventListener(
+        return new FormApiEventListener(
             $formSubmitHelper,
             new SerializeFormatResolver(new RequestStack(), 'json'),
             new Serializer([], [new JsonEncoder()]),
             $formViewFactory,
             $this->createStub(IriConverterInterface::class),
         );
+    }
 
-        $form = new Form();
+    private function createViewEvent(string $method, Form $form): ViewEvent
+    {
         $request = Request::create('/component/forms/abc/submit', $method, content: '{"test":{"name":"John"}}');
         $request->setRequestFormat('json');
         $request->attributes->set('data', $form);
 
-        $event = new ViewEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $form);
-        $listener->onPreSerialize($event);
-
-        self::assertSame($form, $event->getControllerResult());
+        return new ViewEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $form);
     }
 }
