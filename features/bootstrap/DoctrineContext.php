@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCustomTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyOrSearchFilterable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedWithSerializationGroups;
@@ -1083,6 +1084,20 @@ final class DoctrineContext implements Context
         $this->restContext->resources['layout'] = $this->iriConverter->getIriFromResource($layout);
 
         return $layout;
+    }
+
+    /**
+     * @Given there is a DummyOrSearchFilterable with field1 :field1 and field2 :field2
+     */
+    public function thereIsADummyOrSearchFilterable(string $field1, string $field2): DummyOrSearchFilterable
+    {
+        $resource = new DummyOrSearchFilterable();
+        $resource->field1 = $field1;
+        $resource->field2 = $field2;
+        $this->manager->persist($resource);
+        $this->manager->flush();
+
+        return $resource;
     }
 
     /**
