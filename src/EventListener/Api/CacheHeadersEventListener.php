@@ -12,8 +12,6 @@
 namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
-use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
-use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,10 +33,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Platform's public cache headers, so the only variant a shared cache retains is the published one —
  * the same rule the edge cache already enforces by excluding cookie-bearing requests.
  *
- * A scheduled route changes state when the clock passes its go-live moment, with no write to
- * invalidate anything, so an anonymous response whose content depends on which routes are live is
- * additionally capped so it cannot outlive the next go-live moment.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 final class CacheHeadersEventListener
@@ -47,12 +41,14 @@ final class CacheHeadersEventListener
 
     /**
      * @param array<class-string> $personalisedResourceClasses
+     * @param array<class-string> $scheduledExpiryResourceClasses
      */
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
         PublishableStatusChecker $publishableStatusChecker,
         private readonly RouteRepository $routeRepository,
         private readonly array $personalisedResourceClasses = [],
+        private readonly array $scheduledExpiryResourceClasses = [],
     ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
     }
@@ -101,10 +97,6 @@ final class CacheHeadersEventListener
             return;
         }
 
-        if (!is_a($resourceClass, Route::class, true) && !is_a($resourceClass, RoutableInterface::class, true)) {
-            return;
-        }
-
         $sharedMaxAge = $response->headers->getCacheControlDirective('s-maxage');
         $maxAge = $response->headers->getCacheControlDirective('max-age');
         if (null === $sharedMaxAge && null === $maxAge) {
@@ -112,7 +104,7 @@ final class CacheHeadersEventListener
         }
 
         $now = new \DateTimeImmutable();
-        $next = $this->routeRepository->findNextLiveAt($now);
+        $next = $this->findNextTransition($response, $resourceClass, $now);
         if (null === $next) {
             return;
         }
@@ -125,6 +117,36 @@ final class CacheHeadersEventListener
         if (null !== $maxAge && (int) $maxAge > $seconds) {
             $response->headers->addCacheControlDirective('max-age', (string) $seconds);
         }
+    }
+
+    private function findNextTransition(Response $response, string $resourceClass, \DateTimeImmutable $now): ?\DateTimeInterface
+    {
+        $transitions = [];
+
+        $expires = $response->getExpires();
+        if ($expires && $expires > $now) {
+            $transitions[] = $expires;
+        }
+
+        if ($this->isScheduledExpiryResource($resourceClass)) {
+            $nextLiveAt = $this->routeRepository->findNextLiveAt($now);
+            if (null !== $nextLiveAt) {
+                $transitions[] = $nextLiveAt;
+            }
+        }
+
+        return $transitions ? min($transitions) : null;
+    }
+
+    private function isScheduledExpiryResource(string $resourceClass): bool
+    {
+        foreach ($this->scheduledExpiryResourceClasses as $affectedClass) {
+            if (is_a($resourceClass, $affectedClass, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isPersonalisableResource(string $resourceClass): bool

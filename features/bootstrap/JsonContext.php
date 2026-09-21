@@ -248,16 +248,47 @@ class JsonContext implements Context
      */
     public function theResponseSharedMaxAgeShouldBeAtMost(int $seconds): void
     {
+        $cacheControl = $this->getResponseCacheControl();
+        $sharedMaxAge = $this->getResponseSharedMaxAge($cacheControl);
+        if ($sharedMaxAge > $seconds) {
+            throw new \RuntimeException(\sprintf('The s-maxage directive in "%s" exceeds "%d" seconds.', $cacheControl, $seconds));
+        }
+    }
+
+    /**
+     * @Then the response shared max age should be at least :seconds
+     */
+    public function theResponseSharedMaxAgeShouldBeAtLeast(int $seconds): void
+    {
+        $cacheControl = $this->getResponseCacheControl();
+        $sharedMaxAge = $this->getResponseSharedMaxAge($cacheControl);
+        if ($sharedMaxAge < $seconds) {
+            throw new \RuntimeException(\sprintf('The s-maxage directive in "%s" is less than "%d" seconds.', $cacheControl, $seconds));
+        }
+    }
+
+    private function getResponseCacheControl(): string
+    {
         $cacheControl = '';
         foreach ($this->jsonContext->getSession()->getResponseHeaders() as $name => $value) {
             if ('cache-control' === strtolower((string) $name)) {
                 $cacheControl = \is_array($value) ? implode(', ', $value) : (string) $value;
             }
         }
-        Assert::assertNotEmpty($cacheControl, 'The response has no Cache-Control header.');
-        Assert::assertMatchesRegularExpression('/s-maxage=(\\d+)/', $cacheControl, \sprintf('The Cache-Control header "%s" has no s-maxage directive.', $cacheControl));
-        preg_match('/s-maxage=(\\d+)/', $cacheControl, $matches);
-        Assert::assertLessThanOrEqual($seconds, (int) $matches[1], \sprintf('The s-maxage directive in "%s" exceeds "%d" seconds.', $cacheControl, $seconds));
+        if ('' === $cacheControl) {
+            throw new \RuntimeException('The response has no Cache-Control header.');
+        }
+
+        return $cacheControl;
+    }
+
+    private function getResponseSharedMaxAge(string $cacheControl): int
+    {
+        if (!preg_match('/s-maxage=(\d+)/', $cacheControl, $matches)) {
+            throw new \RuntimeException(\sprintf('The Cache-Control header "%s" has no s-maxage directive.', $cacheControl));
+        }
+
+        return (int) $matches[1];
     }
 
     /**

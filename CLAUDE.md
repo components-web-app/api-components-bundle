@@ -125,6 +125,8 @@ An earlier implementation denormalised it into a `Route.effectiveLiveAt` column 
 
 **The cache cap uses `MIN(liveAt)`** (`RouteRepository::findNextLiveAt()`). That is safe without the column: an effective date is always the *latest* date in a chain, so every effective transition is some route's own `liveAt`, and the minimum over own dates is never later than the earliest real transition. It can expire a cached response slightly early, never too late.
 
+**That the minimum is global, not per-resource, is the cascade guarantee — not a shortcut.** An anonymous response is capped to the next go-live moment whether or not it references the scheduled route, which is exactly what a navigation bar needs: the route going live changes pages that never mention it, and no surrogate key can express that because a scheduled transition is not a write. Which responses get the cap is the config list `http_cache.scheduled_expiry_resource_classes` (default `[Route, RoutableInterface, ResourceManifest]`); see **#227** below.
+
 ### Route reachability — which routes make a resource public (#225)
 
 Publication answers *is this route live*; reachability answers *which routes reach this resource*. Together they are the invariant above.
@@ -564,6 +566,47 @@ $topicBuilder->onRoutesCreated(function (array $childBuilders) use ($intro) {
 
 ## Open Issues — Context for Future Work
 
+### #227 — Scheduled expiry: cap `s-maxage` on the clock, not just `Expires` ✓ **DONE (part 2 of 3)**
+
+Raised from the `components-web-app` side after extending Souin caching from `/_api` to the rendered page HTML. Three parts. **Part 2 is implemented here. Part 1 is approved in principle and not yet built. Part 3 is declined — it was already covered.**
+
+**Part 3 was declined on evidence, and it is worth knowing why.** The issue asks for a coarse `nav:<layout>` / `routes:collection` key that any route create/delete/go-live purges, because a route going live changes every page whose navigation now lists it — pages that may not reference the route at all. Neither half of that needs anything:
+
+- `routes:collection` **already exists** as the plain IRI `/_/routes`. `HttpCachePurger::collectResource()` collects the `GetCollection` IRI for *every* written resource, and AP4's `AddTagsProcessor` puts the collection IRI on every collection response. A route write already purges it.
+- A **scheduled** go-live is not a write, so no surrogate key of any kind can fire for it — `propagate()` is reachable only from `PropagateUpdatesListener::postFlush()`. Expiry is the only mechanism that can work, and it was already the right one: `RouteRepository::findNextLiveAt()` is a **global** `MIN(liveAt)`, not a per-resource lookup, so an anonymous Route/Routable response is capped to the next go-live moment **whether or not it references the scheduled route**. That *is* the cascade, and it has been there since #224.
+
+**What was actually missing was narrower than the issue thought, and in two places.**
+
+**1. `ResourceManifest` was excluded from the cap.** `capAtNextPublicationChange()` gated on `Route` or `RoutableInterface`; `ResourceManifest` is neither, and it is the endpoint the module renders a page from — the one response a front end would derive a page TTL from. The gate is now a config list, `silverback_api_components.http_cache.scheduled_expiry_resource_classes`, default `[Route, RoutableInterface, ResourceManifest]`, mirroring `personalised_resource_classes` node-for-node and matched with `is_a(..., true)` so subclasses and interface implementors both count.
+
+**2. `Expires` was advisory, never enforced.** `PublishableEventListener::onPostRespond()` sets `Expires` from the **draft's** `publishedAt`, and does so *before* the `isGranted` early-return, so anonymous responses carry it — a front end can see a pending publication it is otherwise forbidden to see, which is what makes the whole approach viable. But RFC 9111 §4.2.1 gives `s-maxage` precedence, so every shared cache ignored it. `CacheHeadersEventListener` now also caps `s-maxage`/`max-age` to `$response->getExpires()` when that is sooner.
+
+**Reading `Expires` off the response rather than asking about publishable is deliberate.** This listener stays the single owner of capping, `PublishableEventListener` needs no change, and any future source of `Expires` is covered without being named. `Response::getExpires()` returns a far-past date for an unparseable header, which fails the `> $now` test, so a malformed `Expires` cannot shorten a TTL. The two caps have different gates on purpose: the `liveAt` cap is restricted to the configured class list (one query per response, and only route-shaped responses depend on which routes are live), while the `Expires` cap applies to any successful anonymous response that carries one.
+
+**The listener is now pinned to `EventPriorities::POST_RESPOND - 1`.** It reads a header `PublishableEventListener` writes at plain `POST_RESPOND`; before this it ran second only because it is registered later in `services.php`. **Do not rely on autoconfiguration or registration order in a bundle** — an application may disable autoconfiguration, and several bundle definitions already opt out with `->autoconfigure(false)`. Same lesson as the `kernel.reset` entry below: tag explicitly, order explicitly.
+
+> **Publishable collections get no `Expires` at all.** `PublishableEventListener::onPostRespond()` early-returns on `CollectionOperationInterface`, so a collection containing a resource with a pending publication carries no transition signal and is capped only if its class is in the scheduled-expiry list. Out of scope for #227 and recorded so it is not rediscovered.
+
+**Behat:** `features/main/cache_headers.feature` — a scheduled go-live capping a manifest that has **no relationship to the scheduled route** (the cascade proof, and the thing part 3 was asking for); a pending publication capping `s-maxage` and not only setting `Expires`; and a guard that a response with no pending transition keeps its configured lifetime. Two new steps: `the response shared max age should be at least :seconds` (`JsonContext`, beside the existing `at most`) and `there is a published resource with a draft set to publish in :seconds seconds` (`PublishableContext`, mirroring `the Route :path goes live in :seconds seconds`). Unit coverage of the precedence rules — soonest of the two wins in both directions, a past `Expires` does not cap, `max-age` is capped alongside `s-maxage`, a response with no directives is untouched — in `tests/EventListener/Api/CacheHeadersEventListenerTest.php`.
+
+> While editing them, `JsonContext`'s shared-max-age steps were switched from `Assert::*` to plain exceptions. A failing `Assert::*` **fatals** under Behat with `assert(self::$instance instanceof Configuration)` — PHPUnit's failure-message `Exporter` needs its TextUI Configuration Registry, which Behat never bootstraps. Same trap recorded under #194; the step reported nothing useful when it failed.
+
+**Part 1 — the manifest grouping key — is approved and NOT built.** Recorded so the investigation is not repeated:
+
+- **API Platform already supports overriding what it enumerates**, response-side: `TagCollectorInterface` (`ApiPlatform\Serializer\TagCollectorInterface`). Every `$context['resources'][$iri] = $iri` site in `AbstractItemNormalizer` is guarded by `if ($this->tagCollector)`. The service id `api_platform.http_cache.tag_collector` is referenced with `ignoreOnInvalid()` in four format configs and **defined nowhere**, so the slot is free. It runs before the purger serialises, so it is header-name- and separator-agnostic.
+- **Response side and purge side are different code paths and a key is dead unless both agree.** The purge side is entirely bundle-owned (`PropagateUpdatesListener` → `HttpCachePurger` → `PurgerInterface::purge()`); AP4's own `PurgeHttpCacheListener` is not in play. `HttpCachePurger` emits only resource IRIs plus the constant `cwa-html`.
+- Seeding `_resources` on the request (as `UserEventListener::onPostRead()` already does for `/me`) can only **add** a key — `SerializeProcessor` unions rather than overwrites — so it cannot replace the manifest's member list.
+- **A manifest's `Surrogate-Key` is a superset of its own body.** The body is IRIs and nothing else, so it changes only on **membership** change; yet every member IRI is a tag, so every content edit to any component in it drops the manifest. Fixing the tag set fixes granularity, not just size. `shouldSkipIri()` strips blank nodes and `/_/resource_metadatas` from the body but nothing strips them from the header.
+- **Key per depth, not per manifest.** A manifest contains its ancestors' subtrees, so keying by the manifest would force a descendant walk on every write. One key per rendering depth (`manifest:<entity-iri>`, root first) means the purge side needs only the **upward** walk — the shape `ComponentVoter::getComponentPages()` already has — and the cascade to descendant manifests is free.
+- **`manifest:<entity-iri>`, not the manifest's own URL**, because the same manifest is addressable by route path *and* by UUID, so a canonical value emitted on both responses lets one purge drop both cache entries.
+- **Response-side header size is unbounded.** `SurrogateKeysPurger::getResponseHeaders()` is a plain `implode` — no chunking, no length check. `maxHeaderLength` applies only to `purge()` (Souin 1500, Varnish xkey 8000). The limit is infrastructural (nginx `proxy_buffer_size`, Varnish `http_resp_hdr_len`), and the failure is a 502 at the proxy, never a truncated header — which is what the reporter's `proxy-buffer-size: 256k` is evidence of.
+
+> **Tag grammar — three shapes, deliberately distinct.** A tag is a **resource IRI** (starts with `/`, or a scheme under `ABS_URL`), a **singleton flag** (a bare token with no `:` and no `/` — only `cwa-html`), or a **grouping key** `<kind>:<resource-iri>` whose value is itself shape 1. #232's reasoning that `cwa:html` would only *look* consistent still holds once value-carrying keys exist: it would be shape 3 with a non-IRI value, a fourth grammar pretending to be the third. All three are separator-safe under Souin (`', '`) and Varnish xkey (`' '`) because no shape contains a comma or a space.
+
+References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/DependencyInjection/Configuration.php` (`addHttpCacheNode`), `src/DependencyInjection/SilverbackApiComponentsExtension.php`, `src/Resources/config/services.php`, `src/EventListener/Api/PublishableEventListener.php`.
+
+---
+
 ### #234 — Anonymous route and page collections ignored the inherited `liveAt` ✓ **DONE**
 
 Follow-up to #224/#225. `GET /_/routes` is the sitemap source, so listing a route gated by a scheduled ancestor handed search engines a soft-404 to crawl — and the module had no way to filter it, because both `liveAt` and `_metadata.effectiveLiveAt` are admin-only. Fixed with `RouteAncestorGateResolver` and a native recursive CTE; see **Route publication** above for the mechanism, the one-self-reference constraint, and the verified portability matrix.
@@ -931,6 +974,8 @@ References: `src/Serializer/Normalizer/Trait/ManifestDepthGroupTrait.php`, `src/
 
 References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/DependencyInjection/Configuration.php` (`addHttpCacheNode`), `src/DependencyInjection/SilverbackApiComponentsExtension.php`, `src/Resources/config/services.php`.
 
+> **Later:** the listener gained a second responsibility and an explicit priority under **#227** — it also caps `s-maxage`/`max-age` at the next scheduled transition, and is pinned to `POST_RESPOND - 1` because it reads an `Expires` that `PublishableEventListener` writes at plain `POST_RESPOND`.
+
 ---
 
 ### #232 — Purge the rendered HTML when a site-wide resource changes (front-end: cwa-nuxt-module #289) ✓ **DONE**
@@ -941,7 +986,7 @@ References: `src/EventListener/Api/CacheHeadersEventListener.php`, `src/Dependen
 
 **`HttpCachePurger::RENDERED_HTML_TAG = 'cwa-html'` is a cross-repo interface contract**, and gets the same treatment as `explicitAllowOnly` and `SouinPurger::SEPARATOR`, for the same reason: **a mismatch fails silently by matching nothing.** The module holds the other half as `RENDERED_HTML_SURROGATE_KEY` (`cwa-nuxt-3-module/src/runtime/api/http-cache.ts`), prepends it to the IRI list and joins with `SURROGATE_KEY_SEPARATOR = ', '`. Both sides read/write the exact literal `cwa-html`. It is safe from colliding with a resource IRI because `IriConverterInterface::getIriFromResource()` defaults to `UrlGeneratorInterface::ABS_PATH` — every collected tag is a path starting with `/` (or, under `ABS_URL`, a `http(s)://` URL); no IRI can ever be the bare token. It is also separator-safe under both purgers (Souin `', '`, Varnish xkey `' '`) since it contains neither a comma nor a space.
 
-**Not namespaced, deliberately.** #227 proposes `kind:value` grouping keys (`manifest:/_api/_/routes/<id>`, `nav:<layout>`, `routes:collection`) where the prefix is a *kind* qualifying a value. This tag has no value part, so `cwa:html` would only *look* consistent while actually being a different grammar. The two conventions are deliberately distinct.
+**Not namespaced, deliberately.** #227 proposes `kind:value` grouping keys (`manifest:/_api/_/routes/<id>`, `nav:<layout>`, `routes:collection`) where the prefix is a *kind* qualifying a value. This tag has no value part, so `cwa:html` would only *look* consistent while actually being a different grammar. The two conventions are deliberately distinct. **Reviewed and upheld under #227**, where the three tag shapes are written down; `nav:<layout>` and `routes:collection` were declined outright, so the only `kind:value` key that will exist is `manifest:<entity-iri>`.
 
 **The tag is sent once per purge, not once per written resource.** The guarantee is structural, not filtered: `collectResource()` sets a single `bool $purgeRenderedHtml` when the resolved resource class matches, and `propagate()` appends the constant once. A `bool` cannot be added twice, so a flush that writes ten listed resources still emits one tag. `reset()` clears the flag and the service is already tagged `kernel.reset`, so nothing survives a request under worker mode.
 

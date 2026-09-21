@@ -1762,9 +1762,10 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('silverback.doctrine.repository.route'),
                 [],
+                [],
             ]
         )
-        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND - 1, 'method' => 'onPostRespond']);
     $services->alias(CacheHeadersEventListener::class, 'silverback.api_components.event_listener.api.cache_headers');
 
     $services

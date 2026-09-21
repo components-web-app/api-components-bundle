@@ -115,6 +115,14 @@ final class PublishableContext implements Context
     }
 
     /**
+     * @Given there is a published resource with a draft set to publish in :seconds seconds
+     */
+    public function thereIsAPublicResourceWithADraftResourceAvailableInSeconds(int $seconds): void
+    {
+        $this->thereIsAPublicResourceWithADraftResourceAvailable((new \DateTime())->modify(\sprintf('+%d seconds', $seconds))->format(\DateTimeInterface::ATOM));
+    }
+
+    /**
      * @Given /^there is a draft for "([^"]*)"(?: set to publish at "(.*)"|)$/
      */
     public function thereIsADraftFor(string $publishedComponent, ?string $publishDate = null): void
