@@ -24,6 +24,7 @@ use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Doctrine\ORM\PersistentCollection;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Utility\ResourceClassInfoTrait;
@@ -32,11 +33,13 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 
 class MercureResourcePublisher implements SerializerAwareInterface, ResourceChangedPropagatorInterface
 {
@@ -61,7 +64,6 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     private \SplObjectStorage $deletedObjects;
     private bool $isPropagating = false;
 
-    // Do we want MessageBusInterface instead ? we don't have messenger installed yet, probably just use the default hub for now
     public function __construct(
         private readonly HubRegistry $hubRegistry,
         private readonly IriConverterInterface $iriConverter,
@@ -75,6 +77,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         private readonly ?GraphQlMercureSubscriptionIriGeneratorInterface $graphQlMercureSubscriptionIriGenerator = null,
         ?ExpressionLanguage $expressionLanguage = null,
         private readonly ?CwaCollectorData $collectorData = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->reset();
         $this->resourceClassResolver = $resourceClassResolver;
@@ -284,13 +287,27 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
                 $this->collectorData?->recordMercurePublication($topic);
             }
 
-            if ($options['enable_async_update'] && $this->messageBus) {
-                $this->dispatch($update);
-                continue;
-            }
+            try {
+                if ($options['enable_async_update'] && $this->messageBus) {
+                    $this->dispatch($update);
+                    continue;
+                }
 
-            $this->hubRegistry->getHub($options['hub'] ?? null)->publish($update);
+                $this->hubRegistry->getHub($options['hub'] ?? null)->publish($update);
+            } catch (MercureRuntimeException|HttpClientExceptionInterface $exception) {
+                $this->logPublishFailure($update, $resourceIri, $exception);
+            }
         }
+    }
+
+    private function logPublishFailure(Update $update, string $resourceIri, \Throwable $exception): void
+    {
+        $topics = (array) $update->getTopics();
+        $this->logger?->error(\sprintf('The Mercure update for "%s" could not be published and was dropped; the write itself was saved: %s', implode('", "', $topics), $exception->getMessage()), [
+            'topics' => $topics,
+            'resource' => $resourceIri,
+            'exception' => $exception,
+        ]);
     }
 
     /**

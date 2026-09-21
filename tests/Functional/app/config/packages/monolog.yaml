@@ -11,6 +11,9 @@ monolog:
             path: "%kernel.logs_dir%/%kernel.environment%.log"
             level: debug
             # formatter: monolog.formatter.stacktrace
+        test_records:
+            type: service
+            id: app.monolog.test_handler
         console:
             type:   console
             process_psr_3_messages: false

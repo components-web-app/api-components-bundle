@@ -1284,4 +1284,37 @@ Tests: `tests/Helper/ComponentPosition/ComponentPositionSortValueHelperTest.php`
 
 Tests: `tests/Mercure/PublishableAwareHubTest.php`, against the real `MockHub`. The two 0.8-only forwarding tests carry `#[RequiresMethod(HubInterface::class, 'getProtocolVersion'/'getCookieName')]`, so the lowest-dependencies job skips them on 0.7.
 
-> **Not fixed here, separate:** `MercureResourcePublisher::publishUpdate()` publishes synchronously from `PropagateUpdatesListener::postFlush()`, after the transaction commits, with no `catch`. An unreachable hub makes `Hub::publish()` throw `RuntimeException('Failed to send an update.')`, so the write is saved and the response is a 500. API Platform's own `PublishMercureUpdatesListener`, which this bundle replaces, behaves the same way. The Behat harness cannot see it because `HubStub` never makes a network call.
+> **Fixed separately under #283**, below: a hub failure after commit is now caught and logged, and the write gets its normal response.
+
+---
+
+### #283 — An unreachable Mercure hub no longer turns a saved write into a 500 ✓ **DONE**
+
+`MercureResourcePublisher::publishUpdate()` runs from `PropagateUpdatesListener::postFlush()`, **after the transaction has committed**. With the hub down, `Hub::publish()` threw and the client got a 500 for a write that was already saved, so it could retry and create a duplicate.
+
+**Decision (Daniel): a saved write returns its normal success response, and the publish failure is logged.** The response describes the write, and the write happened. Real-time clients miss that one update until they next refetch. Failing loudly would surface a broken hub sooner, but only by lying about the write. The error log is how a broken hub is noticed.
+
+**What is caught, and why not more.** Each update's publish (or messenger dispatch) is wrapped in its own `try`, catching exactly two types:
+- `Symfony\Component\Mercure\Exception\RuntimeException`: `Hub::publish()` wraps every HttpClient exception in this ("Failed to send an update."), identically in 0.7.1 and 0.8.
+- `Symfony\Contracts\HttpClient\Exception\ExceptionInterface`: a hub or decorator that calls HttpClient itself without wrapping.
+
+Not `\Throwable`, and not Mercure's `InvalidArgumentException` either (an invalid publisher JWT). That one is a configuration error, not an unreachable hub, and swallowing it would hide a broken deployment behind a log line. Anything else, including programming errors, still propagates.
+
+- **The messenger path is covered by the same `catch`.** With a message bus present (`enable_async_update` defaults to true), an `Update` that is not routed to an async transport is handled synchronously; `DispatchTrait` unwraps `HandlerFailedException` and rethrows the hub's own exception, which the same `catch` then handles.
+- **One failed update does not stop the rest.** The `try` is per update, inside the loop, so every other queued update in the same flush is still attempted.
+- **The re-entrancy guard is untouched.** `propagate()`'s existing `finally` still lowers `isPropagating` and resets the queues on any exception that does escape (see the `kernel.reset` section).
+- **Log entry:** level `error`, the topics and the exception message in the message itself, and `topics`, `resource` (the absolute IRI) and `exception` in the context.
+- **Wiring:** the logger is the last constructor argument, `?LoggerInterface $logger = null`, wired explicitly as `new Reference('logger', NULL_ON_INVALID_REFERENCE)`. Without a logger the failure is still caught.
+
+**Tests.** `tests/Mercure/MercureResourcePublisherTest.php` covers these cases:
+- a hub failure does not throw
+- the error is logged with the topic, resource and exception
+- the remaining updates are still published after one fails
+- a raw HttpClient exception counts as a hub failure
+- it still works with no logger
+- the synchronous messenger path is covered
+- a `LogicException` is not swallowed
+- the guard is lowered after both kinds of failure
+- the logger reference in the service definition, read from a bare `ContainerBuilder`
+
+Behat: `features/main/mercure_publish_failure.feature` covers a POST of a `Layout` with the hub unreachable, which returns 201, leaves the resource in the database and logs the error, plus a following scenario proving the mode resets. `HubStub` gained a static unreachable switch, set by `Given the Mercure hub is unreachable` and cleared in `ProfilerContext`'s `@BeforeScenario`/`@AfterScenario`. It is static because the kernel can reboot between requests. The log is asserted through a Monolog `TestHandler` registered in the test app (`app.monolog.test_handler`, a `service` handler in `monolog.yaml`), because the harness runs with `debug: false`, so the profiler's logger collector records nothing. Both were watched failing first; the Behat scenario got a 500.

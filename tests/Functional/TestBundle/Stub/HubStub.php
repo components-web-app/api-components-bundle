@@ -11,6 +11,8 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub;
 
+use Symfony\Component\HttpClient\Exception\TransportException;
+use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
@@ -24,6 +26,8 @@ use Symfony\Component\Mercure\Update;
  */
 class HubStub implements HubInterface
 {
+    private static bool $unreachable = false;
+
     private LcobucciFactory $factory;
 
     public function __construct(LcobucciFactory $factory)
@@ -31,8 +35,17 @@ class HubStub implements HubInterface
         $this->factory = $factory;
     }
 
+    public static function setUnreachable(bool $unreachable): void
+    {
+        self::$unreachable = $unreachable;
+    }
+
     public function publish(Update $update): string
     {
+        if (self::$unreachable) {
+            throw new RuntimeException('Failed to send an update.', 0, new TransportException('Could not resolve host: example.com'));
+        }
+
         $postData = [
             'topic' => $update->getTopics(),
             'data' => $update->getData(),

@@ -41,6 +41,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('api_platform.graphql.subscription.mercure_iri_generator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             null,
             new Reference(CwaCollectorData::class),
+            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->call('setSerializer', [new Reference('serializer')])
         ->tag('silverback_api_components.resource_changed_propagator')
