@@ -50,6 +50,22 @@ Feature: A search filter combines its own clauses with OR and ANDs them against 
     Then the response status code should be 200
     And the JSON node "totalItems" should be equal to "2"
 
+  Scenario: A value that is invalid for the field's type is logged and the filter for that field is ignored
+    Given there is a DummyOrSearchFilterable with field1 "alpha" and field2 "beta"
+    And there is a DummyOrSearchFilterable with field1 "gamma" and field2 "delta"
+    When I send a "GET" request to "/dummy_or_search_filterables?rank=not-an-integer"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "2"
+    And an ignored filter value for the field "rank" should have been logged
+
+  Scenario: An ignored invalid value leaves the other filter clauses applied
+    Given there is a DummyOrSearchFilterable with field1 "alpha" and field2 "beta"
+    And there is a DummyOrSearchFilterable with field1 "gamma" and field2 "delta"
+    When I send a "GET" request to "/dummy_or_search_filterables?field1=alpha&rank=not-an-integer"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "1"
+    And the JSON node "member[0].field1" should be equal to the string "alpha"
+
   @loginUser
   Scenario: A filtered collection does not expose a draft to a user without draft access
     Given there are 2 draft and published resources available

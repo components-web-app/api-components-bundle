@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
+use ApiPlatform\Metadata\Exception\InvalidArgumentException as ApiPlatformInvalidArgumentException;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
@@ -99,6 +100,24 @@ class ProfilerContext implements Context
             $handler->getRecords(),
             static fn (LogRecord $record): bool => ($record->context['exception'] ?? null) instanceof MercureRuntimeException
         ));
+    }
+
+    /**
+     * @Then an ignored filter value for the field :field should have been logged
+     */
+    public function anIgnoredFilterValueForTheFieldShouldHaveBeenLogged(string $field): void
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+        $expected = \sprintf('Values for field "%s" are not valid according to the doctrine type.', $field);
+        foreach ($handler->getRecords() as $record) {
+            $exception = $record->context['exception'] ?? null;
+            if (Level::Notice === $record->level && 'Invalid filter ignored' === $record->message && $exception instanceof ApiPlatformInvalidArgumentException && $expected === $exception->getMessage()) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No ignored filter value was logged for the field "%s".', $field), $this->minkContext->getSession()->getDriver());
     }
 
     /**

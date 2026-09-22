@@ -22,7 +22,7 @@ use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
  */
 #[ApiResource]
 #[ORM\Entity]
-#[ApiFilter(OrSearchFilter::class, properties: ['field1' => 'ipartial', 'field2' => 'ipartial'])]
+#[ApiFilter(OrSearchFilter::class, properties: ['field1' => 'ipartial', 'field2' => 'ipartial', 'rank' => 'exact'])]
 class DummyOrSearchFilterable
 {
     use IdTrait;
@@ -32,4 +32,7 @@ class DummyOrSearchFilterable
 
     #[ORM\Column]
     public ?string $field2 = null;
+
+    #[ORM\Column(nullable: true)]
+    public ?int $rank = null;
 }

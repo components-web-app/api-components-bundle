@@ -87,12 +87,7 @@ abstract class AbstractUserEmailFactory
         }
 
         try {
-            // symfony/mime 5.2 deprecated fromString
-            if (method_exists(Address::class, 'create')) {
-                $toEmailAddress = Address::create((string) $this->user->getEmailAddress());
-            } else {
-                $toEmailAddress = Address::fromString((string) $this->user->getEmailAddress());
-            }
+            $toEmailAddress = Address::create((string) $this->user->getEmailAddress());
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;

@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\OpenApi;
 
-use ApiPlatform\Exception\ResourceClassNotFoundException as LegacyResourceClassNotFoundException;
 use ApiPlatform\Metadata\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
@@ -46,8 +45,7 @@ class OpenApiFactory implements OpenApiFactoryInterface
                 foreach ($metadata as $metadatum) {
                     $shortNames[] = $metadatum->getShortName();
                 }
-            } catch (LegacyResourceClassNotFoundException|ResourceClassNotFoundException $exception) {
-                // the component may not be enabled
+            } catch (ResourceClassNotFoundException $exception) {
             }
         }
 
