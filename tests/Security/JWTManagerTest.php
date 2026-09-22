@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Security;
 
+use Doctrine\ORM\OptimisticLockException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -18,6 +19,7 @@ use Silverback\ApiComponentsBundle\RefreshToken\Storage\RefreshTokenStorageInter
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class JWTManagerTest extends TestCase
@@ -49,5 +51,18 @@ class JWTManagerTest extends TestCase
 
         $this->expectExceptionObject($expired);
         $manager->decode($this->createStub(TokenInterface::class));
+    }
+
+    public function test_create_still_issues_a_token_when_the_refresh_token_was_modified_concurrently(): void
+    {
+        $user = new InMemoryUser('user', null);
+        $decorated = $this->createMock(JWTTokenManagerInterface::class);
+        $decorated->expects(self::once())->method('create')->with($user)->willReturn('access-token');
+        $storage = $this->createStub(RefreshTokenStorageInterface::class);
+        $storage->method('createAndExpireAll')->willThrowException(new OptimisticLockException('modified', null));
+
+        $manager = new JWTManager($decorated, $this->createStub(EventDispatcherInterface::class), $this->createStub(UserProviderInterface::class), $storage);
+
+        self::assertSame('access-token', $manager->create($user));
     }
 }

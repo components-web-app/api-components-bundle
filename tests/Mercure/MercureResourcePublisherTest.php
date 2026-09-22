@@ -52,7 +52,7 @@ class MercureResourcePublisherTest extends TestCase
         $this->logger = new RecordingLogger();
     }
 
-    private function buildPublisher(callable $publish, ?MessageBusInterface $messageBus = null, bool $withLogger = true): MercureResourcePublisher
+    private function buildPublisher(callable $publish, ?MessageBusInterface $messageBus = null, bool $withLogger = true, ?ResourceMetadataCollection $resourceMetadata = null): MercureResourcePublisher
     {
         $hub = new MockHub('https://internal.example.com/.well-known/mercure', new StaticTokenProvider('publisher-jwt'), $publish);
 
@@ -66,7 +66,7 @@ class MercureResourcePublisherTest extends TestCase
         $resourceClassResolver->method('getResourceClass')->willReturn(Layout::class);
 
         $metadataFactory = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
-        $metadataFactory->method('create')->willReturn(new ResourceMetadataCollection(Layout::class, [
+        $metadataFactory->method('create')->willReturn($resourceMetadata ?? new ResourceMetadataCollection(Layout::class, [
             new ApiResource(operations: [new Get(mercure: true)]),
         ]));
 
@@ -124,6 +124,16 @@ class MercureResourcePublisherTest extends TestCase
         self::assertInstanceOf(Reference::class, $logger);
         self::assertSame('logger', (string) $logger);
         self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $logger->getInvalidBehavior());
+    }
+
+    public function test_a_resource_with_no_operation_is_not_published(): void
+    {
+        $publisher = $this->buildPublisher($this->failingFor('', $this->hubFailure()), resourceMetadata: new ResourceMetadataCollection(Layout::class, []));
+        $publisher->add($this->layout('first'), 'updated');
+
+        $publisher->propagate();
+
+        self::assertSame([], $this->published);
     }
 
     public function test_a_hub_failure_does_not_throw_out_of_propagate(): void
