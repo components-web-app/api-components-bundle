@@ -615,6 +615,26 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the ComponentGroup has a RestrictedComponent position with the sortValue :sortValue
+     */
+    public function theComponentGroupHasARestrictedComponentPositionWithTheSortValue(int $sortValue): void
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_group']);
+        $component = new RestrictedComponent();
+        $this->manager->persist($component);
+        $position = new ComponentPosition();
+        $position->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $position->sortValue = $sortValue;
+        $position->componentGroup = $componentGroup;
+        $position->component = $component;
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->manager->clear();
+        $this->restContext->resources['restricted_position'] = $this->iriConverter->getIriFromResource($position);
+    }
+
+    /**
      * @Given the ComponentGroup has a DummyPublishableComponent position
      */
     public function theComponentGroupHasADummyPublishableComponentPosition(): void
