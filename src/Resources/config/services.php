@@ -107,7 +107,6 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
-use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Placeholder\HtmlContentPlaceholder;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
@@ -1848,20 +1847,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PublishableStatusChecker::class),
         ]);
     $services->alias(MercureIriConverter::class, 'silverback.api_components.mercure.iri_converter');
-
-    $services
-        ->set('silverback.doctrine.orm.or_search_filter')
-        ->class(OrSearchFilter::class)
-        ->private()
-        ->abstract()
-        ->args([
-            new Reference('doctrine'),
-            new Reference('api_platform.iri_converter'),
-            new Reference('api_platform.property_accessor'),
-            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-        ])
-        ->arg('$nameConverter', new Reference('api_platform.name_converter', ContainerInterface::IGNORE_ON_INVALID_REFERENCE));
-    $services->alias(OrSearchFilter::class, 'silverback.doctrine.orm.or_search_filter');
 
     $services
         ->set('silverback.api_components.doctrine.event_listener.sqlite_foreign_key_enabler')

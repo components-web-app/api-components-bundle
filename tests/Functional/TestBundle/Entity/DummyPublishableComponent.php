@@ -11,20 +11,26 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
 
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
-use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 #[Silverback\Publishable]
-#[ApiResource(mercure: true)]
-#[ApiFilter(OrSearchFilter::class, properties: ['reference' => 'ipartial'])]
+#[ApiResource(
+    mercure: true,
+    parameters: [
+        'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['reference']),
+    ],
+)]
 #[ORM\Entity]
 class DummyPublishableComponent extends AbstractComponent
 {
