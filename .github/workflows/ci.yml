@@ -173,7 +173,7 @@ jobs:
           path: infection.log
 
   behat:
-    name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
+    name: Behat (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -183,11 +183,15 @@ jobs:
         symfony:
           - '7.4'
           - '8.1'
+        api-platform:
+          - '^4.4'
+          - '^5.0'
         experimental:
           - false
         include:
           - php: '8.5'
             symfony: '7.4'
+            api-platform: '^5.0'
             experimental: false
             coverage: true
       fail-fast: false
@@ -221,6 +225,7 @@ jobs:
       - name: Update project dependencies
         run: |
           composer config extra.symfony.require ${{ matrix.symfony }}
+          composer require "api-platform/core:${{ matrix.api-platform }}" --no-update --no-interaction
           composer update --no-progress --ansi
       - name: Clear test app cache
         run: tests/Functional/app/bin/console cache:clear --ansi
@@ -257,7 +262,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
+          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}-api-platform${{ matrix.api-platform }}
           path: build/logs/behat
         continue-on-error: true
       - name: Upload coverage results to Codecov
