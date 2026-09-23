@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
+use ApiPlatform\Symfony\Bundle\DependencyInjection\Configuration as ApiPlatformConfiguration;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
+use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -23,6 +25,7 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
 {
     private const string HTTP_CACHE_FLUSHER = 'silverback.api_components.http_cache.flusher';
     private const string INVALIDATION_CLIENT_PREFIX = 'api_platform.invalidation_http_client.';
+    private const string EXCEPTION_TO_STATUS = 'api_platform.exception_to_status';
 
     public function process(ContainerBuilder $container): void
     {
@@ -39,11 +42,22 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
 
         $this->configureHttpCacheFlusher($container);
 
+        $this->appendApiPlatformDefaultExceptionStatuses($container);
+
         $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
         if ($container->hasDefinition($apiPlatformMercurePublishListener)) {
             // we have implemented fully custom logic
             $container->removeDefinition($apiPlatformMercurePublishListener);
         }
+    }
+
+    private function appendApiPlatformDefaultExceptionStatuses(ContainerBuilder $container): void
+    {
+        $tree = (new ApiPlatformConfiguration())->getConfigTreeBuilder()->buildTree();
+        \assert($tree instanceof ArrayNode);
+        $defaults = $tree->getChildren()['exception_to_status']->getDefaultValue();
+
+        $container->setParameter(self::EXCEPTION_TO_STATUS, $container->getParameter(self::EXCEPTION_TO_STATUS) + $defaults);
     }
 
     private function configureHttpCacheFlusher(ContainerBuilder $container): void
