@@ -78,7 +78,7 @@ readonly class UserResourceMetadataCollectionFactory implements ResourceMetadata
                 'shared_max_age' => 0,
                 'max_age' => 0,
             ],
-            shortName: '__api_me',
+            shortName: $operation->getShortName(),
             class: $operation->getClass(),
             security: 'is_granted("IS_AUTHENTICATED_FULLY")',
             priority: 1000,

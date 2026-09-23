@@ -22,6 +22,8 @@ Feature: Add a /me endpoint
     Then the response status code should be 200
     And the JSON should be valid according to the schema file "user.schema.json"
     And the JSON node "@id" should be equal to the IRI of the resource "login_user"
+    And the JSON node "@type" should be equal to "User"
+    And the JSON node "@context" should be equal to "/contexts/User"
     And the JSON node "_metadata.mercureSubscribeTopics[0]" should be equal to "http://example.com/_/component_groups/{id}{._format}"
     And the header "cache-control" should be equal to "max-age=0, private"
 
