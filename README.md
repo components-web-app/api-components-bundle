@@ -3,12 +3,10 @@
 
 [![CI](https://github.com/components-web-app/api-components-bundle/workflows/CI/badge.svg?branch=main)](https://github.com/components-web-app/api-components-bundle/actions?query=workflow%3ACI)
 [![Maintainability](https://api.codeclimate.com/v1/badges/6d388db1c65f6a76a41c/maintainability)](https://codeclimate.com/github/components-web-app/api-components-bundle/maintainability)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/?branch=main)
 [![codecov](https://codecov.io/gh/components-web-app/api-components-bundle/branch/main/graph/badge.svg)](https://codecov.io/gh/components-web-app/api-components-bundle)
 
 ###### PHPUnit Testing Only
 
-[![Code Coverage](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/components-web-app/api-components-bundle/?branch=main)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fcomponents-web-app%2Fapi-components-bundle%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/components-web-app/api-components-bundle/main)
 
 #### Creates a flexible API for a website's structure, reusable components and common functionality.
