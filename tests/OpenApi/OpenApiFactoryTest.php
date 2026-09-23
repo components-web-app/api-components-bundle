@@ -11,7 +11,18 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\OpenApi;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
+use ApiPlatform\OpenApi\Model\Info;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\PathItem;
+use ApiPlatform\OpenApi\Model\Paths;
+use ApiPlatform\OpenApi\OpenApi;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 
 class OpenApiFactoryTest extends TestCase
@@ -29,5 +40,29 @@ class OpenApiFactoryTest extends TestCase
         $extended = OpenApiFactory::getExtendedVersion('2.0');
 
         $this->assertStringStartsWith('2.0', $extended);
+    }
+
+    public function test_a_resource_class_that_is_not_a_resource_is_skipped_while_the_others_are_removed(): void
+    {
+        $paths = new Paths();
+        $paths->addPath('/component/dummies', new PathItem(get: new Operation(tags: ['DummyComponent'])));
+        $paths->addPath('/layouts', new PathItem(get: new Operation(tags: ['Layout'])));
+
+        $decorated = $this->createStub(OpenApiFactoryInterface::class);
+        $decorated->method('__invoke')->willReturn(new OpenApi(new Info('API', '1.0'), [], $paths));
+
+        $metadata = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
+        $metadata->method('create')->willReturnCallback(static function (string $resourceClass): ResourceMetadataCollection {
+            if (AbstractComponent::class !== $resourceClass) {
+                throw new ResourceClassNotFoundException($resourceClass);
+            }
+
+            return new ResourceMetadataCollection($resourceClass, [new ApiResource(shortName: 'DummyComponent')]);
+        });
+
+        $openApi = (new OpenApiFactory($decorated, $metadata))();
+
+        self::assertNull($openApi->getPaths()->getPath('/component/dummies')->getGet());
+        self::assertNotNull($openApi->getPaths()->getPath('/layouts')->getGet());
     }
 }

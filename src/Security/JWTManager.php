@@ -15,7 +15,6 @@ use Doctrine\ORM\OptimisticLockException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidPayloadException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\UserNotFoundException;
-use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\PreAuthenticationJWTUserToken;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\RefreshToken\RefreshToken;
@@ -44,9 +43,6 @@ final class JWTManager implements JWTTokenManagerInterface
         $this->storage = $storage;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function create(UserInterface $user, ?RefreshToken $token = null): string
     {
         try {
@@ -55,28 +51,15 @@ final class JWTManager implements JWTTokenManagerInterface
             } else {
                 $this->storage->createAndExpireAll($user);
             }
-        } catch (OptimisticLockException $exception) {
-            // do nothing, we have already modified the refresh token.
-            // we can continue to generate a jwt token, won't make any difference
-            // if the user has a new one of these...
+        } catch (OptimisticLockException) {
         }
 
         return $this->decorated->create($user);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function decode(TokenInterface $token): array|false
     {
-        // parse will be used for old symfony where PreAuthenticationJWTUserToken exists
-        try {
-            return $this->decorated->decode($token);
-        } catch (JWTDecodeFailureException $exception) {
-            $jwtUserToken = $this->handleJWTDecodeFailureException($exception);
-
-            return $this->decorated->decode(new PreAuthenticationJWTUserToken($jwtUserToken));
-        }
+        return $this->decorated->decode($token);
     }
 
     public function parse(string $token): array
@@ -124,7 +107,6 @@ final class JWTManager implements JWTTokenManagerInterface
 
     private function resolveCurrentRefreshToken(UserInterface $user): ?RefreshToken
     {
-        // the refresh token could have just been expired and is being refreshed by another request
         $refreshToken = $this->storage->findOneByUser($user);
         if (!$refreshToken || $refreshToken->isExpired()) {
             return null;
@@ -133,33 +115,21 @@ final class JWTManager implements JWTTokenManagerInterface
         return $refreshToken;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setUserIdentityField($field)
     {
         return $this->decorated->setUserIdentityField($field);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getUserIdentityField(): string
     {
         return $this->decorated->getUserIdentityField();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getUserIdClaim(): string
     {
         return $this->decorated->getUserIdClaim();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createFromPayload(UserInterface $user, array $payload = []): string
     {
         return $this->decorated->createFromPayload($user, $payload);

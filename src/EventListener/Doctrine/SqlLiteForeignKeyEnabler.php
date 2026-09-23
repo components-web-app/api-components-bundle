@@ -11,7 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
-use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 
 class SqlLiteForeignKeyEnabler
@@ -19,7 +19,7 @@ class SqlLiteForeignKeyEnabler
     public function preFlush(PreFlushEventArgs $args): void
     {
         $conn = $args->getObjectManager()->getConnection();
-        if (!$conn->getDatabasePlatform() instanceof SqlitePlatform) {
+        if (!$conn->getDatabasePlatform() instanceof SQLitePlatform) {
             return;
         }
 

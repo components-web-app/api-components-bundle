@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
-use Behat\Mink\Exception\ExpectationException;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
@@ -369,7 +368,7 @@ class UploadsContext implements Context
             /* @var UploadableTrait $item */
             return $this->iriConverter->getResourceFromIri($iri);
         } catch (ItemNotFoundException $exception) {
-            throw new ExpectationException(\sprintf('The resource %s cannot be found anymore', $iri), $this->minkContext->getSession()->getDriver());
+            throw new \RuntimeException(\sprintf('The resource %s cannot be found anymore', $iri), 0, $exception);
         }
     }
 }

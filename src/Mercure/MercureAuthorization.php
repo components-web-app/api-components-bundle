@@ -11,7 +11,6 @@
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
-use ApiPlatform\Exception\OperationNotFoundException as LegacyOperationNotFoundException;
 use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -89,8 +88,6 @@ class MercureAuthorization
         if (!$isPublishable) {
             return $subscribeIris;
         }
-
-        // Note that `?draft=1` is also hard coded into the PublishableIriConverter, probably make this configurable somewhere
         if ($this->publishableStatusChecker->isGranted($operation->getClass())) {
             $subscribeIris[] = $uriTemplate . '?draft=1';
         }
@@ -98,14 +95,6 @@ class MercureAuthorization
         return $subscribeIris;
     }
 
-    /**
-     * Evaluates the operation's security expression at the class level (no object context).
-     * Returns true if accessible, false if denied.
-     * Returns true when no security expression is set (resource is publicly accessible).
-     * Returns true when the expression references the `object` variable — these are item-level
-     * security expressions that cannot be evaluated without a concrete instance. Since some items
-     * of the resource may be accessible, the subscription topic is included.
-     */
     private function isOperationAccessible(HttpOperation $operation): bool
     {
         $security = $operation->getSecurity();
@@ -135,7 +124,7 @@ class MercureAuthorization
 
         try {
             $operation = $resourceMetadataCollection->getOperation(forceCollection: false, httpOperation: true);
-        } catch (OperationNotFoundException|LegacyOperationNotFoundException) {
+        } catch (OperationNotFoundException) {
             return null;
         }
 
@@ -152,12 +141,6 @@ class MercureAuthorization
         return $operation;
     }
 
-    /**
-     * Mercure subscribe iris should be absolute
-     * this code can also be found in Symfony's URL Generator
-     * but as we work without a symfony route here (and we would not want to do this as it's not spec-compliant)
-     * we do it by hand.
-     */
     private function buildAbsoluteUriTemplate(): string
     {
         $scheme = $this->requestContext->getScheme();

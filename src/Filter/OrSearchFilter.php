@@ -16,7 +16,7 @@ use ApiPlatform\Doctrine\Common\Filter\SearchFilterTrait;
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryBuilderHelper;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\DBAL\Types\Types;
@@ -28,9 +28,6 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
-/**
- *  ApiPlatform\Doctrine\Orm\Filter\SearchFilter but using 'or' instead of 'and'.
- */
 final class OrSearchFilter extends AbstractFilter implements SearchFilterInterface
 {
     use SearchFilterTrait;
@@ -71,9 +68,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getType(string $doctrineType): string
     {
         return match ($doctrineType) {
@@ -96,9 +90,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         return $this->propertyAccessor;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (
@@ -125,7 +116,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         $caseSensitive = true;
         $strategy = $this->properties[$property] ?? self::STRATEGY_EXACT;
 
-        // prefixing the strategy with i makes it case insensitive
         if (str_starts_with($strategy, 'i')) {
             $strategy = substr($strategy, 1);
             $caseSensitive = false;
@@ -151,7 +141,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
             return;
         }
 
-        // metadata doesn't have the field, nor an association on the field
         if (!$metadata->hasAssociation($field)) {
             return;
         }
@@ -180,13 +169,6 @@ final class OrSearchFilter extends AbstractFilter implements SearchFilterInterfa
         $this->addWhereByStrategy($strategy, $queryBuilder, $queryNameGenerator, $associationAlias, $associationField, $values, $caseSensitive);
     }
 
-    /**
-     * Creates a function that will wrap a Doctrine expression according to the
-     * specified case sensitivity.
-     *
-     * For example, "o.name" will get wrapped into "LOWER(o.name)" when $caseSensitive
-     * is false.
-     */
     protected function createWrapCase(bool $caseSensitive): \Closure
     {
         return static function (string $expr) use ($caseSensitive): string {
