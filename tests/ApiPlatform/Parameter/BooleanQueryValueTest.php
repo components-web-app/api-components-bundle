@@ -28,6 +28,8 @@ class BooleanQueryValueTest extends TestCase
         yield 'a boolean true' => [true, '1'];
         yield 'a boolean false' => [false, '0'];
         yield 'an unrecognised string is left for the filter to match nothing' => ['maybe', 'maybe'];
+        yield 'a nested query value is left unchanged' => [['true'], ['true']];
+        yield 'a value that is neither a string nor a boolean is left unchanged' => [1, 1];
     }
 
     #[DataProvider('queryValues')]
