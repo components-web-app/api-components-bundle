@@ -1,0 +1,535 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:createDraft\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Action/Uploadable/UploadAction.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getMethod\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/RoutableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getRoutePrefix\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:withRoutePrefix\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\Pure does not exist\.$#'
+			identifier: attribute.notFound
+			count: 5
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getMethod\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getUriTemplate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:withController\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Parameter \#1 \$stateless of method ApiPlatform\\Metadata\\HttpOperation\:\:withStateless\(\) expects bool, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Unsafe call to private method Silverback\\ApiComponentsBundle\\ApiPlatform\\Metadata\\Resource\\UploadableResourceMetadataCollectionFactory\:\:generatePostOperation\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\Pure does not exist\.$#'
+			identifier: attribute.notFound
+			count: 2
+			path: src/AttributeReader/AttributeReader.php
+
+		-
+			message: '#^Call to function is_string\(\) with Silverback\\ApiComponentsBundle\\Entity\\Utility\\ImagineFiltersInterface will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/AttributeReader/UploadableAttributeReader.php
+
+		-
+			message: '#^PHPDoc tag @return with type int\|void\|null is not subtype of native type int\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: src/Command/FormCachePurgeCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between false and string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Command/GenerateFixturesCommand.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Console\\Helper\\HelperInterface\:\:ask\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/UserCreateCommand.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/DataProvider/PageDataProvider.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: src/Doctrine/Extension/ORM/TablePrefixExtension.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\AbstractRefreshToken\:\:\$createdAt type mapping mismatch\: property can contain DateTimeInterface\|null but database expects DateTimeImmutable\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/AbstractRefreshToken.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\AbstractRefreshToken\:\:\$expiresAt type mapping mismatch\: property can contain DateTimeImmutable\|null but database expects DateTimeImmutable\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/AbstractRefreshToken.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\AbstractRefreshToken\:\:\$version type mapping mismatch\: property can contain int\|null but database expects int\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/AbstractRefreshToken.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$componentPositions type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentPosition\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$components type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\AbstractComponent\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$layouts type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\Layout\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$location type mapping mismatch\: property can contain string\|null but database expects string\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$pages type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\Page\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\:\:\$reference type mapping mismatch\: property can contain string\|null but database expects string\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/ComponentGroup.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentPosition\:\:\$componentGroup type mapping mismatch\: property can contain Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\|null but database expects Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/ComponentPosition.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentPosition\:\:\$sortValue type mapping mismatch\: property can contain int\|null but database expects int\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/ComponentPosition.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\Layout\:\:\$componentGroups type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/Layout.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\Layout\:\:\$pages type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\Page\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/Layout.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\Page\:\:\$componentGroups type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\ComponentGroup\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/Page.php
+
+		-
+			message: '#^Instanceof between Doctrine\\Common\\Collections\\Collection and Doctrine\\Common\\Collections\\Collection will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/Entity/Core/Route.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\Route\:\:\$redirectedFrom type mapping mismatch\: property can contain Doctrine\\Common\\Collections\\Collection but database expects Doctrine\\Common\\Collections\\Collection&iterable\<Silverback\\ApiComponentsBundle\\Entity\\Core\\Route\>\.$#'
+			identifier: doctrine.associationType
+			count: 1
+			path: src/Entity/Core/Route.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: src/Entity/Core/Route.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\Core\\SiteConfigParameter\:\:\$key type mapping mismatch\: property can contain string\|null but database expects string\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/Core/SiteConfigParameter.php
+
+		-
+			message: '#^Parameter \$repositoryClass of attribute class Doctrine\\ORM\\Mapping\\MappedSuperclass constructor expects class\-string\<Doctrine\\ORM\\EntityRepository\>\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/User/AbstractUser.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\User\\AbstractUser\:\:\$emailAddress type mapping mismatch\: property can contain string\|null but database expects string\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/User/AbstractUser.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Entity\\User\\AbstractUser\:\:\$username type mapping mismatch\: property can contain string\|null but database expects string\.$#'
+			identifier: doctrine.columnType
+			count: 1
+			path: src/Entity/User/AbstractUser.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Entity/User/AbstractUser.php
+
+		-
+			message: '#^Trait Silverback\\ApiComponentsBundle\\Entity\\Utility\\PublishableTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Entity/Utility/PublishableTrait.php
+
+		-
+			message: '#^Trait Silverback\\ApiComponentsBundle\\Entity\\Utility\\UploadableTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Entity/Utility/UploadableTrait.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\SerializerInterface\:\:decode\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EventListener/Api/FormApiEventListener.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: src/EventListener/Api/PublishableEventListener.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$data has invalid type Silverback\\ApiComponentsBundle\\Entity\\Utility\\PublishableTrait\.$#'
+			identifier: varTag.trait
+			count: 1
+			path: src/EventListener/Api/PublishableEventListener.php
+
+		-
+			message: '#^Parameter \#3 \$em of method Silverback\\ApiComponentsBundle\\EventListener\\Api\\RouteEventListener\:\:cascadeChildPaths\(\) expects Doctrine\\ORM\\EntityManagerInterface, Doctrine\\Persistence\\ObjectManager given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/EventListener/Api/RouteEventListener.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: src/EventListener/Api/UploadableEventListener.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<object\>\:\:getAssociationMappings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EventListener/Doctrine/PropagateUpdatesListener.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\ObjectManager\:\:getUnitOfWork\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:denormalize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^PHPDoc tag @var for property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$normalizer with type Symfony\\Component\\Serializer\\Normalizer\\DenormalizerInterface\|Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\|null is not subtype of native type Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\|null\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$normalizer \(Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$timestampedAnnotationReader \(Silverback\\ApiComponentsBundle\\AttributeReader\\TimestampedAttributeReader\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$timestampedDataPersister \(Silverback\\ApiComponentsBundle\\Helper\\Timestamped\\TimestampedDataPersister\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$userDataProcessor \(Silverback\\ApiComponentsBundle\\Helper\\User\\UserDataProcessor\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$userEventListener \(Silverback\\ApiComponentsBundle\\EventListener\\Api\\UserEventListener\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/EventListener/Form/EntityPersistFormListener.php
+
+		-
+			message: '#^Method Silverback\\ApiComponentsBundle\\Factory\\User\\Mailer\\ChangeEmailConfirmationEmailFactory\:\:getContextKeys\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Factory/User/Mailer/ChangeEmailConfirmationEmailFactory.php
+
+		-
+			message: '#^Method Silverback\\ApiComponentsBundle\\Factory\\User\\Mailer\\PasswordResetEmailFactory\:\:getContextKeys\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Factory/User/Mailer/PasswordResetEmailFactory.php
+
+		-
+			message: '#^Method Silverback\\ApiComponentsBundle\\Factory\\User\\Mailer\\VerifyEmailFactory\:\:getContextKeys\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Factory/User/Mailer/VerifyEmailFactory.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Filter/OrSearchFilter.php
+
+		-
+			message: '#^Match arm comparison between string and null is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: src/Filter/OrSearchFilter.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 2
+			path: src/Fixture/CwaFixtureBuilder.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and null will always evaluate to false\.$#'
+			identifier: notIdentical.alwaysFalse
+			count: 2
+			path: src/Fixture/CwaFixtureBuilder.php
+
+		-
+			message: '#^Instanceof between Silverback\\ApiComponentsBundle\\Entity\\User\\AbstractUser and Silverback\\ApiComponentsBundle\\Entity\\User\\AbstractUser will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/Form/Type/User/NewEmailAddressType.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Form/Type/User/NewEmailAddressType.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<Silverback\\ApiComponentsBundle\\Entity\\Core\\Route\>\:\:getSingleIdentifierFieldName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Helper/Route/RouteAncestorGateResolver.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Helper/Route/RouteAncestorGateResolver.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\ObjectManager\:\:getUnitOfWork\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Helper/Route/RouteGenerator.php
+
+		-
+			message: '#^PHPDoc tag @var with type array\<Silverback\\ApiComponentsBundle\\Annotation\\UploadableField\> is not subtype of native type Generator\.$#'
+			identifier: varTag.nativeType
+			count: 1
+			path: src/Helper/Uploadable/UploadableFileManager.php
+
+		-
+			message: '#^Method Silverback\\ApiComponentsBundle\\Helper\\User\\UserDataProcessor\:\:findUserByUsername\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Helper/User/UserDataProcessor.php
+
+		-
+			message: '#^WeakMap\<object, list\<string\>\> does not accept list\<string\|null\>\.$#'
+			identifier: offsetAssign.valueType
+			count: 1
+			path: src/HttpCache/ManifestKeyResolver.php
+
+		-
+			message: '#^Parameter \#1 \$classesToBeImported of class Symfony\\Bundle\\MakerBundle\\Util\\UseStatementGenerator constructor expects array\<string\>, array\<int, array\<string, string\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Maker/MakeApiComponent.php
+
+		-
+			message: '#^Parameter \#1 \$classesToBeImported of class Symfony\\Bundle\\MakerBundle\\Util\\UseStatementGenerator constructor expects array\<string\>, array\<int, array\<string, string\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Maker/MakePageData.php
+
+		-
+			message: '#^Property Silverback\\ApiComponentsBundle\\Model\\Uploadable\\MediaObject\:\:\$formattedFileSize \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Model/Uploadable/MediaObject.php
+
+		-
+			message: '#^Method Doctrine\\ORM\\EntityManager\:\:flush\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/RefreshToken/Storage/DoctrineRefreshTokenStorage.php
+
+		-
+			message: '#^Instanceof between bool\|float\|int\|string and DateTimeInterface will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: src/Repository/Core/RouteRepository.php
+
+		-
+			message: '#^Parameter \#1 \$values of function Symfony\\Component\\DependencyInjection\\Loader\\Configurator\\service_locator expects array\<Symfony\\Component\\DependencyInjection\\Loader\\Configurator\\InlineServiceConfigurator\|Symfony\\Component\\DependencyInjection\\Loader\\Configurator\\ReferenceConfigurator\>, array\<string, Symfony\\Component\\DependencyInjection\\Reference\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Resources/config/services.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: src/Security/EventListener/AccessDeniedListener.php
+
+		-
+			message: '#^Call to an undefined method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:getUserIdentityField\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Security/JWTManager.php
+
+		-
+			message: '#^Call to an undefined method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:setUserIdentityField\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Security/JWTManager.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:denormalize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Serializer/Normalizer/DataUriNormalizer.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:supportsDenormalization\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Serializer/Normalizer/DataUriNormalizer.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<object\>\:\:getAssociationMappings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Serializer/Normalizer/PublishableNormalizer.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<object\>\:\:getFieldValue\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: src/Serializer/Normalizer/PublishableNormalizer.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<object\>\:\:setFieldValue\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Serializer/Normalizer/PublishableNormalizer.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/Serializer/Normalizer/UserNormalizer.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Serializer/Normalizer/UserNormalizer.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Request\:\:getContentType\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Serializer/SerializeFormatResolver.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Symfony\\Component\\HttpFoundation\\Request and ''getContentTypeFormat'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Serializer/SerializeFormatResolver.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Validator/Constraints/UserPasswordValidator.php
