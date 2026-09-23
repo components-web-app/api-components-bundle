@@ -1305,13 +1305,15 @@ API Platform deprecated `#[ApiFilter]`, `SearchFilter`, `OrderFilter` and `Abstr
 - **`layout.reference` was dropped from the Page search.** `PartialSearchFilter` joins a nested property with an inner join, so inside an OR search, one nested field removed every page without a layout, whatever the other fields matched. The module never searched on it.
 - **`isTemplate` needs `BooleanQueryValue`.** The module sends `isTemplate[]=true&isTemplate[]=false`. `ExactFilter` turns a list into `IN (:p)`. Doctrine's `ParameterTypeInferer` binds an array of booleans as strings, so `false` becomes `''` and never matches. An integer array would bind correctly, but PostgreSQL rejects `boolean IN (1, 0)`. The caster therefore turns `true`/`false` into `'1'`/`'0'`, which a boolean column accepts as string input on SQLite, MySQL and PostgreSQL. **Only SQLite was run.** MySQL and PostgreSQL follow from their documented input syntax, not from a test, so verify them if a report comes in. API Platform's own `ValueCaster` is `@internal`, so the bundle does not use it.
 - **Multi-value OR on one field is gone** for the bundle's resources. `FreeTextQueryFilter` takes one value, and the module never sent a list.
-- **`OrSearchFilter` stays, marked `@deprecated`.** The template's `User` still declares it, so removing it would break the template on the bundle update. It is kept for applications only; the bundle's resources no longer use it, and the `DummyOrSearchFilterable` scenarios keep it tested. Delete it once the template has moved. It has no runtime deprecation notice, because the Symfony deprecation helper in the coverage job would fail every test that builds it.
+- **`OrSearchFilter` was removed** once the template had moved its `User` to a `search` `QueryParameter` (components-web-app#89). It lived on as a deprecated class only between #297 and its removal. Applications must declare `QueryParameter`s. The test entity `DummyPublishableComponent` now uses a `search` parameter, so the publishable-draft guard below runs against the new filter.
 
-Tests: `features/main/page.feature`, `features/main/layout.feature`, `features/main/or_search_filter.feature`, `tests/ApiPlatform/Parameter/BooleanQueryValueTest.php`.
+Tests: `features/main/page.feature`, `features/main/layout.feature`, `features/main/search_parameter.feature`, `tests/ApiPlatform/Parameter/BooleanQueryValueTest.php`.
 
 ---
 
 ### #237 — `orWhere()` in a Doctrine filter silently discards every query-extension predicate ✓ **DONE**
+
+> **`OrSearchFilter` has since been removed (#289 follow-up).** Its unit tests and the `DummyOrSearchFilterable` scenarios went with it. The scheduled, draft, ancestor-gated and publishable-draft scenarios remain, in `features/main/search_parameter.feature` against the `search` parameter. The lesson below still applies to any filter: never `orWhere()`.
 
 `OrSearchFilter::addWhereByStrategy()` built its clauses with `$queryBuilder->orWhere(...)`. **Doctrine's `orWhere()` ORs against the entire accumulated WHERE, not just among the filter's own clauses.** AP4 registers `FilterExtension` at priority `-16` while this bundle's query extensions carry no explicit priority and therefore default to `0` — higher priority runs first, so the extensions add their predicates **before** the filter runs and the filter then ORs them away:
 

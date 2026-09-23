@@ -349,18 +349,6 @@ parameters:
 			path: src/Factory/User/Mailer/VerifyEmailFactory.php
 
 		-
-			message: '#^If condition is always false\.$#'
-			identifier: if.alwaysFalse
-			count: 1
-			path: src/Filter/OrSearchFilter.php
-
-		-
-			message: '#^Match arm comparison between string and null is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: src/Filter/OrSearchFilter.php
-
-		-
 			message: '#^Result of && is always false\.$#'
 			identifier: booleanAnd.alwaysFalse
 			count: 2
