@@ -11,13 +11,18 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection\CompilerPass;
 
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use Doctrine\ORM\OptimisticLockException;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
+use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\ScopingHttpClient;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterface;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 
 class ApiPlatformCompilerPassTest extends TestCase
 {
@@ -88,10 +93,45 @@ class ApiPlatformCompilerPassTest extends TestCase
         self::assertFalse($container->hasDefinition('api_platform.doctrine.orm.listener.mercure.publish'));
     }
 
+    public function test_api_platform_default_exception_statuses_are_appended_after_the_configured_ones(): void
+    {
+        $container = $this->createContainer();
+        $container->setParameter('api_platform.exception_to_status', [
+            UnroutedParentException::class => 422,
+            NotNormalizableValueException::class => 422,
+        ]);
+
+        (new ApiPlatformCompilerPass())->process($container);
+
+        self::assertSame([
+            UnroutedParentException::class => 422,
+            NotNormalizableValueException::class => 422,
+            SerializerExceptionInterface::class => 400,
+            InvalidArgumentException::class => 400,
+            OptimisticLockException::class => 409,
+        ], $container->getParameter('api_platform.exception_to_status'));
+    }
+
+    public function test_a_configured_status_for_a_default_exception_is_kept(): void
+    {
+        $container = $this->createContainer();
+        $container->setParameter('api_platform.exception_to_status', [
+            OptimisticLockException::class => 412,
+        ]);
+
+        (new ApiPlatformCompilerPass())->process($container);
+
+        $exceptionToStatus = $container->getParameter('api_platform.exception_to_status');
+        self::assertSame(412, $exceptionToStatus[OptimisticLockException::class]);
+        self::assertSame(OptimisticLockException::class, array_key_first($exceptionToStatus));
+        self::assertCount(3, $exceptionToStatus);
+    }
+
     private function createContainer(): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->setParameter('api_platform.collection.pagination.items_per_page_parameter_name', 'perPage');
+        $container->setParameter('api_platform.exception_to_status', []);
         $container->setDefinition(CollectionApiEventListener::class, new Definition(CollectionApiEventListener::class));
         $container->setDefinition(self::FLUSHER_ID, new Definition());
         $container->setDefinition('api_platform.doctrine.listener.http_cache.purge', new Definition());
