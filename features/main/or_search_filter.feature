@@ -10,27 +10,34 @@ Feature: A search filter combines its own clauses with OR and ANDs them against 
   Scenario: A filtered anonymous route collection still excludes a scheduled route
     Given there is a Route "/launch" with a page
     And the Route "/launch" goes live at "2999-01-01T00:00:00+00:00"
-    When I send a "GET" request to "/_/routes?path=launch"
+    When I send a "GET" request to "/_/routes?search=launch"
     Then the response status code should be 200
     And the JSON node "member[0]" should not exist
 
   Scenario: A filtered anonymous route collection still excludes a draft route
     Given there is a Route "/launch" with a page
     And the Route "/launch" has no go-live date
-    When I send a "GET" request to "/_/routes?path=launch"
+    When I send a "GET" request to "/_/routes?search=launch"
     Then the response status code should be 200
     And the JSON node "member[0]" should not exist
 
   Scenario: A filtered anonymous route collection still excludes a route gated by its ancestor
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
     And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
-    When I send a "GET" request to "/_/routes?path=programme"
+    When I send a "GET" request to "/_/routes?search=programme"
     Then the response status code should be 200
     And the JSON node "member[0]" should not exist
 
+  Scenario: The route search parameter matches part of the path
+    Given there is a Route "/launch" with a page and a redirect to "/contact"
+    When I send a "GET" request to "/_/routes?search=LAUN"
+    Then the response status code should be 200
+    And the JSON node "totalItems" should be equal to "1"
+    And the JSON node "member[0].path" should be equal to the string "/launch"
+
   Scenario: A filtered anonymous route collection still returns a live route
     Given there is a Route "/launch" with a page
-    When I send a "GET" request to "/_/routes?path=launch"
+    When I send a "GET" request to "/_/routes?search=launch"
     Then the response status code should be 200
     And the JSON node "totalItems" should be equal to "1"
     And the JSON node "member[0].path" should be equal to the string "/launch"

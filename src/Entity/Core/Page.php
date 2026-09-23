@@ -11,15 +11,19 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SortFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\ApiPlatform\Parameter\BooleanQueryValue;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
-use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -32,10 +36,15 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 #[ORM\AssociationOverrides([
     new ORM\AssociationOverride(name: 'route', inversedBy: 'page'),
 ])]
-#[ApiResource(mercure: true, order: ['createdAt' => 'DESC'])]
-#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
-#[ApiFilter(OrSearchFilter::class, properties: ['title' => 'ipartial', 'reference' => 'ipartial', 'uiComponent' => 'ipartial', 'layout.reference' => 'ipartial'])]
-#[ApiFilter(\ApiPlatform\Doctrine\Orm\Filter\SearchFilter::class, properties: ['isTemplate' => 'exact'])]
+#[ApiResource(
+    mercure: true,
+    order: ['createdAt' => 'DESC'],
+    parameters: [
+        'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['title', 'reference', 'uiComponent']),
+        'order[:property]' => new QueryParameter(filter: new SortFilter(), properties: ['createdAt', 'reference']),
+        'isTemplate' => new QueryParameter(filter: new ExactFilter(), castToNativeType: true, castFn: [BooleanQueryValue::class, 'cast']),
+    ],
+)]
 class Page extends AbstractPage
 {
     use UiTrait;

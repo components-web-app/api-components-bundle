@@ -186,31 +186,48 @@ Feature: Page resources
     And the JSON node "member[1].reference" should be equal to "page_1"
 
   @loginAdmin
-  Scenario: The page resources can be searched by reference
+  Scenario: The page search parameter matches the reference
     Given there is a Page with the reference "primary"
     And there is a Page with the reference "secondary"
-    When I send a "GET" request to "/_/pages?reference=primary"
+    When I send a "GET" request to "/_/pages?search=primary"
     Then the response status code should be 200
     And the JSON node "member" should have "1" element
     And the JSON node "member[0].reference" should be equal to "primary"
 
   @loginAdmin
-  Scenario: The page resources can be searched by title
+  Scenario: The page search parameter matches part of the title, ignoring case
     Given there is a Page with the reference "conf" and with the title "My Conference"
     And there is a Page with the reference "contact" and with the title "Contact Us"
-    When I send a "GET" request to "/_/pages?title=Conference"
+    When I send a "GET" request to "/_/pages?search=conference"
     Then the response status code should be 200
     And the JSON node "member" should have "1" element
     And the JSON node "member[0].reference" should be equal to "conf"
 
   @loginAdmin
-  Scenario: The page resources can be searched by uiComponent
+  Scenario: The page search parameter matches the uiComponent
     Given there is a Page with the reference "primary" and with the uiComponent "PrimaryPage"
     And there is a Page with the reference "secondary" and with the uiComponent "SecondaryPage"
-    When I send a "GET" request to "/_/pages?uiComponent=PrimaryPage"
+    When I send a "GET" request to "/_/pages?search=PrimaryPage"
     Then the response status code should be 200
     And the JSON node "member" should have "1" element
     And the JSON node "member[0].reference" should be equal to "primary"
+
+  @loginAdmin
+  Scenario: The page search parameter matches across fields with OR
+    Given there is a Page with the reference "alpha-page" and with the title "Unrelated"
+    And there is a Page with the reference "other" and with the title "The Alpha Title"
+    And there is a Page with the reference "neither" and with the title "Nothing"
+    When I send a "GET" request to "/_/pages?search=alpha"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
+
+  @loginAdmin
+  Scenario: A per-field search parameter no longer filters pages
+    Given there is a Page with the reference "primary"
+    And there is a Page with the reference "secondary"
+    When I send a "GET" request to "/_/pages?reference=primary"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
 
   @loginAdmin
   Scenario: The page resources can be filtered to show only templates
@@ -220,6 +237,24 @@ Feature: Page resources
     Then the response status code should be 200
     And the JSON node "member" should have "1" element
     And the JSON node "member[0].reference" should be equal to "my-template"
+
+  @loginAdmin
+  Scenario: The page template filter accepts the module's list of values
+    Given there is a template Page with the reference "my-template"
+    And there is a Page with the reference "not-a-template"
+    When I send a "GET" request to "/_/pages?isTemplate[]=true"
+    Then the response status code should be 200
+    And the JSON node "member" should have "1" element
+    And the JSON node "member[0].reference" should be equal to "my-template"
+    When I send a "GET" request to "/_/pages?isTemplate[]=true&isTemplate[]=false"
+    Then the response status code should be 200
+    And the JSON node "member" should have "2" elements
+
+  @loginAdmin
+  Scenario: An invalid sort direction is refused
+    Given there is a Page with the reference "primary"
+    When I send a "GET" request to "/_/pages?order[reference]=sideways"
+    Then the response status code should be 422
 
   @loginAdmin
   Scenario: I can get a resource manifest for a nested Page by UUID

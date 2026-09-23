@@ -54,10 +54,10 @@ Feature: Layout resources
     And the JSON node "member" should have "2" elements
 
   @loginUser
-  Scenario: The layout resources can be filtered by reference
+  Scenario: The layout search parameter matches the reference
     Given there is a Layout with the reference "primary"
     And there is a Layout with the reference "secondary"
-    When I send a "GET" request to "/_/layouts?reference=primary"
+    When I send a "GET" request to "/_/layouts?search=primary"
     Then the response status code should be 200
     And the JSON node "member" should have "1" element
 
@@ -102,10 +102,10 @@ Feature: Layout resources
     And the JSON node "member[1].reference" should be equal to "layout_1"
 
   @loginUser
-  Scenario: The layout resources can be filtered by ui components
+  Scenario: The layout search parameter matches the ui component
     Given there is a Layout with the reference "primary" and with the uiComponent "PrimaryLayout"
     And there is a Layout with the reference "secondary" and with the uiComponent "SecondaryLayout"
-    When I send a "GET" request to "/_/layouts?uiComponent=PrimaryLayout"
+    When I send a "GET" request to "/_/layouts?search=PrimaryLayout"
     Then the response status code should be 200
     And the JSON node "member" should have "1" elements
     And the JSON node "member[0].reference" should be equal to "primary"
