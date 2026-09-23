@@ -905,6 +905,18 @@ The test app's `PublicUrlLocalFilesystemAdapter` existed only to work around thi
 
 ---
 
+### #299 — A missing source image skips its imagine filters instead of failing the resource ✓ **DONE**
+
+`MediaObjectFactory::create()` returns early from the `_acb_file_info` cache without touching storage. So for a file uploaded earlier, the `UnableToReadFile|UnableToRetrieveMetadata` guard around it never fires when the object is gone from storage. Examples: production data restored locally, or an offline environment with cloud files (#159). `getMediaObjectsForImagineFilters()` then asked Liip for each filter, `FlysystemDataLoader::find()` threw `NotLoadableException`, and the whole GET was a 500.
+
+Each filter now catches `NotLoadableException`, skips that filter's media object, and logs a **warning** with `filter`, `path` and `exception` in the context. A missing source file in production is worth noticing but is not a request failure. The original media object still comes from the cache, so the field keeps its download URL. The logger is the factory's optional last constructor argument, wired as `new Reference('logger', NULL_ON_INVALID_REFERENCE)`.
+
+**To reproduce in Behat, the cache row must exist first.** The scenario GETs the resource once while the file is present, then deletes the stored file, then GETs again. Without the warm-up GET, `create()` reaches storage, and the pre-existing guard skips the field before imagine is ever asked, so the scenario passes against the unfixed code.
+
+Tests: `features/uploads/uploads.feature` ("A missing source image skips its imagine filters…"), with the steps `the stored file for the resource :name has been removed from its filestore` (`UploadsContext`) and `a missing source image for the imagine filter :filter should have been logged` (`ProfilerContext`). Unit: `tests/Factory/Uploadable/MediaObjectFactoryImagineTest.php`.
+
+---
+
 ### Deleted-file markers are keyed per resource, never per property name ✓ **DONE**
 
 A `PATCH {"file": null}` clears an uploadable field. `UploadableNormalizer` records that intent so `UploadableFileManager::persistFiles()` can tell "no file submitted" from "the file was explicitly removed" — the payload looks identical either way.
