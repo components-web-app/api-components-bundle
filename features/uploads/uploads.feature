@@ -412,3 +412,16 @@ Feature: API Resources which can have files uploaded
     And the resource "second_upload" should have a different filename to the resource "first_upload"
     And the file for the resource "first_upload" should exist in its configured filestore
     And the file for the resource "second_upload" should exist in its configured filestore
+
+  @loginUser
+  Scenario: A missing source image skips its imagine filters instead of failing the resource
+    Given there is a DummyUploadableWithImagineFilters
+    And I send a "GET" request to the resource "dummy_uploadable"
+    And the stored file for the resource "dummy_uploadable" has been removed from its filestore
+    When I send a "GET" request to the resource "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[0].contentUrl" should be a valid download link for the resource "dummy_uploadable"
+    And the JSON node "_metadata.mediaObjects.file[0].imagineFilter" should not exist
+    And the JSON node "_metadata.mediaObjects.file[1]" should not exist
+    And a missing source image for the imagine filter "thumbnail" should have been logged
+    And a missing source image for the imagine filter "square_thumbnail" should have been logged

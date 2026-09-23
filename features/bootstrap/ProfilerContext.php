@@ -16,6 +16,7 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
+use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
 use Monolog\Handler\TestHandler;
 use Monolog\Level;
 use Monolog\LogRecord;
@@ -118,6 +119,22 @@ class ProfilerContext implements Context
         }
 
         throw new ExpectationException(\sprintf('No ignored filter value was logged for the field "%s".', $field), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then a missing source image for the imagine filter :filter should have been logged
+     */
+    public function aMissingSourceImageForTheImagineFilterShouldHaveBeenLogged(string $filter): void
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+        foreach ($handler->getRecords() as $record) {
+            if (Level::Warning === $record->level && $filter === ($record->context['filter'] ?? null) && ($record->context['exception'] ?? null) instanceof NotLoadableException) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No missing source image was logged for the imagine filter "%s".', $filter), $this->minkContext->getSession()->getDriver());
     }
 
     /**

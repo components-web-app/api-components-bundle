@@ -596,7 +596,8 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(FilesystemFactory::class),
                 new Reference(UrlHelper::class),
                 tagged_locator(UploadableUrlGeneratorInterface::TAG, 'alias'),
-                null, // populated in dependency injection
+                null,
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ]
         );
     $services->alias(MediaObjectFactory::class, 'silverback.api_components.factory.uploadable.media_object');

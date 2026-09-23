@@ -342,6 +342,22 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given the stored file for the resource :name has been removed from its filestore
+     */
+    public function theStoredFileForTheResourceHasBeenRemovedFromItsFilestore(string $name): void
+    {
+        $item = $this->getUploadableResourceByName($name);
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        foreach ($this->uploadableAttributeReader->getConfiguredProperties($item, true) as $fieldConfiguration) {
+            $filePath = $propertyAccessor->getValue($item, $fieldConfiguration->property);
+            if (empty($filePath)) {
+                continue;
+            }
+            $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter)->delete($filePath);
+        }
+    }
+
+    /**
      * @Then the resource :name should have :count component positions
      */
     public function theResourceShouldHaveComponentPositions(string $name, int $count): void

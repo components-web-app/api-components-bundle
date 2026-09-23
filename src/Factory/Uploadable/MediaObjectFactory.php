@@ -17,7 +17,9 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToGeneratePublicUrl;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
+use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
 use Liip\ImagineBundle\Service\FilterService;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
@@ -51,6 +53,7 @@ class MediaObjectFactory
         private readonly UrlHelper $urlHelper,
         private readonly ServiceLocator $urlGenerators,
         private readonly ?FilterService $filterService = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->initRegistry($managerRegistry);
     }
@@ -137,7 +140,16 @@ class MediaObjectFactory
         }
 
         foreach ($filters as $filter) {
-            $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
+            try {
+                $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
+            } catch (NotLoadableException $exception) {
+                $this->logger?->warning(\sprintf('Skipped the imagine filter "%s" because its source image "%s" could not be loaded.', $filter, $path), [
+                    'filter' => $filter,
+                    'path' => $path,
+                    'exception' => $exception,
+                ]);
+                continue;
+            }
             $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
         }
 
