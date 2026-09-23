@@ -780,6 +780,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(Authorization::class),
                 new Reference('request_stack'),
                 new Reference(AuthorizationCheckerInterface::class),
+                new Reference(RouterInterface::class),
                 '',
                 null,
                 false,

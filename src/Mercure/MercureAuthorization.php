@@ -22,11 +22,15 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 class MercureAuthorization
 {
+    private const string SYMFONY_FORMAT_SUFFIX = '.{_format}';
+    private const string URI_TEMPLATE_FORMAT_SUFFIX = '{._format}';
+
     public function __construct(
         private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
         private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
@@ -35,6 +39,7 @@ class MercureAuthorization
         private readonly Authorization $mercureAuthorization,
         private readonly RequestStack $requestStack,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
+        private readonly RouterInterface $router,
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
         private readonly ?string $hubName = null,
         private readonly bool $secureSubscriptions = false,
@@ -82,7 +87,7 @@ class MercureAuthorization
         $refl = new \ReflectionClass($operation->getClass());
         $isPublishable = \count($refl->getAttributes(Publishable::class));
 
-        $uriTemplate = $this->buildAbsoluteUriTemplate() . $operation->getRoutePrefix() . $operation->getUriTemplate();
+        $uriTemplate = $this->buildAbsoluteUriTemplate() . $this->getOperationUriTemplate($operation);
         $subscribeIris = [$uriTemplate];
 
         if (!$isPublishable) {
@@ -93,6 +98,20 @@ class MercureAuthorization
         }
 
         return $subscribeIris;
+    }
+
+    private function getOperationUriTemplate(HttpOperation $operation): string
+    {
+        $path = $this->router->getRouteCollection()->get((string) $operation->getName())?->getPath();
+        if (null === $path) {
+            return $operation->getRoutePrefix() . $operation->getUriTemplate();
+        }
+
+        if (str_ends_with($path, self::SYMFONY_FORMAT_SUFFIX)) {
+            return substr($path, 0, -\strlen(self::SYMFONY_FORMAT_SUFFIX)) . self::URI_TEMPLATE_FORMAT_SUFFIX;
+        }
+
+        return $path;
     }
 
     private function isOperationAccessible(HttpOperation $operation): bool
