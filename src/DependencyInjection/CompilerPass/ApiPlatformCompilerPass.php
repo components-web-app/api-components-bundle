@@ -14,12 +14,16 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class ApiPlatformCompilerPass implements CompilerPassInterface
 {
+    private const string HTTP_CACHE_FLUSHER = 'silverback.api_components.http_cache.flusher';
+    private const string INVALIDATION_CLIENT_PREFIX = 'api_platform.invalidation_http_client.';
+
     public function process(ContainerBuilder $container): void
     {
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
@@ -33,10 +37,29 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
             $container->removeDefinition('silverback.api_components.http_cache.purger');
         }
 
+        $this->configureHttpCacheFlusher($container);
+
         $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
         if ($container->hasDefinition($apiPlatformMercurePublishListener)) {
             // we have implemented fully custom logic
             $container->removeDefinition($apiPlatformMercurePublishListener);
         }
+    }
+
+    private function configureHttpCacheFlusher(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(self::HTTP_CACHE_FLUSHER)) {
+            return;
+        }
+
+        $invalidationClients = [];
+        foreach ($container->getDefinitions() as $id => $definition) {
+            if (!str_starts_with($id, self::INVALIDATION_CLIENT_PREFIX)) {
+                continue;
+            }
+            $invalidationClients[] = ['url' => $definition->getArgument(1), 'client' => new Reference($id)];
+        }
+
+        $container->getDefinition(self::HTTP_CACHE_FLUSHER)->setArgument('$invalidationClients', $invalidationClients);
     }
 }
