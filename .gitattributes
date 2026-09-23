@@ -1,7 +1,6 @@
 /.gitattributes export-ignore
 /.github export-ignore
 /.gitignore export-ignore
-/.scrutinizer.yml export-ignore
 /.php-cs-fixer.dist.php export-ignore
 /docs export-ignore
 /behat.yml.dist export-ignore
