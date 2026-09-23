@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
@@ -24,13 +25,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * Filters componentPositions to only include positions whose component class is in allowedComponents.
- * pageDataProperty positions (no component) are always kept.
- * Components that violate the restriction remain in the database — they are only hidden from the response.
- *
- * On write, converts any PHP FQCN in allowedComponents to a collection IRI so the stored value is
- * always an IRI (e.g. /component/navigation_links) regardless of what the client sends.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
@@ -59,7 +53,7 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
         $allowed = $object->allowedComponents;
         $original = $object->componentPositions;
 
-        $object->componentPositions = $original->filter(
+        $object->componentPositions = new ArrayCollection(array_values($original->filter(
             function (ComponentPosition $position) use ($allowed): bool {
                 if (!$position->component) {
                     return true;
@@ -73,7 +67,7 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
 
                 return \in_array($iri, $allowed, true);
             }
-        );
+        )->toArray()));
 
         $result = $this->normalizer->normalize($object, $format, $context);
         $object->componentPositions = $original;

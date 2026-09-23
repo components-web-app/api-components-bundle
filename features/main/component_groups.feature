@@ -151,3 +151,12 @@ Feature: ComponentGroup resource
     Then the response status code should be 200
     And the JSON node "allowedComponents[0]" should be equal to "/component/dummy_components"
 
+  @loginAdmin
+  Scenario: Positions hidden by allowedComponents still leave componentPositions as a JSON list
+    Given there is a ComponentGroup with 1 components
+    And the ComponentGroup has a RestrictedComponent position with the sortValue -10
+    And the ComponentGroup has the allowedComponent "/component/dummy_components"
+    When I send a "GET" request to the resource "component_group"
+    Then the response status code should be 200
+    And the JSON node "componentPositions" should have 1 element
+    And the JSON node "componentPositions[0]" should be equal to the IRI of the resource "position_0"
