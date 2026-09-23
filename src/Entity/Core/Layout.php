@@ -11,10 +11,13 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SortFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,7 +25,6 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
-use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -39,9 +41,11 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
     denormalizationContext: ['groups' => ['Layout:write']],
     mercure: true,
     order: ['createdAt' => 'DESC'],
+    parameters: [
+        'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['reference', 'uiComponent']),
+        'order[:property]' => new QueryParameter(filter: new SortFilter(), properties: ['createdAt', 'reference']),
+    ],
 )]
-#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'reference'], arguments: ['orderParameterName' => 'order'])]
-#[ApiFilter(OrSearchFilter::class, properties: ['reference' => 'ipartial', 'uiComponent' => 'ipartial'])]
 #[UniqueEntity(fields: ['reference'], message: 'There is already a Layout with that reference.')]
 class Layout
 {

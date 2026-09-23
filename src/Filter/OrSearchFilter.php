@@ -28,6 +28,9 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
+/**
+ * @deprecated API Platform deprecated AbstractFilter. Declare a QueryParameter using FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())) instead. The bundle no longer uses this class.
+ */
 final class OrSearchFilter extends AbstractFilter implements SearchFilterInterface
 {
     use SearchFilterTrait;

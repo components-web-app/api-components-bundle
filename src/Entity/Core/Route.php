@@ -11,8 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SortFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -21,6 +23,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,7 +32,6 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenState
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
-use Silverback\ApiComponentsBundle\Filter\OrSearchFilter;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -60,10 +62,15 @@ use Symfony\Component\Validator\Constraints as Assert;
     paginationClientItemsPerPage: true,
     provider: RouteStateProvider::class
 )]
-#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'path'], arguments: ['orderParameterName' => 'order'])]
-#[ApiFilter(OrSearchFilter::class, properties: ['path' => 'ipartial'])]
 #[Post]
-#[GetCollection(paginationClientEnabled: true, order: ['createdAt' => 'DESC'])]
+#[GetCollection(
+    paginationClientEnabled: true,
+    order: ['createdAt' => 'DESC'],
+    parameters: [
+        'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['path']),
+        'order[:property]' => new QueryParameter(filter: new SortFilter(), properties: ['createdAt', 'path']),
+    ],
+)]
 #[Delete(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Put(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
