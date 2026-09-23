@@ -53,8 +53,8 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
 
     private function appendApiPlatformDefaultExceptionStatuses(ContainerBuilder $container): void
     {
+        /** @var ArrayNode $tree */
         $tree = (new ApiPlatformConfiguration())->getConfigTreeBuilder()->buildTree();
-        \assert($tree instanceof ArrayNode);
         $defaults = $tree->getChildren()['exception_to_status']->getDefaultValue();
 
         $container->setParameter(self::EXCEPTION_TO_STATUS, $container->getParameter(self::EXCEPTION_TO_STATUS) + $defaults);
