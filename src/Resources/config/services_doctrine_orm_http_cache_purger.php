@@ -13,10 +13,13 @@
  * @author Daniel West <daniel@silverback.is>
  */
 
+use Silverback\ApiComponentsBundle\Command\PurgeHttpCacheCommand;
 use Silverback\ApiComponentsBundle\Command\PurgeRenderedHtmlCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\HttpCachePurgeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RenderedHtmlPurgeStateProcessor;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
+use Silverback\ApiComponentsBundle\HttpCache\HttpCacheFlusher;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\HttpCache\ManifestKeyResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -74,4 +77,32 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('api_platform.state_processor');
     $services->alias('silverback.api_components.api_platform.state_processor.rendered_html_purge', RenderedHtmlPurgeStateProcessor::class);
+
+    $services
+        ->set('silverback.api_components.http_cache.flusher')
+        ->class(HttpCacheFlusher::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('api_platform.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            '$invalidationClients' => [],
+        ]);
+    $services->alias(HttpCacheFlusher::class, 'silverback.api_components.http_cache.flusher');
+
+    $services
+        ->set('silverback.api_components.command.purge_http_cache')
+        ->class(PurgeHttpCacheCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference('silverback.api_components.http_cache.flusher'),
+        ]);
+    $services->alias(PurgeHttpCacheCommand::class, 'silverback.api_components.command.purge_http_cache');
+
+    $services
+        ->set(HttpCachePurgeStateProcessor::class)
+        ->args([
+            new Reference('silverback.api_components.http_cache.flusher'),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_processor');
+    $services->alias('silverback.api_components.api_platform.state_processor.http_cache_purge', HttpCachePurgeStateProcessor::class);
 };

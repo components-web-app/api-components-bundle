@@ -253,6 +253,7 @@ Key current group assignments:
 | `PATCH /_/routes/{id}` | Accepts optional `cascadeChildPaths: true` — when `path` changes, walks descendants and updates their route paths (prefixing with the new parent path), creating redirects from old to new paths. A descendant page with no route is passed through, not a dead end: its routed descendants are still cascaded (#256). |
 | `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. A page with no route gets no node; its routed descendants are listed in its place (#256). |
 | `POST /_/rendered_html/purge` | Purges the `cwa-html` rendered-HTML cache tag and nothing else (`ROLE_ADMIN`, no body, 204). The deploy path is the console command `silverback:api-components:purge-rendered-html`; this endpoint is for the admin button. See #243. |
+| `POST /_/http_cache/purge` | Flushes the whole HTTP cache, API and HTML together (`ROLE_ADMIN`, no body, 204; 501 when the purger cannot flush). The deploy path is the console command `silverback:api-components:purge-http-cache`. See #290. |
 
 ---
 
@@ -1160,6 +1161,35 @@ References: `src/HttpCache/HttpCachePurger.php`, `src/DependencyInjection/Config
 The new `ProfilerContext` step `:tag should be the only cache tag purged` is built on `collectPurgedTags()`. Unit tests: `tests/Command/PurgeRenderedHtmlCommandTest.php` and `tests/DataProcessor/StateProcessor/RenderedHtmlPurgeStateProcessorTest.php`. Both build the service **from its definition** in a bare `ContainerBuilder`, with the purger replaced by a mock, rather than constructing the class directly, so a definition that cannot construct its class fails the test. No kernel is booted (see the Risky/Infection warning under `kernel.reset`).
 
 References: `src/HttpCache/HttpCachePurger.php`, `src/Command/PurgeRenderedHtmlCommand.php`, `src/ApiResource/RenderedHtmlPurge.php`, `src/DataProcessor/StateProcessor/RenderedHtmlPurgeStateProcessor.php`, `src/Resources/config/services_doctrine_orm_http_cache_purger.php`, `features/bootstrap/ProfilerContext.php`.
+
+---
+
+### #290 — Flush the whole HTTP cache, API and HTML together (template: components-web-app #85) ✓ **DONE**
+
+A shared cache store (Redis, template #85) survives deploys, and prod's API `s-maxage` is a year, so a response whose shape changed in a deploy would otherwise be served stale for that long. `HttpCacheFlusher` sends `PURGE <invalidation-url>/flush` (Souin's flush endpoint). Two callers:
+
+- **Console command `silverback:api-components:purge-http-cache`**, the deploy path, run with `kubectl exec` like #243's command.
+- **`POST /_/http_cache/purge`**, the admin button. Same shape as `/_/rendered_html/purge`: `input: false`, `output: false`, 204, `ROLE_ADMIN`, `read: true`.
+
+**A sibling operation, not a `scope` on the #243 one.** `/_/rendered_html/purge` pins that no body or query string can widen its purge, and that guarantee comes from `input: false`. A scope parameter on it would have reversed the guarantee. **There is no API-only flush:** page HTML is rendered from API responses, so dropping the API while keeping the HTML leaves pages built from old data.
+
+**Flush, not a constant tag.** `CwaTagCollector` only sees resources serialized through `AbstractItemNormalizer`, so a tag on every API response would miss `/_api/docs.jsonld`, an empty collection and anything else served outside that normalizer. A partial "purge all" is worse than one that clearly does not run.
+
+**Where the URL comes from.** API Platform exposes the invalidation URLs as no parameter, and a `ScopingHttpClient` cannot report its `base_uri`. `ApiPlatformCompilerPass` reads argument 1 (the URL) of every `api_platform.invalidation_http_client.*` definition and hands the flusher `[url, client]` pairs, so the flush goes through the invalidation client and keeps its `request_options`. Clients added through `scoped_clients` have no readable URL and are left out.
+
+> **Never send the flush as the relative path `flush`.** The template's invalidation URL is `http://localhost:2019/souin-api/souin` with no trailing slash, so RFC 3986 resolution replaces the last segment and a relative `flush` lands on `/souin-api/flush`. The flusher builds `rtrim(url, '/') . '/flush'` as an absolute URL.
+
+**Only a `SouinPurger` (or subclass) can flush.** For any other purger, or none, or no known URL, `canFlush()` is false:
+- The command prints that nothing was flushed and **exits 0**, so a deploy step never fails because the application's cache has no flush.
+- The endpoint returns **501**. An admin button reporting 204 when nothing happened would be the lie #283 ruled out.
+
+**A flush that should have worked and did not is a failure.** A transport error or a non-2xx response becomes `HttpCacheFlushFailedException`, and the command **exits 1** with the message. Unlike "cannot flush", this leaves stale responses the deploy expected to be gone.
+
+**The harness cannot reach the 204.** The Behat app runs the Varnish xkey purger, so `features/main/purge_http_cache_operation.feature` covers the 501, 405, 403 and 401 and that no PURGE request is sent. The flush request itself is covered in `tests/HttpCache/HttpCacheFlusherTest.php` through `MockHttpClient` behind a real `ScopingHttpClient`. New step: `no cache purge request should have been sent` (`ProfilerContext`, reads the `http_client` collector traces). Unit tests: `tests/DependencyInjection/CompilerPass/ApiPlatformCompilerPassTest.php`, `tests/Command/PurgeHttpCacheCommandTest.php`, `tests/DataProcessor/StateProcessor/HttpCachePurgeStateProcessorTest.php`.
+
+> **Not verified here:** what Souin's flush does on its Redis storer. If it flushes the whole Redis database and that database is shared with anything else, the flush wipes that too. Confirm before template #85 relies on it.
+
+References: `src/HttpCache/HttpCacheFlusher.php`, `src/Command/PurgeHttpCacheCommand.php`, `src/ApiResource/HttpCachePurge.php`, `src/DataProcessor/StateProcessor/HttpCachePurgeStateProcessor.php`, `src/DependencyInjection/CompilerPass/ApiPlatformCompilerPass.php`, `src/Exception/HttpCacheFlushFailedException.php`.
 
 ---
 

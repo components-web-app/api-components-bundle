@@ -317,6 +317,27 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Then no cache purge request should have been sent
+     */
+    public function noCachePurgeRequestShouldHaveBeenSent(): void
+    {
+        /** @var HttpClientDataCollector $collector */
+        $collector = $this->getProfile()->getCollector('http_client');
+        $sent = [];
+        foreach ($collector->getClients() as $clientInfo) {
+            foreach ($clientInfo['traces'] as $trace) {
+                if ('PURGE' === $trace['method']) {
+                    $sent[] = $trace['url'];
+                }
+            }
+        }
+        if ([] === $sent) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('No cache purge request should have been sent, but PURGE requests were sent to `%s`', implode('`, `', $sent)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
      * @Then /^the cache tag "([^"]*)" should be purged (\d+) times?$/
      */
     public function theCacheTagShouldBePurgedTimes(string $tag, int $count)
