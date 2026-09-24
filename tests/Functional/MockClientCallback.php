@@ -21,8 +21,19 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 class MockClientCallback
 {
+    private static bool $cacheUnreachable = false;
+
+    public static function setCacheUnreachable(bool $cacheUnreachable): void
+    {
+        self::$cacheUnreachable = $cacheUnreachable;
+    }
+
     public function __invoke(string $method, string $url, array $options = []): ResponseInterface
     {
+        if (self::$cacheUnreachable && 'PURGE' === $method) {
+            return new MockResponse('', ['error' => \sprintf('Could not resolve host: %s', parse_url($url, \PHP_URL_HOST))]);
+        }
+
         return new MockResponse('OK');
     }
 }

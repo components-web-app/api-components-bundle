@@ -20,7 +20,10 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\PersistentCollection;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 
 class HttpCachePurger implements ResourceChangedPropagatorInterface
 {
@@ -39,6 +42,7 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         private readonly ?CwaCollectorData $collectorData = null,
         private readonly array $purgeRenderedHtmlClasses = [],
         private readonly ?ManifestKeyResolver $manifestKeyResolver = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->reset();
     }
@@ -134,8 +138,16 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
             return;
         }
 
-        $this->send($iris);
-        $this->reset();
+        try {
+            $this->send($iris);
+        } catch (HttpCachePurgeFailedException $exception) {
+            $this->logger?->error(\sprintf('The HTTP cache purge after a write failed, so these tags may still be cached; the write itself was saved: %s', $exception->getMessage()), [
+                'tags' => $iris,
+                'exception' => $exception->getPrevious(),
+            ]);
+        } finally {
+            $this->reset();
+        }
     }
 
     public function purgeRenderedHtml(): void
@@ -146,7 +158,15 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     private function send(array $iris): void
     {
         $this->collectorData?->recordCachePurge($iris);
-        $this->httpCachePurger && $this->httpCachePurger->purge($iris);
+        if (null === $this->httpCachePurger) {
+            return;
+        }
+
+        try {
+            $this->httpCachePurger->purge($iris);
+        } catch (HttpClientExceptionInterface|RuntimeException $exception) {
+            throw new HttpCachePurgeFailedException(\sprintf('Failed to purge the HTTP cache tags "%s": %s', implode('", "', $iris), $exception->getMessage()), previous: $exception);
+        }
     }
 
     public function reset(): void

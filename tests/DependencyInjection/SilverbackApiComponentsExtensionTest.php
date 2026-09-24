@@ -25,6 +25,8 @@ use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
+use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -104,6 +106,8 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(401, $mapped[ApiPlatformAuthenticationException::class]);
         self::assertSame(401, $mapped[UserDisabledException::class]);
         self::assertSame(422, $mapped[UnroutedParentException::class]);
+        self::assertSame(502, $mapped[HttpCachePurgeFailedException::class]);
+        self::assertSame(502, $mapped[HttpCacheFlushFailedException::class]);
     }
 
     public function test_api_platform_runs_on_symfony_listeners(): void

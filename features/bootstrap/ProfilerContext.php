@@ -28,6 +28,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
+use Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
@@ -42,6 +43,7 @@ use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeExcept
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\VarDumper\Cloner\Data;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -86,6 +88,81 @@ class ProfilerContext implements Context
     public function theMercureHubIsUnreachable(): void
     {
         HubStub::setUnreachable(true);
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetHttpCache(): void
+    {
+        MockClientCallback::setCacheUnreachable(false);
+    }
+
+    /**
+     * @Given the HTTP cache is unreachable
+     */
+    public function theHttpCacheIsUnreachable(): void
+    {
+        MockClientCallback::setCacheUnreachable(true);
+    }
+
+    /**
+     * @return LogRecord[]
+     */
+    private function getCachePurgeFailureRecords(): array
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+
+        return array_values(array_filter(
+            $handler->getRecords(),
+            static fn (LogRecord $record): bool => Level::Error === $record->level && \is_array($record->context['tags'] ?? null) && ($record->context['exception'] ?? null) instanceof HttpClientExceptionInterface
+        ));
+    }
+
+    /**
+     * @Then the cache purge failure for the resource :name should have been logged
+     */
+    public function theCachePurgeFailureForTheResourceShouldHaveBeenLogged(string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        foreach ($this->getCachePurgeFailureRecords() as $record) {
+            if (\in_array($iri, $record->context['tags'], true)) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No error was logged for the failed cache purge of %s.', $iri), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then no cache purge failure should have been logged
+     */
+    public function noCachePurgeFailureShouldHaveBeenLogged(): void
+    {
+        $records = $this->getCachePurgeFailureRecords();
+        if ([] !== $records) {
+            throw new ExpectationException(\sprintf('%d cache purge failures were logged.', \count($records)), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then a Mercure update should have been published for the resource :name
+     */
+    public function aMercureUpdateShouldHaveBeenPublishedForTheResource(string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        foreach ($this->getMercureMessageObjects() as $update) {
+            foreach ($update->getTopics() as $topic) {
+                if (str_ends_with($topic, $iri)) {
+                    return;
+                }
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No Mercure update was published for %s.', $iri), $this->minkContext->getSession()->getDriver());
     }
 
     /**

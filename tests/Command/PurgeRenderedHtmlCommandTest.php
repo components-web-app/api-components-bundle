@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Command;
 
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Command\PurgeRenderedHtmlCommand;
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
@@ -47,6 +48,20 @@ class PurgeRenderedHtmlCommandTest extends TestCase
 
         $tester = new CommandTester($command);
         self::assertSame(Command::SUCCESS, $tester->execute([]));
+    }
+
+    public function test_the_command_fails_with_the_reason_when_the_purge_fails(): void
+    {
+        $container = $this->loadContainer();
+        $purger = $this->createStub(HttpCachePurger::class);
+        $purger->method('purgeRenderedHtml')->willThrowException(new HttpCachePurgeFailedException('Failed to purge the HTTP cache tags "cwa-html": Could not resolve host: souin'));
+        $container->set(self::PURGER_ID, $purger);
+
+        $tester = new CommandTester($container->get(self::SERVICE_ID));
+
+        self::assertSame(Command::FAILURE, $tester->execute([]));
+        self::assertStringContainsString('Could not resolve host: souin', $tester->getDisplay());
+        self::assertStringNotContainsString('Purged', $tester->getDisplay());
     }
 
     public function test_the_command_succeeds_without_purging_when_no_http_cache_purger_is_configured(): void
