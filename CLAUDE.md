@@ -954,6 +954,36 @@ References: `src/Helper/Uploadable/UploadableFileManager.php` (`getStoredFilePat
 
 ---
 
+### Links in user emails point only at an allowed origin ✓ **DONE**
+
+**Never build an outbound link from a request header without an allow-list.** Every user email that carries a link (password reset, email verification, new email confirmation, welcome, account enabled) used to take its scheme, host and port from the raw `Origin` header, falling back to `Referer`, and took its path from the `redirect_path_query` parameter, with no check on either. Anyone could request an email for another user and choose where its token link pointed. `RefererUrlResolver` now resolves the origin, and **denies by default**:
+
+1. Take the `Origin` header if present, otherwise `Referer`. Reduce it to `scheme://host[:port]`: lower-case, the default port dropped, http/https only, the host limited to DNS labels or a bracketed IPv6 literal. The Referer's path and query are discarded.
+2. If that origin matches `user.email_links.allowed_origins`, use it. This is how an application with several front ends keeps each user's link on the front end they came from.
+3. Otherwise use `user.email_links.default_origin` if set.
+4. Otherwise refuse. No email is sent, and the request is a **400**. The three anonymous actions (`/password/reset/request/{username}`, `/resend-verify-email/{username}`, `/resend-verify-new-email/{username}`) catch `UnparseableRequestHeaderException` and return an empty 400. They used to 500 on a missing header. API Platform operations (register, user writes) get 400 through the existing `exception_to_status` entry. `DisallowedRequestOriginException` (well-formed but not allowed) extends `UnparseableRequestHeaderException`, so one mapping and one `catch` cover both.
+
+```yaml
+silverback_api_components:
+    user:
+        email_links:
+            allowed_origins: ['https://www\.example\.com', 'https://admin\.example\.com']
+            default_origin: '%env(default::EMAIL_LINK_DEFAULT_ORIGIN)%'
+```
+
+- **Patterns are anchored by the bundle.** Each is compiled as `{\A(?:pattern)\z}i` by `RefererUrlResolver::allowedOriginRegex()`, against the whole normalised origin. Nelmio's `origin_regex` and Symfony's `trusted_hosts` are both unanchored substring matches. Anchoring here means a pattern written for those still works, and a pattern that forgot `^…$` cannot match `https://www.example.com.evil.example`. The port is part of the origin, so allowing another port means writing it into the pattern.
+- **The request's own host is not implicitly allowed.** In the CWA template all traffic enters through the API host, so trusting `Request::getSchemeAndHttpHost()` would have needed no config. It was rejected because `Host` is only as trustworthy as `trusted_hosts`, which is unset by default and also unanchored. The template's own `TRUSTED_HOSTS` (`^localhost|caddy(\.local)?|example\.com$`) accepts any host containing `caddy`. A single-host application sets `default_origin` and nothing else.
+- **Request input can only ever be a relative path, and the types enforce it.** `RefererUrlResolver::getAbsoluteUrl()` takes a `RelativeUrlPath`, never a string, and always prefixes the resolved origin. `RelativeUrlPath::fromRequestValue()` accepts only a value starting with `/` that contains no `//`, no `\` and no control character or space. The check runs after the `{{ }}` variables are substituted; they are `rawurlencode`d, so a username cannot add a slash. A rejected value falls back to `default_redirect_path`. A configured value that is already absolute (`https://…` or `//…`) is returned unchanged by `AbstractUserEmailFactory::getConfiguredUrl()`. That is the only place the passthrough exists, and nothing from the request reaches it.
+- **Config validation tolerates parameters.** `default_origin` must be a bare origin and each pattern must compile. Both checks are node validators, which Symfony skips for env placeholders. The extension's `prepend()` also processes the raw configuration before parameters are resolved, so a value containing `%` is left for the real load to validate. The resolver validates again at run time and throws `InvalidArgumentException` for a malformed `default_origin` or pattern taken from an env var. An empty `default_origin` (an unset `default::` env) means no default.
+
+> **Behaviour change for every application.** With no `email_links` configured, every link-bearing email is refused with a 400 until `allowed_origins` or `default_origin` is set. A `redirect_path_query` value that is absolute, protocol-relative or not rooted is ignored in favour of `default_redirect_path`. The Nuxt module sends no redirect query parameters (`auth.ts` calls the bare paths, and form `action`s come from `FormViewFactory` with no query), so it is unaffected.
+
+> **Pre-existing, not changed:** the welcome, account-enabled and verification emails sent from `UserEventListener::onPostWrite()` run after the write has committed, so a refusal there is a 400 for a saved user, the #283 shape. `PasswordRequestAction` also rotates and flushes the reset token before the email is refused.
+
+Tests: `features/user/email_link_host.feature` covers a forged Origin or Referer, a forged Origin beside an allowed Referer, a port mismatch, a suffix-attack host, unsafe `redirect_path_query` values, all three anonymous endpoints plus registration, an allowed origin with a port, the default origin with no header and with a disallowed one, and refusal with no default. The default origin is driven per scenario by the `EMAIL_LINK_DEFAULT_ORIGIN` env var through `links in user emails default to the origin :origin` (`ProfilerContext`), and the link is read by `the link in the sent email should start with :prefix`. Unit tests: `tests/Helper/RefererUrlResolverTest.php`, `tests/Helper/RelativeUrlPathTest.php`, `tests/Factory/User/Mailer/AbstractUserEmailFactoryTest.php`, and the `email_links` cases in `tests/DependencyInjection/ConfigurationTest.php` and `SilverbackApiComponentsExtensionTest.php`.
+
+---
+
 ### Security routes: one path each, and unknown usernames are 404 ✓ **DONE**
 
 `src/Resources/config/routing/security.php` had `api_components_resend_email_verification` registered at `/verify-email/{username}/{token}` — **the same path as `api_components_verify_email`**. Symfony resolves a duplicate path to the first match, so `ResendVerifyEmailAddressAction` was unreachable and the path the Nuxt module calls (`/resend-verify-email/{username}`, `auth.ts:97`) was registered nowhere. Correct path: username only, no token — the action *generates* a token, and its sibling `/resend-verify-new-email/{username}` already had that shape.
@@ -1278,7 +1308,7 @@ Both found by the docs accuracy audit. Neither was quite what the issue describe
 
 **Convention going forward: never put `isRequired()` on a *child* of a node that carries `addDefaultsIfNotSet()` or `canBeDisabled()`.** Either give the child a real default, or make the **parent node itself** `isRequired()` — `ArrayNode::finalizeValue()` checks `isRequired()` at `:214` *before* inserting a default at `:227`, so a required node is enforced on omission while its own children still resolve their defaults when it is present. A node-level `->validate()` expresses invalid **combinations**, not required **presence**: it runs in `finalize()`, i.e. only when the node is present, which is precisely the case that already worked. `user.email_verification` rejects `verify_on_register`/`verify_on_change` without a redirect target that way, and `refresh_token` demands `options.class` for the doctrine handler the same way (#222).
 
-Defaults were chosen to be **all-off** rather than "correct": `deny_unverified_login: true` would lock users out of an application that never configured verification, and `verify_on_register: true` would send emails for which no redirect target exists (`AbstractUserEmailFactory::getTokenPath()` throws). Making the children genuinely required was rejected as a breaking change — it would force config on every application currently omitting the node.
+Defaults were chosen to be **all-off** rather than "correct": `deny_unverified_login: true` would lock users out of an application that never configured verification, and `verify_on_register: true` would send emails for which no redirect target exists (`AbstractUserEmailFactory::getTokenUrl()` throws). Making the children genuinely required was rejected as a breaking change — it would force config on every application currently omitting the node.
 
 The `email` sub-node had no default of its own, so `new_email_confirmation` and `password_reset` had the same defect; all three now use `addDefaultsIfNotSet()` with `default_redirect_path` defaulting to null (which is exactly the previous effective behaviour — `AbstractUserEmailFactory` accepts null and throws a clear exception at send time). `email_verification.enabled` is now actually honoured by `VerifyEmailFactory`, which previously received a hardcoded `true`.
 

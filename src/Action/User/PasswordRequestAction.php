@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Action\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,7 +51,11 @@ class PasswordRequestAction
         }
 
         $this->entityManager->flush();
-        $passwordResetSuccess = $this->mailer->sendPasswordResetEmail($user);
+        try {
+            $passwordResetSuccess = $this->mailer->sendPasswordResetEmail($user);
+        } catch (UnparseableRequestHeaderException) {
+            return new Response(null, Response::HTTP_BAD_REQUEST);
+        }
 
         $response = new Response(null, $passwordResetSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
         $response->setCache([

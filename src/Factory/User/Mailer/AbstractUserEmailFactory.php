@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\RfcComplianceException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\RelativeUrlPath;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -122,36 +123,47 @@ abstract class AbstractUserEmailFactory
 
     protected function getTokenUrl(string $token, string $username, ?string $newEmail = null): string
     {
-        $path = $this->populatePathVariables(
-            $this->getTokenPath(),
-            [
-                'token' => $token,
-                'username' => $username,
-                'new_email' => $newEmail,
-            ]
-        );
-
-        return $this->container->get(RefererUrlResolver::class)?->getAbsoluteUrl($path) ?? $path;
-    }
-
-    private function getTokenPath(): string
-    {
         if (null === $this->defaultRedirectPath && null === $this->redirectPathQueryKey) {
             throw new InvalidArgumentException('The `defaultRedirectPath` or `redirectPathQueryKey` must be set');
         }
 
-        $requestStack = $this->container->get(RequestStack::class);
-        $request = $requestStack?->getMainRequest();
+        $variables = [
+            'token' => $token,
+            'username' => $username,
+            'new_email' => $newEmail,
+        ];
 
-        $path = ($request && $this->redirectPathQueryKey) ?
-            $request->query->get($this->redirectPathQueryKey, $this->defaultRedirectPath) :
-            $this->defaultRedirectPath;
+        $requestedPath = $this->getRequestedRedirectPath();
+        if (null !== $requestedPath && null !== ($path = RelativeUrlPath::fromRequestValue($this->populatePathVariables($requestedPath, $variables)))) {
+            return $this->container->get(RefererUrlResolver::class)->getAbsoluteUrl($path);
+        }
 
-        if (null === $path) {
+        if (null === $this->defaultRedirectPath) {
             throw new UnexpectedValueException(\sprintf('The querystring key `%s` could not be found in the request to generate a token URL', $this->redirectPathQueryKey));
         }
 
-        return $path;
+        return $this->getConfiguredUrl($this->populatePathVariables($this->defaultRedirectPath, $variables));
+    }
+
+    protected function getConfiguredUrl(string $pathOrUrl): string
+    {
+        if (str_contains($pathOrUrl, '://') || str_starts_with($pathOrUrl, '//')) {
+            return $pathOrUrl;
+        }
+
+        return $this->container->get(RefererUrlResolver::class)->getAbsoluteUrl(RelativeUrlPath::fromConfiguration($pathOrUrl));
+    }
+
+    private function getRequestedRedirectPath(): ?string
+    {
+        if (null === $this->redirectPathQueryKey) {
+            return null;
+        }
+
+        $request = $this->container->get(RequestStack::class)->getMainRequest();
+        $value = $request?->query->all()[$this->redirectPathQueryKey] ?? null;
+
+        return \is_string($value) ? $value : null;
     }
 
     private function populatePathVariables(string $path, array $variables): string

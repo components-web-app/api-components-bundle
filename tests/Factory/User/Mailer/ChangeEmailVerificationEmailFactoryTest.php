@@ -16,8 +16,8 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\RelativeUrlPath;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -59,14 +59,11 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
 
         $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
-        $requestStackMock = $this->createMock(RequestStack::class);
-        $requestStackMock->expects(self::once())->method('getMainRequest')->willReturn(null);
         $refererUrlMock = $this->createMock(RefererUrlResolver::class);
-        $refererUrlMock->expects(self::once())->method('getAbsoluteUrl')->with('/default-path')->willReturn('/transformed-path');
+        $refererUrlMock->expects(self::once())->method('getAbsoluteUrl')->with(RelativeUrlPath::fromConfiguration('/default-path'))->willReturn('/transformed-path');
 
-        $invokedCount = self::exactly(2);
+        $invokedCount = self::exactly(1);
         $expectations = [
-            [[RequestStack::class], $requestStackMock],
             [[RefererUrlResolver::class], $refererUrlMock],
         ];
         $this->containerInterfaceMock

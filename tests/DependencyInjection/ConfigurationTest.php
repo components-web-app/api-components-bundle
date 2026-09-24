@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DependencyInjection\Configuration;
+use Symfony\Component\Config\Definition\BaseNode;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -240,5 +241,99 @@ class ConfigurationTest extends TestCase
         $config['user']['email_verification'] = ['enabled' => false, 'verify_on_register' => true];
 
         self::assertFalse($this->process($config)['user']['email_verification']['enabled']);
+    }
+
+    public function test_email_links_allow_no_origin_and_have_no_default_origin_by_default(): void
+    {
+        $emailLinks = $this->process(self::minimalConfig())['user']['email_links'];
+
+        self::assertSame([], $emailLinks['allowed_origins']);
+        self::assertNull($emailLinks['default_origin']);
+    }
+
+    public function test_email_links_accept_allowed_origin_patterns_and_a_default_origin(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = [
+            'allowed_origins' => ['https://www\.example\.com', 'https://[a-z]+\.example\.com(:8443)?'],
+            'default_origin' => 'https://www.example.com',
+        ];
+
+        $emailLinks = $this->process($config)['user']['email_links'];
+
+        self::assertSame(['https://www\.example\.com', 'https://[a-z]+\.example\.com(:8443)?'], $emailLinks['allowed_origins']);
+        self::assertSame('https://www.example.com', $emailLinks['default_origin']);
+    }
+
+    public function test_an_allowed_origin_that_is_not_a_regular_expression_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = ['allowed_origins' => ['https://(www']];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('is not a valid regular expression');
+
+        $this->process($config);
+    }
+
+    #[DataProvider('invalidDefaultOriginProvider')]
+    public function test_a_default_origin_that_is_not_an_origin_is_rejected(string $defaultOrigin): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = ['default_origin' => $defaultOrigin];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('must be a scheme and host with an optional port');
+
+        $this->process($config);
+    }
+
+    public static function invalidDefaultOriginProvider(): iterable
+    {
+        yield 'no scheme' => ['www.example.com'];
+        yield 'not http' => ['ftp://www.example.com'];
+        yield 'with a path' => ['https://www.example.com/app'];
+        yield 'with a query' => ['https://www.example.com?a=b'];
+    }
+
+    public function test_email_link_values_from_environment_variables_are_left_to_run_time(): void
+    {
+        BaseNode::setPlaceholderUniquePrefix('env_email_links_test');
+        try {
+            $config = self::minimalConfig();
+            $config['user']['email_links'] = [
+                'allowed_origins' => ['env_email_links_test_ALLOWED'],
+                'default_origin' => 'env_email_links_test_DEFAULT',
+            ];
+
+            $emailLinks = $this->process($config)['user']['email_links'];
+        } finally {
+            BaseNode::resetPlaceholders();
+        }
+
+        self::assertSame(['env_email_links_test_ALLOWED'], $emailLinks['allowed_origins']);
+        self::assertSame('env_email_links_test_DEFAULT', $emailLinks['default_origin']);
+    }
+
+    public function test_an_empty_default_origin_is_accepted_as_no_default(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = ['default_origin' => ''];
+
+        self::assertSame('', $this->process($config)['user']['email_links']['default_origin']);
+    }
+
+    public function test_unresolved_email_link_parameters_seen_while_prepending_are_not_validated(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = [
+            'allowed_origins' => ['%env(ALLOWED_ORIGIN)%'],
+            'default_origin' => '%env(default::DEFAULT_ORIGIN)%',
+        ];
+
+        $emailLinks = $this->process($config)['user']['email_links'];
+
+        self::assertSame(['%env(ALLOWED_ORIGIN)%'], $emailLinks['allowed_origins']);
+        self::assertSame('%env(default::DEFAULT_ORIGIN)%', $emailLinks['default_origin']);
     }
 }

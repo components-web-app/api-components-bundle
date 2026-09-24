@@ -9,6 +9,11 @@ silverback_api_components:
     website_name: New Website
     user:
         class_name: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
+        email_links:
+            allowed_origins:
+                - 'http://www\.website\.com'
+                - 'https://app\.website\.com:8443'
+            default_origin: '%env(default::EMAIL_LINK_DEFAULT_ORIGIN)%'
         email_verification:
             default_value: false
             verify_on_register: true

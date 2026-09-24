@@ -51,6 +51,7 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExcep
 class ProfilerContext implements Context
 {
     private const PURGE_HEADER_NAMES = ['xkey', 'surrogate-key'];
+    private const EMAIL_LINK_DEFAULT_ORIGIN_ENV = 'EMAIL_LINK_DEFAULT_ORIGIN';
 
     private ?AbstractBrowser $client;
     private ?RestContext $restContext;
@@ -80,6 +81,24 @@ class ProfilerContext implements Context
     public function resetMercureHub(): void
     {
         HubStub::setUnreachable(false);
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetEmailLinkDefaultOrigin(): void
+    {
+        unset($_SERVER[self::EMAIL_LINK_DEFAULT_ORIGIN_ENV], $_ENV[self::EMAIL_LINK_DEFAULT_ORIGIN_ENV]);
+    }
+
+    /**
+     * @Given links in user emails default to the origin :origin
+     */
+    public function linksInUserEmailsDefaultToTheOrigin(string $origin): void
+    {
+        $_SERVER[self::EMAIL_LINK_DEFAULT_ORIGIN_ENV] = $_ENV[self::EMAIL_LINK_DEFAULT_ORIGIN_ENV] = $origin;
     }
 
     /**
@@ -677,5 +696,21 @@ class ProfilerContext implements Context
         }
 
         return $profile;
+    }
+
+    /**
+     * @Then the link in the sent email should start with :prefix
+     */
+    public function theLinkInTheSentEmailShouldStartWith(string $prefix): void
+    {
+        $messages = iterator_to_array($this->driverContainer->get(TemplatedEmailMessageEventSubscriber::class)->getMessages());
+        if (1 !== \count($messages)) {
+            throw new \RuntimeException(\sprintf('Expected 1 email, got %d', \count($messages)));
+        }
+        $context = $messages[0]->getContext();
+        $link = $context['redirect_url'] ?? $context['login_url'] ?? null;
+        if (!\is_string($link) || !str_starts_with($link, $prefix)) {
+            throw new \RuntimeException(\sprintf('Expected the email link to start with "%s", got "%s"', $prefix, var_export($link, true)));
+        }
     }
 }
