@@ -20,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Events as DoctrineEvents;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
+use Silverback\ApiComponentsBundle\Action\Health\HealthAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
 use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\Action\User\EmailAddressConfirmAction;
@@ -388,6 +389,17 @@ return static function (ContainerConfigurator $configurator) {
         ->public()
         ->tag('controller.service_arguments');
     $services->alias('silverback.api_components.action.uploadable.download', DownloadAction::class)->public();
+
+    $services
+        ->set(HealthAction::class)
+        ->public()
+        ->autoconfigure(false)
+        ->args([
+            new Reference('doctrine.dbal.default_connection'),
+            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->tag('controller.service_arguments');
+    $services->alias('silverback.api_components.action.health', HealthAction::class)->public();
 
     $services
         ->set('silverback.api_components.helper.user.email_address_manager')
