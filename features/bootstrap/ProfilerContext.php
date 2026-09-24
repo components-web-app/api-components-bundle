@@ -80,7 +80,7 @@ class ProfilerContext implements Context
             return $this->outOfRequestHttpClientCollector;
         }
 
-        /** @var HttpClientDataCollector $collector */
+        /* @var HttpClientDataCollector $collector */
         return $this->getProfile()->getCollector('http_client');
     }
 
