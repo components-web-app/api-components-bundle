@@ -33,7 +33,6 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\T
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
-use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile as HttpProfile;
@@ -50,7 +49,7 @@ class ProfilerContext implements Context
 {
     private const PURGE_HEADER_NAMES = ['xkey', 'surrogate-key'];
 
-    private ?AbstractBrowser $client;
+    private ?HttpClientDataCollector $outOfRequestHttpClientCollector = null;
     private ?RestContext $restContext;
     private ?MinkContext $minkContext;
     private ?JsonContext $jsonContext;
@@ -67,7 +66,22 @@ class ProfilerContext implements Context
         $this->minkContext = $scope->getEnvironment()->getContext(MinkContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->jsonContext = $scope->getEnvironment()->getContext(JsonContext::class);
-        $this->client = $this->minkContext->getSession()->getDriver()->getClient();
+        $this->outOfRequestHttpClientCollector = null;
+    }
+
+    public function useOutOfRequestHttpClientCollector(HttpClientDataCollector $collector): void
+    {
+        $this->outOfRequestHttpClientCollector = $collector;
+    }
+
+    private function getHttpClientCollector(): HttpClientDataCollector
+    {
+        if ($this->outOfRequestHttpClientCollector) {
+            return $this->outOfRequestHttpClientCollector;
+        }
+
+        /** @var HttpClientDataCollector $collector */
+        return $this->getProfile()->getCollector('http_client');
     }
 
     /**
@@ -273,8 +287,7 @@ class ProfilerContext implements Context
      */
     private function collectPurgedTags(): array
     {
-        /** @var HttpClientDataCollector $collector */
-        $collector = $this->getProfile()->getCollector('http_client');
+        $collector = $this->getHttpClientCollector();
         $purged = [];
         foreach ($collector->getClients() as $clientInfo) {
             foreach ($clientInfo['traces'] as $trace) {
@@ -338,8 +351,7 @@ class ProfilerContext implements Context
      */
     public function noCachePurgeRequestShouldHaveBeenSent(): void
     {
-        /** @var HttpClientDataCollector $collector */
-        $collector = $this->getProfile()->getCollector('http_client');
+        $collector = $this->getHttpClientCollector();
         $sent = [];
         foreach ($collector->getClients() as $clientInfo) {
             foreach ($clientInfo['traces'] as $trace) {
@@ -594,7 +606,7 @@ class ProfilerContext implements Context
 
     private function getProfile(): HttpProfile
     {
-        $profile = $this->client->getProfile();
+        $profile = $this->minkContext->getSession()->getDriver()->getClient()->getProfile();
         if (!$profile) {
             throw new \Exception('No client profile exists');
         }
