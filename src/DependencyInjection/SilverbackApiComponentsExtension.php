@@ -41,6 +41,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -135,6 +136,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->findDefinition(MetadataNormalizer::class);
         $definition->setArgument('$metadataKey', $config['metadata_key']);
+
+        $definition = $container->findDefinition(RefererUrlResolver::class);
+        $definition->setArgument('$allowedOrigins', $config['user']['email_links']['allowed_origins']);
+        $definition->setArgument('$defaultOrigin', $config['user']['email_links']['default_origin']);
 
         $this->setEmailVerificationArguments($container, $config['user']['email_verification'], $config['user']['password_reset']['repeat_ttl_seconds']);
         $this->setUserClassArguments($container, $config['user']['class_name']);

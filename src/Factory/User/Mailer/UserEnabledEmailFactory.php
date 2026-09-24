@@ -12,7 +12,6 @@
 namespace Silverback\ApiComponentsBundle\Factory\User\Mailer;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Symfony\Component\Mime\RawMessage;
 
 /**
@@ -29,7 +28,7 @@ final class UserEnabledEmailFactory extends AbstractUserEmailFactory
         }
         $this->initUser($user);
 
-        $context['login_url'] = $this->container->get(RefererUrlResolver::class)?->getAbsoluteUrl('/login');
+        $context['login_url'] = $this->getConfiguredUrl('/login');
 
         return $this->createEmailMessage($context);
     }

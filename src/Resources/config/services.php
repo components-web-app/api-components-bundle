@@ -930,7 +930,9 @@ return static function (ContainerConfigurator $configurator) {
         ->class(RefererUrlResolver::class)
         ->args(
             [
-                new Reference(RequestStack::class),
+                '$requestStack' => new Reference(RequestStack::class),
+                '$allowedOrigins' => [],
+                '$defaultOrigin' => null,
             ]
         );
     $services->alias(RefererUrlResolver::class, 'silverback.api_components.helper.referer_url_resolver');

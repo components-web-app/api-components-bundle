@@ -14,8 +14,8 @@ namespace Silverback\ApiComponentsBundle\Tests\Factory\User\Mailer;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\RelativeUrlPath;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
@@ -44,23 +44,13 @@ class AbstractFinalEmailFactoryTestCase extends TestEmailCase
         $expectations = [...$additionalExpectations];
 
         if ($tokenPathExpected) {
-            $requestStackMock = $this->createMock(RequestStack::class);
-            $requestStackMock
-                ->expects(self::once())
-                ->method('getMainRequest')
-                ->willReturn(null);
-
             $refererUrlMock = $this->createMock(RefererUrlResolver::class);
             $refererUrlMock
                 ->expects(self::once())
                 ->method('getAbsoluteUrl')
-                ->with('/default-path')
+                ->with(RelativeUrlPath::fromConfiguration('/default-path'))
                 ->willReturn('/transformed-path');
 
-            $expectations[] = [
-                [RequestStack::class],
-                $requestStackMock,
-            ];
             $expectations[] = [
                 [RefererUrlResolver::class],
                 $refererUrlMock,

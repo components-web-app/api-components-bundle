@@ -16,6 +16,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -254,6 +255,27 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->integerNode('repeat_ttl_seconds')->defaultValue(86400)->end()
                                 ->integerNode('request_timeout_seconds')->defaultValue(3600)->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('email_links')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('allowed_origins')
+                                    ->defaultValue([])
+                                    ->scalarPrototype()
+                                        ->validate()
+                                            ->ifTrue(static fn (string $pattern): bool => !str_contains($pattern, '%') && false === @preg_match(RefererUrlResolver::allowedOriginRegex($pattern), ''))
+                                            ->thenInvalid('The allowed origin pattern %s for links in emails is not a valid regular expression.')
+                                        ->end()
+                                    ->end()
+                                ->end()
+                                ->scalarNode('default_origin')
+                                    ->defaultNull()
+                                    ->validate()
+                                        ->ifTrue(static fn (string $origin): bool => '' !== $origin && !str_contains($origin, '%') && null === RefererUrlResolver::normaliseOrigin($origin))
+                                        ->thenInvalid('The default origin %s for links in emails must be a scheme and host with an optional port.')
+                                    ->end()
+                                ->end()
                             ->end()
                         ->end()
                         ->arrayNode('emails')

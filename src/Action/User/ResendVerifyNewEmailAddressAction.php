@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,7 +46,11 @@ final readonly class ResendVerifyNewEmailAddressAction
 
             return $response;
         }
-        $emailSuccess = $this->userMailer->sendChangeEmailConfirmationEmail($user);
+        try {
+            $emailSuccess = $this->userMailer->sendChangeEmailConfirmationEmail($user);
+        } catch (UnparseableRequestHeaderException) {
+            return new Response(null, Response::HTTP_BAD_REQUEST);
+        }
 
         $response = new Response(null, $emailSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
         $response->setCache([

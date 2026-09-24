@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
+use Silverback\ApiComponentsBundle\Exception\DisallowedRequestOriginException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
 use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
@@ -36,6 +37,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
@@ -331,5 +333,32 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertSame('/verify/{{ token }}', $this->argument($container, WelcomeEmailFactory::class, '$defaultRedirectPath'));
         self::assertSame('email_redirect', $this->argument($container, WelcomeEmailFactory::class, '$redirectPathQueryKey'));
+    }
+
+    public function test_email_links_allow_no_origin_by_default(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertSame([], $this->argument($container, RefererUrlResolver::class, '$allowedOrigins'));
+        self::assertNull($this->argument($container, RefererUrlResolver::class, '$defaultOrigin'));
+    }
+
+    public function test_email_link_configuration_reaches_the_resolver(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_links'] = [
+            'allowed_origins' => ['https://www\.example\.com'],
+            'default_origin' => 'https://www.example.com',
+        ];
+
+        [$container] = $this->load($config);
+
+        self::assertSame(['https://www\.example\.com'], $this->argument($container, RefererUrlResolver::class, '$allowedOrigins'));
+        self::assertSame('https://www.example.com', $this->argument($container, RefererUrlResolver::class, '$defaultOrigin'));
+    }
+
+    public function test_a_disallowed_request_origin_is_mapped_to_bad_request(): void
+    {
+        self::assertTrue(is_a(DisallowedRequestOriginException::class, UnparseableRequestHeaderException::class, true));
     }
 }

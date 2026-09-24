@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\RelativeUrlPath;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mime\Address;
 
@@ -44,7 +45,9 @@ class UserEnabledEmailFactoryTest extends AbstractFinalEmailFactoryTestCase
 
         $referrerUrlMock = $this->createMock(RefererUrlResolver::class);
         $referrerUrlMock
+            ->expects(self::once())
             ->method('getAbsoluteUrl')
+            ->with(RelativeUrlPath::fromConfiguration('/login'))
             ->willReturn('https://login');
         $this->assertCommonMockMethodsCalled(false, [[
             [RefererUrlResolver::class],
