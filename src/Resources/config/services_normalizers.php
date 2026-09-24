@@ -32,6 +32,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentGroupNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\LayoutManifestNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageDataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
@@ -93,6 +94,13 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference('api_platform.iri_converter')])
         ->tag('serializer.normalizer', ['priority' => -498]);
     $services->alias(ComponentGroupNormalizer::class, 'silverback.api_components.serializer.normalizer.component_group');
+
+    $services
+        ->set('silverback.api_components.serializer.normalizer.layout_manifest')
+        ->class(LayoutManifestNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -498]);
+    $services->alias(LayoutManifestNormalizer::class, 'silverback.api_components.serializer.normalizer.layout_manifest');
 
     $services
         ->set('silverback.api_components.serializer.normalizer.component_position')

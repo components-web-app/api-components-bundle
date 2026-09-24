@@ -66,7 +66,7 @@ class Layout
     #[ORM\ManyToMany(targetEntity: ComponentGroup::class, inversedBy: 'layouts')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['Layout:read', 'Layout:write'])]
+    #[Groups(['Layout:read', 'Layout:write', 'Route:manifest:read'])]
     private Collection $componentGroups;
 
     public function __construct()
