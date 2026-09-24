@@ -18,6 +18,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * We must define this as an API resource, otherwise when serializing and the relation is to this class,
@@ -39,6 +40,7 @@ abstract class AbstractComponent implements ComponentInterface
     #[ORM\ManyToMany(targetEntity: ComponentGroup::class, inversedBy: 'components')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['Route:manifest:read'])]
     private Collection $componentGroups;
 
     #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'component', cascade: ['persist'])]
