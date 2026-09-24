@@ -533,6 +533,24 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the Pages :names use a Layout with a ComponentGroup holding a component
+     */
+    public function thePagesUseALayoutWithAComponentGroupHoldingAComponent(string $names): void
+    {
+        $layout = $this->thereIsALayout('shared-layout');
+        $group = $this->createComponentGroupWithComponents(1, null, 'layout_top', 'layout_');
+        $layout->addComponentGroup($group);
+        foreach (array_map('trim', explode(',', $names)) as $name) {
+            /** @var Page $page */
+            $page = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+            $page->layout = $layout;
+        }
+        $this->manager->flush();
+        $this->manager->clear();
+        $this->restContext->resources['shared_layout'] = $this->restContext->resources['layout'];
+    }
+
+    /**
      * @Given the ComponentPosition :name has the sortValue :sortValue
      */
     public function theComponentPositionHasTheSortValue(string $name, int $sortValue): void
@@ -1586,11 +1604,12 @@ final class DoctrineContext implements Context
         $childRoute->setPath($childPath)->setName($childPath)->setPage($childPage);
         $this->timestampedHelper->persistTimestampedFields($childRoute, true);
         $this->manager->persist($childRoute);
+        $this->manager->flush();
+
+        $this->restContext->resources['parent_page'] = $this->iriConverter->getIriFromResource($parentPage);
         $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($childPage);
         $this->restContext->resources['page_route'] = $this->iriConverter->getIriFromResource($childRoute);
         $this->restContext->resources['page_manifest'] = '/_/resource_manifest/' . $childPage->getId();
-
-        $this->manager->flush();
     }
 
     /**
@@ -2135,6 +2154,26 @@ final class DoctrineContext implements Context
         $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
         if (!\in_array($iri, $iris, true)) {
             throw new \RuntimeException(\sprintf('Manifest depth %d does not contain "%s". Has: %s', $depth, $iri, implode(', ', $iris)));
+        }
+    }
+
+    /**
+     * @Then the manifest depth :depth should contain the IRI of the resource :name
+     */
+    public function theManifestDepthShouldContainTheIriOfTheResource(int $depth, string $name): void
+    {
+        $this->theManifestDepthShouldContainTheIri($depth, $this->restContext->resources[$name]);
+    }
+
+    /**
+     * @Then the manifest depth :depth should not contain the IRI of the resource :name
+     */
+    public function theManifestDepthShouldNotContainTheIriOfTheResource(int $depth, string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        $iris = $this->flattenManifestNode($this->manifestDepthNode($depth));
+        if (\in_array($iri, $iris, true)) {
+            throw new \RuntimeException(\sprintf('Manifest depth %d unexpectedly contains "%s".', $depth, $iri));
         }
     }
 

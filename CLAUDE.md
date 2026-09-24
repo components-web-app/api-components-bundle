@@ -1414,6 +1414,27 @@ Tests: `tests/Mercure/MercureAuthorizationTest.php`, `tests/Mercure/MercureResou
 
 ---
 
+### #306 — A page's layout component groups are in its manifest, once, at the shallowest depth ✓ **DONE**
+
+`Page::$componentGroups` was in `Route:manifest:read`; `Layout::$componentGroups` was not. So a layout's groups, their positions and their components were only discovered from the layout's own response, one round trip after the manifest. On a client-side load that left `<CwaComponentGroup>` mounted with no group in the store, which is what surfaced cwa-nuxt-module#339.
+
+**Three pieces, because the obvious one-line fix does not work:**
+- `Layout::$componentGroups` gains `Route:manifest:read`. That is what makes API Platform embed the layout in the manifest at all: a relation is only embedded when the related resource has a field in the active serialization group, so until now the layout appeared as a bare IRI.
+- **`Layout::getComponentGroups()` keeps `readableLink: false`.** Removing it was tried: `GET /layouts` then embeds the groups, because `MetadataNormalizer` adds `_metadata` to each one, and the module's layout walking needs bare IRIs there. The flag also applies in the manifest, so on its own the manifest would list the group IRIs but not their positions or components.
+- **`LayoutManifestNormalizer`** runs only when `CwaTagCollector::MANIFEST_CONTEXT_KEY` is set. It replaces the layout's bare group IRIs with the groups normalised in the manifest context (`resource_class` set to `ComponentGroup`, `api_sub_level` set, and the parent's operation, IRI and URI variables removed), so the walker reaches positions and component IRIs as it does for the page's own groups. `array_values` keeps the list a list when the collection has gaps in its keys (the #298 bug).
+
+**A layout is listed once, at the shallowest depth that uses it.** A parent and a child often share a layout. The module keys IRI → depth in a flat map iterated root-first, so an IRI repeated at a deeper depth ends up recorded there. That map drives the depth-aware `path` header used to resolve a dynamic position's page data, so a repeated layout subtree would be fetched with the child's route path (the bug cwa-nuxt-module#261 fixed), and the module's batch fetch does not deduplicate either. `ManifestDepthGroupTrait` therefore builds the depths root-first and skips a `layout` (object or IRI) already emitted at a shallower depth, with its whole subtree.
+- **Only layouts are deduplicated across depths.** A template `Page` shared by a parent and a child page data still appears at both depths: its dynamic positions legitimately resolve per depth. A blanket "each IRI once" rule would break that.
+- Parents are now found by `findParentResource()`, which follows the same traversal order as the old per-depth collection, so which parent is used is unchanged.
+
+**Security and caching were already consistent.** The manifest lists IRIs only, each fetch is still voter-checked, and layout components are already public through the layout's routed pages (#225). `ManifestKeyResolver` already maps a layout group or position write to `layouts → pages`, so the manifests that now contain layout groups are purged when those groups change; a scenario pins it.
+
+**Deferred: component-nested groups** (`AbstractComponent::$componentGroups`). That property is not serialised anywhere, and exposing it in the manifest would mean embedding every component instead of listing its IRI, with an extra query per component. The module has the same late-arrival window there and is fixing it module-side in a way that is not layout-specific.
+
+Tests: `features/main/manifest_layout.feature` (the layout subtree at the page's depth; a shared layout once at depth 0 and nowhere at depth 1, the case cwa-nuxt-module asked to have pinned; `GET /layouts` still returns bare group IRIs), `features/main/manifest_cache_tags.feature` (a position added to a layout group purges the page's manifest key), `tests/Serializer/Normalizer/ManifestDepthGroupTraitTest.php`, `tests/Serializer/Normalizer/LayoutManifestNormalizerTest.php`. New steps: `the Pages :names use a Layout with a ComponentGroup holding a component`, `the manifest depth :depth should (not) contain the IRI of the resource :name`, and the nested-Page fixture now also names `parent_page`.
+
+---
+
 ### #304 — Mercure subscribe topics carry the application's route prefix ✓ **DONE**
 
 `MercureAuthorization` built each subscribe topic template as `operation routePrefix + uriTemplate`. That misses the prefix an application adds when it imports API Platform's routes (the CWA template uses `prefix: /_api` in `config/routes/api_platform.yaml`). Published IRIs do include it, because the IRI converter generates through the router, so on such a site no topic in the admin's `mercureAuthorization` cookie matched anything published. Only **private** updates depend on the cookie's topics, and `PublishableAwareHub` marks an update private only for a publishable resource that is not yet live, so the symptom was admins missing live updates for drafts and scheduled resources. Public updates were unaffected.

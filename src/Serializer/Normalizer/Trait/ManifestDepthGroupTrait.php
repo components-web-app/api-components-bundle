@@ -12,13 +12,6 @@
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait;
 
 /**
- * Builds the manifest `resource_iris`: an array indexed by rendering depth (root first), where each
- * element is a nested resource tree `{ "iri": string, "children": [...] }` mirroring resource
- * containment (route → pageData → page → componentGroup → position → component → nested groups …).
- *
- * parentPage/parentPageData fields mark depth boundaries — everything reachable without crossing
- * those fields belongs to the same depth tree; the parent subtree becomes the previous depth.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 trait ManifestDepthGroupTrait
@@ -26,38 +19,58 @@ trait ManifestDepthGroupTrait
     use ManifestIriFilterTrait;
 
     /**
-     * @return list<array{iri: string, children: array}> one nested tree per depth, root first
+     * @return list<array{iri: string, children: array}>
      */
     private function buildDepthGroups(array $resource): array
     {
-        $seen = [];
-        $parentResources = [];
-        $nodes = $this->buildDepthNodes($resource, $parentResources, $seen);
-        $currentTree = $nodes[0] ?? ['iri' => $resource['@id'] ?? '', 'children' => []];
-
-        if (empty($parentResources)) {
-            return [$currentTree];
+        $depthResources = [];
+        for ($current = $resource; null !== $current; $current = $this->findParentResource($current)) {
+            array_unshift($depthResources, $current);
         }
 
-        $ancestorGroups = $this->buildDepthGroups($parentResources[0]);
+        $groups = [];
+        $emittedLayouts = [];
+        foreach ($depthResources as $depthResource) {
+            $seen = [];
+            $depthLayouts = [];
+            $nodes = $this->buildDepthNodes($depthResource, $seen, $emittedLayouts, $depthLayouts);
+            $groups[] = $nodes[0] ?? ['iri' => $depthResource['@id'] ?? '', 'children' => []];
+            $emittedLayouts += $depthLayouts;
+        }
 
-        return [...$ancestorGroups, $currentTree];
+        return $groups;
+    }
+
+    private function findParentResource(array $resource): ?array
+    {
+        foreach ($resource as $key => $value) {
+            if (!\is_array($value) || str_starts_with((string) $key, '@')) {
+                continue;
+            }
+            if (\in_array($key, ['parentPage', 'parentPageData'], true)) {
+                if (isset($value['@id'])) {
+                    return $value;
+                }
+                continue;
+            }
+            foreach (isset($value['@id']) ? [$value] : $value as $nested) {
+                if (\is_array($nested) && isset($nested['@id']) && null !== $parent = $this->findParentResource($nested)) {
+                    return $parent;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Builds the tree node(s) contributed by a normalised resource, within the current depth (i.e.
-     * without crossing parentPage/parentPageData — those are collected into $parentResources instead).
-     *
-     * Returns a single-element list for a real resource, or the hoisted children of a skipped/blank
-     * or already-seen (deduplicated) resource — so blank-node metadata and back-references never
-     * appear as nodes, matching the flat behaviour this replaced.
-     *
-     * @param array<int, array>   $parentResources collected boundary resources (by reference)
-     * @param array<string, true> $seen            per-depth IRI dedup set (by reference)
+     * @param array<string, true> $seen
+     * @param array<string, true> $excludedLayouts
+     * @param array<string, true> $depthLayouts
      *
      * @return list<array{iri: string, children: array}>
      */
-    private function buildDepthNodes(array $resource, array &$parentResources, array &$seen): array
+    private function buildDepthNodes(array $resource, array &$seen, array $excludedLayouts, array &$depthLayouts): array
     {
         $id = $resource['@id'] ?? null;
         $isBlankNode = \is_string($id) && str_contains($id, '/.well-known/genid/');
@@ -75,10 +88,17 @@ trait ManifestDepthGroupTrait
             }
 
             if (\in_array($key, ['parentPage', 'parentPageData'], true)) {
-                if (\is_array($value) && isset($value['@id'])) {
-                    $parentResources[] = $value;
-                }
                 continue;
+            }
+
+            if ('layout' === $key) {
+                $layoutIri = \is_array($value) ? ($value['@id'] ?? null) : $value;
+                if (\is_string($layoutIri)) {
+                    if (isset($excludedLayouts[$layoutIri])) {
+                        continue;
+                    }
+                    $depthLayouts[$layoutIri] = true;
+                }
             }
 
             if (!\is_array($value)) {
@@ -90,11 +110,11 @@ trait ManifestDepthGroupTrait
             }
 
             if (isset($value['@id'])) {
-                array_push($childBucket, ...$this->buildDepthNodes($value, $parentResources, $seen));
+                array_push($childBucket, ...$this->buildDepthNodes($value, $seen, $excludedLayouts, $depthLayouts));
             } else {
                 foreach ($value as $nested) {
                     if (\is_array($nested) && isset($nested['@id'])) {
-                        array_push($childBucket, ...$this->buildDepthNodes($nested, $parentResources, $seen));
+                        array_push($childBucket, ...$this->buildDepthNodes($nested, $seen, $excludedLayouts, $depthLayouts));
                     }
                 }
             }

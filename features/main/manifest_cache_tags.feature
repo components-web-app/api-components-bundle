@@ -64,6 +64,17 @@ Feature: Manifest cache tags
     And the manifest cache tag for the resource "page" should be purged
 
   @loginAdmin
+  Scenario: Adding a position to a layout's component group purges the manifest of a page using the layout
+    Given there is a routed Page with a component group and a component with the path "/my-route"
+    And the Pages "page" use a Layout with a ComponentGroup holding a component
+    And there is a DummyComponent
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup                   | component                 |
+      | resource[layout_component_group] | resource[dummy_component] |
+    Then the response status code should be 201
+    And the manifest cache tag for the resource "page" should be purged
+
+  @loginAdmin
   Scenario: Editing a component's content does not purge the manifest of the page it is in
     Given there is a routed Page with a component group and a component with the path "/my-route"
     When I send a "PATCH" request to the resource "component" with data:

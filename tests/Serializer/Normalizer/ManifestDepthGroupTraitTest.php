@@ -289,4 +289,125 @@ class ManifestDepthGroupTraitTest extends TestCase
 
         $this->assertSame([$this->n('/_/routes/home')], $this->subject->groups($resource));
     }
+
+    public function test_a_layout_shared_with_a_shallower_depth_is_listed_only_at_the_shallowest_depth(): void
+    {
+        $layout = [
+            '@id' => '/_/layouts/shared',
+            'componentGroups' => [['@id' => '/_/component_groups/top', 'componentPositions' => [['@id' => '/_/component_positions/p1', 'component' => '/component/navs/n1']]]],
+        ];
+        $resource = [
+            '@id' => '/_/pages/child',
+            'layout' => $layout,
+            'parentPage' => ['@id' => '/_/pages/parent', 'layout' => $layout],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent', $this->n('/_/layouts/shared', $this->n('/_/component_groups/top', $this->n('/_/component_positions/p1', $this->n('/component/navs/n1'))))),
+                $this->n('/_/pages/child'),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_a_layout_referenced_by_iri_at_a_deeper_depth_is_skipped_too(): void
+    {
+        $resource = [
+            '@id' => '/_/pages/child',
+            'layout' => '/_/layouts/shared',
+            'parentPage' => ['@id' => '/_/pages/parent', 'layout' => ['@id' => '/_/layouts/shared']],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent', $this->n('/_/layouts/shared')),
+                $this->n('/_/pages/child'),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_a_different_layout_at_each_depth_is_listed_at_each_depth(): void
+    {
+        $resource = [
+            '@id' => '/_/pages/child',
+            'layout' => ['@id' => '/_/layouts/child'],
+            'parentPage' => ['@id' => '/_/pages/parent', 'layout' => ['@id' => '/_/layouts/parent']],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/pages/parent', $this->n('/_/layouts/parent')),
+                $this->n('/_/pages/child', $this->n('/_/layouts/child')),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_a_resource_other_than_a_layout_shared_across_depths_is_listed_at_each_depth(): void
+    {
+        $resource = [
+            '@id' => '/_/abstract_page_data/child',
+            'page' => ['@id' => '/_/pages/template'],
+            'parentPageData' => ['@id' => '/_/abstract_page_data/parent', 'page' => ['@id' => '/_/pages/template']],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/abstract_page_data/parent', $this->n('/_/pages/template')),
+                $this->n('/_/abstract_page_data/child', $this->n('/_/pages/template')),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_the_parent_is_found_inside_a_nested_resource_and_a_list(): void
+    {
+        $resource = [
+            '@id' => '/_/routes/child',
+            'pageData' => [
+                '@id' => '/_/abstract_page_data/child',
+                'items' => [['@id' => '/_/pages/x', 'parentPageData' => ['@id' => '/_/abstract_page_data/parent']]],
+            ],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/abstract_page_data/parent'),
+                $this->n('/_/routes/child', $this->n('/_/abstract_page_data/child', $this->n('/_/pages/x'))),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_a_layout_from_the_root_is_still_skipped_two_depths_down_when_the_middle_depth_has_its_own_layout(): void
+    {
+        $resource = [
+            '@id' => '/_/pages/grandchild',
+            'layout' => ['@id' => '/_/layouts/root'],
+            'parentPage' => [
+                '@id' => '/_/pages/child',
+                'layout' => ['@id' => '/_/layouts/middle'],
+                'parentPage' => ['@id' => '/_/pages/root', 'layout' => ['@id' => '/_/layouts/root']],
+            ],
+        ];
+
+        $this->assertSame(
+            [
+                $this->n('/_/pages/root', $this->n('/_/layouts/root')),
+                $this->n('/_/pages/child', $this->n('/_/layouts/middle')),
+                $this->n('/_/pages/grandchild'),
+            ],
+            $this->subject->groups($resource)
+        );
+    }
+
+    public function test_a_depth_whose_resource_contributes_no_node_keeps_its_own_iri_as_the_root(): void
+    {
+        $this->assertSame(
+            [['iri' => '/.well-known/genid/abc', 'children' => []]],
+            $this->subject->groups(['@id' => '/.well-known/genid/abc'])
+        );
+    }
 }
