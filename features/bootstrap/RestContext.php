@@ -30,6 +30,7 @@ class RestContext implements Context
     private ?MinkContext $minkContext;
     public array $resources = [];
     public string $now = '';
+    public string $resourceIriPrefix = '';
     private ?BehatchRestContext $behatchRestContext;
 
     /**
@@ -48,6 +49,7 @@ class RestContext implements Context
     public function resetNow(): void
     {
         $this->now = '';
+        $this->resourceIriPrefix = '';
     }
 
     /**
@@ -81,7 +83,7 @@ class RestContext implements Context
      */
     public function castResourceToIri(string $resource): string
     {
-        return $this->resources[$resource];
+        return $this->resourceIriPrefix . $this->resources[$resource];
     }
 
     /**

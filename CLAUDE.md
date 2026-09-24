@@ -1475,6 +1475,46 @@ Tests: `features/main/manifest_layout.feature` (the layout subtree at the page's
 
 **The template now comes from the real route.** API Platform registers each operation's route under the operation's name, and that route's path already holds import prefix + operation `routePrefix` + `uriTemplate`. `MercureAuthorization` reads `RouterInterface::getRouteCollection()->get($operation->getName())?->getPath()` and keeps `buildAbsoluteUriTemplate()` for the scheme and host. The route path is not quite the template, though: `ApiLoader` rewrites a trailing RFC 6570 `{._format}` to Symfony's `.{_format}`, and as a Mercure topic selector `.{_format}` demands a literal extension, so it would match no published IRI. `MercureAuthorization` applies the exact inverse to a trailing `.{_format}`. The first version of this fix skipped that and was caught only by `features/user/me.feature`, because its unit tests had written the route paths in RFC form; they now use the Symfony form a real route has. When no route is registered under that name (or the operation has none), it falls back to the old concatenation. This runs only when the Mercure cookie is built at login, not per request, and `Router` memoises its collection. The router is the eighth constructor argument, wired explicitly as `new Reference(RouterInterface::class)`.
 
-**Why no test caught it:** the test app imports API Platform's routes with `prefix: /` (`tests/Functional/app/config/routes/api_platform.yaml`), so the rebuilt template and the published IRI agreed there. The harness was deliberately left without a prefix; the unit tests carry the prefixed case.
+**Why no test caught it:** the test app imports API Platform's routes with `prefix: /` (`tests/Functional/app/config/routes/api_platform.yaml`), so the rebuilt template and the published IRI agreed there. The harness was deliberately left without a prefix; the unit tests carry the prefixed case. #313 later added a way to serve single scenarios under a prefix (`the API routes are imported under the prefix :prefix`), which a Behat check of this fix could now use.
 
 Tests: `tests/Mercure/MercureAuthorizationTest.php` — a route collection whose API Platform route path starts with `/_api` puts `/_api` in the plain topic and in the `?draft=1` topic of a publishable resource (both watched failing first), plus the fallback when the route is missing and when the operation has no name, and a route path with no format suffix used as it is. The existing Behat Mercure-cookie scenarios pass unchanged.
+
+---
+
+### #313 — The exact cache tags a Route write purges, with the API route prefix (module: cwa-nuxt-module#344) ✓ **DONE**
+
+cwa-nuxt-module#344 tags the rendered sitemap with the Route **collection** IRI so that any route write drops it. That only works if the module emits a byte-identical token, so the string is now a pinned contract rather than an inference. **No `src/` change was needed.** `HttpCachePurger::collectResource()` already collected the collection IRI through the real IRI converter. What was missing was a test of the real string: `HttpCachePurgerTest` stubs the converter, so the `/_/siteconfigparameter` it asserts is the stub's own invention.
+
+**The contract, in the CWA template (route import prefix `/_api`):**
+
+| Write | Tags purged |
+|---|---|
+| Create, update or delete any Route | **`/_api/_/routes`** (the collection) |
+| The same write | **`/_api/_/routes/<path>`**, for example `/_api/_/routes//my-route`. The route's own IRI is path-based, because the bundle's `IriConverter` replaces the id with the path, and the path's leading `/` gives the double slash. |
+| A path change | the new path's IRI **and** the old one. The old one is there because the change creates a redirect Route at the old path. |
+
+The general form is `<route import prefix>/_/routes`. The test app has no import prefix, so there it is `/_/routes`. Like `cwa-html`, a mismatch fails silently by matching nothing. It is the same string as the `@id` of a Route collection response, so the module should emit it as the API spells it rather than rebuild it from `apiUrl`.
+
+**Which prefix the template uses, and why the CLI path is fine.** A "prefix" can be one of two things, and they behave differently outside a request:
+
+1. **A route import prefix.** The template imports API Platform's routes, the bundle's routes and its own controllers with `prefix: /_api` (`components-web-app/api/config/routes/*.yaml`). The prefix is part of every route's path, so the router generates it with or without a request.
+2. **A request base path**, where the app is mounted under a sub-directory or script name and `Request::getBaseUrl()` feeds the `RequestContext`. The template does not use one. Caddy's `@api_handle` uses `handle`, not `handle_path`, so `/_api/...` reaches php unchanged. `php_server` serves `/app/public` with the front controller at the root, so the base URL is empty. The template does not set `framework.router.default_uri` either.
+
+The module's `@id` values carry `/_api` because of (1). `ResourceTypeFromIri.setPathPrefix()` strips the `apiUrl` pathname only to detect the resource type; the value itself comes from the router.
+
+**Ask 2 is not a live bug for the template.** A Route written outside any request purges the same `/_api/_/routes` and `/_api/_/routes//<path>`. That covers fixtures, console commands and a `messenger:consume` worker, which is a console process with the same router context. The bundle has no message handler that writes. The scenario reboots the kernel and asserts the request stack is empty before writing, so no request context can leak into it.
+
+> **It would be a live bug for a sub-directory deployment.** Under (2), `ABS_PATH` prepends the request's base URL, and a console process has none unless `framework.router.default_uri` is configured. Checked directly against the IRI converter: base URL `''` gives `/_api/_/routes`, and `/sub` gives `/sub/_api/_/routes`. An application served from a sub-directory must set `default_uri` to include that path, or every CLI-originated purge, item IRIs included, misses. Not pinned by a scenario, because no known application deploys this way.
+
+**A route going live on its `liveAt` date purges nothing, deliberately.** It is not a write, so no surrogate key can fire for it (see #227). Rendered pages are covered because `CacheHeadersEventListener` caps their `s-maxage` at the next go-live. The module never sees that header for the sitemap: the sitemap source is fetched over an internal sub-request whose response headers are discarded. cwa-nuxt-module#344 therefore bounds the sitemap with a fixed TTL of its own. That asymmetry is intended; no bundle change is needed.
+
+**Harness: one scenario at a time under a prefix, not the whole suite.** Moving the test app's import to `/_api` would rewrite the URL of nearly every scenario. A separate Behat profile would need its own environment, bundle list, security paths and CI job. Instead:
+
+- `AppKernel` takes an optional third constructor argument, the route prefix. It is applied to every route import, and the cache directory and container class get a suffix, so the two kernels never share compiled state. The default is `''`, so the normal kernel is unchanged.
+- `RoutePrefixContext` boots that kernel in-process, registers it as the scenario's default Mink session, and copies the `@login*` cookie across. It also sets `RestContext::$resourceIriPrefix`, so `resource[...]` values carry the prefix. MinkExtension restores the configured default session before the next scenario. The prefixed kernel is removed from cache on its first boot in a run, and shut down after each scenario.
+- It shares the SQLite file and DAMA's static connection, so `DoctrineContext` fixtures and its per-scenario rollback apply to both kernels.
+- For the CLI write, `ProfilerContext` reads the HTTP client traces from the prefixed container's `data_collector.http_client` instead of a request profile (`useOutOfRequestHttpClientCollector()`), so the same `the cache tag :tag should be purged` step asserts both paths.
+
+**Tests:** `features/main/route_purge_tags.feature`: create, path change and delete over HTTP under `/_api`, and a write outside any request. These pin behaviour that already held, so there was no red phase to watch. Instead, the Background prefix was temporarily changed to `/other`: all four scenarios failed, and the CLI one reported `/other/_/routes`. That proves the harness serves the prefix and the CLI tag follows the route import prefix. New steps: `the API routes are imported under the prefix :prefix` and `a Route with the path :path is written outside an HTTP request` (`RoutePrefixContext`).
+
+References: `features/main/route_purge_tags.feature`, `features/bootstrap/RoutePrefixContext.php`, `features/bootstrap/ProfilerContext.php`, `features/bootstrap/RestContext.php`, `tests/Functional/app/AppKernel.php`, `src/HttpCache/HttpCachePurger.php`, `src/ApiPlatform/Api/IriConverter.php`.

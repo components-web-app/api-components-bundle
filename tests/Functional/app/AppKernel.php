@@ -27,11 +27,10 @@ class AppKernel extends Kernel
 
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
 
-    public function __construct(string $environment, bool $debug)
+    public function __construct(string $environment, bool $debug, private readonly string $routePrefix = '')
     {
         parent::__construct($environment, $debug);
 
-        // patch for Behat/symfony2-extension not supporting %env(APP_ENV)%
         $this->environment = $_SERVER['APP_ENV'] ?? $environment;
     }
 
@@ -47,7 +46,17 @@ class AppKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return $this->getProjectDir() . '/var/cache/' . $this->environment;
+        return $this->getProjectDir() . '/var/cache/' . $this->environment . $this->getRoutePrefixSuffix();
+    }
+
+    protected function getContainerClass(): string
+    {
+        return parent::getContainerClass() . $this->getRoutePrefixSuffix();
+    }
+
+    private function getRoutePrefixSuffix(): string
+    {
+        return '' === $this->routePrefix ? '' : '_' . preg_replace('/[^A-Za-z0-9]+/', '', $this->routePrefix);
     }
 
     public function getLogDir(): string
@@ -62,24 +71,20 @@ class AppKernel extends Kernel
 
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
-        // Import routes that should be included with flex / manually
-        $routes->import($this->getProjectDir() . '/../../../src/Resources/config/routing/*' . self::CONFIG_EXTS);
+        $routes->import($this->getProjectDir() . '/../../../src/Resources/config/routing/*' . self::CONFIG_EXTS)->prefix($this->routePrefix);
 
         $configDir = $this->getProjectDir() . '/config';
         if (is_dir($configDir . '/routes/')) {
-            $routes->import($configDir . '/routes/*' . self::CONFIG_EXTS);
+            $routes->import($configDir . '/routes/*' . self::CONFIG_EXTS)->prefix($this->routePrefix);
         }
         if (is_dir($configDir . '/routes/' . $this->environment)) {
-            $routes->import($configDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTS);
+            $routes->import($configDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTS)->prefix($this->routePrefix);
         }
-        $routes->import($configDir . '/routes' . self::CONFIG_EXTS);
+        $routes->import($configDir . '/routes' . self::CONFIG_EXTS)->prefix($this->routePrefix);
     }
 
     protected function configureContainer(ContainerConfigurator $container, LoaderInterface $loader, ContainerBuilder $builder): void
     {
-        // $container->setParameter('container.autowiring.strict_mode', true);
-        // $container->setParameter('container.dumper.inline_class_loader', true);
-
         $confDir = $this->getProjectDir() . '/config';
         $container->import($confDir . '/packages/*' . self::CONFIG_EXTS);
         if (is_dir($confDir . '/packages/' . $this->environment)) {
