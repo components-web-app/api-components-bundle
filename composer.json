@@ -124,6 +124,9 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
+        "branch-alias": {
+            "dev-main": "2.x-dev"
+        },
         "symfony": {
             "allow-contrib": false,
             "root-dir": "tests/Functional/app",
