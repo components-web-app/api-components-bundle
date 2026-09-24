@@ -55,6 +55,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(CwaCollectorData::class),
             [],
             new Reference('silverback.api_components.http_cache.manifest_key_resolver'),
+            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->tag('silverback_api_components.resource_changed_propagator')
         ->tag('kernel.reset', ['method' => 'reset']);

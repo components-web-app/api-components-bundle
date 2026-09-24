@@ -20,6 +20,8 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
+use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
@@ -368,6 +370,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                     ApiPlatformAuthenticationException::class => 401,
                     UserDisabledException::class => 401,
                     UnroutedParentException::class => 422,
+                    HttpCachePurgeFailedException::class => 502,
+                    HttpCacheFlushFailedException::class => 502,
                 ],
             ]
         );

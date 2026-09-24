@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DataProcessor\StateProcessor;
 use ApiPlatform\Metadata\Post;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RenderedHtmlPurgeStateProcessor;
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Compiler\ResolveClassPass;
@@ -47,6 +48,17 @@ class RenderedHtmlPurgeStateProcessorTest extends TestCase
         $processor = $container->get(RenderedHtmlPurgeStateProcessor::class);
 
         self::assertNull($processor->process(null, new Post()));
+    }
+
+    public function test_a_failed_purge_is_not_reported_as_a_success(): void
+    {
+        $container = $this->loadContainer();
+        $purger = $this->createStub(HttpCachePurger::class);
+        $purger->method('purgeRenderedHtml')->willThrowException(new HttpCachePurgeFailedException('Failed to purge the HTTP cache tags "cwa-html"'));
+        $container->set(self::PURGER_ID, $purger);
+
+        $this->expectException(HttpCachePurgeFailedException::class);
+        $container->get(RenderedHtmlPurgeStateProcessor::class)->process(null, new Post());
     }
 
     public function test_the_processor_does_nothing_when_no_http_cache_purger_is_configured(): void

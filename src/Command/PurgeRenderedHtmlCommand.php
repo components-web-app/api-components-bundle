@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Command;
 
+use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -33,7 +34,14 @@ class PurgeRenderedHtmlCommand extends Command
             return Command::SUCCESS;
         }
 
-        $this->httpCachePurger->purgeRenderedHtml();
+        try {
+            $this->httpCachePurger->purgeRenderedHtml();
+        } catch (HttpCachePurgeFailedException $exception) {
+            $output->writeln(\sprintf('<error>%s</error>', $exception->getMessage()));
+
+            return Command::FAILURE;
+        }
+
         $output->writeln(\sprintf('Purged the `%s` cache tag', HttpCachePurger::RENDERED_HTML_TAG));
 
         return Command::SUCCESS;
