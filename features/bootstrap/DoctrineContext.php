@@ -533,6 +533,57 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the component :name has a ComponentGroup :prefix holding a component
+     */
+    public function theComponentHasAComponentGroupHoldingAComponent(string $name, string $prefix): void
+    {
+        /** @var AbstractComponent $component */
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $group = $this->createComponentGroupWithComponents(1, null, $prefix, $prefix . '_');
+        $component->addComponentGroup($group);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the Page :name has a ComponentGroup :prefix holding a component
+     */
+    public function thePageHasAComponentGroupHoldingAComponent(string $name, string $prefix): void
+    {
+        /** @var Page $page */
+        $page = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $group = $this->createComponentGroupWithComponents(1, null, $prefix, $prefix . '_');
+        $page->addComponentGroup($group);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the component :name has a ComponentGroup :prefix which holds the component itself
+     */
+    public function theComponentHasAComponentGroupHoldingItself(string $name, string $prefix): void
+    {
+        /** @var AbstractComponent $component */
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $group = new ComponentGroup();
+        $group->reference = $prefix;
+        $group->location = $prefix;
+        $this->timestampedHelper->persistTimestampedFields($group, true);
+        $this->manager->persist($group);
+        $position = new ComponentPosition();
+        $position->componentGroup = $group;
+        $position->component = $component;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $component->addComponentGroup($group);
+        $this->manager->flush();
+        $this->restContext->resources[$prefix . '_component_group'] = $this->iriConverter->getIriFromResource($group);
+        $this->restContext->resources[$prefix . '_position'] = $this->iriConverter->getIriFromResource($position);
+        $this->manager->clear();
+    }
+
+    /**
      * @Given the Pages :names use a Layout with a ComponentGroup holding a component
      */
     public function thePagesUseALayoutWithAComponentGroupHoldingAComponent(string $names): void

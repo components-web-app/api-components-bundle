@@ -1414,6 +1414,18 @@ Tests: `tests/Mercure/MercureAuthorizationTest.php`, `tests/Mercure/MercureResou
 
 ---
 
+### #309 — Component groups owned by a component are in the manifest ✓ **DONE**
+
+A component can own component groups (`UiTrait`, `ComponentGroup.location`), such as a tabs or columns component. `AbstractComponent::$componentGroups` had no `Route:manifest:read`, so the manifest listed the component as a bare IRI and its own groups, positions and components arrived one round trip per level of nesting. It had never been in the manifest: b04809dd exposed page-data sub-components in 2025 and 2ce9f6b8 reverted it the same day over a suspected position cache purge problem. That problem came from every member IRI being a cache tag, which #227 removed.
+
+**The fix is only the serialization group.** A relation is embedded when the related resource has a field in the active group, so adding `Route:manifest:read` to `AbstractComponent::$componentGroups` makes API Platform embed a position's component in the manifest and walk its groups the same way it walks `Page::$componentGroups`, to any depth. Unlike #306, no manifest normalizer is needed: `readableLink: false` is not set on the component's getter, and the component's own `GET` response is unchanged (bare group IRIs either way, since the group only applies in the manifest context). A component placed in its own group is stopped by API Platform's circular-reference handling, which returns the IRI.
+
+It is one query per component to load its groups, and only while a manifest is built; the manifest is then cached under its grouping key. `ComponentVoter` already makes a component inside a component's group public through the same upward walk, and `ManifestKeyResolver` already follows group → component → position → group → page, so a write inside a component's group purges the page's manifest key.
+
+Tests: `features/main/manifest_component_groups.feature` (a component's groups, positions and components at the page's depth; two levels deep; at the child's depth only on a nested page; a component in its own group; the component's own response still lists group IRIs, not embedded), `features/main/manifest_cache_tags.feature` (a position added to a component's group purges the page's manifest key). New steps: `the component :name has a ComponentGroup :prefix holding a component`, `the Page :name has a ComponentGroup :prefix holding a component`, `the component :name has a ComponentGroup :prefix which holds the component itself`.
+
+---
+
 ### #306 — A page's layout component groups are in its manifest, once, at the shallowest depth ✓ **DONE**
 
 `Page::$componentGroups` was in `Route:manifest:read`; `Layout::$componentGroups` was not. So a layout's groups, their positions and their components were only discovered from the layout's own response, one round trip after the manifest. On a client-side load that left `<CwaComponentGroup>` mounted with no group in the store, which is what surfaced cwa-nuxt-module#339.
@@ -1429,7 +1441,7 @@ Tests: `tests/Mercure/MercureAuthorizationTest.php`, `tests/Mercure/MercureResou
 
 **Security and caching were already consistent.** The manifest lists IRIs only, each fetch is still voter-checked, and layout components are already public through the layout's routed pages (#225). `ManifestKeyResolver` already maps a layout group or position write to `layouts → pages`, so the manifests that now contain layout groups are purged when those groups change; a scenario pins it.
 
-**Deferred: component-nested groups** (`AbstractComponent::$componentGroups`). That property is not serialised anywhere, and exposing it in the manifest would mean embedding every component instead of listing its IRI, with an extra query per component. The module has the same late-arrival window there and is fixing it module-side in a way that is not layout-specific.
+**Component-owned groups followed in #309**, below.
 
 Tests: `features/main/manifest_layout.feature` (the layout subtree at the page's depth; a shared layout once at depth 0 and nowhere at depth 1, the case cwa-nuxt-module asked to have pinned; `GET /layouts` still returns bare group IRIs), `features/main/manifest_cache_tags.feature` (a position added to a layout group purges the page's manifest key), `tests/Serializer/Normalizer/ManifestDepthGroupTraitTest.php`, `tests/Serializer/Normalizer/LayoutManifestNormalizerTest.php`. New steps: `the Pages :names use a Layout with a ComponentGroup holding a component`, `the manifest depth :depth should (not) contain the IRI of the resource :name`, and the nested-Page fixture now also names `parent_page`.
 
