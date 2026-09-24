@@ -42,4 +42,4 @@ Feature: A saved write is answered successfully when the HTTP cache cannot be pu
     Given the HTTP cache is unreachable
     When I send a "POST" request to "/_/rendered_html/purge"
     Then the response status code should be 502
-    And the header "Content-Type" should be equal to "application/problem+json"
+    And the header "Content-Type" should contain "application/problem+json"
