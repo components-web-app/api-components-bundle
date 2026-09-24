@@ -7,6 +7,10 @@ services:
         tags:
             - { name: doctrine.middleware, priority: 101 }
 
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware:
+        tags:
+            - { name: doctrine.middleware }
+
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
 

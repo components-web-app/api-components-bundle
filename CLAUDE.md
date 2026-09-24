@@ -260,6 +260,7 @@ Key current group assignments:
 | `GET /_/routes/{id}/children` | Returns the recursive child tree for a route (admin-only). Each node: `{ "route": IRI, "path": string, "children": [] }`. Not filtered by publication — an admin needs to see scheduled children. A page with no route gets no node; its routed descendants are listed in its place (#256). |
 | `POST /_/rendered_html/purge` | Purges the `cwa-html` rendered-HTML cache tag and nothing else (`ROLE_ADMIN`, no body, 204; 502 when the purge fails). The deploy path is the console command `silverback:api-components:purge-rendered-html`; this endpoint is for the admin button. See #243 and #311. |
 | `POST /_/http_cache/purge` | Flushes the whole HTTP cache, API and HTML together (`ROLE_ADMIN`, no body, 204; 501 when the purger cannot flush; 502 when the flush fails). The deploy path is the console command `silverback:api-components:purge-http-cache`. See #290. |
+| `GET /_/health` | Anonymous readiness check: `{"status":"ok"}` after a dummy `SELECT` on the default DBAL connection, or 503 `{"status":"unavailable","reason":"database"}`. `Cache-Control: no-store, private`, no cache tags, no cookie. A plain Symfony route, not an API Platform operation. See #312. |
 
 ---
 
@@ -1548,3 +1549,27 @@ The module's `@id` values carry `/_api` because of (1). `ResourceTypeFromIri.set
 **Tests:** `features/main/route_purge_tags.feature`: create, path change and delete over HTTP under `/_api`, and a write outside any request. These pin behaviour that already held, so there was no red phase to watch. Instead, the Background prefix was temporarily changed to `/other`: all four scenarios failed, and the CLI one reported `/other/_/routes`. That proves the harness serves the prefix and the CLI tag follows the route import prefix. New steps: `the API routes are imported under the prefix :prefix` and `a Route with the path :path is written outside an HTTP request` (`RoutePrefixContext`).
 
 References: `features/main/route_purge_tags.feature`, `features/bootstrap/RoutePrefixContext.php`, `features/bootstrap/ProfilerContext.php`, `features/bootstrap/RestContext.php`, `tests/Functional/app/AppKernel.php`, `src/HttpCache/HttpCachePurger.php`, `src/ApiPlatform/Api/IriConverter.php`.
+
+---
+
+### #312 — An uncached health endpoint for readiness checks (template: components-web-app) ✓ **DONE**
+
+The template's readiness probe used `/_api/_/site_config_parameters.jsonld`, which Souin caches, so a cancelled first probe once poisoned that key for the pod's life. The image's `HEALTHCHECK` only checks Caddy `/metrics`, which passes while PHP or the database is down. `GET /_/health` is the endpoint to probe instead.
+
+- `200 {"status":"ok"}` after `$connection->getDatabasePlatform()->getDummySelectSQL()` on `doctrine.dbal.default_connection`.
+- `503 {"status":"unavailable","reason":"database"}` on a `Doctrine\DBAL\Exception`. The exception message never reaches the body (it can carry a host or DSN). It is logged at **warning** with the exception in the context, because a 503 with a fixed reason is otherwise undiagnosable. Warning, not error: an outage probed every few seconds would flood an error channel. Any other exception propagates, as in #283.
+- Both responses are `Cache-Control: no-store, private`, `Content-Type: application/json`, and carry no `xkey`/`Surrogate-Key`/`Cache-Tags` and no `Set-Cookie`. GET and HEAD only; anything else is Symfony's routing 405.
+
+**A plain Symfony route, not an API Platform operation.** An operation would answer JSON-LD (`@context`/`@id`/`@type`), get AP's `public`/`s-maxage` cache headers from `AddHeadersProcessor` and a tag header, and set `_api_resource_class`, so `CacheHeadersEventListener` would act on it. Every one would then have to be undone. The route sets none of that, so `CacheHeadersEventListener` returns early and no tag collector runs. It lives in `src/Resources/config/routing/health.php`, imported by `routing/all.php` beside the security routes. The template imports `all.php` with `prefix: /_api`, the same prefix as its API Platform import, so **the URL is `/_api/_/health`**. An application that imports only `security.php` does not get it.
+
+**Wiring:** `HealthAction` keeps its FQCN as the primary id (the controller exception), alias `silverback.api_components.action.health`, `controller.service_arguments`, `->autoconfigure(false)`, arguments `doctrine.dbal.default_connection` and `logger` with `NULL_ON_INVALID_REFERENCE`. It holds no state, so worker mode needs nothing.
+
+**Access control.** The action has no security of its own. An application's firewall must let an anonymous GET reach `^/_api/_/health`. The template's firewall is stateless JWT with `access_control` restricting only write methods, so it already does; an application that requires authentication for every GET must add `{ path: ^/_api/_/health, roles: PUBLIC_ACCESS }`. The 405 comes from the router, which runs before the firewall, so a POST is a 405 and not a 401.
+
+**The template should still exclude the path from Souin.** Its `@use_cache` matches every `/_api` GET, so it should not depend on `no-store` alone.
+
+**Harness double.** `tests/Functional/TestBundle/Doctrine/UnreachableDatabaseMiddleware` is a DBAL driver middleware registered in `services_test.yaml` with a static switch, set by `Given the database is unreachable` and cleared in `ProfilerContext`'s `@BeforeScenario`/`@AfterScenario`. It throws a driver exception from `query`/`prepare`/`exec`, so DBAL converts it into a real `DriverException` exactly as for an outage. It is static for the same reason as `HubStub` (#283). It does not throw from `rollBack`, so `DoctrineContext`'s rollback still runs.
+
+> The custom `JsonContext` step `the JSON should be deep equal to:` fatals (it calls Behatch's protected `assertSame`) and no feature uses it. The health feature uses Behatch's `the JSON should be equal to:`, which compares the encoded string exactly.
+
+Tests: `features/main/health.feature` (200 and exact body, `no-store` and no `public`/`max-age`, no tag headers, no cookie, HEAD, 405 for POST/PUT/PATCH/DELETE, 503 with the body and no leaked message, the warning logged, the switch reset in the next scenario). `tests/Action/Health/HealthActionTest.php` against real in-memory and unopenable SQLite connections, plus the service definition from a bare `ContainerBuilder` and the route from `routing/health.php`. New steps: `the database is unreachable`, `the unreachable database should have been logged` (`ProfilerContext`, read from `app.monolog.test_handler`).

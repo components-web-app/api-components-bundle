@@ -11,7 +11,11 @@
 
 namespace Symfony\Component\Routing\Loader\Configurator;
 
+use Silverback\ApiComponentsBundle\Action\Health\HealthAction;
+
 return static function (RoutingConfigurator $routes): void {
-    $routes->import('@SilverbackApiComponentsBundle/Resources/config/routing/security.php');
-    $routes->import('@SilverbackApiComponentsBundle/Resources/config/routing/health.php');
+    $routes
+        ->add('api_components_health', '/_/health')
+        ->methods(['GET'])
+        ->controller(HealthAction::class);
 };
