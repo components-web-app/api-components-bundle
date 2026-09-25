@@ -7,51 +7,15 @@ parameters:
 			path: src/Action/Uploadable/UploadAction.php
 
 		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getMethod\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/RoutableResourceMetadataCollectionFactory.php
-
-		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getRoutePrefix\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCollectionFactory.php
-
-		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:withRoutePrefix\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/RoutingPrefixResourceMetadataCollectionFactory.php
-
-		-
 			message: '#^Attribute class JetBrains\\PhpStorm\\Pure does not exist\.$#'
 			identifier: attribute.notFound
 			count: 5
 			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
 
 		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getMethod\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
-
-		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:getUriTemplate\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
-
-		-
-			message: '#^Call to an undefined method ApiPlatform\\Metadata\\Operation\:\:withController\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
-
-		-
 			message: '#^Parameter \#1 \$stateless of method ApiPlatform\\Metadata\\HttpOperation\:\:withStateless\(\) expects bool, null given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: src/ApiPlatform/Metadata/Resource/UploadableResourceMetadataCollectionFactory.php
 
 		-
