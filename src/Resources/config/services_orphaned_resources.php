@@ -39,7 +39,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(ManagerRegistry::class),
-            new Reference('silverback.metadata_factory.component_usage'),
             new Reference('silverback.api_components.attribute_reader.publishable'),
             new Reference(IriConverterInterface::class),
         ]);

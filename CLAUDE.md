@@ -211,15 +211,17 @@ Resources are fetched and cached **individually**. Never embed related data outs
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /_/orphaned_resources/scan` | `ROLE_ADMIN`, no body, 202. Dispatches `ScanOrphanedResourcesMessage` on `messenger.default_bus`; without a bus the processor runs the handler itself. |
+| `POST /_/orphaned_resources/scan` | Refresh. `ROLE_ADMIN`, no body, 202. Dispatches `ScanOrphanedResourcesMessage` on `messenger.default_bus`. **It runs synchronously unless the application routes the message to an async transport**, like the mailer's `SendEmailMessage`; with no bus at all the processor runs the handler itself. |
 | `GET /_/orphaned_resources` | `ROLE_ADMIN`. The last stored report: `generatedAt` plus IRI lists `componentGroups`, `componentPositions`, `components`. **404 until a scan has stored one.** `private, no-store`. |
 
 - **It reports, it never deletes.** Deletion is the normal `DELETE` per IRI, whose listeners cascade. Do not call `OrphanedResourceHelper` from the scan.
-- Orphaned means, in `OrphanedResourceDetector`: a group with no page, layout or component owner; a position with neither a component nor a `pageDataProperty`; a component whose `ComponentUsageMetadataFactory` total (positions + page data properties) is 0. **A draft (publishable association set) is never reported**; its published version is judged instead. A component only reached from an application's own relation (not a position or page data property) is reported, because nothing else counts usage.
-- **The report lives in `cache.app`** (`OrphanedResourceReportStore`), stored as plain arrays so reading needs no class. Never keep it on a shared service. It is not tied to a request, so it needs no `kernel.reset`.
+- **An orphan is anything not linked into the CWA tree:** a group with no page, layout or component owner; a position with neither a component nor a `pageDataProperty`; a component in no position and in no page data component property. An application's own Doctrine relations to a component do not count as use. **A draft is never listed**; its published version is judged by its own usage.
+- **`OrphanedResourceDetector` is three DQL queries, whatever the site size.** Page data component properties come from Doctrine metadata (owning single-join-column associations on `AbstractPageData` subclasses to an `AbstractComponent`, not inherited) and drafts from each publishable class's own association. Each becomes a `NOT IN` subquery in the component query, never a new query. Names come from Doctrine, so the table prefix is honoured.
+- **Never hydrate the orphaned components.** A published component's inverse one-to-one `draftResource` is loaded eagerly, so hydration costs one query per orphan. The query selects `c.id` and a `CASE WHEN c INSTANCE OF … ELSE … END` type (deepest class first; DQL requires the `ELSE`), and IRIs come from `getReference()`, which queries nothing.
+- Verified identical on SQLite, MySQL 8.0.46, MariaDB 10.11.19 and PostgreSQL 16.15 on a fixture with each orphan kind, drafts and page data. About 20 ms and 3 queries for 5,000 components, 1,000 groups and 5,000 positions on SQLite.
+- **The report lives in `cache.app`** (`OrphanedResourceReportStore`) as plain arrays, never on a shared service, so it needs no `kernel.reset`.
 - **The GET must stay `private, no-store`.** A new scan is a cache write, not a Doctrine write, so nothing purges a shared-cache copy.
-- The scan is a synchronous `findAll()` over groups and components with one usage lookup per component. Route the message to an async transport on large sites.
-- The POST needs `read: true` for the same reason as the purge endpoints. Anonymous POST 401 in the test app is the firewall's; the `@loginUser` 403 is the operation's own security.
+- The POST needs `read: true` like the purge endpoints. Anonymous POST 401 in the test app is the firewall's; the `@loginUser` 403 is the operation's own security.
 
 ### Filters (#289, #237)
 

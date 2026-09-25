@@ -12,185 +12,306 @@
 namespace Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource;
 
 use ApiPlatform\Metadata\IriConverterInterface;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\Middleware;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Events;
+use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
+use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
-use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
-use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
+use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRestrictedComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 
 class OrphanedResourceDetectorTest extends TestCase
 {
-    private \SplObjectStorage $iris;
+    private EntityManager $entityManager;
+    private TimestampedDataPersister $timestampedDataPersister;
+    private OrphanedResourceDetector $detector;
 
-    /** @var array<class-string, list<object>> */
-    private array $all = [];
-
-    /** @var list<ComponentPosition> */
-    private array $emptyPositions = [];
-
-    /** @var array<int, int> */
-    private array $usage = [];
+    private AbstractLogger $queryLogger;
 
     protected function setUp(): void
     {
-        $this->iris = new \SplObjectStorage();
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', UuidType::class);
+        }
+        $registry = $this->createStub(ManagerRegistry::class);
+        $configuration = ORMSetup::createAttributeMetadataConfig([
+            __DIR__ . '/../../../src/Entity',
+            __DIR__ . '/../../Functional/TestBundle/Entity',
+        ], true);
+        $configuration->enableNativeLazyObjects(true);
+        $this->queryLogger = new class extends AbstractLogger {
+            /** @var list<string> */
+            public array $queries = [];
+
+            public function log($level, \Stringable|string $message, array $context = []): void
+            {
+                if (isset($context['sql'])) {
+                    $this->queries[] = $context['sql'];
+                }
+            }
+        };
+        $configuration->setMiddlewares([new Middleware($this->queryLogger)]);
+        $this->entityManager = new EntityManager(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration), $configuration);
+        $registry->method('getManagerForClass')->willReturn($this->entityManager);
+
+        $events = $this->entityManager->getEventManager();
+        $events->addEventListener(Events::loadClassMetadata, new TablePrefixExtension('_acb_'));
+        $events->addEventListener(Events::loadClassMetadata, new MappedSuperclassDiscriminatorMapListener());
+        $events->addEventListener(Events::loadClassMetadata, new PublishableListener(new PublishableAttributeReader($registry)));
+        $events->addEventListener(Events::loadClassMetadata, new UploadableListener(new UploadableAttributeReader($registry, true)));
+        $events->addEventListener(Events::loadClassMetadata, new TimestampedListener(new TimestampedAttributeReader($registry)));
+        (new SchemaTool($this->entityManager))->createSchema($this->entityManager->getMetadataFactory()->getAllMetadata());
+
+        $this->timestampedDataPersister = new TimestampedDataPersister($registry, new TimestampedAttributeReader($registry));
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback($this->iri(...));
+        $this->detector = new OrphanedResourceDetector($registry, new PublishableAttributeReader($registry), $iriConverter);
     }
 
     public function test_a_group_with_no_page_layout_or_component_owner_is_reported(): void
     {
-        $orphan = $this->named(new ComponentGroup(), '/_/component_groups/orphan');
-        $inPage = $this->named((new ComponentGroup())->addPage(new Page()), '/_/component_groups/page');
-        $inLayout = $this->named((new ComponentGroup())->addLayout(new Layout()), '/_/component_groups/layout');
-        $inComponent = $this->named((new ComponentGroup())->addComponent(new DummyComponent()), '/_/component_groups/component');
-        $this->all[ComponentGroup::class] = [$orphan, $inPage, $inLayout, $inComponent];
+        $orphan = $this->group('orphan');
+        $this->page()->addComponentGroup($this->group('in-page'));
+        $this->layout()->addComponentGroup($this->group('in-layout'));
+        $this->persist(new DummyComponent())->addComponentGroup($this->group('in-component'));
 
-        $report = $this->createDetector()->detect();
-
-        self::assertSame(['/_/component_groups/orphan'], $report->componentGroups);
+        self::assertSame([$this->iri($orphan)], $this->detect()->componentGroups);
     }
 
-    public function test_the_positions_reported_are_those_with_neither_a_component_nor_a_page_data_property(): void
+    public function test_a_position_with_neither_a_component_nor_a_page_data_property_is_reported(): void
     {
-        $this->emptyPositions = [$this->named(new ComponentPosition(), '/_/component_positions/empty')];
+        $group = $this->pageGroup();
+        $empty = $this->position($group);
+        $this->position($group, new DummyComponent());
+        $dynamic = $this->position($group);
+        $dynamic->pageDataProperty = 'component';
 
-        $report = $this->createDetector()->detect();
-
-        self::assertSame(['/_/component_positions/empty'], $report->componentPositions);
+        self::assertSame([$this->iri($empty)], $this->detect()->componentPositions);
     }
 
-    public function test_a_component_used_nowhere_is_reported_and_a_used_one_is_not(): void
+    public function test_a_component_in_no_position_and_no_page_data_property_is_reported(): void
     {
-        $unused = $this->named(new DummyComponent(), '/component/dummy_components/unused');
-        $inPosition = $this->named(new DummyComponent(), '/component/dummy_components/position');
-        $inPageData = $this->named(new DummyComponent(), '/component/dummy_components/page_data');
-        $this->usage[spl_object_id($inPosition)] = 1;
-        $this->usage[spl_object_id($inPageData)] = 1;
-        $this->all[AbstractComponent::class] = [$unused, $inPosition, $inPageData];
+        $unused = $this->persist(new DummyComponent());
+        $this->position($this->pageGroup(), new DummyComponent());
 
-        $report = $this->createDetector()->detect();
-
-        self::assertSame(['/component/dummy_components/unused'], $report->components);
+        self::assertSame([$this->iri($unused)], $this->detect()->components);
     }
 
-    public function test_a_draft_is_never_reported(): void
+    public function test_a_position_in_an_orphaned_group_still_counts_as_use(): void
     {
-        $published = $this->named(new DummyPublishableComponent(), '/component/dummy_publishable_components/published');
-        $draft = $this->named(new DummyPublishableComponent(), '/component/dummy_publishable_components/draft');
-        $draft->setPublishedResource($published);
-        $this->all[AbstractComponent::class] = [$draft, $published];
+        $orphan = $this->group('orphan');
+        $this->position($orphan, new DummyComponent());
 
-        $report = $this->createDetector()->detect();
+        $report = $this->detect();
 
-        self::assertSame(['/component/dummy_publishable_components/published'], $report->components);
+        self::assertSame([$this->iri($orphan)], $report->componentGroups);
+        self::assertSame([], $report->components);
     }
 
-    public function test_a_publishable_component_with_no_published_version_is_judged_by_its_usage(): void
+    public function test_a_component_referenced_by_any_page_data_component_property_is_not_reported(): void
     {
-        $unused = $this->named(new DummyPublishableComponent(), '/component/dummy_publishable_components/unused');
-        $used = $this->named(new DummyPublishableComponent(), '/component/dummy_publishable_components/used');
-        $this->usage[spl_object_id($used)] = 1;
-        $this->all[AbstractComponent::class] = [$unused, $used];
+        $pageData = new PageDataWithComponent();
+        $pageData->page = $this->page();
+        $pageData->component = new DummyComponent();
+        $pageData->publishableComponent = new DummyPublishableComponent();
+        $this->persist($pageData->component);
+        $this->persist($pageData->publishableComponent);
+        $this->persist($pageData);
+        $restricted = new PageDataWithRestrictedComponent();
+        $restricted->page = $pageData->page;
+        $restricted->restrictedComponent = $this->persist(new RestrictedComponent());
+        $this->persist($restricted);
 
-        $report = $this->createDetector()->detect();
-
-        self::assertSame(['/component/dummy_publishable_components/unused'], $report->components);
+        self::assertSame([], $this->detect()->components);
     }
 
-    public function test_iris_are_sorted_and_the_report_is_dated_now(): void
+    public function test_a_draft_is_never_reported_and_its_published_version_is_judged_by_its_own_usage(): void
     {
-        $this->all[ComponentGroup::class] = [
-            $this->named(new ComponentGroup(), '/_/component_groups/b'),
-            $this->named(new ComponentGroup(), '/_/component_groups/a'),
+        $unusedPublished = $this->persist(new DummyPublishableComponent());
+        $this->persist((new DummyPublishableComponent())->setPublishedResource($unusedPublished));
+        $placedPublished = $this->persist(new DummyPublishableComponent());
+        $this->position($this->pageGroup(), $placedPublished);
+        $this->persist((new DummyPublishableComponent())->setPublishedResource($placedPublished));
+
+        self::assertSame([$this->iri($unusedPublished)], $this->detect()->components);
+    }
+
+    public function test_a_publishable_component_with_no_published_version_is_judged_by_its_own_usage(): void
+    {
+        $unused = $this->persist(new DummyPublishableComponent());
+        $this->position($this->pageGroup(), new DummyPublishableComponent());
+
+        self::assertSame([$this->iri($unused)], $this->detect()->components);
+    }
+
+    public function test_each_component_is_reported_as_its_own_class(): void
+    {
+        $components = [
+            $this->persist(new DummyComponent()),
+            $this->persist(new DummyNavigationLink()),
+            $this->persist(new DummyPublishableComponent()),
+            $this->persist(new RestrictedComponent()),
         ];
-        $this->emptyPositions = [
-            $this->named(new ComponentPosition(), '/_/component_positions/b'),
-            $this->named(new ComponentPosition(), '/_/component_positions/a'),
-        ];
-        $this->all[AbstractComponent::class] = [
-            $this->named(new DummyComponent(), '/component/dummy_components/b'),
-            $this->named(new DummyComponent(), '/component/dummy_components/a'),
-        ];
+        $expected = array_map($this->iri(...), $components);
+        sort($expected);
 
+        self::assertSame($expected, $this->detect()->components);
+    }
+
+    public function test_the_iris_of_each_kind_are_sorted(): void
+    {
+        $group = $this->pageGroup();
+        for ($i = 0; $i < 5; ++$i) {
+            $this->group('orphan-' . $i);
+            $this->position($group);
+            $this->persist(new DummyComponent());
+        }
+
+        $report = $this->detect();
+
+        foreach ([$report->componentGroups, $report->componentPositions, $report->components] as $iris) {
+            self::assertCount(5, $iris);
+            $sorted = $iris;
+            sort($sorted);
+            self::assertSame($sorted, $iris);
+        }
+    }
+
+    public function test_the_report_is_dated_when_it_is_detected(): void
+    {
         $before = new \DateTimeImmutable();
-        $report = $this->createDetector()->detect();
+        $generatedAt = $this->detect()->generatedAt;
 
-        self::assertSame(['/_/component_groups/a', '/_/component_groups/b'], $report->componentGroups);
-        self::assertSame(['/_/component_positions/a', '/_/component_positions/b'], $report->componentPositions);
-        self::assertSame(['/component/dummy_components/a', '/component/dummy_components/b'], $report->components);
-        self::assertGreaterThanOrEqual($before->getTimestamp(), $report->generatedAt->getTimestamp());
-        self::assertLessThanOrEqual((new \DateTimeImmutable())->getTimestamp(), $report->generatedAt->getTimestamp());
+        self::assertGreaterThanOrEqual($before->getTimestamp(), $generatedAt->getTimestamp());
+        self::assertLessThanOrEqual((new \DateTimeImmutable())->getTimestamp(), $generatedAt->getTimestamp());
     }
 
     public function test_an_empty_database_gives_an_empty_report(): void
     {
-        $report = $this->createDetector()->detect();
+        $report = $this->detect();
 
         self::assertSame([], $report->componentGroups);
         self::assertSame([], $report->componentPositions);
         self::assertSame([], $report->components);
     }
 
+    public function test_the_report_takes_three_queries_however_many_orphans_there_are(): void
+    {
+        for ($i = 0; $i < 5; ++$i) {
+            $published = $this->persist(new DummyPublishableComponent());
+            $this->persist((new DummyPublishableComponent())->setPublishedResource($published));
+            $this->persist(new DummyComponent());
+            $this->group('orphan-' . $i);
+        }
+
+        $report = $this->detect();
+
+        self::assertCount(10, $report->components);
+        self::assertCount(3, $this->queryLogger->queries);
+    }
+
+    private function detect(): \Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport
+    {
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $this->queryLogger->queries = [];
+
+        return $this->detector->detect();
+    }
+
+    private function iri(object $resource): string
+    {
+        $metadata = $this->entityManager->getClassMetadata($resource::class);
+
+        return \sprintf('/%s/%s', $metadata->getName(), $metadata->getIdentifierValues($resource)['id']);
+    }
+
     /**
      * @template T of object
      *
-     * @param T $resource
+     * @param T $entity
      *
      * @return T
      */
-    private function named(object $resource, string $iri): object
+    private function persist(object $entity): object
     {
-        $this->iris[$resource] = $iri;
+        if ($this->timestampedDataPersister->isConfigured($entity)) {
+            $this->timestampedDataPersister->persistTimestampedFields($entity, true);
+        }
+        $this->entityManager->persist($entity);
 
-        return $resource;
+        return $entity;
     }
 
-    private function createDetector(): OrphanedResourceDetector
+    private function group(string $reference): ComponentGroup
     {
-        $groupRepository = $this->createStub(ObjectRepository::class);
-        $groupRepository->method('findAll')->willReturn($this->all[ComponentGroup::class] ?? []);
+        $group = new ComponentGroup();
+        $group->reference = $reference;
+        $group->location = $reference;
 
-        $positionRepository = $this->createStub(ObjectRepository::class);
-        $positionRepository->method('findBy')->willReturnCallback(
-            fn (array $criteria) => ['component' => null, 'pageDataProperty' => null] === $criteria ? $this->emptyPositions : []
-        );
+        return $this->persist($group);
+    }
 
-        $componentRepository = $this->createStub(ObjectRepository::class);
-        $componentRepository->method('findAll')->willReturn($this->all[AbstractComponent::class] ?? []);
+    private function pageGroup(): ComponentGroup
+    {
+        $group = $this->group('page-group');
+        $this->page()->addComponentGroup($group);
 
-        $classMetadata = $this->createStub(ClassMetadata::class);
-        $classMetadata->method('getFieldValue')->willReturnCallback(
-            static fn (object $entity, string $field) => 'publishedResource' === $field && $entity instanceof DummyPublishableComponent ? $entity->getPublishedResource() : null
-        );
-        $entityManager = $this->createStub(EntityManagerInterface::class);
-        $entityManager->method('getClassMetadata')->willReturn($classMetadata);
+        return $group;
+    }
 
-        $registry = $this->createStub(ManagerRegistry::class);
-        $registry->method('getRepository')->willReturnCallback(static fn (string $class) => match ($class) {
-            ComponentGroup::class => $groupRepository,
-            ComponentPosition::class => $positionRepository,
-            AbstractComponent::class => $componentRepository,
-        });
-        $registry->method('getManagerForClass')->willReturn($entityManager);
+    private function page(): Page
+    {
+        $page = new Page();
+        $page->reference = 'page-' . bin2hex(random_bytes(4));
+        $page->isTemplate = true;
 
-        $usageFactory = $this->createStub(ComponentUsageMetadataFactory::class);
-        $usageFactory->method('create')->willReturnCallback(
-            fn (object $component) => new ComponentUsageMetadata($this->usage[spl_object_id($component)] ?? 0, 0)
-        );
+        return $this->persist($page);
+    }
 
-        $iriConverter = $this->createStub(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willReturnCallback(fn (object $resource) => $this->iris[$resource]);
+    private function layout(): Layout
+    {
+        $layout = new Layout();
+        $layout->reference = 'layout';
 
-        return new OrphanedResourceDetector($registry, $usageFactory, new PublishableAttributeReader($registry), $iriConverter);
+        return $this->persist($layout);
+    }
+
+    private function position(ComponentGroup $group, ?AbstractComponent $component = null): ComponentPosition
+    {
+        $position = new ComponentPosition();
+        $position->componentGroup = $group;
+        $position->sortValue = 0;
+        if ($component) {
+            $position->component = $this->persist($component);
+        }
+
+        return $this->persist($position);
     }
 }

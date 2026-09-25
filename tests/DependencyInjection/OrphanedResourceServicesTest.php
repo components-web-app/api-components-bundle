@@ -12,7 +12,9 @@
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Post;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
@@ -44,6 +46,20 @@ class OrphanedResourceServicesTest extends TestCase
             (string) $container->getDefinition('silverback.api_components.orphaned_resource.report_store')->getArgument(0)
         );
         self::assertSame('silverback.api_components.orphaned_resource.report_store', (string) $container->getAlias(OrphanedResourceReportStore::class));
+    }
+
+    public function test_the_detector_is_wired_to_doctrine_the_publishable_reader_and_the_iri_converter(): void
+    {
+        $container = $this->loadContainer();
+        $definition = $container->getDefinition(self::DETECTOR_ID);
+
+        self::assertSame(OrphanedResourceDetector::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(
+            [ManagerRegistry::class, 'silverback.api_components.attribute_reader.publishable', IriConverterInterface::class],
+            array_map('strval', $definition->getArguments())
+        );
+        self::assertSame(self::DETECTOR_ID, (string) $container->getAlias(OrphanedResourceDetector::class));
     }
 
     public function test_the_handler_handles_the_scan_message_without_relying_on_autoconfiguration(): void
