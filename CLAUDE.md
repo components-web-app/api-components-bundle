@@ -293,9 +293,11 @@ CwaFixtureBuilder
   ->getRoute(routeName): Route
   ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name)
   ->afterRoutes(Closure(CwaFixtureBuilder)): static          (runs once, after routes exist and before positions are created)
+  ->persist(object): static                                  (queued until flush() when called before it)
+  ->getSummary(): CwaFixtureSummary, ->reportSummary()       (what the last load created, kept and skipped)
 LayoutBuilder    ->group(name, allow: [], ?Closure, ?locationReference): GroupBuilder, ->uiClassNames(...)
 PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->nested(Closure), ->getRoute()
-PageDataBuilder  ->liveAt(?DateTimeImmutable), ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
+PageDataBuilder  ->liveAt(?DateTimeImmutable), ->withoutRoute(), ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
 ComponentBuilder ->uiComponent(suffix), ->uiClassNames(...), ->group(name, allow: [], ?Closure)
 GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataClass, propertyName, ?sort)
 ```
@@ -305,6 +307,28 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - `PageBuilder::group()` takes `allow:` last so existing positional closure calls keep working.
 - `onRoutesCreated` may only mutate entities already persisted (set on the page data before `->pageData()` so phase one cascades them); it never calls `persist()`.
 - The builder handles timestamping, persisting, dedup of layouts/pages and groups, position sort values (×10), bidirectional links and parent propagation. `allow:` takes class names and resolves collection IRIs.
+- A page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set. `generate-fixtures` emits `->withoutRoute()` for page data that has no route.
+
+### Loading into a database that already has content (#319)
+
+`doctrine:fixtures:load --append` creates only what is missing and never modifies, reorders or duplicates what exists; editors own it. The builder cannot tell whether the database was purged, so it **always looks up before creating** and there is no mode flag. On an empty database every lookup misses and behaviour is unchanged. Tests: `features/fixtures/append.feature`, `tests/Fixture/CwaFixtureBuilderAppendTest.php`.
+
+| Scaffold item | Identified by | When it exists |
+|---|---|---|
+| Layout | `reference` | reused, fields untouched |
+| Page | `reference` | reused, fields and route untouched; its `routeName` resolves to the existing route |
+| Page data | route path: the explicit `route:`, else `RouteGeneratorInterface::generatePath()` (parent route path + title slug, no conflict suffix) | reused when that route belongs to page data of the same class |
+| Page data with `withoutRoute()` | nothing | created only when its template page or its parent is created in the same load; otherwise skipped as `unidentifiable` |
+| Group | its reference as built (`name_<owner IRI>` or `name_<locationReference>`) | reused and linked to the owner if needed; **none of its positions or components are created**, including ones new to the scaffold, since components have no identity |
+| Explicit route of a new page or page data | path, or name | the entity is created without a route and the route is left alone (`skipped route (path in use)`); the `routeName` resolves to the route at that path |
+| Redirect | path | kept and registered under its name |
+
+- **Anything reached only through a skipped subtree is not created.** The builder keeps a set of skipped scaffold objects: the scaffold copies of kept entities and everything new they reference, and every component in a kept group (recursively through component-owned groups, including components added to the group later in `afterRoutes`). `persist()`, positions and component builders check whether the object reaches a skipped one through owning associations before persisting it. So a generated scaffold's draft, whose `publishedResource` is a component in a kept group, is skipped rather than persisted with a duplicate of its published component. **Never persist a scaffold object without that check**: `persistWithAssociations()` walks owning associations and would write the whole skipped subtree.
+- `persist()` called before `flush()` is queued until the page and group decisions exist; called during `flush()` (in `afterRoutes` or `onRoutesCreated`) it runs at once.
+- The flush phases, their flush counts, `onRoutesCreated` and #245 are unchanged. Children of kept page data are nested under the existing entity and generate under its route; if that parent has no route, generation still throws `UnroutedParentException`. `onRoutesCreated` is not called for page data that was kept or skipped. A builder's `getRoute()` returns the existing route for kept pages and page data.
+- A page data whose natural path belongs to something else is created and gets a suffixed route, so a second append creates it again. Give such page data an explicit `route:`.
+- **Report.** `AbstractCwaScaffold::load()` calls `reportSummary()`, which writes `CWA scaffold: created …; kept …; skipped …` to the running command's output and logs it at `info`. Each kept or skipped entity is logged at `notice`, created ones at `debug`. The output comes from `ConsoleOutputListener`, which holds the output of the running console command (`console.command`/`console.terminate`, a stack for nested commands, `kernel.reset`). The fixtures executor's own logger is private to the executor and a Monolog console handler shows only `warning` and above at default verbosity, so neither can print a summary at default verbosity. `getSummary()` returns the counts for tests; `withManager()` starts a new summary.
+- **The builder service is shared**, so every scaffold in one `doctrine:fixtures:load` shares its state. A Behat step that loads twice must use a fresh builder or a fresh kernel (`FixtureContext` does both).
 
 ### `generate-fixtures` (#189, #321)
 
@@ -327,7 +351,6 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 ## Open issues
 
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
-- **#319 — idempotent `--append` fixture loads. Do last.** Skip whatever already exists; a group missing from an existing owner can be created. Open: how to recognise existing page data (route path, or a new `reference`). Decisions so far are on the issue.
 - **#325 — one unreachable invalidation URL stops purges to the others.** The loop is in API Platform's `SurrogateKeysPurger`; Daniel is taking it up with API Platform before any bundle workaround.
 - **#259 — Flex recipe.** Parked until the stable release.
 - **#222 — config guards still carrying the #214 pattern:** `user.class_name`, `refresh_token.*`, `publishable.permission`, `refresh_token.options.class`. Each fix may force configuration on existing applications (a BC break). Verify each empirically before deciding.

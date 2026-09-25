@@ -25,6 +25,7 @@ abstract class AbstractCwaScaffold implements FixtureInterface
         $cwa = $this->cwa->withManager($manager);
         $this->build($cwa);
         $cwa->flush();
+        $cwa->reportSummary();
     }
 
     abstract public function build(CwaFixtureBuilder $cwa): void;

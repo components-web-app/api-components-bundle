@@ -21,6 +21,7 @@ class PageBuilder
     private ?\Closure $nestedClosure = null;
     private bool $hasLiveAt = false;
     private ?\DateTimeImmutable $liveAt = null;
+    private ?Page $existingPage = null;
 
     public function __construct(private readonly Page $page)
     {
@@ -94,7 +95,15 @@ class PageBuilder
 
     public function getRoute(): ?Route
     {
-        return $this->page->getRoute();
+        return ($this->existingPage ?? $this->page)->getRoute();
+    }
+
+    /**
+     * @internal
+     */
+    public function setExistingPage(Page $page): void
+    {
+        $this->existingPage = $page;
     }
 
     /** @return array<string, GroupBuilder> */

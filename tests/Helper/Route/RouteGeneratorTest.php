@@ -126,6 +126,39 @@ class RouteGeneratorTest extends TestCase
         $generator->create($page);
     }
 
+    public function test_the_generated_path_of_a_page_with_no_parent_is_its_slug_and_creates_nothing(): void
+    {
+        $page = $this->createPage('Call For Papers');
+
+        self::assertSame('/call-for-papers', $this->generator->generatePath($page));
+        self::assertNull($page->getRoute());
+    }
+
+    public function test_the_generated_path_is_prefixed_with_the_parent_route_path_without_conflict_suffixes(): void
+    {
+        $routeRepository = $this->createStub(RouteRepository::class);
+        $routeRepository->method('findConflicts')->willReturn([(new Route())->setName('programme')->setPath('/conference/programme')]);
+        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $this->createStub(TimestampedDataPersister::class), $routeRepository);
+        $parent = $this->createPageData('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/conference'));
+        $child = $this->createPageData('Programme');
+        $child->setParentPageData($parent);
+
+        self::assertSame('/conference/programme', $generator->generatePath($child));
+    }
+
+    public function test_the_generated_path_matches_the_path_create_gives_when_nothing_conflicts(): void
+    {
+        $parent = $this->createPage('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/conference'));
+        $child = $this->createPage('Programme');
+        $child->setParentPage($parent);
+
+        $path = $this->generator->generatePath($child);
+
+        self::assertSame($path, $this->generator->create($child)->getPath());
+    }
+
     private function assertRefusedForMissingParentRoute(Page|AbstractPageData $child): void
     {
         try {

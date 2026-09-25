@@ -565,7 +565,7 @@ class GenerateFixturesCommand extends Command
         }
         $args .= $this->routeArguments($pd->getRoute());
 
-        $chain = '';
+        $chain = null === $pd->getRoute() ? "\n{$indent}    ->withoutRoute()" : '';
         $liveAt = $this->liveAtExpression($pd->getRoute());
         if (null !== $liveAt) {
             $chain .= "\n{$indent}    ->liveAt({$liveAt})";

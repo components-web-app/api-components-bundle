@@ -54,6 +54,11 @@ Feature: A site generated as fixtures reloads as the same site
     When the site is generated as fixtures and reloaded
     Then the PageDataWithComponent "Conference" should hold the component "Intro"
 
+  Scenario: Page data with no route comes back without a route
+    Given the site has a PageData titled "Draft" with no route
+    When the site is generated as fixtures and reloaded
+    Then there should be 1 PageData with no route
+
   Scenario: Two page data with the same title both come back
     Given the site has a PageData titled "Same" at the route "/same-one"
     And the site has a PageData titled "Same" at the route "/same-two"
