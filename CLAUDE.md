@@ -207,6 +207,20 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - `ComponentPosition.component` is `ON DELETE SET NULL`, deliberately, so dynamic positions survive their fallback. Static positions are removed by `ComponentPositionEventListener` on an API delete only.
 - `createdAt` is restored in `TimestampedNormalizer::denormalize()` (#213). `OBJECT_TO_POPULATE` is not always an instance of `$type` (a `PersistentCollection` when denormalizing a collection property), so gate on `instanceof`.
 
+### Orphaned resource report (#190)
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /_/orphaned_resources/scan` | `ROLE_ADMIN`, no body, 202. Dispatches `ScanOrphanedResourcesMessage` on `messenger.default_bus`; without a bus the processor runs the handler itself. |
+| `GET /_/orphaned_resources` | `ROLE_ADMIN`. The last stored report: `generatedAt` plus IRI lists `componentGroups`, `componentPositions`, `components`. **404 until a scan has stored one.** `private, no-store`. |
+
+- **It reports, it never deletes.** Deletion is the normal `DELETE` per IRI, whose listeners cascade. Do not call `OrphanedResourceHelper` from the scan.
+- Orphaned means, in `OrphanedResourceDetector`: a group with no page, layout or component owner; a position with neither a component nor a `pageDataProperty`; a component whose `ComponentUsageMetadataFactory` total (positions + page data properties) is 0. **A draft (publishable association set) is never reported**; its published version is judged instead. A component only reached from an application's own relation (not a position or page data property) is reported, because nothing else counts usage.
+- **The report lives in `cache.app`** (`OrphanedResourceReportStore`), stored as plain arrays so reading needs no class. Never keep it on a shared service. It is not tied to a request, so it needs no `kernel.reset`.
+- **The GET must stay `private, no-store`.** A new scan is a cache write, not a Doctrine write, so nothing purges a shared-cache copy.
+- The scan is a synchronous `findAll()` over groups and components with one usage lookup per component. Route the message to an async transport on large sites.
+- The POST needs `read: true` for the same reason as the purge endpoints. Anonymous POST 401 in the test app is the firewall's; the `@loginUser` 403 is the operation's own security.
+
 ### Filters (#289, #237)
 
 Route, Layout and Page declare `QueryParameter`s: `search` = `FreeTextQueryFilter(new OrFilter(new PartialSearchFilter()))`, `order[:property]` = `SortFilter`, Page `isTemplate` = `ExactFilter` + `BooleanQueryValue` (casts to `'1'`/`'0'`; an array of booleans binds `false` as `''`). `OrSearchFilter` is removed.
@@ -285,7 +299,6 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
 - **#222 — config guards still carrying the #214 pattern:** `user.class_name`, `refresh_token.*`, `publishable.permission`, `refresh_token.options.class`. Each fix may force configuration on existing applications (a BC break). Verify each empirically before deciding.
-- **#190 — tool to report orphaned groups, positions and components** (read-only, optional `--fix`). Positions with a null component come from components deleted through Doctrine directly, bypassing `ComponentPositionEventListener`.
 - `make:page-data --properties a b` (space-separated) fails in Symfony's input binding before the maker runs; comma-separated and repeated options work.
 - Uploads: no field-level "generic file vs image" flag yet (#199 item 3).
 - Component cloning in the module (cwa-nuxt-module #157) must respect `explicitAllowOnly`.

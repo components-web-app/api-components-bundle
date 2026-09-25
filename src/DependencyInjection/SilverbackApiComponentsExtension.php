@@ -284,6 +284,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $loader->load('services_doctrine_orm_http_cache_purger.php');
         $loader->load('services_doctrine_orm_mercure_publisher.php');
+        $loader->load('services_orphaned_resources.php');
 
         if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {
             $loader->load('services_maker.php');
