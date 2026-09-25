@@ -21,5 +21,7 @@ interface RouteGeneratorInterface
 {
     public function create(RoutableInterface $object, ?Route $route = null): Route;
 
+    public function generatePath(RoutableInterface $object): string;
+
     public function createRedirect(string $fromPath, Route $targetRoute): Route;
 }

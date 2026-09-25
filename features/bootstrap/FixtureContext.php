@@ -15,18 +15,23 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Behat\Behat\Context\Context;
+use Behat\Gherkin\Node\TableNode;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
@@ -38,9 +43,13 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPubli
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 final class FixtureContext implements Context
 {
@@ -49,6 +58,20 @@ final class FixtureContext implements Context
     private ?string $outputDirectory = null;
     private ?string $generatedFile = null;
     private string $commandOutput = '';
+
+    /** @var array<int, \Closure(CwaFixtureBuilder): void> */
+    private array $scaffold = [];
+
+    /** @var array<string, PageDataBuilder> */
+    private array $pageDataBuilders = [];
+
+    /** @var array<string, array<int, string>> */
+    private array $recordedTables = [];
+
+    /** @var array<string, int> */
+    private array $recordedCounts = [];
+
+    private ?string $lastSummary = null;
 
     public function __construct(
         ManagerRegistry $doctrine,
@@ -59,6 +82,7 @@ final class FixtureContext implements Context
         private readonly UploadableAttributeReader $uploadableAttributeReader,
         private readonly GenerateFixturesCommand $generateFixturesCommand,
         private readonly FilesystemProvider $filesystemProvider,
+        private readonly KernelInterface $kernel,
     ) {
         $this->manager = $doctrine->getManager();
     }
@@ -74,6 +98,11 @@ final class FixtureContext implements Context
         }
         $this->outputDirectory = null;
         $this->generatedFile = null;
+        $this->scaffold = [];
+        $this->pageDataBuilders = [];
+        $this->recordedTables = [];
+        $this->recordedCounts = [];
+        $this->lastSummary = null;
     }
 
     /**
@@ -226,6 +255,17 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a PageData titled :title with no route
+     */
+    public function theSiteHasAPageDataTitledWithNoRoute(string $title): void
+    {
+        $cwa = $this->templatePage();
+        $pageData = new PageData();
+        $pageData->setTitle($title);
+        $cwa->pageData($pageData, template: 'template')->withoutRoute();
+    }
+
+    /**
      * @When the site is generated as fixtures
      */
     public function theSiteIsGeneratedAsFixtures(): void
@@ -264,27 +304,50 @@ final class FixtureContext implements Context
      */
     public function theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded(): void
     {
+        $scaffold = $this->generatedScaffold($this->newBuilder());
+
+        (new ORMPurger($this->manager))->purge();
+        $this->manager->clear();
+
+        $this->loadScaffold($scaffold);
+    }
+
+    /**
+     * @When the generated fixtures are loaded without purging
+     */
+    public function theGeneratedFixturesAreLoadedWithoutPurging(): void
+    {
+        $cwa = $this->newBuilder();
+        $scaffold = $this->generatedScaffold($cwa);
+        $this->manager->clear();
+
+        $this->loadScaffold($scaffold);
+        $this->lastSummary = (string) $cwa->getSummary();
+    }
+
+    private function generatedScaffold(CwaFixtureBuilder $cwa): AbstractCwaScaffold
+    {
         $namespace = 'App\\DataFixtures\\RoundTrip' . bin2hex(random_bytes(6));
         $code = file_get_contents($this->generatedFile);
         $code = preg_replace('/^namespace App\\\\DataFixtures;$/m', 'namespace ' . $namespace . ';', $code, 1, $count);
         if (1 !== $count) {
             throw new \RuntimeException("The generated fixtures do not declare the namespace App\\DataFixtures:\n" . $code);
         }
-        $loadable = $this->outputDirectory . '/Loadable.php';
+        $loadable = $this->outputDirectory . '/Loadable' . bin2hex(random_bytes(6)) . '.php';
         file_put_contents($loadable, $code);
         require $loadable;
 
         $class = $namespace . '\\GeneratedScaffold';
-        /** @var AbstractCwaScaffold $scaffold */
-        $scaffold = new $class($this->newBuilder());
 
-        (new ORMPurger($this->manager))->purge();
-        $this->manager->clear();
+        return new $class($cwa);
+    }
 
+    private function loadScaffold(AbstractCwaScaffold $scaffold): void
+    {
         try {
             $scaffold->load($this->manager);
         } catch (\Throwable $exception) {
-            throw new \RuntimeException(\sprintf("Loading the generated fixtures failed: %s\n\n%s", $exception->getMessage(), $code), 0, $exception);
+            throw new \RuntimeException(\sprintf("Loading the generated fixtures failed: %s\n\n%s", $exception->getMessage(), file_get_contents($this->generatedFile)), 0, $exception);
         }
         $this->manager->clear();
     }
@@ -485,6 +548,374 @@ final class FixtureContext implements Context
         if ($count !== $found) {
             throw new \RuntimeException(\sprintf('Expected %d PageData titled "%s", found %d.', $count, $title, $found));
         }
+    }
+
+    /**
+     * @Given the scaffold has a layout :layout with a group :group holding the components :labels
+     */
+    public function theScaffoldHasALayoutWithAGroup(string $layout, string $group, string $labels): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($layout, $group, $labels): void {
+            $this->addLabelledComponents($cwa->layout($layout, 'Primary')->group($group), $labels);
+        };
+    }
+
+    /**
+     * @Given the scaffold has a page :page using the layout :layout at the route :path with a group :group holding the components :labels
+     */
+    public function theScaffoldHasAPage(string $page, string $layout, string $path, string $group, string $labels): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($page, $layout, $path, $group, $labels): void {
+            $cwa->page($page, 'Primary', layout: $layout, route: $path, routeName: $page, configure: function (PageBuilder $builder) use ($group, $labels): void {
+                $this->addLabelledComponents($builder->group($group), $labels);
+            });
+        };
+    }
+
+    /**
+     * @Given the scaffold has a template page :page using the layout :layout
+     */
+    public function theScaffoldHasATemplatePage(string $page, string $layout): void
+    {
+        $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($page, $layout): void {
+            $cwa->page($page, 'Primary', layout: $layout, isTemplate: true);
+        };
+    }
+
+    /**
+     * @Given the scaffold has a page data titled :title at the route :path using the template :template
+     */
+    public function theScaffoldHasAPageDataAtTheRoute(string $title, string $path, string $template): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($title, $path, $template): void {
+            $pageData = new PageData();
+            $pageData->setTitle($title);
+            $this->pageDataBuilders[$title] = $cwa->pageData($pageData, template: $template, route: $path);
+        };
+    }
+
+    /**
+     * @Given the scaffold has a page data titled :title with a generated route under the page data :parent using the template :template
+     */
+    public function theScaffoldHasANestedPageData(string $title, string $parent, string $template): void
+    {
+        $this->scaffold[] = function () use ($title, $parent, $template): void {
+            $this->pageDataBuilders[$parent]->nested(static function (CwaFixtureBuilder $child) use ($title, $template): void {
+                $pageData = new PageData();
+                $pageData->setTitle($title);
+                $child->pageData($pageData, template: $template);
+            });
+        };
+    }
+
+    /**
+     * @Given the scaffold has a page data titled :title with no route using the template :template
+     */
+    public function theScaffoldHasARoutelessPageData(string $title, string $template): void
+    {
+        $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($title, $template): void {
+            $pageData = new PageData();
+            $pageData->setTitle($title);
+            $cwa->pageData($pageData, template: $template)->withoutRoute();
+        };
+    }
+
+    /**
+     * @Given the scaffold adds the components :labels to the group :group of the page :page
+     * @Given the scaffold adds a group :group holding the components :labels to the page :page
+     */
+    public function theScaffoldAddsComponentsToTheGroupOfThePage(string $labels, string $group, string $page): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($labels, $group, $page): void {
+            $this->addLabelledComponents($cwa->page($page, 'Primary', layout: 'main')->group($group), $labels);
+        };
+    }
+
+    /**
+     * @When the scaffold is loaded
+     * @When the scaffold is loaded again without purging
+     */
+    public function theScaffoldIsLoaded(): void
+    {
+        $cwa = $this->newBuilder();
+        $this->pageDataBuilders = [];
+        foreach ($this->scaffold as $definition) {
+            $definition($cwa);
+        }
+        $cwa->flush();
+        $this->lastSummary = (string) $cwa->getSummary();
+        $this->manager->clear();
+    }
+
+    /**
+     * @When an editor renames the component :label to :newLabel
+     */
+    public function anEditorRenamesTheComponent(string $label, string $newLabel): void
+    {
+        $component = $this->manager->getRepository(DummyComponent::class)->findOneBy(['uiComponent' => $label]);
+        if (null === $component) {
+            throw new \RuntimeException(\sprintf('There is no component "%s".', $label));
+        }
+        $component->uiComponent = $newLabel;
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @When the database contents are recorded
+     */
+    public function theDatabaseContentsAreRecorded(): void
+    {
+        $this->manager->clear();
+        $this->recordedTables = $this->readTables();
+        $this->recordedCounts = $this->countEntities();
+    }
+
+    /**
+     * @Then the database contents should be unchanged
+     */
+    public function theDatabaseContentsShouldBeUnchanged(): void
+    {
+        $current = $this->readTables();
+        foreach ($this->recordedTables as $table => $rows) {
+            if (($current[$table] ?? []) !== $rows) {
+                throw new \RuntimeException(\sprintf("The table %s changed.\nBefore:\n%s\nAfter:\n%s", $table, implode("\n", $rows), implode("\n", $current[$table] ?? [])));
+            }
+        }
+    }
+
+    /**
+     * @Then the database should have gained only:
+     */
+    public function theDatabaseShouldHaveGainedOnly(TableNode $table): void
+    {
+        $expected = array_map('intval', $table->getRowsHash());
+        foreach ($this->countEntities() as $entity => $count) {
+            $gained = $count - $this->recordedCounts[$entity];
+            if (($expected[$entity] ?? 0) !== $gained) {
+                throw new \RuntimeException(\sprintf('Expected %d new %s rows, found %d.', $expected[$entity] ?? 0, $entity, $gained));
+            }
+        }
+        $tables = $this->readTables();
+        foreach ($this->recordedTables as $name => $rows) {
+            $missing = array_diff($rows, $tables[$name] ?? []);
+            if ([] !== $missing) {
+                throw new \RuntimeException(\sprintf("Recorded rows of %s were changed or removed:\n%s", $name, implode("\n", $missing)));
+            }
+        }
+    }
+
+    /**
+     * @Then there should be :count component(s) labelled :label
+     */
+    public function thereShouldBeComponentsLabelled(int $count, string $label): void
+    {
+        $found = \count($this->manager->getRepository(DummyComponent::class)->findBy(['uiComponent' => $label]));
+        if ($count !== $found) {
+            throw new \RuntimeException(\sprintf('Expected %d components labelled "%s", found %d.', $count, $label, $found));
+        }
+    }
+
+    /**
+     * @Then the last load summary should be :summary
+     */
+    public function theLastLoadSummaryShouldBe(string $summary): void
+    {
+        if ($summary !== $this->lastSummary) {
+            throw new \RuntimeException(\sprintf('The last load summary was "%s".', $this->lastSummary));
+        }
+    }
+
+    /**
+     * @Then the last load summary should contain :text
+     */
+    public function theLastLoadSummaryShouldContain(string $text): void
+    {
+        if (!str_contains((string) $this->lastSummary, $text)) {
+            throw new \RuntimeException(\sprintf('The last load summary "%s" does not contain "%s".', $this->lastSummary, $text));
+        }
+    }
+
+    /**
+     * @Then the last load summary should not contain :text
+     */
+    public function theLastLoadSummaryShouldNotContain(string $text): void
+    {
+        if (str_contains((string) $this->lastSummary, $text)) {
+            throw new \RuntimeException(\sprintf('The last load summary "%s" contains "%s".', $this->lastSummary, $text));
+        }
+    }
+
+    /**
+     * @Then there should be :count layout(s) with the reference :reference
+     */
+    public function thereShouldBeLayoutsWithTheReference(int $count, string $reference): void
+    {
+        $found = \count($this->manager->getRepository(Layout::class)->findBy(['reference' => $reference]));
+        if ($count !== $found) {
+            throw new \RuntimeException(\sprintf('Expected %d layouts with the reference "%s", found %d.', $count, $reference, $found));
+        }
+    }
+
+    /**
+     * @Then the page :page should use the layout :layout
+     */
+    public function thePageShouldUseTheLayout(string $page, string $layout): void
+    {
+        $actual = $this->findPage($page)->layout?->reference;
+        if ($layout !== $actual) {
+            throw new \RuntimeException(\sprintf('The page "%s" uses the layout %s.', $page, var_export($actual, true)));
+        }
+    }
+
+    /**
+     * @Then the page :page should have no route
+     */
+    public function thePageShouldHaveNoRoute(string $page): void
+    {
+        $route = $this->findPage($page)->getRoute();
+        if (null !== $route) {
+            throw new \RuntimeException(\sprintf('The page "%s" has the route "%s".', $page, $route->getPath()));
+        }
+    }
+
+    /**
+     * @Then the route :path should belong to the page :page
+     */
+    public function theRouteShouldBelongToThePage(string $path, string $page): void
+    {
+        $actual = $this->findRoute($path)->getPage()?->reference;
+        if ($page !== $actual) {
+            throw new \RuntimeException(\sprintf('The route "%s" belongs to the page %s.', $path, var_export($actual, true)));
+        }
+    }
+
+    /**
+     * @Then there should be a route :path
+     */
+    public function thereShouldBeARoute(string $path): void
+    {
+        $this->findRoute($path);
+    }
+
+    /**
+     * @Then the group :group of the page :page should hold the components :labels
+     */
+    public function theGroupOfThePageShouldHoldTheComponents(string $group, string $page, string $labels): void
+    {
+        $componentGroup = $this->findOwnedGroup($this->findPage($page)->getComponentGroups(), $group);
+        $positions = $componentGroup->componentPositions->toArray();
+        usort($positions, static fn (ComponentPosition $a, ComponentPosition $b) => $a->sortValue <=> $b->sortValue);
+        $held = array_map(static fn (ComponentPosition $position) => $position->component?->uiComponent, $positions);
+        $expected = array_map('trim', explode(',', $labels));
+        if ($expected !== $held) {
+            throw new \RuntimeException(\sprintf('The group "%s" of the page "%s" holds [%s], expected [%s].', $group, $page, implode(', ', $held), implode(', ', $expected)));
+        }
+    }
+
+    /**
+     * @Then there should be :count PageData with no route
+     */
+    public function thereShouldBePageDataWithNoRoute(int $count): void
+    {
+        $found = \count($this->manager->getRepository(PageData::class)->findBy(['route' => null]));
+        if ($count !== $found) {
+            throw new \RuntimeException(\sprintf('Expected %d PageData with no route, found %d.', $count, $found));
+        }
+    }
+
+    /**
+     * @When I run the command :command
+     */
+    public function iRunTheCommand(string $command): void
+    {
+        $kernel = new \AppKernel($this->kernel->getEnvironment(), $this->kernel->isDebug());
+        $kernel->boot();
+        try {
+            $application = new Application($kernel);
+            $application->setAutoExit(false);
+            $application->setCatchExceptions(false);
+            $output = new BufferedOutput();
+            $status = $application->run(new StringInput($command . ' --no-interaction'), $output);
+            $this->commandOutput = $output->fetch();
+        } finally {
+            $kernel->shutdown();
+        }
+        if (Command::SUCCESS !== $status) {
+            throw new \RuntimeException(\sprintf('The command returned %d. Output: %s', $status, $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the command output should contain :text
+     */
+    public function theCommandOutputShouldContain(string $text): void
+    {
+        if (!str_contains($this->commandOutput, $text)) {
+            throw new \RuntimeException(\sprintf('The command output does not contain "%s": %s', $text, $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the command output should not contain :text
+     */
+    public function theCommandOutputShouldNotContain(string $text): void
+    {
+        if (str_contains($this->commandOutput, $text)) {
+            throw new \RuntimeException(\sprintf('The command output contains "%s": %s', $text, $this->commandOutput));
+        }
+    }
+
+    private function addLabelledComponents(GroupBuilder $group, string $labels): void
+    {
+        foreach (array_map('trim', explode(',', $labels)) as $label) {
+            $component = new DummyComponent();
+            $component->uiComponent = $label;
+            $group->add($component);
+        }
+    }
+
+    private function findPage(string $reference): Page
+    {
+        $page = $this->manager->getRepository(Page::class)->findOneBy(['reference' => $reference]);
+        if (null === $page) {
+            throw new \RuntimeException(\sprintf('There is no page "%s".', $reference));
+        }
+
+        return $page;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function readTables(): array
+    {
+        $connection = $this->manager->getConnection();
+        $tables = [];
+        foreach ($connection->createSchemaManager()->listTableNames() as $table) {
+            $rows = array_map(static function (array $row): string {
+                ksort($row);
+
+                return (string) json_encode($row);
+            }, $connection->fetchAllAssociative(\sprintf('SELECT * FROM %s', $connection->quoteSingleIdentifier($table))));
+            sort($rows);
+            $tables[$table] = $rows;
+        }
+
+        return $tables;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function countEntities(): array
+    {
+        $counts = [];
+        foreach (['Layout' => Layout::class, 'Page' => Page::class, 'PageData' => AbstractPageData::class, 'Route' => Route::class, 'ComponentGroup' => ComponentGroup::class, 'ComponentPosition' => ComponentPosition::class, 'Component' => AbstractComponent::class] as $name => $class) {
+            $counts[$name] = $this->manager->getRepository($class)->count([]);
+        }
+
+        return $counts;
     }
 
     private function builder(): CwaFixtureBuilder

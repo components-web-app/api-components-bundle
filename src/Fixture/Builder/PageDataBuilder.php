@@ -21,6 +21,8 @@ class PageDataBuilder
     private array $childPageRefs = [];
     private bool $hasLiveAt = false;
     private ?\DateTimeImmutable $liveAt = null;
+    private bool $withoutRoute = false;
+    private ?AbstractPageData $existingPageData = null;
 
     public function __construct(private readonly AbstractPageData $pageData)
     {
@@ -85,6 +87,26 @@ class PageDataBuilder
 
     public function getRoute(): ?Route
     {
-        return $this->pageData->getRoute();
+        return ($this->existingPageData ?? $this->pageData)->getRoute();
+    }
+
+    public function withoutRoute(): self
+    {
+        $this->withoutRoute = true;
+
+        return $this;
+    }
+
+    public function isWithoutRoute(): bool
+    {
+        return $this->withoutRoute;
+    }
+
+    /**
+     * @internal
+     */
+    public function setExistingPageData(AbstractPageData $pageData): void
+    {
+        $this->existingPageData = $pageData;
     }
 }

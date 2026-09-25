@@ -267,13 +267,13 @@ parameters:
 		-
 			message: '#^Result of && is always false\.$#'
 			identifier: booleanAnd.alwaysFalse
-			count: 2
+			count: 1
 			path: src/Fixture/CwaFixtureBuilder.php
 
 		-
 			message: '#^Strict comparison using \!\=\= between null and null will always evaluate to false\.$#'
 			identifier: notIdentical.alwaysFalse
-			count: 2
+			count: 1
 			path: src/Fixture/CwaFixtureBuilder.php
 
 		-

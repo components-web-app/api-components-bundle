@@ -76,16 +76,8 @@ class RouteGenerator implements RouteGeneratorInterface
         $route = $route ?? new Route();
 
         $this->timestampedDataPersister->persistTimestampedFields($route, $isNew);
-        $titleSlug = $this->slugify->slugify($object->getTitle());
-        $name = $titleSlug;
 
-        $path = '/' . ltrim($titleSlug, '/');
-
-        if ($parentPageRoute) {
-            $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
-        }
-
-        [$name, $path] = $this->resolveConflicts($name, $path);
+        [$name, $path] = $this->resolveConflicts($this->slugify->slugify($object->getTitle()), $this->generatePath($object));
 
         $route
             ->setName($name)
@@ -99,6 +91,17 @@ class RouteGenerator implements RouteGeneratorInterface
         }
 
         return $route;
+    }
+
+    public function generatePath(RoutableInterface $object): string
+    {
+        $path = '/' . ltrim($this->slugify->slugify((string) $object->getTitle()), '/');
+        $parentPageRoute = $object->getParentPageRoute();
+        if ($parentPageRoute) {
+            $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
+        }
+
+        return $path;
     }
 
     private function resolveConflicts(string $name, string $path): array

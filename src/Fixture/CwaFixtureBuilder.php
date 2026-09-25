@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Persistence\ObjectManager;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
@@ -24,6 +25,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\LayoutBuilder;
@@ -35,8 +37,13 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 
 class CwaFixtureBuilder
 {
+    private const string CREATED = CwaFixtureSummary::CREATED;
+    private const string KEPT = CwaFixtureSummary::KEPT;
+    private const string SKIPPED = CwaFixtureSummary::SKIPPED;
+
     private ?ObjectManager $manager = null;
     private ?AbstractPage $parentContext = null;
+    private CwaFixtureSummary $summary;
 
     /** @var array<string, LayoutBuilder> */
     private array $layoutBuilders = [];
@@ -55,12 +62,7 @@ class CwaFixtureBuilder
      */
     private array $pageDataSpecs = [];
 
-    /**
-     * All page and pageData specs in registration order (parents before children).
-     * Used in phaseThree() to ensure parent routes are created before child routes.
-     *
-     * @var array<array>
-     */
+    /** @var array<array> */
     private array $orderedRouteSpecs = [];
 
     /** @var array<string, Route> */
@@ -75,20 +77,45 @@ class CwaFixtureBuilder
     /** @var array<int, ComponentBuilder> keyed by spl_object_id of the AbstractComponent */
     private array $componentBuilders = [];
 
-    /** Maps spl_object_id(GroupBuilder) → ComponentGroup for use in phase 4 */
+    /** @var array<int, ComponentGroup> keyed by spl_object_id of the GroupBuilder */
     private array $componentGroupMap = [];
 
-    /** ComponentGroups keyed by their full reference, for deduplication when locationReference is set */
+    /** @var array<string, ComponentGroup> keyed by full reference, for groups with a location reference */
     private array $namedComponentGroups = [];
 
-    /** Tracks object IDs already passed to persist() to avoid cycles in persistWithAssociations() */
+    /** @var array<int, true> */
     private array $persistedEntities = [];
 
-    /** @var array<int, true> keyed by spl_object_id(PageDataBuilder|PageBuilder) — prevents re-evaluating nested closures */
+    /** @var array<int, true> */
     private array $evaluatedNestedIds = [];
 
-    /** @var array<int, true> keyed by spl_object_id(PageDataBuilder) — prevents re-firing onRoutesCreated callbacks */
+    /** @var array<int, true> */
     private array $firedCallbackIds = [];
+
+    /** @var array<int, string> keyed by spl_object_id of the LayoutBuilder, PageBuilder or PageDataBuilder */
+    private array $decisions = [];
+
+    /** @var array<int, object> keyed by spl_object_id of the scaffold entity */
+    private array $resolved = [];
+
+    /** @var array<int, true> keyed by spl_object_id of entities that were already in the database */
+    private array $existing = [];
+
+    /** @var array<int, true> keyed by spl_object_id of scaffold objects that must never be persisted */
+    private array $skipped = [];
+
+    /** @var array<int, GroupBuilder> */
+    private array $skippedGroupBuilders = [];
+
+    /** @var array<int, true> keyed by spl_object_id of the route spec's builder */
+    private array $routedSpecs = [];
+
+    private bool $hasPendingLinks = false;
+
+    private bool $flushing = false;
+
+    /** @var array<int, object> */
+    private array $pendingPersists = [];
 
     public function __construct(
         private readonly TimestampedDataPersister $timestampedPersister,
@@ -96,14 +123,30 @@ class CwaFixtureBuilder
         private readonly IriConverterInterface $iriConverter,
         private readonly ?UploadableFileManager $uploadableFileManager = null,
         private readonly ?UploadableAttributeReaderInterface $uploadableAttributeReader = null,
+        private readonly ?LoggerInterface $logger = null,
+        private readonly ?ConsoleOutputListener $consoleOutput = null,
     ) {
+        $this->summary = new CwaFixtureSummary();
     }
 
     public function withManager(ObjectManager $manager): static
     {
         $this->manager = $manager;
+        $this->summary = new CwaFixtureSummary();
 
         return $this;
+    }
+
+    public function getSummary(): CwaFixtureSummary
+    {
+        return $this->summary;
+    }
+
+    public function reportSummary(): void
+    {
+        $message = (string) $this->summary;
+        $this->logger?->info($message);
+        $this->consoleOutput?->getOutput()?->writeln(\sprintf('  <comment>></comment> <info>%s</info>', $message));
     }
 
     public function layout(string $ref, string $uiComponent, ?array $uiClassNames = null): LayoutBuilder
@@ -189,13 +232,19 @@ class CwaFixtureBuilder
         return $builder;
     }
 
-    /**
-     * Explicitly persist an entity and walk its owning-side associations to persist related objects.
-     * Use this for app-specific entities that the builder doesn't manage (e.g. HtmlContent set on a PageData).
-     * Does not rely on Doctrine cascade — every related object is persisted explicitly.
-     */
     public function persist(object $entity): static
     {
+        if (!$this->flushing) {
+            $this->pendingPersists[spl_object_id($entity)] = $entity;
+
+            return $this;
+        }
+        if ($this->reachesSkipped($entity)) {
+            $this->markSkipped($entity);
+            $this->note(self::SKIPPED, $entity instanceof AbstractComponent ? CwaFixtureSummary::COMPONENT : CwaFixtureSummary::ENTITY, $entity::class, 'linked to skipped content');
+
+            return $this;
+        }
         $this->persistWithAssociations($entity);
 
         return $this;
@@ -234,17 +283,18 @@ class CwaFixtureBuilder
         return $this->namedRoutes[$routeName];
     }
 
-    /**
-     * All phases run on every call; each phase is idempotent and skips already-processed work.
-     * Phase 4 always picks up positions added since the previous call (e.g. nav links added after routes exist).
-     */
     public function flush(): void
     {
-        $this->phaseOne();
-        $this->evaluateNested();
-        $this->phaseThree();
-        $this->phaseThreePointFive();
-        $this->phaseFour();
+        $this->flushing = true;
+        try {
+            $this->phaseOne();
+            $this->evaluateNested();
+            $this->phaseThree();
+            $this->phaseThreePointFive();
+            $this->phaseFour();
+        } finally {
+            $this->flushing = false;
+        }
     }
 
     private function evaluateNested(): void
@@ -262,8 +312,11 @@ class CwaFixtureBuilder
                 continue;
             }
             $this->evaluatedNestedIds[$oid] = true;
+            if (self::SKIPPED === ($this->decisions[$oid] ?? null)) {
+                continue;
+            }
             $beforePageRefs = array_keys($this->pageSpecs);
-            $this->parentContext = $spec['builder']->getPageData();
+            $this->parentContext = $this->resolve($spec['builder']->getPageData());
             $closure($this);
             $this->parentContext = null;
             $addedRefs = array_values(array_diff(array_keys($this->pageSpecs), $beforePageRefs));
@@ -280,33 +333,20 @@ class CwaFixtureBuilder
                 continue;
             }
             $this->evaluatedNestedIds[$oid] = true;
-            $this->parentContext = $spec['builder']->getPage();
+            $this->parentContext = $this->resolve($spec['builder']->getPage());
             $closure($this);
             $this->parentContext = null;
         }
 
         $hasNew = false;
 
-        $newPageDataSpecs = \array_slice($this->pageDataSpecs, $existingPageDataCount);
-        foreach ($newPageDataSpecs as $spec) {
-            $pageData = $spec['builder']->getPageData();
-            $this->timestampedPersister->persistTimestampedFields($pageData, true);
-            $this->persistWithAssociations($pageData);
+        foreach (array_diff_key($this->pageSpecs, array_flip($existingPageRefs)) as $ref => $spec) {
+            $this->processPage($ref, $spec);
             $hasNew = true;
         }
 
-        $newPageSpecs = array_diff_key($this->pageSpecs, array_flip($existingPageRefs));
-        foreach ($newPageSpecs as $spec) {
-            $page = $spec['builder']->getPage();
-            $layoutBuilder = $this->layoutBuilders[$spec['layoutRef']] ?? null;
-            if (null !== $layoutBuilder) {
-                $page->layout = $layoutBuilder->getLayout();
-            }
-            $this->timestampedPersister->persistTimestampedFields($page, true);
-            $this->persistWithAssociations($page);
-            foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
-                $this->createAndLinkComponentGroup($groupBuilder, $page);
-            }
+        foreach (\array_slice($this->pageDataSpecs, $existingPageDataCount) as $spec) {
+            $this->processPageData($spec);
             $hasNew = true;
         }
 
@@ -320,45 +360,36 @@ class CwaFixtureBuilder
         $entityCountBefore = \count($this->persistedEntities);
         $groupCountBefore = \count($this->componentGroupMap) + \count($this->namedComponentGroups);
 
-        foreach ($this->layoutBuilders as $layoutBuilder) {
+        foreach ($this->layoutBuilders as $ref => $layoutBuilder) {
             $layout = $layoutBuilder->getLayout();
-            if (!isset($this->persistedEntities[spl_object_id($layout)])) {
-                $this->timestampedPersister->persistTimestampedFields($layout, true);
+            if (!isset($this->decisions[spl_object_id($layoutBuilder)])) {
+                $this->decide($layoutBuilder, $layout, $this->findOne(Layout::class, ['reference' => $ref]), CwaFixtureSummary::LAYOUT, (string) $ref);
             }
-            $this->persistWithAssociations($layout);
+            if (self::CREATED === $this->decisions[spl_object_id($layoutBuilder)]) {
+                if (!isset($this->persistedEntities[spl_object_id($layout)])) {
+                    $this->timestampedPersister->persistTimestampedFields($layout, true);
+                }
+                $this->persistWithAssociations($layout);
+            }
             foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
-                $this->createAndLinkComponentGroup($groupBuilder, $layout);
+                $this->createAndLinkComponentGroup($groupBuilder, $this->resolve($layout));
             }
         }
 
-        foreach ($this->pageSpecs as $spec) {
-            $page = $spec['builder']->getPage();
-            $layoutBuilder = $this->layoutBuilders[$spec['layoutRef']] ?? null;
-            if (null !== $layoutBuilder) {
-                $page->layout = $layoutBuilder->getLayout();
-            }
-            if (!isset($this->persistedEntities[spl_object_id($page)])) {
-                $this->timestampedPersister->persistTimestampedFields($page, true);
-            }
-            $this->persistWithAssociations($page);
-            foreach ($spec['builder']->getGroupBuilders() as $groupBuilder) {
-                $this->createAndLinkComponentGroup($groupBuilder, $page);
-            }
+        foreach ($this->pageSpecs as $ref => $spec) {
+            $this->processPage($ref, $spec);
         }
 
         foreach ($this->pageDataSpecs as $spec) {
-            $pageData = $spec['builder']->getPageData();
-            if (null !== $spec['templateRef'] && isset($this->pageSpecs[$spec['templateRef']])) {
-                $pageData->page = $this->pageSpecs[$spec['templateRef']]['builder']->getPage();
-            }
-            if (!isset($this->persistedEntities[spl_object_id($pageData)])) {
-                $this->timestampedPersister->persistTimestampedFields($pageData, true);
-            }
-            $this->persistWithAssociations($pageData);
+            $this->processPageData($spec);
         }
 
         foreach ($this->componentBuilders as $componentBuilder) {
             $component = $componentBuilder->getComponent();
+            if ($this->reachesSkipped($component)) {
+                $this->markSkipped($component);
+                continue;
+            }
             if (!isset($this->persistedEntities[spl_object_id($component)])) {
                 if ($this->timestampedPersister->isConfigured($component)) {
                     $this->timestampedPersister->persistTimestampedFields($component, true);
@@ -370,17 +401,138 @@ class CwaFixtureBuilder
             }
         }
 
+        foreach ($this->pendingPersists as $oid => $entity) {
+            unset($this->pendingPersists[$oid]);
+            $this->persist($entity);
+        }
+
         $hadNew = \count($this->persistedEntities) > $entityCountBefore
-            || \count($this->componentGroupMap) + \count($this->namedComponentGroups) > $groupCountBefore;
+            || \count($this->componentGroupMap) + \count($this->namedComponentGroups) > $groupCountBefore
+            || $this->hasPendingLinks;
+        $this->hasPendingLinks = false;
 
         if ($hadNew) {
             $this->manager->flush();
         }
     }
 
+    private function processPage(string $ref, array $spec): void
+    {
+        $builder = $spec['builder'];
+        $page = $builder->getPage();
+        if (!isset($this->decisions[spl_object_id($builder)])) {
+            $existing = $this->findOne(Page::class, ['reference' => $ref]);
+            $this->decide($builder, $page, $existing, CwaFixtureSummary::PAGE, $ref);
+            if ($existing instanceof Page) {
+                $builder->setExistingPage($existing);
+            }
+        }
+        if (self::CREATED === $this->decisions[spl_object_id($builder)]) {
+            $layoutBuilder = $this->layoutBuilders[$spec['layoutRef']] ?? null;
+            if (null !== $layoutBuilder) {
+                $page->layout = $this->resolve($layoutBuilder->getLayout());
+            }
+            if (!isset($this->persistedEntities[spl_object_id($page)])) {
+                $this->timestampedPersister->persistTimestampedFields($page, true);
+            }
+            $this->persistWithAssociations($page);
+        }
+        foreach ($builder->getGroupBuilders() as $groupBuilder) {
+            $this->createAndLinkComponentGroup($groupBuilder, $this->resolve($page));
+        }
+    }
+
+    private function processPageData(array $spec): void
+    {
+        $builder = $spec['builder'];
+        $pageData = $builder->getPageData();
+        if (!isset($this->decisions[spl_object_id($builder)])) {
+            $this->decidePageData($spec);
+        }
+        if (self::CREATED !== $this->decisions[spl_object_id($builder)]) {
+            return;
+        }
+        if (null !== $spec['templateRef'] && isset($this->pageSpecs[$spec['templateRef']])) {
+            $pageData->page = $this->resolve($this->pageSpecs[$spec['templateRef']]['builder']->getPage());
+        }
+        if (!isset($this->persistedEntities[spl_object_id($pageData)])) {
+            $this->timestampedPersister->persistTimestampedFields($pageData, true);
+        }
+        $this->persistWithAssociations($pageData);
+    }
+
+    private function decidePageData(array $spec): void
+    {
+        $builder = $spec['builder'];
+        $pageData = $builder->getPageData();
+        $label = $pageData->getTitle() ?? $pageData::class;
+
+        if ($this->reachesSkipped($pageData)) {
+            $this->decisions[spl_object_id($builder)] = self::SKIPPED;
+            $this->skipGraph($pageData);
+            $this->note(self::SKIPPED, CwaFixtureSummary::PAGE_DATA, $label, 'parent skipped');
+
+            return;
+        }
+
+        if ($builder->isWithoutRoute() && null === $spec['route']) {
+            $template = null !== $spec['templateRef'] ? ($this->pageSpecs[$spec['templateRef']]['builder'] ?? null) : null;
+            $parent = $pageData->getParentPage() ?? $pageData->getParentPageData();
+            if ((null !== $template && self::CREATED === ($this->decisions[spl_object_id($template)] ?? null))
+                || (null !== $parent && $this->isCreatedInThisRun($parent))) {
+                $this->decide($builder, $pageData, null, CwaFixtureSummary::PAGE_DATA, $label);
+
+                return;
+            }
+            $this->decisions[spl_object_id($builder)] = self::SKIPPED;
+            $this->skipGraph($pageData);
+            $this->note(self::SKIPPED, CwaFixtureSummary::PAGE_DATA, $label, 'unidentifiable');
+
+            return;
+        }
+
+        $parent = $pageData->getParentPage() ?? $pageData->getParentPageData();
+        if (null === $spec['route'] && null !== $parent && (null === $parent->getRoute() || $this->isCreatedInThisRun($parent))) {
+            $this->decide($builder, $pageData, null, CwaFixtureSummary::PAGE_DATA, $label);
+
+            return;
+        }
+
+        $path = $spec['route'] ?? $this->routeGenerator->generatePath($pageData);
+        $existing = $this->findOne(Route::class, ['path' => $path])?->getPageData();
+        if (!$existing instanceof $pageData) {
+            $existing = null;
+        }
+        $this->decide($builder, $pageData, $existing, CwaFixtureSummary::PAGE_DATA, $label);
+        if (null !== $existing) {
+            $builder->setExistingPageData($existing);
+        }
+    }
+
+    private function isCreatedInThisRun(object $entity): bool
+    {
+        return isset($this->persistedEntities[spl_object_id($entity)]) && !isset($this->existing[spl_object_id($entity)]);
+    }
+
+    private function decide(object $builder, object $scaffold, ?object $existing, string $type, string $label): void
+    {
+        if (null === $existing) {
+            $this->decisions[spl_object_id($builder)] = self::CREATED;
+            $this->note(self::CREATED, $type, $label);
+
+            return;
+        }
+        $this->decisions[spl_object_id($builder)] = self::KEPT;
+        $this->resolved[spl_object_id($scaffold)] = $existing;
+        $this->existing[spl_object_id($existing)] = true;
+        $this->skipGraph($scaffold);
+        $this->note(self::KEPT, $type, $label);
+    }
+
     private function createAndLinkComponentGroup(GroupBuilder $groupBuilder, Layout|Page|AbstractComponent $owner): void
     {
-        if (isset($this->componentGroupMap[spl_object_id($groupBuilder)])) {
+        $groupBuilderId = spl_object_id($groupBuilder);
+        if (isset($this->componentGroupMap[$groupBuilderId]) || isset($this->skippedGroupBuilders[$groupBuilderId])) {
             return;
         }
 
@@ -388,9 +540,33 @@ class CwaFixtureBuilder
         $locationRef = $groupBuilder->getLocationReference() ?? $ownerIri;
         $fullRef = $groupBuilder->getName() . '_' . $locationRef;
 
-        if (null !== $groupBuilder->getLocationReference() && isset($this->namedComponentGroups[$fullRef])) {
-            $componentGroup = $this->namedComponentGroups[$fullRef];
-        } else {
+        $componentGroup = null !== $groupBuilder->getLocationReference() ? ($this->namedComponentGroups[$fullRef] ?? null) : null;
+        if (null === $componentGroup) {
+            $existing = $this->findOne(ComponentGroup::class, ['reference' => $fullRef]);
+            if ($existing instanceof ComponentGroup) {
+                $componentGroup = $existing;
+                $this->existing[spl_object_id($existing)] = true;
+                if (null !== $groupBuilder->getLocationReference()) {
+                    $this->namedComponentGroups[$fullRef] = $existing;
+                }
+                $this->note(self::KEPT, CwaFixtureSummary::GROUP, $fullRef);
+            }
+        }
+
+        if (null !== $componentGroup && isset($this->existing[spl_object_id($componentGroup)])) {
+            if ($this->linkGroup($componentGroup, $owner)) {
+                $this->hasPendingLinks = true;
+            }
+            $this->skippedGroupBuilders[$groupBuilderId] = $groupBuilder;
+            $this->syncSkipped();
+            if ([] !== $groupBuilder->getComponents() || [] !== $groupBuilder->getPageDataPositions()) {
+                $this->logger?->notice(\sprintf('The group `%s` already exists, so its %d scaffold positions were not created.', $fullRef, \count($groupBuilder->getComponents()) + \count($groupBuilder->getPageDataPositions())));
+            }
+
+            return;
+        }
+
+        if (null === $componentGroup) {
             $componentGroup = new ComponentGroup();
             $componentGroup->location = $ownerIri;
             $componentGroup->reference = $fullRef;
@@ -407,12 +583,22 @@ class CwaFixtureBuilder
 
             $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
             $this->manager->persist($componentGroup);
+            $this->note(self::CREATED, CwaFixtureSummary::GROUP, $fullRef);
 
             if (null !== $groupBuilder->getLocationReference()) {
                 $this->namedComponentGroups[$fullRef] = $componentGroup;
             }
         }
 
+        $this->linkGroup($componentGroup, $owner);
+        $this->componentGroupMap[$groupBuilderId] = $componentGroup;
+    }
+
+    private function linkGroup(ComponentGroup $componentGroup, Layout|Page|AbstractComponent $owner): bool
+    {
+        if ($owner->getComponentGroups()->contains($componentGroup)) {
+            return false;
+        }
         if ($owner instanceof Layout) {
             $owner->getComponentGroups()->add($componentGroup);
             $componentGroup->layouts->add($owner);
@@ -424,7 +610,7 @@ class CwaFixtureBuilder
             $componentGroup->components->add($owner);
         }
 
-        $this->componentGroupMap[spl_object_id($groupBuilder)] = $componentGroup;
+        return true;
     }
 
     private function phaseThree(): void
@@ -432,57 +618,72 @@ class CwaFixtureBuilder
         $hadNew = false;
 
         foreach ($this->orderedRouteSpecs as $spec) {
-            if ('page' === $spec['type']) {
-                $page = $spec['builder']->getPage();
-                if (null !== $page->getRoute()) {
-                    continue;
-                }
-                if (null !== $spec['route']) {
-                    $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
-                    $route->setPage($page);
-                    $this->timestampedPersister->persistTimestampedFields($route, true);
-                    $this->manager->persist($route);
-                    if (null !== $spec['routeName']) {
-                        $this->namedRoutes[$spec['routeName']] = $route;
-                    }
-                    $hadNew = true;
-                } elseif (!$spec['isTemplate']) {
-                    $route = $this->routeGenerator->create($page);
-                    $this->manager->persist($route);
-                    if (null !== $spec['routeName'] && null !== $page->getRoute()) {
-                        $this->namedRoutes[$spec['routeName']] = $page->getRoute();
-                    }
-                    $hadNew = true;
-                }
-                $this->applyLiveAt($spec['builder'], $page);
-            } else {
-                $pageData = $spec['builder']->getPageData();
-                if (null !== $pageData->getRoute()) {
-                    continue;
-                }
-                if (null !== $spec['route']) {
-                    $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
-                    $route->setPageData($pageData);
-                    $this->timestampedPersister->persistTimestampedFields($route, true);
-                    $this->manager->persist($route);
-                    if (null !== $spec['routeName']) {
-                        $this->namedRoutes[$spec['routeName']] = $route;
-                    }
-                    $hadNew = true;
-                } else {
-                    $route = $this->routeGenerator->create($pageData);
-                    $this->manager->persist($route);
-                    if (null !== $spec['routeName'] && null !== $pageData->getRoute()) {
-                        $this->namedRoutes[$spec['routeName']] = $pageData->getRoute();
-                    }
-                    $hadNew = true;
-                }
-                $this->applyLiveAt($spec['builder'], $pageData);
+            $builder = $spec['builder'];
+            $builderId = spl_object_id($builder);
+            if (isset($this->routedSpecs[$builderId])) {
+                continue;
             }
+            $decision = $this->decisions[$builderId] ?? self::CREATED;
+            $entity = 'page' === $spec['type'] ? $builder->getPage() : $builder->getPageData();
+            if (self::SKIPPED === $decision) {
+                $this->routedSpecs[$builderId] = true;
+                continue;
+            }
+            if (self::KEPT === $decision) {
+                $this->routedSpecs[$builderId] = true;
+                $this->registerNamedRoute($spec, $this->resolve($entity));
+                continue;
+            }
+            if (null !== $entity->getRoute()) {
+                continue;
+            }
+            if ('pageData' === $spec['type'] && null === $spec['route'] && $builder->isWithoutRoute()) {
+                $this->routedSpecs[$builderId] = true;
+                continue;
+            }
+            if (null !== $spec['route']) {
+                $name = $spec['routeName'] ?? $this->deriveRouteName($spec['route']);
+                if (null !== $this->findOne(Route::class, ['path' => $spec['route']]) || null !== $this->findOne(Route::class, ['name' => $name])) {
+                    $this->routedSpecs[$builderId] = true;
+                    $this->note(self::SKIPPED, CwaFixtureSummary::ROUTE, $spec['route'], 'path in use');
+                    $this->registerNamedRoute($spec, null);
+                    continue;
+                }
+                $route = $this->createExplicitRoute($spec['route'], $spec['routeName']);
+                if ($entity instanceof Page) {
+                    $route->setPage($entity);
+                } else {
+                    $route->setPageData($entity);
+                }
+                $this->timestampedPersister->persistTimestampedFields($route, true);
+                $this->manager->persist($route);
+                if (null !== $spec['routeName']) {
+                    $this->namedRoutes[$spec['routeName']] = $route;
+                }
+                $this->note(self::CREATED, CwaFixtureSummary::ROUTE, $spec['route']);
+                $hadNew = true;
+            } elseif ('pageData' === $spec['type'] || !$spec['isTemplate']) {
+                $route = $this->routeGenerator->create($entity);
+                $this->manager->persist($route);
+                if (null !== $spec['routeName'] && null !== $entity->getRoute()) {
+                    $this->namedRoutes[$spec['routeName']] = $entity->getRoute();
+                }
+                $this->note(self::CREATED, CwaFixtureSummary::ROUTE, (string) $route->getPath());
+                $hadNew = true;
+            }
+            $this->applyLiveAt($builder, $entity);
         }
 
         foreach ($this->redirectSpecs as $index => $spec) {
             if (null !== $spec['route']) {
+                continue;
+            }
+            $existing = $this->findOne(Route::class, ['path' => $spec['path']]);
+            if ($existing instanceof Route) {
+                $this->existing[spl_object_id($existing)] = true;
+                $this->namedRoutes[$spec['name'] ?? $existing->getName()] = $existing;
+                $this->redirectSpecs[$index]['route'] = $existing;
+                $this->note(self::KEPT, CwaFixtureSummary::ROUTE, $spec['path']);
                 continue;
             }
             $route = $this->createExplicitRoute($spec['path'], $spec['name']);
@@ -491,12 +692,30 @@ class CwaFixtureBuilder
             $this->manager->persist($route);
             $this->namedRoutes[$route->getName()] = $route;
             $this->redirectSpecs[$index]['route'] = $route;
+            $this->note(self::CREATED, CwaFixtureSummary::ROUTE, $spec['path']);
             $hadNew = true;
         }
 
         if ($hadNew) {
             $this->manager->flush();
         }
+    }
+
+    private function registerNamedRoute(array $spec, ?AbstractPage $entity): void
+    {
+        if (null === $spec['routeName']) {
+            return;
+        }
+        $route = null !== $spec['route'] ? $this->findOne(Route::class, ['path' => $spec['route']]) : null;
+        $route ??= $entity?->getRoute() ?? $this->findOne(Route::class, ['name' => $spec['routeName']]);
+        if (!$route instanceof Route) {
+            $this->logger?->notice(\sprintf('The named route `%s` was not found, so getRoute() cannot return it.', $spec['routeName']));
+
+            return;
+        }
+        $this->existing[spl_object_id($route)] = true;
+        $this->namedRoutes[$spec['routeName']] = $route;
+        $this->logger?->debug(\sprintf('Registered the existing route `%s` as `%s`.', $route->getPath(), $spec['routeName']));
     }
 
     private function applyLiveAt(PageBuilder|PageDataBuilder $builder, AbstractPage $page): void
@@ -520,6 +739,10 @@ class CwaFixtureBuilder
                 continue;
             }
             $this->firedCallbackIds[$oid] = true;
+            if (self::CREATED !== ($this->decisions[$oid] ?? self::CREATED)) {
+                $this->logger?->debug(\sprintf('onRoutesCreated was not called for the page data `%s`, which was not created.', $spec['builder']->getPageData()->getTitle()));
+                continue;
+            }
             $childBuilders = array_values(array_filter(array_map(
                 fn ($ref) => $this->pageSpecs[$ref]['builder'] ?? null,
                 $spec['builder']->getChildPageRefs(),
@@ -574,6 +797,14 @@ class CwaFixtureBuilder
 
     private function createPositions(GroupBuilder $groupBuilder): bool
     {
+        if (isset($this->skippedGroupBuilders[spl_object_id($groupBuilder)])) {
+            $this->syncSkipped();
+            $groupBuilder->getNewComponents();
+            $groupBuilder->getNewPageDataPositions();
+
+            return false;
+        }
+
         $componentGroup = $this->componentGroupMap[spl_object_id($groupBuilder)] ?? null;
         if (null === $componentGroup) {
             return false;
@@ -583,6 +814,11 @@ class CwaFixtureBuilder
 
         foreach ($groupBuilder->getNewComponents() as $item) {
             $component = $item['component'];
+            if ($this->reachesSkipped($component)) {
+                $this->markSkipped($component);
+                $this->note(self::SKIPPED, CwaFixtureSummary::COMPONENT, $component::class, 'linked to skipped content');
+                continue;
+            }
             $position = new ComponentPosition();
             $position->sortValue = $item['sort'];
             $position->component = $component;
@@ -628,50 +864,172 @@ class CwaFixtureBuilder
     }
 
     /**
-     * Persists an entity and recursively persists all owning-side associated objects.
-     * Does not rely on Doctrine cascade — every object is persisted explicitly.
-     * Uses spl_object_id tracking to prevent cycles.
+     * @template T of object
+     *
+     * @param T $entity
+     *
+     * @return T
      */
+    private function resolve(object $entity): object
+    {
+        return $this->resolved[spl_object_id($entity)] ?? $entity;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $class
+     *
+     * @return T|null
+     */
+    private function findOne(string $class, array $criteria): ?object
+    {
+        return $this->manager->getRepository($class)->findOneBy($criteria);
+    }
+
+    private function note(string $outcome, string $type, string $label, string $reason = ''): void
+    {
+        $this->summary->record($outcome, $type, $reason);
+        $message = \sprintf('%s %s `%s`%s', $outcome, $type, $label, '' === $reason ? '' : ' (' . $reason . ')');
+        if (self::CREATED === $outcome) {
+            $this->logger?->debug($message);
+
+            return;
+        }
+        $this->logger?->notice($message);
+    }
+
+    private function isSettled(object $entity): bool
+    {
+        $oid = spl_object_id($entity);
+
+        return isset($this->persistedEntities[$oid]) || isset($this->existing[$oid]) || $this->manager->contains($entity);
+    }
+
+    private function reachesSkipped(object $entity): bool
+    {
+        $this->syncSkipped();
+        $visited = [];
+
+        return $this->walkForSkipped($entity, $visited);
+    }
+
+    /**
+     * @param array<int, true> $visited
+     */
+    private function walkForSkipped(object $entity, array &$visited): bool
+    {
+        $oid = spl_object_id($entity);
+        if (isset($this->skipped[$oid])) {
+            return true;
+        }
+        if (isset($visited[$oid]) || $this->isSettled($entity)) {
+            return false;
+        }
+        $visited[$oid] = true;
+        foreach ($this->owningRelations($entity) as $related) {
+            if ($this->walkForSkipped($related, $visited)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function skipGraph(object $entity): void
+    {
+        $oid = spl_object_id($entity);
+        if (isset($this->skipped[$oid])) {
+            return;
+        }
+        $this->markSkipped($entity);
+        foreach ($this->owningRelations($entity) as $related) {
+            if (!$this->isSettled($related)) {
+                $this->skipGraph($related);
+            }
+        }
+    }
+
+    private function markSkipped(object $entity): void
+    {
+        $this->skipped[spl_object_id($entity)] = true;
+        foreach (($this->componentBuilders[spl_object_id($entity)] ?? null)?->getGroupBuilders() ?? [] as $groupBuilder) {
+            $this->skippedGroupBuilders[spl_object_id($groupBuilder)] = $groupBuilder;
+        }
+        $this->syncSkipped();
+    }
+
+    private function syncSkipped(): void
+    {
+        do {
+            $changed = false;
+            foreach ($this->skippedGroupBuilders as $groupBuilder) {
+                foreach ($groupBuilder->getComponents() as $item) {
+                    $oid = spl_object_id($item['component']);
+                    if (isset($this->skipped[$oid])) {
+                        continue;
+                    }
+                    $this->skipped[$oid] = true;
+                    foreach (($this->componentBuilders[$oid] ?? null)?->getGroupBuilders() ?? [] as $owned) {
+                        $this->skippedGroupBuilders[spl_object_id($owned)] = $owned;
+                    }
+                    $changed = true;
+                }
+            }
+        } while ($changed);
+    }
+
     private function persistWithAssociations(object $entity): void
     {
         $oid = spl_object_id($entity);
-        if (isset($this->persistedEntities[$oid])) {
+        if (isset($this->persistedEntities[$oid]) || isset($this->existing[$oid])) {
             return;
         }
+        $wasManaged = $this->manager->contains($entity);
         $this->persistedEntities[$oid] = true;
         $this->manager->persist($entity);
         $this->persistUploadedFile($entity);
+        if ($entity instanceof AbstractComponent && !$wasManaged) {
+            $this->note(self::CREATED, CwaFixtureSummary::COMPONENT, $entity::class);
+        }
 
+        foreach ($this->owningRelations($entity) as $related) {
+            $this->persistWithAssociations($related);
+        }
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function owningRelations(object $entity): array
+    {
+        $related = [];
         try {
             $metadata = $this->manager->getClassMetadata($entity::class);
             foreach ($metadata->getAssociationNames() as $assocName) {
                 if ($metadata->isAssociationInverseSide($assocName)) {
                     continue;
                 }
-                $related = $this->readProperty($entity, $assocName);
-                if (null === $related) {
+                $value = $this->readProperty($entity, $assocName);
+                if (null === $value) {
                     continue;
                 }
-                if (is_iterable($related)) {
-                    foreach ($related as $item) {
+                if (is_iterable($value)) {
+                    foreach ($value as $item) {
                         if (\is_object($item)) {
-                            $this->persistWithAssociations($item);
+                            $related[] = $item;
                         }
                     }
-                } else {
-                    $this->persistWithAssociations($related);
+                } elseif (\is_object($value)) {
+                    $related[] = $value;
                 }
             }
         } catch (\Exception) {
         }
+
+        return $related;
     }
 
-    /**
-     * If the entity is Uploadable and a file has been set on one of its #[UploadableField] properties,
-     * write it to the configured filestore (with a unique tokenised name) and set its stored filename —
-     * mirroring what the HTTP UploadableEventListener does, which never fires during a fixture flush.
-     * Runs once per entity (persistWithAssociations dedupes); persistFiles no-ops when no file is set.
-     */
     private function persistUploadedFile(object $entity): void
     {
         if (null === $this->uploadableFileManager

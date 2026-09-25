@@ -78,6 +78,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -189,6 +190,7 @@ use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader as U
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Silverback\ApiComponentsBundle\Validator\TimestampedValidator;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -1911,8 +1913,19 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
             new Reference(UploadableFileManager::class),
             new Reference(UploadableAttributeReader::class),
+            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference('silverback.api_components.event_listener.console.console_output'),
         ]);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
+
+    $services
+        ->set('silverback.api_components.event_listener.console.console_output')
+        ->class(ConsoleOutputListener::class)
+        ->autoconfigure(false)
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::COMMAND, 'method' => 'onConsoleCommand'])
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'onConsoleTerminate'])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(ConsoleOutputListener::class, 'silverback.api_components.event_listener.console.console_output');
 
     $services
         ->set('silverback.api_components.fixture.html_content_placeholder')

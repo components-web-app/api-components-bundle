@@ -537,7 +537,7 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringContainsString("\$page = \$child->page('first-child'", $code);
         self::assertStringContainsString("\$page = \$child->page('second-child'", $code);
         self::assertStringNotContainsString("\$cwa->page('first-child'", $code);
-        self::assertStringContainsString("            \$pageData->setTitle('Child data');\n            \$child->pageData(\$pageData);\n", $code);
+        self::assertStringContainsString("            \$pageData->setTitle('Child data');\n            \$child->pageData(\$pageData)\n                ->withoutRoute();\n", $code);
     }
 
     public function test_items_that_cannot_be_reproduced_are_listed_one_per_line(): void
