@@ -21,6 +21,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectRepository;
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
@@ -84,6 +85,70 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringContainsString('$c = [];', $code);
         self::assertStringNotContainsString('afterRoutes', $code);
         self::assertStringContainsString('Fixture class written to ' . $this->outputFile, $this->display);
+    }
+
+    public function test_the_class_is_named_after_the_output_file(): void
+    {
+        $code = $this->generate(['--output' => $this->outputDirectory . '/SnapshotFixtures.php']);
+
+        self::assertStringContainsString('class SnapshotFixtures extends AbstractCwaScaffold', $code);
+        self::assertStringNotContainsString('GeneratedScaffold', $code);
+    }
+
+    public function test_the_namespace_can_be_given(): void
+    {
+        $code = $this->generate(['--namespace' => 'Acme\\Site\\Fixtures']);
+
+        self::assertStringContainsString("namespace Acme\\Site\\Fixtures;\n", $code);
+        self::assertStringNotContainsString('App\\DataFixtures', $code);
+    }
+
+    public function test_the_namespace_may_be_given_with_surrounding_separators(): void
+    {
+        $code = $this->generate(['--namespace' => '\\Acme\\Fixtures\\']);
+
+        self::assertStringContainsString("namespace Acme\\Fixtures;\n", $code);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidClassFileNames(): iterable
+    {
+        yield 'a hyphen' => ['snapshot-fixtures.php'];
+        yield 'a leading digit' => ['1Snapshot.php'];
+        yield 'a space' => ['Snapshot Fixtures.php'];
+    }
+
+    #[DataProvider('invalidClassFileNames')]
+    public function test_an_output_file_whose_name_is_not_a_class_name_fails_without_writing(string $fileName): void
+    {
+        $tester = $this->runCommand(['--output' => $this->outputDirectory . '/' . $fileName]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('is not a valid PHP class name', $tester->getDisplay());
+        self::assertFileDoesNotExist($this->outputDirectory . '/' . $fileName);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidNamespaces(): iterable
+    {
+        yield 'a hyphen' => ['App\\Data-Fixtures'];
+        yield 'an empty segment' => ['App\\\\DataFixtures'];
+        yield 'a leading digit' => ['App\\1Fixtures'];
+        yield 'empty' => [''];
+    }
+
+    #[DataProvider('invalidNamespaces')]
+    public function test_an_invalid_namespace_fails_without_writing(string $namespace): void
+    {
+        $tester = $this->runCommand(['--namespace' => $namespace]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('is not a valid PHP namespace', $tester->getDisplay());
+        self::assertFileDoesNotExist($this->outputFile);
     }
 
     public function test_a_group_with_allowed_components_and_positions_uses_named_arguments_and_class_names(): void
@@ -698,7 +763,16 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertLessThan(strpos($code, 'Entity\\DummyNavigationLink;'), strpos($code, 'Entity\\DummyComponent;'));
     }
 
-    private function generate(): string
+    private function generate(array $options = []): string
+    {
+        $tester = $this->runCommand($options);
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        $this->display = $tester->getDisplay();
+
+        return file_get_contents($options['--output'] ?? $this->outputFile);
+    }
+
+    private function runCommand(array $options = []): CommandTester
     {
         $manager = $this->entityManager($registry = $this->createStub(ManagerRegistry::class));
         $registry->method('getManagerForClass')->willReturn($manager);
@@ -719,10 +793,9 @@ class GenerateFixturesCommandTest extends TestCase
         );
 
         $tester = new CommandTester($command);
-        self::assertSame(0, $tester->execute(['--output' => $this->outputFile]));
-        $this->display = $tester->getDisplay();
+        $tester->execute($options + ['--output' => $this->outputFile]);
 
-        return file_get_contents($this->outputFile);
+        return $tester;
     }
 
     private function entityManager(ManagerRegistry $registry): EntityManager

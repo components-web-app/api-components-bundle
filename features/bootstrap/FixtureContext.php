@@ -267,8 +267,9 @@ final class FixtureContext implements Context
 
     /**
      * @When the site is generated as fixtures
+     * @When the site is generated as fixtures to the file :fileName
      */
-    public function theSiteIsGeneratedAsFixtures(): void
+    public function theSiteIsGeneratedAsFixtures(string $fileName = 'GeneratedScaffold.php'): void
     {
         $this->builder()->flush();
         $this->manager->flush();
@@ -276,7 +277,7 @@ final class FixtureContext implements Context
 
         $this->outputDirectory = sys_get_temp_dir() . '/cwa-generated-fixtures-' . bin2hex(random_bytes(6));
         mkdir($this->outputDirectory);
-        $this->generatedFile = $this->outputDirectory . '/GeneratedScaffold.php';
+        $this->generatedFile = $this->outputDirectory . '/' . $fileName;
 
         $tester = new CommandTester($this->generateFixturesCommand);
         $status = $tester->execute(['--output' => $this->generatedFile], ['interactive' => false]);
@@ -337,7 +338,10 @@ final class FixtureContext implements Context
         file_put_contents($loadable, $code);
         require $loadable;
 
-        $class = $namespace . '\\GeneratedScaffold';
+        $class = $namespace . '\\' . pathinfo($this->generatedFile, \PATHINFO_FILENAME);
+        if (!class_exists($class, false)) {
+            throw new \RuntimeException(\sprintf("The generated fixtures do not declare the class %s:\n%s", $class, $code));
+        }
 
         return new $class($cwa);
     }
@@ -358,6 +362,16 @@ final class FixtureContext implements Context
     public function theSiteIsGeneratedAsFixturesAndReloaded(): void
     {
         $this->theSiteIsGeneratedAsFixtures();
+        $this->theGeneratedFixturesShouldBeValidPhp();
+        $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
+    }
+
+    /**
+     * @When the site is generated as fixtures to the file :fileName and reloaded
+     */
+    public function theSiteIsGeneratedAsFixturesToTheFileAndReloaded(string $fileName): void
+    {
+        $this->theSiteIsGeneratedAsFixtures($fileName);
         $this->theGeneratedFixturesShouldBeValidPhp();
         $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
     }

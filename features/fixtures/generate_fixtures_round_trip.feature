@@ -64,3 +64,8 @@ Feature: A site generated as fixtures reloads as the same site
     And the site has a PageData titled "Same" at the route "/same-two"
     When the site is generated as fixtures and reloaded
     Then there should be 2 PageData titled "Same"
+
+  Scenario: The generated class is named after the output file
+    Given the site has a layout group and a page group that each allow and hold a DummyComponent
+    When the site is generated as fixtures to the file "SnapshotFixtures.php" and reloaded
+    Then the group "primary" of the page "home" should allow only "DummyComponent" and hold 1 component

@@ -335,6 +335,7 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 
 `silverback:api-components:generate-fixtures` writes a scaffold that reloads as the same site. `features/fixtures/generate_fixtures_round_trip.feature` is the authority: it builds a site with the builder, generates, purges, loads the generated file and compares. Add a scenario there for anything new the generator must carry.
 
+- The class is named after the `--output` file and `--namespace` sets its namespace (default `App\DataFixtures`), so the file is PSR-4 loadable wherever it is written. Both are validated before anything is written. The namespace is an option rather than derived from the path, which would need the application's autoload map.
 - The generated code uses numbered `$c[]` / `$g[]` variables and named arguments, never positional arguments after named ones.
 - Component and page data fields come from Doctrine metadata, not public properties. Each is written through its public property, else its setter. Identifiers, timestamps and uploadable storage fields are skipped; values equal to the property default are left out.
 - Stored files are copied to `assets/` beside the output file, without their token, and loaded back through `new File(...)`.
