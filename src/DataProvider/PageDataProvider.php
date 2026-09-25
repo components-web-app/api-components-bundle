@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\Proxy;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Metadata\PageDataComponentMetadata;
 use Silverback\ApiComponentsBundle\Metadata\PageDataPropertyMetadata;
@@ -78,11 +77,7 @@ class PageDataProvider
 
     public function findPageDataComponentMetadata(object $component): iterable
     {
-        $componentClass = $this->getComponentClass($component);
-        if (!$componentClass) {
-            return;
-        }
-        $pageDataLocations = $this->getPageDataLocations($componentClass);
+        $pageDataLocations = $this->getPageDataLocations($component::class);
         foreach ($pageDataLocations as $pageDataClassName => $properties) {
             if ($metadata = $this->findPageDataResourcesByPropertiesAndComponent($pageDataClassName, $properties, $component)) {
                 yield $metadata;
@@ -143,19 +138,5 @@ class PageDataProvider
         }
 
         return $pageDataLocations;
-    }
-
-    private function getComponentClass(object $component): ?string
-    {
-        $resourceClass = $component::class;
-        if ($component instanceof Proxy) {
-            $em = $this->managerRegistry->getManagerForClass($resourceClass);
-            if (!$em) {
-                return null;
-            }
-            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
-        }
-
-        return $resourceClass;
     }
 }
