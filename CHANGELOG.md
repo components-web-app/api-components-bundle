@@ -4,9 +4,16 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- Fixture builder: `PageBuilder::withoutRoute()` keeps a non-template page without a route; `generate-fixtures --namespace` sets the generated class's namespace ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
+
 ### Fixed
 - The new email address and change password forms and `/verify-email` look the user up through `UserRepositoryInterface::loadUserByIdentifier()` instead of the undeclared `find()`/`findOneBy()` ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
 - A failed user email send returns 503 (or is logged after a write) whether or not a logger is configured, instead of a 500 ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
+- `generate-fixtures` names the class after the `--output` file instead of always `GeneratedScaffold` ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
+- `generate-fixtures` emits `withoutRoute()` for a non-template page with no route, so it no longer gains a route on reload ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
+- A fixture `redirect()` whose derived route name is taken gets a suffixed name instead of failing on the unique constraint ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
+- Two scaffold classes in one `doctrine:fixtures:load` no longer fail on detached entities: each scaffold starts a new builder load and `getRoute()` finds existing routes by name ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 
 ## [2.0.0-alpha.5](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.4...2.0.0-alpha.5) - 2026-09-25
 
