@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Command;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -108,8 +109,17 @@ class UserCreateCommand extends Command
         $this->checkEmailQuestion($input);
         $this->checkPasswordQuestion($input);
 
+        if (!$this->questions) {
+            return;
+        }
+
+        $questionHelper = $this->getHelper('question');
+        if (!$questionHelper instanceof QuestionHelper) {
+            throw new \LogicException(\sprintf('The "question" helper must be an instance of %s to ask for missing arguments, %s given.', QuestionHelper::class, get_debug_type($questionHelper)));
+        }
+
         foreach ($this->questions as $name => $question) {
-            $answer = $this->getHelper('question')->ask($input, $output, $question);
+            $answer = $questionHelper->ask($input, $output, $question);
             $input->setArgument($name, $answer);
         }
     }
