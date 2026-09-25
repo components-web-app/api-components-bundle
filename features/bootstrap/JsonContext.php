@@ -46,24 +46,6 @@ class JsonContext implements Context
     }
 
     /**
-     * @Then /^the JSON should be deep equal to:$/
-     */
-    public function theJsonShouldBeDeepEqualTo(PyStringNode $content): void
-    {
-        $actual = $this->getJson();
-        try {
-            $expected = new Json($content);
-        } catch (\Exception $e) {
-            throw new \Exception('The expected JSON is not a valid');
-        }
-
-        $actual = new Json(json_encode($this->sortArrays($actual->getContent())));
-        $expected = new Json(json_encode($this->sortArrays($expected->getContent())));
-
-        $this->jsonContext->assertSame($expected->getContent(), $actual->getContent(), "The json is equal to:\n" . $actual->encode());
-    }
-
-    /**
      * @Then /^the JSON should be a superset of:$/
      */
     public function theJsonIsASupersetOf(PyStringNode $content): void
@@ -77,27 +59,6 @@ class JsonContext implements Context
         $constraint = new ArraySubset($subset, $checkForObjectIdentity);
 
         Assert::assertThat($array, $constraint, $message);
-    }
-
-    private function sortArrays($obj)
-    {
-        $isObject = \is_object($obj);
-
-        foreach ($obj as $key => $value) {
-            if (null === $value || \is_scalar($value)) {
-                continue;
-            }
-
-            if (\is_array($value)) {
-                sort($value);
-            }
-
-            $value = $this->sortArrays($value);
-
-            $isObject ? $obj->{$key} = $value : $obj[$key] = $value;
-        }
-
-        return $obj;
     }
 
     /**
