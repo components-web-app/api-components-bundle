@@ -63,6 +63,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -85,6 +86,14 @@ final class DoctrineContext implements Context
     private KernelInterface $kernel;
     private OrphanedResourceReportStore $orphanedResourceReportStore;
     private ?\Throwable $commandException = null;
+    private ?int $commandStatusCode = null;
+    private string $commandOutput = '';
+    /** @var array<string, object> */
+    private array $orphanComparisonResources = [];
+    /** @var array<string, int> */
+    private array $structuralResourceCounts = [];
+    /** @var array<string, list<string>> */
+    private array $rememberedOrphanedResourcesReport = [];
     private PasswordHasherFactoryInterface $passwordHasherFactory;
 
     public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel, PasswordHasherFactoryInterface $passwordHasherFactory, OrphanedResourceReportStore $orphanedResourceReportStore)
@@ -2763,6 +2772,22 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the ComponentGroup :name holds the resource :resource
+     */
+    public function theComponentGroupHoldsTheResource(string $name, string $resource): void
+    {
+        $this->manager->clear();
+        $position = new ComponentPosition();
+        $position->componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $position->component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]);
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @Given the Page :name holds the resource :resource
      */
     public function thePageHoldsTheResource(string $name, string $resource): void
@@ -2848,6 +2873,292 @@ final class DoctrineContext implements Context
         if (!$component instanceof AbstractComponent || $this->iriConverter->getIriFromResource($component) !== $this->restContext->resources[$resource]) {
             throw new \RuntimeException(\sprintf('The page data %s does not hold the resource %s', $this->restContext->resources[$name], $this->restContext->resources[$resource]));
         }
+    }
+
+    /**
+     * @Given there is a site with every kind of orphan and every kind of use
+     */
+    public function thereIsASiteWithEveryKindOfOrphanAndEveryKindOfUse(): void
+    {
+        $page = new Page();
+        $page->reference = 'in-use-page';
+        $page->isTemplate = false;
+        $this->persistTimestamped($page);
+        $route = new Route();
+        $route->setPath('/in-use')->setName('/in-use')->setPage($page);
+        $this->persistTimestamped($route);
+        $pageGroup = $this->buildOrphanComparisonGroup('page_group');
+        $page->addComponentGroup($pageGroup);
+
+        $placedComponent = $this->buildOrphanComparisonComponent('placed_component');
+        $this->buildOrphanComparisonPosition('placed_position', $pageGroup, $placedComponent);
+        $placedPublished = $this->buildOrphanComparisonPublishable('placed_published');
+        $this->buildOrphanComparisonPosition('placed_published_position', $pageGroup, $placedPublished);
+        $this->buildOrphanComparisonDraft('placed_published_draft', $placedPublished);
+        $this->buildOrphanComparisonPosition('empty_position', $pageGroup, null);
+
+        $orphanedGroup = $this->buildOrphanComparisonGroup('orphaned_group');
+        $this->buildOrphanComparisonPosition('orphaned_group_position', $orphanedGroup, $this->buildOrphanComparisonComponent('orphaned_group_component'));
+        $this->buildOrphanComparisonPosition('orphaned_group_empty_position', $orphanedGroup, null);
+
+        $this->buildOrphanComparisonComponent('unused_component');
+        $unusedPublished = $this->buildOrphanComparisonPublishable('unused_published');
+        $this->buildOrphanComparisonDraft('unused_published_draft', $unusedPublished);
+
+        $template = new Page();
+        $template->reference = 'orphan-comparison-template';
+        $template->isTemplate = true;
+        $this->persistTimestamped($template);
+        $pageData = new PageDataWithComponent();
+        $pageData->page = $template;
+        $pageData->component = $this->buildOrphanComparisonComponent('page_data_component');
+        $this->persistTimestamped($pageData);
+        $parentTypedPageData = new PageDataWithParentTypedComponent();
+        $parentTypedPageData->page = $template;
+        $parentTypedPageData->component = $this->buildOrphanComparisonComponent('parent_typed_component');
+        $this->persistTimestamped($parentTypedPageData);
+
+        $owningComponent = $this->buildOrphanComparisonComponent('owning_component');
+        $ownedGroup = $this->buildOrphanComparisonGroup('owned_group');
+        $owningComponent->addComponentGroup($ownedGroup);
+        $this->buildOrphanComparisonPosition('owned_position', $ownedGroup, $this->buildOrphanComparisonComponent('owned_component'));
+
+        $this->manager->flush();
+        foreach ($this->orphanComparisonResources as $name => $resource) {
+            $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($resource);
+        }
+        $this->orphanComparisonResources = [];
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routed Page whose ComponentGroup holds a component that owns a group holding a component
+     */
+    public function thereIsARoutedPageWhoseGroupHoldsAComponentOwningAGroup(): void
+    {
+        $page = new Page();
+        $page->reference = 'nested-owner-page';
+        $page->isTemplate = false;
+        $this->persistTimestamped($page);
+        $route = new Route();
+        $route->setPath('/nested-owner')->setName('/nested-owner')->setPage($page);
+        $this->persistTimestamped($route);
+        $outerGroup = $this->buildOrphanComparisonGroup('outer_group');
+        $page->addComponentGroup($outerGroup);
+        $outerComponent = $this->buildOrphanComparisonComponent('outer_component');
+        $this->buildOrphanComparisonPosition('outer_position', $outerGroup, $outerComponent);
+        $innerGroup = $this->buildOrphanComparisonGroup('inner_group');
+        $outerComponent->addComponentGroup($innerGroup);
+        $this->buildOrphanComparisonPosition('inner_position', $innerGroup, $this->buildOrphanComparisonComponent('inner_component'));
+
+        $this->manager->flush();
+        foreach ($this->orphanComparisonResources as $name => $resource) {
+            $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($resource);
+        }
+        $this->orphanComparisonResources = [];
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then /^the component "([^"]*)" should (not )?exist in the database$/
+     */
+    public function theComponentShouldExistInTheDatabase(string $name, string $not = ''): void
+    {
+        $this->manager->clear();
+        $iri = $this->restContext->resources[$name];
+        $id = substr($iri, strrpos($iri, '/') + 1);
+        $exists = null !== $this->manager->getRepository(AbstractComponent::class)->find($id);
+        if ($exists === ('' !== $not)) {
+            throw new \RuntimeException(\sprintf('The component %s %s in the database', $iri, $exists ? 'still exists' : 'does not exist'));
+        }
+    }
+
+    /**
+     * @Given I count the component groups, positions and components
+     */
+    public function iCountTheComponentGroupsPositionsAndComponents(): void
+    {
+        $this->structuralResourceCounts = $this->countStructuralResources();
+    }
+
+    /**
+     * @Then the component group, position and component counts should be unchanged
+     */
+    public function theComponentGroupPositionAndComponentCountsShouldBeUnchanged(): void
+    {
+        $counts = $this->countStructuralResources();
+        if ($counts !== $this->structuralResourceCounts) {
+            throw new \RuntimeException(\sprintf('The counts changed from %s to %s', json_encode($this->structuralResourceCounts), json_encode($counts)));
+        }
+    }
+
+    /**
+     * @When /^I run the console command "([^"]*)"( verbosely)?$/
+     */
+    public function iRunTheConsoleCommand(string $name, string $verbosely = ''): void
+    {
+        $application = new Application($this->kernel);
+        $tester = new CommandTester($application->find($name));
+        $this->commandStatusCode = $tester->execute([], ['verbosity' => '' === $verbosely ? OutputInterface::VERBOSITY_NORMAL : OutputInterface::VERBOSITY_VERBOSE]);
+        $this->commandOutput = $tester->getDisplay();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the console command should have exited with :code
+     */
+    public function theConsoleCommandShouldHaveExitedWith(int $code): void
+    {
+        if ($code !== $this->commandStatusCode) {
+            throw new \RuntimeException(\sprintf('The command exited with %s. Output: %s', var_export($this->commandStatusCode, true), $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the console command output should contain :text
+     */
+    public function theConsoleCommandOutputShouldContain(string $text): void
+    {
+        if (!str_contains($this->commandOutput, $text)) {
+            throw new \RuntimeException(\sprintf('The command output does not contain "%s". Output: %s', $text, $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the console command output should not contain the IRI of the resource :name
+     */
+    public function theConsoleCommandOutputShouldNotContainTheIriOfTheResource(string $name): void
+    {
+        if (str_contains($this->commandOutput, $this->restContext->resources[$name])) {
+            throw new \RuntimeException(\sprintf('The command output contains %s. Output: %s', $this->restContext->resources[$name], $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the console command output should list exactly the resources :names under :heading
+     */
+    public function theConsoleCommandOutputShouldListExactlyTheResourcesUnder(string $names, string $heading): void
+    {
+        $expected = array_map(fn (string $name) => $this->restContext->resources[trim($name)], explode(',', $names));
+        $actual = [];
+        $inSection = false;
+        foreach (preg_split('/\R/', $this->commandOutput) as $line) {
+            if (preg_match('/^\S/', $line)) {
+                $inSection = str_starts_with($line, $heading . ':');
+                continue;
+            }
+            if ($inSection && '' !== trim($line)) {
+                $actual[] = trim($line);
+            }
+        }
+        sort($expected);
+        sort($actual);
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The command output lists %s under "%s", expected %s. Output: %s', json_encode($actual), $heading, json_encode($expected), $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Given I remember the stored orphaned resources report
+     */
+    public function iRememberTheStoredOrphanedResourcesReport(): void
+    {
+        $this->rememberedOrphanedResourcesReport = $this->storedOrphanedResourcesReportLists();
+    }
+
+    /**
+     * @Then the stored orphaned resources report should list the same resources as the remembered one
+     */
+    public function theStoredOrphanedResourcesReportShouldListTheSameResourcesAsTheRememberedOne(): void
+    {
+        $lists = $this->storedOrphanedResourcesReportLists();
+        if ($lists !== $this->rememberedOrphanedResourcesReport) {
+            throw new \RuntimeException(\sprintf('The stored report lists %s, the remembered one listed %s', json_encode($lists), json_encode($this->rememberedOrphanedResourcesReport)));
+        }
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function storedOrphanedResourcesReportLists(): array
+    {
+        $report = $this->orphanedResourceReportStore->fetch();
+        if (null === $report) {
+            throw new \RuntimeException('No orphaned resources report has been stored');
+        }
+
+        return [
+            'componentGroups' => $report->componentGroups,
+            'componentPositions' => $report->componentPositions,
+            'components' => $report->components,
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function countStructuralResources(): array
+    {
+        $this->manager->clear();
+
+        return [
+            'componentGroups' => \count($this->manager->getRepository(ComponentGroup::class)->findAll()),
+            'componentPositions' => \count($this->manager->getRepository(ComponentPosition::class)->findAll()),
+            'components' => \count($this->manager->getRepository(AbstractComponent::class)->findAll()),
+        ];
+    }
+
+    private function persistTimestamped(object $resource): void
+    {
+        $this->timestampedHelper->persistTimestampedFields($resource, true);
+        $this->manager->persist($resource);
+    }
+
+    private function buildOrphanComparisonGroup(string $name): ComponentGroup
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = $name;
+        $componentGroup->location = $name;
+        $this->persistTimestamped($componentGroup);
+
+        return $this->orphanComparisonResources[$name] = $componentGroup;
+    }
+
+    private function buildOrphanComparisonComponent(string $name): DummyComponent
+    {
+        $component = new DummyComponent();
+        $this->manager->persist($component);
+
+        return $this->orphanComparisonResources[$name] = $component;
+    }
+
+    private function buildOrphanComparisonPublishable(string $name): DummyPublishableComponent
+    {
+        $component = new DummyPublishableComponent();
+        $component->reference = $name;
+        $component->setPublishedAt(new \DateTime('-10 seconds'));
+        $this->manager->persist($component);
+
+        return $this->orphanComparisonResources[$name] = $component;
+    }
+
+    private function buildOrphanComparisonDraft(string $name, DummyPublishableComponent $published): void
+    {
+        $draft = new DummyPublishableComponent();
+        $draft->reference = $name;
+        $draft->setPublishedResource($published);
+        $this->manager->persist($draft);
+        $this->orphanComparisonResources[$name] = $draft;
+    }
+
+    private function buildOrphanComparisonPosition(string $name, ComponentGroup $componentGroup, ?AbstractComponent $component): void
+    {
+        $position = new ComponentPosition();
+        $position->componentGroup = $componentGroup;
+        $position->component = $component;
+        $position->sortValue = \count($this->orphanComparisonResources);
+        $this->persistTimestamped($position);
+        $this->orphanComparisonResources[$name] = $position;
     }
 
     private function createPageComponentGroup(string $pageName, string $reference): ComponentGroup

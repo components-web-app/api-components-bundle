@@ -87,6 +87,15 @@ class RestContext implements Context
     }
 
     /**
+     * @When I request the deletion of the orphaned resources :names
+     */
+    public function iRequestTheDeletionOfTheOrphanedResources(string $names): void
+    {
+        $iris = array_map(fn (string $name) => $this->resources[trim($name)] ?? trim($name), explode(',', $names));
+        $this->restContext->iSendARequestToWithBody('POST', '/_/orphaned_resources/delete', new PyStringNode([json_encode(['iris' => $iris], \JSON_THROW_ON_ERROR)], 0));
+    }
+
+    /**
      * @Transform /^(now)$/
      *
      * @BeforeScenario @saveNow

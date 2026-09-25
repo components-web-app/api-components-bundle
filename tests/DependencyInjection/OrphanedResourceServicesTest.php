@@ -16,15 +16,21 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Post;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceDeletion;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
+use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceDeletionStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\OrphanedResourceReportStateProvider;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
 use Silverback\ApiComponentsBundle\MessageHandler\ScanOrphanedResourcesHandler;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\Compiler\ResolveClassPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -132,6 +138,105 @@ class OrphanedResourceServicesTest extends TestCase
     public function test_the_handler_class_is_the_one_registered(): void
     {
         self::assertSame(ScanOrphanedResourcesHandler::class, $this->loadContainer()->getDefinition(self::HANDLER_ID)->getClass());
+    }
+
+    public function test_the_scan_command_is_registered_under_its_name_and_the_clean_orphaned_alias(): void
+    {
+        $definition = $this->loadContainer()->getDefinition('silverback.api_components.command.scan_orphaned');
+
+        self::assertSame(ScanOrphanedCommand::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(
+            [['command' => 'silverback:api-components:scan-orphaned'], ['command' => 'silverback:api-components:clean-orphaned']],
+            $definition->getTag('console.command')
+        );
+        self::assertSame([self::HANDLER_ID], array_map('strval', $definition->getArguments()));
+    }
+
+    public function test_the_scan_command_stores_the_report_and_prints_the_counts_per_kind(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1', '/_/component_groups/2']));
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        self::assertSame(0, $tester->execute([]));
+
+        self::assertSame("Component groups: 2\nComponent positions: 0\nComponents: 0\n", $tester->getDisplay());
+        self::assertSame(['/_/component_groups/1', '/_/component_groups/2'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
+    }
+
+    public function test_the_scan_command_lists_the_iris_when_verbose(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        $tester->execute([], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        self::assertSame("Component groups: 1\n  /_/component_groups/1\nComponent positions: 0\nComponents: 0\n", $tester->getDisplay());
+    }
+
+    public function test_the_deletion_processor_keeps_its_class_name_as_service_id_and_is_wired_explicitly(): void
+    {
+        $container = $this->loadContainer();
+        $definition = $container->getDefinition(OrphanedResourceDeletionStateProcessor::class);
+
+        self::assertTrue($definition->hasTag('api_platform.state_processor'));
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(['silverback.api_components.orphaned_resource.deleter', self::HANDLER_ID], array_map('strval', $definition->getArguments()));
+        self::assertSame(OrphanedResourceDeletionStateProcessor::class, (string) $container->getAlias('silverback.api_components.api_platform.state_processor.orphaned_resource_deletion'));
+    }
+
+    public function test_the_deleter_is_wired_explicitly(): void
+    {
+        $container = $this->loadContainer();
+        $definition = $container->getDefinition('silverback.api_components.orphaned_resource.deleter');
+
+        self::assertSame(OrphanedResourceDeleter::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(
+            [ManagerRegistry::class, self::DETECTOR_ID, 'silverback.helper.orphaned_resource_helper', IriConverterInterface::class],
+            array_map('strval', $definition->getArguments())
+        );
+        self::assertSame('silverback.api_components.orphaned_resource.deleter', (string) $container->getAlias(OrphanedResourceDeleter::class));
+    }
+
+    public function test_the_deletion_processor_deletes_the_selection_then_refreshes_the_stored_report(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/3']));
+        $result = new OrphanedResourceDeletion(['componentGroups' => ['/_/component_groups/1'], 'componentPositions' => [], 'components' => []]);
+        $deleter = $this->createMock(OrphanedResourceDeleter::class);
+        $deleter->expects(self::once())->method('delete')->with(['/_/component_groups/1'])->willReturn($result);
+        $container->set('silverback.api_components.orphaned_resource.deleter', $deleter);
+        $request = new OrphanedResourceDeletion();
+        $request->iris = ['/_/component_groups/1'];
+
+        self::assertSame($result, $container->get(OrphanedResourceDeletionStateProcessor::class)->process($request, new Post()));
+        self::assertSame(['/_/component_groups/3'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
+    }
+
+    public function test_the_deletion_processor_deletes_every_orphan_when_all_is_requested(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning([]));
+        $deleter = $this->createMock(OrphanedResourceDeleter::class);
+        $deleter->expects(self::once())->method('delete')->with(null)->willReturn(new OrphanedResourceDeletion());
+        $container->set('silverback.api_components.orphaned_resource.deleter', $deleter);
+        $request = new OrphanedResourceDeletion();
+        $request->all = true;
+        $request->iris = ['/ignored'];
+
+        $container->get(OrphanedResourceDeletionStateProcessor::class)->process($request, new Post());
+    }
+
+    public function test_the_deletion_processor_refuses_anything_but_a_deletion_request(): void
+    {
+        $container = $this->loadContainer();
+        $container->set('silverback.api_components.orphaned_resource.deleter', $this->createStub(OrphanedResourceDeleter::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $container->get(OrphanedResourceDeletionStateProcessor::class)->process(null, new Post());
     }
 
     /**
