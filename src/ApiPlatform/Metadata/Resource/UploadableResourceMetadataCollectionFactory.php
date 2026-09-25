@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HttpOperation;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -26,11 +25,6 @@ use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 
 /**
- * Configures API Platform metadata for file resources.
- * POST /resource_short_name/upload (multipart/form-data)
- * POST /resource_short_name/{id}/upload (multipart/form-data)
- * GET  /resource_short_name/{id}/download/{property} (download file).
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
@@ -70,7 +64,6 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
             if (!$operations) {
                 continue;
             }
-            /** @var Operation $operation */
             foreach ($operations as $operation) {
                 if ($operation instanceof Post) {
                     $postUploadOperation = static::generatePostOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
@@ -92,7 +85,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     }
 
     #[Pure]
-    private static function generateOperationName(Operation $operation): string
+    private static function generateOperationName(HttpOperation $operation): string
     {
         return \sprintf(
             '_api_%s_%s%s',
@@ -103,7 +96,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     }
 
     #[Pure]
-    private static function configurePostOperation(Operation $postOperation, array $openApiRequestMultipartProperties): Operation
+    private static function configurePostOperation(HttpOperation $postOperation, array $openApiRequestMultipartProperties): HttpOperation
     {
         return $postOperation
             ->withController(UploadAction::class)
@@ -112,7 +105,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     }
 
     #[Pure]
-    private static function generatePostOperation(Post $defaultOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
+    private static function generatePostOperation(Post $defaultOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): HttpOperation
     {
         $path = \sprintf('/%s/upload', $pathSegmentName);
         $newPost = $defaultOperation
@@ -124,7 +117,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     }
 
     #[Pure]
-    private static function generateUploadItemOperation(Get $getOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): Operation
+    private static function generateUploadItemOperation(Get $getOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): HttpOperation
     {
         $path = \sprintf('/%s/{id}/upload', $pathSegmentName);
         $newUploadPost = $getOperation
@@ -137,7 +130,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     }
 
     #[Pure]
-    private static function generateDownloadItemOperation(Get $getOperation, string $pathSegmentName): Operation
+    private static function generateDownloadItemOperation(Get $getOperation, string $pathSegmentName): HttpOperation
     {
         $downloadPath = \sprintf('/%s/{id}/download/{property}', $pathSegmentName);
 

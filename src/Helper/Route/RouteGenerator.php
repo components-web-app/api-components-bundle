@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Helper\Route;
 
 use Cocur\Slugify\SlugifyInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -64,11 +65,10 @@ class RouteGenerator implements RouteGeneratorInterface
         }
 
         $entityManager = $this->registry->getManagerForClass($className = $object::class);
-        if (!$entityManager) {
+        if (!$entityManager instanceof EntityManagerInterface) {
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
         }
         $uow = $entityManager->getUnitOfWork();
-        /** @var RoutableInterface $originalPage */
         $originalPage = $uow->getOriginalEntityData($object);
         $existingRoute = $originalPage['route'] ?? null;
 

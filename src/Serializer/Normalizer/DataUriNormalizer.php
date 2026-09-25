@@ -13,7 +13,6 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\Serializer\Normalizer\DataUriNormalizer as SymfonyDataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -22,11 +21,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * The DataUriNormalizer would be called even if we have already denormalized. The `supports`
- * method seems to have 'null' data. So we check during denormalization if we have already done it.
- * Bit hacky, but it'll be OK for now. Should trace source of issue, probably a bug in dependency,
- * Check removing this every now and again perhaps too. Tests will fail.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareInterface, NormalizerInterface, DenormalizerInterface
@@ -34,9 +28,9 @@ class DataUriNormalizer implements NormalizerAwareInterface, DenormalizerAwareIn
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
-    private NormalizerInterface|SymfonyDataUriNormalizer $decorated;
+    private NormalizerInterface&DenormalizerInterface $decorated;
 
-    public function __construct(NormalizerInterface|SymfonyDataUriNormalizer $decorated)
+    public function __construct(NormalizerInterface&DenormalizerInterface $decorated)
     {
         $this->decorated = $decorated;
     }

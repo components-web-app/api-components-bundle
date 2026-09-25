@@ -14,7 +14,6 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -48,7 +47,6 @@ class RoutableResourceMetadataCollectionFactory implements ResourceMetadataColle
             $newOperations = [];
             $operations = $resourceMetadatum->getOperations();
             if ($operations) {
-                /** @var Operation $operation */
                 foreach ($operations as $i => $operation) {
                     if ($operation->getSecurity()) {
                         $newOperations[$i] = $operation;

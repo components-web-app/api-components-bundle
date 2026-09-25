@@ -79,7 +79,7 @@ Prefer Behat scenarios for API behaviour and unit tests for pure logic. **Infect
 - **Test doubles with static switches** (`HubStub`, `MockClientCallback`, `UnreachableDatabaseMiddleware`) are set by a Given step and cleared in `ProfilerContext`'s before/after hooks. Static because the kernel can reboot between requests. Logs are asserted through the `app.monolog.test_handler` Monolog `TestHandler`, because the harness runs with `debug: false` and the profiler's logger collects nothing.
 - **Newly covering a large declarative file costs MSI**, because its mutants start counting. Answer with assertions on the wiring, not exclusions.
 - **PHPUnit in CI is `simple-phpunit`**, using `SYMFONY_PHPUNIT_VERSION` from `phpunit.xml.dist` / `phpunit.coverage.xml.dist`. Keep it on the same major as `phpunit/phpunit` in `composer.json`.
-- **PHPStan baseline:** fixing a baselined finding means regenerating with `vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.neon`; a stale entry fails the job. `src/Resources/skeleton` is excluded.
+- **PHPStan baseline:** 69 findings, none of them `method.notFound` (#324 worked through all 23). Fixing a baselined finding means regenerating with `vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon`; a stale entry fails the job. Narrow with `instanceof` or a precise parameter type, never a `@var` override. `src/Resources/skeleton` is excluded.
 - **Infection is not a Composer dependency** (it needs `justinrainbow/json-schema ^6`, the behatch fork needs `^5`). CI downloads the signed phar at `INFECTION_VERSION`; PHPUnit 13.3 needs 0.34.2+. `--only-covered` no longer exists.
 - **Behat on Symfony 8:** `behat/behat` 3.x and `mink-extension` 2.x cap six Symfony components at `^7.0`, which pins the test environment's http-kernel, framework-bundle and friends to 7.4. Bundle code is 8.x-compatible. Watch for stable behat 4 / mink-extension 3.
 
@@ -264,6 +264,10 @@ Route, Layout and Page declare `QueryParameter`s: `search` = `FreeTextQueryFilte
 - Symfony 8 constraints need named arguments (`new Count(min: 1)`).
 - Prefer `?string = null` with a nullable column, so null reaches `NotBlank` on every Symfony version.
 - Set `$context['api_sub_level'] = true` when normalising a sub-object, or `PartialCollectionViewNormalizer` injects `view` into arrays whenever the URI has a query string.
+- `ApiResource::getOperations()` is `Operations<HttpOperation>`. Do not annotate its items as `Operation`, which hides the HTTP methods.
+- ORM-only calls (`getUnitOfWork()`, `ClassMetadata::getFieldValue()`, `getAssociationMappings()`) need the manager narrowed to `EntityManagerInterface`; `getManagerForClass()` returns the Persistence `ObjectManager`.
+- `Request::getContentType()` was removed in Symfony 7.0 (use `getContentTypeFormat()`), and Lexik 3 removed `JWTManager`'s user identity field methods. A call to either is an undefined-method Error.
+- The bundle's `UserPasswordValidator` decorates Symfony's for the whole application, so the token user may be any `PasswordAuthenticatedUserInterface`, not only an `AbstractUser`.
 
 ### Dependency injection conventions
 
@@ -325,7 +329,6 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
 - **#319 — idempotent `--append` fixture loads. Do last.** Skip whatever already exists; a group missing from an existing owner can be created. Open: how to recognise existing page data (route path, or a new `reference`). Decisions so far are on the issue.
 - **#325 — one unreachable invalidation URL stops purges to the others.** The loop is in API Platform's `SurrogateKeysPurger`; Daniel is taking it up with API Platform before any bundle workaround.
-- **#324 — PHPStan `method.notFound` baseline entries.** Background work, a class at a time.
 - **#259 — Flex recipe.** Parked until the stable release.
 - **#222 — config guards still carrying the #214 pattern:** `user.class_name`, `refresh_token.*`, `publishable.permission`, `refresh_token.options.class`. Each fix may force configuration on existing applications (a BC break). Verify each empirically before deciding.
 - `make:page-data --properties a b` (space-separated) fails in Symfony's input binding before the maker runs; comma-separated and repeated options work.

@@ -12,7 +12,6 @@
 namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -41,7 +40,6 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
         } elseif (is_subclass_of($resourceClass, AbstractPageData::class)) {
             $routePrefixParts[] = 'page_data';
         } else {
-            // underscores for core resources
             $reflection = new \ReflectionClass($resourceClass);
             $namespace = $reflection->getNamespaceName();
             if (preg_match("/Silverback\\\\ApiComponentsBundle\\\\(?!Test)[\w]+/", $namespace)) {
@@ -69,10 +67,6 @@ class RoutingPrefixResourceMetadataCollectionFactory implements ResourceMetadata
             $resources[$i] = $resourceMetadatum->withRoutePrefix($newRoutePrefix);
             $newOperations = [];
             $oldOperations = $resourceMetadatum->getOperations();
-            /**
-             * @var string    $key
-             * @var Operation $oldOperation
-             */
             foreach ($oldOperations as $key => $oldOperation) {
                 $subRoutePrefixParts = [...$routePrefixParts];
                 if ($currentRoutePrefix = $oldOperation->getRoutePrefix()) {

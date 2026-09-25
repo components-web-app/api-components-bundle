@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
@@ -129,7 +130,7 @@ class PropagateUpdatesListener
         }
     }
 
-    private function gatherResourceAndAssociated(object $entity, string $type, ObjectManager $em, UnitOfWork $uow): void
+    private function gatherResourceAndAssociated(object $entity, string $type, EntityManagerInterface $em, UnitOfWork $uow): void
     {
         $changeSet = $uow->getEntityChangeSet($entity);
         $this->collectUpdatedResource($entity, $type);
@@ -150,15 +151,12 @@ class PropagateUpdatesListener
             return;
         }
 
-        // created and deleted - full entity change, all properties to check
-        // catch any related resources that may have changed backwards relation or database cascades
         $this->gatherAllAssociatedEntities($entity, $associationMappings);
     }
 
     private function gatherUpdatedAssociatedEntities(array $associationMappings, array $changeSet): void
     {
         foreach ($changeSet as $field => $values) {
-            // detect whether changed field was an association
             if (!isset($associationMappings[$field])) {
                 continue;
             }
@@ -169,7 +167,6 @@ class PropagateUpdatesListener
                 }
                 $notNullValues = array_filter($values);
                 foreach ($notNullValues as $entityInverseValuesUpdated) {
-                    // note: the resource may get removed if orphaned
                     $this->collectUpdatedResource($entityInverseValuesUpdated, 'updated');
                 }
             }
@@ -228,7 +225,6 @@ class PropagateUpdatesListener
             return;
         }
 
-        // collect get collection iris for clearing the collection components in the cache later
         if (!isset($this->updatedCollectionClassToIriMapping[$resourceClass])) {
             try {
                 $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
@@ -237,7 +233,6 @@ class PropagateUpdatesListener
             }
         }
 
-        // keep a record of all the resources we are triggering updates for related from the database changes
         $resourceIri = $this->iriConverter->getIriFromResource($resource);
 
         $this->updatedResources[$resource] = [

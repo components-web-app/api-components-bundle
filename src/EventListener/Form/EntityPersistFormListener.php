@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\EventListener\Form;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
@@ -34,8 +35,8 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
     private ?TimestampedAttributeReader $timestampedAnnotationReader;
     private ?TimestampedDataPersister $timestampedDataPersister;
     private ?UserEventListener $userEventListener;
-    /** @var NormalizerInterface|DenormalizerInterface|null */
     private ?NormalizerInterface $normalizer;
+    private DenormalizerInterface $denormalizer;
     private ?UserDataProcessor $userDataProcessor;
     private string $formType;
     private string $dataClass;
@@ -64,13 +65,12 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         $this->timestampedDataPersister = $timestampedDataPersister;
         $this->userEventListener = $userEventListener;
         $this->normalizer = $normalizer;
+        $this->denormalizer = $normalizer;
         $this->userDataProcessor = $userDataProcessor;
     }
 
     public function __invoke(FormSuccessEvent $event): void
     {
-        // This is not a sub-request because forms have greater permissions to create entitites with whatever properties wanted.
-
         if (
             $this->formType !== $event->getForm()->formType
             || !is_a($data = $event->getFormData(), $this->dataClass, true)
@@ -88,13 +88,15 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         }
 
         if ($data instanceof AbstractUser) {
+            if (!$entityManager instanceof EntityManagerInterface) {
+                throw new InvalidArgumentException(\sprintf('The manager for %s must be a Doctrine ORM entity manager to compare the user with its original data', $this->dataClass));
+            }
             $uow = $entityManager->getUnitOfWork();
             $oldData = $uow->getOriginalEntityData($data);
             $oldUser = null;
             if (\count($oldData)) {
                 $normalized = $this->normalizer->normalize($oldData);
-                /** @var AbstractUser $oldUser */
-                $oldUser = $this->normalizer->denormalize($normalized, $data::class, null, [
+                $oldUser = $this->denormalizer->denormalize($normalized, $data::class, null, [
                     UserNormalizer::ALREADY_CALLED => true,
                 ]);
             }

@@ -115,16 +115,6 @@ final class JWTManager implements JWTTokenManagerInterface
         return $refreshToken;
     }
 
-    public function setUserIdentityField($field)
-    {
-        return $this->decorated->setUserIdentityField($field);
-    }
-
-    public function getUserIdentityField(): string
-    {
-        return $this->decorated->getUserIdentityField();
-    }
-
     public function getUserIdClaim(): string
     {
         return $this->decorated->getUserIdClaim();
