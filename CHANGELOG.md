@@ -13,6 +13,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - An application's `#[ORM\MappedSuperclass]` between `AbstractComponent` or `AbstractPageData` and its entities no longer breaks queries with a missing table ([#328](https://github.com/components-web-app/api-components-bundle/pull/328))
 - A refused email link no longer leaves a half-done change: a password reset request is a 400 that keeps the existing reset token, and an email after a completed user write (welcome, account enabled, email change and the rest) is logged at error instead of turning the saved write into a 400 ([#327](https://github.com/components-web-app/api-components-bundle/pull/327))
 - A throttled password reset, email verification or new email confirmation request is a 429 with `Retry-After` instead of a 200 that sends nothing. Each flow has its own throttle: new `user.new_email_confirmation.repeat_ttl_seconds` and `user.email_verification.repeat_ttl_seconds` (default 300), with `password_reset.repeat_ttl_seconds` now governing only password resets. The throttle starts only once the email is sent ([#332](https://github.com/components-web-app/api-components-bundle/pull/332))
+- The `UserPassword` constraint no longer fails with an undefined-method error for a signed-in user that is not the bundle's user, such as an in-memory admin ([#334](https://github.com/components-web-app/api-components-bundle/pull/334))
+
+### Tooling
+- PHPStan: all 23 `method.notFound` baseline entries resolved; the baseline is down from 98 findings to 69 ([#334](https://github.com/components-web-app/api-components-bundle/pull/334))
 
 ## [2.0.0-alpha.4](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.3...2.0.0-alpha.4) - 2026-09-24
 
