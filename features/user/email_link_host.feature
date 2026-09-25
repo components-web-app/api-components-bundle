@@ -98,6 +98,7 @@ Feature: Links in user emails only point at an allowed origin
     When I send a "GET" request to "/resend-verify-email/my_username"
     Then the response status code should be 400
     And I should not receive any emails
+    And the email verification token for the user "my_username" should still be "abc"
 
   @restartBrowser
   Scenario: A resent new email address confirmation with an Origin header that is not allowed is refused
@@ -107,9 +108,10 @@ Feature: Links in user emails only point at an allowed origin
     When I send a "GET" request to "/resend-verify-new-email/my_username"
     Then the response status code should be 400
     And I should not receive any emails
+    And the new email confirmation token for the user "my_username" should still be "abc123"
 
   @restartBrowser
-  Scenario: A registration with an Origin header that is not allowed sends no welcome email
+  Scenario: A registration with an Origin header that is not allowed is saved, sends no welcome email and logs the refusal
     Given there is a "register" form
     And I add "Origin" header equal to "https://evil.example"
     When I send a "POST" request to the resource "register_form" and the postfix "/submit" with body:
@@ -125,8 +127,10 @@ Feature: Links in user emails only point at an allowed origin
       }
     }
     """
-    Then the response status code should be 400
+    Then the response status code should be 201
+    And there should be 1 user with the username "new_user"
     And I should not receive any emails
+    And a refused email link for the user "new_user" should have been logged
 
   @restartBrowser
   Scenario: With no Origin or Referer header the configured default origin is used
@@ -177,3 +181,49 @@ Feature: Links in user emails only point at an allowed origin
     """
     Then the response status code should be 200
     And the link in the sent email should start with "https://default.website.com/login"
+
+  @restartBrowser
+  Scenario: A refused password reset request leaves the user's existing reset token in place
+    Given there is a user with the username "my_username" password "password" and role "ROLE_USER"
+    And the user has the newPasswordConfirmationToken "abc123" requested at "-2 days"
+    And I add "Origin" header equal to "https://evil.example"
+    When I send a "GET" request to "/password/reset/request/my_username"
+    Then the response status code should be 400
+    And I should not receive any emails
+    And the password reset token for the user "my_username" should still be "abc123"
+
+  @loginSuperAdmin
+  @restartBrowser
+  Scenario: Enabling an account with an Origin header that is not allowed is saved, sends no email and logs the refusal
+    Given there is a user with the username "user@user.co" password "password" and role "ROLE_USER"
+    And the user is disabled
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    And I add "Origin" header equal to "https://evil.example"
+    When I send a "PATCH" request to the resource "user" with body:
+    """
+    {
+      "enabled": true
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "enabled" should be true
+    And I should not receive any emails
+    And a refused email link for the user "user@user.co" should have been logged
+
+  @loginUser
+  @restartBrowser
+  Scenario: An email change request with an Origin header that is not allowed is saved, sends no email and logs the refusal
+    Given there is a "new_email" form
+    And I add "Origin" header equal to "https://evil.example"
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
+    """
+    {
+      "new_email_address": {
+        "newEmailAddress": "new@example.com"
+      }
+    }
+    """
+    Then the response status code should be 201
+    And the JSON node "newEmailAddress" should be equal to "new@example.com"
+    And I should not receive any emails
+    And a refused email link for the user "new_user" should have been logged

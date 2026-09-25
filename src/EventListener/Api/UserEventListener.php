@@ -30,9 +30,6 @@ readonly class UserEventListener
     ) {
     }
 
-    /**
-     * @description this is for the /me endpoint to ensure a user is found, supported and to set the id request attribute to be used in other services required for this route
-     */
     public function onPreRead(RequestEvent $event): void
     {
         $request = $event->getRequest();
@@ -53,10 +50,6 @@ readonly class UserEventListener
             throw new AccessDeniedException('Access denied. User not supported.');
         }
 
-        // the id cannot be trusted if the data was reloaded and the ID changed for any reason
-        // technically the JWT token is still valid, but the id may not be found. So we don't
-        // want to give a user the response of being unauthenticated when they are authenticated.
-        // Could be abused and attacked. So we will want to refresh the user's jwt token
         $request->attributes->set('id', $user->getUsername());
     }
 
@@ -111,13 +104,12 @@ readonly class UserEventListener
             $this->userMailer->sendPasswordChangedEmail($user);
         }
 
-        // we need the plain token to have been set - it should be, but we cannot read the previous user verify token to match, this fail-safes our process
         if ($user->plainEmailAddressVerifyToken && ($token = $user->getEmailAddressVerifyToken()) && $token !== $previousUser->getEmailAddressVerifyToken()) {
-            $this->userMailer->sendEmailVerifyEmail($user);
+            $this->userMailer->sendEmailVerifyEmailAfterWrite($user);
         }
 
         if (($token = $user->getNewEmailConfirmationToken()) && $token !== $previousUser->getNewEmailConfirmationToken()) {
-            $this->userMailer->sendChangeEmailConfirmationEmail($user);
+            $this->userMailer->sendChangeEmailConfirmationEmailAfterWrite($user);
         }
     }
 }

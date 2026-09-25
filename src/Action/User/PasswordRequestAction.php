@@ -50,12 +50,14 @@ class PasswordRequestAction
             return new Response(null, Response::HTTP_OK);
         }
 
-        $this->entityManager->flush();
         try {
             $passwordResetSuccess = $this->mailer->sendPasswordResetEmail($user);
         } catch (UnparseableRequestHeaderException) {
+            $this->entityManager->refresh($user);
+
             return new Response(null, Response::HTTP_BAD_REQUEST);
         }
+        $this->entityManager->flush();
 
         $response = new Response(null, $passwordResetSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
         $response->setCache([

@@ -20,6 +20,7 @@ use Monolog\Handler\TestHandler;
 use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
@@ -150,6 +151,22 @@ class ProfilerContext implements Context
         }
 
         throw new ExpectationException('No unreachable database was logged.', $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Then a refused email link for the user :username should have been logged
+     */
+    public function aRefusedEmailLinkForTheUserShouldHaveBeenLogged(string $username): void
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+        foreach ($handler->getRecords() as $record) {
+            if (Level::Error === $record->level && ($record->context['user'] ?? null) === $username && ($record->context['exception'] ?? null) instanceof UnparseableRequestHeaderException) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No refused email link was logged for the user %s.', $username), $this->minkContext->getSession()->getDriver());
     }
 
     /**
