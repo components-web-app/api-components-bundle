@@ -11,10 +11,11 @@
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -52,11 +53,11 @@ class UserPasswordValidator extends ConstraintValidator
             return;
         }
 
-        $databaselessUser = $this->tokenStorage->getToken()->getUser();
-        $user = $this->userRepository->find($databaselessUser->getId());
+        $tokenUser = $this->tokenStorage->getToken()?->getUser();
+        $user = $tokenUser instanceof AbstractUser ? $this->userRepository->find($tokenUser->getId()) : $tokenUser;
 
-        if (!$user instanceof UserInterface) {
-            throw new ConstraintDefinitionException('The User object must implement the UserInterface interface.');
+        if (!$user instanceof PasswordAuthenticatedUserInterface) {
+            throw new ConstraintDefinitionException(\sprintf('The User object must implement the %s interface.', PasswordAuthenticatedUserInterface::class));
         }
 
         $hasher = $this->passwordHasherFactory->getPasswordHasher($user);

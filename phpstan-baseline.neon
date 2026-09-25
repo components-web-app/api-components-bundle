@@ -359,9 +359,3 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: src/Serializer/Normalizer/UserNormalizer.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Validator/Constraints/UserPasswordValidator.php
