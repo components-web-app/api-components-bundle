@@ -34,7 +34,7 @@ Feature: Register process via a form
 
   @loginUser
   @restartBrowser # << Required otherwise the BrowserKit client will have a history and auto-populate the referer header. We are testing for non-standard browser behaviour or hacks
-  Scenario Outline: Test invalid referer and missing referer and origin headers
+  Scenario Outline: An invalid or missing referer and origin still saves the change request, sends no email and logs the refusal
     Given there is a "new_email" form
     And I add "<headerName>" header equal to "<headerValue>"
     When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
@@ -45,18 +45,19 @@ Feature: Register process via a form
       }
     }
     """
-    Then the response status code should be 400
-    And the JSON node "description" should be equal to "<expectedMessage>"
+    Then the response status code should be 201
+    And the JSON node "newEmailAddress" should be equal to "new@example.com"
     And I should not receive any emails
+    And a refused email link for the user "new_user" should have been logged
     Examples:
-      | headerName | headerValue           | expectedMessage                                                                                           |
-      | referer    | invalid               | Could not extract `host` while parsing the `referer` header                                               |
-      | referer    | no-scheme.com:90/path | Could not extract `scheme` while parsing the `referer` header                                             |
-      | referer    |                       | Could not extract `host` while parsing the `referer` header                                               |
-      | origin     | invalid               | Could not extract `host` while parsing the `origin` header                                                |
-      | origin     | no-scheme.com:90/path | Could not extract `scheme` while parsing the `origin` header                                              |
-      | origin     |                       | Could not extract `host` while parsing the `origin` header                                                |
-      |            |                       | To generate an absolute URL to the referrer, the request must have a `origin` or `referer` header present |
+      | headerName | headerValue           |
+      | referer    | invalid               |
+      | referer    | no-scheme.com:90/path |
+      | referer    |                       |
+      | origin     | invalid               |
+      | origin     | no-scheme.com:90/path |
+      | origin     |                       |
+      |            |                       |
 
   @loginUser
   Scenario: I get an invalid response if I try to change my email address to the same as it already is

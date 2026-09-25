@@ -12,11 +12,16 @@
 namespace Silverback\ApiComponentsBundle\Tests\Helper\User;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Handler\TestHandler;
+use Monolog\Level;
 use Monolog\Logger;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\DisallowedRequestOriginException;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
@@ -28,6 +33,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\RawMessage;
@@ -262,6 +268,126 @@ class UserMailerTest extends TestCase
 
         $result = $this->userMailer->sendPasswordChangedEmail($user);
         $this->assertTrue($result);
+    }
+
+    public static function afterWriteEmails(): iterable
+    {
+        yield 'welcome' => ['sendWelcomeEmail', WelcomeEmailFactory::class];
+        yield 'user enabled' => ['sendUserEnabledEmail', UserEnabledEmailFactory::class];
+        yield 'username changed' => ['sendUsernameChangedEmail', UsernameChangedEmailFactory::class];
+        yield 'password changed' => ['sendPasswordChangedEmail', PasswordChangedEmailFactory::class];
+        yield 'email verify' => ['sendEmailVerifyEmailAfterWrite', VerifyEmailFactory::class];
+        yield 'change email confirmation' => ['sendChangeEmailConfirmationEmailAfterWrite', ChangeEmailConfirmationEmailFactory::class];
+    }
+
+    public static function jobEmails(): iterable
+    {
+        yield 'password reset' => ['sendPasswordResetEmail', PasswordResetEmailFactory::class];
+        yield 'email verify' => ['sendEmailVerifyEmail', VerifyEmailFactory::class];
+        yield 'change email confirmation' => ['sendChangeEmailConfirmationEmail', ChangeEmailConfirmationEmailFactory::class];
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('afterWriteEmails')]
+    public function test_an_email_after_a_write_whose_link_is_refused_is_logged_and_not_sent(string $method, string $factoryClass): void
+    {
+        $user = $this->createNamedUser();
+        $exception = new DisallowedRequestOriginException('refused');
+        $handler = new TestHandler();
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('flush');
+        $this->mailerMock->expects(self::never())->method('send');
+
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createRefusingFactory($exception),
+            'doctrine.orm.entity_manager' => $entityManager,
+            'logger' => new Logger('test', [$handler]),
+        ]);
+
+        self::assertFalse($userMailer->{$method}($user));
+        $records = $handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame(Level::Error, $records[0]->level);
+        self::assertSame('The email to the user `refused_user` was not sent: refused', $records[0]->message);
+        self::assertSame(['user' => 'refused_user', 'exception' => $exception], $records[0]->context);
+        self::assertNull($user->getEmailAddressVerificationRequestedAt());
+        self::assertNull($user->getNewEmailAddressChangeRequestedAt());
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('afterWriteEmails')]
+    public function test_an_email_after_a_write_whose_link_is_refused_is_not_sent_without_a_logger(string $method, string $factoryClass): void
+    {
+        $this->mailerMock->expects(self::never())->method('send');
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createRefusingFactory(new DisallowedRequestOriginException('refused')),
+        ]);
+
+        self::assertFalse($userMailer->{$method}($this->createNamedUser()));
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('jobEmails')]
+    public function test_an_email_that_is_the_job_of_the_request_throws_when_its_link_is_refused(string $method, string $factoryClass): void
+    {
+        $exception = new DisallowedRequestOriginException('refused');
+        $handler = new TestHandler();
+        $this->mailerMock->expects(self::never())->method('send');
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createRefusingFactory($exception),
+            'logger' => new Logger('test', [$handler]),
+        ]);
+
+        try {
+            $userMailer->{$method}($this->createNamedUser());
+            self::fail('The refused link was not thrown');
+        } catch (DisallowedRequestOriginException $thrown) {
+            self::assertSame($exception, $thrown);
+        }
+        self::assertSame([], $handler->getRecords());
+    }
+
+    public function test_an_email_verification_after_a_write_is_sent(): void
+    {
+        $user = $this->createNamedUser();
+        $this->expectFactoryCallAndSendMailerMethod(VerifyEmailFactory::class, $user, $this->createEmMockExpectation());
+
+        self::assertTrue($this->userMailer->sendEmailVerifyEmailAfterWrite($user));
+        self::assertNotNull($user->getEmailAddressVerificationRequestedAt());
+    }
+
+    public function test_an_email_change_confirmation_after_a_write_is_sent(): void
+    {
+        $user = $this->createNamedUser();
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailConfirmationEmailFactory::class, $user, $this->createEmMockExpectation());
+
+        self::assertTrue($this->userMailer->sendChangeEmailConfirmationEmailAfterWrite($user));
+        self::assertNotNull($user->getNewEmailAddressChangeRequestedAt());
+    }
+
+    private function createNamedUser(): AbstractUser
+    {
+        $user = new class extends AbstractUser {
+        };
+        $user->setUsername('refused_user');
+
+        return $user;
+    }
+
+    private function createRefusingFactory(\Throwable $exception): AbstractUserEmailFactory
+    {
+        $factory = $this->createStub(AbstractUserEmailFactory::class);
+        $factory->method('create')->willThrowException($exception);
+
+        return $factory;
+    }
+
+    /**
+     * @param array<string, object> $services
+     */
+    private function createMailerWithServices(array $services): UserMailer
+    {
+        return new UserMailer($this->mailerMock, new ServiceLocator(array_map(static fn (object $service): \Closure => static fn (): object => $service, $services)), self::TEST_CONTEXT);
     }
 
     private function expectFactoryCallAndSendMailerMethod(string $factoryClass, AbstractUser $user, array $additionalExpectations = []): void

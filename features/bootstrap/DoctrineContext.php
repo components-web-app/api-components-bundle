@@ -2466,9 +2466,9 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Then the password reset token for the user :username should still be :token
+     * @Then /^the (password reset|email verification|new email confirmation) token for the user "([^"]+)" should still be "([^"]+)"$/
      */
-    public function thePasswordResetTokenShouldStillBe(string $username, string $token): void
+    public function theUserTokenShouldStillBe(string $tokenName, string $username, string $token): void
     {
         $this->manager->clear();
         /** @var AbstractUser|null $user */
@@ -2476,9 +2476,13 @@ final class DoctrineContext implements Context
         if (!$user) {
             throw new \RuntimeException(\sprintf('The user `%s` does not exist', $username));
         }
-        $storedToken = $user->getNewPasswordConfirmationToken();
+        $storedToken = match ($tokenName) {
+            'password reset' => $user->getNewPasswordConfirmationToken(),
+            'email verification' => $user->getEmailAddressVerifyToken(),
+            'new email confirmation' => $user->getNewEmailConfirmationToken(),
+        };
         if (null === $storedToken || !$this->passwordHasherFactory->getPasswordHasher($user)->verify($storedToken, $token)) {
-            throw new \RuntimeException(\sprintf('The password reset token for the user `%s` is no longer `%s`', $username, $token));
+            throw new \RuntimeException(\sprintf('The %s token for the user `%s` is no longer `%s`', $tokenName, $username, $token));
         }
     }
 

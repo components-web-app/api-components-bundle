@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Helper\User;
 use Psr\Container\ContainerInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
+use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
@@ -83,32 +84,53 @@ class UserMailer
         return $this->send($email);
     }
 
+    public function sendEmailVerifyEmailAfterWrite(AbstractUser $user): bool
+    {
+        return $this->afterWrite($user, fn (): bool => $this->sendEmailVerifyEmail($user));
+    }
+
+    public function sendChangeEmailConfirmationEmailAfterWrite(AbstractUser $user): bool
+    {
+        return $this->afterWrite($user, fn (): bool => $this->sendChangeEmailConfirmationEmail($user));
+    }
+
     public function sendWelcomeEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(WelcomeEmailFactory::class)->create($user, $this->context);
-
-        return $this->send($email);
+        return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(WelcomeEmailFactory::class)->create($user, $this->context)));
     }
 
     public function sendUserEnabledEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(UserEnabledEmailFactory::class)->create($user, $this->context);
-
-        return $this->send($email);
+        return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(UserEnabledEmailFactory::class)->create($user, $this->context)));
     }
 
     public function sendUsernameChangedEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(UsernameChangedEmailFactory::class)->create($user, $this->context);
-
-        return $this->send($email);
+        return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(UsernameChangedEmailFactory::class)->create($user, $this->context)));
     }
 
     public function sendPasswordChangedEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(PasswordChangedEmailFactory::class)->create($user, $this->context);
+        return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(PasswordChangedEmailFactory::class)->create($user, $this->context)));
+    }
 
-        return $this->send($email);
+    /**
+     * @param \Closure(): bool $send
+     */
+    private function afterWrite(AbstractUser $user, \Closure $send): bool
+    {
+        try {
+            return $send();
+        } catch (UnparseableRequestHeaderException $exception) {
+            if ($this->container->has('logger')) {
+                $this->container->get('logger')->error(\sprintf('The email to the user `%s` was not sent: %s', $user->getUsername(), $exception->getMessage()), [
+                    'user' => $user->getUsername(),
+                    'exception' => $exception,
+                ]);
+            }
+
+            return false;
+        }
     }
 
     private function send(?RawMessage $message): bool
