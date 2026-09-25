@@ -4,6 +4,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- The new email address and change password forms and `/verify-email` look the user up through `UserRepositoryInterface::loadUserByIdentifier()` instead of the undeclared `find()`/`findOneBy()` ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
+- A failed user email send returns 503 (or is logged after a write) whether or not a logger is configured, instead of a 500 ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
+
 ## [2.0.0-alpha.5](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.4...2.0.0-alpha.5) - 2026-09-25
 
 ### Breaking
