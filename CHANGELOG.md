@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- `RouteGeneratorInterface` gains `generatePath()`: an application with its own route generator must implement it ([#335](https://github.com/components-web-app/api-components-bundle/pull/335))
+
 ### Added
 - Fixture builder: `allow:` on page groups, `liveAt()` on pages and page data, `redirect()` and `afterRoutes()` ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
 - Orphaned resource report: `POST /_/orphaned_resources/scan` and `GET /_/orphaned_resources` (admin) list unowned groups, empty positions and unused components ([#329](https://github.com/components-web-app/api-components-bundle/pull/329))
