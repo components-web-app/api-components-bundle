@@ -704,11 +704,12 @@ class CwaFixtureBuilder implements ResetInterface
             } elseif ('pageData' === $spec['type'] || !$spec['isTemplate']) {
                 $route = $this->routeGenerator->create($entity);
                 $this->manager->persist($route);
-                if (null !== $entity->getRoute()) {
-                    $this->createdRouteNames[$entity->getRoute()->getName()] = $entity->getRoute()->getPath();
-                }
-                if (null !== $spec['routeName'] && null !== $entity->getRoute()) {
-                    $this->namedRoutes[$spec['routeName']] = $entity->getRoute();
+                $generated = $entity->getRoute();
+                if (null !== $generated) {
+                    $this->createdRouteNames[$generated->getName()] = $generated->getPath();
+                    if (null !== $spec['routeName']) {
+                        $this->namedRoutes[$spec['routeName']] = $generated;
+                    }
                 }
                 $this->note(self::CREATED, CwaFixtureSummary::ROUTE, (string) $route->getPath());
                 $hadNew = true;
