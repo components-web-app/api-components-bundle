@@ -11,8 +11,8 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
-use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Silverback\ApiComponentsBundle\Tests\Command\InMemoryUserRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactory;
@@ -37,7 +37,7 @@ class UserPasswordValidatorTest extends ConstraintValidatorTestCase
     protected function setUp(): void
     {
         $this->tokenStorage = new TokenStorage();
-        $this->userRepository = self::createUserRepository([]);
+        $this->userRepository = new InMemoryUserRepository([]);
         parent::setUp();
     }
 
@@ -54,7 +54,7 @@ class UserPasswordValidatorTest extends ConstraintValidatorTestCase
     {
         $tokenUser = new User('bob', 'bob@example.com', password: 'stale');
         $storedUser = new User('bob', 'bob@example.com', password: 'current');
-        $this->userRepository = self::createUserRepository([(string) $tokenUser->getId() => $storedUser]);
+        $this->userRepository = new InMemoryUserRepository([$storedUser]);
         $this->validator = $this->createValidator();
         $this->validator->initialize($this->context);
         $this->authenticate($tokenUser);
@@ -96,49 +96,44 @@ class UserPasswordValidatorTest extends ConstraintValidatorTestCase
         $this->validator->validate('secret', new UserPassword(message: 'wrong'));
     }
 
-    /**
-     * @param array<string, AbstractUser> $users
-     */
-    private static function createUserRepository(array $users): UserRepositoryInterface
+    public function test_a_bundle_user_is_not_checked_against_another_user_found_by_the_same_identifier(): void
     {
-        return new class($users) implements UserRepositoryInterface {
-            /**
-             * @param array<string, AbstractUser> $users
-             */
-            public function __construct(private readonly array $users)
-            {
-            }
+        $tokenUser = new User('bob', 'bob@example.com', password: 'secret');
+        $this->userRepository = new InMemoryUserRepository([new User('alice', 'bob', password: 'alices-password')]);
+        $this->validator = $this->createValidator();
+        $this->validator->initialize($this->context);
+        $this->authenticate($tokenUser);
 
-            public function find(mixed $id): ?AbstractUser
-            {
-                return $this->users[(string) $id] ?? null;
-            }
+        $this->expectException(ConstraintDefinitionException::class);
+        $this->validator->validate('alices-password', new UserPassword(message: 'wrong'));
+    }
 
-            public function findOneByEmail(string $value): ?AbstractUser
-            {
-                return null;
-            }
+    public function test_a_bundle_user_whose_identifier_matches_two_users_cannot_be_checked(): void
+    {
+        $tokenUser = new User('bob', 'bob@example.com', password: 'secret');
+        $this->userRepository = new InMemoryUserRepository([
+            new User('bob', 'bob@example.com', password: 'secret'),
+            new User('carol', 'bob', password: 'carols-password'),
+        ]);
+        $this->validator = $this->createValidator();
+        $this->validator->initialize($this->context);
+        $this->authenticate($tokenUser);
 
-            public function findOneWithPasswordResetToken(string $username): ?AbstractUser
-            {
-                return null;
-            }
+        $this->expectException(ConstraintDefinitionException::class);
+        $this->validator->validate('secret', new UserPassword(message: 'wrong'));
+    }
 
-            public function findOneByUsernameAndNewEmailAddress(string $username, string $email): ?AbstractUser
-            {
-                return null;
-            }
+    public function test_a_bundle_user_is_matched_regardless_of_username_case(): void
+    {
+        $tokenUser = new User('Bob', 'bob@example.com', password: 'stale');
+        $this->userRepository = new InMemoryUserRepository([new User('bob', 'bob@example.com', password: 'current')]);
+        $this->validator = $this->createValidator();
+        $this->validator->initialize($this->context);
+        $this->authenticate($tokenUser);
 
-            public function loadUserByIdentifier(string $identifier): ?AbstractUser
-            {
-                return null;
-            }
+        $this->validator->validate('current', new UserPassword(message: 'wrong'));
 
-            public function findExistingUserByNewEmail(AbstractUser $user): ?AbstractUser
-            {
-                return null;
-            }
-        };
+        $this->assertNoViolation();
     }
 
     private function authenticate(UserInterface $user): void

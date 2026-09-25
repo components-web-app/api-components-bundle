@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -54,7 +55,7 @@ class UserPasswordValidator extends ConstraintValidator
         }
 
         $tokenUser = $this->tokenStorage->getToken()?->getUser();
-        $user = $tokenUser instanceof AbstractUser ? $this->userRepository->find($tokenUser->getId()) : $tokenUser;
+        $user = $tokenUser instanceof AbstractUser ? $this->findStoredUser($tokenUser) : $tokenUser;
 
         if (!$user instanceof PasswordAuthenticatedUserInterface) {
             throw new ConstraintDefinitionException(\sprintf('The User object must implement the %s interface.', PasswordAuthenticatedUserInterface::class));
@@ -65,5 +66,17 @@ class UserPasswordValidator extends ConstraintValidator
         if (null === $user->getPassword() || !$hasher->verify($user->getPassword(), $password)) {
             $this->context->addViolation($constraint->message);
         }
+    }
+
+    private function findStoredUser(AbstractUser $tokenUser): ?AbstractUser
+    {
+        $username = (string) $tokenUser->getUsername();
+        try {
+            $user = $this->userRepository->loadUserByIdentifier($username);
+        } catch (NonUniqueResultException) {
+            return null;
+        }
+
+        return null !== $user && strtolower((string) $user->getUsername()) === strtolower($username) ? $user : null;
     }
 }
