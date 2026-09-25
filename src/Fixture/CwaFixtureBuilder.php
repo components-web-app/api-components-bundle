@@ -721,6 +721,9 @@ class CwaFixtureBuilder implements ResetInterface
             if (null !== $spec['route']) {
                 continue;
             }
+            if (null !== $spec['name'] && isset($this->createdRouteNames[$spec['name']])) {
+                throw new \LogicException(\sprintf('The redirect "%s" cannot be named "%s", because the route "%s" already has that name.', $spec['path'], $spec['name'], $this->createdRouteNames[$spec['name']]));
+            }
             $existing = $this->findOne(Route::class, ['path' => $spec['path']]);
             if ($existing instanceof Route) {
                 $this->existing[spl_object_id($existing)] = true;
@@ -730,9 +733,6 @@ class CwaFixtureBuilder implements ResetInterface
                 continue;
             }
             if (null !== $spec['name']) {
-                if (isset($this->createdRouteNames[$spec['name']])) {
-                    throw new \LogicException(\sprintf('The redirect "%s" cannot be named "%s", because the route "%s" already has that name.', $spec['path'], $spec['name'], $this->createdRouteNames[$spec['name']]));
-                }
                 $named = $this->findOne(Route::class, ['name' => $spec['name']]);
                 if ($named instanceof Route) {
                     $this->existing[spl_object_id($named)] = true;
