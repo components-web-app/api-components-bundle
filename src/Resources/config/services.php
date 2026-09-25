@@ -78,6 +78,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
@@ -779,6 +780,13 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
     $services->alias(PublishableListener::class, 'silverback.api_components.doctrine.event_listener.publishable');
+
+    $services
+        ->set('silverback.api_components.doctrine.event_listener.mapped_superclass_discriminator_map')
+        ->class(MappedSuperclassDiscriminatorMapListener::class)
+        ->autoconfigure(false)
+        ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata', 'method' => 'loadClassMetadata']);
+    $services->alias(MappedSuperclassDiscriminatorMapListener::class, 'silverback.api_components.doctrine.event_listener.mapped_superclass_discriminator_map');
 
     $services
         ->set('silverback.api_components.mercure.authorization')
