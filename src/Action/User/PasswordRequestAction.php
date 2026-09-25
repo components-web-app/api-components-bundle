@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Action\User;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\RequestLimitReachedException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
@@ -44,10 +45,8 @@ class PasswordRequestAction
             return new Response(null, Response::HTTP_NOT_FOUND);
         } catch (UnexpectedValueException $e) {
             return new Response(null, Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        if (!$user) {
-            return new Response(null, Response::HTTP_OK);
+        } catch (RequestLimitReachedException $e) {
+            return UserEmailResponse::tooManyRequests($e);
         }
 
         try {
@@ -57,15 +56,11 @@ class PasswordRequestAction
 
             return new Response(null, Response::HTTP_BAD_REQUEST);
         }
-        $this->entityManager->flush();
 
-        $response = new Response(null, $passwordResetSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
-        $response->setCache([
-            'private' => true,
-            's_maxage' => 0,
-            'max_age' => 0,
-        ]);
+        if (!$passwordResetSuccess) {
+            $this->entityManager->refresh($user);
+        }
 
-        return $response;
+        return UserEmailResponse::sent($passwordResetSuccess);
     }
 }

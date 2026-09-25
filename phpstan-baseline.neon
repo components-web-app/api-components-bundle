@@ -391,12 +391,6 @@ parameters:
 			path: src/Helper/Uploadable/UploadableFileManager.php
 
 		-
-			message: '#^Method Silverback\\ApiComponentsBundle\\Helper\\User\\UserDataProcessor\:\:findUserByUsername\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Helper/User/UserDataProcessor.php
-
-		-
 			message: '#^WeakMap\<object, list\<string\>\> does not accept list\<string\|null\>\.$#'
 			identifier: offsetAssign.valueType
 			count: 1

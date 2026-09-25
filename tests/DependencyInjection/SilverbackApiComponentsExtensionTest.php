@@ -225,7 +225,9 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('_metadata', $this->argument($container, MetadataNormalizer::class, '$metadataKey'));
         self::assertSame(3600, $this->argument($container, UserRepositoryInterface::class, '$passwordRequestTimeout'));
         self::assertSame(86400, $this->argument($container, UserRepositoryInterface::class, '$newEmailConfirmTimeout'));
-        self::assertSame(86400, $this->argument($container, UserDataProcessor::class, '$tokenTtl'));
+        self::assertSame(86400, $this->argument($container, UserDataProcessor::class, '$passwordResetRepeatTtl'));
+        self::assertSame(300, $this->argument($container, UserDataProcessor::class, '$newEmailConfirmationRepeatTtl'));
+        self::assertSame(300, $this->argument($container, UserDataProcessor::class, '$emailVerificationRepeatTtl'));
         self::assertSame(604800, $container->getParameter('silverback.api_components.refresh_token.ttl'));
 
         self::assertSame([], $this->argument($container, RouteExtension::class, '$config'));
@@ -266,7 +268,8 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         $config['mercure'] = ['hub_name' => 'default', 'secure_subscriptions' => true, 'cookie' => ['samesite' => Cookie::SAMESITE_LAX]];
         $config['http_cache'] = ['personalised_resource_classes' => [Route::class], 'scheduled_expiry_resource_classes' => [ResourceManifest::class], 'purge_rendered_html_classes' => [ComponentPosition::class]];
         $config['user']['password_reset'] = ['repeat_ttl_seconds' => 60, 'request_timeout_seconds' => 120];
-        $config['user']['new_email_confirmation'] = ['request_timeout_seconds' => 180];
+        $config['user']['new_email_confirmation'] = ['request_timeout_seconds' => 180, 'repeat_ttl_seconds' => 240];
+        $config['user']['email_verification'] = ['repeat_ttl_seconds' => 270];
 
         [$container, $errors] = $this->load($config);
 
@@ -277,7 +280,9 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('App\Entity\User', $this->argument($container, UserFactory::class, '$userClass'));
         self::assertSame(120, $this->argument($container, UserRepositoryInterface::class, '$passwordRequestTimeout'));
         self::assertSame(180, $this->argument($container, UserRepositoryInterface::class, '$newEmailConfirmTimeout'));
-        self::assertSame(60, $this->argument($container, UserDataProcessor::class, '$tokenTtl'));
+        self::assertSame(60, $this->argument($container, UserDataProcessor::class, '$passwordResetRepeatTtl'));
+        self::assertSame(240, $this->argument($container, UserDataProcessor::class, '$newEmailConfirmationRepeatTtl'));
+        self::assertSame(270, $this->argument($container, UserDataProcessor::class, '$emailVerificationRepeatTtl'));
 
         self::assertSame($config['route_security'], $this->argument($container, RouteVoter::class, '$config'));
         self::assertSame("is_granted('ROLE_ADMIN')", $this->argument($container, RoutableVoter::class, '$securityStr'));

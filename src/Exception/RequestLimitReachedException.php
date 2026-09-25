@@ -1,0 +1,28 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Exception;
+
+/**
+ * @author Daniel West <daniel@silverback.is>
+ */
+class RequestLimitReachedException extends \RuntimeException implements ExceptionInterface
+{
+    public function __construct(private readonly int $retryAfter)
+    {
+        parent::__construct(\sprintf('The request limit has been reached. Try again in %d seconds.', $retryAfter));
+    }
+
+    public function getRetryAfter(): int
+    {
+        return $this->retryAfter;
+    }
+}

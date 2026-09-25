@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\Action\User;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\RequestLimitReachedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -25,6 +27,7 @@ final readonly class ResendVerifyNewEmailAddressAction
     public function __construct(
         private UserMailer $userMailer,
         private UserDataProcessor $userDataProcessor,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -32,33 +35,24 @@ final readonly class ResendVerifyNewEmailAddressAction
     {
         try {
             $user = $this->userDataProcessor->updateNewEmailToken($username);
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             return new Response(null, Response::HTTP_NOT_FOUND);
+        } catch (RequestLimitReachedException $exception) {
+            return UserEmailResponse::tooManyRequests($exception);
         }
 
-        if (!$user) {
-            $response = new Response(null, Response::HTTP_OK);
-            $response->setCache([
-                'private' => true,
-                's_maxage' => 0,
-                'max_age' => 0,
-            ]);
-
-            return $response;
-        }
         try {
             $emailSuccess = $this->userMailer->sendChangeEmailConfirmationEmail($user);
         } catch (UnparseableRequestHeaderException) {
+            $this->entityManager->refresh($user);
+
             return new Response(null, Response::HTTP_BAD_REQUEST);
         }
 
-        $response = new Response(null, $emailSuccess ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
-        $response->setCache([
-            'private' => true,
-            's_maxage' => 0,
-            'max_age' => 0,
-        ]);
+        if (!$emailSuccess) {
+            $this->entityManager->refresh($user);
+        }
 
-        return $response;
+        return UserEmailResponse::sent($emailSuccess);
     }
 }

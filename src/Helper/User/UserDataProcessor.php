@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Exception\RequestLimitReachedException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\TokenGenerator;
@@ -31,16 +32,16 @@ readonly class UserDataProcessor
         private bool $initialEmailVerifiedState,
         private bool $verifyEmailOnRegister,
         private bool $verifyEmailOnChange,
-        private int $tokenTtl = 8600,
+        private int $passwordResetRepeatTtl = 86400,
+        private int $newEmailConfirmationRepeatTtl = 300,
+        private int $emailVerificationRepeatTtl = 300,
     ) {
     }
 
-    public function updatePasswordConfirmationToken(string $usernameQuery): ?AbstractUser
+    public function updatePasswordConfirmationToken(string $usernameQuery): AbstractUser
     {
         $user = $this->findUserByUsername($usernameQuery);
-        if (!$user || $user->isPasswordRequestLimitReached($this->tokenTtl)) {
-            return null;
-        }
+        $this->assertRequestLimitNotReached($user->getPasswordRequestedAt(), $this->passwordResetRepeatTtl);
 
         $username = $user->getUsername();
         if (!$username) {
@@ -89,7 +90,6 @@ readonly class UserDataProcessor
                 if ($newEmail) {
                     $this->setNewEmailConfirmationToken($user);
                 } else {
-                    // invalidate any existing requests
                     $user->setNewEmailConfirmationToken(null);
                     if ($previousUser->getNewEmailAddress() === $user->getEmailAddress() && $user->plainEmailAddressVerifyToken) {
                         $user->plainEmailAddressVerifyToken = null;
@@ -100,7 +100,7 @@ readonly class UserDataProcessor
         }
     }
 
-    private function findUserByUsername(string $usernameQuery): ?AbstractUser
+    private function findUserByUsername(string $usernameQuery): AbstractUser
     {
         $user = $this->userRepository->loadUserByIdentifier($usernameQuery);
         if (!$user) {
@@ -110,26 +110,33 @@ readonly class UserDataProcessor
         return $user;
     }
 
-    public function updateNewEmailToken(string $usernameQuery): ?AbstractUser
+    public function updateNewEmailToken(string $usernameQuery): AbstractUser
     {
         $user = $this->findUserByUsername($usernameQuery);
-        if (!$user || $user->isNewEmailVerifyRequestLimitReached($this->tokenTtl)) {
-            return null;
-        }
+        $this->assertRequestLimitNotReached($user->getNewEmailAddressChangeRequestedAt(), $this->newEmailConfirmationRepeatTtl);
         $this->setNewEmailConfirmationToken($user);
 
         return $user;
     }
 
-    public function updateVerifyEmailToken(string $usernameQuery): ?AbstractUser
+    public function updateVerifyEmailToken(string $usernameQuery): AbstractUser
     {
         $user = $this->findUserByUsername($usernameQuery);
-        if (!$user || $user->isEmailVerifyRequestLimitReached($this->tokenTtl)) {
-            return null;
-        }
+        $this->assertRequestLimitNotReached($user->getEmailAddressVerificationRequestedAt(), $this->emailVerificationRepeatTtl);
         $this->setEmailAddressVerifyToken($user);
 
         return $user;
+    }
+
+    private function assertRequestLimitNotReached(?\DateTimeInterface $lastRequest, int $ttl): void
+    {
+        if (null === $lastRequest) {
+            return;
+        }
+        $retryAfter = $lastRequest->getTimestamp() + $ttl - time();
+        if ($retryAfter > 0) {
+            throw new RequestLimitReachedException($retryAfter);
+        }
     }
 
     private function setNewEmailConfirmationToken(AbstractUser $user): void

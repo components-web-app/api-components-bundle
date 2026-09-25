@@ -129,7 +129,7 @@ API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFact
 | `POST /_/orphaned_resources/scan`, `GET /_/orphaned_resources` | Orphan report (`ROLE_ADMIN`). See **Orphaned resource report**. |
 | `GET /_/health` | Uncached readiness check, 200 or 503 (#312). |
 | `GET /me` | The current user. |
-| `GET /password/reset/request/{username}`, `/resend-verify-email/{username}`, `/resend-verify-new-email/{username}` | Requests whose job is an email: 400 and nothing changed when the link is refused (#326). |
+| `GET /password/reset/request/{username}`, `/resend-verify-email/{username}`, `/resend-verify-new-email/{username}` | Requests whose job is an email: 400 and nothing changed when the link is refused (#326); 429 with `Retry-After` inside the flow's throttle (#331); 503 when the send fails. |
 | `GET /verify-email/{username}/{token}`, `/confirm-email/{username}/{emailAddress}/{token}` | Token links from those emails. |
 
 ### Page hierarchy and routes
@@ -198,7 +198,9 @@ Resources are fetched and cached **individually**. Never embed related data outs
 ### Security and users
 
 - **User email links** (#316): `RefererUrlResolver` uses `Origin`, else `Referer`, reduced to `scheme://host[:port]`, only if it matches `user.email_links.allowed_origins` (anchored by the bundle as `{\A(?:p)\z}i`), else `default_origin`, else the link is refused. The request host is not implicitly trusted. Request input may only be a `RelativeUrlPath`. **Never build an outbound link from a request header without an allow-list.**
-- **A refused email link depends on which kind of email it is** (#326). Where the email is the job (password reset, both resends), the request is a 400 that changes nothing: build the email before flushing the token it carries. After a completed write (every email from `UserEventListener::postWrite()`), the write keeps its status and `UserMailer::afterWrite()` logs the refusal at error; the verify and change-email emails serve both kinds, so the listener must call their `…AfterWrite` variants. Only `UnparseableRequestHeaderException` is caught.
+- **A refused email link depends on which kind of email it is** (#326). Where the email is the job (password reset, both resends), the request is a 400 that changes nothing: build and send the email before flushing the token it carries. After a completed write (every email from `UserEventListener::postWrite()`), the write keeps its status and `UserMailer::afterWrite()` logs the refusal at error; the verify and change-email emails serve both kinds, so the listener must call their `…AfterWrite` variants. Only `UnparseableRequestHeaderException` is caught.
+- **A throttled email request is a 429 with `Retry-After`** (#331), never a 200 that sends nothing. `UserDataProcessor` throws `RequestLimitReachedException` carrying the seconds remaining; the action returns it with nothing sent or changed. Each flow has its own `repeat_ttl_seconds`: `password_reset` (86400), `new_email_confirmation` (300) and `email_verification` (300). Never share one throttle between flows.
+- **The `…RequestedAt` timestamp starts the throttle, so `UserMailer` sets it only after `send()` succeeds**, and flushes it with the token then. A failed send (503) saves nothing: the action refreshes the user, so the token is not replaced by one nobody received.
 - Actions calling `UserDataProcessor::findUserByUsername()` must catch its `InvalidArgumentException` and return 404; it throws rather than returning null.
 - **Code typed against `UserRepositoryInterface` may call only what it declares** (#266). The `@method` tags are not a contract. `loadUserByIdentifier()` matches username *or* email, so check the returned username.
 - `user:create` throws `ValidationFailedException` rather than writing an invalid or duplicate user (#254). There is no DB unique constraint on username or email.
