@@ -34,8 +34,9 @@ use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Symfony\Contracts\Service\ResetInterface;
 
-class CwaFixtureBuilder
+class CwaFixtureBuilder implements ResetInterface
 {
     private const string CREATED = CwaFixtureSummary::CREATED;
     private const string KEPT = CwaFixtureSummary::KEPT;
@@ -67,6 +68,9 @@ class CwaFixtureBuilder
 
     /** @var array<string, Route> */
     private array $namedRoutes = [];
+
+    /** @var array<string, string> path keyed by name, for routes created by this builder */
+    private array $createdRouteNames = [];
 
     /** @var array<int, \Closure> */
     private array $afterRoutesCallbacks = [];
@@ -131,10 +135,40 @@ class CwaFixtureBuilder
 
     public function withManager(ObjectManager $manager): static
     {
+        $this->reset();
         $this->manager = $manager;
-        $this->summary = new CwaFixtureSummary();
 
         return $this;
+    }
+
+    public function reset(): void
+    {
+        $this->manager = null;
+        $this->parentContext = null;
+        $this->summary = new CwaFixtureSummary();
+        $this->layoutBuilders = [];
+        $this->pageSpecs = [];
+        $this->pageDataSpecs = [];
+        $this->orderedRouteSpecs = [];
+        $this->namedRoutes = [];
+        $this->createdRouteNames = [];
+        $this->afterRoutesCallbacks = [];
+        $this->redirectSpecs = [];
+        $this->componentBuilders = [];
+        $this->componentGroupMap = [];
+        $this->namedComponentGroups = [];
+        $this->persistedEntities = [];
+        $this->evaluatedNestedIds = [];
+        $this->firedCallbackIds = [];
+        $this->decisions = [];
+        $this->resolved = [];
+        $this->existing = [];
+        $this->skipped = [];
+        $this->skippedGroupBuilders = [];
+        $this->routedSpecs = [];
+        $this->hasPendingLinks = false;
+        $this->flushing = false;
+        $this->pendingPersists = [];
     }
 
     public function getSummary(): CwaFixtureSummary
@@ -276,6 +310,10 @@ class CwaFixtureBuilder
 
     public function getRoute(string $routeName): Route
     {
+        if (!isset($this->namedRoutes[$routeName]) && ($existing = $this->manager?->getRepository(Route::class)->findOneBy(['name' => $routeName])) instanceof Route) {
+            $this->existing[spl_object_id($existing)] = true;
+            $this->namedRoutes[$routeName] = $existing;
+        }
         if (!isset($this->namedRoutes[$routeName])) {
             throw new \LogicException(\sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
         }
@@ -637,7 +675,7 @@ class CwaFixtureBuilder
             if (null !== $entity->getRoute()) {
                 continue;
             }
-            if ('pageData' === $spec['type'] && null === $spec['route'] && $builder->isWithoutRoute()) {
+            if (null === $spec['route'] && $builder->isWithoutRoute()) {
                 $this->routedSpecs[$builderId] = true;
                 continue;
             }
@@ -657,6 +695,7 @@ class CwaFixtureBuilder
                 }
                 $this->timestampedPersister->persistTimestampedFields($route, true);
                 $this->manager->persist($route);
+                $this->createdRouteNames[$route->getName()] = $route->getPath();
                 if (null !== $spec['routeName']) {
                     $this->namedRoutes[$spec['routeName']] = $route;
                 }
@@ -665,8 +704,12 @@ class CwaFixtureBuilder
             } elseif ('pageData' === $spec['type'] || !$spec['isTemplate']) {
                 $route = $this->routeGenerator->create($entity);
                 $this->manager->persist($route);
-                if (null !== $spec['routeName'] && null !== $entity->getRoute()) {
-                    $this->namedRoutes[$spec['routeName']] = $entity->getRoute();
+                $generated = $entity->getRoute();
+                if (null !== $generated) {
+                    $this->createdRouteNames[$generated->getName()] = $generated->getPath();
+                    if (null !== $spec['routeName']) {
+                        $this->namedRoutes[$spec['routeName']] = $generated;
+                    }
                 }
                 $this->note(self::CREATED, CwaFixtureSummary::ROUTE, (string) $route->getPath());
                 $hadNew = true;
@@ -686,10 +729,24 @@ class CwaFixtureBuilder
                 $this->note(self::KEPT, CwaFixtureSummary::ROUTE, $spec['path']);
                 continue;
             }
-            $route = $this->createExplicitRoute($spec['path'], $spec['name']);
+            if (null !== $spec['name']) {
+                if (isset($this->createdRouteNames[$spec['name']])) {
+                    throw new \LogicException(\sprintf('The redirect "%s" cannot be named "%s", because the route "%s" already has that name.', $spec['path'], $spec['name'], $this->createdRouteNames[$spec['name']]));
+                }
+                $named = $this->findOne(Route::class, ['name' => $spec['name']]);
+                if ($named instanceof Route) {
+                    $this->existing[spl_object_id($named)] = true;
+                    $this->namedRoutes[$spec['name']] = $named;
+                    $this->redirectSpecs[$index]['route'] = $named;
+                    $this->note(self::SKIPPED, CwaFixtureSummary::ROUTE, $spec['path'], 'name in use');
+                    continue;
+                }
+            }
+            $route = $this->createExplicitRoute($spec['path'], $spec['name'] ?? $this->uniqueRouteName($this->deriveRouteName($spec['path'])));
             $route->setRedirect($this->getRoute($spec['to']));
             $this->timestampedPersister->persistTimestampedFields($route, true);
             $this->manager->persist($route);
+            $this->createdRouteNames[$route->getName()] = $route->getPath();
             $this->namedRoutes[$route->getName()] = $route;
             $this->redirectSpecs[$index]['route'] = $route;
             $this->note(self::CREATED, CwaFixtureSummary::ROUTE, $spec['path']);
@@ -854,6 +911,16 @@ class CwaFixtureBuilder
         $route->setName($name ?? $this->deriveRouteName($path));
 
         return $route;
+    }
+
+    private function uniqueRouteName(string $name): string
+    {
+        $candidate = $name;
+        for ($suffix = 1; isset($this->createdRouteNames[$candidate]) || null !== $this->findOne(Route::class, ['name' => $candidate]); ++$suffix) {
+            $candidate = $name . '-' . $suffix;
+        }
+
+        return $candidate;
     }
 
     private function deriveRouteName(string $path): string

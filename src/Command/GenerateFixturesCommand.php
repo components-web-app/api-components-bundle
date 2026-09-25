@@ -44,6 +44,7 @@ class GenerateFixturesCommand extends Command
 {
     private const string INDENT = '        ';
     private const string CLOSURE_USE = 'use ($cwa, &$c, &$g)';
+    private const string IDENTIFIER = '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*';
 
     private array $useClasses = [];
     private int $componentCounter = 0;
@@ -88,13 +89,26 @@ class GenerateFixturesCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Output file path', 'src/DataFixtures/GeneratedScaffold.php');
+        $this->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Output file path; the class is named after the file', 'src/DataFixtures/GeneratedScaffold.php');
+        $this->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'Namespace of the generated class', 'App\\DataFixtures');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var string $outputPath */
         $outputPath = $input->getOption('output');
+        $className = pathinfo($outputPath, \PATHINFO_FILENAME);
+        if (1 !== preg_match('/^' . self::IDENTIFIER . '$/', $className)) {
+            $output->writeln(\sprintf('<error>The output file name "%s" is not a valid PHP class name, so the class could not be named after it.</error>', $className));
+
+            return Command::FAILURE;
+        }
+        $namespace = trim((string) $input->getOption('namespace'), '\\');
+        if (1 !== preg_match('/^' . self::IDENTIFIER . '(\\\\' . self::IDENTIFIER . ')*$/', $namespace)) {
+            $output->writeln(\sprintf('<error>"%s" is not a valid PHP namespace.</error>', $namespace));
+
+            return Command::FAILURE;
+        }
 
         $this->resetState(\dirname($outputPath) . '/assets');
 
@@ -142,7 +156,7 @@ class GenerateFixturesCommand extends Command
         $body .= $this->emitRedirects($routes);
         $body .= $this->emitAfterRoutes();
 
-        file_put_contents($outputPath, $this->buildFile($body));
+        file_put_contents($outputPath, $this->buildFile($body, $namespace, $className));
 
         $output->writeln(\sprintf('<info>Fixture class written to %s</info>', $outputPath));
         if ([] !== $this->assetNames) {
@@ -533,6 +547,9 @@ class GenerateFixturesCommand extends Command
         if (null !== $page->getMetaDescription()) {
             $code .= "{$indent}\$page->metaDescription(" . var_export($page->getMetaDescription(), true) . ");\n";
         }
+        if (null === $page->getRoute() && !$page->isTemplate) {
+            $code .= "{$indent}\$page->withoutRoute();\n";
+        }
         $liveAt = $this->liveAtExpression($page->getRoute());
         if (null !== $liveAt) {
             $code .= "{$indent}\$page->liveAt({$liveAt});\n";
@@ -715,7 +732,7 @@ class GenerateFixturesCommand extends Command
         return $metadata;
     }
 
-    private function buildFile(string $body): string
+    private function buildFile(string $body, string $namespace, string $className): string
     {
         $coreUses = implode("\n", [
             'use Silverback\\ApiComponentsBundle\\Fixture\\AbstractCwaScaffold;',
@@ -731,11 +748,11 @@ class GenerateFixturesCommand extends Command
         return <<<PHP
             <?php
 
-            namespace App\\DataFixtures;
+            namespace {$namespace};
 
             {$coreUses}{$extraUses}
 
-            class GeneratedScaffold extends AbstractCwaScaffold
+            class {$className} extends AbstractCwaScaffold
             {
                 public function build(CwaFixtureBuilder \$cwa): void
                 {

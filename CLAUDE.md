@@ -79,7 +79,7 @@ Prefer Behat scenarios for API behaviour and unit tests for pure logic. **Infect
 - **Test doubles with static switches** (`HubStub`, `MockClientCallback`, `UnreachableDatabaseMiddleware`) are set by a Given step and cleared in `ProfilerContext`'s before/after hooks. Static because the kernel can reboot between requests. Logs are asserted through the `app.monolog.test_handler` Monolog `TestHandler`, because the harness runs with `debug: false` and the profiler's logger collects nothing.
 - **Newly covering a large declarative file costs MSI**, because its mutants start counting. Answer with assertions on the wiring, not exclusions.
 - **PHPUnit in CI is `simple-phpunit`**, using `SYMFONY_PHPUNIT_VERSION` from `phpunit.xml.dist` / `phpunit.coverage.xml.dist`. Keep it on the same major as `phpunit/phpunit` in `composer.json`.
-- **PHPStan baseline:** 69 findings, none of them `method.notFound` (#324 worked through all 23). Fixing a baselined finding means regenerating with `vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon`; a stale entry fails the job. Narrow with `instanceof` or a precise parameter type, never a `@var` override. `src/Resources/skeleton` is excluded.
+- **PHPStan baseline:** 68 findings, none of them `method.notFound` (#324 worked through all 23). Fixing a baselined finding means regenerating with `vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline phpstan-baseline.neon`; a stale entry fails the job. Narrow with `instanceof` or a precise parameter type, never a `@var` override. `src/Resources/skeleton` is excluded.
 - **Infection is not a Composer dependency** (it needs `justinrainbow/json-schema ^6`, the behatch fork needs `^5`). CI downloads the signed phar at `INFECTION_VERSION`; PHPUnit 13.3 needs 0.34.2+. `--only-covered` no longer exists.
 - **Behat on Symfony 8:** `behat/behat` 3.x and `mink-extension` 2.x cap six Symfony components at `^7.0`, which pins the test environment's http-kernel, framework-bundle and friends to 7.4. Bundle code is 8.x-compatible. Watch for stable behat 4 / mink-extension 3.
 
@@ -291,13 +291,13 @@ CwaFixtureBuilder
   ->page(ref, uiSuffix, layout, ?route, ?routeName, isTemplate=false, ?Closure, ?uiClassNames): PageBuilder  (prepends 'CwaPage')
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
   ->component(AbstractComponent): ComponentBuilder
-  ->getRoute(routeName): Route
-  ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name)
+  ->getRoute(routeName): Route                               (a route named in this load, else an existing route with that name)
+  ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name, derived from the path and suffixed -1, -2… when taken)
   ->afterRoutes(Closure(CwaFixtureBuilder)): static          (runs once, after routes exist and before positions are created)
   ->persist(object): static                                  (queued until flush() when called before it)
   ->getSummary(): CwaFixtureSummary, ->reportSummary()       (what the last load created, kept and skipped)
 LayoutBuilder    ->group(name, allow: [], ?Closure, ?locationReference): GroupBuilder, ->uiClassNames(...)
-PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->nested(Closure), ->getRoute()
+PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->withoutRoute(), ->nested(Closure), ->getRoute()
 PageDataBuilder  ->liveAt(?DateTimeImmutable), ->withoutRoute(), ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
 ComponentBuilder ->uiComponent(suffix), ->uiClassNames(...), ->group(name, allow: [], ?Closure)
 GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataClass, propertyName, ?sort)
@@ -308,7 +308,8 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - `PageBuilder::group()` takes `allow:` last so existing positional closure calls keep working.
 - `onRoutesCreated` may only mutate entities already persisted (set on the page data before `->pageData()` so phase one cascades them); it never calls `persist()`.
 - The builder handles timestamping, persisting, dedup of layouts/pages and groups, position sort values (×10), bidirectional links and parent propagation. `allow:` takes class names and resolves collection IRIs.
-- A page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set. `generate-fixtures` emits `->withoutRoute()` for page data that has no route.
+- `Route.name` is unique. A redirect's derived name is made unique against the database and every route the builder created, as `RouteGenerator` does. A redirect `name:` already given to a route in the same load throws, naming that route.
+- A page or page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set; an explicit `route:` wins over it. `generate-fixtures` emits `->withoutRoute()` for page data and non-template pages that have no route.
 
 ### Loading into a database that already has content (#319)
 
@@ -322,19 +323,20 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 | Page data with `withoutRoute()` | nothing | created only when its template page or its parent is created in the same load; otherwise skipped as `unidentifiable` |
 | Group | its reference as built (`name_<owner IRI>` or `name_<locationReference>`) | reused and linked to the owner if needed; **none of its positions or components are created**, including ones new to the scaffold, since components have no identity |
 | Explicit route of a new page or page data | path, or name | the entity is created without a route and the route is left alone (`skipped route (path in use)`); the `routeName` resolves to the route at that path |
-| Redirect | path | kept and registered under its name |
+| Redirect | path, or its `name:` | kept and registered under its name; a `name:` that belongs to another path is `skipped route (name in use)` and registered to that route |
 
 - **Anything reached only through a skipped subtree is not created.** The builder keeps a set of skipped scaffold objects: the scaffold copies of kept entities and everything new they reference, and every component in a kept group (recursively through component-owned groups, including components added to the group later in `afterRoutes`). `persist()`, positions and component builders check whether the object reaches a skipped one through owning associations before persisting it. So a generated scaffold's draft, whose `publishedResource` is a component in a kept group, is skipped rather than persisted with a duplicate of its published component. **Never persist a scaffold object without that check**: `persistWithAssociations()` walks owning associations and would write the whole skipped subtree.
 - `persist()` called before `flush()` is queued until the page and group decisions exist; called during `flush()` (in `afterRoutes` or `onRoutesCreated`) it runs at once.
 - The flush phases, their flush counts, `onRoutesCreated` and #245 are unchanged. Children of kept page data are nested under the existing entity and generate under its route; if that parent has no route, generation still throws `UnroutedParentException`. `onRoutesCreated` is not called for page data that was kept or skipped. A builder's `getRoute()` returns the existing route for kept pages and page data.
 - A page data whose natural path belongs to something else is created and gets a suffixed route, so a second append creates it again. Give such page data an explicit `route:`.
 - **Report.** `AbstractCwaScaffold::load()` calls `reportSummary()`, which writes `CWA scaffold: created …; kept …; skipped …` to the running command's output and logs it at `info`. Each kept or skipped entity is logged at `notice`, created ones at `debug`. The output comes from `ConsoleOutputListener`, which holds the output of the running console command (`console.command`/`console.terminate`, a stack for nested commands, `kernel.reset`). The fixtures executor's own logger is private to the executor and a Monolog console handler shows only `warning` and above at default verbosity, so neither can print a summary at default verbosity. `getSummary()` returns the counts for tests; `withManager()` starts a new summary.
-- **The builder service is shared**, so every scaffold in one `doctrine:fixtures:load` shares its state. A Behat step that loads twice must use a fresh builder or a fresh kernel (`FixtureContext` does both).
+- **Each scaffold is its own load.** The builder service is shared, and the fixtures executor clears the entity manager after every fixture, so `withManager()` calls `reset()` and forgets everything the previous scaffold declared; the service is also tagged `kernel.reset`. A second scaffold reaches the first one's content only through the lookups above: redeclaring a layout or page by reference keeps it, and `getRoute()` falls back to an existing route with that name. Components it adds to a group the first scaffold created are not created, as for any kept group. Carrying builder state across scaffolds held detached entities and failed on flush (#344). `features/fixtures/append.feature` runs two scaffolds in one real `doctrine:fixtures:load`.
 
 ### `generate-fixtures` (#189, #321)
 
 `silverback:api-components:generate-fixtures` writes a scaffold that reloads as the same site. `features/fixtures/generate_fixtures_round_trip.feature` is the authority: it builds a site with the builder, generates, purges, loads the generated file and compares. Add a scenario there for anything new the generator must carry.
 
+- The class is named after the `--output` file and `--namespace` sets its namespace (default `App\DataFixtures`), so the file is PSR-4 loadable wherever it is written. Both are validated before anything is written. The namespace is an option rather than derived from the path, which would need the application's autoload map.
 - The generated code uses numbered `$c[]` / `$g[]` variables and named arguments, never positional arguments after named ones.
 - Component and page data fields come from Doctrine metadata, not public properties. Each is written through its public property, else its setter. Identifiers, timestamps and uploadable storage fields are skipped; values equal to the property default are left out.
 - Stored files are copied to `assets/` beside the output file, without their token, and loaded back through `new File(...)`.

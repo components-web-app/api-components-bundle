@@ -266,9 +266,34 @@ final class FixtureContext implements Context
     }
 
     /**
-     * @When the site is generated as fixtures
+     * @Given the site has a page :parent with no route and a child page :child at the route :path
      */
-    public function theSiteIsGeneratedAsFixtures(): void
+    public function theSiteHasARoutelessPageWithARoutedChild(string $parent, string $child, string $path): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->flush();
+        $layout = $this->manager->getRepository(Layout::class)->findOneBy(['reference' => 'main']);
+
+        $parentPage = $this->newPage($parent, $layout);
+        $parentPage->setTitle(ucfirst($parent));
+        $childPage = $this->newPage($child, $layout);
+        $childPage->setParentPage($parentPage);
+        $route = new Route();
+        $route->setPath($path);
+        $route->setName($child);
+        $route->setPage($childPage);
+        $childPage->setRoute($route);
+        $this->timestampedDataPersister->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->manager->flush();
+    }
+
+    /**
+     * @When the site is generated as fixtures
+     * @When the site is generated as fixtures to the file :fileName
+     */
+    public function theSiteIsGeneratedAsFixtures(string $fileName = 'GeneratedScaffold.php'): void
     {
         $this->builder()->flush();
         $this->manager->flush();
@@ -276,7 +301,7 @@ final class FixtureContext implements Context
 
         $this->outputDirectory = sys_get_temp_dir() . '/cwa-generated-fixtures-' . bin2hex(random_bytes(6));
         mkdir($this->outputDirectory);
-        $this->generatedFile = $this->outputDirectory . '/GeneratedScaffold.php';
+        $this->generatedFile = $this->outputDirectory . '/' . $fileName;
 
         $tester = new CommandTester($this->generateFixturesCommand);
         $status = $tester->execute(['--output' => $this->generatedFile], ['interactive' => false]);
@@ -337,7 +362,10 @@ final class FixtureContext implements Context
         file_put_contents($loadable, $code);
         require $loadable;
 
-        $class = $namespace . '\\GeneratedScaffold';
+        $class = $namespace . '\\' . pathinfo($this->generatedFile, \PATHINFO_FILENAME);
+        if (!class_exists($class, false)) {
+            throw new \RuntimeException(\sprintf("The generated fixtures do not declare the class %s:\n%s", $class, $code));
+        }
 
         return new $class($cwa);
     }
@@ -358,6 +386,16 @@ final class FixtureContext implements Context
     public function theSiteIsGeneratedAsFixturesAndReloaded(): void
     {
         $this->theSiteIsGeneratedAsFixtures();
+        $this->theGeneratedFixturesShouldBeValidPhp();
+        $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
+    }
+
+    /**
+     * @When the site is generated as fixtures to the file :fileName and reloaded
+     */
+    public function theSiteIsGeneratedAsFixturesToTheFileAndReloaded(string $fileName): void
+    {
+        $this->theSiteIsGeneratedAsFixtures($fileName);
         $this->theGeneratedFixturesShouldBeValidPhp();
         $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
     }
@@ -618,6 +656,27 @@ final class FixtureContext implements Context
             $pageData->setTitle($title);
             $cwa->pageData($pageData, template: $template)->withoutRoute();
         };
+    }
+
+    /**
+     * @Given the scaffold has a redirect from :from to the route :to
+     */
+    public function theScaffoldHasARedirect(string $from, string $to): void
+    {
+        $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($from, $to): void {
+            $cwa->redirect($from, to: $to);
+        };
+    }
+
+    /**
+     * @Then the route :path should be named :name
+     */
+    public function theRouteShouldBeNamed(string $path, string $name): void
+    {
+        $actual = $this->findRoute($path)->getName();
+        if ($name !== $actual) {
+            throw new \RuntimeException(\sprintf('The route "%s" is named %s, expected "%s".', $path, var_export($actual, true), $name));
+        }
     }
 
     /**
@@ -932,6 +991,19 @@ final class FixtureContext implements Context
             $this->uploadableFileManager,
             $this->uploadableAttributeReader,
         ))->withManager($this->manager);
+    }
+
+    private function newPage(string $reference, ?Layout $layout): Page
+    {
+        $page = new Page();
+        $page->reference = $reference;
+        $page->uiComponent = 'CwaPagePrimary';
+        $page->isTemplate = false;
+        $page->layout = $layout;
+        $this->timestampedDataPersister->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        return $page;
     }
 
     private function homePageGroup(): GroupBuilder

@@ -26,6 +26,7 @@ use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\HttpFoundation\File\File;
 
 class CwaFixtureBuilderTest extends TestCase
@@ -132,6 +133,51 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
+    public function test_page_without_route_is_persisted_without_a_generated_route(): void
+    {
+        $persisted = [];
+        $flushCount = 0;
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->never())->method('create');
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount), $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $builder->page('parent', 'Primary', layout: 'main')->title('Parent')->withoutRoute();
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages);
+        $this->assertNull($pages[0]->getRoute());
+        $this->assertSame([], array_values(array_filter($persisted, static fn ($e) => $e instanceof Route)));
+        $this->assertSame(1, $flushCount);
+    }
+
+    public function test_an_explicit_route_wins_over_without_route_on_a_page(): void
+    {
+        $builder = $this->makeBuilder();
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->withoutRoute();
+        $builder->flush();
+
+        $this->assertSame('/parent', $page->getRoute()?->getPath());
+        $this->assertSame($page->getRoute(), $builder->getRoute('parent'));
+    }
+
+    public function test_a_child_with_an_explicit_route_under_a_page_without_route_keeps_it(): void
+    {
+        $builder = $this->makeBuilder(routeGenerator: $this->createStub(RouteGeneratorInterface::class));
+        $builder->layout('main', 'Primary');
+        $parent = $builder->page('parent', 'Primary', layout: 'main')->withoutRoute();
+        $parent->nested(static function (CwaFixtureBuilder $child): void {
+            $child->page('child', 'Primary', layout: 'main', route: '/parent/child', routeName: 'child');
+        });
+        $builder->flush();
+
+        $this->assertNull($parent->getRoute());
+        $this->assertSame('/parent/child', $builder->getRoute('child')->getPath());
+        $this->assertSame($parent->getPage(), $builder->getRoute('child')->getPage()?->getParentPage());
+    }
+
     public function test_page_without_route_and_not_template_calls_route_generator(): void
     {
         $persisted = [];
@@ -182,6 +228,49 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $builder->getRoute('home-page');
+    }
+
+    public function test_with_manager_starts_a_new_load_that_forgets_the_previous_scaffold(): void
+    {
+        $firstPersisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($firstPersisted));
+        $firstLayout = $builder->layout('main', 'Primary');
+        $firstLayout->group('top')->add(new DummyComponent());
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->afterRoutes(static function (): void {});
+        $builder->redirect('/old', to: 'home');
+        $builder->flush();
+
+        $secondPersisted = [];
+        $secondFlushCount = 0;
+        $builder->withManager($this->collectingEm($secondPersisted, $secondFlushCount));
+        $secondLayout = $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->flush();
+
+        $this->assertNotSame($firstLayout, $secondLayout);
+        $this->assertSame(['about'], array_map(static fn (Page $p) => $p->reference, array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Page))));
+        $this->assertSame(['/about'], array_map(static fn (Route $r) => $r->getPath(), array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Route))));
+        $this->assertSame([], array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof AbstractComponent)));
+        $this->assertSame($secondLayout->getLayout(), array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Page))[0]->layout);
+        $this->assertSame(2, $secondFlushCount);
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('home');
+    }
+
+    public function test_reset_forgets_the_load(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $layout = $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->flush();
+
+        $builder->reset();
+
+        $this->assertNotSame($layout, $builder->layout('main', 'Primary'));
+        $this->assertSame('CWA scaffold: nothing to load', (string) $builder->getSummary());
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('home');
     }
 
     public function test_layout_group_creates_component_group_with_correct_properties(): void
@@ -2242,6 +2331,56 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame('older', $redirects[1]->getName());
         $this->assertSame($redirects[0], $redirects[1]->getRedirect());
         $this->assertSame($redirects[1], $builder->getRoute('older'));
+    }
+
+    public function test_a_redirect_whose_derived_name_is_taken_by_a_route_of_the_same_load_gets_a_suffix(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about-us', routeName: 'about');
+        $builder->redirect('/about', to: 'about')->redirect('/about/', to: 'about');
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['about-1', 'about-2'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+        $this->assertSame('/about-us', $builder->getRoute('about')->getPath());
+        $this->assertSame($redirects[0], $builder->getRoute('about-1'));
+    }
+
+    public function test_a_redirect_whose_derived_name_is_taken_by_a_generated_route_gets_a_suffix(): void
+    {
+        $persisted = [];
+        $generator = $this->createStub(RouteGeneratorInterface::class);
+        $generator->method('create')->willReturnCallback(static function (object $entity): Route {
+            $route = (new Route())->setPath('/about-us')->setName('about');
+            $entity->setRoute($route);
+
+            return $route;
+        });
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $generator);
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', routeName: 'about-page')->title('About');
+        $builder->redirect('/about', to: 'about-page');
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['about-1'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+    }
+
+    public function test_a_redirect_given_a_name_already_used_in_the_same_load_throws_naming_the_clash(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about-us', routeName: 'about');
+        $builder->redirect('/about', to: 'about', name: 'about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The redirect "/about" cannot be named "about", because the route "/about-us" already has that name.');
+        $builder->flush();
     }
 
     public function test_redirect_to_an_unknown_route_name_throws(): void
