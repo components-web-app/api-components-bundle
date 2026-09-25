@@ -8,6 +8,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - Fixture builder: `PageBuilder::withoutRoute()` keeps a non-template page without a route; `generate-fixtures --namespace` sets the generated class's namespace ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 
 ### Fixed
+- A fixture `redirect()` whose `name:` belongs to a route created in the same load throws even when its path already exists, instead of re-pointing that name at the existing route ([#352](https://github.com/components-web-app/api-components-bundle/pull/352))
 - The new email address and change password forms and `/verify-email` look the user up through `UserRepositoryInterface::loadUserByIdentifier()` instead of the undeclared `find()`/`findOneBy()` ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
 - A failed user email send returns 503 (or is logged after a write) whether or not a logger is configured, instead of a 500 ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))
 - `generate-fixtures` names the class after the `--output` file instead of always `GeneratedScaffold` ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))

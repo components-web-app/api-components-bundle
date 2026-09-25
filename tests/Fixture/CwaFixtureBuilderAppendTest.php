@@ -553,6 +553,20 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::KEPT, CwaFixtureSummary::ROUTE));
     }
 
+    public function test_a_redirect_at_an_existing_path_given_a_name_created_in_the_same_load_throws_naming_the_clash(): void
+    {
+        $this->existing(Route::class, ['path' => '/old'], $this->route('/old', 'old'));
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('about', 'Primary', layout: 'main', route: '/about-us', routeName: 'about');
+        $cwa->redirect('/old', to: 'about', name: 'about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The redirect "/old" cannot be named "about", because the route "/about-us" already has that name.');
+        $cwa->flush();
+    }
+
     public function test_a_redirect_whose_derived_name_belongs_to_an_existing_route_gets_a_suffix(): void
     {
         $this->existing(Route::class, ['name' => 'about'], $this->route('/about-us', 'about'));
