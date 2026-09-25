@@ -15,9 +15,9 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use ApiPlatform\Validator\ValidatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
@@ -97,7 +97,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             $publishedAtDateTime = $publishedAtDateTime->format(\DateTimeInterface::RFC3339_EXTENDED);
         }
 
-        // using static name 'publishedAt' for predictable API and easy metadata object instead of dynamic $configuration->fieldName
         if ($publishedAtDateTime) {
             $resourceMetadata->setPublishable($isPublished, $publishedAtDateTime);
         }
@@ -108,7 +107,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             $context[self::ASSOCIATION] = $reverseAssocObject;
         }
 
-        // display soft validation violations in the response
         if ($this->publishableStatusChecker->isGranted($object)) {
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
@@ -153,9 +151,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
-        // It's a new object
         if (!isset($context[AbstractNormalizer::OBJECT_TO_POPULATE])) {
-            // User doesn't have draft access: force publication date
             if (!$this->publishableStatusChecker->isGranted($type)) {
                 $data[$configuration->fieldName] = date('Y-m-d H:i:s');
             }
@@ -166,8 +162,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         $object = $context[AbstractNormalizer::OBJECT_TO_POPULATE];
         $data = $this->setPublishedAt($data, $configuration, $object);
 
-        // No field has been updated (after publishedAt verified and cleaned/unset if needed): nothing to do here anymore
-        // or User doesn't have draft access: update the original object
         if (
             empty($data)
             || !$this->publishableStatusChecker->isActivePublishedAt($object)
@@ -176,10 +170,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             return $this->denormalizer->denormalize($data, $type, $format, $context);
         }
 
-        // Any field has been modified: create a draft
-        // if we sent 2 simultaneous requests then the initial sql query will have got the live version even if there is a draft now, so let's re-check before creating
-        // todo: perhaps lock the database ona  request for each resource? Or when we come to create a draft and then refresh / re-lookup the published resource here knowing it'll wait until the lock is over
-        // https://www.doctrine-project.org/projects/doctrine-orm/en/3.1/reference/transactions-and-concurrency.html
         $draft = $this->createDraft($object, $configuration, $type);
         $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $draft;
 
@@ -191,7 +181,6 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         if (isset($data[$configuration->fieldName])) {
             $publicationDate = new \DateTimeImmutable($data[$configuration->fieldName]);
 
-            // User changed the publication date with an earlier one on a published resource: ignore it
             if (
                 $this->publishableStatusChecker->isActivePublishedAt($object)
                 && new \DateTimeImmutable() >= $publicationDate
@@ -205,10 +194,8 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
 
     private function unsetRestrictedData($type, array $data, Publishable $configuration): array
     {
-        // It's not possible to change the publishedResource and draftResource properties
         unset($data[$configuration->associationName], $data[$configuration->reverseAssociationName]);
 
-        // User doesn't have draft access: cannot set or change the publication date
         if (!$this->publishableStatusChecker->isGranted($type)) {
             unset($data[$configuration->fieldName]);
         }
@@ -221,24 +208,18 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         $em = $this->getManagerFromType($type);
         $classMetadata = $em->getClassMetadata($type);
 
-        // Resource is a draft: nothing to do here anymore
         if (null !== $classMetadata->getFieldValue($object, $configuration->associationName)) {
             return $object;
         }
 
-        $draft = clone $object; // Identifier(s) should be reset from AbstractComponent::__clone method
+        $draft = clone $object;
 
-        // Empty publishedDate on draft
         $classMetadata->setFieldValue($draft, $configuration->fieldName, null);
 
-        // Set publishedResource on draft
         $classMetadata->setFieldValue($draft, $configuration->associationName, $object);
 
-        // Set draftResource on data if we have permission
         $classMetadata->setFieldValue($object, $configuration->reverseAssociationName, $draft);
 
-        // Clear any writable one-to-many fields, these should still reference the published component, such as component positions
-        // Doesn't matter usually it seems, but where we process uploadable, the one-to-many is not then reassigned later back to the publishable during normalization
         foreach ($classMetadata->getAssociationMappings() as $fieldName => $mapping) {
             if (ClassMetadata::ONE_TO_MANY === $mapping['type'] && $this->propertyAccessor->isWritable($draft, $fieldName)) {
                 $this->propertyAccessor->setValue($draft, $fieldName, new ArrayCollection());
@@ -248,12 +229,9 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         try {
             $this->uploadableFileManager->processClonedUploadable($object, $draft);
         } catch (\InvalidArgumentException $e) {
-            // ok exception, it may not be uploadable...
         }
-        // Add draft object to UnitOfWork
         $em->persist($draft);
 
-        // Clear the cache of the published resource because it should now also return an associated draft
         $event = new ResourceChangedEvent($object, 'updated');
         $this->eventDispatcher->dispatch($event);
 
@@ -291,10 +269,10 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         return $count;
     }
 
-    private function getManagerFromType(string $type): ObjectManager
+    private function getManagerFromType(string $type): EntityManagerInterface
     {
         $em = $this->registry->getManagerForClass($type);
-        if (!$em) {
+        if (!$em instanceof EntityManagerInterface) {
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for class %s', $type));
         }
 

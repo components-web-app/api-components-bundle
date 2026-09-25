@@ -32,13 +32,18 @@ final class RouteAncestorGateResolver
 
     public function andWhereNotGated(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $routeAlias): void
     {
-        $gatedRouteIds = $this->getGatedRouteIds();
+        $manager = $this->registry->getManagerForClass(Route::class);
+        if (!$manager instanceof EntityManagerInterface) {
+            return;
+        }
+
+        $gatedRouteIds = $this->fetchGatedRouteIds($manager);
         if (!$gatedRouteIds) {
             return;
         }
 
         $parameter = $queryNameGenerator->generateParameterName('cwa_gated_route_ids');
-        $identifier = $this->registry->getManagerForClass(Route::class)->getClassMetadata(Route::class)->getSingleIdentifierFieldName();
+        $identifier = $manager->getClassMetadata(Route::class)->getSingleIdentifierFieldName();
 
         $queryBuilder
             ->andWhere($queryBuilder->expr()->notIn("$routeAlias.$identifier", ':' . $parameter))
@@ -55,6 +60,14 @@ final class RouteAncestorGateResolver
             return [];
         }
 
+        return $this->fetchGatedRouteIds($manager);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function fetchGatedRouteIds(EntityManagerInterface $manager): array
+    {
         $result = $manager->getConnection()->executeQuery(
             $this->buildSql($manager),
             ['now' => new \DateTimeImmutable()],

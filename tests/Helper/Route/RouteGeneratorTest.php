@@ -15,10 +15,12 @@ use Cocur\Slugify\Slugify;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
@@ -98,6 +100,30 @@ class RouteGeneratorTest extends TestCase
         $child->setParentPageData($parent);
 
         $this->assertRefusedForMissingParentRoute($child);
+    }
+
+    public function test_generating_a_route_fails_clearly_without_an_orm_entity_manager(): void
+    {
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($this->createStub(ObjectManager::class));
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class));
+        $page = $this->createPage('Programme');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(\sprintf('Could not find entity manager for %s', Page::class));
+        $generator->create($page);
+    }
+
+    public function test_generating_a_route_fails_clearly_without_a_manager(): void
+    {
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn(null);
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class));
+        $page = $this->createPage('Programme');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(\sprintf('Could not find entity manager for %s', Page::class));
+        $generator->create($page);
     }
 
     private function assertRefusedForMissingParentRoute(Page|AbstractPageData $child): void
