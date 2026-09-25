@@ -177,3 +177,13 @@ Feature: Links in user emails only point at an allowed origin
     """
     Then the response status code should be 200
     And the link in the sent email should start with "https://default.website.com/login"
+
+  @restartBrowser
+  Scenario: A refused password reset request leaves the user's existing reset token in place
+    Given there is a user with the username "my_username" password "password" and role "ROLE_USER"
+    And the user has the newPasswordConfirmationToken "abc123" requested at "-2 days"
+    And I add "Origin" header equal to "https://evil.example"
+    When I send a "GET" request to "/password/reset/request/my_username"
+    Then the response status code should be 400
+    And I should not receive any emails
+    And the password reset token for the user "my_username" should still be "abc123"

@@ -62,6 +62,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class DoctrineContext implements Context
@@ -80,9 +81,11 @@ final class DoctrineContext implements Context
     private RouteLiveResolver $routeLiveResolver;
     private KernelInterface $kernel;
     private ?\Throwable $commandException = null;
+    private PasswordHasherFactoryInterface $passwordHasherFactory;
 
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel, PasswordHasherFactoryInterface $passwordHasherFactory)
     {
+        $this->passwordHasherFactory = $passwordHasherFactory;
         $this->kernel = $kernel;
         $this->routeLiveResolver = $routeLiveResolver;
         $this->doctrine = $doctrine;
@@ -2459,6 +2462,23 @@ final class DoctrineContext implements Context
         $count = \count($this->manager->getRepository(User::class)->findBy(['username' => $username]));
         if (0 !== $count) {
             throw new ExpectationException(\sprintf('Expected no user with the username "%s" but found %d', $username, $count), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @Then the password reset token for the user :username should still be :token
+     */
+    public function thePasswordResetTokenShouldStillBe(string $username, string $token): void
+    {
+        $this->manager->clear();
+        /** @var AbstractUser|null $user */
+        $user = $this->manager->getRepository(User::class)->findOneBy(['username' => $username]);
+        if (!$user) {
+            throw new \RuntimeException(\sprintf('The user `%s` does not exist', $username));
+        }
+        $storedToken = $user->getNewPasswordConfirmationToken();
+        if (null === $storedToken || !$this->passwordHasherFactory->getPasswordHasher($user)->verify($storedToken, $token)) {
+            throw new \RuntimeException(\sprintf('The password reset token for the user `%s` is no longer `%s`', $username, $token));
         }
     }
 

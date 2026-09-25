@@ -177,6 +177,7 @@ Resources are fetched and cached **individually**. Never embed related data outs
 ### Security and users
 
 - **User email links** (#316): `RefererUrlResolver` uses `Origin`, else `Referer`, reduced to `scheme://host[:port]`, only if it matches `user.email_links.allowed_origins` (anchored by the bundle as `{\A(?:p)\z}i`), else `default_origin`, else refuse with 400 and send nothing. The request host is not implicitly trusted. Request input may only be a `RelativeUrlPath`. **Never build an outbound link from a request header without an allow-list.**
+- **Build a token email before flushing the token it carries** (#326). A refused link is a 400 that must change nothing: `PasswordRequestAction` refreshes the user instead of flushing. Resolving the origin up front is not equivalent, because an absolute `default_redirect_path` needs none.
 - Actions calling `UserDataProcessor::findUserByUsername()` must catch its `InvalidArgumentException` and return 404; it throws rather than returning null.
 - **Code typed against `UserRepositoryInterface` may call only what it declares** (#266). The `@method` tags are not a contract. `loadUserByIdentifier()` matches username *or* email, so check the returned username.
 - `user:create` throws `ValidationFailedException` rather than writing an invalid or duplicate user (#254). There is no DB unique constraint on username or email.
